@@ -4,3 +4,4 @@ set(PROJECT_SRC "code_fragments.cpp" "code_fragments.hpp" "DataContainerGenerato
 add_executable(DataContainerGenerator ${PROJECT_SRC})
 
 target_compile_features(DataContainerGenerator PRIVATE cxx_std_20 c_std_11)
+ 

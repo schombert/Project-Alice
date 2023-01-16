@@ -1,6 +1,6 @@
 #include "parsing.hpp"
 #include <assert.h>
-
+ 
 char const * advance_to_closing_bracket(char const * pos, char const * end) {
 	int32_t depth_count = 0;
 	bool in_quote = false;

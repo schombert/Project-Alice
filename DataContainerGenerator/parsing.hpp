@@ -184,7 +184,7 @@ struct conversion_def {
 	std::string from;
 	std::string to;
 };
-
+ 
 struct made_id {
 	std::string name;
 	std::string base_type;

@@ -14,7 +14,7 @@ basic_builder& make_query_instance_types(basic_builder& o, prepared_query_defini
 		arg_list += param.name + "(p" + std::to_string(i) + ")";
 		++i;
 	}
-
+	
 	o + substitute{ "param_list", param_list };
 	o + substitute{ "arg_list", arg_list };
 

@@ -13,7 +13,7 @@ public:
 		lines.push_back(l);
 		return *this;
 	}
-};
+}; 
 
 class substitute {
 public:

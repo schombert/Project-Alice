@@ -1,5 +1,5 @@
 #include "code_fragments.hpp"
-
+ 
 basic_builder& make_load_record(basic_builder& o, file_def const & fd) {
 	o + "struct load_record" + class_block{
 		for(auto& ro : fd.relationship_objects) {

@@ -10,7 +10,7 @@ void make_property_member_declarations(basic_builder& o, file_def const& parsed_
 	o + substitute{ "index_type", prop.array_index_type };
 	o + substitute{ "namesp", namesp };
 	o + substitute{ "vector_position", obj.is_expandable ? "ve::unaligned_contiguous_tags" : "ve::contiguous_tags" };
-
+	
 	if(add_prefix)
 		o + heading{ "accessors for @obj@: @prop@" };
 

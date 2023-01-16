@@ -4,7 +4,7 @@
 #include <cstring>
 #include "source_builder.hpp"
 #include "parsing.hpp"
-
+ 
 basic_builder& make_load_record(basic_builder& o, file_def const & fd);
 basic_builder& make_id_definition(basic_builder& o, std::string const& type_name, std::string const& underlying_type);
 basic_builder& make_value_to_vector_type(basic_builder& o, std::string const& qualified_name);

@@ -1,6 +1,6 @@
 #include "code_fragments.hpp"
 
-
+ 
 basic_builder& make_serialize_plan_generator(basic_builder& o, file_def const& parsed_file, load_save_def const& rt) {
 
 	o + substitute{ "rt_name", rt.name };
