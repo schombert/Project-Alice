@@ -593,7 +593,7 @@ void deserialize_relationship_end_links_fragment(basic_builder& o, relationship_
 }
 
 void deserialize_bitfield_property_fragment(basic_builder& o, file_def const& parsed_file,
-	relationship_object_def const& ob, property_def const& prop, bool with_mask) {
+	relationship_object_def const& /*ob*/, property_def const& /*prop*/, bool /*with_mask*/) {
 
 	o + "if(header.is_type(\"bitfield\"))" + block{
 		o + "std::memcpy(@obj@.m_@prop@.vptr(), reinterpret_cast<dcon::bitfield_type const*>(input_buffer)"
@@ -604,7 +604,7 @@ void deserialize_bitfield_property_fragment(basic_builder& o, file_def const& pa
 }
 
 void deserialize_special_vector_property_fragment(basic_builder& o, file_def const& parsed_file,
-	relationship_object_def const& ob, property_def const& prop, bool with_mask) {
+	relationship_object_def const& /*ob*/, property_def const& prop, bool /*with_mask*/) {
 
 	o + "if(header.is_type(\"stable_mk_2_tag\"))" + block{
 		o + "uint32_t ix = 0;";

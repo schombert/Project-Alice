@@ -1380,18 +1380,20 @@ basic_builder& make_internal_move_relationship(basic_builder& o, relationship_ob
 	o + heading{ "container move relationship for @obj@" };
 
 	o + "void internal_move_relationship_@obj@(@obj@_id last_id, @obj@_id id_removed)" + block{
-		std::string params;
-		for(auto& ck : cob.composite_indexes) {
-			for(auto& idx : ck.component_indexes) {
-				if(params.length() > 0)
-					params += ", ";
-				if(idx.property_name == cob.primary_key.property_name)
-					params += idx.object_type + "_id(" + idx.object_type  + "_id::value_base_t(last_id.index()))";
-				else
-					params += cob.name + ".m_" + idx.property_name + ".vptr()[last_id.index()]";
+		{
+			std::string params;
+			for(auto& ck : cob.composite_indexes) {
+				for(auto& idx : ck.component_indexes) {
+					if(params.length() > 0)
+						params += ", ";
+					if(idx.property_name == cob.primary_key.property_name)
+						params += idx.object_type + "_id(" + idx.object_type + "_id::value_base_t(last_id.index()))";
+					else
+						params += cob.name + ".m_" + idx.property_name + ".vptr()[last_id.index()]";
+				}
+				o + substitute{ "params", params } + substitute{ "ckname", ck.name };
+				o + "@obj@.hashm_@ckname@.erase(@obj@.to_@ckname@_keydata(@params@));";
 			}
-			o + substitute{ "params", params } +substitute{ "ckname", ck.name };
-			o + "@obj@.hashm_@ckname@.erase(@obj@.to_@ckname@_keydata(@params@));";
 		}
 		
 

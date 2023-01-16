@@ -294,7 +294,7 @@ type_name_pair parse_type_and_name(char const* start, char const * end) {
 	return result;
 }
 
-qualified_name parse_qual_name(char const* &start, char const * end, char const * global_start, error_record & err) {
+qualified_name parse_qual_name(char const* &start, char const * end, char const * , error_record & ) {
 	qualified_name result;
 
 	char const* non_ws_start = advance_to_non_whitespace_non_comma(start, end);
@@ -865,16 +865,16 @@ relationship_object_def parse_relationship(char const * start, char const * end,
 					member_function_spec ns;
 					ns.signature = remove_ats(extracted.values[0].start, extracted.values[0].end);
 					ns.is_const = false;
-					char const* pos = advance_to_at(extracted.values[0].start, extracted.values[0].end) + 1;
-					char const* id_end = advance_to_identifier_end(pos, extracted.values[0].end);
-					ns.name = std::string(pos, id_end);
-					pos = id_end;
-					while(pos < extracted.values[0].end) {
-						pos = advance_to_at(pos, extracted.values[0].end) + 1;
-						id_end = advance_to_identifier_end(pos, extracted.values[0].end);
-						if(id_end != pos)
-							ns.parameter_names.push_back(std::string(pos, id_end));
-						pos = id_end;
+					char const* local_pos = advance_to_at(extracted.values[0].start, extracted.values[0].end) + 1;
+					char const* id_end = advance_to_identifier_end(local_pos, extracted.values[0].end);
+					ns.name = std::string(local_pos, id_end);
+					local_pos = id_end;
+					while(local_pos < extracted.values[0].end) {
+						local_pos = advance_to_at(local_pos, extracted.values[0].end) + 1;
+						id_end = advance_to_identifier_end(local_pos, extracted.values[0].end);
+						if(id_end != local_pos)
+							ns.parameter_names.push_back(std::string(local_pos, id_end));
+						local_pos = id_end;
 					}
 					result.member_functions.push_back(ns);
 				}
@@ -886,16 +886,16 @@ relationship_object_def parse_relationship(char const * start, char const * end,
 					member_function_spec ns;
 					ns.signature = remove_ats(extracted.values[0].start, extracted.values[0].end);
 					ns.is_const = true;
-					char const* pos = advance_to_at(extracted.values[0].start, extracted.values[0].end) + 1;
-					char const* id_end = advance_to_identifier_end(pos, extracted.values[0].end);
-					ns.name = std::string(pos, id_end);
-					pos = id_end;
-					while(pos < extracted.values[0].end) {
-						pos = advance_to_at(pos, extracted.values[0].end) + 1;
-						id_end = advance_to_identifier_end(pos, extracted.values[0].end);
-						if(id_end != pos)
-							ns.parameter_names.push_back(std::string(pos, id_end));
-						pos = id_end;
+					char const* local_pos = advance_to_at(extracted.values[0].start, extracted.values[0].end) + 1;
+					char const* id_end = advance_to_identifier_end(local_pos, extracted.values[0].end);
+					ns.name = std::string(local_pos, id_end);
+					local_pos = id_end;
+					while(local_pos < extracted.values[0].end) {
+						local_pos = advance_to_at(local_pos, extracted.values[0].end) + 1;
+						id_end = advance_to_identifier_end(local_pos, extracted.values[0].end);
+						if(id_end != local_pos)
+							ns.parameter_names.push_back(std::string(local_pos, id_end));
+						local_pos = id_end;
 					}
 					result.member_functions.push_back(ns);
 				}
@@ -1007,16 +1007,16 @@ relationship_object_def parse_object(char const * start, char const * end, char 
 					member_function_spec ns;
 					ns.signature = remove_ats(extracted.values[0].start, extracted.values[0].end);
 					ns.is_const = false;
-					char const* pos = advance_to_at(extracted.values[0].start, extracted.values[0].end) + 1;
-					char const* id_end = advance_to_identifier_end(pos, extracted.values[0].end);
-					ns.name = std::string(pos, id_end);
-					pos = id_end;
-					while(pos < extracted.values[0].end) {
-						pos = advance_to_at(pos, extracted.values[0].end) + 1;
-						id_end = advance_to_identifier_end(pos, extracted.values[0].end);
-						if(id_end != pos)
-							ns.parameter_names.push_back(std::string(pos, id_end));
-						pos = id_end;
+					char const* local_pos = advance_to_at(extracted.values[0].start, extracted.values[0].end) + 1;
+					char const* id_end = advance_to_identifier_end(local_pos, extracted.values[0].end);
+					ns.name = std::string(local_pos, id_end);
+					local_pos = id_end;
+					while(local_pos < extracted.values[0].end) {
+						local_pos = advance_to_at(local_pos, extracted.values[0].end) + 1;
+						id_end = advance_to_identifier_end(local_pos, extracted.values[0].end);
+						if(id_end != local_pos)
+							ns.parameter_names.push_back(std::string(local_pos, id_end));
+						local_pos = id_end;
 					}
 					result.member_functions.push_back(ns);
 				}
@@ -1028,16 +1028,16 @@ relationship_object_def parse_object(char const * start, char const * end, char 
 					member_function_spec ns;
 					ns.signature = remove_ats(extracted.values[0].start, extracted.values[0].end);
 					ns.is_const = true;
-					char const* pos = advance_to_at(extracted.values[0].start, extracted.values[0].end) + 1;
-					char const* id_end = advance_to_identifier_end(pos, extracted.values[0].end);
-					ns.name = std::string(pos, id_end);
-					pos = id_end;
-					while(pos < extracted.values[0].end) {
-						pos = advance_to_at(pos, extracted.values[0].end) + 1;
-						id_end = advance_to_identifier_end(pos, extracted.values[0].end);
-						if(id_end != pos)
-							ns.parameter_names.push_back(std::string(pos, id_end));
-						pos = id_end;
+					char const* local_pos = advance_to_at(extracted.values[0].start, extracted.values[0].end) + 1;
+					char const* id_end = advance_to_identifier_end(local_pos, extracted.values[0].end);
+					ns.name = std::string(local_pos, id_end);
+					local_pos = id_end;
+					while(local_pos < extracted.values[0].end) {
+						local_pos = advance_to_at(local_pos, extracted.values[0].end) + 1;
+						id_end = advance_to_identifier_end(local_pos, extracted.values[0].end);
+						if(id_end != local_pos)
+							ns.parameter_names.push_back(std::string(local_pos, id_end));
+						local_pos = id_end;
 					}
 					result.member_functions.push_back(ns);
 				}
