@@ -1,0 +1,54 @@
+name: Build Matrix
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  linux-build:
+    strategy:
+      matrix:
+        config: [Release, Debug]
+        compiler: [gcc, clang]
+        os: [ubuntu-latest]
+
+    name: Ubuntu with ${{ matrix.compiler }} (${{ matrix.config }})
+    runs-on: ${{ matrix.os }}
+    steps:
+
+    - name: Set compiler
+      run: |
+        echo "CC=${{ matrix.compiler == 'gcc' && 'gcc' || 'clang'   }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}" >> $GITHUB_ENV
+
+    - name: Configure Build Files
+      run: |
+        cmake . --preset=x64-${{ matrix.config }} -B build
+
+    - name: Build Project Alice
+      run: |
+        cmake --build build --parallel --target ProjectAlice
+
+  windows-build:
+    strategy:
+      matrix:
+        config: [release, debug]
+    runs-on: [windows-latest]
+    name: Windows (${{ matrix.config }})
+    steps:
+    - name: Configure Build Files
+      run: |
+        cmake . -G "Visual Studio 17 2022" --preset=x64-${{ matrix.config }}-windows -B build
+
+    - name: Build Project Alice
+      run: |
+        cmake --build build --parallel --target ProjectAlice
+
+  build-check:
+    needs: [windows-build, linux-build]
+    runs-on: ubuntu-latest
+    name: Build Matrix
+    steps:
+      - name: Check
+        run: |
+          echo success
