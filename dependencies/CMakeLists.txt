@@ -1,0 +1,3 @@
+include(FetchContent)
+
+add_subdirectory(DataContainerGenerator)

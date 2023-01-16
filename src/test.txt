@@ -1,0 +1,10 @@
+object{
+    name{person}
+    storage_type{contiguous}
+    size{100}
+    
+    property{
+        name{age}
+        type{int32_t}
+    }
+}
