@@ -7,6 +7,9 @@ out/
 docs/out/
 .vscode/
 
+# DataContainer generated
+src/test.hpp
+
 # User-specific files
 *.rsuser
 *.suo
