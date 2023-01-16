@@ -8,7 +8,7 @@ jobs:
   linux-build:
     strategy:
       matrix:
-        config: [Release, Debug]
+        config: [release, debug]
         compiler: [gcc, clang]
         os: [ubuntu-latest]
 
@@ -23,7 +23,7 @@ jobs:
 
     - name: Configure Build Files
       run: |
-        cmake . --preset=x64-${{ matrix.config }} -B build
+        cmake --preset=x64-${{ matrix.config }} -B build
 
     - name: Build Project Alice
       run: |
@@ -38,7 +38,7 @@ jobs:
     steps:
     - name: Configure Build Files
       run: |
-        cmake . -G "Visual Studio 17 2022" --preset=x64-${{ matrix.config }}-windows -B build
+        cmake -G "Visual Studio 17 2022" --preset=x64-${{ matrix.config }}-windows -B build
 
     - name: Build Project Alice
       run: |
