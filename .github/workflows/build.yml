@@ -23,6 +23,7 @@ jobs:
 
     - name: Configure Build Files
       run: |
+        ll
         cmake --preset=x64-${{ matrix.config }} -B build
 
     - name: Build Project Alice
