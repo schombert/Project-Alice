@@ -276,6 +276,34 @@ namespace parsers {
 		return rvalue;
 	}
 
+	bool starts_with(std::string_view content, char v) {
+		return content.length() != 0 && content[0] == v;
+	}
+
+	association_type parse_association_type(std::string_view content, int32_t line, error_handler& err) {
+		if(content.length() == 1) {
+			if(content[0] == '>')
+				return association_type::gt;
+			else if(content[0] == '<')
+				return association_type::gt;
+			else if(content[0] == '=')
+				return association_type::eq_default;
+		} else if(content.length() == 2) {
+			if(content[0] == '=' && content[1] == '=')
+				return association_type::eq;
+			else if(content[0] == '<' && content[1] == '=')
+				return association_type::le;
+			else if(content[0] == '>' && content[1] == '=')
+				return association_type::ge;
+			else if(content[0] == '!' && content[1] == '=')
+				return association_type::ne;
+			else if(content[0] == '<' && content[1] == '>')
+				return association_type::ne;
+		}
+		err.bad_association_token(content, line);
+		return association_type::none;
+	}
+
 	/*
 	date_tag parse_date(std::string_view content, int32_t line, error_handler& err) {
 		const auto first_dot = std::find(start, end, '.');

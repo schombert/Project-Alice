@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 file(GLOB_RECURSE MAIN_SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 add_executable(ProjectAlice "${MAIN_SOURCES}")
 
+set(PRIMARY_PROJECT_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
+
 add_compile_definitions(VE_NO_TBB)
 if(MSVC)
 	string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})

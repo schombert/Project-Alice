@@ -1,0 +1,7 @@
+basic_object_a
+	#value: int, member, (int_value)
+	#set: discard, none, group
+	#any: value member_fn text
+	key_A: value member int
+	key_C: value member float (float_value)
+	key_B: group, none, discard

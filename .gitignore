@@ -19,6 +19,7 @@ src/test.hpp
 *.userosscache
 *.sln.docstates
 CMakeUserPresets.json
+*.runsettings
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

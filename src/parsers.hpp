@@ -32,6 +32,11 @@ namespace parsers {
 		unknown
 	};
 
+	enum class association_type : unsigned short {
+		none, eq, lt, le, gt, ge, ne, eq_default, list
+	};
+
+
 	struct token_and_type {
 		std::string_view content;
 		int32_t line = 0;
@@ -98,6 +103,9 @@ namespace parsers {
 		void bad_unsigned_int(std::string_view s, int32_t l) {
 			accumulated_errors += "tried to parse  " + std::string(s) + " as an unsigned integer on line " + std::to_string(l) + " of file " + file_name + "\n";
 		}
+		void bad_association_token(std::string_view s, int32_t l) {
+			accumulated_errors += "tried to parse  " + std::string(s) + " as equality or comparison on line " + std::to_string(l) + " of file " + file_name + "\n";
+		}
 	};
 
 	float parse_float(std::string_view content, int32_t line, error_handler& err);
@@ -105,5 +113,7 @@ namespace parsers {
 	double parse_double(std::string_view content, int32_t line, error_handler& err);
 	int32_t parse_int(std::string_view content, int32_t line, error_handler& err);
 	uint32_t parse_uint(std::string_view content, int32_t line, error_handler& err);
+	association_type parse_association_type(std::string_view content, int32_t line, error_handler& err);
+	inline std::string_view parse_text(std::string_view content, int32_t line, error_handler& err) { return content; }
 	//date_tag parse_date(std::string_view content, int32_t line, error_handler& err);
 }

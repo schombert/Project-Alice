@@ -133,16 +133,6 @@ struct file_contents {
 	std::vector<group_contents> groups;
 };
 
-std::string type_string_to_type(std::string const& t) {
-	if(t.length() == 0)
-		return "token_and_type";
-	if(t == "token")
-		return "token_and_type";
-	if(t == "date")
-		return "date_tag";
-	return t;
-}
-
 const char* value_to_digit(uint32_t val) {
 	switch(val) {
 		case 0:  return "0";
@@ -188,18 +178,18 @@ std::string final_match_condition_internal(std::string const& key, int32_t start
 
 	if(key.length() - starting_position >= 8) {
 		return
-			" && (*(uint64_t*)(cur.start + " + std::to_string(starting_position) + ") | 0x2020202020202020ui64) == " + string_to_hex(key, starting_position, 8) + "ui64"
+			" && (*(uint64_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | 0x2020202020202020ui64) == " + string_to_hex(key, starting_position, 8) + "ui64"
 			+ final_match_condition_internal(key, starting_position + 8);
 	} else if(key.length() - starting_position >= 4) {
 		return
-			" && (*(uint32_t*)(cur.start + " + std::to_string(starting_position) + ") | 0x20202020ui32) == " + string_to_hex(key, starting_position, 4) + "ui32"
+			" && (*(uint32_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | 0x20202020ui32) == " + string_to_hex(key, starting_position, 4) + "ui32"
 			+ final_match_condition_internal(key, starting_position + 4);
 	} else if(key.length() - starting_position >= 2) {
 		return
-			" && (*(uint16_t*)(cur.start + " + std::to_string(starting_position) + ") | 0x2020) == " + string_to_hex(key, starting_position, 2)
+			" && (*(uint16_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | 0x2020) == " + string_to_hex(key, starting_position, 2)
 			+ final_match_condition_internal(key, starting_position + 2);
 	} else { /// single char
-		return " && (*(cur.start + " + std::to_string(starting_position) + ") | 0x20) == " + string_to_hex(key, starting_position, 1);
+		return " && (*(cur.content.data() + " + std::to_string(starting_position) + ") | 0x20) == " + string_to_hex(key, starting_position, 1);
 	}
 }
 
@@ -264,7 +254,7 @@ int32_t max_length(T const& vector) {
 
 template<typename T, typename F>
 std::string construct_match_tree_internal(T const& vector, F const& generator_match, std::string const& no_match, std::string const& prefix, int32_t length) {
-	std::string output = "\t\t\t\t\t switch(0x20 | int32_t(*(cur.start + " + std::to_string(prefix.length()) + "))) {\n";
+	std::string output = "\t\t\t\t\t switch(0x20 | int32_t(*(cur.content.data() + " + std::to_string(prefix.length()) + "))) {\n";
 
 	for(int32_t c = 32; c <= 95; ++c) {
 		int32_t count = count_with_prefix(vector, prefix + char(c), length);
@@ -298,7 +288,7 @@ std::string construct_match_tree_internal(T const& vector, F const& generator_ma
 template<typename T, typename F>
 std::string construct_match_tree_outer(T const& vector, F const& generator_match, std::string const& no_match) {
 	auto const maxlen = max_length(vector);
-	std::string output = "\t\t\t\t switch(int32_t(cur.end - cur.start)) {\n";
+	std::string output = "\t\t\t\t switch(int32_t(cur.content.length())) {\n";
 
 	for(int32_t l = 1; l <= maxlen; ++l) {
 		int32_t count = count_with_prefix(vector, "", l);
@@ -387,8 +377,7 @@ int main(int argc, char* argv[]) {
 				std::string key = extract_string(input, file_end);
 
 				if(key == "#value") {
-					std::string value_type = extract_optional(input, file_end);
-
+					std::string value_type = extract_string(input, file_end);
 					std::string handler_type = extract_string(input, file_end);
 					std::string handler_opt = extract_optional(input, file_end);
 
@@ -396,7 +385,7 @@ int main(int argc, char* argv[]) {
 					file.groups.back().single_value_handler_result = value_and_optional{ handler_type, handler_opt };
 				} else if(key == "#set") {
 					std::string type = extract_string(input, file_end);
-					std::string opt = extract_optional(input, file_end);
+					std::string opt = extract_string(input, file_end);
 
 					std::string handler_type = extract_string(input, file_end);
 					std::string handler_opt = extract_optional(input, file_end);
@@ -424,7 +413,7 @@ int main(int argc, char* argv[]) {
 					}
 				} else {
 					std::string type = extract_string(input, file_end);
-					std::string opt = extract_optional(input, file_end);
+					std::string opt = extract_string(input, file_end);
 
 					std::string handler_type = extract_string(input, file_end);
 					std::string handler_opt = extract_optional(input, file_end);
@@ -445,6 +434,30 @@ int main(int argc, char* argv[]) {
 						} else if(type == "extern") {
 							file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true });
 						}
+
+						/*
+						groups:
+						
+						key: type, opt, handler_type (handler_opt)
+
+						type = (group, extern -> groups, value -> values) 
+
+						key = association.key
+						opt = association.type_or_function
+						handler_type = handler.value
+						handler_opt = handler.opt
+
+						values:
+
+						key: type, opt, handler_type (handler_opt)
+
+						type = (group, extern -> groups, value -> values)
+
+						key = association.key
+						opt = association.type
+						handler_type = handler.value
+						handler_opt = handler.opt
+						*/
 					}
 				}
 			}
@@ -478,8 +491,8 @@ int main(int argc, char* argv[]) {
 		// declare fns
 
 		for(auto& g : file.groups) {
-			output += "template<typename C = int32_t>\n";
-			output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, error_handler& err, C&& context = 0);\n";
+			output += "template<typename C>\n";
+			output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, error_handler& err, C&& context);\n";
 		}
 		output += "\n";
 
@@ -514,7 +527,7 @@ int main(int argc, char* argv[]) {
 					}
 				} else {
 					if(g.set_handler.handler.value == "discard") {
-						set_effect = g.set_handler.type_or_function + "(cur, gen, err, context);";
+						set_effect = "gen.discard_group();";
 					} else if(g.set_handler.handler.value == "member") {
 						set_effect = "cobj." +
 							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
@@ -546,6 +559,17 @@ int main(int argc, char* argv[]) {
 			output += "\t\t\t\t gen.get(); gen.get();\n";
 
 			{
+				/*
+					#any: type, opt, handler_type (handler_opt)
+
+					type = (group, extern -> groups, value -> values)
+
+					key = association.key
+					opt = association.type_or_function
+					handler_type = handler.value
+					handler_opt = handler.opt
+				*/
+
 				std::string no_match_effect;
 				if(g.any_group_handler.is_extern == false) {
 					if(g.any_group_handler.handler.value == "discard") {
@@ -585,6 +609,17 @@ int main(int argc, char* argv[]) {
 					}
 				}
 
+				/*
+					key: type, opt, handler_type (handler_opt)
+
+					type = (group, extern -> groups, value -> values)
+
+					key = association.key
+					opt = association.type_or_function
+					handler_type = handler.value
+					handler_opt = handler.opt
+				*/
+
 				auto match_handler = [](group_association const& v) {
 					std::string out;
 					if(v.is_extern) {
@@ -592,13 +627,13 @@ int main(int argc, char* argv[]) {
 							out = v.type_or_function + "(gen, err, context);";
 						} else if(v.handler.value == "member") {
 							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								" = " + type_string_to_type(v.type_or_function) + "(gen, err, context);";
+								" = " + v.type_or_function + "(gen, err, context);";
 						} else if(v.handler.value == "member_fn") {
 							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
+								"(" + v.type_or_function + "(gen, err, context), err, context);";
 						} else if(v.handler.value == "function") {
 							out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(cobj, " + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
+								"(cobj, " + v.type_or_function + "(gen, err, context), err, context);";
 						} else {
 							out = "err.unhandled_group_key(cur);";
 						}
@@ -607,13 +642,13 @@ int main(int argc, char* argv[]) {
 							out = "gen.discard_group();";
 						} else if(v.handler.value == "member") {
 							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								" = parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context);";
+								" = parse_" + v.type_or_function + "(gen, err, context);";
 						} else if(v.handler.value == "member_fn") {
 							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
+								"(parse_" + v.type_or_function + "(gen, err, context), err, context);";
 						} else if(v.handler.value == "function") {
 							out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(cobj, parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
+								"(cobj, parse_" + v.type_or_function + "(gen, err, context), err, context);";
 						} else {
 							out = "err.unhandled_group_key(cur);";
 						}
@@ -627,7 +662,7 @@ int main(int argc, char* argv[]) {
 			output += "\t\t\t } else {\n"; // next next != open brace
 
 			output += "\t\t\t\t auto const assoc_token = gen.get();\n";
-			output += "\t\t\t\t auto const assoc_type = parse_association_type_b(assoc_token.start, assoc_token.end);\n";
+			output += "\t\t\t\t auto const assoc_type = parse_association_type(assoc_token.content, assoc_token.line, err);\n";
 			output += "\t\t\t\t auto const rh_token = gen.get();\n";
 
 			// match values
@@ -638,18 +673,29 @@ int main(int argc, char* argv[]) {
 				} else if(g.any_value_handler.handler.value == "member") {
 					no_match_effect = "cobj." +
 						(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-						" = token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err);";
+						" = parse_" + g.any_value_handler.type + "(rh_token.content, rh_token.line, err);";
 				} else if(g.any_value_handler.handler.value == "member_fn") {
 					no_match_effect = "cobj." +
 						(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-						"(cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), err, context);";
+						"(cur, assoc_type, parse_" + g.any_value_handler.type + "(rh_token.content, rh_token.line, err), err, context);";
 				} else if(g.any_value_handler.handler.value == "function") {
 					no_match_effect =
 						(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-						"(cobj, cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), err, context);";
+						"(cobj, cur, assoc_type, parse_" + g.any_value_handler.type + "(rh_token.content, rh_token.line, err), err, context);";
 				} else {
 					no_match_effect = "err.unhandled_association_key(cur);";
 				}
+
+				/*
+					key: type, opt, handler_type (handler_opt)
+
+					type = (group, extern -> groups, value -> values)
+
+					key = association.key
+					opt = association.type
+					handler_type = handler.value
+					handler_opt = handler.opt
+				*/
 
 				auto match_handler = [](value_association const& v) {
 					std::string out;
@@ -657,13 +703,13 @@ int main(int argc, char* argv[]) {
 
 					} else if(v.handler.value == "member") {
 						out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-							" = token_to<" + type_string_to_type(v.type) + ">(rh_token, err);";
+							" = parse_" + v.type + "(rh_token.content, rh_token.line, err);";
 					} else if(v.handler.value == "member_fn") {
 						out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-							"(assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), err, context);";
+							"(assoc_type, parse_" + v.type + "(rh_token.content, rh_token.line, err), err, context);";
 					} else if(v.handler.value == "function") {
 						out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-							"(cobj, assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), err, context);";
+							"(cobj, assoc_type, parse_" + v.type + "(rh_token.content, rh_token.line, err), err, context);";
 					} else {
 						out = "err.unhandled_association_key(cur);";
 					}
@@ -684,15 +730,15 @@ int main(int argc, char* argv[]) {
 				} else if(g.single_value_handler_result.value == "member") {
 					output += "\t\t\t cobj." +
 						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-						"= token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err);\n";
+						"= parse_" + g.single_value_handler_type + "(cur.content, cur.line, err);\n";
 				} else if(g.single_value_handler_result.value == "member_fn") {
 					output += "\t\t\t cobj." +
 						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-						"(token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), err, context);\n";
+						"(parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, context);\n";
 				} else if(g.single_value_handler_result.value == "function") {
 					output += "\t\t\t " +
 						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-						"(cobj, token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), err, context);\n";
+						"(cobj, parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, context);\n";
 				}
 			} else {
 				output += "\t\t\t err.unhandled_free_value(cur);\n"; // end next token if
@@ -701,7 +747,7 @@ int main(int argc, char* argv[]) {
 			output += "\t\t }\n"; // end next token if
 
 			output += "\t }\n"; // end token loop
-			output += "\t finish_parse(cobj);\n";
+			output += "\t cobj.finish();\n";
 			output += "\t return cobj;\n";
 			output += "}\n"; // end fn
 		}

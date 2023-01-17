@@ -10,12 +10,12 @@ set (WILDCARD_SOURCE *.cpp)
 
 file(GLOB_RECURSE TEST_SOURCES ${WILDCARD_SOURCE})
 
-add_executable(tests_project ${TEST_SOURCES})
+add_executable(tests_project ${TEST_SOURCES} "${PRIMARY_PROJECT_DIRECTORY}/parsers.cpp")
 
 target_compile_options(tests_project PRIVATE
 	$<$<CXX_COMPILER_ID:GNU>:     -Wall -Wextra   -Wpedantic      -Werror                     $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
 	$<$<CXX_COMPILER_ID:Clang>:   -Wall -Wextra   -Wpedantic      -Werror                     $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
-	$<$<CXX_COMPILER_ID:MSVC>: /wd4100 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /RTC1 $<$<CONFIG:Debug>:/EHsc /MTd /Od>  $<$<NOT:$<CONFIG:Debug>>:/wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>>)
+	$<$<CXX_COMPILER_ID:MSVC>: /wd4100 /wd4189 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /RTC1 $<$<CONFIG:Debug>:/EHsc /MTd /Od>  $<$<NOT:$<CONFIG:Debug>>:/wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>>)
 target_link_options(tests_project PRIVATE
 	$<$<CXX_COMPILER_ID:GNU>:   $<$<CONFIG:Debug>: >   $<$<NOT:$<CONFIG:Debug>>: >>
 	$<$<CXX_COMPILER_ID:Clang>:  $<$<CONFIG:Debug>: >   $<$<NOT:$<CONFIG:Debug>>: >>
@@ -29,7 +29,20 @@ target_link_libraries(tests_project
     Catch2::Catch2
 )
 
-message(${catch2_SOURCE_DIR})
+# GENERATE test parsers
+set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/test_parsers)
+
+# The command to build the generated testparsers file
+add_custom_command(
+  OUTPUT ${CONTAINER_PATH}_generated.hpp
+  COMMAND ParserGenerator ${CONTAINER_PATH}.txt
+  DEPENDS ${CONTAINER_PATH}.txt
+  VERBATIM)
+
+# Sets a dependency on the generated file 
+add_custom_target(GENERATE_TEST_PARSERS DEPENDS ${CONTAINER_PATH}_generated.hpp)
+add_dependencies(tests_project GENERATE_TEST_PARSERS)
+target_include_directories(tests_project PUBLIC ${PRIMARY_PROJECT_DIRECTORY})
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 include(CTest)
