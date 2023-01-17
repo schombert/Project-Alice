@@ -9,6 +9,8 @@ docs/out/
 
 # DataContainer generated
 src/test.hpp
+# Generated parsers
+*_generated.hpp
 
 # User-specific files
 *.rsuser
@@ -16,6 +18,7 @@ src/test.hpp
 *.user
 *.userosscache
 *.sln.docstates
+CMakeUserPresets.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

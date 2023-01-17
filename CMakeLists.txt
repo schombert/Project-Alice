@@ -1,11 +1,13 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
+
 cmake_minimum_required (VERSION 3.15)
+
 project (ProjectAlice LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
- 
+
 file(GLOB_RECURSE MAIN_SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 add_executable(ProjectAlice "${MAIN_SOURCES}")
 
@@ -35,6 +37,7 @@ endif()
 
 # Include sub-projects.
 add_subdirectory (dependencies)
+add_subdirectory (ParserGenerator)
 
 target_link_libraries(ProjectAlice PRIVATE
 	dependency_DataContainer)
@@ -52,3 +55,8 @@ add_custom_command(
 # Sets a dependency on the generated file 
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(ProjectAlice GENERATE_CONTAINER)
+
+if (BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

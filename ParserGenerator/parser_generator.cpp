@@ -1,10 +1,41 @@
-#include "pch.h"
-#include <Windows.h>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <iostream>
 
-#undef max
-#undef min
+struct row_col_pair {
+	int32_t row;
+	int32_t column;
+};
+
+struct error_record {
+	std::string accumulated;
+	std::string file_name;
+
+	error_record(std::string const& fn) : file_name(fn) {
+	}
+
+	void add(row_col_pair const& rc, int32_t code, std::string const& s) {
+		//<origin>[(position)]: [category] <kind> <code>: <description>
+
+		accumulated += file_name;
+		if(rc.row > 0) {
+			if(rc.column > 0) {
+				accumulated += "(" + std::to_string(rc.row) + "," + std::to_string(rc.column) + ")";
+			} else {
+				accumulated += "(" + std::to_string(rc.row) + ")";
+			}
+		} else {
+
+		}
+		accumulated += ": error ";
+		accumulated += std::to_string(code);
+		accumulated += ": ";
+		accumulated += s;
+		accumulated += "\n";
+	}
+};
+
 
 std::string extract_string(char const* & input, char const* end) {
 	while(input < end && (*input == ' ' || *input == '(' || *input == ',' || *input == ':' || *input == '-' || *input == '>' || *input == '\r' || *input == '\n'))
@@ -99,8 +130,6 @@ struct group_contents {
 };
 
 struct file_contents {
-	std::string namespace_name;
-
 	std::vector<group_contents> groups;
 };
 
@@ -235,7 +264,7 @@ int32_t max_length(T const& vector) {
 
 template<typename T, typename F>
 std::string construct_match_tree_internal(T const& vector, F const& generator_match, std::string const& no_match, std::string const& prefix, int32_t length) {
-	std::string output = "\t\t\t\t\t switch(0x20 | int32_t(*(cur.start + " + std::to_string(prefix.length()) + "))) {\r\n";
+	std::string output = "\t\t\t\t\t switch(0x20 | int32_t(*(cur.start + " + std::to_string(prefix.length()) + "))) {\n";
 
 	for(int32_t c = 32; c <= 95; ++c) {
 		int32_t count = count_with_prefix(vector, prefix + char(c), length);
@@ -243,25 +272,25 @@ std::string construct_match_tree_internal(T const& vector, F const& generator_ma
 		if(count == 0) {
 			//skip
 		} else if(count == 1) {
-			output += "\t\t\t\t\t case 0x" + char_to_hex(char(c)) + ":\r\n";
+			output += "\t\t\t\t\t case 0x" + char_to_hex(char(c)) + ":\n";
 			enum_with_prefix(vector, prefix + char(c), length, [&output, &generator_match, &no_match, &prefix](auto& v) {
-				output += "\t\t\t\t\t\t if(" + final_match_condition(v.key, int32_t(prefix.length()) + 1) + ") {\r\n";
-				output += "\t\t\t\t\t\t\t " + generator_match(v) + "\r\n";
-				output += "\t\t\t\t\t\t } else {\r\n";
-				output += "\t\t\t\t\t\t\t " + no_match + "\r\n";
-				output += "\t\t\t\t\t\t }\r\n";
+				output += "\t\t\t\t\t\t if(" + final_match_condition(v.key, int32_t(prefix.length()) + 1) + ") {\n";
+				output += "\t\t\t\t\t\t\t " + generator_match(v) + "\n";
+				output += "\t\t\t\t\t\t } else {\n";
+				output += "\t\t\t\t\t\t\t " + no_match + "\n";
+				output += "\t\t\t\t\t\t }\n";
 			});
-			output += "\t\t\t\t\t\t break;\r\n";
+			output += "\t\t\t\t\t\t break;\n";
 		} else {
-			output += "\t\t\t\t\t case 0x" + char_to_hex(char(c)) + ":\r\n";
+			output += "\t\t\t\t\t case 0x" + char_to_hex(char(c)) + ":\n";
 			output += construct_match_tree_internal(vector, generator_match, no_match, prefix + char(c), length);
-			output += "\t\t\t\t\t\t break;\r\n";
+			output += "\t\t\t\t\t\t break;\n";
 		}
 	}
 
-	output += "\t\t\t\t\t default:\r\n";
-	output += "\t\t\t\t\t\t " + no_match + "\r\n";
-	output += "\t\t\t\t\t }\r\n";
+	output += "\t\t\t\t\t default:\n";
+	output += "\t\t\t\t\t\t " + no_match + "\n";
+	output += "\t\t\t\t\t }\n";
 
 	return output;
 }
@@ -269,7 +298,7 @@ std::string construct_match_tree_internal(T const& vector, F const& generator_ma
 template<typename T, typename F>
 std::string construct_match_tree_outer(T const& vector, F const& generator_match, std::string const& no_match) {
 	auto const maxlen = max_length(vector);
-	std::string output = "\t\t\t\t switch(int32_t(cur.end - cur.start)) {\r\n";
+	std::string output = "\t\t\t\t switch(int32_t(cur.end - cur.start)) {\n";
 
 	for(int32_t l = 1; l <= maxlen; ++l) {
 		int32_t count = count_with_prefix(vector, "", l);
@@ -277,401 +306,422 @@ std::string construct_match_tree_outer(T const& vector, F const& generator_match
 		if(count == 0) {
 			// skip
 		} else if(count == 1) {
-			output += "\t\t\t\t case " + std::to_string(l) + ":\r\n";
+			output += "\t\t\t\t case " + std::to_string(l) + ":\n";
 			enum_with_prefix(vector, "", l, [&output, &generator_match, &no_match](auto& v) {
-				output += "\t\t\t\t\t if(" + final_match_condition(v.key, 0) + ") {\r\n";
-				output += "\t\t\t\t\t\t " + generator_match(v) + "\r\n";
-				output += "\t\t\t\t\t } else {\r\n";
-				output += "\t\t\t\t\t\t " + no_match + "\r\n";
-				output += "\t\t\t\t\t }\r\n";
+				output += "\t\t\t\t\t if(" + final_match_condition(v.key, 0) + ") {\n";
+				output += "\t\t\t\t\t\t " + generator_match(v) + "\n";
+				output += "\t\t\t\t\t } else {\n";
+				output += "\t\t\t\t\t\t " + no_match + "\n";
+				output += "\t\t\t\t\t }\n";
 			});
-			output += "\t\t\t\t\t break;\r\n";
+			output += "\t\t\t\t\t break;\n";
 		} else {
-			output += "\t\t\t\t case " + std::to_string(l) + ":\r\n";
+			output += "\t\t\t\t case " + std::to_string(l) + ":\n";
 			output += construct_match_tree_internal(vector, generator_match, no_match, "", l);
-			output += "\t\t\t\t\t break;\r\n";
+			output += "\t\t\t\t\t break;\n";
 		}
 	}
 
-	output += "\t\t\t\t default:\r\n";
-	output += "\t\t\t\t\t " + no_match + "\r\n";
-	output += "\t\t\t\t }\r\n";
+	output += "\t\t\t\t default:\n";
+	output += "\t\t\t\t\t " + no_match + "\n";
+	output += "\t\t\t\t }\n";
 	return output;
 }
 
-int wmain(int argc, wchar_t *argv[]) {
-	for(int32_t i = 1; i < argc; ++i) {
+void clear_file(std::string const& file_name) {
+	std::fstream fileout;
+	fileout.open(file_name, std::ios::out);
+	if(fileout.is_open()) {
+		fileout << "";
+		fileout.close();
+	}
+}
 
-		if(lstrlen(argv[i]) <= 0)
-			continue;
-	
-		const auto handle = CreateFile(argv[i], GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-		if(handle != INVALID_HANDLE_VALUE) {
+int main(int argc, char* argv[]) {
+	if(argc > 1) {
 
-			LARGE_INTEGER file_size;
-			GetFileSizeEx(handle, &file_size);
-			auto const sz = (size_t)(file_size.QuadPart);
+		std::fstream input_file;
+		std::string input_file_name(argv[1]);
+		input_file.open(argv[1], std::ios::in);
 
-			char* buffer = new char[sz];
-			DWORD read;
-			ReadFile(handle, buffer, (DWORD)sz, &read, nullptr);
+		const std::string output_file_name = [otemp = std::string(argv[1])]() mutable {
+			if(otemp.length() >= 4 && otemp[otemp.length() - 4] == '.') {
+				otemp.pop_back();
+				otemp.pop_back();
+				otemp.pop_back();
+				otemp.pop_back();
 
-			char const* input = buffer;
-
-			// namespace_name = extract_string(input, buffer + sz);
-			
-			file_contents file;
-
-			file.namespace_name = extract_string(input, buffer + sz);
-
-			while(input < buffer + sz) {
-				file.groups.emplace_back();
-
-				file.groups.back().group_object_type = extract_string(input, buffer + sz);
-
-				while(input < buffer + sz  && *input == '\t') {
-					++input;
-
-					std::string key = extract_string(input, buffer + sz);
-
-					if(key == "#value") {
-						std::string value_type = extract_optional(input, buffer + sz);
-
-						std::string handler_type = extract_string(input, buffer + sz);
-						std::string handler_opt = extract_optional(input, buffer + sz);
-
-						file.groups.back().single_value_handler_type = value_type;
-						file.groups.back().single_value_handler_result = value_and_optional{ handler_type, handler_opt };
-					} else if(key == "#set") {
-						std::string type = extract_string(input, buffer + sz);
-						std::string opt = extract_optional(input, buffer + sz);
-
-						std::string handler_type = extract_string(input, buffer + sz);
-						std::string handler_opt = extract_optional(input, buffer + sz);
-
-						if(type == "group") {
-							file.groups.back().set_handler = group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false };
-						} else { //if(type == "extern") {
-							file.groups.back().set_handler = group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true };
-						}
-					} else if(key == "#base") {
-						std::string base_t = extract_string(input, buffer + sz);
-						for(auto& g : file.groups) {
-							if(g.group_object_type == base_t) {
-								for(auto& v : g.groups)
-									file.groups.back().groups.push_back(v);
-								for(auto& v : g.values)
-									file.groups.back().values.push_back(v);
-								file.groups.back().any_group_handler = g.any_group_handler;
-								file.groups.back().any_value_handler = g.any_value_handler;
-								file.groups.back().single_value_handler_result = g.single_value_handler_result;
-								file.groups.back().single_value_handler_type = g.single_value_handler_type;
-								file.groups.back().any_value_handler = g.any_value_handler;
-								file.groups.back().set_handler = g.set_handler;
-							}
-						}
-					} else {
-						std::string type = extract_string(input, buffer + sz);
-						std::string opt = extract_optional(input, buffer + sz);
-
-						std::string handler_type = extract_string(input, buffer + sz);
-						std::string handler_opt = extract_optional(input, buffer + sz);
-
-						if(key == "#any") {
-							if(type == "group") {
-								file.groups.back().any_group_handler = group_association{ "", opt, value_and_optional{handler_type, handler_opt}, false};
-							} else if(type == "value") {
-								file.groups.back().any_value_handler = value_association{ "", opt, value_and_optional{handler_type, handler_opt} };
-							} else if(type == "extern") {
-								file.groups.back().any_group_handler = group_association{ "", opt, value_and_optional{handler_type, handler_opt}, true };
-							}
-						} else {
-							if(type == "group") {
-								file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false });
-							} else if(type == "value") {
-								file.groups.back().values.push_back(value_association{ key, opt, value_and_optional{handler_type, handler_opt} });
-							} else if(type == "extern") {
-								file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true });
-							}
-						}
-					}
-				}
+				return otemp + "_generated.hpp";
 			}
+			return otemp + "_generated.hpp";
+		}();
 
-			delete[] buffer;
+		error_record err(input_file_name);
 
-			CloseHandle(handle);
+		if(!input_file.is_open()) {
+			err.add(row_col_pair{ 0,0 }, 1000, "Could not open input file");
+			clear_file(output_file_name);
+			std::cout << err.accumulated;
+			return -1;
+		}
 
-			// make output
-			std::string output;
-
-
-			output += "#include \"common\\\\common.h\"\r\n";
-			output += "#include \"Parsers\\\\parsers.hpp\"\r\n";
-			output += "\r\n";
-
-			output += "#pragma warning( push )\r\n";
-			output += "#pragma warning( disable : 4065 )\r\n";
-			output += "#pragma warning( disable : 4189 )\r\n";
-			output += "\r\n";
-
-			output += "namespace ";
-			output += file.namespace_name;
-			output += " {\r\n";
-
-			// declare fns
-
-			for(auto& g : file.groups) {
-				output += "template<typename ERR_H, typename C = int32_t>\r\n";
-				output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, ERR_H& err, C&& context = 0);\r\n";
-			}
-			output += "\r\n";
+		//	read file
+		std::string file_contents_str((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+		input_file.close();
 
 
-			// fn bodies
-			for(auto& g : file.groups) {
-				output += "template<typename ERR_H, typename C>\r\n";
-				output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, ERR_H& err, C&& context) {\r\n";
-				output += "\t " + g.group_object_type + " cobj;\r\n";
-				output += "\t for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {\r\n";
+		//	parse file
+		char const* input = file_contents_str.c_str();
+		char const* const file_end = file_contents_str.c_str() + file_contents_str.length();
 
-				output += "\t\t if(cur.type == token_type::open_brace) { \r\n";
-				{
-					std::string set_effect;
-					if(g.set_handler.is_extern == false) {
-						if(g.set_handler.handler.value == "discard") {
-							set_effect = "discard_group(gen);";
-						} else if(g.set_handler.handler.value == "member") {
-							set_effect = "cobj." +
-								(g.set_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("free_set")) +
-								" = parse_" + g.set_handler.type_or_function + "(gen, err, context);";
-						} else if(g.set_handler.handler.value == "member_fn") {
-							set_effect = "cobj." +
-								(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-								"(parse_" + g.set_handler.type_or_function + "(gen, err, context), context);";
-						} else if(g.set_handler.handler.value == "function") {
-							set_effect =
-								(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-								"(cobj, parse_" + g.set_handler.type_or_function + "(gen, err, context), context);";
-						} else {
-							set_effect = "err.unhandled_free_set(); discard_group(gen);";
-						}
-					} else {
-						if(g.set_handler.handler.value == "discard") {
-							set_effect = g.set_handler.type_or_function + "(cur, gen, err, context);";
-						} else if(g.set_handler.handler.value == "member") {
-							set_effect = "cobj." +
-								(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-								" = " + g.set_handler.type_or_function + "(gen, err, context);";
-						} else if(g.set_handler.handler.value == "member_fn") {
-							set_effect = "cobj." +
-								(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-								"(" + g.set_handler.type_or_function + "(gen, err, context), context);";
-						} else if(g.set_handler.handler.value == "function") {
-							set_effect =
-								(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-								"(cobj, " + g.set_handler.type_or_function + "(gen, err, context), context);";
-						} else {
-							set_effect = "err.unhandled_free_set(); discard_group(gen);";
-						}
+		file_contents file;
+
+		while(input < file_end) {
+			file.groups.emplace_back();
+
+			file.groups.back().group_object_type = extract_string(input, file_end);
+
+			while(input < file_end && *input == '\t') {
+				++input;
+
+				std::string key = extract_string(input, file_end);
+
+				if(key == "#value") {
+					std::string value_type = extract_optional(input, file_end);
+
+					std::string handler_type = extract_string(input, file_end);
+					std::string handler_opt = extract_optional(input, file_end);
+
+					file.groups.back().single_value_handler_type = value_type;
+					file.groups.back().single_value_handler_result = value_and_optional{ handler_type, handler_opt };
+				} else if(key == "#set") {
+					std::string type = extract_string(input, file_end);
+					std::string opt = extract_optional(input, file_end);
+
+					std::string handler_type = extract_string(input, file_end);
+					std::string handler_opt = extract_optional(input, file_end);
+
+					if(type == "group") {
+						file.groups.back().set_handler = group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false };
+					} else { //if(type == "extern") {
+						file.groups.back().set_handler = group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true };
 					}
-					output += "\t\t\t " + set_effect + "\r\n";
-					output += "\t\t\t continue;\r\n";
-					output += "\t\t }\r\n";
-				}
-
-				output += "\t\t auto peek_result = gen.next();\r\n";
-				output += "\t\t if(peek_result.type == token_type::special_identifier) {\r\n"; // start next token if
-				output += "\t\t\t auto peek2_result = gen.next_next();\r\n";
-				output += "\t\t\t if(peek2_result.type == token_type::open_brace) {\r\n";
-
-				// match groups
-
-				output += "\t\t\t\t gen.get(); gen.get();\r\n";
-				
-				{
-					std::string no_match_effect;
-					if(g.any_group_handler.is_extern == false) {
-						if(g.any_group_handler.handler.value == "discard") {
-							no_match_effect = "discard_group(gen);";
-						} else if(g.any_group_handler.handler.value == "member") {
-							no_match_effect = "cobj." +
-								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								" = parse_" + g.any_group_handler.type_or_function + "(gen, err, context);";
-						} else if(g.any_group_handler.handler.value == "member_fn") {
-							no_match_effect = "cobj." +
-								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								"(cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, context);";
-						} else if(g.any_group_handler.handler.value == "function") {
-							no_match_effect =
-								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								"(cobj, cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, context);";
-						} else {
-							no_match_effect = "err.unhandled_group_key(cur); discard_group(gen);";
+				} else if(key == "#base") {
+					std::string base_t = extract_string(input, file_end);
+					for(auto& g : file.groups) {
+						if(g.group_object_type == base_t) {
+							for(auto& v : g.groups)
+								file.groups.back().groups.push_back(v);
+							for(auto& v : g.values)
+								file.groups.back().values.push_back(v);
+							file.groups.back().any_group_handler = g.any_group_handler;
+							file.groups.back().any_value_handler = g.any_value_handler;
+							file.groups.back().single_value_handler_result = g.single_value_handler_result;
+							file.groups.back().single_value_handler_type = g.single_value_handler_type;
+							file.groups.back().any_value_handler = g.any_value_handler;
+							file.groups.back().set_handler = g.set_handler;
 						}
-					} else {
-						if(g.any_group_handler.handler.value == "discard") {
-							no_match_effect = g.any_group_handler.type_or_function + "(cur, gen, err, context);";
-						} else if(g.any_group_handler.handler.value == "member") {
-							no_match_effect = "cobj." +
-								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								" = " + g.any_group_handler.type_or_function + "(cur, gen, err, context);";
-						} else if(g.any_group_handler.handler.value == "member_fn") {
-							no_match_effect = "cobj." +
-								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								"(cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, context);";
-						} else if(g.any_group_handler.handler.value == "function") {
-							no_match_effect =
-								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								"(cobj, cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, context);";
-						} else {
-							no_match_effect = "err.unhandled_group_key(cur); discard_group(gen);";
-						}
-					}
-
-					auto match_handler = [](group_association const& v) {
-						std::string out;
-						if(v.is_extern) {
-							if(v.handler.value == "discard") {
-								out = v.type_or_function + "(gen, err, context);";
-							} else if(v.handler.value == "member") {
-								out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									" = " + type_string_to_type(v.type_or_function) + "(gen, err, context);";
-							} else if(v.handler.value == "member_fn") {
-								out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									"(" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
-							} else if(v.handler.value == "function") {
-								out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									"(cobj, " + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
-							} else {
-								out = "err.unhandled_group_key(cur);";
-							}
-						} else {
-							if(v.handler.value == "discard") {
-								out = "discard_group(gen);";
-							} else if(v.handler.value == "member") {
-								out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									" = parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context);";
-							} else if(v.handler.value == "member_fn") {
-								out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									"(parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
-							} else if(v.handler.value == "function") {
-								out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									"(cobj, parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
-							} else {
-								out = "err.unhandled_group_key(cur);";
-							}
-						}
-						return out;
-					};
-
-					output += construct_match_tree_outer(g.groups, match_handler, no_match_effect);
-				}
-
-				output += "\t\t\t } else {\r\n"; // next next != open brace
-
-				output += "\t\t\t\t auto const assoc_token = gen.get();\r\n";
-				output += "\t\t\t\t auto const assoc_type = parse_association_type_b(assoc_token.start, assoc_token.end);\r\n";
-				output += "\t\t\t\t auto const rh_token = gen.get();\r\n";
-
-				// match values
-
-				{
-					std::string no_match_effect;
-					if(g.any_value_handler.handler.value == "discard") {
-					} else if(g.any_value_handler.handler.value == "member") {
-						no_match_effect = "cobj." +
-							(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-							" = token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err);";
-					} else if(g.any_value_handler.handler.value == "member_fn") {
-						no_match_effect = "cobj." +
-							(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-							"(cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), err, context);";
-					} else if(g.any_value_handler.handler.value == "function") {
-						no_match_effect =
-							(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-							"(cobj, cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), err, context);";
-					} else {
-						no_match_effect = "err.unhandled_association_key(cur);";
-					}
-
-					auto match_handler = [](value_association const& v) {
-						std::string out;
-						if(v.handler.value == "discard") {
-
-						} else if(v.handler.value == "member") {
-							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								" = token_to<" + type_string_to_type(v.type) + ">(rh_token, err);";
-						} else if(v.handler.value == "member_fn") {
-							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), err, context);";
-						} else if(v.handler.value == "function") {
-							out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(cobj, assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), err, context);";
-						} else {
-							out = "err.unhandled_association_key(cur);";
-						}
-						return out;
-					};
-
-					output += construct_match_tree_outer(g.values, match_handler, no_match_effect);
-				}
-
-				output += "\t\t\t }\r\n"; // end next next
-
-				output += "\t\t } else {\r\n"; // next != special identifier
-
-				// case: free value;
-				if(g.single_value_handler_result.value.length() > 0) {
-					if(g.single_value_handler_result.value == "discard") {
-						// do nothing
-					} else if(g.single_value_handler_result.value == "member") {
-						output += "\t\t\t cobj." + 
-							(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-							"= token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err);\r\n";
-					} else if(g.single_value_handler_result.value == "member_fn") {
-						output += "\t\t\t cobj." +
-							(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-							"(token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), err, context);\r\n";
-					} else if(g.single_value_handler_result.value == "function") {
-						output += "\t\t\t " +
-							(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-							"(cobj, token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), err, context);\r\n";
 					}
 				} else {
-					output += "\t\t\t err.unhandled_free_value(cur);\r\n"; // end next token if
+					std::string type = extract_string(input, file_end);
+					std::string opt = extract_optional(input, file_end);
+
+					std::string handler_type = extract_string(input, file_end);
+					std::string handler_opt = extract_optional(input, file_end);
+
+					if(key == "#any") {
+						if(type == "group") {
+							file.groups.back().any_group_handler = group_association{ "", opt, value_and_optional{handler_type, handler_opt}, false };
+						} else if(type == "value") {
+							file.groups.back().any_value_handler = value_association{ "", opt, value_and_optional{handler_type, handler_opt} };
+						} else if(type == "extern") {
+							file.groups.back().any_group_handler = group_association{ "", opt, value_and_optional{handler_type, handler_opt}, true };
+						}
+					} else {
+						if(type == "group") {
+							file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false });
+						} else if(type == "value") {
+							file.groups.back().values.push_back(value_association{ key, opt, value_and_optional{handler_type, handler_opt} });
+						} else if(type == "extern") {
+							file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true });
+						}
+					}
+				}
+			}
+		}
+
+		//	encountered errors? if so, exit
+		//  TODO currently the parser isn't sophisticated enough to report errors
+
+		if(err.accumulated.length() > 0) {
+			clear_file(output_file_name);
+			std::cout << err.accumulated;
+			return -1;
+		}
+
+		//	process the parsed content into the generated file
+
+		std::string output;
+
+
+		output += "#include \"parsers.hpp\"\n";
+		output += "\n";
+
+		// output += "#pragma warning( push )\n";
+		// output += "#pragma warning( disable : 4065 )\n";
+		// output += "#pragma warning( disable : 4189 )\n";
+
+		output += "\n";
+
+		output += "namespace parsers {\n";
+
+		// declare fns
+
+		for(auto& g : file.groups) {
+			output += "template<typename C = int32_t>\n";
+			output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, error_handler& err, C&& context = 0);\n";
+		}
+		output += "\n";
+
+
+		// fn bodies
+		for(auto& g : file.groups) {
+			output += "template<typename C>\n";
+			output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, error_handler& err, C&& context) {\n";
+			output += "\t " + g.group_object_type + " cobj;\n";
+			output += "\t for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {\n";
+
+			output += "\t\t if(cur.type == token_type::open_brace) { \n";
+			{
+				std::string set_effect;
+				if(g.set_handler.is_extern == false) {
+					if(g.set_handler.handler.value == "discard") {
+						set_effect = "gen.discard_group();";
+					} else if(g.set_handler.handler.value == "member") {
+						set_effect = "cobj." +
+							(g.set_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("free_set")) +
+							" = parse_" + g.set_handler.type_or_function + "(gen, err, context);";
+					} else if(g.set_handler.handler.value == "member_fn") {
+						set_effect = "cobj." +
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
+							"(parse_" + g.set_handler.type_or_function + "(gen, err, context), context);";
+					} else if(g.set_handler.handler.value == "function") {
+						set_effect =
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
+							"(cobj, parse_" + g.set_handler.type_or_function + "(gen, err, context), context);";
+					} else {
+						set_effect = "err.unhandled_free_set(cur); gen.discard_group();";
+					}
+				} else {
+					if(g.set_handler.handler.value == "discard") {
+						set_effect = g.set_handler.type_or_function + "(cur, gen, err, context);";
+					} else if(g.set_handler.handler.value == "member") {
+						set_effect = "cobj." +
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
+							" = " + g.set_handler.type_or_function + "(gen, err, context);";
+					} else if(g.set_handler.handler.value == "member_fn") {
+						set_effect = "cobj." +
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
+							"(" + g.set_handler.type_or_function + "(gen, err, context), context);";
+					} else if(g.set_handler.handler.value == "function") {
+						set_effect =
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
+							"(cobj, " + g.set_handler.type_or_function + "(gen, err, context), context);";
+					} else {
+						set_effect = "err.unhandled_free_set(cur); gen.discard_group();";
+					}
+				}
+				output += "\t\t\t " + set_effect + "\n";
+				output += "\t\t\t continue;\n";
+				output += "\t\t }\n";
+			}
+
+			output += "\t\t auto peek_result = gen.next();\n";
+			output += "\t\t if(peek_result.type == token_type::special_identifier) {\n"; // start next token if
+			output += "\t\t\t auto peek2_result = gen.next_next();\n";
+			output += "\t\t\t if(peek2_result.type == token_type::open_brace) {\n";
+
+			// match groups
+
+			output += "\t\t\t\t gen.get(); gen.get();\n";
+
+			{
+				std::string no_match_effect;
+				if(g.any_group_handler.is_extern == false) {
+					if(g.any_group_handler.handler.value == "discard") {
+						no_match_effect = "gen.discard_group();";
+					} else if(g.any_group_handler.handler.value == "member") {
+						no_match_effect = "cobj." +
+							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
+							" = parse_" + g.any_group_handler.type_or_function + "(gen, err, context);";
+					} else if(g.any_group_handler.handler.value == "member_fn") {
+						no_match_effect = "cobj." +
+							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
+							"(cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, context);";
+					} else if(g.any_group_handler.handler.value == "function") {
+						no_match_effect =
+							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
+							"(cobj, cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, context);";
+					} else {
+						no_match_effect = "err.unhandled_group_key(cur); gen.discard_group();";
+					}
+				} else {
+					if(g.any_group_handler.handler.value == "discard") {
+						no_match_effect = g.any_group_handler.type_or_function + "(cur, gen, err, context);";
+					} else if(g.any_group_handler.handler.value == "member") {
+						no_match_effect = "cobj." +
+							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
+							" = " + g.any_group_handler.type_or_function + "(cur, gen, err, context);";
+					} else if(g.any_group_handler.handler.value == "member_fn") {
+						no_match_effect = "cobj." +
+							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
+							"(cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, context);";
+					} else if(g.any_group_handler.handler.value == "function") {
+						no_match_effect =
+							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
+							"(cobj, cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, context);";
+					} else {
+						no_match_effect = "err.unhandled_group_key(cur); gen.discard_group();";
+					}
 				}
 
-				output += "\t\t }\r\n"; // end next token if
+				auto match_handler = [](group_association const& v) {
+					std::string out;
+					if(v.is_extern) {
+						if(v.handler.value == "discard") {
+							out = v.type_or_function + "(gen, err, context);";
+						} else if(v.handler.value == "member") {
+							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+								" = " + type_string_to_type(v.type_or_function) + "(gen, err, context);";
+						} else if(v.handler.value == "member_fn") {
+							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+								"(" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
+						} else if(v.handler.value == "function") {
+							out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+								"(cobj, " + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
+						} else {
+							out = "err.unhandled_group_key(cur);";
+						}
+					} else {
+						if(v.handler.value == "discard") {
+							out = "gen.discard_group();";
+						} else if(v.handler.value == "member") {
+							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+								" = parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context);";
+						} else if(v.handler.value == "member_fn") {
+							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+								"(parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
+						} else if(v.handler.value == "function") {
+							out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+								"(cobj, parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
+						} else {
+							out = "err.unhandled_group_key(cur);";
+						}
+					}
+					return out;
+				};
 
-				output += "\t }\r\n"; // end token loop
-				output += "\t finish_parse(cobj);\r\n";
-				output += "\t return cobj;\r\n";
-				output += "}\r\n"; // end fn
+				output += construct_match_tree_outer(g.groups, match_handler, no_match_effect);
 			}
 
-			output += "}\r\n"; // end namespace
+			output += "\t\t\t } else {\n"; // next next != open brace
 
-			output += "#pragma warning( pop )\r\n";
-			output += "\r\n";
+			output += "\t\t\t\t auto const assoc_token = gen.get();\n";
+			output += "\t\t\t\t auto const assoc_type = parse_association_type_b(assoc_token.start, assoc_token.end);\n";
+			output += "\t\t\t\t auto const rh_token = gen.get();\n";
 
-			// write output
-			std::wstring output_name;
-			for(auto c : file.namespace_name) {
-				output_name += wchar_t(c);
+			// match values
+
+			{
+				std::string no_match_effect;
+				if(g.any_value_handler.handler.value == "discard") {
+				} else if(g.any_value_handler.handler.value == "member") {
+					no_match_effect = "cobj." +
+						(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
+						" = token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err);";
+				} else if(g.any_value_handler.handler.value == "member_fn") {
+					no_match_effect = "cobj." +
+						(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
+						"(cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), err, context);";
+				} else if(g.any_value_handler.handler.value == "function") {
+					no_match_effect =
+						(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
+						"(cobj, cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), err, context);";
+				} else {
+					no_match_effect = "err.unhandled_association_key(cur);";
+				}
+
+				auto match_handler = [](value_association const& v) {
+					std::string out;
+					if(v.handler.value == "discard") {
+
+					} else if(v.handler.value == "member") {
+						out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+							" = token_to<" + type_string_to_type(v.type) + ">(rh_token, err);";
+					} else if(v.handler.value == "member_fn") {
+						out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+							"(assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), err, context);";
+					} else if(v.handler.value == "function") {
+						out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
+							"(cobj, assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), err, context);";
+					} else {
+						out = "err.unhandled_association_key(cur);";
+					}
+					return out;
+				};
+
+				output += construct_match_tree_outer(g.values, match_handler, no_match_effect);
 			}
-			output_name += wchar_t('.');
-			output_name += wchar_t('h');
 
-			const auto handleb = CreateFile(output_name.c_str(), GENERIC_WRITE | GENERIC_READ, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-			if(handleb != INVALID_HANDLE_VALUE) {
-				DWORD written;
-				WriteFile(handleb, output.c_str(), DWORD(output.length()), &written, nullptr);
-				CloseHandle(handleb);
+			output += "\t\t\t }\n"; // end next next
+
+			output += "\t\t } else {\n"; // next != special identifier
+
+			// case: free value;
+			if(g.single_value_handler_result.value.length() > 0) {
+				if(g.single_value_handler_result.value == "discard") {
+					// do nothing
+				} else if(g.single_value_handler_result.value == "member") {
+					output += "\t\t\t cobj." +
+						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
+						"= token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err);\n";
+				} else if(g.single_value_handler_result.value == "member_fn") {
+					output += "\t\t\t cobj." +
+						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
+						"(token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), err, context);\n";
+				} else if(g.single_value_handler_result.value == "function") {
+					output += "\t\t\t " +
+						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
+						"(cobj, token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), err, context);\n";
+				}
+			} else {
+				output += "\t\t\t err.unhandled_free_value(cur);\n"; // end next token if
 			}
-		} else {
-			MessageBox(NULL, argv[i], L"File not found", MB_OK);
+
+			output += "\t\t }\n"; // end next token if
+
+			output += "\t }\n"; // end token loop
+			output += "\t finish_parse(cobj);\n";
+			output += "\t return cobj;\n";
+			output += "}\n"; // end fn
 		}
+
+		output += "}\n"; // end namespace
+
+		// output += "#pragma warning( pop )\n";
+
+		//newline at end of file
+		output += "\n";
+
+		std::fstream fileout;
+		fileout.open(output_file_name, std::ios::out);
+		if(fileout.is_open()) {
+			fileout << output;
+			fileout.close();
+		} else {
+			std::abort();
+		}
+
 	}
 }
 

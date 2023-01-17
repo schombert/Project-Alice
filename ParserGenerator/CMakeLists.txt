@@ -1,8 +1,10 @@
 set(PROJECT_SRC "parser_generator.cpp")
 
-add_executable(ParserGenerator ${PROJECT_SRC})
+project (ParserGenerator LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-target_compile_features(ParserGenerator PRIVATE cxx_std_20 c_std_11)
+add_executable(ParserGenerator ${PROJECT_SRC})
  
 target_compile_options(ParserGenerator PRIVATE
 	$<$<CXX_COMPILER_ID:GNU>:     -Wall -Wextra   -Wpedantic      -Werror                     $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
