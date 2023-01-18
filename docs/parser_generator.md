@@ -55,4 +55,30 @@ They keyword `value` must be present to tell the generator that we are parsing a
 
 For each line you add to handle a value, you need to have something prepared to accept it, unless you want to discard it, which is what specifying `discard` for `handler_type` will do. If you specify `member` for `handler_type`, then the class associated with the parser must have a member with the correct destination name, and which is of a type with an `operator=` that can accept the type of the parsed `zzz`. If `handler_type` is `member_fn`, then the class must have a member with the destination name and which can accept the following parameters: an enum of type `association_type`, the type of the parsed `zzz`, an object of class `error_handler` by reference, an `int32_t` containing the line number that the left hand of the value was read from, and the context for the parser, either by value or reference (when the context is not being used, the convention is to make it type int32_t). The `association_type` parameter allows you to inspect the association type that was present for the value, and you can use the `error_handler`, and the line number, to record if the value cannot be accepted for any reason. Finally `function` works the same way as `member_fn`, except that it calls a free function with the destination and passes it as an additional first parameter the object used for parsing, by reference. `function` doesn't really provide much extra flexibility, and I will be trying to avoid it.
 
+In addition to handling values where the left-hand side is a known quantity that is fixed in advance, you can also send both the left and the right hand sides of a value to a routine of your choice (assuming that it does not match an explicitly specific left-hand side). Doing this requires a line such as the following:
+```
+	#any, value, type, handler_type (destination_name)
+```
+and as usual, the content in parenthesis may also be omitted completely. And as with the case where you explicitly specify the left-hand side, the text `value` is necessary to indicate that this line applies to values. `type` and `handler_type` also take on the same values with essentially the same meanings as before. `discard` as a handler type works as it did before, and can be useful if you want to throw out all other values you haven't explicitly matched for without generating any errors. `member` is mostly useless in this context, as it does not communicate any information about what the left hand side of the value expression was.  `member_fn` and `function` are modified in that they will receive an additional `string_view` as their first or second parameters, respectively, which holds the left-hand side of the value expression.
 
+#### Defining how groups are handled
+
+Specifying how a group should be parsed is done in much the same way as it is for values, but with a few more options, as you can write the necessary line as either
+```
+	yyy, group, type, handler_type (destination_name)
+```
+or
+```
+	yyy, extern, function_name, handler_type (destination_name)
+```
+with `(destination_name)` being optional as before. Both of these lines will instruct the generated parser what to do with a group item that looks like `yyy = { ... }`. The difference between `group` and `extern` is that `group` will handle the content of the group (i.e. the items that make up `...`) by invoking another generated parser (by calling the parser that was associated with the class `type` with the content of that group and the current context. `extern`, on the other hand, will call the function with the given name with three parameters: an object of type `token_generator` by reference, an object of class `error_handler` by reference, and the context for the parser, either by value or reference. This is useful when you are actually using the context. The typical pattern with `extern` is to simply use it as a place to create a context with more information before invoking another generated parser to handle it.
+
+`handler_type` and `destination_name` work essentially as they do for values, except that instead of handling the parsed right-hand side of the value, they handle the return value of the parser or other function, with the only difference being that there is no `association_type` parameter, since that is not meaningful for groups.
+
+**NOTE** Another minor difference between `group` and `extern` is that even if you specify handling `extern` with `discard`, it will still be run on the contents of the group, which is useful if you are learning towards processing the data immediately and don't have anything useful to return. Yes, this makes reading the definition a bit misleading.
+
+As with values, you may replace `yyy` with `#any` to parse groups where the token on the left of the `=` is not fixed in advance. And as with values, this adds an additional `string_view` parameter to the handler. In addition, a function called because of `extern` will also be passed a `string_view` containing the text to the left of the `=` as an additional first parameter (but not for automatically generated parsers called because of `group`, as they cannot take extra parameters).
+
+#### Defining how free values are handled
+
+#### Defining how free sets are handled

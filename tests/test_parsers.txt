@@ -11,3 +11,15 @@ exercising_combinations
 	bbbb      value    int    member_fn
 	ccc       value    int    function   (free_int_fn)
 	ddd       value    none   discard
+
+direct_group
+	aaa       group    exercising_combinations    member
+	bbb       group    exercising_combinations    member_fn
+	ccc       group    exercising_combinations    function     (free_ec_fn)
+	#any      group    exercising_combinations    member_fn
+
+indirect_group
+	aaa       extern    ec_stub    member
+	bbb       extern    ec_stub    member_fn
+	ccc       extern    ec_stub    function     (free_ec_fn)
+	#any      extern    ec_sv_stub member_fn
