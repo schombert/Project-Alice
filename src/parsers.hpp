@@ -47,7 +47,7 @@ namespace parsers {
 	private:
 		char const* position;
 		char const* const file_end;
-		int32_t current_line = 0;
+		int32_t current_line = 1;
 
 		token_and_type peek_1;
 		token_and_type peek_2;

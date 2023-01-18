@@ -1,7 +1,13 @@
 basic_object_a
-	#value: int, member, (int_value)
-	#set: discard, none, group
-	#any: value member_fn text
-	key_A: value member int
-	key_C: value member float (float_value)
-	key_B: group, none, discard
+	#value             int    member     (int_value)
+	#set      extern   none   discard
+	#any      value    text   member_fn
+	key_A     value    int    member
+	key_C     value    float  member     (float_value)
+	key_B     group    none   discard
+
+exercising_combinations
+	aaa       value    int    member
+	bbbb      value    int    member_fn
+	ccc       value    int    function   (free_int_fn)
+	ddd       value    none   discard

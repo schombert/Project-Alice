@@ -23,7 +23,7 @@ if(MSVC)
 	string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
 	target_compile_options(ProjectAlice PRIVATE 
-									/wd4100 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF
+									/wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF
 		$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 		$<$<NOT:$<CONFIG:Debug>>: 	/wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
 	target_link_options(ProjectAlice PRIVATE
@@ -58,7 +58,6 @@ add_custom_command(
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(ProjectAlice GENERATE_CONTAINER)
 
-if (BUILD_TESTING)
-    enable_testing()
-    add_subdirectory(tests)
-endif()
+add_subdirectory(tests)
+
+

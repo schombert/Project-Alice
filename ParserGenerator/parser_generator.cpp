@@ -38,7 +38,7 @@ struct error_record {
 
 
 std::string extract_string(char const* & input, char const* end) {
-	while(input < end && (*input == ' ' || *input == '(' || *input == ',' || *input == ':' || *input == '-' || *input == '>' || *input == '\r' || *input == '\n'))
+	while(input < end && (*input == ' ' || *input == '(' || *input == ',' || *input == '-' || *input == '\t' ||  *input == '\r' || *input == '\n'))
 		++input;
 
 	if(input >= end)
@@ -47,7 +47,7 @@ std::string extract_string(char const* & input, char const* end) {
 	std::string result;
 	bool in_quote = false;
 
-	while(input < end && (in_quote || (*input != ' '  && *input != '(' && *input != ')' && *input != '\t' && *input != ',' && *input != '-' && *input != '>' && *input != ':' && *input != '\r' && *input != '\n'))) {
+	while(input < end && (in_quote || (*input != ' '  && *input != '(' && *input != ')' && *input != '\t' && *input != ',' && *input != '-' && *input != '\r' && *input != '\n'))) {
 		if(*input == '\"')
 			in_quote = !in_quote;
 		else
@@ -55,14 +55,14 @@ std::string extract_string(char const* & input, char const* end) {
 		++input;
 	}
 
-	while(input < end && (*input == ' ' || *input == ',' || *input == ')' || *input == ':' || *input == '-' || *input == '>' || *input == '\r' || *input == '\n'))
+	while(input < end && (*input == ' ' || *input == ',' || *input == ')' || *input == '-' || *input == '\r' || *input == '\n'))
 		++input;
 
 	return result;
 }
 
 std::string extract_optional(char const* & input, char const* end) {
-	while(input < end && (*input == ' ' || *input == ',' || *input == ':' || *input == '-' || *input == '>' || *input == '\r' || *input == '\n'))
+	while(input < end && (*input == ' ' || *input == ',' || *input == '-'  || *input == '\r' || *input == '\n'))
 		++input;
 
 	if(input >= end)
@@ -86,7 +86,7 @@ std::string extract_optional(char const* & input, char const* end) {
 			++input;
 	}
 	
-	while(input < end && (*input == ' ' || *input == ',' || *input == ':' || *input == '-' || *input == '>' || *input == '\r' || *input == '\n'))
+	while(input < end && (*input == ' ' || *input == ',' || *input == '-' || *input == '\r' || *input == '\n'))
 		++input;
 
 	return result;
@@ -390,11 +390,18 @@ int main(int argc, char* argv[]) {
 					std::string handler_type = extract_string(input, file_end);
 					std::string handler_opt = extract_optional(input, file_end);
 
-					if(type == "group") {
+					if(type != "extern") {
 						file.groups.back().set_handler = group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false };
 					} else { //if(type == "extern") {
 						file.groups.back().set_handler = group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true };
 					}
+					// key = always "#set" (unuused)
+					// value1 == "extern" | "parser"
+					// value2 = set_handler.type_or_function = function to call on "gen" to process it (with extern == true, wont prepend parse)
+					// value3 = set_handler.handler.value = discard | member | ...
+					// (value4) = set_handler.handler.opt = name of non default member target / fn name to call w/ results
+					
+
 				} else if(key == "#base") {
 					std::string base_t = extract_string(input, file_end);
 					for(auto& g : file.groups) {
@@ -419,7 +426,7 @@ int main(int argc, char* argv[]) {
 					std::string handler_opt = extract_optional(input, file_end);
 
 					if(key == "#any") {
-						if(type == "group") {
+						if(type == "parser" || type == "group") {
 							file.groups.back().any_group_handler = group_association{ "", opt, value_and_optional{handler_type, handler_opt}, false };
 						} else if(type == "value") {
 							file.groups.back().any_value_handler = value_association{ "", opt, value_and_optional{handler_type, handler_opt} };
@@ -427,7 +434,7 @@ int main(int argc, char* argv[]) {
 							file.groups.back().any_group_handler = group_association{ "", opt, value_and_optional{handler_type, handler_opt}, true };
 						}
 					} else {
-						if(type == "group") {
+						if(type == "parser" || type == "group") {
 							file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false });
 						} else if(type == "value") {
 							file.groups.back().values.push_back(value_association{ key, opt, value_and_optional{handler_type, handler_opt} });
@@ -506,13 +513,16 @@ int main(int argc, char* argv[]) {
 
 			output += "\t\t if(cur.type == token_type::open_brace) { \n";
 			{
+				// set_handler.handler.value = discard | member | ...
+				// set_handler.handler.opt = name of non default member target / fn name to call w/ results
+				// set_handler.type_or_function = function to call on "gen" to process it (with extern == true, wont prepend parse)
 				std::string set_effect;
 				if(g.set_handler.is_extern == false) {
 					if(g.set_handler.handler.value == "discard") {
 						set_effect = "gen.discard_group();";
 					} else if(g.set_handler.handler.value == "member") {
 						set_effect = "cobj." +
-							(g.set_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("free_set")) +
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
 							" = parse_" + g.set_handler.type_or_function + "(gen, err, context);";
 					} else if(g.set_handler.handler.value == "member_fn") {
 						set_effect = "cobj." +
@@ -562,7 +572,7 @@ int main(int argc, char* argv[]) {
 				/*
 					#any: type, opt, handler_type (handler_opt)
 
-					type = (group, extern -> groups, value -> values)
+					type = (parser, extern -> groups, value -> values)
 
 					key = association.key
 					opt = association.type_or_function
@@ -581,11 +591,11 @@ int main(int argc, char* argv[]) {
 					} else if(g.any_group_handler.handler.value == "member_fn") {
 						no_match_effect = "cobj." +
 							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-							"(cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, context);";
+							"(cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, cur.line, context);";
 					} else if(g.any_group_handler.handler.value == "function") {
 						no_match_effect =
 							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-							"(cobj, cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, context);";
+							"(cobj, cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, cur.line, context);";
 					} else {
 						no_match_effect = "err.unhandled_group_key(cur); gen.discard_group();";
 					}
@@ -599,11 +609,11 @@ int main(int argc, char* argv[]) {
 					} else if(g.any_group_handler.handler.value == "member_fn") {
 						no_match_effect = "cobj." +
 							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-							"(cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, context);";
+							"(cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, cur.line, context);";
 					} else if(g.any_group_handler.handler.value == "function") {
 						no_match_effect =
 							(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-							"(cobj, cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, context);";
+							"(cobj, cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, cur.line, context);";
 					} else {
 						no_match_effect = "err.unhandled_group_key(cur); gen.discard_group();";
 					}
@@ -630,10 +640,10 @@ int main(int argc, char* argv[]) {
 								" = " + v.type_or_function + "(gen, err, context);";
 						} else if(v.handler.value == "member_fn") {
 							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(" + v.type_or_function + "(gen, err, context), err, context);";
+								"(" + v.type_or_function + "(gen, err, context), err, cur.line, context);";
 						} else if(v.handler.value == "function") {
 							out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(cobj, " + v.type_or_function + "(gen, err, context), err, context);";
+								"(cobj, " + v.type_or_function + "(gen, err, context), err, cur.line, context);";
 						} else {
 							out = "err.unhandled_group_key(cur);";
 						}
@@ -645,10 +655,10 @@ int main(int argc, char* argv[]) {
 								" = parse_" + v.type_or_function + "(gen, err, context);";
 						} else if(v.handler.value == "member_fn") {
 							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(parse_" + v.type_or_function + "(gen, err, context), err, context);";
+								"(parse_" + v.type_or_function + "(gen, err, context), err, cur.line, context);";
 						} else if(v.handler.value == "function") {
 							out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(cobj, parse_" + v.type_or_function + "(gen, err, context), err, context);";
+								"(cobj, parse_" + v.type_or_function + "(gen, err, context), err, cur.line, context);";
 						} else {
 							out = "err.unhandled_group_key(cur);";
 						}
@@ -677,11 +687,11 @@ int main(int argc, char* argv[]) {
 				} else if(g.any_value_handler.handler.value == "member_fn") {
 					no_match_effect = "cobj." +
 						(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-						"(cur, assoc_type, parse_" + g.any_value_handler.type + "(rh_token.content, rh_token.line, err), err, context);";
+						"(cur, assoc_type, parse_" + g.any_value_handler.type + "(rh_token.content, rh_token.line, err), err, cur.line, context);";
 				} else if(g.any_value_handler.handler.value == "function") {
 					no_match_effect =
 						(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-						"(cobj, cur, assoc_type, parse_" + g.any_value_handler.type + "(rh_token.content, rh_token.line, err), err, context);";
+						"(cobj, cur, assoc_type, parse_" + g.any_value_handler.type + "(rh_token.content, rh_token.line, err), err, cur.line, context);";
 				} else {
 					no_match_effect = "err.unhandled_association_key(cur);";
 				}
@@ -706,10 +716,10 @@ int main(int argc, char* argv[]) {
 							" = parse_" + v.type + "(rh_token.content, rh_token.line, err);";
 					} else if(v.handler.value == "member_fn") {
 						out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-							"(assoc_type, parse_" + v.type + "(rh_token.content, rh_token.line, err), err, context);";
+							"(assoc_type, parse_" + v.type + "(rh_token.content, rh_token.line, err), err, cur.line, context);";
 					} else if(v.handler.value == "function") {
 						out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-							"(cobj, assoc_type, parse_" + v.type + "(rh_token.content, rh_token.line, err), err, context);";
+							"(cobj, assoc_type, parse_" + v.type + "(rh_token.content, rh_token.line, err), err, cur.line, context);";
 					} else {
 						out = "err.unhandled_association_key(cur);";
 					}
@@ -734,11 +744,11 @@ int main(int argc, char* argv[]) {
 				} else if(g.single_value_handler_result.value == "member_fn") {
 					output += "\t\t\t cobj." +
 						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-						"(parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, context);\n";
+						"(parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, cur.line, context);\n";
 				} else if(g.single_value_handler_result.value == "function") {
 					output += "\t\t\t " +
 						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-						"(cobj, parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, context);\n";
+						"(cobj, parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, cur.line, context);\n";
 				}
 			} else {
 				output += "\t\t\t err.unhandled_free_value(cur);\n"; // end next token if
@@ -747,7 +757,7 @@ int main(int argc, char* argv[]) {
 			output += "\t\t }\n"; // end next token if
 
 			output += "\t }\n"; // end token loop
-			output += "\t cobj.finish();\n";
+			output += "\t cobj.finish(context);\n";
 			output += "\t return cobj;\n";
 			output += "}\n"; // end fn
 		}
