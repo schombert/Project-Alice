@@ -20,7 +20,7 @@ First an item can be a `value` or `association` (sorry, both terms are used in p
 
 The next most common item is the `group`, which is in the form `yyy = { ... }` where `...` is itself a list of zero or more items. Strictly speaking, any of the parsers generated parses a single group (we treat the entirely of the contents of the file as an implicit group). When a parser encounters a group, it hands the contents of that group off to another parser and then does something with the return value it gets back.
 
-Then we have the much rarer items. Occasionally we find a `free value`, i.e. something looking like just `yyy` but not followed by a supported association type (the most common of these are numbers). All of these are sent to the same free value handler. And then there is the rarest of all, the `free set` which looks like `{ ... }`, i.e. a list of items but without the label you expect to find on a group. The contents of each list are parsed by the free set handler.
+Then we have the much rarer items. Occasionally we find a `free value`, i.e. something looking like just `yyy` but not followed by a supported association type (the most common of these are numbers). All of these are sent to the same free value handler. And then there is the rarest of all, the `free group` which looks like `{ ... }`, i.e. a list of items but without the label you expect to find on a group. The contents of each list are parsed by the free group handler. (Note, at one point these things were called free sets or just sets, and you may still see some of that terminology in the source files.)
 
 Note that comments don't need to be accounted for; they are filtered out before the parser would see them. (That's right, there is a tiny preprocessor.)
 
@@ -53,7 +53,7 @@ or a line such as
 ```
 They keyword `value` must be present to tell the generator that we are parsing a value named `yyy` and not a group. `type` can be one of the following: `float`, `double`, `int` (for `int32_t`), `uint` (for `uint32_t`), `bool`, `text`, or `date` (`date` is not currently supported at the time of this document is being written because dates have not yet been put into Project Alice). This is simply a convenient way of doing common transformations on `zzz`. If you specify `text` you will get the text of `zzz` except with any surrounding quotation marks removed, if present. `handler_type` must be one of `discard`, `member`, `member_fn`, or `function` (the effects of this are described below). Finally, `(destination_name)` if present, must always be surrounded by parenthesis. When handling `zzz`, the key, `yyy` is also used as the name of the member, member function, or free function, unless you override this choice by specifying a destination name (you can use this to send multiple values to the same handler for example).
 
-For each line you add to handle a value, you need to have something prepared to accept it, unless you want to discard it, which is what specifying `discard` for `handler_type` will do. If you specify `member` for `handler_type`, then the class associated with the parser must have a member with the correct destination name, and which is of a type with an `operator=` that can accept the type of the parsed `zzz`. If `handler_type` is `member_fn`, then the class must have a member with the destination name and which can accept the following parameters: an enum of type `association_type`, the type of the parsed `zzz`, an object of class `error_handler` by reference, an `int32_t` containing the line number that the left hand of the value was read from, and the context for the parser, either by value or reference (when the context is not being used, the convention is to make it type int32_t). The `association_type` parameter allows you to inspect the association type that was present for the value, and you can use the `error_handler`, and the line number, to record if the value cannot be accepted for any reason. Finally `function` works the same way as `member_fn`, except that it calls a free function with the destination and passes it as an additional first parameter the object used for parsing, by reference. `function` doesn't really provide much extra flexibility, and I will be trying to avoid it.
+For each line you add to handle a value, you need to have something prepared to accept it, unless you want to discard it, which is what specifying `discard` for `handler_type` will do. If you specify `member` for `handler_type`, then the class associated with the parser must have a member with the correct destination name, and which is of a type with an `operator=` that can accept the type of the parsed `zzz`. If `handler_type` is `member_fn`, then the class must have a member function with the destination name and which can accept the following parameters: an enum of type `association_type`, the type of the parsed `zzz`, an object of class `error_handler` by reference, an `int32_t` containing the line number that the left hand of the value was read from, and the context for the parser, either by value or reference (when the context is not being used, the convention is to make it type int32_t). The `association_type` parameter allows you to inspect the association type that was present for the value, and you can use the `error_handler`, and the line number, to record if the value cannot be accepted for any reason. Finally `function` works the same way as `member_fn`, except that it calls a free function with the specified destination name and passes it as an additional first parameter the object used for parsing, by reference. `function` doesn't really provide much extra flexibility, and I will be trying to avoid it.
 
 In addition to handling values where the left-hand side is a known quantity that is fixed in advance, you can also send both the left and the right hand sides of a value to a routine of your choice (assuming that it does not match an explicitly specific left-hand side). Doing this requires a line such as the following:
 ```
@@ -77,8 +77,44 @@ with `(destination_name)` being optional as before. Both of these lines will ins
 
 **NOTE** Another minor difference between `group` and `extern` is that even if you specify handling `extern` with `discard`, it will still be run on the contents of the group, which is useful if you are learning towards processing the data immediately and don't have anything useful to return. Yes, this makes reading the definition a bit misleading.
 
-As with values, you may replace `yyy` with `#any` to parse groups where the token on the left of the `=` is not fixed in advance. And as with values, this adds an additional `string_view` parameter to the handler. In addition, a function called because of `extern` will also be passed a `string_view` containing the text to the left of the `=` as an additional first parameter (but not for automatically generated parsers called because of `group`, as they cannot take extra parameters).
+As with values, you may replace `yyy` with `#any` to parse groups where the token on the left of the `=` is not fixed in advance. And as with values, this will result in an additional `string_view` parameter being sent to the handler. In addition, a function called because of `extern` will also be passed a `string_view` containing the text to the left of the `=` as an additional first parameter (this is not available for automatically generated parsers called because of `group`, as they cannot take extra parameters).
 
 #### Defining how free values are handled
 
-#### Defining how free sets are handled
+To define how any free value encountered should be handled, add a line such as
+```
+	#free, value, type, handler_type (destination_name)
+```
+to the parser definition. `value` must be present to indicate that this is how you want to handle free values, and not for free sets. As with ordinary values, `type` determines the type of value that the text will be immediately parsed into, `handler_type` determines what to do with that value, and `destination_name`, if present, overrides the default name of the handler (which defaults to `free_value` if you do not specify something).
+
+If `handler_type` is `member_fn`, then the class must have a member function that can accept the following parameters: an the type of the parsed `zzz`, an object of class `error_handler` by reference, an `int32_t` containing the line number that the left hand of the value was read from, and the context for the parser, either by value or reference. (**NOTE** the difference from standard values is the absence of the `association_type` enum) `function` works the same way as `member_fn`, except that it calls a free function passes it as an additional first parameter the object used for parsing, by reference.
+
+Note that you can only have one handler for free values. If you need to be able to accept different types of free values (say both numeric and text data) then you will have to specify `text` for the type and then decide which kind of value it is for yourself.
+
+#### Defining how free groups are handled
+
+To define how a free group is to be handled, add a line such as
+```
+	#free, group, type, handler_type (destination_name)
+```
+or
+```
+	#free, extern, function_name, handler_type (destination_name)
+```
+to the parser definition. Functionally, free groups work in exactly the same way as normal groups, except that their default destination name is `free_group`. But you really shouldn't have to worry about it; free groups are so rare that I am not even sure one is present in the Victoria 2 files (yes, the spec for these parsers was derived from an even older spec based on CK2 files -- don't ask).
+
+#### Reusing items from an existing parser definition
+
+Finally, it is possible to reuse, in a somewhat limited way, the content of one parser definition within another. You can do this by adding the line
+```
+	#base, name
+```
+where name is the name you have used for some other parser definition *previously in the same file*. This works essentially by "copying" the content of the prior definition, and there is no provision for overriding anything there; you can only add new items. `#base` is at this point probably a purely legacy feature; I don't think it will be necessary or useful to anything we want to do with the parsers, but it was easy enough just to leave it in.
+
+### A quick word about the parsers generated in this way
+
+A generated parser can be invoked as `parsers::parse_typename(token_gen, error_record, context)`, where `token_gen` is of type `parsers::token_generator`, `error_record` is of type `parsers::error_handler`, and `context` can be anything you want, although the convention is to pass `0` if the context is not being used.
+
+A `token_generator` is created passing two `char` pointers to the constructor indicating the range of text that the tokens should be pulled from (in the usual C++ style, so the second pointer is to the memory location one past the end of the range). Generally you should only create one token generator per file.
+
+An `error_handler` is created by passing a string to the constructor that contains the name of the file the errors should be attributed to. To add a custom error to an object of this type, simply append the descriptive message (ideally including both the file name, stored in member `file_name` as an `std::string` and line number) to its member `accumulated_errors`, which is of type `std::string`. Also make sure that your error message ends with `\n`. The is to assume that if the length of `accumulated_errors` is zero, then there were no errors in parsing the file. There is currently no way to express warnings.

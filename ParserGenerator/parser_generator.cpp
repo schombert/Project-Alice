@@ -376,27 +376,23 @@ int main(int argc, char* argv[]) {
 
 				std::string key = extract_string(input, file_end);
 
-				if(key == "#value") {
-					std::string value_type = extract_string(input, file_end);
-					std::string handler_type = extract_string(input, file_end);
-					std::string handler_opt = extract_optional(input, file_end);
-
-					file.groups.back().single_value_handler_type = value_type;
-					file.groups.back().single_value_handler_result = value_and_optional{ handler_type, handler_opt };
-				} else if(key == "#set") {
+				if(key == "#free") {
 					std::string type = extract_string(input, file_end);
 					std::string opt = extract_string(input, file_end);
 
 					std::string handler_type = extract_string(input, file_end);
 					std::string handler_opt = extract_optional(input, file_end);
 
-					if(type != "extern") {
+					if(type == "group") {
 						file.groups.back().set_handler = group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false };
-					} else { //if(type == "extern") {
+					} else if(type == "extern") {
 						file.groups.back().set_handler = group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true };
+					} else if(type == "value") {
+						file.groups.back().single_value_handler_type = opt;
+						file.groups.back().single_value_handler_result = value_and_optional{ handler_type, handler_opt };
 					}
-					// key = always "#set" (unuused)
-					// value1 == "extern" | "parser"
+
+					// value1 == "extern" | "group" | "value"
 					// value2 = set_handler.type_or_function = function to call on "gen" to process it (with extern == true, wont prepend parse)
 					// value3 = set_handler.handler.value = discard | member | ...
 					// (value4) = set_handler.handler.opt = name of non default member target / fn name to call w/ results
@@ -511,6 +507,7 @@ int main(int argc, char* argv[]) {
 			output += "\t " + g.group_object_type + " cobj;\n";
 			output += "\t for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {\n";
 
+			// case: free group
 			output += "\t\t if(cur.type == token_type::open_brace) { \n";
 			{
 				// set_handler.handler.value = discard | member | ...
@@ -522,36 +519,36 @@ int main(int argc, char* argv[]) {
 						set_effect = "gen.discard_group();";
 					} else if(g.set_handler.handler.value == "member") {
 						set_effect = "cobj." +
-							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_group")) +
 							" = parse_" + g.set_handler.type_or_function + "(gen, err, context);";
 					} else if(g.set_handler.handler.value == "member_fn") {
 						set_effect = "cobj." +
-							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-							"(parse_" + g.set_handler.type_or_function + "(gen, err, context), context);";
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_group")) +
+							"(parse_" + g.set_handler.type_or_function + "(gen, err, context), err, cur.line, context);";
 					} else if(g.set_handler.handler.value == "function") {
 						set_effect =
-							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-							"(cobj, parse_" + g.set_handler.type_or_function + "(gen, err, context), context);";
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_group")) +
+							"(cobj, parse_" + g.set_handler.type_or_function + "(gen, err, context), err, cur.line, context);";
 					} else {
-						set_effect = "err.unhandled_free_set(cur); gen.discard_group();";
+						set_effect = "err.unhandled_free_group(cur); gen.discard_group();";
 					}
 				} else {
 					if(g.set_handler.handler.value == "discard") {
 						set_effect = "gen.discard_group();";
 					} else if(g.set_handler.handler.value == "member") {
 						set_effect = "cobj." +
-							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_group")) +
 							" = " + g.set_handler.type_or_function + "(gen, err, context);";
 					} else if(g.set_handler.handler.value == "member_fn") {
 						set_effect = "cobj." +
-							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-							"(" + g.set_handler.type_or_function + "(gen, err, context), context);";
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_group")) +
+							"(" + g.set_handler.type_or_function + "(gen, err, context), err, cur.line, context);";
 					} else if(g.set_handler.handler.value == "function") {
 						set_effect =
-							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_set")) +
-							"(cobj, " + g.set_handler.type_or_function + "(gen, err, context), context);";
+							(g.set_handler.handler.opt.length() > 0 ? g.set_handler.handler.opt : std::string("free_group")) +
+							"(cobj, " + g.set_handler.type_or_function + "(gen, err, context), err, cur.line, context);";
 					} else {
-						set_effect = "err.unhandled_free_set(cur); gen.discard_group();";
+						set_effect = "err.unhandled_free_group(cur); gen.discard_group();";
 					}
 				}
 				output += "\t\t\t " + set_effect + "\n";
@@ -739,15 +736,15 @@ int main(int argc, char* argv[]) {
 					// do nothing
 				} else if(g.single_value_handler_result.value == "member") {
 					output += "\t\t\t cobj." +
-						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
+						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("free_value")) +
 						"= parse_" + g.single_value_handler_type + "(cur.content, cur.line, err);\n";
 				} else if(g.single_value_handler_result.value == "member_fn") {
 					output += "\t\t\t cobj." +
-						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
+						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("free_value")) +
 						"(parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, cur.line, context);\n";
 				} else if(g.single_value_handler_result.value == "function") {
 					output += "\t\t\t " +
-						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
+						(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("free_value")) +
 						"(cobj, parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, cur.line, context);\n";
 				}
 			} else {

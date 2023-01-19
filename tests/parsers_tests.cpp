@@ -98,6 +98,81 @@ void free_ec_fn(indirect_group& o, exercising_combinations value, parsers::error
 exercising_combinations ec_stub(parsers::token_generator& gen, parsers::error_handler& err, int32_t context);
 exercising_combinations ec_sv_stub(std::string_view sv, parsers::token_generator& gen, parsers::error_handler& err, int32_t context);
 
+struct free_value_mem_fn {
+    int32_t sum = 0;
+    void free_value(int32_t value, parsers::error_handler& err, int32_t line, int32_t context) {
+        sum += value;
+    }
+    void finish(int32_t) {
+
+    }
+};
+
+struct free_value_fn {
+    int32_t sum = 0;
+    void finish(int32_t) {
+
+    }
+};
+
+void free_value(free_value_fn& obj, int32_t value, parsers::error_handler& err, int32_t line, int32_t context) {
+    obj.sum += value;
+}
+
+struct free_group_g_mem_fn {
+    int32_t sum = 0;
+    void free_group(exercising_combinations value, parsers::error_handler& err, int32_t line, int32_t context) {
+        sum += value.aaa;
+    }
+    void finish(int32_t) {
+
+    }
+};
+struct free_group_g_mem {
+    exercising_combinations free_group;
+    void finish(int32_t) {
+
+    }
+};
+struct free_group_g_fn {
+    int32_t sum = 0;
+    void finish(int32_t) {
+
+    }
+};
+
+void free_group(free_group_g_fn& o, exercising_combinations value, parsers::error_handler& err, int32_t line, int32_t context) {
+    o.sum += value.aaa;
+}
+
+struct free_group_e_mem_fn {
+    int32_t sum = 0;
+    void free_group(exercising_combinations value, parsers::error_handler& err, int32_t line, int32_t context) {
+        sum += value.aaa;
+    }
+    void finish(int32_t) {
+
+    }
+};
+struct free_group_e_mem {
+    exercising_combinations free_group;
+    void finish(int32_t) {
+
+    }
+};
+struct free_group_e_fn {
+    int32_t sum = 0;
+    void finish(int32_t) {
+
+    }
+};
+
+void free_group(free_group_e_fn& o, exercising_combinations value, parsers::error_handler& err, int32_t line, int32_t context) {
+    o.sum += value.aaa;
+}
+
+struct basic_copy : public basic_object_a { };
+
 #include "test_parsers_generated.hpp"
 
 inline exercising_combinations ec_stub(parsers::token_generator& gen, parsers::error_handler& err, int32_t context) {
@@ -178,5 +253,106 @@ TEST_CASE("Generated Parsers Tests", "[parsers]") {
         REQUIRE(created_object.left_free_text == "other");
 
         REQUIRE(err.accumulated_errors.length() == 0);
+    }
+    SECTION("free value exercises") {
+        {
+            char file_data[] = "1 2 3";
+
+            parsers::error_handler err("no file");
+            parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+            auto created_object = parsers::parse_free_value_mem_fn(gen, err, 0);
+
+            REQUIRE(created_object.sum == 6);
+            REQUIRE(err.accumulated_errors.length() == 0);
+        }
+        {
+            char file_data[] = "8 2 3";
+
+            parsers::error_handler err("no file");
+            parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+            auto created_object = parsers::parse_free_value_fn(gen, err, 0);
+
+            REQUIRE(created_object.sum == 13);
+            REQUIRE(err.accumulated_errors.length() == 0);
+        }
+    }
+    SECTION("free group exercises") {
+        {
+            char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
+            parsers::error_handler err("no file");
+            parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+            auto created_object = parsers::parse_free_group_g_fn(gen, err, 0);
+
+            REQUIRE(created_object.sum == 444);
+            REQUIRE(err.accumulated_errors.length() == 0);
+        }
+        {
+            char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
+            parsers::error_handler err("no file");
+            parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+            auto created_object = parsers::parse_free_group_g_mem_fn(gen, err, 0);
+
+            REQUIRE(created_object.sum == 444);
+            REQUIRE(err.accumulated_errors.length() == 0);
+        }
+        {
+            char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
+            parsers::error_handler err("no file");
+            parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+            auto created_object = parsers::parse_free_group_g_mem(gen, err, 0);
+
+            REQUIRE(created_object.free_group.aaa == 4);
+            REQUIRE(err.accumulated_errors.length() == 0);
+        }
+        {
+            char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
+            parsers::error_handler err("no file");
+            parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+            auto created_object = parsers::parse_free_group_e_fn(gen, err, 0);
+
+            REQUIRE(created_object.sum == 444);
+            REQUIRE(err.accumulated_errors.length() == 0);
+        }
+        {
+            char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
+            parsers::error_handler err("no file");
+            parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+            auto created_object = parsers::parse_free_group_e_mem_fn(gen, err, 0);
+
+            REQUIRE(created_object.sum == 444);
+            REQUIRE(err.accumulated_errors.length() == 0);
+        }
+        {
+            char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
+            parsers::error_handler err("no file");
+            parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+            auto created_object = parsers::parse_free_group_e_mem(gen, err, 0);
+
+            REQUIRE(created_object.free_group.aaa == 4);
+            REQUIRE(err.accumulated_errors.length() == 0);
+        }
+    }
+    SECTION("inheritance and error test") {
+        char file_data[] = "{ a b\nc }\nunk_key = free_text 11 bad_key = { 10 } key_A = 3\nkey_C = 2.5 key_B  = { 1 2 3}";
+
+        parsers::error_handler err("no file");
+        parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+        auto created_object = parsers::parse_basic_copy(gen, err, 0);
+
+        REQUIRE(created_object.key_A == 3);
+        REQUIRE(created_object.int_value == 11);
+        REQUIRE(created_object.float_value == 2.5f);
+        REQUIRE(created_object.stored_text == "free_text");
+        REQUIRE(created_object.left_free_text == "unk_key");
+        REQUIRE(err.accumulated_errors.length() != 0);
     }
 }

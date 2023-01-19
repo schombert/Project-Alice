@@ -151,42 +151,42 @@ namespace parsers {
 
 	token_and_type token_generator::internal_next() {
 		if(position >= file_end)
-			return token_and_type{ std::string_view(file_end, file_end), current_line, token_type::unknown };
+			return token_and_type{ std::string_view(), current_line, token_type::unknown };
 
 		auto non_ws = advance_position_to_non_comment(position, file_end, current_line);
 		if(non_ws < file_end) {
 			if(*non_ws == '{') {
 				position = non_ws + 1;
-				return token_and_type{ std::string_view(non_ws, non_ws + 1), current_line, token_type::open_brace };
+				return token_and_type{ std::string_view(non_ws, 1), current_line, token_type::open_brace };
 			} else if(*non_ws == '}') {
 				position = non_ws + 1;
-				return token_and_type{ std::string_view(non_ws, non_ws + 1), current_line, token_type::close_brace };
+				return token_and_type{ std::string_view(non_ws, 1), current_line, token_type::close_brace };
 			} else if(*non_ws == '\"') {
 				const auto close = scan_for_match(non_ws + 1, file_end, current_line, double_quote_termination);
 				position = close + 1;
-				return token_and_type{ std::string_view(non_ws + 1, close), current_line, token_type::quoted_string };
+				return token_and_type{ std::string_view(non_ws + 1, close - (non_ws + 1)), current_line, token_type::quoted_string };
 			} else if(*non_ws == '\'') {
 				const auto close = scan_for_match(non_ws + 1, file_end, current_line, single_quote_termination);
 				position = close + 1;
-				return token_and_type{ std::string_view(non_ws + 1, close), current_line, token_type::quoted_string };
+				return token_and_type{ std::string_view(non_ws + 1, close - (non_ws + 1)), current_line, token_type::quoted_string };
 			} else if(has_fixed_prefix(non_ws, file_end, "==") || has_fixed_prefix(non_ws, file_end, "<=")
 				|| has_fixed_prefix(non_ws, file_end, ">=") || has_fixed_prefix(non_ws, file_end, "<>")
 				|| has_fixed_prefix(non_ws, file_end, "!=")) {
 
 
 				position = non_ws + 2;
-				return token_and_type{ std::string_view(non_ws, non_ws + 2), current_line, token_type::special_identifier };
+				return token_and_type{ std::string_view(non_ws, 2), current_line, token_type::special_identifier };
 			} else if(*non_ws == '<' || *non_ws == '>' || *non_ws == '=') {
 
 				position = non_ws + 1;
-				return token_and_type{ std::string_view(non_ws, non_ws + 1), current_line, token_type::special_identifier };
+				return token_and_type{ std::string_view(non_ws, 1), current_line, token_type::special_identifier };
 			} else {
 				position = advance_position_to_breaking_char(non_ws, file_end, current_line);
-				return token_and_type{ std::string_view(non_ws, position), current_line, token_type::identifier };
+				return token_and_type{ std::string_view(non_ws, position - non_ws), current_line, token_type::identifier };
 			}
 		} else {
 			position = file_end;
-			return token_and_type{ std::string_view(file_end, file_end), current_line, token_type::unknown };
+			return token_and_type{ std::string_view(), current_line, token_type::unknown };
 		}
 
 	}

@@ -82,7 +82,7 @@ namespace parsers {
 		void unhandled_free_value(token_and_type const& t) {
 			accumulated_errors += "unexpected free value " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n";
 		}
-		void unhandled_free_set(token_and_type const& t) {
+		void unhandled_free_group(token_and_type const& t) {
 			accumulated_errors += "unhandled free set beggining with  " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n";
 		}
 		void bad_date(std::string_view s, int32_t l) {

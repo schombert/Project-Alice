@@ -1,6 +1,6 @@
 basic_object_a
-	#value             int    member     (int_value)
-	#set      extern   none   discard
+	#free     value    int    member     (int_value)
+	#free     extern   none   discard
 	#any      value    text   member_fn
 	key_A     value    int    member
 	key_C     value    float  member     (float_value)
@@ -23,3 +23,30 @@ indirect_group
 	bbb       extern    ec_stub    member_fn
 	ccc       extern    ec_stub    function     (free_ec_fn)
 	#any      extern    ec_sv_stub member_fn
+
+free_value_mem_fn
+	#free     value    int    member_fn
+
+free_value_fn
+	#free     value    int    function
+
+free_group_g_mem_fn
+	#free     group    exercising_combinations    member_fn
+
+free_group_g_fn
+	#free     group    exercising_combinations    function
+
+free_group_g_mem
+	#free     group    exercising_combinations    member
+
+free_group_e_mem_fn
+	#free     extern   ec_stub    member_fn
+
+free_group_e_fn
+	#free     extern   ec_stub    function
+
+free_group_e_mem
+	#free     extern   ec_stub    member
+
+basic_copy
+	#base     basic_object_a
