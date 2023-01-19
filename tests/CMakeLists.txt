@@ -18,7 +18,7 @@ file(GLOB_RECURSE TEST_SOURCES ${WILDCARD_SOURCE})
 
 source_group("generation files" FILES "test_parsers.txt" "test_parsers_generated.hpp")
 
-add_executable(tests_project ${TEST_SOURCES} "${PRIMARY_PROJECT_DIRECTORY}/parsers.cpp" "parsers_tests.cpp")
+add_executable(tests_project ${TEST_SOURCES} "${PRIMARY_PROJECT_DIRECTORY}/parsers.cpp" "${PRIMARY_PROJECT_DIRECTORY}/float_from_chars.cpp" "parsers_tests.cpp")
 
 target_compile_options(tests_project PRIVATE
 	$<$<CXX_COMPILER_ID:GNU>:     -Wall -Wextra   -Wpedantic      -Werror                     $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>

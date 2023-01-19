@@ -242,18 +242,18 @@ namespace parsers {
 
 	float parse_float(std::string_view content, int32_t line, error_handler& err) {
 		float rvalue = 0.0f;
-		auto result = std::from_chars(content.data(), content.data() + content.length(), rvalue);
-		if(result.ec == std::errc::invalid_argument) {
+
+		if(!float_from_chars(content.data(), content.data() + content.length(), rvalue)) {
 			err.bad_float(content, line);
 		}
+
 		return rvalue;
 	}
 
 	double parse_double(std::string_view content, int32_t line, error_handler& err) {
 		double rvalue = 0.0;
-		auto result = std::from_chars(content.data(), content.data() + content.length(), rvalue);
-		if(result.ec == std::errc::invalid_argument) {
-			err.bad_double(content, line);
+		if(!double_from_chars(content.data(), content.data() + content.length(), rvalue)) {
+			err.bad_float(content, line);
 		}
 		return rvalue;
 	}
@@ -316,4 +316,76 @@ namespace parsers {
 		return date_to_tag(boost::gregorian::date(year, month, day));
 	}
 	*/
+
+
+	separator_scan_result csv_find_separator_token(char const* start, char const* end, char seperator) {
+		while(start != end) {
+			if(line_termination(*start))
+				return separator_scan_result{ start, false };
+			else if(*start == seperator)
+				return separator_scan_result{ start, true };
+			else
+				++start;
+		}
+		return separator_scan_result{ start, false };
+	}
+
+	char const* csv_advance(char const* start, char const* end, char seperator) {
+		while(start != end) {
+			if(line_termination(*start))
+				return start;
+			else if(*start == seperator)
+				return start + 1;
+			else
+				++start;
+		}
+		return start;
+	}
+
+	char const* csv_advance_n(uint32_t n, char const* start, char const* end, char seperator) {
+
+		if(n == 0)
+			return start;
+		--n;
+
+		while(start != end) {
+			if(line_termination(*start))
+				return start;
+			else if(*start == seperator) {
+				if(n == 0)
+					return start + 1;
+				else
+					--n;
+			}
+			++start;
+		}
+		return start;
+	}
+
+	char const* csv_advance_to_next_line(char const* start, char const* end) {
+
+		while(start != end && !line_termination(*start)) {
+			++start;
+		}
+		while(start != end && line_termination(*start))
+			++start;
+		if(start == end || *start != '#')
+			return start;
+		else
+			return csv_advance_to_next_line(start, end);
+	}
+
+	std::string_view remove_surrounding_whitespace(std::string_view txt) {
+		char const* start = txt.data();
+		char const* end = txt.data() + txt.length();
+		for(; start < end; ++start) {
+			if(*start != ' ' && *start != '\t' && *start != '\r' && *start != '\n')
+				break;
+		}
+		for(; start < end; --end) {
+			if(*(end - 1) != ' ' && *(end - 1) != '\t' && *(end - 1) != '\r' && *(end - 1) != '\n')
+				break;
+		}
+		return std::string_view(start, end - start);
+	}
 }

@@ -108,12 +108,61 @@ namespace parsers {
 		}
 	};
 
+	bool float_from_chars(char const* start, char const* end, float& float_out); // returns true on success
+	bool double_from_chars(char const* start, char const* end, double& dbl_out); // returns true on success
+
+	std::string_view remove_surrounding_whitespace(std::string_view txt);
+
 	float parse_float(std::string_view content, int32_t line, error_handler& err);
-	bool parse_bool(std::string_view content, int32_t line, error_handler& err);
 	double parse_double(std::string_view content, int32_t line, error_handler& err);
+	bool parse_bool(std::string_view content, int32_t line, error_handler& err);
 	int32_t parse_int(std::string_view content, int32_t line, error_handler& err);
 	uint32_t parse_uint(std::string_view content, int32_t line, error_handler& err);
 	association_type parse_association_type(std::string_view content, int32_t line, error_handler& err);
 	inline std::string_view parse_text(std::string_view content, int32_t line, error_handler& err) { return content; }
 	//date_tag parse_date(std::string_view content, int32_t line, error_handler& err);
+
+
+	//
+	// CSV file parsing
+	// Note: this does not parse CSV files according to the standard
+	// instead it parses them according to the "paradox standard"
+	//
+
+	struct separator_scan_result {
+		char const* new_position = nullptr;
+		bool found = false;
+	};
+
+	char const* csv_advance(char const* start, char const* end, char seperator);
+	char const* csv_advance_n(uint32_t n, char const* start, char const* end, char seperator);
+	char const* csv_advance_to_next_line(char const* start, char const* end);
+	separator_scan_result csv_find_separator_token(char const* start, char const* end, char seperator);
+
+	template<size_t count_values, typename T>
+	char const* parse_fixed_amount_csv_values(char const* start, char const* end, char seperator, T&& function) {
+		std::string_view values[count_values];
+		for(uint32_t i = 0; i < count_values; ++i) {
+			auto r = csv_find_separator_token(start, end, seperator);
+			values[i] = std::string_view(start, r.new_position - start);
+			start = r.new_position + int32_t(r.found);
+		}
+		function(values);
+
+		return csv_advance_to_next_line(start, end);
+	}
+
+	template<typename T>
+	char const* parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char seperator, T&& function) {
+		auto first_separator = csv_find_separator_token(start, end, seperator);
+
+		std::string_view first_value = std::string_view(start, first_separator.new_position - start);
+
+		start = csv_advance_n(nth - 2ui32, first_separator.new_position + int32_t(first_separator.found), end, seperator);
+
+		auto second_end = csv_find_separator_token(start, end, seperator);
+
+		function(first_value, std::string_view(start, second_end.new_position - start));
+		return csv_advance_to_next_line(second_end.new_position + int32_t(second_end.found), end);
+	}
 }

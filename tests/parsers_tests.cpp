@@ -189,7 +189,7 @@ inline exercising_combinations ec_sv_stub(std::string_view sv, parsers::token_ge
 }
 
 
-TEST_CASE("Generated Parsers Tests", "[parsers]") {
+TEST_CASE("Generated parsers tests", "[parsers]") {
     SECTION("trivial cases") {
         char file_data[] = "{ a b\nc }\nunk_key = free_text 11 key_A = 3\nkey_C = 2.5 key_B  = { 1 2 3}";
 
@@ -354,5 +354,122 @@ TEST_CASE("Generated Parsers Tests", "[parsers]") {
         REQUIRE(created_object.stored_text == "free_text");
         REQUIRE(created_object.left_free_text == "unk_key");
         REQUIRE(err.accumulated_errors.length() != 0);
+    }
+}
+
+TEST_CASE("csv parser tests", "[parsers]") {
+    SECTION("parse 4 things from a csv") {
+        char file_data[] = "name;1; 23; 5\r\n#name2; 2; 3; 4; 5; 6;\nname2; 2; 3; 4; 5; 6;\n\nname3;7;8;9;10";
+        auto sz = strlen(file_data);
+        char const* cpos = file_data;
+
+        // NOTE: this line is unnecesasry here, but is needed for real files to discard any initial comments
+        if(sz != 0 && cpos[0] == '#')
+            cpos = parsers::csv_advance_to_next_line(cpos, file_data + sz);
+        int32_t col2_sum = 0;
+        int32_t col3_sum = 0;
+        int32_t col4_sum = 0;
+        std::string names;
+        parsers::error_handler err("no_file");
+        while(cpos < file_data + sz) {
+            cpos = parsers::parse_fixed_amount_csv_values<4>(cpos, file_data + sz, ';',
+                [&](std::string_view const* values) {
+                    names += values[0];
+                    col2_sum += parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
+                    col3_sum += parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
+                    col4_sum += parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
+                });
+        }
+
+        REQUIRE(col2_sum == 10);
+        REQUIRE(col3_sum == 34);
+        REQUIRE(col4_sum == 18);
+        REQUIRE(names == "namename2name3");
+    }
+    SECTION("parse 1st and 3rd things from a csv") {
+        char file_data[] = "name;1; 23; 5\r\n#name2; 2; 3; 4; 5; 6;\nname2; 2; 3; 4; 5; 6;\n\nname3;7;8;9;10";
+        auto sz = strlen(file_data);
+        char const* cpos = file_data;
+
+        if(sz != 0 && cpos[0] == '#')
+            cpos = parsers::csv_advance_to_next_line(cpos, file_data + sz);
+        int32_t col3_sum = 0;
+        std::string names;
+        parsers::error_handler err("no_file");
+        while(cpos < file_data + sz) {
+            cpos = parsers::parse_first_and_nth_csv_values(3, cpos, file_data + sz, ';',
+                [&](std::string_view first, std::string_view third) {
+                    names += first;
+                    col3_sum += parsers::parse_int(parsers::remove_surrounding_whitespace(third), 0, err);
+                });
+        }
+
+        REQUIRE(col3_sum == 34);
+        REQUIRE(names == "namename2name3");
+    }
+}
+
+TEST_CASE("Floating point parser tests", "[parsers]") {
+
+    {
+        float val = 0.0f;
+        char const* txt = "0.0";
+        REQUIRE(parsers::float_from_chars(txt, txt + 3, val) == true);
+        REQUIRE(val == 0.0f);
+    }
+    {
+        float val = 0.0f;
+        char const* txt = "123";
+        REQUIRE(parsers::float_from_chars(txt, txt + 3, val) == true);
+        REQUIRE(val == 123.0f);
+    }
+    {
+        float val = 0.0f;
+        char const* txt = "0.25";
+        REQUIRE(parsers::float_from_chars(txt, txt + 4, val) == true);
+        REQUIRE(val == 0.25f);
+    }
+    {
+        float val = 0.0f;
+        char const* txt = "-10";
+        REQUIRE(parsers::float_from_chars(txt, txt + 3, val) == true);
+        REQUIRE(val == -10.0f);
+    }
+    {
+        float val = 0.0f;
+        char const* txt = "-1.5";
+        REQUIRE(parsers::float_from_chars(txt, txt + 4, val) == true);
+        REQUIRE(val == -1.5f);
+    }
+
+    {
+        double val = 0.0;
+        char const* txt = "0.0";
+        REQUIRE(parsers::double_from_chars(txt, txt + 3, val) == true);
+        REQUIRE(val == 0.0);
+    }
+    {
+        double val = 0.0;
+        char const* txt = "123";
+        REQUIRE(parsers::double_from_chars(txt, txt + 3, val) == true);
+        REQUIRE(val == 123.0);
+    }
+    {
+        double val = 0.0;
+        char const* txt = "0.25";
+        REQUIRE(parsers::double_from_chars(txt, txt + 4, val) == true);
+        REQUIRE(val == 0.25);
+    }
+    {
+        double val = 0.0;
+        char const* txt = "-10";
+        REQUIRE(parsers::double_from_chars(txt, txt + 3, val) == true);
+        REQUIRE(val == -10.0);
+    }
+    {
+        double val = 0.0;
+        char const* txt = "-1.5";
+        REQUIRE(parsers::double_from_chars(txt, txt + 4, val) == true);
+        REQUIRE(val == -1.5);
     }
 }
