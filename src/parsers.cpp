@@ -1,17 +1,18 @@
 #include "parsers.hpp"
 #include <charconv>
+#include <algorithm>
 
 namespace parsers {
 	bool ignorable_char(char c) {
-		return (c == ' ') | (c == '\r') | (c == '\f') | (c == '\n') | (c == '\t') | (c == ',') | (c == ';');
+		return (c == ' ') || (c == '\r') || (c == '\f') || (c == '\n') || (c == '\t') || (c == ',') || (c == ';');
 	}
 
 	bool special_identifier_char(char c) {
-		return (c == '!') | (c == '=') | (c == '<') | (c == '>');
+		return (c == '!') || (c == '=') || (c == '<') || (c == '>');
 	}
 
 	bool breaking_char(char c) {
-		return ignorable_char(c) | (c == '{') | (c == '}') | special_identifier_char(c) | (c == '\"') | (c == '\'') | (c == '#');
+		return ignorable_char(c) || (c == '{') || (c == '}') || special_identifier_char(c) || (c == '\"') || (c == '\'') || (c == '#');
 	}
 
 	bool not_special_identifier_char(char c) {
@@ -19,15 +20,15 @@ namespace parsers {
 	}
 
 	bool line_termination(char c) {
-		return (c == '\r') | (c == '\n');
+		return (c == '\r') || (c == '\n');
 	}
 
 	bool double_quote_termination(char c) {
-		return (c == '\r') | (c == '\n') | (c == '\"');
+		return (c == '\r') || (c == '\n') || (c == '\"');
 	}
 
 	bool single_quote_termination(char c) {
-		return (c == '\r') | (c == '\n') | (c == '\'');
+		return (c == '\r') || (c == '\n') || (c == '\'');
 	}
 
 	template<size_t N>
@@ -237,7 +238,7 @@ namespace parsers {
 		if(content.length() == 0)
 			return false;
 		else
-			return (content[0] == 'Y') | (content[0] == 'y') | (content[0] == '1');
+			return (content[0] == 'Y') || (content[0] == 'y') || (content[0] == '1');
 	}
 
 	float parse_float(std::string_view content, int32_t line, error_handler& err) {

@@ -173,7 +173,7 @@ std::string string_to_hex(std::string const& str, int32_t start, int32_t count) 
 }
 
 std::string final_match_condition_internal(std::string const& key, int32_t starting_position) {
-	if(starting_position >= (int32_t) key.length())
+	if(starting_position >= int32_t(key.length()))
 		return "";
 
 	if(key.length() - starting_position >= 8) {

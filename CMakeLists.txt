@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(CTest)
 
 file(GLOB_RECURSE MAIN_SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
-add_executable(ProjectAlice WIN32 "${MAIN_SOURCES}")
+add_executable(ProjectAlice "${MAIN_SOURCES}")
 
 # SOON we will switch to this
 # add_executable(ProjectAlice WIN32 "${MAIN_SOURCES}")
@@ -29,7 +29,7 @@ if(MSVC)
 
 	target_compile_options(ProjectAlice PRIVATE 
 									/wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
-		$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
+		$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
 		$<$<NOT:$<CONFIG:Debug>>: 	/wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
 	target_link_options(ProjectAlice PRIVATE
 		$<$<CONFIG:Debug>: 			/DEBUG:FULL > 
