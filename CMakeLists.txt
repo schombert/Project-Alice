@@ -10,11 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(CTest)
 
-file(GLOB_RECURSE MAIN_SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
-add_executable(ProjectAlice "${MAIN_SOURCES}")
+add_executable(Alice WIN32 "src/main.cpp")
 
-# SOON we will switch to this
-# add_executable(ProjectAlice WIN32 "${MAIN_SOURCES}")
+target_include_directories(Alice PUBLIC ${PROJECT_SOURCE_DIR}/src)
 
 set(PRIMARY_PROJECT_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
 
@@ -27,16 +25,16 @@ if(MSVC)
 	string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
-	target_compile_options(ProjectAlice PRIVATE 
+	target_compile_options(Alice PRIVATE 
 									/wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
 		$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
 		$<$<NOT:$<CONFIG:Debug>>: 	/wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
-	target_link_options(ProjectAlice PRIVATE
+	target_link_options(Alice PRIVATE
 		$<$<CONFIG:Debug>: 			/DEBUG:FULL > 
 		$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF>)
 
 else() # GCC or CLANG
-	target_compile_options(ProjectAlice PRIVATE
+	target_compile_options(Alice PRIVATE
 									-Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-unused-parameter
 		$<$<CONFIG:Debug>:			-g>
 		$<$<NOT:$<CONFIG:Debug>>: 	-O3>)
@@ -46,7 +44,7 @@ endif()
 add_subdirectory (dependencies)
 add_subdirectory (ParserGenerator)
 
-target_link_libraries(ProjectAlice PRIVATE
+target_link_libraries(Alice PRIVATE
 	dependency_DataContainer)
 
 # GENERATE CONTAINER
@@ -61,7 +59,7 @@ add_custom_command(
 
 # Sets a dependency on the generated file 
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
-add_dependencies(ProjectAlice GENERATE_CONTAINER)
+add_dependencies(Alice GENERATE_CONTAINER)
 
 if (BUILD_TESTING)
     enable_testing()

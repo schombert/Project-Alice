@@ -1,8 +1,18 @@
-#include <iostream>
-#include "test.hpp"
+#include "parsers.cpp"
+#include "float_from_chars.cpp"
 
-// going to need to make this OS dependant; will need WinMain on windows
-int main() {
-	std::cout << "Hello Alice" << std::endl;
-	return EXIT_SUCCESS;
-}
+#ifdef _WIN64
+// WINDOWS implementations go here
+
+#include "simple_fs_win.cpp"
+
+#include "entry_point_win.cpp"
+
+#else
+// LINUX implementations go here
+
+#include "simple_fs_nix.cpp"
+
+#include "entry_point_nix.cpp"
+
+#endif
