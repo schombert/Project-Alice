@@ -178,11 +178,11 @@ std::string final_match_condition_internal(std::string const& key, int32_t start
 
 	if(key.length() - starting_position >= 8) {
 		return
-			" && (*(uint64_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | 0x2020202020202020ui64) == " + string_to_hex(key, starting_position, 8) + "ui64"
+			" && (*(uint64_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | uint64_t(0x2020202020202020) == uint64_t(" + string_to_hex(key, starting_position, 8) + ")"
 			+ final_match_condition_internal(key, starting_position + 8);
 	} else if(key.length() - starting_position >= 4) {
 		return
-			" && (*(uint32_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | 0x20202020ui32) == " + string_to_hex(key, starting_position, 4) + "ui32"
+			" && (*(uint32_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | uint32_t(0x20202020)) == uint32_t(" + string_to_hex(key, starting_position, 4) + ")"
 			+ final_match_condition_internal(key, starting_position + 4);
 	} else if(key.length() - starting_position >= 2) {
 		return

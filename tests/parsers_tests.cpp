@@ -203,7 +203,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
         REQUIRE(created_object.float_value == 2.5f);
         REQUIRE(created_object.stored_text == "free_text");
         REQUIRE(created_object.left_free_text == "unk_key");
-        REQUIRE(err.accumulated_errors.length() == 0);
+        REQUIRE(err.accumulated_errors.length() == size_t(0));
     }
     SECTION("value exercises") {
         char file_data[] = "# comment\nddd = 1\n\tccc = 2\nbbbb != 3\n# comment 2\r\naaa = 4";
@@ -216,7 +216,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
         REQUIRE(created_object.free_int == 2);
         REQUIRE(created_object.stored_int == 3);
         REQUIRE(created_object.aaa == 4);
-        REQUIRE(err.accumulated_errors.length() == 0);
+        REQUIRE(err.accumulated_errors.length() == size_t(0));
     }
     SECTION("group exercises") {
         char file_data[] = "aaa = { aaa = 40 } ccc = { aaa = 400 } bbb = { aaa = 4000 } other = { aaa = 4 }";
@@ -232,7 +232,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
         REQUIRE(created_object.val4.aaa == 4);
         REQUIRE(created_object.left_free_text == "other");
 
-        REQUIRE(err.accumulated_errors.length() == 0);
+        REQUIRE(err.accumulated_errors.length() == size_t(0));
     }
     SECTION("extern exercises") {
         char file_data[] = "aaa = { aaa = 40 } ccc = { aaa = 400 } bbb = { aaa = 4000 } other = { aaa = 4 }";
@@ -252,7 +252,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
         REQUIRE(created_object.val4.stored_int == 5);
         REQUIRE(created_object.left_free_text == "other");
 
-        REQUIRE(err.accumulated_errors.length() == 0);
+        REQUIRE(err.accumulated_errors.length() == size_t(0));
     }
     SECTION("free value exercises") {
         {
@@ -264,7 +264,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
             auto created_object = parsers::parse_free_value_mem_fn(gen, err, 0);
 
             REQUIRE(created_object.sum == 6);
-            REQUIRE(err.accumulated_errors.length() == 0);
+            REQUIRE(err.accumulated_errors.length() == size_t(0));
         }
         {
             char file_data[] = "8 2 3";
@@ -275,7 +275,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
             auto created_object = parsers::parse_free_value_fn(gen, err, 0);
 
             REQUIRE(created_object.sum == 13);
-            REQUIRE(err.accumulated_errors.length() == 0);
+            REQUIRE(err.accumulated_errors.length() == size_t(0));
         }
     }
     SECTION("free group exercises") {
@@ -287,7 +287,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
             auto created_object = parsers::parse_free_group_g_fn(gen, err, 0);
 
             REQUIRE(created_object.sum == 444);
-            REQUIRE(err.accumulated_errors.length() == 0);
+            REQUIRE(err.accumulated_errors.length() == size_t(0));
         }
         {
             char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
@@ -297,7 +297,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
             auto created_object = parsers::parse_free_group_g_mem_fn(gen, err, 0);
 
             REQUIRE(created_object.sum == 444);
-            REQUIRE(err.accumulated_errors.length() == 0);
+            REQUIRE(err.accumulated_errors.length() == size_t(0));
         }
         {
             char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
@@ -307,7 +307,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
             auto created_object = parsers::parse_free_group_g_mem(gen, err, 0);
 
             REQUIRE(created_object.free_group.aaa == 4);
-            REQUIRE(err.accumulated_errors.length() == 0);
+            REQUIRE(err.accumulated_errors.length() == size_t(0));
         }
         {
             char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
@@ -317,7 +317,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
             auto created_object = parsers::parse_free_group_e_fn(gen, err, 0);
 
             REQUIRE(created_object.sum == 444);
-            REQUIRE(err.accumulated_errors.length() == 0);
+            REQUIRE(err.accumulated_errors.length() == size_t(0));
         }
         {
             char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
@@ -327,7 +327,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
             auto created_object = parsers::parse_free_group_e_mem_fn(gen, err, 0);
 
             REQUIRE(created_object.sum == 444);
-            REQUIRE(err.accumulated_errors.length() == 0);
+            REQUIRE(err.accumulated_errors.length() == size_t(0));
         }
         {
             char file_data[] = "{ aaa = 40 } { aaa = 400 } { aaa = 4 }";
@@ -337,7 +337,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
             auto created_object = parsers::parse_free_group_e_mem(gen, err, 0);
 
             REQUIRE(created_object.free_group.aaa == 4);
-            REQUIRE(err.accumulated_errors.length() == 0);
+            REQUIRE(err.accumulated_errors.length() == size_t(0));
         }
     }
     SECTION("inheritance and error test") {
@@ -353,7 +353,7 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
         REQUIRE(created_object.float_value == 2.5f);
         REQUIRE(created_object.stored_text == "free_text");
         REQUIRE(created_object.left_free_text == "unk_key");
-        REQUIRE(err.accumulated_errors.length() != 0);
+        REQUIRE(err.accumulated_errors.length() != size_t(0));
     }
 }
 
