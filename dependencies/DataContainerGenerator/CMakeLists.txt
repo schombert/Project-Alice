@@ -27,8 +27,8 @@ if(MSVC)
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL > 
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF>)
 else() # GCC or CLANG
-	target_compile_options(ProjectAlice PRIVATE
-									-Wall -Wextra -Wpedantic -Werror
+	target_compile_options(DCONGENERATOR PRIVATE
+									# -Wall -Wextra -Wpedantic -Werror
 		$<$<CONFIG:Debug>:			-g>
 		$<$<NOT:$<CONFIG:Debug>>: 	-O3>)
 endif()

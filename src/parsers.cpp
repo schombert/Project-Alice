@@ -32,7 +32,7 @@ namespace parsers {
 
 	template<size_t N>
 	bool has_fixed_prefix(const char* start, const char* end, const char(&t)[N]) {
-		if(end - start < ((ptrdiff_t)N - 1))
+		if(end - start < ((std::ptrdiff_t)N - 1))
 			return false;
 		for(unsigned int i = 0; i < N - 1; ++i) {
 			if(start[i] != t[i])

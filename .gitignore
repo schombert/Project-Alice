@@ -6,6 +6,7 @@
 out/
 docs/out/
 .vscode/
+build/
 
 # DataContainer generated
 src/test.hpp

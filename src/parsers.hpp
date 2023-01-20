@@ -158,7 +158,7 @@ namespace parsers {
 
 		std::string_view first_value = std::string_view(start, first_separator.new_position - start);
 
-		start = csv_advance_n(nth - 2ui32, first_separator.new_position + int32_t(first_separator.found), end, seperator);
+		start = csv_advance_n(nth - uint32_t(2), first_separator.new_position + int32_t(first_separator.found), end, seperator);
 
 		auto second_end = csv_find_separator_token(start, end, seperator);
 

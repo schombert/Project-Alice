@@ -173,7 +173,7 @@ std::string string_to_hex(std::string const& str, int32_t start, int32_t count) 
 }
 
 std::string final_match_condition_internal(std::string const& key, int32_t starting_position) {
-	if(starting_position >= key.length())
+	if(starting_position >= (int32_t) key.length())
 		return "";
 
 	if(key.length() - starting_position >= 8) {
@@ -203,7 +203,7 @@ int32_t count_with_prefix(T const& vector, std::string const& prefix, int32_t le
 	int32_t const sz = int32_t(vector.size());
 	int32_t total = 0;
 	for(int32_t i = 0; i < sz; ++i) {
-		if(vector[i].key.length() == length) {
+		if(int32_t(vector[i].key.length()) == length) {
 			int32_t psize = int32_t(prefix.length());
 			bool match = true;
 			for(int32_t j = 0; j < psize; ++j) {
@@ -225,7 +225,7 @@ template<typename T, typename F>
 void enum_with_prefix(T const& vector, std::string const& prefix, int32_t length, F const& fn) {
 	int32_t const sz = int32_t(vector.size());
 	for(int32_t i = 0; i < sz; ++i) {
-		if(vector[i].key.length() == length) {
+		if(int32_t(vector[i].key.length()) == length) {
 			int32_t psize = int32_t(prefix.length());
 			bool match = true;
 			for(int32_t j = 0; j < psize; ++j) {
