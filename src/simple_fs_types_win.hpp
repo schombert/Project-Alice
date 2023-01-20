@@ -49,6 +49,7 @@ namespace simple_fs {
 		friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
 		friend std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name);
 		friend void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size);
+		friend directory open_directory(directory const& dir, native_string_view directory_name);
 	};
 
 
@@ -60,6 +61,7 @@ namespace simple_fs {
 
 		friend std::optional<file> open_file(unopened_file const& f);
 		friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
+		friend native_string get_full_name(unopened_file const& f);
 	};
 
 
@@ -84,5 +86,6 @@ namespace simple_fs {
 		friend std::optional<file> open_file(unopened_file const& f);
 		friend class std::optional<file>;
 		friend file_contents view_contents(file const& f);
+		friend native_string get_full_name(file const& f);
 	};
 }

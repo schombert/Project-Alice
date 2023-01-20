@@ -1,6 +1,7 @@
 #include "simple_fs.hpp"
 #include "Memoryapi.h"
-#include <Shlobj.h>
+#include "Shlobj.h"
+#include <cstdlib>
 
 #pragma comment(lib, "Shlwapi.lib")
 
@@ -38,7 +39,7 @@ namespace simple_fs {
 				if(content.data) {
 					_LARGE_INTEGER pvalue;
 					GetFileSizeEx(file_handle, &pvalue);
-					content.file_size = pvalue.QuadPart;
+					content.file_size = uint32_t(pvalue.QuadPart);
 				}
 			}
 		}
@@ -50,7 +51,7 @@ namespace simple_fs {
 			if(content.data) {
 				_LARGE_INTEGER pvalue;
 				GetFileSizeEx(file_handle, &pvalue);
-				content.file_size = pvalue.QuadPart;
+				content.file_size = uint32_t(pvalue.QuadPart);
 			}
 		}
 	}
@@ -184,6 +185,11 @@ namespace simple_fs {
 		}
 		return accumulated_results;
 	}
+
+	directory open_directory(directory const& dir, native_string_view directory_name) {
+		return directory(dir.parent_system, dir.relative_path + NATIVE('\\') + native_string(directory_name));
+	}
+
 	std::optional<file> open_file(directory const& dir, native_string_view file_name) {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
@@ -222,8 +228,18 @@ namespace simple_fs {
 		return std::optional<unopened_file>{};
 	}
 
+	native_string get_full_name(unopened_file const& f) {
+		return f.absolute_path;
+	}
+
+	native_string get_full_name(file const& f) {
+		return f.absolute_path;
+	}
 
 	void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size) {
+		if(dir.parent_system)
+			std::abort();
+		
 		native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
 
 		HANDLE file_handle = CreateFile(full_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
