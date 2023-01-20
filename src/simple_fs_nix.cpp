@@ -269,8 +269,12 @@ namespace simple_fs {
 
         int file_handle = open(full_path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
         if(file_handle != -1) {
-            write(file_handle, file_data, file_size);
-            ftruncate(file_handle, file_size);
+            if (write(file_handle, file_data, file_size) != -1) {
+				// error
+			}
+            if (ftruncate(file_handle, file_size) != -1) {
+				// error
+			}
             close(file_handle);
         }
 	}
