@@ -133,10 +133,10 @@ namespace ogl {
 		} else {
 			state.opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 
-			wglMakeCurrent(window_dc, nullptr);
+			wglMakeCurrent(window_dc, HGLRC(state.opengl_context));
 			wglDeleteContext(handle_to_ogl_dc);
 
-			wglMakeCurrent(window_dc, HGLRC(state.opengl_context));
+			//wglMakeCurrent(window_dc, HGLRC(state.opengl_context));
 #ifndef NDEBUG
 			glDebugMessageCallback(debug_callback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);

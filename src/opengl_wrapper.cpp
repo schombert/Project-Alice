@@ -13,7 +13,7 @@ namespace ogl {
 		// do opengl stuff with our context -- create shaders, etc
 
 		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_SCISSOR_TEST);
+		//glEnable(GL_SCISSOR_TEST);
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 	}
 }

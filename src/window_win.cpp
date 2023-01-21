@@ -223,14 +223,16 @@ namespace window {
 				} else if(wParam == SIZE_RESTORED) {
 					t = sys::window_state::normal;
 				} else {
-					//minimize
+					//other
 					break;
 				}
 
 				// redo OpenGL viewport
 				glViewport(0, 0, LOWORD(lParam), HIWORD(lParam));
 				state->on_resize(LOWORD(lParam), HIWORD(lParam), t);
-				
+				state->x_size = LOWORD(lParam);
+				state->y_size = HIWORD(lParam);
+
 				return 0;
 			};
 			case WM_MOUSEWHEEL:
@@ -244,6 +246,8 @@ namespace window {
 			}
 			case WM_KEYDOWN: // fallthrough
 			case WM_SYSKEYDOWN:
+				if((HIWORD(lParam) & KF_REPEAT) != 0)
+					return 0;
 				state->on_key_down(sys::virtual_key(wParam), get_current_modifiers());
 				return 0;
 			case WM_SYSKEYUP:
@@ -266,15 +270,6 @@ namespace window {
 				PAINTSTRUCT ps;
 				BeginPaint(hwnd, &ps);
 				EndPaint(hwnd, &ps);
-
-				/*
-				if(state->opengl_context) {
-					wglMakeCurrent(state->win_ptr->opengl_window_dc, HGLRC(state->opengl_context));
-					state->render();
-					SwapBuffers(state->win_ptr->opengl_window_dc);
-					InvalidateRect(hwnd, nullptr, FALSE); // pump another redraw immediately
-				}
-				*/
 				return 0;
 			}
 			
@@ -356,8 +351,13 @@ namespace window {
 			SetWindowLong(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
 			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_FRAMECHANGED);
 			SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
-			ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
 
+			if(params.intitial_state == sys::window_state::maximized)
+				ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
+			else if(params.intitial_state == sys::window_state::minimized)
+				ShowWindow(game_state.win_ptr->hwnd, SW_MINIMIZE);
+			else
+				ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
 		} else {
 
 			auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
@@ -379,7 +379,6 @@ namespace window {
 
 		MSG msg;
 		// pump message loop
-		
 		while(true) {
 			if(PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
 				if(msg.message == WM_QUIT) {
@@ -391,19 +390,9 @@ namespace window {
 			} else {
 				// Run game code
 
-				wglMakeCurrent(game_state.win_ptr->opengl_window_dc, HGLRC(game_state.opengl_context));
 				game_state.render();
 				SwapBuffers(game_state.win_ptr->opengl_window_dc);
 			}
 		}
-
-
-		/*
-		while(GetMessage(&msg, NULL, 0, 0)) {
-			if(game_state.in_edit_control)
-				TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}*/
-		
 	}
 }
