@@ -1,3 +1,4 @@
+#include "system_state.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -21,10 +22,14 @@ int WINAPI wWinMain(
 	HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 #endif
 
+	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 	if(SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED))) {
 		// do everything here: create a window, read messages
 
-		auto s = NATIVE("str");
+		std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
+
+		window::create_window(*game_state, window::creation_parameters());
 
 		CoUninitialize();
 	}

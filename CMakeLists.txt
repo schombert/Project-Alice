@@ -12,8 +12,6 @@ include(CTest)
 
 add_executable(Alice WIN32 "src/main.cpp")
 
-target_include_directories(Alice PUBLIC ${PROJECT_SOURCE_DIR}/src)
-
 set(PRIMARY_PROJECT_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
 
 add_compile_definitions(VE_NO_TBB)
@@ -46,6 +44,9 @@ add_subdirectory (ParserGenerator)
 
 target_link_libraries(Alice PRIVATE
 	dependency_DataContainer)
+target_link_libraries(Alice PRIVATE libglew_static)
+
+target_include_directories(Alice PUBLIC ${PROJECT_SOURCE_DIR}/src "${glew_SOURCE_DIR}/include/GL")
 
 # GENERATE CONTAINER
 set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/test)
@@ -59,7 +60,7 @@ add_custom_command(
 
 # Sets a dependency on the generated file 
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
-add_dependencies(Alice GENERATE_CONTAINER)
+add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
 
 if (BUILD_TESTING)
     enable_testing()

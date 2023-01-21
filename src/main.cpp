@@ -1,5 +1,7 @@
 #include "parsers.cpp"
 #include "float_from_chars.cpp"
+#include "system_state.cpp"
+#include "opengl_wrapper.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
