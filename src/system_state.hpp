@@ -9,6 +9,7 @@
 #include "glew.h"
 
 #include "dcon_generated.hpp"
+#include "gui_graphics.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -206,6 +207,8 @@ namespace sys {
 		dcon::data_container world;
 
 		std::vector<char> text_data; // stores string data in the win1250 codepage
+
+		ui::defintions ui_defs; // definitions for graphics and ui
 
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; 
 

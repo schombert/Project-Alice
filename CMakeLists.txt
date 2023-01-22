@@ -42,11 +42,11 @@ endif()
 add_subdirectory (dependencies)
 add_subdirectory (ParserGenerator)
 
-target_link_libraries(Alice PRIVATE
-	dependency_DataContainer)
+target_link_libraries(Alice PRIVATE dependency_DataContainer)
 target_link_libraries(Alice PRIVATE libglew_static)
+target_link_libraries(Alice PRIVATE dependency_unordered_dense)
 
-target_include_directories(Alice PUBLIC ${PROJECT_SOURCE_DIR}/src "${glew_SOURCE_DIR}/include/GL")
+target_include_directories(Alice PUBLIC ${PROJECT_SOURCE_DIR}/src "${glew_SOURCE_DIR}/include/GL" "ankerl")
 
 # GENERATE CONTAINER
 set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/dcon_generated)
@@ -61,6 +61,17 @@ add_custom_command(
 # Sets a dependency on the generated file 
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
+
+# The command to build the generated parsers file
+add_custom_command(
+  OUTPUT ${PROJECT_SOURCE_DIR}/src/parser_defs_generated.hpp
+  COMMAND ParserGenerator ${PROJECT_SOURCE_DIR}/src/parser_defs.txt
+  DEPENDS ${PROJECT_SOURCE_DIR}/src/parser_defs.txt
+  VERBATIM)
+
+# Sets a dependency on the generated file 
+add_custom_target(GENERATE_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/src/parser_defs_generated.hpp)
+add_dependencies(Alice GENERATE_PARSERS)
 
 set(GAME_FILES_DIRECTORY "" CACHE PATH "location of game files (i.e. the folder containing the exe)")
 

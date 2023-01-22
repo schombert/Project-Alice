@@ -1,0 +1,42 @@
+gfx_xy_pair
+	x        value     int     member
+	y        value     int     member
+
+gfx_object
+	name               value     text         member
+	horizontal         value     bool         member
+	allwaystransparent value     bool         member
+	transparencecheck  value     bool         member
+	flipv              value     bool         member
+	noofframes         value     int          member
+	size               value     int          member
+	size               group     gfx_xy_pair  member     (size_obj)
+	clicksound         value     text         member_fn
+	texturefile        value     text         member     (primary_texture)
+	texturefile1       value     text         member     (primary_texture)
+	texturefile2       value     text         member     (secondary_texture)
+	bordersize         group     gfx_xy_pair  member
+	color              group     none         discard
+	color2             group     none         discard
+	colortwo           group     none         discard
+	effectfile         value     none         discard
+	loadtype           value     none         discard
+	noreftype          value     none         discard
+	norefcount         value     none         discard
+	linewidth          value     none         discard
+
+gfx_object_outer
+	scrollingsprite         group     none         discard
+	spritetype              group     gfx_object   member_fn
+	corneredtilespritetype  group     gfx_object   member_fn
+	maskedshieldtype        group     gfx_object   member_fn
+	textspritetype          group     gfx_object   member_fn
+	tilespritetype          group     gfx_object   member_fn
+	progressbartype         group     gfx_object   member_fn
+	barcharttype            group     gfx_object   member_fn
+	piecharttype            group     gfx_object   member_fn
+	linecharttype           group     gfx_object   member_fn
+
+gfx_files
+	spritetypes  extern     gfx_add_obj  discard
+	#any         group      none         discard

@@ -4,6 +4,7 @@
 #include "system_state.hpp"
 #include "parsers.cpp"
 #include "system_state.cpp"
+#include "gui_graphics_parsers.cpp"
 
 #ifdef _WIN64
 #include "simple_fs_win.cpp"
@@ -15,6 +16,9 @@
 
 #include "opengl_wrapper.cpp"
 
+#define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
+
+#include "gui_graphics_parsing_tests.cpp"
 #include "misc_tests.cpp"
 
 // yeah, I know this is dumb, leave me alone
