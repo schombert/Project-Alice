@@ -54,6 +54,7 @@ namespace simple_fs {
 	std::optional<file> open_file(directory const& dir, native_string_view file_name);
 	std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name);
 	directory open_directory(directory const& dir, native_string_view directory_name);
+	native_string get_full_name(directory const& f);
 
 	// write_file will clear an existing file, if it exists, will create a new file if it does not
 	void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size);

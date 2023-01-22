@@ -1,6 +1,6 @@
+#94723 <-- DO NOT REMOVE ... the file system tests are looking for this
 
-
-add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp" "${PROJECT_SOURCE_DIR}/src/parsers.cpp" "${PROJECT_SOURCE_DIR}/src/float_from_chars.cpp" "${PROJECT_SOURCE_DIR}/tests/parsers_tests.cpp")
+add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp" "${PROJECT_SOURCE_DIR}/src/parsers.cpp" "${PROJECT_SOURCE_DIR}/src/float_from_chars.cpp" "${PROJECT_SOURCE_DIR}/tests/parsers_tests.cpp" "file_system_tests.cpp")
 
 target_compile_options(tests_project PRIVATE
 	$<$<CXX_COMPILER_ID:GNU>:     -Wall -Wextra   -Wpedantic      -Werror                     $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
@@ -32,6 +32,8 @@ add_custom_command(
 add_custom_target(GENERATE_TEST_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/tests/test_parsers_generated.hpp)
 add_dependencies(tests_project GENERATE_TEST_PARSERS)
 target_include_directories(tests_project PUBLIC ${PROJECT_SOURCE_DIR}/src)
+
+target_compile_definitions(tests_project PRIVATE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 

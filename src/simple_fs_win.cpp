@@ -36,6 +36,7 @@ namespace simple_fs {
 	file::file(native_string const& full_path) {
 		file_handle = CreateFile(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 		if(file_handle != INVALID_HANDLE_VALUE) {
+			absolute_path = full_path;
 			mapping_handle = CreateFileMapping(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
 			if(mapping_handle) {
 				content.data = (char const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
@@ -48,6 +49,7 @@ namespace simple_fs {
 		}
 	}
 	file::file(HANDLE file_handle, native_string const& full_path) : file_handle(file_handle) {
+		absolute_path = full_path;
 		mapping_handle = CreateFileMapping(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
 		if(mapping_handle) {
 			content.data = (char const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
@@ -191,6 +193,10 @@ namespace simple_fs {
 
 	directory open_directory(directory const& dir, native_string_view directory_name) {
 		return directory(dir.parent_system, dir.relative_path + NATIVE('\\') + native_string(directory_name));
+	}
+
+	native_string get_full_name(directory const& dir) {
+		return dir.relative_path;
 	}
 
 	std::optional<file> open_file(directory const& dir, native_string_view file_name) {
