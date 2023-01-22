@@ -49,7 +49,7 @@ target_link_libraries(Alice PRIVATE libglew_static)
 target_include_directories(Alice PUBLIC ${PROJECT_SOURCE_DIR}/src "${glew_SOURCE_DIR}/include/GL")
 
 # GENERATE CONTAINER
-set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/test)
+set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/dcon_generated)
 
 # The command to build the generated file
 add_custom_command(

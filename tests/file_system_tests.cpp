@@ -3,10 +3,8 @@
 #include <algorithm>
 
 #ifdef _WIN64
-#include "simple_fs_win.cpp"
 #define NATIVE_SEP "\\"
 #else
-#include "simple_fs_nix.cpp"
 #define NATIVE_SEP "/"
 #endif
 

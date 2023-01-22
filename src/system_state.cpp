@@ -1,17 +1,13 @@
 #include "system_state.hpp"
 #include "opengl_wrapper.hpp"
-#include <cassert>
-
-#ifdef _WIN64
-#include "window_win.cpp"
-#else
-#include "window_nix.cpp"
-#endif
+#include "window.hpp"
+#include <algorithm>
+#include <functional>
 
 namespace sys {
-	state::~state() {
-		// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
-	}
+	//
+	// window event functions
+	//
 
 	void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		window::set_borderless_full_screen(*this, true);
@@ -47,8 +43,32 @@ namespace sys {
 
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
-		assert(opengl_context != nullptr);
 		glClearColor(1.0, 0.0, 1.0, 0.5);
 		glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	//
+	// string pool functions
+	//
+
+	std::string_view state::to_string_view(text_tag tag) const {
+		return std::string_view(text_data.data() + tag.start.index(), tag.length);
+	}
+
+	text_tag state::add_to_pool(std::string_view text) {
+		auto start = text_data.size();
+		auto length = text.length();
+		text_data.resize(start + length, char(0));
+		std::memcpy(text_data.data() + start, text.data(), length);
+		return text_tag{dcon::text_key(uint16_t(start)), uint16_t(length) };
+	}
+
+	text_tag state::add_unique_to_pool(std::string_view text) {
+		auto search_result = std::search(text_data.begin(), text_data.end(), std::boyer_moore_horspool_searcher(text.begin(), text.end()));
+		if(search_result != text_data.end()) {
+			return text_tag{ dcon::text_key(uint16_t(search_result - text_data.begin())), uint16_t(text.length()) };
+		} else {
+			return add_to_pool(text);
+		}
 	}
 }

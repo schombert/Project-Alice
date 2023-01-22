@@ -8,6 +8,7 @@
 #endif
 #include "glew.h"
 
+#include "dcon_generated.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -185,7 +186,12 @@ namespace sys {
 		QUOTE = 0xDE
 	};
 
-	struct state {
+	struct text_tag {
+		dcon::text_key start;
+		uint16_t length = 0;
+	};
+
+	struct alignas(64) state {
 		// the state struct will eventually include (at least pointers to)
 		// the state of the sound system, the state of the windowing system,
 		// and the game data / state itself
@@ -196,6 +202,11 @@ namespace sys {
 
 		// implementation dependent data that needs to be stored for the window
 		// subsystem
+
+		dcon::data_container world;
+
+		std::vector<char> text_data; // stores string data in the win1250 codepage
+
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; 
 
 		// common data for the window
@@ -222,6 +233,17 @@ namespace sys {
 		void on_key_up(virtual_key keycode, key_modifiers mod);
 		void on_text(char c); // c is win1250 codepage value
 		void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
+
+		// the following function are for interacting with the string pool
+
+		std::string_view to_string_view(text_tag tag) const; // takes a stored tag and give you the text
+
+		text_tag add_to_pool(std::string_view text); // returns the newly added text
+
+		// searches the string pool for any existing string, appends if it is new
+		// use this function sparingly; i.e. only when you think it is likely that
+		// the text has already been added. Searching *all* the text may not be cheap
+		text_tag add_unique_to_pool(std::string_view text); 
 
 		~state();
 	};

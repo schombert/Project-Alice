@@ -39,7 +39,7 @@ namespace window {
 				auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
 				MONITORINFO mi;
 				mi.cbSize = sizeof(mi);
-				GetMonitorInfo(monitor_handle, &mi);
+				GetMonitorInfoW(monitor_handle, &mi);
 
 				int left = (mi.rcWork.right - mi.rcWork.left) / 2 - game_state.win_ptr->creation_x_size / 2;
 				int top = (mi.rcWork.bottom - mi.rcWork.top) / 2 - game_state.win_ptr->creation_y_size / 2;
@@ -52,7 +52,7 @@ namespace window {
 				int32_t final_height = rectangle.bottom - rectangle.top;
 
 
-				SetWindowLong(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
+				SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
 				SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_NOREDRAW);
 				SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 				ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
@@ -64,7 +64,7 @@ namespace window {
 				auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
 				MONITORINFO mi;
 				mi.cbSize = sizeof(mi);
-				GetMonitorInfo(monitor_handle, &mi);
+				GetMonitorInfoW(monitor_handle, &mi);
 
 				DWORD win32Style = WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
@@ -74,7 +74,7 @@ namespace window {
 				int32_t win_width = (rectangle.right - rectangle.left);
 				int32_t win_height = (rectangle.bottom - rectangle.top);
 
-				SetWindowLong(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
+				SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
 				SetWindowPos(game_state.win_ptr->hwnd, HWND_TOPMOST, rectangle.left, rectangle.top, win_width, win_height, SWP_NOREDRAW);
 
 				game_state.win_ptr->in_fullscreen = true;
@@ -84,7 +84,7 @@ namespace window {
 
 	void close_window(sys::state& game_state) {
 		if(game_state.win_ptr && game_state.win_ptr->hwnd)
-			PostMessage(game_state.win_ptr->hwnd, WM_CLOSE, 0, 0);
+			PostMessageW(game_state.win_ptr->hwnd, WM_CLOSE, 0, 0);
 	}
 
 	
@@ -121,7 +121,7 @@ namespace window {
 		
 
 		if(message == WM_CREATE) {
-			CREATESTRUCT* cptr = (CREATESTRUCT*)lParam;
+			CREATESTRUCTW* cptr = (CREATESTRUCTW*)lParam;
 			sys::state* create_state = (sys::state*)(cptr->lpCreateParams);
 
 			create_state->win_ptr->hwnd = hwnd;
@@ -133,19 +133,19 @@ namespace window {
 			RECT crect{};
 			GetClientRect(hwnd, &crect);
 			glViewport(0, 0, crect.right - crect.left, crect.bottom - crect.top);
-			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
+			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
 
 			return 0;
 		}
 
-		sys::state* state = (sys::state*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+		sys::state* state = (sys::state*)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 		if(!state || !(state->win_ptr))
-			return DefWindowProc(hwnd, message, wParam, lParam);
+			return DefWindowProcW(hwnd, message, wParam, lParam);
 
 		switch(message) {
 			case WM_CLOSE:
 				DestroyWindow(hwnd);
-				SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)nullptr);
+				SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)nullptr);
 				return 0;
 			case WM_DESTROY:
 				ogl::shutdown_opengl(*state);
@@ -281,7 +281,7 @@ namespace window {
 				break;
 			*/
 		}
-		return DefWindowProc(hwnd, message, wParam, lParam);
+		return DefWindowProcW(hwnd, message, wParam, lParam);
 	}
 
 	void create_window(sys::state& game_state, creation_parameters const& params) {
@@ -291,18 +291,18 @@ namespace window {
 		game_state.win_ptr->in_fullscreen = params.borderless_fullscreen;
 
 		// create window
-		WNDCLASSEX wcex = { sizeof(WNDCLASSEX) };
+		WNDCLASSEXW wcex = { sizeof(WNDCLASSEXW) };
 		wcex.style = CS_OWNDC;
 		wcex.lpfnWndProc = WndProc;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = sizeof(LONG_PTR);
-		wcex.hInstance = GetModuleHandle(nullptr);
+		wcex.hInstance = GetModuleHandleW(nullptr);
 		wcex.hbrBackground = NULL;
 		wcex.lpszMenuName = NULL;
 		wcex.hCursor = nullptr;
 		wcex.lpszClassName = L"project_alice_class";
 
-		if(RegisterClassEx(&wcex) == 0) {
+		if(RegisterClassExW(&wcex) == 0) {
 			std::abort();
 		}
 
@@ -312,7 +312,7 @@ namespace window {
 			: WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
 
-		game_state.win_ptr->hwnd = CreateWindowEx(
+		game_state.win_ptr->hwnd = CreateWindowExW(
 			0,
 			L"project_alice_class",
 			L"Project Alice",
@@ -323,7 +323,7 @@ namespace window {
 			0,
 			NULL,
 			NULL,
-			GetModuleHandle(nullptr),
+			GetModuleHandleW(nullptr),
 			&game_state
 		);
 
@@ -337,7 +337,7 @@ namespace window {
 			auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
 			MONITORINFO mi;
 			mi.cbSize = sizeof(mi);
-			GetMonitorInfo(monitor_handle, &mi);
+			GetMonitorInfoW(monitor_handle, &mi);
 
 			int left = (mi.rcWork.right - mi.rcWork.left) / 2 - game_state.win_ptr->creation_x_size / 2;
 			int top = (mi.rcWork.bottom - mi.rcWork.top) / 2 - game_state.win_ptr->creation_y_size / 2;
@@ -348,7 +348,7 @@ namespace window {
 			int32_t final_height = rectangle.bottom - rectangle.top;
 
 
-			SetWindowLong(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
+			SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
 			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_FRAMECHANGED);
 			SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 
@@ -363,14 +363,14 @@ namespace window {
 			auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
 			MONITORINFO mi;
 			mi.cbSize = sizeof(mi);
-			GetMonitorInfo(monitor_handle, &mi);
+			GetMonitorInfoW(monitor_handle, &mi);
 
 			RECT rectangle = mi.rcMonitor;
 			AdjustWindowRectExForDpi(&rectangle, win32Style, false, WS_EX_TOPMOST, GetDpiForWindow(game_state.win_ptr->hwnd));
 			int32_t win_width = (rectangle.right - rectangle.left);
 			int32_t win_height = (rectangle.bottom - rectangle.top);
 
-			SetWindowLong(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
+			SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
 			SetWindowPos(game_state.win_ptr->hwnd, HWND_TOPMOST, rectangle.left, rectangle.top, win_width, win_height, SWP_FRAMECHANGED);
 			ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
 		}
@@ -380,13 +380,13 @@ namespace window {
 		MSG msg;
 		// pump message loop
 		while(true) {
-			if(PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+			if(PeekMessageW(&msg, 0, 0, 0, PM_REMOVE)) {
 				if(msg.message == WM_QUIT) {
 					break;
 				}
 				if(game_state.in_edit_control)
 					TranslateMessage(&msg);
-				DispatchMessage(&msg);
+				DispatchMessageW(&msg);
 			} else {
 				// Run game code
 
