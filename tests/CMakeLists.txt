@@ -31,7 +31,13 @@ add_custom_command(
 # Sets a dependency on the generated file 
 add_custom_target(GENERATE_TEST_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/tests/test_parsers_generated.hpp)
 add_dependencies(tests_project GENERATE_TEST_PARSERS)
-target_include_directories(tests_project PUBLIC ${PROJECT_SOURCE_DIR}/src)
+
+# GENERATE data container from the main project ... we have this as a transitive dependency
+set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/dcon_generated)
+
+# Sets a dependency on the generated file 
+add_custom_target(GENERATE_CONTAINER_TESTS DEPENDS ${CONTAINER_PATH}.hpp)
+add_dependencies(tests_project GENERATE_CONTAINER_TESTS DCONGENERATOR)
 
 target_compile_definitions(tests_project PRIVATE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
 

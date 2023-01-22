@@ -62,6 +62,10 @@ add_custom_command(
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
 
+set(GAME_FILES_DIRECTORY "" CACHE PATH "location of game files (i.e. the folder containing the exe)")
+
+message("Will attempt to find game files in: \"${GAME_FILES_DIRECTORY}\"")
+
 if (BUILD_TESTING)
     enable_testing()
 	add_subdirectory(tests)
