@@ -8,6 +8,7 @@
 #include "main.cpp"
 
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
+#define RANGE_SZ(x) (x), ((sizeof(x)) / sizeof((x)[0])) - 1
 
 #ifdef _WIN64
 #define NATIVE_SEP "\\"
@@ -21,6 +22,7 @@
 #include "misc_tests.cpp"
 #include "parsers_tests.cpp"
 #include "file_system_tests.cpp"
+#include "text_tests.cpp"
 
 
 TEST_CASE("Dummy test", "[dummy test instance]") {

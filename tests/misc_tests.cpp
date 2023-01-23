@@ -26,4 +26,10 @@ TEST_CASE("string pool tests", "[misc_tests]") {
 
 	REQUIRE(state->to_string_view(x) == "1234");
 	REQUIRE(state->to_string_view(y) == "new");
+
+	auto la = state->add_to_pool_lowercase(std::string_view("MiXeD"));
+	auto lb = state->add_to_pool_lowercase(std::string("LaTeX"));
+
+	REQUIRE(state->to_string_view(la) == "mixed");
+	REQUIRE(state->to_string_view(lb) == "latex");
 }

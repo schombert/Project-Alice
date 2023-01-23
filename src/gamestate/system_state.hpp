@@ -11,6 +11,7 @@
 #include "dcon_generated.hpp"
 #include "gui_graphics.hpp"
 #include "simple_fs.hpp"
+#include "text.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -203,6 +204,9 @@ namespace sys {
 		dcon::data_container world;
 
 		std::vector<char> text_data; // stores string data in the win1250 codepage
+		std::vector<text::text_component> text_components;
+		tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
+		ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
 		ui::defintions ui_defs; // definitions for graphics and ui
 
@@ -241,12 +245,15 @@ namespace sys {
 
 		dcon::text_key add_to_pool(std::string const& text); // returns the newly added text
 		dcon::text_key add_to_pool(std::string_view text);
+		dcon::text_key add_to_pool_lowercase(std::string const& text); // these functions are as above, but force the text into lower case
+		dcon::text_key add_to_pool_lowercase(std::string_view text);
 
 		// searches the string pool for any existing string, appends if it is new
 		// use this function sparingly; i.e. only when you think it is likely that
 		// the text has already been added. Searching *all* the text may not be cheap
 		dcon::text_key add_unique_to_pool(std::string const& text);
 
+		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)) {}
 		~state();
 	};
 }

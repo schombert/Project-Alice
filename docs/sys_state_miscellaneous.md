@@ -2,13 +2,4 @@
 
 There are some little things that are worth documenting, but which don't merit a documentation file on their own. This is where their documentation lives instead.
 
-### The string pool
-
-The state object contains a `std::vector<char>` named `text_data` containing win1250 codepage character values. This contains an amalgamation of all the text we may need, as extracted from the game files. **Do not** alter the contents of `text_data` while the game is running; only add data to it when making a new scenario or loading an existing one. Data inside the string pool should be accessed via the `dcon::text_key` struct, which functions essentially as a smaller string view (it can be copied around freely and is 4 bytes in size). There are three convenience functions to help working with the string pool:
-
-- `std::string_view to_string_view(dcon::text_key tag) const` -- this function takes a `text_tag` and turns it into a conventional string_view. If `dcon::text_key` is the special invalid tag, you will just get back an empty string view.
-- `dcon::text_key add_to_pool(std::string_view text)` -- this function takes the text within the string_view, appends it to the end of the `text_data` vector, and then returns a `text_tag` that represents the stored text.
-- `dcon::text_key add_to_pool(std::string const& text)` -- this function takes the text within the string_view, appends it to the end of the `text_data` vector, and then returns a `text_tag` that represents the stored text. If you have a non-null terminated string that you want to add, use the previous function, but if it is already in a `std::string`, use this one.
-- `dcon::text_key add_unique_to_pool(std::string const& text)` -- this function acts as the one above, except that it first searches the existing stored data to see if the string is already stored in it. If the string is found, no new data will be appended to `text_data`. Otherwise, it acts like the function above. This function is useful if you know that there is a good chance that the text you want to store is already somewhere in `text_data`. However, scanning the entirety of the stored text is not without a cost, especially as the amount of text grows, so do not use this function as the default way to add text.
-
-Implementation note: I go back and forth a bit on whether to store the size of the string in its identifying tag (currently `dcon::text_key`) or whether to store null characters in `text_data` to determine where one string ends and another begins. Currently I am storing null characters.
+**There used to be documentation here, but it was moved to a more appropriate place**

@@ -64,6 +64,20 @@ namespace sys {
 		return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
 	}
 
+	dcon::text_key state::add_to_pool_lowercase(std::string const& text) {
+		auto res = add_to_pool(text);
+		for(auto i = 0; i < int32_t(text.length()); ++i) {
+			text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
+		}
+		return res;
+	}
+	dcon::text_key state::add_to_pool_lowercase(std::string_view text) {
+		auto res = add_to_pool(text);
+		for(auto i = 0; i < int32_t(text.length()); ++i) {
+			text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
+		}
+		return res;
+	}
 	dcon::text_key state::add_to_pool(std::string const& text) {
 		auto start = text_data.size();
 		auto size = text.size();

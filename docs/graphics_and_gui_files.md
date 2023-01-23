@@ -60,6 +60,7 @@ Some of these elements will refer to various fonts. Since we won't be using any 
 - `parent` : I don't know what this is supposed to do, so I ignore it.
 
 #### `icontype`
+
 - `position` : a group with contents `{ x = ... y = ...}`
 - `orientation` : as above
 - `buttonmesh` : no idea what this is supposed to do, so I ignore it
@@ -71,14 +72,14 @@ Some of these elements will refer to various fonts. Since we won't be using any 
 
 #### Text boxes
 
-`orientation` : as above
-`allwaystransparent` : as with the graphics assets, I don't know what this means, but I store it anyways
-`fixedsize` : another minor mystery. I store this but don't make use of it
-`font` : as above
-`format` : as above
-`maxheight` and `maxwidth` : suggest that the text box may be smaller, but generally I either size text boxes to their contents (as with tooltips), or create them at this size.
-`name` : as above
-`size` : a group with contents `{ x = ... y = ...}`, which I store in the same place as the `maxheight` and `maxwidth` values, removing any distinction between them.
+- `orientation` : as above
+- `allwaystransparent` : as with the graphics assets, I don't know what this means, but I store it anyways
+- `fixedsize` : another minor mystery. I store this but don't make use of it
+- `font` : as above
+- `format` : as above
+- `maxheight` and `maxwidth` : suggest that the text box may be smaller, but generally I either size text boxes to their contents (as with tooltips), or create them at this size.
+- `name` : as above
+- `size` : a group with contents `{ x = ... y = ...}`, which I store in the same place as the `maxheight` and `maxwidth` values, removing any distinction between them.
 - `text` : text key referring to text loaded from the language files
 - `texturefile` : if present may be set to `""` or one of `gfx\\interface\\tiles_dialog.tga`, `gfx\\interface\\transparency.tga`, or `gfx\\interface\\small_tiles_dialog.dds`, which I just store as no background or background 1, 2, or 3.
 - `position` : as above
