@@ -2,31 +2,26 @@
 #include "catch2/catch.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
-#include "parsers.cpp"
-#include "system_state.cpp"
-#include "gui_graphics_parsers.cpp"
 
-#ifdef _WIN64
-#include "simple_fs_win.cpp"
-#include "window_win.cpp"
-#else
-#include "simple_fs_nix.cpp"
-#include "window_nix.cpp"
-#endif
 
-#include "opengl_wrapper.cpp"
+#define ALICE_NO_ENTRY_POINT
+#include "main.cpp"
 
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
 
+#ifdef _WIN64
+#define NATIVE_SEP "\\"
+#else
+#define NATIVE_SEP "/"
+#endif
+
+#define NATIVE_M(X) NATIVE(X)
+
 #include "gui_graphics_parsing_tests.cpp"
 #include "misc_tests.cpp"
+#include "parsers_tests.cpp"
+#include "file_system_tests.cpp"
 
-// yeah, I know this is dumb, leave me alone
-namespace sys {
-	state::~state() {
-		// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
-	}
-}
 
 TEST_CASE("Dummy test", "[dummy test instance]") {
     REQUIRE(1 + 1 == 2); 

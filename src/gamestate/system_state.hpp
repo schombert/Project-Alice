@@ -187,11 +187,6 @@ namespace sys {
 		QUOTE = 0xDE
 	};
 
-	struct text_tag {
-		dcon::text_key start;
-		uint16_t length = 0;
-	};
-
 	struct alignas(64) state {
 		// the state struct will eventually include (at least pointers to)
 		// the state of the sound system, the state of the windowing system,
@@ -239,14 +234,15 @@ namespace sys {
 
 		// the following function are for interacting with the string pool
 
-		std::string_view to_string_view(text_tag tag) const; // takes a stored tag and give you the text
+		std::string_view to_string_view(dcon::text_key tag) const; // takes a stored tag and give you the text
 
-		text_tag add_to_pool(std::string_view text); // returns the newly added text
+		dcon::text_key add_to_pool(std::string const& text); // returns the newly added text
+		dcon::text_key add_to_pool(std::string_view text);
 
 		// searches the string pool for any existing string, appends if it is new
 		// use this function sparingly; i.e. only when you think it is likely that
 		// the text has already been added. Searching *all* the text may not be cheap
-		text_tag add_unique_to_pool(std::string_view text); 
+		dcon::text_key add_unique_to_pool(std::string const& text);
 
 		~state();
 	};

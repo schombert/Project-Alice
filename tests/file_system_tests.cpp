@@ -2,13 +2,7 @@
 #include "simple_fs.hpp"
 #include <algorithm>
 
-#ifdef _WIN64
-#define NATIVE_SEP "\\"
-#else
-#define NATIVE_SEP "/"
-#endif
 
-#define NATIVE_M(X) NATIVE(X)
 
 TEST_CASE("File system reading", "[file_system]") {
 	SECTION("single root") {

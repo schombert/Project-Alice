@@ -8,14 +8,20 @@
 
 #include "simple_fs_win.cpp"
 #include "window_win.cpp"
+
+#ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_win.cpp"
+#endif
 
 #else
 // LINUX implementations go here
 
 #include "simple_fs_nix.cpp"
 #include "window_nix.cpp"
+
+#ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_nix.cpp"
+#endif
 
 #endif
 

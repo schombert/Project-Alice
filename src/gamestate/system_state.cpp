@@ -51,22 +51,41 @@ namespace sys {
 	// string pool functions
 	//
 
-	std::string_view state::to_string_view(text_tag tag) const {
-		return std::string_view(text_data.data() + tag.start.index(), tag.length);
+	std::string_view state::to_string_view(dcon::text_key tag) const {
+		if(!tag)
+			return std::string_view();
+		auto start_position = text_data.data() + tag.index();
+		auto data_size = text_data.size();
+		auto end_position = start_position;
+		for(; end_position < text_data.data() + data_size; ++end_position) {
+			if(*end_position == 0)
+				break;
+		}
+		return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
 	}
 
-	text_tag state::add_to_pool(std::string_view text) {
+	dcon::text_key state::add_to_pool(std::string const& text) {
+		auto start = text_data.size();
+		auto size = text.size();
+		if(size == 0)
+			return dcon::text_key();
+		text_data.resize(start + size + 1, char(0));
+		std::memcpy(text_data.data() + start, text.c_str(), size + 1);
+		return dcon::text_key(uint32_t(start));
+	}
+	dcon::text_key state::add_to_pool(std::string_view text) {
 		auto start = text_data.size();
 		auto length = text.length();
-		text_data.resize(start + length, char(0));
+		text_data.resize(start + length + 1, char(0));
 		std::memcpy(text_data.data() + start, text.data(), length);
-		return text_tag{dcon::text_key(uint16_t(start)), uint16_t(length) };
+		text_data.back() = 0;
+		return dcon::text_key(uint32_t(start));
 	}
 
-	text_tag state::add_unique_to_pool(std::string_view text) {
-		auto search_result = std::search(text_data.begin(), text_data.end(), std::boyer_moore_horspool_searcher(text.begin(), text.end()));
-		if(search_result != text_data.end()) {
-			return text_tag{ dcon::text_key(uint16_t(search_result - text_data.begin())), uint16_t(text.length()) };
+	dcon::text_key state::add_unique_to_pool(std::string const& text) {
+		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(text.c_str(), text.c_str() + text.length() + 1));
+		if(search_result != text_data.data() + text_data.size()) {
+			return dcon::text_key(uint32_t(search_result - text_data.data()));
 		} else {
 			return add_to_pool(text);
 		}

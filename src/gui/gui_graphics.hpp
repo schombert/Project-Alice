@@ -3,6 +3,7 @@
 #include <vector>
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"
+#include "container_types.hpp"
 
 namespace ui {
 	enum class object_type : uint8_t {
@@ -40,16 +41,9 @@ namespace ui {
 		uint8_t number_of_frames = 1; //10bytes
 	};
 
-	//very temporary
-	struct texture_definition {
-		std::string file_name;
-	};
-
 	class defintions {
 	public:
-		std::vector<gfx_object> gfx; // TODO: upgrade this to a vector that only accepts gfx_object_id as indices
-
-		std::vector<texture_definition> textures;
-		ankerl::unordered_dense::map<std::string, dcon::texture_id> map_of_textures;
+		tagged_vector<gfx_object, dcon::gfx_object_id> gfx;
+		tagged_vector<dcon::text_key, dcon::texture_id> textures;
 	};
 }
