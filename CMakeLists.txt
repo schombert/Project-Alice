@@ -42,9 +42,11 @@ endif()
 add_subdirectory (dependencies)
 add_subdirectory (ParserGenerator)
 
-target_link_libraries(Alice PRIVATE
-	dependency_DataContainer)
+target_link_libraries(Alice PRIVATE dependency_DataContainer)
 target_link_libraries(Alice PRIVATE libglew_static)
+if (NOT WIN32)
+	target_link_libraries(Alice PRIVATE glfw)
+endif()
 
 target_include_directories(Alice PUBLIC ${PROJECT_SOURCE_DIR}/src "${glew_SOURCE_DIR}/include/GL")
 

@@ -1,5 +1,6 @@
 #include "catch2/catch.hpp"
 #include "parsers.hpp"
+#include <cstring>
 
 struct basic_object_a {
     int32_t int_value = 0;
