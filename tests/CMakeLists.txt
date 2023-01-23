@@ -3,8 +3,8 @@
 add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp")
 
 target_compile_options(tests_project PRIVATE
-	$<$<CXX_COMPILER_ID:GNU>:     -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-unused $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
-	$<$<CXX_COMPILER_ID:Clang>:   -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-unused $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
+	$<$<CXX_COMPILER_ID:GNU>:     -Wall -Wextra -Wpedantic -Werror -Wno-unused $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
+	$<$<CXX_COMPILER_ID:Clang>:   -Wall -Wextra -Wpedantic -Werror -Wno-unused $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
 	$<$<CXX_COMPILER_ID:MSVC>: /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /RTC1 /w34388 /w34389 $<$<CONFIG:Debug>:/EHsc /MTd /Od>  $<$<NOT:$<CONFIG:Debug>>:/wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>>)
 target_link_options(tests_project PRIVATE
 	$<$<CXX_COMPILER_ID:GNU>:   $<$<CONFIG:Debug>: >   $<$<NOT:$<CONFIG:Debug>>: >>
