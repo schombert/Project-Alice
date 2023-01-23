@@ -1,4 +1,12 @@
 #include "simple_fs.hpp"
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+
+#include "Windows.h"
 #include "Memoryapi.h"
 #include "Shlobj.h"
 #include <cstdlib>
@@ -34,9 +42,10 @@ namespace simple_fs {
 	}
 
 	file::file(native_string const& full_path) {
-		file_handle = CreateFile(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+		file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 		if(file_handle != INVALID_HANDLE_VALUE) {
-			mapping_handle = CreateFileMapping(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
+			absolute_path = full_path;
+			mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
 			if(mapping_handle) {
 				content.data = (char const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
 				if(content.data) {
@@ -48,7 +57,8 @@ namespace simple_fs {
 		}
 	}
 	file::file(HANDLE file_handle, native_string const& full_path) : file_handle(file_handle) {
-		mapping_handle = CreateFileMapping(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
+		absolute_path = full_path;
+		mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
 		if(mapping_handle) {
 			content.data = (char const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
 			if(content.data) {
@@ -77,7 +87,7 @@ namespace simple_fs {
 
 	void add_relative_root(file_system& fs, native_string_view root_path) {
 		WCHAR module_name[MAX_PATH] = {};
-		int32_t path_used = GetModuleFileName(nullptr, module_name, MAX_PATH);
+		int32_t path_used = GetModuleFileNameW(nullptr, module_name, MAX_PATH);
 		while(path_used >= 0 && module_name[path_used] != L'\\') {
 			module_name[path_used] = 0;
 			--path_used;
@@ -115,8 +125,8 @@ namespace simple_fs {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
 				const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("\\*") + extension;
-				WIN32_FIND_DATA find_result;
-				auto find_handle = FindFirstFile(appended_path.c_str(), &find_result);
+				WIN32_FIND_DATAW find_result;
+				auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 				if(find_handle != INVALID_HANDLE_VALUE) {
 					do {
 						if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
@@ -127,21 +137,21 @@ namespace simple_fs {
 								accumulated_results.emplace_back(dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("\\") + find_result.cFileName, find_result.cFileName);
 							}
 						}
-					} while(FindNextFile(find_handle, &find_result) != 0);
+					} while(FindNextFileW(find_handle, &find_result) != 0);
 					FindClose(find_handle);
 				}
 			}
 		} else {
 			const auto appended_path = dir.relative_path + NATIVE("\\*") + extension;
-			WIN32_FIND_DATA find_result;
-			auto find_handle = FindFirstFile(appended_path.c_str(), &find_result);
+			WIN32_FIND_DATAW find_result;
+			auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
 					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 						accumulated_results.emplace_back(dir.relative_path + NATIVE("\\") + find_result.cFileName, find_result.cFileName);
 						
 					}
-				} while(FindNextFile(find_handle, &find_result) != 0);
+				} while(FindNextFileW(find_handle, &find_result) != 0);
 				FindClose(find_handle);
 			}
 		}
@@ -152,8 +162,8 @@ namespace simple_fs {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
 				const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("\\*");
-				WIN32_FIND_DATA find_result;
-				auto find_handle = FindFirstFile(appended_path.c_str(), &find_result);
+				WIN32_FIND_DATAW find_result;
+				auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 				if(find_handle != INVALID_HANDLE_VALUE) {
 					do {
 						if(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -166,14 +176,14 @@ namespace simple_fs {
 								accumulated_results.emplace_back(dir.parent_system, rel_name);
 							}
 						}
-					} while(FindNextFile(find_handle, &find_result) != 0);
+					} while(FindNextFileW(find_handle, &find_result) != 0);
 					FindClose(find_handle);
 				}
 			}
 		} else {
 			const auto appended_path = dir.relative_path + NATIVE("\\*");
-			WIN32_FIND_DATA find_result;
-			auto find_handle = FindFirstFile(appended_path.c_str(), &find_result);
+			WIN32_FIND_DATAW find_result;
+			auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
 					if(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -182,7 +192,7 @@ namespace simple_fs {
 							accumulated_results.emplace_back(nullptr, rel_name);
 						}
 					}
-				} while(FindNextFile(find_handle, &find_result) != 0);
+				} while(FindNextFileW(find_handle, &find_result) != 0);
 				FindClose(find_handle);
 			}
 		}
@@ -193,18 +203,22 @@ namespace simple_fs {
 		return directory(dir.parent_system, dir.relative_path + NATIVE('\\') + native_string(directory_name));
 	}
 
+	native_string get_full_name(directory const& dir) {
+		return dir.relative_path;
+	}
+
 	std::optional<file> open_file(directory const& dir, native_string_view file_name) {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
 				native_string full_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('\\') + native_string(file_name);
-				HANDLE file_handle = CreateFile(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+				HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 				if(file_handle != INVALID_HANDLE_VALUE) {
 					return std::optional<file>(file(file_handle, full_path));
 				}
 			}
 		} else {
 			native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
-			HANDLE file_handle = CreateFile(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 			if(file_handle != INVALID_HANDLE_VALUE) {
 				return std::optional<file>(file(file_handle, full_path));
 			}
@@ -216,14 +230,14 @@ namespace simple_fs {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
 				native_string full_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('\\') + native_string(file_name);
-				DWORD dwAttrib = GetFileAttributes(full_path.c_str());
+				DWORD dwAttrib = GetFileAttributesW(full_path.c_str());
 				if(dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
 					return std::optional<unopened_file>(unopened_file(full_path, file_name));
 				}
 			}
 		} else {
 			native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
-			DWORD dwAttrib = GetFileAttributes(full_path.c_str());
+			DWORD dwAttrib = GetFileAttributesW(full_path.c_str());
 			if(dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
 				return std::optional<unopened_file>(unopened_file(full_path, file_name));
 			}
@@ -245,7 +259,7 @@ namespace simple_fs {
 		
 		native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
 
-		HANDLE file_handle = CreateFile(full_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+		HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 		if(file_handle != INVALID_HANDLE_VALUE) {
 			WriteFile(file_handle, file_data, DWORD(file_size), nullptr, nullptr);
 			SetEndOfFile(file_handle);
@@ -265,7 +279,7 @@ namespace simple_fs {
 		}
 		CoTaskMemFree(local_path_out);
 		if(base_path.length() > 0) {
-			CreateDirectory(base_path.c_str(), nullptr);
+			CreateDirectoryW(base_path.c_str(), nullptr);
 		}
 		return directory(nullptr, base_path);
 	}
@@ -278,9 +292,9 @@ namespace simple_fs {
 		}
 		CoTaskMemFree(local_path_out);
 		if(base_path.length() > 0) {
-			CreateDirectory(base_path.c_str(), nullptr);
+			CreateDirectoryW(base_path.c_str(), nullptr);
 			base_path += NATIVE("\\saved games");
-			CreateDirectory(base_path.c_str(), nullptr);
+			CreateDirectoryW(base_path.c_str(), nullptr);
 		}
 		return directory(nullptr, base_path);
 	}
@@ -293,9 +307,9 @@ namespace simple_fs {
 		}
 		CoTaskMemFree(local_path_out);
 		if(base_path.length() > 0) {
-			CreateDirectory(base_path.c_str(), nullptr);
+			CreateDirectoryW(base_path.c_str(), nullptr);
 			base_path += NATIVE("\\scenarios");
-			CreateDirectory(base_path.c_str(), nullptr);
+			CreateDirectoryW(base_path.c_str(), nullptr);
 		}
 		return directory(nullptr, base_path);
 	}

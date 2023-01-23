@@ -261,6 +261,10 @@ namespace simple_fs {
 		return f.absolute_path;
 	}
 
+	native_string get_full_name(directory const& dir) {
+		return dir.relative_path;
+	}
+
 	void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size) {
 		if(dir.parent_system)
 			std::abort();

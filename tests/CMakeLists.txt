@@ -1,6 +1,6 @@
+#94723 <-- DO NOT REMOVE ... the file system tests are looking for this
 
-
-add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp" "${PROJECT_SOURCE_DIR}/src/parsers.cpp" "${PROJECT_SOURCE_DIR}/src/float_from_chars.cpp" "${PROJECT_SOURCE_DIR}/tests/parsers_tests.cpp")
+add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp")
 
 target_compile_options(tests_project PRIVATE
 	$<$<CXX_COMPILER_ID:GNU>:     -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-unused $<$<CONFIG:Debug>:-g>   $<$<NOT:$<CONFIG:Debug>>:-O3>>
@@ -31,9 +31,30 @@ add_custom_command(
 # Sets a dependency on the generated file 
 add_custom_target(GENERATE_TEST_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/tests/test_parsers_generated.hpp)
 add_dependencies(tests_project GENERATE_TEST_PARSERS)
-target_include_directories(tests_project PUBLIC ${PROJECT_SOURCE_DIR}/src)
+
+add_dependencies(tests_project GENERATE_PARSERS)
+add_dependencies(tests_project GENERATE_CONTAINER ParserGenerator)
+
+target_compile_definitions(tests_project PRIVATE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
+target_compile_definitions(tests_project PRIVATE "GAME_DIR=\"${GAME_FILES_DIRECTORY}\"")
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
+
+target_include_directories(tests_project PUBLIC
+	${PROJECT_SOURCE_DIR}/src
+	${PROJECT_SOURCE_DIR}/src/common_types
+	${PROJECT_SOURCE_DIR}/src/filesystem
+	${PROJECT_SOURCE_DIR}/src/gamestate
+	${PROJECT_SOURCE_DIR}/src/gui
+	${PROJECT_SOURCE_DIR}/src/ogl
+	${PROJECT_SOURCE_DIR}/src/parsing
+	${PROJECT_SOURCE_DIR}/src/window
+	${PROJECT_SOURCE_DIR}/src/text
+	"${glew_SOURCE_DIR}/include/GL"
+	"ankerl")
+
+target_link_libraries(tests_project PRIVATE libglew_static)
+target_link_libraries(tests_project PRIVATE dependency_DataContainer)
 
 include(Catch)
 catch_discover_tests(tests_project)

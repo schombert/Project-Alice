@@ -13,13 +13,14 @@ src/test.hpp
 # Generated parsers
 *_generated.hpp
 
+DartConfiguration.tcl
+
 # User-specific files
 *.rsuser
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
-CMakeUserPresets.json
 *.runsettings
 
 # User-specific files (MonoDevelop/Xamarin Studio)

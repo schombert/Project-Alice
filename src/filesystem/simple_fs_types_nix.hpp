@@ -41,6 +41,7 @@ namespace simple_fs {
 		friend std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name);
 		friend void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size);
 		friend directory open_directory(directory const& dir, native_string_view directory_name);
+		friend native_string get_full_name(directory const& dir);
 	};
 
 

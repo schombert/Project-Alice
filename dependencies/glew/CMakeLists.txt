@@ -1,3 +1,5 @@
+#GLEW <- DO NOT REMOVE; NEEDED FOR A TEST
+
 cmake_minimum_required(VERSION 3.4)
 
 project(fetch_content)

@@ -37,7 +37,7 @@ namespace ogl {
 		glewExperimental = GL_TRUE;
 
 		if(glewInit() != 0) {
-			MessageBox(state.win_ptr->hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
+			MessageBoxW(state.win_ptr->hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
 		}
 
 		int attribs[] =
@@ -54,7 +54,7 @@ namespace ogl {
 		};
 
 		if(wglewIsSupported("WGL_ARB_create_context") != 1) {
-			MessageBox(state.win_ptr->hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
+			MessageBoxW(state.win_ptr->hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
 			std::abort();
 		} else {
 			state.opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
@@ -74,7 +74,7 @@ namespace ogl {
 			} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
 				wglSwapIntervalEXT(1);
 			} else {
-				MessageBox(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error", MB_OK);
+				MessageBoxW(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error", MB_OK);
 			}
 		}
 	}
