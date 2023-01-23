@@ -40,7 +40,7 @@ namespace parsers {
 			}
 		}
 		if(obj_in.secondary_texture.length() > 0) {
-			if(auto it = context.map_of_texture_names.find(std::string(obj_in.primary_texture)); it != context.map_of_texture_names.end()) {
+			if(auto it = context.map_of_texture_names.find(std::string(obj_in.secondary_texture)); it != context.map_of_texture_names.end()) {
 				new_obj.type_dependant = uint16_t(it->second.index() + 1);
 			} else {
 				auto index = context.ui_defs.textures.size();

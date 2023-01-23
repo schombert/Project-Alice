@@ -10,6 +10,7 @@
 
 #include "dcon_generated.hpp"
 #include "gui_graphics.hpp"
+#include "simple_fs.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -205,7 +206,9 @@ namespace sys {
 
 		ui::defintions ui_defs; // definitions for graphics and ui
 
-		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; 
+		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
+
+		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platfom-dependent window information
 
 		// common data for the window
 		int32_t x_size = 0;
