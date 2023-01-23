@@ -38,7 +38,7 @@ namespace text {
 				const auto component_start_index = state.text_components.size();
 
 				for(const char* pos = seq_start; pos < seq_end; ++pos) {
-					if(*pos == 0xA7) {
+					if(uint8_t(*pos) == 0xA7) {
 						if(section_start != pos) {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
@@ -77,7 +77,7 @@ namespace text {
 					}
 				}
 
-				if(section_start != seq_end) {
+				if(section_start < seq_end) {
 					auto added_key = state.add_to_pool(std::string_view(section_start, seq_end - section_start));
 					state.text_components.emplace_back( added_key );
 				}

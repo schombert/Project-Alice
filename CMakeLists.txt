@@ -33,7 +33,7 @@ if(MSVC)
 
 else() # GCC or CLANG
 	target_compile_options(Alice PRIVATE
-									# -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-unused-parameter
+									# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter
 		$<$<CONFIG:Debug>:			-g>
 		$<$<NOT:$<CONFIG:Debug>>: 	-O3>)
 endif()
