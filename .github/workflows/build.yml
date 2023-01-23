@@ -22,7 +22,7 @@ jobs:
     - name: "Install"
       uses: awalsh128/cache-apt-pkgs-action@v1.1.3
       with:
-        packages: libgl1-mesa-dev libxrandr-dev
+        packages: libgl1-mesa-dev xorg-dev
         version: 1.0
 
     - name: Set compiler
