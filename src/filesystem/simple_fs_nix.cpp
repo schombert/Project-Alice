@@ -127,13 +127,22 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
         for (size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
             DIR* d;
             struct dirent* dir_ent;
-            const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("/*") + extension;
+            const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
             d = opendir(appended_path.c_str());
             if (d) {
                 while ((dir_ent = readdir(d)) != nullptr) {
                     // Check if it's a file. Not POSIX standard but included in Linux
                     if (dir_ent->d_type != DT_REG)
                         continue;
+					
+					// Check if the file is of the right extension
+					if (strlen(extension)) {
+					    char* dot = strrchr(dir_ent->d_name, '.');
+						if(!dot || dot == dir_ent->d_name)
+							continue;
+						if (strcmp(dot, extension))
+							continue;
+					}
 
                     auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = dir_ent->d_name](const auto& f) {
                         return f.file_name.compare(n) == 0;
@@ -146,7 +155,7 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
             }
         }
     } else {
-        const auto appended_path = dir.relative_path + NATIVE("/*") + extension;
+        const auto appended_path = dir.relative_path;
         DIR* d;
         struct dirent* dir_ent;
         d = opendir(appended_path.c_str());
@@ -155,6 +164,15 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
                 // Check if it's a file. Not POSIX standard but included in Linux
                 if (dir_ent->d_type != DT_REG)
                     continue;
+					
+				// Check if the file is of the right extension
+				if (strlen(extension)) {
+					char* dot = strrchr(dir_ent->d_name, '.');
+					if(!dot || dot == dir_ent->d_name)
+						continue;
+					if (strcmp(dot, extension))
+						continue;
+				}
 
                 accumulated_results.emplace_back(dir.relative_path + NATIVE("/") + dir_ent->d_name, dir_ent->d_name);
             }
@@ -167,7 +185,7 @@ std::vector<directory> list_subdirectories(directory const& dir) {
     std::vector<directory> accumulated_results;
     if (dir.parent_system) {
         for (size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
-            const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("/*");
+            const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
             DIR* d;
             struct dirent* dir_ent;
             d = opendir(appended_path.c_str());
@@ -191,7 +209,7 @@ std::vector<directory> list_subdirectories(directory const& dir) {
             }
         }
     } else {
-        const auto appended_path = dir.relative_path + NATIVE("/*");
+        const auto appended_path = dir.relative_path;
         DIR* d;
         struct dirent* dir_ent;
         d = opendir(appended_path.c_str());
