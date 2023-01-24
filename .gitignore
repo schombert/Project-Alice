@@ -8,8 +8,6 @@ docs/out/
 .vscode/
 build/
 
-# DataContainer generated
-src/test.hpp
 # Generated parsers
 *_generated.hpp
 
