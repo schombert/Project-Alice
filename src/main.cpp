@@ -3,6 +3,7 @@
 #include "system_state.cpp"
 #include "gui_graphics_parsers.cpp"
 #include "text.cpp"
+#include "fonts.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

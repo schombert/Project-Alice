@@ -210,5 +210,29 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 		REQUIRE(uint8_t(ui::object_type::horizontal_progress_bar) == (state->ui_defs.gfx[found_tag].flags & ui::gfx_object::type_mask));
 		REQUIRE(state->to_string_view(state->ui_defs.textures[state->ui_defs.gfx[found_tag].primary_texture_handle]) == "gfx\\\\interface\\\\unciv_progress2.tga");
 		REQUIRE(state->to_string_view(state->ui_defs.textures[dcon::texture_id(uint16_t(state->ui_defs.gfx[found_tag].type_dependant - 1))]) == "gfx\\\\interface\\\\unciv_progress1.tga");
+
+
+		{
+			auto all_gui_files = list_files(interfc, NATIVE(".gui"));
+
+			for(auto& file : all_gui_files) {
+				auto file_name = get_full_name(file);
+				if(!parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("confirmbuild.gui"))
+					&& !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("convoys.gui"))
+					&& !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("brigadeview.gui"))
+					&& !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("eu3dialog.gui"))
+					) {
+					auto ofile = open_file(file);
+					if(ofile) {
+						auto content = view_contents(*ofile);
+						err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
+						parsers::token_generator gen(content.data, content.data + content.file_size);
+						parsers::parse_gui_files(gen, err, test_context);
+					}
+				}
+			}
+
+			REQUIRE(err.accumulated_errors == "");
+		}
 	}
 }

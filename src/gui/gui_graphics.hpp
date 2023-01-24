@@ -4,6 +4,7 @@
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"
 #include "container_types.hpp"
+#include "constants.hpp"
 
 namespace ui {
 	enum class object_type : uint8_t {
@@ -41,9 +42,238 @@ namespace ui {
 		uint8_t number_of_frames = 1; //10bytes
 	};
 
+	enum class element_type : uint8_t {  // 3 bits
+		button = 0x01, 
+		text = 0x02, 
+		image = 0x03, 
+		position = 0x04, 
+		overlapping = 0x05, 
+		listbox = 0x06,
+		scrollbar = 0x07, 
+		window = 0x00
+	};
+
+	enum class alignment : uint8_t { // 2 bits
+		left = 0x00,
+		right = 0x01,
+		centered = 0x02,
+		justified = 0x03
+	};
+
+	inline constexpr int32_t rotation_bit_offset = 3;
+	enum class rotation : uint8_t { // 2 bits
+		upright = (0x00 << rotation_bit_offset),
+		r90_left = (0x01 << rotation_bit_offset),
+		r90_right = (0x02 << rotation_bit_offset)
+	};
+
+	inline constexpr int32_t orientation_bit_offset = 5;
+	enum class orientation : uint8_t { // 3 bits
+		upper_left = (0x00 << orientation_bit_offset),
+		upper_right = (0x01 << orientation_bit_offset),
+		lower_left = (0x02 << orientation_bit_offset),
+		lower_right = (0x03 << orientation_bit_offset),
+		upper_center = (0x04 << orientation_bit_offset),
+		lower_center = (0x05 << orientation_bit_offset),
+		center = (0x06 << orientation_bit_offset)
+	};
+
+	struct text_base_data {
+		static constexpr uint8_t alignment_mask = 0x03;
+
+		dcon::text_sequence_id txt;
+		uint16_t font_handle = 0;
+		uint8_t flags = 0;
+
+		alignment get_alignment() const {
+			return alignment(flags & alignment_mask);
+		}
+	};
+
+	inline constexpr int32_t clicksound_bit_offset = 2;
+	enum class clicksound : uint8_t { // 2 bits
+		none = (0x00 << clicksound_bit_offset),
+		click = (0x01 << clicksound_bit_offset),
+		close_window = (0x02 << clicksound_bit_offset),
+		start_game = (0x03 << clicksound_bit_offset)
+	};
+
+	struct button_data : public text_base_data {
+		static constexpr uint8_t clicksound_mask = (0x03 << clicksound_bit_offset);
+		static constexpr uint8_t is_checkbox_mask = (0x01 << (clicksound_bit_offset + 2));
+
+		dcon::gfx_object_id button_image;
+		sys::virtual_key shortcut = sys::virtual_key::NONE;
+
+		clicksound get_clicksound() const {
+			return clicksound(text_base_data::flags & clicksound_mask);
+		}
+		bool is_checkbox() const {
+			return (text_base_data::flags & is_checkbox_mask) != 0;
+		}
+	};
+
+	inline constexpr int32_t text_background_bit_offset = 2;
+	enum class text_background : uint8_t { // 2 bits
+		none = (0x00 << text_background_bit_offset),
+		tiles_dialog = (0x01 << text_background_bit_offset),
+		transparency = (0x02 << text_background_bit_offset),
+		small_tiles_dialog = (0x03 << text_background_bit_offset)
+	};
+
+	struct text_data : public text_base_data {
+		static constexpr uint8_t background_mask = (0x03 << text_background_bit_offset);
+		static constexpr uint8_t is_fixed_size_mask = (0x01 << (text_background_bit_offset + 2));
+		static constexpr uint8_t is_instant_mask = (0x01 << (text_background_bit_offset + 3));
+		static constexpr uint8_t is_edit_mask = (0x01 << (text_background_bit_offset + 4));
+
+		xy_pair border_size;
+
+		text_background get_text_background() const {
+			return text_background(text_base_data::flags & background_mask);
+		}
+		bool is_fixed_size() const {
+			return (text_base_data::flags & is_fixed_size_mask) != 0;
+		}
+		bool is_instant() const {
+			return (text_base_data::flags & is_instant_mask) != 0;
+		}
+		bool is_edit() const {
+			return (text_base_data::flags & is_edit_mask) != 0;
+		}
+	};
+
+	struct image_data {
+		static constexpr uint8_t frame_mask = 0x7F;
+		static constexpr uint8_t is_mask_mask = 0x80;
+
+		float scale = 1.0f;
+		dcon::gfx_object_id gfx_object;
+
+		uint8_t flags = 0;
+
+		bool is_mask() const {
+			return (flags & is_mask_mask) != 0;
+		}
+		uint8_t frame() const {
+			return (flags & frame_mask);
+		}
+	};
+
+	struct overlapping_data {
+		float spacing = 1.0f;
+		alignment image_alignment = alignment::left;
+	};
+
+	struct list_box_data {
+		xy_pair border_size;
+		xy_pair offset;
+		dcon::gfx_object_id background_image;
+		uint8_t spacing = 0;
+	};
+
+	enum class step_size : uint8_t { // 2 bits
+		one = 0x00,
+		two = 0x01,
+		one_tenth = 0x02,
+		one_hundredth = 0x03,
+		one_thousandth = 0x04
+	};
+
+	struct scrollbar_data {
+		static constexpr uint8_t step_size_mask = 0x07;
+		static constexpr uint8_t is_range_limited_mask = 0x08;
+		static constexpr uint8_t is_lockable_mask = 0x10;
+		static constexpr uint8_t is_horizontal_mask = 0x20;
+
+		xy_pair border_size;
+		uint16_t max_value = 1;
+		dcon::gui_def_id first_child;
+		uint8_t num_children = 0;
+
+		uint8_t flags = 0;
+
+		step_size get_step_size() const {
+			return step_size(step_size_mask & flags);
+		}
+		bool is_range_limited() const {
+			return (flags & is_range_limited_mask) != 0;
+		}
+		bool is_lockable() const {
+			return (flags & is_lockable_mask) != 0;
+		}
+		bool is_horizontal() const {
+			return (flags & is_horizontal_mask) != 0;
+		}
+	};
+
+	struct window_data {
+		static constexpr uint8_t is_dialog_mask = 0x01;
+		static constexpr uint8_t is_fullscreen_mask = 0x02;
+		static constexpr uint8_t is_moveable_mask = 0x04;
+		
+		dcon::gui_def_id first_child;
+		uint8_t num_children = 0;
+		uint8_t flags = 0;
+
+		bool is_dialog() const {
+			return (flags & is_dialog_mask) != 0;
+		}
+		bool is_fullscreen() const {
+			return (flags & is_fullscreen_mask) != 0;
+		}
+		bool is_moveable() const {
+			return (flags & is_moveable_mask) != 0;
+		}
+	};
+
+	struct position_data {
+
+	};
+
+	struct element_data {
+		static constexpr uint8_t type_mask = 0x07;
+		static constexpr uint8_t rotation_mask = (0x03 << rotation_bit_offset);
+		static constexpr uint8_t orientation_mask = (0x07 << orientation_bit_offset);
+
+		xy_pair position; // 4
+		xy_pair size;     // 8
+
+		union internal_data {
+			text_base_data text_common;
+			button_data button;
+			text_data text;
+			image_data image;
+			overlapping_data overlapping;
+			list_box_data list_box;
+			scrollbar_data scrollbar;
+			window_data window;
+			position_data position;
+
+			internal_data() { 
+				position = position_data{};
+			}
+		} data;
+
+		dcon::text_key name;
+		uint8_t flags = 0;
+
+		element_type get_element_type() const {
+			return element_type(flags & type_mask);
+		}
+		rotation get_rotation() const {
+			return rotation(flags & rotation_mask);
+		}
+		orientation get_orientation() const {
+			return orientation(flags & orientation_mask);
+		}
+	};
+
+
 	class defintions {
 	public:
 		tagged_vector<gfx_object, dcon::gfx_object_id> gfx;
 		tagged_vector<dcon::text_key, dcon::texture_id> textures;
+		tagged_vector<element_data, dcon::gui_def_id> gui;
 	};
 }

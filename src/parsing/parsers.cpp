@@ -31,39 +31,6 @@ namespace parsers {
 		return (c == '\r') || (c == '\n') || (c == '\'');
 	}
 
-	template<size_t N>
-	bool has_fixed_prefix(const char* start, const char* end, const char(&t)[N]) {
-		if(end - start < ((std::ptrdiff_t)N - 1))
-			return false;
-		for(unsigned int i = 0; i < N - 1; ++i) {
-			if(start[i] != t[i])
-				return false;
-		}
-		return true;
-	}
-
-	template<size_t N>
-	bool is_fixed_token(const char* start, const char* end, const char(&t)[N]) {
-		if(end - start != (N - 1))
-			return false;
-		for(unsigned int i = 0; i < N - 1; ++i) {
-			if(start[i] != t[i])
-				return false;
-		}
-		return true;
-	}
-
-	template<size_t N>
-	bool is_fixed_token_ci(const char* start, const char* end, const char(&t)[N]) {
-		if(end - start != (N - 1))
-			return false;
-		for(unsigned int i = 0; i < N - 1; ++i) {
-			if(tolower(start[i]) != t[i])
-				return false;
-		}
-		return true;
-	}
-
 	bool is_positive_integer(const char* start, const char* end) {
 		if(start == end)
 			return false;

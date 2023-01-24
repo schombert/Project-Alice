@@ -206,6 +206,12 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
         REQUIRE(created_object.left_free_text == "unk_key");
         REQUIRE(err.accumulated_errors.length() == size_t(0));
     }
+	SECTION("trim a float") {
+		parsers::error_handler err("no file");
+		auto result = parsers::parse_int(std::string_view("2.0"), 0, err);
+		REQUIRE(result == 2);
+		REQUIRE(err.accumulated_errors.length() == size_t(0));
+	}
     SECTION("value exercises") {
         char file_data[] = "# comment\nddd = 1\n\tccc = 2\nbbbb != 3\n# comment 2\r\naaa = 4";
 

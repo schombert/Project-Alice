@@ -40,3 +40,124 @@ gfx_object_outer
 gfx_files
 	spritetypes  extern     gfx_add_obj  discard
 	#any         group      none         discard
+
+gui_element_common
+	position     group      gfx_xy_pair   member_fn
+	size         group      gfx_xy_pair   member_fn
+	rotation     value      text          member_fn
+	name         value      text          member_fn
+	orientation  value      text          member_fn
+
+button
+	#base                 gui_element_common
+	delayedtooltiptext    value     none     discard
+	tooltip               value     none     discard
+	tooltiptext           value     none     discard
+	spritetype            value     text     member_fn
+	shortcut              value     text     member_fn
+	quadtexturesprite     value     text     member_fn   (spritetype)
+	buttontext            value     text     member_fn
+	buttonfont            value     text     member_fn
+	format                value     text     member_fn
+	clicksound            value     text     member_fn
+	parent                value     none     discard
+
+image
+	#base           gui_element_common
+	buttonmesh      value    none    discard
+	frame           value    uint    member_fn
+	spritetype      value    text    member_fn
+	scale           value    float   member_fn
+
+textbox
+	#base                gui_element_common
+	allwaystransparent   value     none          discard
+	fixedsize            value     bool          member_fn
+	font                 value     text          member_fn
+	format               value     text          member_fn
+	maxheight            value     int           member_fn
+	maxwidth             value     int           member_fn
+	text                 value     text          member_fn
+	texturefile          value     text          member_fn
+	bordersize           group     gfx_xy_pair   member_fn
+
+listbox
+	#base                gui_element_common
+	allwaystransparent   value     none          discard
+	background           value     text          member_fn
+	horizontal           value     none          discard
+	priority             value     none          discard
+	scrollbartype        value     none          discard
+	spacing              value     uint          member_fn
+	step                 value     none          discard
+	bordersize           group     gfx_xy_pair   member_fn
+	offset               group     gfx_xy_pair   member_fn
+
+overlapping
+	#base          gui_element_common
+	format         value     text       member_fn
+	spacing        value     float      member_fn
+
+scrollbar
+	#base             gui_element_common
+	horizontal        value       bool         member_fn
+	leftbutton        value       text         member_fn
+	rightbutton       value       text         member_fn
+	lockable          value       bool         member_fn
+	minvalue          value       none         discard
+	maxvalue          value       uint         member_fn
+	priority          value       none         discard
+	rangelimitmax     value       none         discard
+	rangelimitmin     value       none         discard
+	rangelimitmaxicon value       text         member_fn
+	rangelimitminicon value       text         member_fn
+	slider            value       text         member_fn
+	track             value       text         member_fn
+	startvalue        value       none         discard
+	stepsize          value       text         member_fn
+	userangelimit     value       bool         member_fn
+	bordersize        group       gfx_xy_pair  member_fn 
+	guibuttontype     group       button       member_fn
+	icontype          group       image        member_fn
+
+window
+	#base                      gui_element_common
+	background                 value       none               discard
+	dontrender                 value       none               discard
+	downsound                  value       none               discard
+	upsound                    value       none               discard
+	fullscreen                 value       bool               member_fn
+	horizontalborder           value       none               discard
+	verticalborder             value       none               discard
+	moveable                   value       bool               member_fn
+	guibuttontype              group       button             member_fn
+	eu3dialogtype              group       window             member_fn
+	icontype                   group       image              member_fn
+	instanttextboxtype         group       textbox            member_fn
+	listboxtype                group       listbox            member_fn
+	positiontype               group       gui_element_common member_fn
+	scrollbartype              group       scrollbar          member_fn
+	windowtype                 group       window             member_fn
+	checkboxtype               group       button             member_fn
+	shieldtype                 group       image              member_fn
+	overlappingelementsboxtype group       overlapping        member_fn
+	editboxtype                group       textbox            member_fn
+	textboxtype                group       textbox            member_fn
+
+guitypes
+	guibuttontype              group       button             member_fn
+	eu3dialogtype              group       window             member_fn
+	icontype                   group       image              member_fn
+	instanttextboxtype         group       textbox            member_fn
+	listboxtype                group       listbox            member_fn
+	positiontype               group       gui_element_common member_fn
+	scrollbartype              group       scrollbar          member_fn
+	windowtype                 group       window             member_fn
+	checkboxtype               group       button             member_fn
+	shieldtype                 group       image              member_fn
+	overlappingelementsboxtype group       overlapping        member_fn
+	editboxtype                group       textbox            member_fn
+	textboxtype                group       textbox            member_fn
+
+gui_files
+	guitypes     extern     parse_guitypes     discard

@@ -431,11 +431,23 @@ int main(int argc, char* argv[]) {
 						}
 					} else {
 						if(type == "parser" || type == "group") {
-							file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false });
+							if(std::find_if(file.groups.back().groups.begin(), file.groups.back().groups.end(), [&](group_association const& g) { return g.key == key; }) == file.groups.back().groups.end()) {
+								file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, false });
+							} else {
+								err.add(row_col_pair{ 0,0 }, 10, std::string("group key ") + key + " was repeated in " + file.groups.back().group_object_type);
+							}
 						} else if(type == "value") {
-							file.groups.back().values.push_back(value_association{ key, opt, value_and_optional{handler_type, handler_opt} });
+							if(std::find_if(file.groups.back().values.begin(), file.groups.back().values.end(), [&](value_association const& g) { return g.key == key; }) == file.groups.back().values.end()) {
+								file.groups.back().values.push_back(value_association{ key, opt, value_and_optional{handler_type, handler_opt} });
+							} else {
+								err.add(row_col_pair{ 0,0 }, 11, std::string("group key ") + key + " was repeated in " + file.groups.back().group_object_type);
+							}
 						} else if(type == "extern") {
-							file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true });
+							if(std::find_if(file.groups.back().groups.begin(), file.groups.back().groups.end(), [&](group_association const& g) { return g.key == key; }) == file.groups.back().groups.end()) {
+								file.groups.back().groups.push_back(group_association{ key, opt, value_and_optional{handler_type, handler_opt}, true });
+							} else {
+								err.add(row_col_pair{ 0,0 }, 12, std::string("group key ") + key + " was repeated in " + file.groups.back().group_object_type);
+							}
 						}
 
 						/*

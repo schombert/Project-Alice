@@ -165,4 +165,98 @@ namespace parsers {
 		function(first_value, std::string_view(start, second_end.new_position - start));
 		return csv_advance_to_next_line(second_end.new_position + int32_t(second_end.found), end);
 	}
+
+	//
+	// other utility functions
+	//
+
+	template<size_t N>
+	bool has_fixed_prefix(const char* start, const char* end, const char(&t)[N]) {
+		if(end - start < ((std::ptrdiff_t)N - 1))
+			return false;
+		for(unsigned int i = 0; i < N - 1; ++i) {
+			if(start[i] != t[i])
+				return false;
+		}
+		return true;
+	}
+
+	template<size_t N>
+	bool has_fixed_prefix_ci(const char* start, const char* end, const char(&t)[N]) {
+		if(end - start < ((std::ptrdiff_t)N - 1))
+			return false;
+		for(unsigned int i = 0; i < N - 1; ++i) {
+			if(tolower(start[i]) != t[i])
+				return false;
+		}
+		return true;
+	}
+
+	template<size_t N>
+	bool has_fixed_suffix(const char* start, const char* end, const char(&t)[N]) {
+		if(end - start < ((std::ptrdiff_t)N - 1))
+			return false;
+		for(int32_t i = 0; i < int32_t(N) - 1; ++i) {
+			if(end[-1 - i] != t[(N - i) - 2])
+				return false;
+		}
+		return true;
+	}
+
+	template<size_t N>
+	bool has_fixed_suffix_ci(const char* start, const char* end, const char(&t)[N]) {
+		if(end - start < ((std::ptrdiff_t)N - 1))
+			return false;
+		for(int32_t i = 0; i < int32_t(N) - 1; ++i) {
+			if(tolower(end[-1 - i]) != t[(N - i) - 2])
+				return false;
+		}
+		return true;
+	}
+
+#ifdef _WIN64 
+	template<size_t N>
+	bool native_has_fixed_suffix_ci(const wchar_t* start, const wchar_t* end, const wchar_t(&t)[N]) {
+		if(end - start < ((std::ptrdiff_t)N - 1))
+			return false;
+		for(int32_t i = 0; i < int32_t(N) - 1; ++i) {
+			if(towlower(end[-1 - i]) != t[(N - i) - 2])
+				return false;
+		}
+		return true;
+	}
+#else
+	template<size_t N>
+	bool native_has_fixed_suffix_ci(const char* start, const char* end, const char(&t)[N]) {
+		if(end - start < ((std::ptrdiff_t)N - 1))
+			return false;
+		for(int32_t i = 0; i < int32_t(N) - 1; ++i) {
+			if(tolower(end[-1 - i]) != t[(N - i) - 2])
+				return false;
+		}
+		return true;
+	}
+#endif
+
+	template<size_t N>
+	bool is_fixed_token(const char* start, const char* end, const char(&t)[N]) {
+		if(end - start != (N - 1))
+			return false;
+		for(unsigned int i = 0; i < N - 1; ++i) {
+			if(start[i] != t[i])
+				return false;
+		}
+		return true;
+	}
+
+	template<size_t N>
+	bool is_fixed_token_ci(const char* start, const char* end, const char(&t)[N]) {
+		if(end - start != (N - 1))
+			return false;
+		for(unsigned int i = 0; i < N - 1; ++i) {
+			if(tolower(start[i]) != t[i])
+				return false;
+		}
+		return true;
+	}
 }

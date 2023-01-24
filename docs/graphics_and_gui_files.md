@@ -33,7 +33,7 @@ And, as strange as it seems, that is all the useful information there is to be h
 
 The `.gui` files are significantly more complicated, in part because we aren't just throwing away a good portion of what they contain. Like the `.gfx` files, the top level of a `.gui` file is composed of top level groups that gather a number of definitions of a common type. Or at least I suppose that was the intent, because the top level contains only `guitypes` groups, as far as I can tell. So, the only thing interesting to us is the contents of those groups.
 
-Within them are lists of groups defining ui elements, each of which is labeled by its type (in terms of general behavior it is supposed to display). The possible top level types are: `guibuttontype`, `eu3dialogtype`, `icontype`, `instanttextboxtype`, `listboxtype`, `positiontype`, `scrollbartype`, `windowtype`, `checkboxtype`, `shieldtype`, `overlappingelementsboxtype`, `editboxtype`, and `textboxtype`. For the sake of simplicity we combine the parsing of `eu3dialogtype` and `windowtype` elements, treating both as the same thing, and we similarly parse `instanttextboxtype`, `editboxtype` and `textboxtype` as a common text element type.
+Within them are lists of groups defining ui elements, each of which is labeled by its type (in terms of general behavior it is supposed to display). The possible top level types are: `guibuttontype`, `checkboxtype`, `eu3dialogtype`, `icontype`, `instanttextboxtype`, `listboxtype`, `positiontype`, `scrollbartype`, `windowtype`, `shieldtype`, `overlappingelementsboxtype`, `editboxtype`, and `textboxtype`. For the sake of simplicity we combine the parsing of `eu3dialogtype` and `windowtype` elements, treating both as the same thing, and we parse `instanttextboxtype`, `editboxtype` and `textboxtype` as a common text element type, we parse `shieldtype` and `icontype` as a common image type, and we parse `guibuttontype` and `checkboxtype` as both buttons.
 
 Except as just mentioned, each type has its own set of unique properties and is parsed uniquely (unlike the contents of the `.gfx` files, which are all put through the same parsing path).
 
@@ -41,7 +41,7 @@ Except as just mentioned, each type has its own set of unique properties and is 
 
 Some of these elements will refer to various fonts. Since we won't be using any of the fonts from the game directly, trying to decode the font descriptions and interpret them seems like a waste of time. Instead we will just recognize fonts by hard-coding the names of the fonts to later assign to fonts of our choosing. Each font name starts with one of the following: `arial`, `fps`, `main`, `tooltip`, `frangoth`, `garamond`, `impact`, `old_english`, `timefont`, or `vic`, and is then followed by an optional underscore, and then an optional number (presumably size), and then an underscore and a final bit of decoration such as `bold`,  `black`, `black_bold`, or `bl`. We will deal with this all by mapping the start of the name to one of a smaller number of fonts we will load, parsing out the size (if present), and then determining whether to render the font in white (the default) or in black.
 
-#### `guibuttontype`
+#### Buttons (`guibuttontype` and `checkboxtype`)
 
 - `position` : a group with contents `{ x = ... y = ...}`
 - `size` : a group with contents `{ x = ... y = ...}`
@@ -59,7 +59,7 @@ Some of these elements will refer to various fonts. Since we won't be using any 
 - `clicksound` : one of `click`, `close_window`, or `start_game`
 - `parent` : I don't know what this is supposed to do, so I ignore it.
 
-#### `icontype`
+#### Images (`icontype` and `shieldtype`)
 
 - `position` : a group with contents `{ x = ... y = ...}`
 - `orientation` : as above
@@ -70,7 +70,7 @@ Some of these elements will refer to various fonts. Since we won't be using any 
 - `rotation` : as above
 - `scale` : a floating point value describing how much to stretch the icon by
 
-#### Text boxes
+#### Text boxes (`instanttextboxtype`, `editboxtype` and `textboxtype`)
 
 - `orientation` : as above
 - `allwaystransparent` : as with the graphics assets, I don't know what this means, but I store it anyways
@@ -137,7 +137,7 @@ These are the lists of flags or other lists of icons you see in a few places.
 - `position` : as above
 - `size` : as above
 
-#### Windows
+#### Windows (`eu3dialogtype` and `windowtype`)
 
 - `orientation` : as above
 - `background` : may be intended to designate one of the sub objects as the background, but is frequenly left blank.
