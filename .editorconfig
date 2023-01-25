@@ -5,14 +5,16 @@ root = true
 charset = utf-8
 insert_final_newline = true
 trim_trailing_whitespace = true
-indent_style = tab
 
+[*.{yml}]
+indent_style = space
 
 [*.{c++,cc,cpp,cppm,cxx,h,h++,hh,hpp,hxx,inl,ipp,ixx,tlh,tli}]
 
 # Visual C++ Code Style settings
 
 cpp_generate_documentation_comments = xml
+indent_style = tab
 
 # Visual C++ Formatting settings
 
