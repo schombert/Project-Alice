@@ -13,7 +13,7 @@
 namespace ogl {
 
 	void create_opengl_context(sys::state& state) {
-		assert(state.win_ptr && state.win_ptr->hwnd && !state.opengl_context);
+		assert(state.win_ptr && state.win_ptr->hwnd && !state.open_gl.context);
 
 		PIXELFORMATDESCRIPTOR pfd;
 		ZeroMemory(&pfd, sizeof(pfd));
@@ -57,12 +57,12 @@ namespace ogl {
 			MessageBoxW(state.win_ptr->hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
 			std::abort();
 		} else {
-			state.opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
+			state.open_gl.context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 
-			wglMakeCurrent(window_dc, HGLRC(state.opengl_context));
+			wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
 			wglDeleteContext(handle_to_ogl_dc);
 
-			//wglMakeCurrent(window_dc, HGLRC(state.opengl_context));
+			//wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
 #ifndef NDEBUG
 			glDebugMessageCallback(debug_callback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
@@ -80,9 +80,9 @@ namespace ogl {
 	}
 
 	void shutdown_opengl(sys::state& state) {
-		assert(state.win_ptr && state.win_ptr->hwnd && state.opengl_context);
+		assert(state.win_ptr && state.win_ptr->hwnd && state.open_gl.context);
 		wglMakeCurrent(state.win_ptr->opengl_window_dc, nullptr);
-		wglDeleteContext(HGLRC(state.opengl_context));
-		state.opengl_context = nullptr;
+		wglDeleteContext(HGLRC(state.open_gl.context));
+		state.open_gl.context = nullptr;
 	}
 }

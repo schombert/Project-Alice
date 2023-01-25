@@ -3,16 +3,12 @@
 #include <memory>
 #include <stdint.h>
 
-#ifndef GLEW_STATIC
-#define GLEW_STATIC
-#endif
-#include "glew.h"
-
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "gui_graphics.hpp"
 #include "simple_fs.hpp"
 #include "text.hpp"
+#include "opengl_wrapper.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -72,7 +68,7 @@ namespace sys {
 		bool in_edit_control = false;
 
 		// graphics data
-		void* opengl_context = nullptr;
+		ogl::data open_gl;
 
 		// the following functions will be invoked by the window subsystem
 

@@ -2,6 +2,11 @@
 
 #include <vector>
 
+// this is here simply to declare the state struct in a very general location
+namespace sys {
+struct state;
+}
+
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
 class tagged_vector {
 private:

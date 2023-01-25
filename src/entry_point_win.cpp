@@ -29,6 +29,10 @@ int WINAPI wWinMain(
 
 		std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 
+		assert(sizeof(GAME_DIR) > size_t(4)); // If this fails, then you have not set your GAME_FILES_DIRECTORY CMake cache variable
+		add_root(game_state->common_fs, NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
+		add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
+
 		window::create_window(*game_state, window::creation_parameters());
 
 		CoUninitialize();
