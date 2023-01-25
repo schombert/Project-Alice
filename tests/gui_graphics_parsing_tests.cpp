@@ -166,6 +166,15 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 	}
 }
 
+int32_t find_gui_by_name(sys::state const& state, std::string_view name) {
+	for(int32_t i = 0; i < state.ui_defs.gui.ssize(); ++i) {
+		if(state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(uint16_t(i))].name) == name) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 TEST_CASE("gfx game files parsing", "[parsers]") {
 	SECTION("empty_file_with_types") {
 		std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
@@ -233,6 +242,103 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 			}
 
 			REQUIRE(err.accumulated_errors == "");
+
+			{
+				auto index = find_gui_by_name(*state, "rallypoint_checkbox_naval");
+				REQUIRE(index != -1);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].get_element_type() == ui::element_type::button);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.button.is_checkbox() == true);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.button.shortcut == sys::virtual_key::V);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].position.x == int16_t(30));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].position.y == int16_t(322));
+				REQUIRE(bool(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.button.button_image) == true);
+			}
+			/*
+			iconType =
+			{
+				name ="diplo_default_tile_bg"
+				spriteType = "GFX_diplo_default_tile_bg"
+				position = { x= 25 y = 100 }
+				Orientation = "UPPER_LEFT"
+			}
+			*/
+			{
+				auto index = find_gui_by_name(*state, "diplo_default_tile_bg");
+				REQUIRE(index != -1);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].get_element_type() == ui::element_type::image);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].position.x == int16_t(25));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].position.y == int16_t(100));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].get_orientation() == ui::orientation::upper_left);
+				REQUIRE(bool(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.image.gfx_object) == true);
+			}
+			/*
+			instantTextBoxType={
+				position = {x = 28 y = 58 }
+				name = "settings_label"
+				font = "vic_22_black"
+				borderSize = {x = 0 y = 0}	
+				maxWidth = 172
+				maxHeight = 18
+				text = "SM_SETTINGS"	
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			*/
+			{
+				auto index = find_gui_by_name(*state, "settings_label");
+				REQUIRE(index != -1);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].get_element_type() == ui::element_type::text);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].position.x == int16_t(28));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].position.y == int16_t(58));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].get_orientation() == ui::orientation::upper_left);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.is_instant() == true);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.is_edit() == false);
+				REQUIRE(text::size_from_font_id(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.font_handle) == uint16_t(22));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].size.x == int16_t(172));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].size.y == int16_t(18));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.border_size.x == 0);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.border_size.y == 0);
+				REQUIRE(bool(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.txt) == true);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.get_alignment() == ui::alignment::centered);
+			}
+			/*
+			windowType = {
+				name = "topbar"
+				backGround=""
+				position = { x=0 y=0 }	
+				size = { x=2048 y=100 }
+				moveable = 0
+				dontRender = ""
+				horizontalBorder= ""
+				verticalBorder= ""
+				fullScreen = yes
+
+				iconType = {
+					name ="topbar_bg"
+					spriteType = "GFX_topbar_bg"
+					position = { x= 0 y = -1 }
+					Orientation = "UPPER_LEFT"
+				}
+				...
+			*/
+
+			{
+				auto index = find_gui_by_name(*state, "topbar");
+				REQUIRE(index != -1);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].get_element_type() == ui::element_type::window);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].position.x == int16_t(0));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].position.y == int16_t(0));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].size.x == int16_t(2048));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].size.y == int16_t(100));
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.window.is_moveable() == false);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.window.is_fullscreen() == true);
+				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.window.num_children > 0);
+
+				auto first_child = state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.window.first_child;
+				REQUIRE(bool(first_child) == true);
+				REQUIRE(state->ui_defs.gui[first_child].get_element_type() == ui::element_type::image);
+				REQUIRE(state->to_string_view(state->ui_defs.gui[first_child].name) == "topbar_bg");
+			}
 		}
 	}
 }
