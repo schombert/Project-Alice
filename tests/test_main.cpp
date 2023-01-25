@@ -16,8 +16,6 @@
 #define NATIVE_SEP "/"
 #endif
 
-#define NATIVE_M(X) NATIVE(X)
-
 #include "gui_graphics_parsing_tests.cpp"
 #include "misc_tests.cpp"
 #include "parsers_tests.cpp"

@@ -1,4 +1,4 @@
-﻿# CMakeList.txt : Top-level CMake project file, do global configuration
+# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
 
@@ -87,9 +87,22 @@ add_custom_command(
 add_custom_target(GENERATE_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/src/parsing/parser_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
 
+add_custom_command(
+        TARGET Alice POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${PROJECT_SOURCE_DIR}/src/ogl/ui_f_shader.txt
+                ${CMAKE_CURRENT_BINARY_DIR}/ui_f_shader.txt)
+add_custom_command(
+        TARGET Alice POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${PROJECT_SOURCE_DIR}/src/ogl/ui_v_shader.txt
+                ${CMAKE_CURRENT_BINARY_DIR}/ui_v_shader.txt)
+
 set(GAME_FILES_DIRECTORY "" CACHE PATH "location of game files (i.e. the folder containing the exe)")
 
 message("Will attempt to find game files in: \"${GAME_FILES_DIRECTORY}\"")
+
+target_compile_definitions(Alice PRIVATE "GAME_DIR=\"${GAME_FILES_DIRECTORY}\"")
 
 if (BUILD_TESTING)
     enable_testing()

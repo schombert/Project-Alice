@@ -1,0 +1,37 @@
+## About Project Alice
+
+### Picking up where Open V2 left off
+
+The goal of Project Alice (named after (Alice Roosevelt Longworth)[https://en.wikipedia.org/wiki/Alice_Roosevelt_Longworth]) is essentially to create a new version of (open v2)[ https://github.com/schombert/Open-V2] -- my earlier project to create a Victoria 2 clone -- and then to finish a working, feature complete, version of the game. This means that, at least initially, there will be few departures from doing things as Victoria 2 did them, simply to keep the project focused and on track. Once a 1.0 is complete, we can then use it as a playground for new experiments. 
+ 
+This does not mean taking the code base as is. Rather I want to start by first taking out the better quality pieces of it (starting in particular with the parsers) and take the time to polish them, get the input of new contributors on them, find a Linux person to make them work on Linux too, write documentation for them and so on. (However, the amount of documentation generated will probably be a function of how many people I am working with: the more I have to code, the less documentation there will be.) The goal would be to take open v2 apart, put the good bits back together, and in the process develop a team understanding of how what we have already works. Once that is done we can move on to everything that is still missing and hopefully finish the damn thing. 
+ 
+The coding teams (assuming there are any) will then be divided into UI, Map, and Core groups (with possibly Launcher to be added later). The map team could begin working on map rendering techniques right away; none of this work may be used directly, but will instead be a kind of technology and artistic testbed. I think we can make a better looking map than V3, not by making something more realistic looking or with more 3d models, but something which has an interesting artistic map aesthetic that isn't super performance intensive. Finally, there is the core team, which will be handling the way that the core game state is stored, saved and loaded, updated, and synchronized over the network. The first task of the core team will be to start rebuilding the parsers (including producing documentation and tests). If the core team becomes more than just me, I may ask someone to do a small research project to start getting more information about where our possibilities and limits are with respect to networking.
+ 
+In addition to this, I hope to find a few people to form an art team that can recreate the assets that Victoria 2 uses, in order to give this project its own distinctive visual identity. I know that is a big ask, but on the other hand, there will be no 3d modeling required. We already have access to a set of new flags that we can use, courtesy of the SOE project.
+ 
+###  Work ethic
+
+I would like everyone to try to contribute in some meaningful way on at least a weekly basis. Personally, I am  committing to at least 1/2hr every business day. This doesn't have to be time coding. It could be time spent documenting or researching or even just thinking. But for me, I think that the commitment to doing something every day is important. 
+
+### In comparison to other projects
+
+In comparison to SOE (Symphony of Empires) this project is a more direct Victoria 2 clone, while SOE is its own game. We do have some people here involved with both (I myself make the occasional suggestion there). It is considered very poor form to try to poach anyone for there. However, if you see something that we make that they could use, I am sure that they would appreciate the contribution. Likewise, we will be using at least some of their work.
+ 
+With regards to the OpenVic2 project, we have close to the same goals. Because of this I intend to fly more or less under their radar. I don't want them to feel that they are in competition with us, and I don't want to get involved in trying to steal personnel from them or vice versa. Since we will be building off of a much larger foundation (open v2), my feeling is that we will make faster progress, but who knows. Their project also has a very different managerial style from this one. Here I am effectively a dictator: it is my project and at the end of the day I decide what we are doing (although I do try to listen to input from other people; I am not a lunatic). Over there they are going with a more democratic style of project management with more formal voting and also with a more formal requirements/development process. If you are interested in both, I suggest spending time with both or even joining both projects to see which you like better. 
+ 
+From a technical side some of the differences are the following: First we are more focused on singleplayer than they are: my first goal is to complete the singleplayer side of the game before tackling multiplayer, but the OpenVic2 team wants to make multiplayer a top priority. I can also tell that making the game performant and lean (in terms of RAM / other resource consumption) is a much higher priority for me than it is for them. I also assume that they will favor an object-oriented design while I will have a more data-driven design (but their project is just getting off the ground as I write this, so who knows). Finally, I will obviously be making substantial use of things in open v2, while the OpenVic2 team probably won't (although they may use some things). 
+ 
+### Licensing
+
+All code produced as part of this project will be released under the GPL3 license (as was open v2). The license for art assets will be up to the art team, but I would prefer some form of Creative Commons.
+
+### Programming tools
+
+The project itself uses CMake (yes, I know that we all hate CMake). Ideally it should be able to be compiled with any of the big three compilers: MSVC, Clang/LLVM, or GCC. I personally tend to use MSVC, but I may switch to Clang as things progress; we shall see. Making sure that things keep working in GCC will have to be someone else's problem, and if no contributor turns out to be a regular GCC user, then GCC compatibility may disappear from this list.
+
+Personally I use visual studio 2022 to work on the project, but if you are contributing, you should be able to use whatever tools you like, including VS Code, CLion, EMACS, VI, etc
+
+### Where will Project Alice diverge from Victoria 2?
+
+Initially, Project Alice will imitate the Victoria 2 mechanics extremely closely wherever we can, with a few minor exceptions. Yes, there are lots of things we could improve. I went into open v2 with the mindset that I would just improve a few things here and there as I went, and that was a major reason that the project got sidetracked and ultimately abandoned. I don't want to make that mistake again, so this time I am going to try as hard as possible to resist the urge to make improvements until we have a working, feature complete, game. That said, there are a few changes we have to make no matter what. The globe map is simply too fun not to put in. And there are are few QOL improvements (like hyperlinks that send you to what an event is talking about or a summary of why an event was triggered) that are easy enough and nice enough that it would be a real shame to leave them out. But no major adjustments to the mechanics this time! I promise!

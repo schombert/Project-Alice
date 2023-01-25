@@ -5,6 +5,7 @@
 #include "unordered_dense.h"
 #include "container_types.hpp"
 #include "constants.hpp"
+#include "parsers.hpp"
 
 namespace ui {
 	enum class object_type : uint8_t {
@@ -272,8 +273,14 @@ namespace ui {
 
 	class defintions {
 	public:
+		static constexpr dcon::texture_id small_tiles_dialog = dcon::texture_id(0);
+		static constexpr dcon::texture_id tiles_dialog = dcon::texture_id(1);
+		static constexpr dcon::texture_id transparency = dcon::texture_id(2);
+
 		tagged_vector<gfx_object, dcon::gfx_object_id> gfx;
 		tagged_vector<dcon::text_key, dcon::texture_id> textures;
 		tagged_vector<element_data, dcon::gui_def_id> gui;
 	};
+
+	void load_text_gui_definitions(sys::state& state, parsers::error_handler& err);
 }

@@ -43,8 +43,12 @@ namespace sys {
 
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
-		glClearColor(1.0, 0.0, 1.0, 0.5);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.5, 0.5, 0.5, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glUseProgram(open_gl.ui_shader_program);
+		glUniform1f(ogl::parameters::screen_width, float(x_size));
+		glUniform1f(ogl::parameters::screen_height, float(y_size));
 	}
 
 	//

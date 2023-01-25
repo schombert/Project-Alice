@@ -4,12 +4,15 @@
 #include "gui_graphics_parsers.cpp"
 #include "text.cpp"
 #include "fonts.cpp"
+#include "texture.cpp"
+#include "gui_graphics.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
 
 #include "simple_fs_win.cpp"
 #include "window_win.cpp"
+#include "opengl_wrapper_win.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_win.cpp"
@@ -20,6 +23,7 @@
 
 #include "simple_fs_nix.cpp"
 #include "window_nix.cpp"
+#include "opengl_wrapper_nix.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_nix.cpp"
