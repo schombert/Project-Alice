@@ -32,7 +32,7 @@ find $1 -maxdepth 1 -name "*.md" $3 -print0 |
 	done
 }
 
-gen_directory "" "" ""
+gen_directory "" "" "! -name about.md"
 echo '<tab type="usergroup" url="'md_data_container__r_e_a_d_m_e.html'" title="Data Container">' \
 				>> layout_file.xml
 gen_directory "data_container/" "data_container_" "! -name README.md"
