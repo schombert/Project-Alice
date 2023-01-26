@@ -80,5 +80,7 @@ namespace simple_fs {
 	// on linux, this just has to call the string constructor
 	native_string utf8_to_native(std::string_view data_in);
 	std::string native_to_utf8(native_string_view data_in);
+
+	std::string remove_double_backslashes(std::string_view data_in); // unfortunately, paradox decided to escape their paths ...
 }
 

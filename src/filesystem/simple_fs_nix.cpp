@@ -390,4 +390,20 @@ native_string utf8_to_native(std::string_view str) {
 std::string native_to_utf8(native_string_view str) {
     return std::string(str);
 }
+
+std::string remove_double_backslashes(std::string_view data_in) {
+	std::string res;
+	res.reserve(data_in.size());
+	for(uint32_t i = 0; i < data_in.size(); ++i) {
+		if(data_in[i] == '\\') {
+			res += '/';
+			if(i + 1 < data_in.size() && data_in[i + 1] == '\\')
+				++i;
+		} else {
+			res += data_in[i];
+		}
+	}
+	return res;
+}
+
 }  // namespace simple_fs

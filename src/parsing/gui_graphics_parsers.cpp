@@ -31,23 +31,25 @@ namespace parsers {
 		new_obj.number_of_frames = uint8_t(obj_in.noofframes);
 
 		if(obj_in.primary_texture.length() > 0) {
-			if(auto it = context.map_of_texture_names.find(std::string(obj_in.primary_texture)); it != context.map_of_texture_names.end()) {
+			auto stripped = simple_fs::remove_double_backslashes(obj_in.primary_texture);
+			if(auto it = context.map_of_texture_names.find(std::string(stripped)); it != context.map_of_texture_names.end()) {
 				new_obj.primary_texture_handle = it->second;
 			} else {
 				auto index = context.ui_defs.textures.size();
-				context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(obj_in.primary_texture));
+				context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped));
 				new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
-				context.map_of_texture_names.insert_or_assign(std::string(obj_in.primary_texture), dcon::texture_id(uint16_t(index)));
+				context.map_of_texture_names.insert_or_assign(stripped, dcon::texture_id(uint16_t(index)));
 			}
 		}
 		if(obj_in.secondary_texture.length() > 0) {
-			if(auto it = context.map_of_texture_names.find(std::string(obj_in.secondary_texture)); it != context.map_of_texture_names.end()) {
+			auto stripped = simple_fs::remove_double_backslashes(obj_in.secondary_texture);
+			if(auto it = context.map_of_texture_names.find(stripped); it != context.map_of_texture_names.end()) {
 				new_obj.type_dependant = uint16_t(it->second.index() + 1);
 			} else {
 				auto index = context.ui_defs.textures.size();
-				context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(obj_in.secondary_texture));
+				context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped));
 				new_obj.type_dependant = uint16_t(index + 1);
-				context.map_of_texture_names.insert_or_assign(std::string(obj_in.secondary_texture), dcon::texture_id(uint16_t(index)));
+				context.map_of_texture_names.insert_or_assign(stripped, dcon::texture_id(uint16_t(index)));
 			}
 		}
 
