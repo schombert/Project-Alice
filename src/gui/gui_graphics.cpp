@@ -9,13 +9,13 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 	assert(context.ui_defs.textures.size() == size_t(0));
 
 	context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(std::string_view("gfx\\interface\\small_tiles_dialog.tga")));
-	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\small_tiles_dialog.tga"), defintions::small_tiles_dialog);
+	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\small_tiles_dialog.tga"), definitions::small_tiles_dialog);
 
 	context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(std::string_view("gfx\\interface\\tiles_dialog.tga")));
-	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\tiles_dialog.tga"), defintions::tiles_dialog);
+	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\tiles_dialog.tga"), definitions::tiles_dialog);
 
 	context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(std::string_view("gfx\\interface\\transparency.tga")));
-	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\transparency.tga"), defintions::transparency);
+	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\transparency.tga"), definitions::transparency);
 
 	auto rt = get_root(state.common_fs);
 	auto interfc = open_directory(rt, NATIVE("interface"));
@@ -54,6 +54,73 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 			}
 		}
 	}
+}
+
+message_result element_base::impl_test_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
+	return test_mouse(state, x, y);
+}
+message_result element_base::impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return on_lbutton_down(state, x, y, mods);
+}
+message_result element_base::impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return on_rbutton_down(state, x, y, mods);
+}
+message_result element_base::impl_on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return on_drag(state, x, y, mods);
+}
+message_result element_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	return on_key_down(state, key, mods);
+}
+message_result element_base::impl_on_text(sys::state& state, char ch) noexcept {
+	return on_text(state, ch);
+}
+message_result element_base::impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	return on_scroll(state, x, y, amount, mods);
+}
+void element_base::impl_on_update(sys::state& state) noexcept {
+	on_update(state);
+}
+message_result element_base::impl_get(Cyto::Any& payload) noexcept {
+	if(auto res = get(payload); res != message_result::consumed) {
+		if(parent)
+			return parent->impl_get(payload);
+		return message_result::unseen;
+	}
+	return message_result::consumed;
+}
+message_result element_base::impl_set(Cyto::Any& payload) noexcept {
+	return set(payload);
+}
+
+
+message_result element_base::test_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::on_text(sys::state& state, char ch) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	return message_result::unseen;
+}
+void element_base::on_update(sys::state& state) noexcept {
+}
+message_result element_base::get(Cyto::Any& payload) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::set(Cyto::Any& payload) noexcept {
+	return message_result::unseen;
 }
 
 }

@@ -153,4 +153,14 @@ enum class virtual_key : uint8_t {
 	CLOSED_BRACKET = 0xDD,
 	QUOTE = 0xDE
 };
+enum class key_modifiers : uint8_t {
+	modifiers_none = 0x0,
+	modifiers_alt = 0x4,
+	modifiers_ctrl = 0x2,
+	modifiers_shift = 0x1,
+	modifiers_ctrl_shift = 0x3,
+	modifiers_ctrl_alt = 0x6,
+	modifiers_alt_shift = 0x5,
+	modifiers_all = 0x7
+};
 }

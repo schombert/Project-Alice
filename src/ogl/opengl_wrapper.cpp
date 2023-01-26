@@ -12,7 +12,7 @@ void notify_user_of_fatal_opengl_error(std::string message) {
 	std::abort();
 }
 
-void intialize_opengl(sys::state& state) {
+void initialize_opengl(sys::state& state) {
 	create_opengl_context(state);
 
 	load_shaders(state); // create shaders

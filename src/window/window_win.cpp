@@ -128,7 +128,7 @@ namespace window {
 			create_state->win_ptr->opengl_window_dc = GetDC(hwnd);
 
 			// setup opengl here
-			ogl::intialize_opengl(*create_state);
+			ogl::initialize_opengl(*create_state);
 			
 			RECT crect{};
 			GetClientRect(hwnd, &crect);
@@ -179,7 +179,6 @@ namespace window {
 				state->on_lbutton_up(x, y, get_current_modifiers());
 				state->mouse_x_position = x;
 				state->mouse_y_position = y;
-				state->win_ptr->left_mouse_down = true;
 				state->win_ptr->left_mouse_down = false;
 				return 0;
 			}

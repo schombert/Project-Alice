@@ -17,7 +17,7 @@ namespace parsers {
 
 	struct building_gfx_context {
 		sys::state& full_state;
-		ui::defintions& ui_defs;
+		ui::definitions& ui_defs;
 		ankerl::unordered_dense::map<std::string, dcon::gfx_object_id> map_of_names;
 		ankerl::unordered_dense::map<std::string, dcon::texture_id> map_of_texture_names;
 	};

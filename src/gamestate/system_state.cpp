@@ -19,13 +19,18 @@ namespace sys {
 
 	}
 	void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
-
+		if(is_dragging) {
+			is_dragging = false;
+			on_drag_finished(x, y, mod);
+		}
 	}
 	void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 
 	}
 	void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is held down
-	
+		is_dragging = true;
+	}
+	void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
 	}
 	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
 

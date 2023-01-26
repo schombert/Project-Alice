@@ -19,16 +19,6 @@ namespace window {
 }
 
 namespace sys {
-	enum class key_modifiers : uint8_t {
-		modifiers_none = 0x0,
-		modifiers_alt = 0x4,
-		modifiers_ctrl = 0x2,
-		modifiers_shift = 0x1,
-		modifiers_ctrl_shift = 0x3,
-		modifiers_ctrl_alt = 0x6,
-		modifiers_alt_shift = 0x5,
-		modifiers_all = 0x7
-	};
 
 	enum class window_state : uint8_t {
 		normal, maximized, minimized
@@ -54,7 +44,7 @@ namespace sys {
 		tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
 		ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
-		ui::defintions ui_defs; // definitions for graphics and ui
+		ui::definitions ui_defs; // definitions for graphics and ui
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 
@@ -66,6 +56,7 @@ namespace sys {
 		int32_t mouse_x_position = 0;
 		int32_t mouse_y_position = 0;
 		bool in_edit_control = false;
+		bool is_dragging = false;
 
 		// graphics data
 		ogl::data open_gl;
@@ -78,6 +69,7 @@ namespace sys {
 		void on_lbutton_up(int32_t x, int32_t y, key_modifiers mod);
 		void on_mouse_move(int32_t x, int32_t y, key_modifiers mod);
 		void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod); // called when the left button is held down
+		void on_drag_finished(int32_t x, int32_t y, key_modifiers mod); // called when the left button is released after one or more drag events
 		void on_resize(int32_t x, int32_t y, window_state win_state);
 		void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
 		void on_key_down(virtual_key keycode, key_modifiers mod);

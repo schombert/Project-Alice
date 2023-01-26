@@ -1,11 +1,13 @@
 #pragma once
 
 #include <vector>
+#include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"
 #include "container_types.hpp"
 #include "constants.hpp"
 #include "parsers.hpp"
+#include "cyto_any.hpp"
 
 namespace ui {
 	enum class object_type : uint8_t {
@@ -259,6 +261,10 @@ namespace ui {
 		dcon::text_key name;
 		uint8_t flags = 0;
 
+		element_data() {
+			memset(this, 0, sizeof(element_data));
+		}
+
 		element_type get_element_type() const {
 			return element_type(flags & type_mask);
 		}
@@ -271,7 +277,7 @@ namespace ui {
 	};
 
 
-	class defintions {
+	class definitions {
 	public:
 		static constexpr dcon::texture_id small_tiles_dialog = dcon::texture_id(0);
 		static constexpr dcon::texture_id tiles_dialog = dcon::texture_id(1);
@@ -283,4 +289,93 @@ namespace ui {
 	};
 
 	void load_text_gui_definitions(sys::state& state, parsers::error_handler& err);
+
+	enum class message_result {
+		unseen, seen, consumed
+	};
+	enum class focus_result {
+		ingored, accepted
+	};
+	enum class tooltip_behavior {
+		tooltip,
+		variable_tooltip,
+		no_tooltip,
+		transparent
+	};
+	class element_base {
+	public:
+		static constexpr uint8_t is_invisible_mask = 0x01;
+
+		element_data base_data;
+		element_base* parent = nullptr;
+		uint8_t flags = 0;
+
+
+		bool is_visible() const {
+			return (flags & is_invisible_mask) == 0;
+		}
+		void set_visible(sys::state& state, bool vis) {
+			flags = uint8_t((flags & ~is_invisible_mask) | (vis ? 0 : is_invisible_mask));
+			if(vis)
+				on_visible(state);
+		}
+
+		element_base() { }
+
+
+		// impl members: to be overridden only for the very basic container / not a container distinction
+		//       - are responsible for propagating messages and responses
+		//       - should be called from outside the class
+		virtual message_result impl_test_mouse(sys::state& state, int32_t x, int32_t y) noexcept;
+		virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+		virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+		virtual message_result impl_on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+		virtual message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
+		virtual message_result impl_on_text(sys::state& state, char ch) noexcept;
+		virtual message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
+		virtual void impl_on_update(sys::state& state) noexcept;
+		message_result impl_get(Cyto::Any& payload) noexcept;
+		virtual message_result impl_set(Cyto::Any& payload) noexcept;
+
+		// these message handlers can be overridden by basically anyone
+		//        - generally *should not* be called directly
+
+		virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
+		virtual message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+		virtual message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+		virtual message_result on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
+		virtual message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
+		virtual message_result on_text(sys::state& state, char ch) noexcept;
+		virtual message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
+		virtual void on_update(sys::state& state) noexcept;
+		virtual message_result get(Cyto::Any& payload) noexcept;
+		virtual message_result set(Cyto::Any& payload) noexcept;
+
+		// as above, but they need no internal framework to pass messages up or down
+		//         - may be called directly
+		virtual message_result on_resize(sys::state& state, int32_t x, int32_t y) noexcept { } // used to get a parent to reposition its children
+		virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
+			return focus_result::ingored;
+		}
+		virtual void on_lose_focus(sys::state& state) noexcept { } // called when the focus is taken away
+		virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
+		virtual void on_visible(sys::state& state) noexcept { }
+		virtual tooltip_behavior has_tooltip(sys::state& state, int32_t x, int32_t y) noexcept { // used to test whether a tooltip is possible
+			return tooltip_behavior::transparent;
+		}
+		virtual void create_tooltip(sys::state& state, int32_t x, int32_t y, element_base& /*tooltip_window*/) noexcept { }
+
+		virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
+
+		// these commands are meaningful only if the element has children
+		virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept {
+			return std::unique_ptr<element_base>{};
+		}
+		virtual void move_child_to_front(element_base* child) noexcept { }
+		virtual void move_child_to_back(element_base* child) noexcept { }
+		virtual void add_child_to_front(std::unique_ptr<element_base> child) noexcept { }
+		virtual void add_child_to_back(std::unique_ptr<element_base> child) noexcept { }
+
+		virtual ~element_base() { }
+	};
 }

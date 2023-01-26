@@ -129,7 +129,6 @@ struct color3f {
 
 	struct data {
 		tagged_vector<texture, dcon::texture_id> asset_textures;
-		tagged_vector<data_texture, dcon::data_texture_id> data_textures;
 
 		void* context = nullptr;
 		GLuint ui_shader_program = 0;
@@ -147,8 +146,8 @@ struct color3f {
 
 	void notify_user_of_fatal_opengl_error(std::string message); // this function calls std::abort
 
-	void create_opengl_context(sys::state& state); // you shouldn't call this directly; only intialize_opengl should call it
-	void intialize_opengl(sys::state& state);
+	void create_opengl_context(sys::state& state); // you shouldn't call this directly; only initialize_opengl should call it
+	void initialize_opengl(sys::state& state);
 	void shutdown_opengl(sys::state& state);
 
 	GLint compile_shader(std::string_view source, GLenum type);
