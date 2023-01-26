@@ -88,29 +88,42 @@ struct parser_state {
 	std::vector<group_contents> groups;
 	int error_count = 0;
 	int warning_count = 0;
+	std::stringstream console_stream;
+	std::string_view file_name;
 
-parser_state() {
+parser_state(std::string_view const _file_name)
+	: file_name{ _file_name }
+{
 	locale = std::locale("en_US.UTF-8");
 	char_facet = &std::use_facet<std::ctype<char>>(std::locale());
+}
+
+void report_any(std::string_view const severity, int code, location_info local_loc_info, std::string_view const fmt, va_list ap) {
+	console_stream << file_name;
+	if(local_loc_info.row > 0) {
+		if(local_loc_info.column > 0)
+			console_stream << "(" << std::to_string(local_loc_info.row) << "," << std::to_string(local_loc_info.column) << ")";
+		else
+			console_stream << "(" << std::to_string(local_loc_info.row) << ")";
+	}
+	char msgbuf[BUFSIZ];
+	vsnprintf(msgbuf, sizeof(msgbuf), fmt.data(), ap);
+	console_stream << ": " << severity << " " << std::to_string(code) << ": " << msgbuf << "\n";
 }
 
 void report_error(int code, location_info local_loc_info, std::string_view const fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	fprintf(stderr, "error:%i:(%i,%i): ", code, local_loc_info.row, local_loc_info.column);
-	vfprintf(stderr, fmt.data(), ap);
+	report_any("error", code, local_loc_info, fmt, ap);
 	va_end(ap);
-
 	error_count++;
 }
 
 void report_warning(int code, location_info local_loc_info, std::string_view const fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	fprintf(stderr, "warning:%i:(%i,%i): ", code, local_loc_info.row, local_loc_info.column);
-	vfprintf(stderr, fmt.data(), ap);
+	report_any("warning", code, local_loc_info, fmt, ap);
 	va_end(ap);
-
 	warning_count++;
 }
 
@@ -850,10 +863,11 @@ int main(int argc, char *argv[]) {
 		std::fstream output_file;
 		output_file.open(output_filename, std::ios::out);
 
-		parser_state state{};
+		parser_state state(input_filename);
 		state.tokenize_file(input_file);
 		state.parse();
 
+		std::cout << state.console_stream.str() << std::endl;
 		if(state.error_count > 0)
 			std::exit(EXIT_FAILURE);
 
