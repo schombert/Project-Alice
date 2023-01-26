@@ -33,7 +33,11 @@ namespace sys {
 	void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
 	}
 	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
-
+		if(ui_state.root && win_state != window_state::minimized) {
+			// TODO: take into account scale factor
+			ui_state.root->base_data.size.x = int16_t(x);
+			ui_state.root->base_data.size.y = int16_t(y);
+		}
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 	
@@ -51,9 +55,13 @@ namespace sys {
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size));
-		glUniform1f(ogl::parameters::screen_height, float(y_size));
+		if(ui_state.root) {
+			glUseProgram(open_gl.ui_shader_program);
+			glUniform1f(ogl::parameters::screen_width, float(x_size));
+			glUniform1f(ogl::parameters::screen_height, float(y_size));
+
+			ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, mouse_x_position, mouse_y_position);
+		}
 	}
 
 	//
