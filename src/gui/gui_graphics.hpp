@@ -353,7 +353,7 @@ namespace ui {
 
 		// as above, but they need no internal framework to pass messages up or down
 		//         - may be called directly
-		virtual message_result on_resize(sys::state& state, int32_t x, int32_t y) noexcept { } // used to get a parent to reposition its children
+		virtual void on_resize(sys::state& state, int32_t x, int32_t y) noexcept { } // used to get a parent to reposition its children
 		virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
 			return focus_result::ingored;
 		}
