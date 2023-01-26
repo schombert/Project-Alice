@@ -149,6 +149,7 @@ std::unique_ptr<element_base> container_base::remove_child(element_base* child) 
 			std::rotate(it, it + 1, children.end());
 		auto temp = std::move(children.back());
 		children.pop_back();
+		temp->parent = nullptr;
 		return temp;
 	}
 	return std::unique_ptr<element_base>{};
@@ -168,12 +169,14 @@ void container_base::move_child_to_back(element_base* child) noexcept {
 	}
 }
 void container_base::add_child_to_front(std::unique_ptr<element_base> child) noexcept {
+	child->parent = this;
 	children.emplace_back(std::move(child));
 	if(children.size() > 1) {
 		std::rotate(children.begin(), children.end() - 1, children.end());
 	}
 }
 void container_base::add_child_to_back(std::unique_ptr<element_base> child) noexcept {
+	child->parent = this;
 	children.emplace_back(std::move(child));
 }
 element_base* container_base::get_child_by_name(sys::state const& state, std::string_view name) noexcept {
@@ -247,6 +250,93 @@ void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcep
 				);
 			}
 		}
+	}
+}
+
+void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
+	if(dat.size.x == 0 || dat.size.y == 0) {
+		dcon::gfx_object_id gfx_handle;
+		float scale = 1.0f;
+		if(dat.get_element_type() == ui::element_type::image) {
+			gfx_handle = dat.data.image.gfx_object;
+			scale = dat.data.image.scale;
+		} else if(dat.get_element_type() == ui::element_type::button) {
+			gfx_handle = dat.data.button.button_image;
+		}
+		if(gfx_handle) {
+			if(state.ui_defs.gfx[gfx_handle].size.x != 0) {
+				dat.size = state.ui_defs.gfx[gfx_handle].size;
+			} else {
+				auto tex_handle = state.ui_defs.gfx[gfx_handle].primary_texture_handle;
+				if(tex_handle) {
+					ogl::get_texture_handle(state, tex_handle, state.ui_defs.gfx[gfx_handle].is_partially_transparent());
+					dat.size.y = int16_t(state.open_gl.asset_textures[tex_handle].size_y);
+					dat.size.x = int16_t(state.open_gl.asset_textures[tex_handle].size_x / state.ui_defs.gfx[gfx_handle].number_of_frames);
+				}
+			}
+			if(scale != 1.0f) {
+				dat.size.x = int16_t(dat.size.x * dat.data.image.scale);
+				dat.size.y = int16_t(dat.size.y * dat.data.image.scale);
+			}
+		}
+	}
+}
+
+std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id) {
+	auto& def = state.ui_defs.gui[id];
+	if(def.get_element_type() == ui::element_type::image) {
+		auto res = std::make_unique<image_element_base>();
+		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+		make_size_from_graphics(state, res->base_data);
+		res->on_create(state);
+		return res;
+	} else if(def.get_element_type() == ui::element_type::button) {
+		auto res = std::make_unique<button_element_base>();
+		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+		make_size_from_graphics(state, res->base_data);
+		res->on_create(state);
+		return res;
+	} else if(def.get_element_type() == ui::element_type::window) {
+		auto res = std::make_unique<window_element_base>();
+		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+		res->on_create(state);
+		return res;
+	}
+	// TODO: other defaults
+
+	return nullptr;
+}
+
+std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name) {
+	auto it = state.ui_state.defs_by_name.find(name);
+	if(it != state.ui_state.defs_by_name.end()) {
+		if(it->second.generator) {
+			auto res = it->second.generator(state, it->second.defintion);
+			if(res) {
+				std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.defintion]), sizeof(ui::element_data));
+				make_size_from_graphics(state, res->base_data);
+				res->on_create(state);
+				res->on_update(state);
+				return res;
+			}
+		}
+		return make_element_immediate(state, it->second.defintion);
+	}
+	return std::unique_ptr<element_base>{};
+}
+
+state::state() {
+	root = std::make_unique<container_base>();
+}
+
+void show_main_menu(sys::state& state) {
+	if(!state.ui_state.main_menu) {
+		auto new_mm = make_element_by_type<window_element_base>(state, "alice_main_menu");
+		state.ui_state.main_menu = new_mm.get();
+		state.ui_state.root->add_child_to_front(std::move(new_mm));
+	} else {
+		state.ui_state.main_menu->set_visible(state, true);
+		state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
 	}
 }
 

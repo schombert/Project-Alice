@@ -10,10 +10,14 @@ namespace sys {
 	//
 
 	void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-		window::set_borderless_full_screen(*this, true);
+		// TODO: take into account scale factor
+		// TODO: look at return value
+		ui_state.root->impl_on_rbutton_down(*this, x, y, mod);
 	}
 	void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-		window::set_borderless_full_screen(*this, false);
+		// TODO: take into account scale factor
+		// TODO: look at return value
+		ui_state.root->impl_on_lbutton_down(*this, x, y, mod);
 	}
 	void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 
@@ -25,31 +29,42 @@ namespace sys {
 		}
 	}
 	void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
-
+		// TODO figure out tooltips
 	}
 	void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is held down
 		is_dragging = true;
+
+		// TODO: take into account scale factor
+		// TODO: look at return value
+		ui_state.root->impl_on_drag(*this, x, y, mod);
 	}
 	void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
 	}
 	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
-		if(ui_state.root && win_state != window_state::minimized) {
+		if(win_state != window_state::minimized) {
 			// TODO: take into account scale factor
 			ui_state.root->base_data.size.x = int16_t(x);
 			ui_state.root->base_data.size.y = int16_t(y);
 		}
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
-	
+		// TODO: take into account scale factor
+		// TODO: look at return value
+		ui_state.root->impl_on_scroll(*this, x, y, amount, mod);
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-
+		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
+			if(keycode == virtual_key::ESCAPE) {
+				ui::show_main_menu(*this);
+			}
+		}
 	}
 	void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 
 	}
 	void state::on_text(char c) { // c is win1250 codepage value
-
+		// TODO: look at return value
+		ui_state.root->impl_on_text(*this, c);
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 		glClearColor(0.5, 0.5, 0.5, 1.0);
@@ -61,6 +76,7 @@ namespace sys {
 			glUniform1f(ogl::parameters::screen_height, float(y_size));
 
 			ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, mouse_x_position, mouse_y_position);
+			ui_state.root->impl_render(*this, 0, 0);
 		}
 	}
 

@@ -409,8 +409,35 @@ namespace ui {
 	xy_pair child_relative_location(element_base const& parent, element_base const& child);
 	xy_pair get_absolute_location(element_base const& node);
 
+	using ui_hook_fn = std::unique_ptr<element_base>(*)(sys::state&, dcon::gui_def_id);
+
+	struct element_target {
+		ui_hook_fn generator = nullptr;
+		dcon::gui_def_id defintion;
+	};
+
+	
+
 	struct state {
 		element_base* under_mouse = nullptr;
 		std::unique_ptr<element_base> root;
+		ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
+
+		// elements we are keeping track of
+		element_base* main_menu = nullptr;
+
+		state();
 	};
+
+	template<typename T>
+	constexpr ui_hook_fn hook() {
+		return +[](sys::state&, dcon::gui_def_id) { return std::make_unique<T>(); };
+	}
+
+	void populate_definitions_map(sys::state& state);
+	void make_size_from_graphics(sys::state& state, ui::element_data& dat);
+	std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
+	std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id); // bypasses any global creation hooks
+
+	void show_main_menu(sys::state& state);
 }
