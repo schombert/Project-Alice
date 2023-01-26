@@ -213,7 +213,7 @@ namespace window {
 		glfwSetWindowMaximizeCallback(window, window_maximize_callback);
 		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-		ogl::intialize_opengl(game_state);
+		ogl::initialize_opengl(game_state);
 
 		glViewport(0, 0, params.size_x, params.size_y);
 
