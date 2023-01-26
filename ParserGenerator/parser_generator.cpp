@@ -203,36 +203,6 @@ void tokenize_file(std::istream& stream) {
 
 		++loc_info.row;
 	}
-#ifndef NDEBUG
-	for(auto const& tok : tokens) {
-		switch(tok.type) {
-		case token_type::none:
-			std::cout << "none ";
-			break;
-		case token_type::comma:
-			std::cout << "<,>";
-			break;
-		case token_type::group_ident:
-			std::cout << "group_ident(" << tok.data << ") ";
-			break;
-		case token_type::group_item_ident:
-			std::cout << "\tgroup_item_ident(" << tok.data << ") ";
-			break;
-		case token_type::ident:
-			std::cout << "ident(" << tok.data << ") ";
-			break;
-		case token_type::lparen:
-			std::cout << "<(>";
-			break;
-		case token_type::rparen:
-			std::cout << "<)>";
-			break;
-		case token_type::newline:
-			std::cout << "\n";
-			break;
-		}
-	}
-#endif
 }
 
 std::optional<token> get_token(auto& it) {
