@@ -43,6 +43,22 @@ namespace ui {
 
 		uint8_t flags = 0; //9bytes
 		uint8_t number_of_frames = 1; //10bytes
+
+		object_type get_object_type() const {
+			return object_type(flags & type_mask);
+		}
+		bool is_always_transparent() const {
+			return (flags & always_transparent) != 0;
+		}
+		bool is_vertically_flipped() const {
+			return (flags & flip_v) != 0;
+		}
+		bool is_clicky() const {
+			return (flags & has_click_sound) != 0;
+		}
+		bool is_partially_transparent() const {
+			return (flags & do_transparency_check) != 0;
+		}
 	};
 
 	enum class element_type : uint8_t {  // 3 bits
@@ -315,9 +331,12 @@ namespace ui {
 			return (flags & is_invisible_mask) == 0;
 		}
 		void set_visible(sys::state& state, bool vis) {
+			auto old_visibility = is_visible();
 			flags = uint8_t((flags & ~is_invisible_mask) | (vis ? 0 : is_invisible_mask));
-			if(vis)
+			if(vis && !old_visibility) {
+				impl_on_update(state);
 				on_visible(state);
+			}
 		}
 
 		element_base() { }
@@ -325,8 +344,8 @@ namespace ui {
 
 		// impl members: to be overridden only for the very basic container / not a container distinction
 		//       - are responsible for propagating messages and responses
-		//       - should be called from outside the class
-		virtual message_result impl_test_mouse(sys::state& state, int32_t x, int32_t y) noexcept;
+		//       - should be called in general when something happens
+		virtual element_base* impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // tests which element is under the cursor
 		virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 		virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 		virtual message_result impl_on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
@@ -336,6 +355,7 @@ namespace ui {
 		virtual void impl_on_update(sys::state& state) noexcept;
 		message_result impl_get(Cyto::Any& payload) noexcept;
 		virtual message_result impl_set(Cyto::Any& payload) noexcept;
+		virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;
 
 		// these message handlers can be overridden by basically anyone
 		//        - generally *should not* be called directly
@@ -350,6 +370,7 @@ namespace ui {
 		virtual void on_update(sys::state& state) noexcept;
 		virtual message_result get(Cyto::Any& payload) noexcept;
 		virtual message_result set(Cyto::Any& payload) noexcept;
+		virtual void render(sys::state& state, int32_t x, int32_t y) noexcept { }
 
 		// as above, but they need no internal framework to pass messages up or down
 		//         - may be called directly
@@ -375,7 +396,21 @@ namespace ui {
 		virtual void move_child_to_back(element_base* child) noexcept { }
 		virtual void add_child_to_front(std::unique_ptr<element_base> child) noexcept { }
 		virtual void add_child_to_back(std::unique_ptr<element_base> child) noexcept { }
+		virtual element_base* get_child_by_name(sys::state const& state, std::string_view name) noexcept {
+			return nullptr;
+		}
+		virtual element_base* get_child_by_index(sys::state const& state, int32_t index) noexcept {
+			return nullptr;
+		}
 
 		virtual ~element_base() { }
+	};
+
+	xy_pair child_relative_location(element_base const& parent, element_base const& child);
+	xy_pair get_absolute_location(element_base const& node);
+
+	struct state {
+		element_base* under_mouse = nullptr;
+		std::unique_ptr<element_base> root;
 	};
 }

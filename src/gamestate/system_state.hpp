@@ -50,6 +50,8 @@ namespace sys {
 
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platfom-dependent window information
 
+		ui::state ui_state; // transient information for the state of the ui
+
 		// common data for the window
 		int32_t x_size = 0;
 		int32_t y_size = 0;
