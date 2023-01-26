@@ -94,20 +94,20 @@ parser_state() {
 	char_facet = &std::use_facet<std::ctype<char>>(std::locale());
 }
 
-void report_error(int code, location_info loc_info, std::string_view const fmt, ...) {
+void report_error(int code, location_info local_loc_info, std::string_view const fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	fprintf(stderr, "error:%i:(%i,%i): ", code, loc_info.row, loc_info.column);
+	fprintf(stderr, "error:%i:(%i,%i): ", code, local_loc_info.row, local_loc_info.column);
 	vfprintf(stderr, fmt.data(), ap);
 	va_end(ap);
 
 	error_count++;
 }
 
-void report_warning(int code, location_info loc_info, std::string_view const fmt, ...) {
+void report_warning(int code, location_info local_loc_info, std::string_view const fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	fprintf(stderr, "warning:%i:(%i,%i): ", code, loc_info.row, loc_info.column);
+	fprintf(stderr, "warning:%i:(%i,%i): ", code, local_loc_info.row, local_loc_info.column);
 	vfprintf(stderr, fmt.data(), ap);
 	va_end(ap);
 
@@ -148,7 +148,7 @@ void tokenize_line(std::string_view const line) {
 		while(char_facet->is(std::ctype_base::space, *it))
 			++it;
 		if(it == line.cend()) {
-			report_warning(101, location_info(loc_info.row, get_column(line, it)), "Trailing spaces\n");
+			report_warning(101, location_info(loc_info.row, int(get_column(line, it))), "Trailing spaces\n");
 			break;
 		}
 
@@ -171,7 +171,7 @@ void tokenize_line(std::string_view const line) {
 			auto end_idx = std::distance(line.begin(), it);
 			tok.data = line.substr(start_idx, end_idx - start_idx);
 		} else {
-			report_error(100, location_info(loc_info.row, get_column(line, it)), "Unexpected token '%c'\n", *it);
+			report_error(100, location_info(loc_info.row, int(get_column(line, it))), "Unexpected token '%c'\n", *it);
 			break;
 		}
 		tok.loc_info = loc_info;
