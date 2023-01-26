@@ -386,4 +386,19 @@ namespace simple_fs {
 		return result;
 	}
 
+
+	std::string remove_double_backslashes(std::string_view data_in) {
+		std::string res;
+		res.reserve(data_in.size());
+		for(uint32_t i = 0; i < data_in.size(); ++i) {
+			if(data_in[i] == '\\') {
+				res += '\\';
+				if(i + 1 < data_in.size() && data_in[i + 1] == '\\')
+					++i;
+			} else {
+				res += data_in[i];
+			}
+		}
+		return res;
+	}
 }

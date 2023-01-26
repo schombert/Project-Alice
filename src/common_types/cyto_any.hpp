@@ -67,12 +67,12 @@
 
 namespace Cyto {
 
-#if ANY_USE(EXCEPTIONS)
+#if ANY_USE_EXCEPTIONS
 class bad_any_cast : public std::bad_cast { };
 #endif  // ANY_USE(EXCEPTIONS)
 
 static ANY_ALWAYS_INLINE void handle_bad_any_cast() {
-#if ANY_USE(EXCEPTIONS)
+#if ANY_USE_EXCEPTIONS
 	throw bad_any_cast();
 #endif
 	abort();
@@ -105,7 +105,7 @@ union Storage {
 	void* ptr = nullptr;
 };
 
-#if !ANY_USE(TYPEINFO)
+#if !ANY_USE_TYPEINFO
 template <class T>
 struct fallback_typeinfo {
 	static constexpr int id = 0;
@@ -147,7 +147,7 @@ struct AnyActions {
 	Copy copy = void_copy;
 	Move move = void_move;
 	Drop drop = void_drop;
-#if ANY_USE(TYPEINFO)
+#if ANY_USE_TYPEINFO
 	const void* type = static_cast<const void*>(&typeid(void));
 #else
 	const void* type = fallback_typeid<void>();
@@ -156,7 +156,7 @@ struct AnyActions {
 
 template <class T>
 struct AnyTraits {
-#if ANY_USE(SMALL_MEMCPY_STRATEGY)
+#if ANY_USE_SMALL_MEMCPY_STRATEGY
 	template <class X = T, class... Args,
 		std::enable_if_t<IsStorageBufferSized<X>&& std::is_trivially_copyable_v<X>, int> = 0>
 	ANY_ALWAYS_INLINE
@@ -200,7 +200,7 @@ private:
 	template <class X = T>
 	ANY_ALWAYS_INLINE
 		static bool compare_typeid(const void* id) {
-#if ANY_USE(TYPEINFO)
+#if ANY_USE_TYPEINFO
 		return *(static_cast<const std::type_info*>(id)) == typeid(X);
 #else
 		return (id && id == fallback_typeid<X>());
@@ -245,7 +245,7 @@ private:
 	ANY_ALWAYS_INLINE
 		static void copy(Storage* dst, const Storage* src) { }
 
-#if ANY_USE(SMALL_MEMCPY_STRATEGY)
+#if ANY_USE_SMALL_MEMCPY_STRATEGY
 	template <class X = T,
 		std::enable_if_t<IsStorageBufferSized<X>&& std::is_trivially_copyable_v<X>, int> = 0>
 	ANY_ALWAYS_INLINE
@@ -280,7 +280,7 @@ private:
 	//
 	// move
 	//
-#if ANY_USE(SMALL_MEMCPY_STRATEGY)
+#if ANY_USE_SMALL_MEMCPY_STRATEGY
 	template <class X = T,
 		std::enable_if_t<std::is_same_v<X, void>, int> = 0>
 	ANY_ALWAYS_INLINE
@@ -338,7 +338,7 @@ private:
 
 public:
 	static constexpr AnyActions actions = AnyActions(get<T>, copy<T>, move<T>, drop<T>,
-#if ANY_USE(TYPEINFO)
+#if ANY_USE_TYPEINFO
 		& typeid(T)
 #else
 		fallback_typeid<T>()
@@ -474,7 +474,7 @@ public:
 		return has_value<true>();
 	}
 
-#if ANY_USE(TYPEINFO)
+#if ANY_USE_TYPEINFO
 	const std::type_info& type() const noexcept {
 		return *static_cast<const std::type_info*>(actions->type);
 	}
@@ -483,7 +483,7 @@ public:
 	template<typename CHECK_TYPE>
 	ANY_ALWAYS_INLINE
 	bool holds_type() const noexcept {
-#if ANY_USE(TYPEINFO)
+#if ANY_USE_TYPEINFO
 		return typeid(CHECK_TYPE) == *static_cast<const std::type_info*>(actions->type);
 #else
 		return (actions->type == fallback_typeid<CHECK_TYPE>());
@@ -558,7 +558,7 @@ std::remove_cv_t<std::remove_reference_t<V>>* any_cast(Any* a) noexcept {
 	using U = std::decay_t<V>;
 	if(a && a->has_value()) {
 		void* p = a->actions->get(&a->storage,
-#if ANY_USE(TYPEINFO)
+#if ANY_USE_TYPEINFO
 		& typeid(U)
 #else
 		fallback_typeid<U>()

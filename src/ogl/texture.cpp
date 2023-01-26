@@ -9,108 +9,335 @@
 
 namespace ogl {
 
-// DDS loader based on https://gist.github.com/tilkinsc/13191c0c1e5d6b25fbe79bbd2288a673
-GLuint texture_loadDDS(uint8_t const* file_data, uint32_t& w, uint32_t& h, uint32_t file_size) {
-	// lay out variables to be used
-	unsigned char const* header;
+// DDS loader taken from SOIL2
 
-	unsigned int width;
-	unsigned int height;
-	unsigned int mipMapCount;
+#define DDSD_CAPS	0x00000001
+#define DDSD_HEIGHT	0x00000002
+#define DDSD_WIDTH	0x00000004
+#define DDSD_PITCH	0x00000008
+#define DDSD_PIXELFORMAT	0x00001000
+#define DDSD_MIPMAPCOUNT	0x00020000
+#define DDSD_LINEARSIZE	0x00080000
+#define DDSD_DEPTH	0x00800000
 
-	unsigned int blockSize;
-	unsigned int format;
+/*	DirectDraw Pixel Format	*/
+#define DDPF_ALPHAPIXELS	0x00000001
+#define DDPF_FOURCC	0x00000004
+#define DDPF_RGB	0x00000040
 
-	unsigned char const* buffer = 0;
+/*	The dwCaps1 member of the DDSCAPS2 structure can be
+	set to one or more of the following values.	*/
+#define DDSCAPS_COMPLEX	0x00000008
+#define DDSCAPS_TEXTURE	0x00001000
+#define DDSCAPS_MIPMAP	0x00400000
 
-	GLuint tid = 0;
+	/*	The dwCaps2 member of the DDSCAPS2 structure can be
+		set to one or more of the following values.		*/
+#define DDSCAPS2_CUBEMAP	0x00000200
+#define DDSCAPS2_CUBEMAP_POSITIVEX	0x00000400
+#define DDSCAPS2_CUBEMAP_NEGATIVEX	0x00000800
+#define DDSCAPS2_CUBEMAP_POSITIVEY	0x00001000
+#define DDSCAPS2_CUBEMAP_NEGATIVEY	0x00002000
+#define DDSCAPS2_CUBEMAP_POSITIVEZ	0x00004000
+#define DDSCAPS2_CUBEMAP_NEGATIVEZ	0x00008000
+#define DDSCAPS2_VOLUME	0x00200000
 
+#define SOIL_GL_SRGB			0x8C40
+#define SOIL_GL_SRGB_ALPHA		0x8C42
+#define SOIL_RGB_S3TC_DXT1		0x83F0
+#define SOIL_RGBA_S3TC_DXT1		0x83F1
+#define SOIL_RGBA_S3TC_DXT3		0x83F2
+#define SOIL_RGBA_S3TC_DXT5		0x83F3
 
-	// allocate new unsigned char space with 4 (file code) + 124 (header size) bytes
-	// read in 128 bytes from the file
-	header = file_data;
+#define SOIL_TEXTURE_WRAP_R					0x8072
+#define SOIL_CLAMP_TO_EDGE					0x812F
+#define SOIL_REFLECTION_MAP					0x8512
 
-	// compare the `DDS ` signature
-	if(memcmp(header, "DDS ", 4) != 0)
-		return 0;
+typedef struct {
+	unsigned int    dwMagic;
+	unsigned int    dwSize;
+	unsigned int    dwFlags;
+	unsigned int    dwHeight;
+	unsigned int    dwWidth;
+	unsigned int    dwPitchOrLinearSize;
+	unsigned int    dwDepth;
+	unsigned int    dwMipMapCount;
+	unsigned int    dwReserved1[11];
 
-	// extract height, width, and amount of mipmaps - yes it is stored height then width
-	height = (header[12]) | (header[13] << 8) | (header[14] << 16) | (header[15] << 24);
-	width = (header[16]) | (header[17] << 8) | (header[18] << 16) | (header[19] << 24);
-	mipMapCount = (header[28]) | (header[29] << 8) | (header[30] << 16) | (header[31] << 24);
+	/*  DDPIXELFORMAT	*/
+	struct {
+		unsigned int    dwSize;
+		unsigned int    dwFlags;
+		unsigned int    dwFourCC;
+		unsigned int    dwRGBBitCount;
+		unsigned int    dwRBitMask;
+		unsigned int    dwGBitMask;
+		unsigned int    dwBBitMask;
+		unsigned int    dwAlphaBitMask;
+	}
+	sPixelFormat;
 
-	// figure out what format to use for what fourCC file type it is
-	// block size is about physical chunk storage of compressed data in file (important)
-	if(header[84] == 'D') {
-		switch(header[87]) {
-			case '1': // DXT1
-				format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-				blockSize = 8;
-				break;
-			case '3': // DXT3
-				format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-				blockSize = 16;
-				break;
-			case '5': // DXT5
-				format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-				blockSize = 16;
-				break;
-			case '0': // DX10
-				// unsupported, else will error
-				// as it adds sizeof(struct DDS_HEADER_DXT10) between pixels
-				// so, buffer = malloc((file_size - 128) - sizeof(struct DDS_HEADER_DXT10));
-			default:
-				return 0;
-		}
-	} else { // BC4U/BC4S/ATI2/BC55/R8G8_B8G8/G8R8_G8B8/UYVY-packed/YUY2-packed unsupported
+	/*  DDCAPS2	*/
+	struct {
+		unsigned int    dwCaps1;
+		unsigned int    dwCaps2;
+		unsigned int    dwDDSX;
+		unsigned int    dwReserved;
+	}
+	sCaps;
+	unsigned int    dwReserved2;
+}
+DDS_header;
+
+enum {
+	SOIL_FLAG_POWER_OF_TWO = 1,
+	SOIL_FLAG_MIPMAPS = 2,
+	SOIL_FLAG_TEXTURE_REPEATS = 4,
+	SOIL_FLAG_MULTIPLY_ALPHA = 8,
+	SOIL_FLAG_INVERT_Y = 16,
+	SOIL_FLAG_COMPRESS_TO_DXT = 32,
+	SOIL_FLAG_DDS_LOAD_DIRECT = 64,
+	SOIL_FLAG_NTSC_SAFE_RGB = 128,
+	SOIL_FLAG_CoCg_Y = 256,
+	SOIL_FLAG_TEXTURE_RECTANGLE = 512,
+	SOIL_FLAG_PVR_LOAD_DIRECT = 1024,
+	SOIL_FLAG_ETC1_LOAD_DIRECT = 2048,
+	SOIL_FLAG_GL_MIPMAPS = 4096,
+	SOIL_FLAG_SRGB_COLOR_SPACE = 8192,
+	SOIL_FLAG_NEAREST = 16384,
+};
+
+unsigned int SOIL_direct_load_DDS_from_memory(
+		const unsigned char* const buffer,
+		int buffer_length,
+		unsigned int& width,
+		unsigned int& height,
+		int flags) {
+	/*	variables	*/
+	DDS_header header;
+	unsigned int buffer_index = 0;
+	unsigned int tex_ID = 0;
+	/*	file reading variables	*/
+	unsigned int S3TC_type = 0;
+	unsigned char* DDS_data;
+	unsigned int DDS_main_size;
+	unsigned int DDS_full_size;
+	int mipmaps, cubemap, uncompressed, block_size = 16;
+	unsigned int flag;
+	unsigned int cf_target, ogl_target_start, ogl_target_end;
+	unsigned int opengl_texture_type;
+	int i;
+	
+	if(buffer_length < sizeof(DDS_header)) {
 		return 0;
 	}
+	/*	try reading in the header	*/
+	memcpy((void*)(&header), (const void*)buffer, sizeof(DDS_header));
+	buffer_index = sizeof(DDS_header);
 
-	// allocate new unsigned char space with file_size - (file_code + header_size) magnitude
-	// read rest of file
-	buffer = file_data + 128;
-
-	// prepare new incomplete texture
-	glGenTextures(1, &tid);
-	if(tid == 0)
-		return 0;
-
-	// bind the texture
-	// make it complete by specifying all needed parameters and ensuring all mipmaps are filled
-	glBindTexture(GL_TEXTURE_2D, tid);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount - 1); // opengl likes array length of mipmaps
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // don't forget to enable mipmaping
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	// prepare some variables
-	unsigned int offset = 0;
-	unsigned int size = 0;
-	w = width;
-	h = height;
-
-	// loop through sending block at a time with the magic formula
-	// upload to opengl properly, note the offset transverses the pointer
-	// assumes each mipmap is 1/2 the size of the previous mipmap
-	for(unsigned int i = 0; i < mipMapCount; i++) {
-		if(w == 0 || h == 0) { // discard any odd mipmaps 0x1 0x2 resolutions
-			mipMapCount--;
-			continue;
-		}
-		size = ((w + 3) / 4) * ((h + 3) / 4) * blockSize;
-		glCompressedTexImage2D(GL_TEXTURE_2D, i, format, w, h, 0, size, buffer + offset);
-		offset += size;
-		w /= 2;
-		h /= 2;
+	/*	validate the header (warning, "goto"'s ahead, shield your eyes!!)	*/
+	flag = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
+	if(header.dwMagic != flag) {
+		goto quick_exit;
 	}
-	// discard any odd mipmaps, ensure a complete texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount - 1);
-	// unbind
-	glBindTexture(GL_TEXTURE_2D, 0);
+	if(header.dwSize != 124) {
+		goto quick_exit;
+	}
+	/*	I need all of these	*/
+	flag = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
+	if((header.dwFlags & flag) != flag) {
+		goto quick_exit;
+	}
+	/*	According to the MSDN spec, the dwFlags should contain
+		DDSD_LINEARSIZE if it's compressed, or DDSD_PITCH if
+		uncompressed.  Some DDS writers do not conform to the
+		spec, so I need to make my reader more tolerant	*/
+		/*	I need one of these	*/
+	flag = DDPF_FOURCC | DDPF_RGB;
+	if((header.sPixelFormat.dwFlags & flag) == 0) {
+		goto quick_exit;
+	}
+	if(header.sPixelFormat.dwSize != 32) {
+		goto quick_exit;
+	}
+	if((header.sCaps.dwCaps1 & DDSCAPS_TEXTURE) == 0) {
+		goto quick_exit;
+	}
+	/*	make sure it is a type we can upload	*/
+	if((header.sPixelFormat.dwFlags & DDPF_FOURCC) &&
+		!(
+			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24))) ||
+			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24))) ||
+			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24)))
+			)) {
+		goto quick_exit;
+	}
+	/*	OK, validated the header, let's load the image data	*/
+	width = header.dwWidth;
+	height = header.dwHeight;
+	uncompressed = 1 - (header.sPixelFormat.dwFlags & DDPF_FOURCC) / DDPF_FOURCC;
+	cubemap = (header.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP) / DDSCAPS2_CUBEMAP;
+	if(uncompressed) {
+		S3TC_type = GL_RGB;
+		block_size = 3;
+		if(header.sPixelFormat.dwFlags & DDPF_ALPHAPIXELS) {
+			S3TC_type = GL_RGBA;
+			block_size = 4;
+		}
+		DDS_main_size = width * height * block_size;
+	} else {
+		/*	can we even handle direct uploading to OpenGL DXT compressed images?	*/
+		//
+		// TODO: properly restore this check
+		//
+		
+		//if(query_DXT_capability() != SOIL_CAPABILITY_PRESENT) {
+		//	return 0;
+		//}
+		/*	well, we know it is DXT1/3/5, because we checked above	*/
+		switch((header.sPixelFormat.dwFourCC >> 24) - '0') {
+			case 1:
+				S3TC_type = SOIL_RGBA_S3TC_DXT1;
+				block_size = 8;
+				break;
+			case 3:
+				S3TC_type = SOIL_RGBA_S3TC_DXT3;
+				block_size = 16;
+				break;
+			case 5:
+				S3TC_type = SOIL_RGBA_S3TC_DXT5;
+				block_size = 16;
+				break;
+		}
+		DDS_main_size = ((width + 3) >> 2) * ((height + 3) >> 2) * block_size;
+	}
+	if(cubemap) {
+		return 0;
+	} else {
+		ogl_target_start = GL_TEXTURE_2D;
+		ogl_target_end = GL_TEXTURE_2D;
+		opengl_texture_type = GL_TEXTURE_2D;
+	}
+	if((header.sCaps.dwCaps1 & DDSCAPS_MIPMAP) && (header.dwMipMapCount > 1)) {
+		mipmaps = header.dwMipMapCount - 1;
+		DDS_full_size = DDS_main_size;
+		for(i = 1; i <= mipmaps; ++i) {
+			int w, h;
+			w = width >> i;
+			h = height >> i;
+			if(w < 1) {
+				w = 1;
+			}
+			if(h < 1) {
+				h = 1;
+			}
+			if(uncompressed) {
+				/*	uncompressed DDS, simple MIPmap size calculation	*/
+				DDS_full_size += w * h * block_size;
+			} else {
+				/*	compressed DDS, MIPmap size calculation is block based	*/
+				DDS_full_size += ((w + 3) / 4) * ((h + 3) / 4) * block_size;
+			}
+		}
+	} else {
+		mipmaps = 0;
+		DDS_full_size = DDS_main_size;
+	}
+	DDS_data = (unsigned char*)malloc(DDS_full_size);
+	/*	got the image data RAM, create or use an existing OpenGL texture handle	*/
 
-	return tid;
+	glGenTextures(1, &tex_ID);
+	
+	/*  bind an OpenGL texture ID	*/
+	glBindTexture(opengl_texture_type, tex_ID);
+	/*	do this for each face of the cubemap!	*/
+	for(cf_target = ogl_target_start; cf_target <= ogl_target_end; ++cf_target) {
+		if(buffer_index + DDS_full_size <= (unsigned int)buffer_length) {
+			unsigned int byte_offset = DDS_main_size;
+			memcpy((void*)DDS_data, (const void*)(&buffer[buffer_index]), DDS_full_size);
+			buffer_index += DDS_full_size;
+			/*	upload the main chunk	*/
+			if(uncompressed) {
+				/*	and remember, DXT uncompressed uses BGR(A),
+					so swap to RGB(A) for ALL MIPmap levels	*/
+				for(i = 0; i < (int)DDS_full_size; i += block_size) {
+					unsigned char temp = DDS_data[i];
+					DDS_data[i] = DDS_data[i + 2];
+					DDS_data[i + 2] = temp;
+				}
+				glTexImage2D(
+					cf_target, 0,
+					S3TC_type, width, height, 0,
+					S3TC_type, GL_UNSIGNED_BYTE, DDS_data);
+			} else {
+				glCompressedTexImage2D(
+					cf_target, 0,
+					S3TC_type, width, height, 0,
+					DDS_main_size, DDS_data);
+			}
+			/*	upload the mipmaps, if we have them	*/
+			for(i = 1; i <= mipmaps; ++i) {
+				int w, h, mip_size;
+				w = width >> i;
+				h = height >> i;
+				if(w < 1) {
+					w = 1;
+				}
+				if(h < 1) {
+					h = 1;
+				}
+				/*	upload this mipmap	*/
+				if(uncompressed) {
+					mip_size = w * h * block_size;
+					glTexImage2D(
+						cf_target, i,
+						S3TC_type, w, h, 0,
+						S3TC_type, GL_UNSIGNED_BYTE, &DDS_data[byte_offset]);
+				} else {
+					mip_size = ((w + 3) / 4) * ((h + 3) / 4) * block_size;
+					glCompressedTexImage2D(
+						cf_target, i,
+						S3TC_type, w, h, 0,
+						mip_size, &DDS_data[byte_offset]);
+				}
+				/*	and move to the next mipmap	*/
+				byte_offset += mip_size;
+			}
+		} else {
+			glDeleteTextures(1, &tex_ID);
+			tex_ID = 0;
+			cf_target = ogl_target_end + 1;
+		}
+	}/* end reading each face */
+	free(DDS_data);
+	if(tex_ID) {
+		/*	did I have MIPmaps?	*/
+		if(mipmaps > 0) {
+			/*	instruct OpenGL to use the MIPmaps	*/
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		} else {
+			/*	instruct OpenGL _NOT_ to use the MIPmaps	*/
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
+		/*	does the user want clamping, or wrapping?	*/
+		if(flags & SOIL_FLAG_TEXTURE_REPEATS) {
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(opengl_texture_type, SOIL_TEXTURE_WRAP_R, GL_REPEAT);
+		} else {
+			unsigned int clamp_mode = SOIL_CLAMP_TO_EDGE;
+			/* unsigned int clamp_mode = GL_CLAMP; */
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_WRAP_S, clamp_mode);
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_WRAP_T, clamp_mode);
+			glTexParameteri(opengl_texture_type, SOIL_TEXTURE_WRAP_R, clamp_mode);
+		}
+	}
+
+quick_exit:
+	/*	report success or failure	*/
+	return tex_ID;
 }
 
 texture::~texture() {
@@ -158,7 +385,7 @@ GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data
 				uint32_t w = 0;
 				uint32_t h = 0;
 				state.open_gl.asset_textures[id].texture_handle =
-					texture_loadDDS(reinterpret_cast<uint8_t const*>(content.data), w, h, content.file_size);
+					SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h, 0);
 
 				if(state.open_gl.asset_textures[id].texture_handle) {
 					state.open_gl.asset_textures[id].channels = 4;
