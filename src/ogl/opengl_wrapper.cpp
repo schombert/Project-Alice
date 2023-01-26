@@ -7,7 +7,7 @@ void notify_user_of_fatal_opengl_error(std::string message) {
 #ifdef _WIN64
 	MessageBoxA(nullptr, message.c_str(), "OpenGL error", MB_OK);
 #else
-	printf("OpenGL error: %s", message.c_str());
+	fprintf(stderr, "OpenGL error: %s\n", message.c_str());
 #endif
 	std::abort();
 }
