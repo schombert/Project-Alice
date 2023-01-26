@@ -1,4 +1,5 @@
 #include "gui_graphics.hpp"
+#include "simple_fs.hpp"
 
 namespace ui {
 
@@ -7,15 +8,21 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 
 	// preload special background textures
 	assert(context.ui_defs.textures.size() == size_t(0));
-
-	context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(std::string_view("gfx\\interface\\small_tiles_dialog.tga")));
-	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\small_tiles_dialog.tga"), definitions::small_tiles_dialog);
-
-	context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(std::string_view("gfx\\interface\\tiles_dialog.tga")));
-	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\tiles_dialog.tga"), definitions::tiles_dialog);
-
-	context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(std::string_view("gfx\\interface\\transparency.tga")));
-	context.map_of_texture_names.insert_or_assign(std::string("gfx\\interface\\transparency.tga"), definitions::transparency);
+	{
+		auto stripped_name = simple_fs::remove_double_backslashes(std::string_view("gfx\\interface\\small_tiles_dialog.tga"));
+		context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped_name));
+		context.map_of_texture_names.insert_or_assign(stripped_name, definitions::small_tiles_dialog);
+	}
+	{
+		auto stripped_name = simple_fs::remove_double_backslashes(std::string_view("gfx\\interface\\tiles_dialog.tga"));
+		context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped_name));
+		context.map_of_texture_names.insert_or_assign(stripped_name, definitions::tiles_dialog);
+	}
+	{
+		auto stripped_name = simple_fs::remove_double_backslashes(std::string_view("gfx\\interface\\transparency.tga"));
+		context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped_name));
+		context.map_of_texture_names.insert_or_assign(stripped_name, definitions::transparency);
+	}
 
 	auto rt = get_root(state.common_fs);
 	auto interfc = open_directory(rt, NATIVE("interface"));
@@ -34,7 +41,19 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 			}
 		}
 	}
+
 	{
+		// first, load in special mod gui
+		// TODO put this in a better location
+		auto alice_gui = open_file(rt, NATIVE("alice.gui"));
+		if(alice_gui) {
+			auto content = view_contents(*alice_gui);
+			err.file_name = "alice.gui";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_gui_files(gen, err, context);
+		}
+
+		// load normal .gui files
 		auto all_gui_files = list_files(interfc, NATIVE(".gui"));
 
 		for(auto& file : all_gui_files) {
@@ -148,6 +167,12 @@ xy_pair get_absolute_location(element_base const& node) {
 		return xy_pair{int16_t(parent_loc.x + node.base_data.position.x), int16_t(parent_loc.y + node.base_data.position.y) };
 	} else {
 		return node.base_data.position;
+	}
+}
+
+void populate_definitions_map(sys::state& state) {
+	for(size_t i = state.ui_defs.gui.size(); i-- > 0; ) {
+		state.ui_state.defs_by_name.insert_or_assign(state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].name), element_target{ nullptr, dcon::gui_def_id(dcon::gui_def_id::value_base_t(i)) });
 	}
 }
 
