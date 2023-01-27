@@ -351,7 +351,6 @@ namespace ui {
 		virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 		virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 		virtual message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
-		virtual message_result impl_on_text(sys::state& state, char ch) noexcept;
 		virtual message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
 		virtual void impl_on_update(sys::state& state) noexcept;
 		message_result impl_get(sys::state& state, Cyto::Any& payload) noexcept;
@@ -366,7 +365,7 @@ namespace ui {
 		virtual message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 		virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
 		virtual message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
-		virtual message_result on_text(sys::state& state, char ch) noexcept;
+		virtual void on_text(sys::state& state, char ch) noexcept { }
 		virtual message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
 		virtual void on_update(sys::state& state) noexcept;
 		virtual message_result get(sys::state& state, Cyto::Any& payload) noexcept;
@@ -395,8 +394,12 @@ namespace ui {
 		}
 		virtual void move_child_to_front(element_base* child) noexcept { }
 		virtual void move_child_to_back(element_base* child) noexcept { }
-		virtual void add_child_to_front(std::unique_ptr<element_base> child) noexcept { }
-		virtual void add_child_to_back(std::unique_ptr<element_base> child) noexcept { }
+		virtual void add_child_to_front(std::unique_ptr<element_base> child) noexcept {
+			std::abort();
+		}
+		virtual void add_child_to_back(std::unique_ptr<element_base> child) noexcept {
+			std::abort();
+		}
 		virtual element_base* get_child_by_name(sys::state const& state, std::string_view name) noexcept {
 			return nullptr;
 		}
@@ -422,6 +425,7 @@ namespace ui {
 	struct state {
 		element_base* under_mouse = nullptr;
 		element_base* drag_target = nullptr;
+		element_base* edit_target = nullptr;
 
 		std::unique_ptr<element_base> root;
 		ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;

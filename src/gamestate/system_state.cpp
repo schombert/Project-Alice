@@ -39,7 +39,10 @@ namespace sys {
 			ui_state.drag_target->on_drag(*this, mouse_x_position, mouse_y_position, x, y, mod);
 	}
 	void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
-		ui_state.drag_target = nullptr;
+		if(ui_state.drag_target) {
+			ui_state.drag_target->on_drag_finish(*this);
+			ui_state.drag_target = nullptr;
+		}
 	}
 	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
 		if(win_state != window_state::minimized) {
@@ -54,9 +57,11 @@ namespace sys {
 		ui_state.root->impl_on_scroll(*this, x, y, amount, mod);
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
-			if(keycode == virtual_key::ESCAPE) {
-				ui::show_main_menu(*this);
+		if(!ui_state.edit_target) {
+			if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
+				if(keycode == virtual_key::ESCAPE) {
+					ui::show_main_menu(*this);
+				}
 			}
 		}
 	}
@@ -64,8 +69,9 @@ namespace sys {
 
 	}
 	void state::on_text(char c) { // c is win1250 codepage value
-		// TODO: look at return value
-		ui_state.root->impl_on_text(*this, c);
+		// TODO: send to focused element
+		if(ui_state.edit_target)
+			ui_state.edit_target->on_text(*this, c);
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 		glClearColor(0.5, 0.5, 0.5, 1.0);

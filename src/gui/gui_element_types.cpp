@@ -58,17 +58,6 @@ message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_
 	}
 	return greater_result(res, element_base::impl_on_key_down(state, key, mods));
 }
-message_result container_base::impl_on_text(sys::state& state, char ch) noexcept {
-	message_result res = message_result::unseen;
-	for(auto& c : children) {
-		if(c->is_visible()) {
-			res = greater_result(res, c->impl_on_text(state, ch));
-			if(res == message_result::consumed)
-				return message_result::consumed;
-		}
-	}
-	return greater_result(res, element_base::impl_on_text(state, ch));
-}
 message_result container_base::impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	message_result res = message_result::unseen;
 	for(auto& c : children) {
