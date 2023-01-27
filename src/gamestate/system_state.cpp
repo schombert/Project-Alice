@@ -35,10 +35,11 @@ namespace sys {
 		is_dragging = true;
 
 		// TODO: take into account scale factor
-		// TODO: look at return value
-		ui_state.root->impl_on_drag(*this, x, y, mod);
+		if(ui_state.drag_target)
+			ui_state.drag_target->on_drag(*this, mouse_x_position, mouse_y_position, x, y, mod);
 	}
 	void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
+		ui_state.drag_target = nullptr;
 	}
 	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
 		if(win_state != window_state::minimized) {

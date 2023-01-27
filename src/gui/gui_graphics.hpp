@@ -348,7 +348,6 @@ namespace ui {
 		virtual element_base* impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // tests which element is under the cursor
 		virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 		virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
-		virtual message_result impl_on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 		virtual message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
 		virtual message_result impl_on_text(sys::state& state, char ch) noexcept;
 		virtual message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
@@ -363,7 +362,7 @@ namespace ui {
 		virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
 		virtual message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 		virtual message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
-		virtual message_result on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
+		virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
 		virtual message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
 		virtual message_result on_text(sys::state& state, char ch) noexcept;
 		virtual message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
@@ -420,6 +419,8 @@ namespace ui {
 
 	struct state {
 		element_base* under_mouse = nullptr;
+		element_base* drag_target = nullptr;
+
 		std::unique_ptr<element_base> root;
 		ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
@@ -437,7 +438,10 @@ namespace ui {
 	void populate_definitions_map(sys::state& state);
 	void make_size_from_graphics(sys::state& state, ui::element_data& dat);
 	std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
-	std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id); // bypasses any global creation hooks
+	std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id); // bypasses global map
 
+	xy_pair child_relative_location(element_base const& parent, element_base const& child);
 	void show_main_menu(sys::state& state);
+	int32_t ui_width(sys::state const& state);
+	int32_t ui_height(sys::state const& state);
 }
