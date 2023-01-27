@@ -15,13 +15,16 @@ void notify_user_of_fatal_opengl_error(std::string message) {
 void initialize_opengl(sys::state& state) {
 	create_opengl_context(state);
 
+	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
+	glEnable(GL_LINE_SMOOTH);
+
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
 
-	glEnable(GL_LINE_SMOOTH);
+	
 	//glEnable(GL_SCISSOR_TEST);
-	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
+	
 }
 
 GLint compile_shader(std::string_view source, GLenum type) {
@@ -244,6 +247,7 @@ void render_textured_rect(sys::state const& state, color_modification enabled, f
 	bind_vertices_by_rotation(state, r, flipped);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	//glUniform4f(parameters::drawing_rectangle, 0, 0, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);

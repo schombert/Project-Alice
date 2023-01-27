@@ -132,7 +132,6 @@ namespace window {
 			
 			RECT crect{};
 			GetClientRect(hwnd, &crect);
-			glViewport(0, 0, crect.right - crect.left, crect.bottom - crect.top);
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
 
 			return 0;
@@ -226,8 +225,6 @@ namespace window {
 					break;
 				}
 
-				// redo OpenGL viewport
-				glViewport(0, 0, LOWORD(lParam), HIWORD(lParam));
 				state->on_resize(LOWORD(lParam), HIWORD(lParam), t);
 				state->x_size = LOWORD(lParam);
 				state->y_size = HIWORD(lParam);
