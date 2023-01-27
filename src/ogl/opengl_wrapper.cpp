@@ -160,7 +160,7 @@ void load_global_squares(sys::state& state) {
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0); //position
 	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2); //texture coordinates
 	glVertexAttribBinding(0, 0); //position -> to array zero
-	glVertexAttribBinding(1, 0); //texture coordinates -> to array zero 
+	glVertexAttribBinding(1, 0); //texture coordinates -> to array zero
 
 
 	glGenBuffers(1, &state.open_gl.global_sqaure_left_buffer);

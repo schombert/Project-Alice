@@ -30,7 +30,7 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 	{
 		auto all_files = list_files(interfc, NATIVE(".gfx"));
 
-		
+
 		for(auto& file : all_files) {
 			auto ofile = open_file(file);
 			if(ofile) {
@@ -164,7 +164,7 @@ void element_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept
 xy_pair get_absolute_location(element_base const& node) {
 	if(node.parent) {
 		auto parent_loc = get_absolute_location(*node.parent);
-		return xy_pair{int16_t(parent_loc.x + node.base_data.position.x), int16_t(parent_loc.y + node.base_data.position.y) };
+		return xy_pair{ int16_t(parent_loc.x + node.base_data.position.x), int16_t(parent_loc.y + node.base_data.position.y) };
 	} else {
 		return node.base_data.position;
 	}
@@ -172,7 +172,9 @@ xy_pair get_absolute_location(element_base const& node) {
 
 void populate_definitions_map(sys::state& state) {
 	for(size_t i = state.ui_defs.gui.size(); i-- > 0; ) {
-		state.ui_state.defs_by_name.insert_or_assign(state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].name), element_target{ nullptr, dcon::gui_def_id(dcon::gui_def_id::value_base_t(i)) });
+		auto key = state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].name);
+		auto value = element_target{ nullptr, dcon::gui_def_id(dcon::gui_def_id::value_base_t(i)) };
+		state.ui_state.defs_by_name.insert_or_assign(key, value);
 	}
 }
 
