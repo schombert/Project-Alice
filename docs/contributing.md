@@ -4,18 +4,22 @@ If you want to be officially part of the team you just need to let me know how y
 
 Help that I am looking for:
 
-Programming (all in C++):
+#### Programming (all in C++):
 Priority 1: I would like so find someone(s) with OpenGL experience and maybe a slight artistic inclination to work on rendering the map (both as a globe and as a flat map)
 Priority 2: I would like a few people to help me with the core programming surrounding the game state and its updates. These are the people I will be working with most directly, so be willing to tolerate a degree of micromanagement.
 
-Art:
+#### Art:
 I would like to find someone who could essentially redo all of the existing Victoria 2 UI assets in a new artistic style to give the game its own distinctive visual identity. Yes, I know that this is no trivial thing.
 
-Not looking for at the moment:
+#### Not looking for at the moment:
 Translators -- this is a very late-stage consideration and we are nowhere near there yet.
 
-Other:
+#### Other:
 If you have some other skill or contribution that you think you can make, I am open to suggestions 
+
+### Free agents
+
+Since this is an open-source project, you don't have to be an official member of the team to contribute. Anyone can make a PR through github and contribute in an *ad hoc* manner that way.
 
 ### Building the project
 
