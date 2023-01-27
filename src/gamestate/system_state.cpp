@@ -68,16 +68,20 @@ namespace sys {
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 		glClearColor(0.5, 0.5, 0.5, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		if(ui_state.root) {
-			glUseProgram(open_gl.ui_shader_program);
-			glUniform1f(ogl::parameters::screen_width, float(x_size));
-			glUniform1f(ogl::parameters::screen_height, float(y_size));
+		
+		glUseProgram(open_gl.ui_shader_program);
+		glUniform1f(ogl::parameters::screen_width, float(x_size));
+		glUniform1f(ogl::parameters::screen_height, float(y_size));
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, mouse_x_position, mouse_y_position);
-			ui_state.root->impl_render(*this, 0, 0);
-		}
+		glViewport(0, 0, x_size, y_size);
+		glDepthRange(-1.0, 1.0);
+
+		ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, mouse_x_position, mouse_y_position);
+		ui_state.root->impl_render(*this, 0, 0);
 	}
 
 	//

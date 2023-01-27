@@ -217,8 +217,8 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 		REQUIRE(state->ui_defs.gfx[found_tag].size.x == int16_t(371));
 		REQUIRE(state->ui_defs.gfx[found_tag].size.y == int16_t(25));
 		REQUIRE(uint8_t(ui::object_type::horizontal_progress_bar) == (state->ui_defs.gfx[found_tag].flags & ui::gfx_object::type_mask));
-		REQUIRE(state->to_string_view(state->ui_defs.textures[state->ui_defs.gfx[found_tag].primary_texture_handle]) == "gfx\\\\interface\\\\unciv_progress2.tga");
-		REQUIRE(state->to_string_view(state->ui_defs.textures[dcon::texture_id(uint16_t(state->ui_defs.gfx[found_tag].type_dependant - 1))]) == "gfx\\\\interface\\\\unciv_progress1.tga");
+		REQUIRE(state->to_string_view(state->ui_defs.textures[state->ui_defs.gfx[found_tag].primary_texture_handle]) == "gfx" NATIVE_SEP "interface" NATIVE_SEP "unciv_progress2.tga");
+		REQUIRE(state->to_string_view(state->ui_defs.textures[dcon::texture_id(uint16_t(state->ui_defs.gfx[found_tag].type_dependant - 1))]) == "gfx" NATIVE_SEP "interface" NATIVE_SEP "unciv_progress1.tga");
 
 
 		{

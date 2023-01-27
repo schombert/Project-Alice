@@ -103,7 +103,8 @@ public:
 		if(base_data.get_element_type() == element_type::window) {
 			auto first_child = base_data.data.window.first_child;
 			auto num_children = base_data.data.window.num_children;
-			for(uint32_t i = 0; i < num_children; ++i) {
+			//for(uint32_t i = 0; i < num_children; ++i) {
+			for(uint32_t i = num_children; i-- > 0; ) {
 				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i + first_child.index()));
 				auto ch_res = make_child(state, state.to_string_view(state.ui_defs.gui[child_tag].name));
 				if(!ch_res) {

@@ -23,7 +23,7 @@ int WINAPI wWinMain(
 	HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 #endif
 
-	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
 	if(SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED))) {
 		// do everything here: create a window, read messages
