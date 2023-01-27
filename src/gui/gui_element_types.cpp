@@ -11,27 +11,6 @@ inline message_result greater_result(message_result a, message_result b) {
 }
 
 
-xy_pair child_relative_location(element_base const& parent, element_base const& child) {
-	switch(child.base_data.get_orientation()) {
-		case orientation::upper_left:
-			return xy_pair{ int16_t(child.base_data.position.x), int16_t(child.base_data.position.y) };
-		case orientation::upper_right:
-			return xy_pair{ int16_t(parent.base_data.size.x + child.base_data.position.x), int16_t(child.base_data.position.y) };
-		case orientation::lower_left:
-			return xy_pair{ int16_t(child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y) };
-		case orientation::lower_right:
-			return xy_pair{ int16_t(parent.base_data.size.x + child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y) };
-		case orientation::upper_center:
-			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(child.base_data.position.y) };
-		case orientation::lower_center:
-			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y) };
-		case orientation::center:
-			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(parent.base_data.size.y / 2 + child.base_data.position.y) };
-		default:
-			return xy_pair{ int16_t(child.base_data.position.x), int16_t(child.base_data.position.y) };
-	}
-}
-
 element_base* container_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
 	for(auto& c : children) {
 		if(c->is_visible()) {
@@ -67,18 +46,6 @@ message_result container_base::impl_on_rbutton_down(sys::state& state, int32_t x
 		}
 	}
 	return greater_result(res, element_base::impl_on_rbutton_down(state, x, y, mods));
-}
-message_result container_base::impl_on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	message_result res = message_result::unseen;
-	for(auto& c : children) {
-		if(c->is_visible()) {
-			auto relative_location = child_relative_location(*this, *c);
-			res = greater_result(res, c->impl_on_drag(state, x - relative_location.x, y - relative_location.y, mods));
-			if(res == message_result::consumed)
-				return message_result::consumed;
-		}
-	}
-	return greater_result(res, element_base::impl_on_drag(state, x, y, mods));
 }
 message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	message_result res = message_result::unseen;
@@ -282,30 +249,7 @@ void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
 	}
 }
 
-std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id) {
-	auto& def = state.ui_defs.gui[id];
-	if(def.get_element_type() == ui::element_type::image) {
-		auto res = std::make_unique<image_element_base>();
-		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
-		make_size_from_graphics(state, res->base_data);
-		res->on_create(state);
-		return res;
-	} else if(def.get_element_type() == ui::element_type::button) {
-		auto res = std::make_unique<button_element_base>();
-		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
-		make_size_from_graphics(state, res->base_data);
-		res->on_create(state);
-		return res;
-	} else if(def.get_element_type() == ui::element_type::window) {
-		auto res = std::make_unique<window_element_base>();
-		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
-		res->on_create(state);
-		return res;
-	}
-	// TODO: other defaults
 
-	return nullptr;
-}
 
 std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name) {
 	auto it = state.ui_state.defs_by_name.find(name);
@@ -331,7 +275,7 @@ state::state() {
 
 void show_main_menu(sys::state& state) {
 	if(!state.ui_state.main_menu) {
-		auto new_mm = make_element_by_type<window_element_base>(state, "alice_main_menu");
+		auto new_mm = make_element_by_type<main_menu_window>(state, "alice_main_menu");
 		state.ui_state.main_menu = new_mm.get();
 		state.ui_state.root->add_child_to_front(std::move(new_mm));
 	} else {
@@ -339,5 +283,76 @@ void show_main_menu(sys::state& state) {
 		state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
 	}
 }
+
+
+void window_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::window) {
+		auto first_child = base_data.data.window.first_child;
+		auto num_children = base_data.data.window.num_children;
+		for(uint32_t i = num_children; i-- > 0; ) {
+			auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i + first_child.index()));
+			auto ch_res = make_child(state, state.to_string_view(state.ui_defs.gui[child_tag].name), child_tag);
+			if(!ch_res) {
+				ch_res = ui::make_element_immediate(state, child_tag);
+			}
+			if(ch_res) {
+				this->add_child_to_back(std::move(ch_res));
+			}
+		}
+	}
+}
+
+void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	auto location_abs = get_absolute_location(*this);
+	if(location_abs.x <= oldx && oldx < base_data.size.x + location_abs.x && location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y) {
+		xy_pair new_abs_pos = location_abs;
+		new_abs_pos.x += int16_t(x - oldx);
+		new_abs_pos.y += int16_t(y - oldy);
+
+		if(ui_width(state) > base_data.size.x)
+			new_abs_pos.x = int16_t(std::clamp(int32_t(new_abs_pos.x), 0, ui_width(state) - base_data.size.x));
+		if(ui_height(state) > base_data.size.y)
+			new_abs_pos.y = int16_t(std::clamp(int32_t(new_abs_pos.y), 0, ui_height(state) - base_data.size.y));
+
+		base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
+		base_data.position.y += int16_t(new_abs_pos.y - location_abs.y);
+	}
+}
+
+message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	for(auto tmp = parent; tmp != nullptr; tmp = tmp->parent) {
+		if(tmp->base_data.get_element_type() == element_type::window && tmp->base_data.data.window.is_moveable()) {
+			state.ui_state.drag_target = tmp;
+			return message_result::consumed;
+		}
+	}
+	return message_result::consumed;
+}
+
+std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id) {
+	auto& def = state.ui_defs.gui[id];
+	if(def.get_element_type() == ui::element_type::image) {
+		auto res = std::make_unique<image_element_base>();
+		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+		make_size_from_graphics(state, res->base_data);
+		res->on_create(state);
+		return res;
+	} else if(def.get_element_type() == ui::element_type::button) {
+		auto res = std::make_unique<button_element_base>();
+		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+		make_size_from_graphics(state, res->base_data);
+		res->on_create(state);
+		return res;
+	} else if(def.get_element_type() == ui::element_type::window) {
+		auto res = std::make_unique<window_element_base>();
+		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+		res->on_create(state);
+		return res;
+	}
+	// TODO: other defaults
+
+	return nullptr;
+}
+
 
 }

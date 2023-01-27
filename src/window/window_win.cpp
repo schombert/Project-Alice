@@ -190,6 +190,9 @@ namespace window {
 				if(wParam & MK_LBUTTON)
 					state->on_mouse_drag(x, y, get_current_modifiers());
 
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+
 				return 0;
 			}
 			case WM_RBUTTONDOWN:
