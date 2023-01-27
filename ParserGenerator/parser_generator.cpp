@@ -185,7 +185,7 @@ void tokenize_line(std::string_view const line) {
 			auto end_idx = std::distance(line.begin(), it);
 			tok.data = line.substr(start_idx, end_idx - start_idx);
 			for(auto& c : tok.data)
-				c = char_facet->toupper(c);
+				c = char_facet->tolower(c);
 		} else {
 			report_error(100, location_info(loc_info.row, int(get_column(line, it))), "Unexpected token '%c'\n", *it);
 			break;
@@ -242,7 +242,7 @@ void parse() {
 				continue;
 			}
 
-			if(key.data == "#FREE") {
+			if(key.data == "#free") {
 				auto err_cond = false;
 				auto const type = get_specific_token(it, err_cond, token_type::ident);
 				auto const opt = get_specific_token(it, err_cond, token_type::ident);
@@ -258,17 +258,17 @@ void parse() {
 				if(err_cond)
 					continue;
 
-				if(type.data == "PARSER" || type.data == "GROUP") {
+				if(type.data == "parser" || type.data == "group") {
 					groups.back().set_handler = group_association{ key.data, opt.data, value_and_optional{handler_type.data, handler_opt.data}, false };
-				} else if(type.data == "EXTERN") {
+				} else if(type.data == "extern") {
 					groups.back().set_handler = group_association{ key.data, opt.data, value_and_optional{handler_type.data, handler_opt.data}, true };
-				} else if(type.data == "VALUE") {
+				} else if(type.data == "value") {
 					groups.back().single_value_handler_type = opt.data;
 					groups.back().single_value_handler_result = value_and_optional{ handler_type.data, handler_opt.data };
 				} else {
 					report_error(102, type.loc_info, "Invalid #free type '%s'\n", type.data.c_str());
 				}
-			} else if(key.data == "#BASE") {
+			} else if(key.data == "#base") {
 				auto err_cond = false;
 				auto const base_class_name = get_specific_token(it, err_cond, token_type::ident);
 				if(err_cond)
@@ -288,7 +288,7 @@ void parse() {
 						groups.back().set_handler = g.set_handler;
 					}
 				}
-			} else if(key.data == "#ANY") {
+			} else if(key.data == "#any") {
 				/* #any: type, opt, handler_type (handler_opt) */
 				auto err_cond = false;
 				auto const type = get_specific_token(it, err_cond, token_type::ident);
@@ -306,14 +306,14 @@ void parse() {
 					continue;
 
 				static std::vector<std::string_view> const valid_group_handler_values = {
-					"DISCARD", "MEMBER", "MEMBER_FN", "FUNCTION"
+					"discard", "member", "member_fn", "function"
 				};
 
-				if(type.data == "PARSER" || type.data == "GROUP") {
+				if(type.data == "parser" || type.data == "group") {
 					groups.back().any_group_handler = group_association{ "", opt.data, value_and_optional{handler_type.data, handler_opt.data}, false };
-				} else if(type.data == "VALUE") {
+				} else if(type.data == "value") {
 					groups.back().any_value_handler = value_association{ "", opt.data, value_and_optional{handler_type.data, handler_opt.data} };
-				} else if(type.data == "EXTERN") {
+				} else if(type.data == "extern") {
 					groups.back().any_group_handler = group_association{ "", opt.data, value_and_optional{handler_type.data, handler_opt.data}, true };
 					
 					if(std::find(valid_group_handler_values.begin(), valid_group_handler_values.end(), groups.back().any_group_handler.handler.value) == valid_group_handler_values.end())
@@ -321,20 +321,6 @@ void parse() {
 				} else {
 					report_error(103, type.loc_info, "Invalid #any type '%s'\n", type.data.c_str());
 				}
-
-				/*
-				if(g.any_group_handler.handler.value == "discard") {
-					no_match_effect = "gen.discard_group();";
-				} else if(g.any_group_handler.handler.value == "member") {
-					no_match_effect = "cobj." +
-						(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any_group")) +
-						" = parse_" + g.any_group_handler.type_or_function + "(gen, err, context);";
-				} else if(g.any_group_handler.handler.value == "member_fn") {
-					no_match_effect = "cobj." +
-						(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any_group")) +
-						"(cur.content, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, cur.line, context);";
-				} else if(g.any_group_handler.handler.value == "function") {
-				*/
 			} else {
 				/* key: type opt handler_type (handler_opt) */
 				auto err_cond = false;
@@ -357,11 +343,11 @@ void parse() {
 				if(err_cond)
 					continue;
 				
-				if(type.data == "PARSER" || type.data == "GROUP") {
+				if(type.data == "parser" || type.data == "group") {
 					groups.back().groups.push_back(group_association{ key.data, opt.data, value_and_optional{handler_type.data, handler_opt.data}, false });
-				} else if(type.data == "VALUE") {
+				} else if(type.data == "value") {
 					groups.back().values.push_back(value_association{ key.data, opt.data, value_and_optional{handler_type.data, handler_opt.data} });
-				} else if(type.data == "EXTERN") {
+				} else if(type.data == "extern") {
 					groups.back().groups.push_back(group_association{ key.data, opt.data, value_and_optional{handler_type.data, handler_opt.data}, true });
 				} else {
 					report_error(104, type.loc_info, "Invalid #free type '%s'\n", type.data.c_str());
@@ -376,34 +362,12 @@ void parse() {
 }
 };
 
-const char* value_to_digit(uint32_t val) {
-	switch(val) {
-		case 0: return "0";
-		case 1: return "1";
-		case 2: return "2";
-		case 3: return "3";
-		case 4: return "4";
-		case 5: return "5";
-		case 6: return "6";
-		case 7: return "7";
-		case 8: return "8";
-		case 9: return "9";
-		case 10: return "A";
-		case 11: return "B";
-		case 12: return "C";
-		case 13: return "D";
-		case 14: return "E";
-		case 15: return "F";
-		default: return "X";
-	}
-}
-
 std::string char_to_hex(char c) {
 	static std::string_view hexmap = "0123456789ABCDEF";
 	uint32_t v = c | 0x20;
 	std::string temp{};
-	temp.push_back(hexmap[(v >> 4) & 0x0F]);
-	temp.push_back(hexmap[v & 0x0F]);
+	temp.push_back(hexmap[(v / 16) % 16]);
+	temp.push_back(hexmap[v % 16]);
 	return temp;
 }
 
@@ -435,9 +399,11 @@ std::string final_match_condition_internal(std::string_view const key, int32_t s
 	}
 }
 
-std::string final_match_condition(std::string_view const key, int32_t starting_position, int32_t ending_position) {
+std::string final_match_condition(std::string_view const key, size_t starting_position, size_t ending_position) {
 	if(!ending_position)
 		ending_position = key.length();
+	assert(ending_position <= key.length());
+	assert(starting_position <= ending_position);
 	return std::string("(true") + final_match_condition_internal(key, starting_position, ending_position) + ")";
 }
 
@@ -448,7 +414,7 @@ void enum_with_prefix(auto const& vector, std::string_view const prefix, int32_t
 			int32_t psize = int32_t(prefix.length());
 			bool match = true;
 			for(int32_t j = 0; j < psize; ++j) {
-				if(vector[i].key[j] != prefix[j]) {
+				if((vector[i].key[j] | 0x20) != (prefix[j] | 0x20)) {
 					match = false;
 					break;
 				}
@@ -478,37 +444,25 @@ int32_t max_length(auto const& vector) {
 struct cxx_tree_builder {
 	std::string tabs;
 
-	void tabulate_increment() {
-		tabs.push_back('\t');
-	}
+void tabulate_increment() {
+	tabs.push_back('\t');
+}
 
-	void tabulate_decrement() {
-		tabs.pop_back();
-	}
+void tabulate_decrement() {
+	tabs.pop_back();
+}
 
-	std::string tabulate(std::string_view const s) const {
-		return tabs + s.data();
-	}
-
-void walk_match_tree(auto const& vector, std::string_view const prefix, int32_t length, auto const& fn) {
-	for(int32_t c = 32; c <= 95; ++c) {
-		int32_t count = count_with_prefix(vector, std::string(prefix) + char(c), length);
-		if(count == 0) {
-
-		} else {
-			fn(c, count);
-		}
-	}
+std::string tabulate(std::string_view const s) const {
+	return tabs + s.data();
 }
 
 std::string get_match_tree_running_prefix(auto const& vector, std::string prefix, int32_t length) {
 	int32_t top_count = count_with_prefix(vector, prefix, length);
 	for(int32_t c = 32; c <= 95; ++c) {
 		int32_t count = count_with_prefix(vector, prefix + char(c), length);
-		if(count == 0 || count == 1) {
-			// skip
-		} else if(top_count == count) {
+		if(top_count == count) {
 			prefix = get_match_tree_running_prefix(vector, prefix + char(c), length);
+			break;
 		}
 	}
 	return prefix;
@@ -523,22 +477,25 @@ std::string construct_match_tree_internal(auto const& vector, auto const& genera
 		if(count == 0) {
 			// skip
 		} else if(top_count == count) {
-			auto const running_prefix = get_match_tree_running_prefix(vector, "", length);
-			auto const combo_prefix = std::string(prefix) + running_prefix;
-			output += tabulate("// " + combo_prefix + "\n");
+			// Obtain the prefix that is equal on all the branches, for example if the branching options were
+			// namefoo
+			// namebar
+			// nameowa
+			//
+			// Then our running prefix would be [name] - instead of checking every character at a time
+			auto running_prefix = get_match_tree_running_prefix(vector, std::string(prefix), length);
+			assert(!running_prefix.empty());
+			output += tabulate("// " + running_prefix + "\n");
+			assert(running_prefix.length() > prefix.length() && running_prefix != prefix);
 
-			// branchings of vector are guaranteed to be
-			auto const v_it = std::find_if(vector.begin(), vector.end(), [=](auto const& e) {
-				printf("'%s' -> '%c' = '%c'\n", e.key.data(), e.key[prefix.length()], c);
-				return e.key[prefix.length()] == c;
-			});
-			assert(v_it != vector.end());
+			auto const key = running_prefix.substr(prefix.length());
 			
-			output += tabulate("if(" + final_match_condition(v_it->key, int32_t(prefix.length()), int32_t(combo_prefix.length())) + ") {\n");
+			output += tabulate("// running -  " + key + "\n");
+			output += tabulate("if(" + final_match_condition(key, 0, running_prefix.length() - prefix.length()) + ") {\n");
 			tabulate_increment();
-			output += construct_match_tree_internal(vector, generator_match, no_match, combo_prefix, length);
+			output += construct_match_tree_internal(vector, generator_match, no_match, running_prefix, length);
 			tabulate_decrement();
-			
+
 			output += tabulate("} else {\n");
 			tabulate_increment();
 			output += tabulate(std::string(no_match) + "\n");
@@ -553,7 +510,8 @@ std::string construct_match_tree_internal(auto const& vector, auto const& genera
 			output += tabulate("case 0x" + char_to_hex(char(c)) + ":\n");
 			tabulate_increment();
 			enum_with_prefix(vector, std::string(prefix) + char(c), length, [&](auto& v) {
-				output += tabulate("if(" + final_match_condition(v.key, int32_t(prefix.length()) + 1, 0) + ") {\n");
+				output += tabulate("// " + v.key + "\n");
+				output += tabulate("if(" + final_match_condition(v.key, prefix.length() + 1, 0) + ") {\n");
 				tabulate_increment();
 				output += tabulate(generator_match(v) + "\n");
 				tabulate_decrement();
@@ -570,7 +528,7 @@ std::string construct_match_tree_internal(auto const& vector, auto const& genera
 				output += tabulate("switch(0x20 | int32_t(cur.content[" + std::to_string(prefix.length()) + "])) {\n");
 				has_switch = true;
 			}
-
+			
 			output += tabulate("case 0x" + char_to_hex(char(c)) + ":\n");
 			tabulate_increment();
 			output += construct_match_tree_internal(vector, generator_match, no_match, std::string(prefix) + char(c), length);
@@ -598,7 +556,9 @@ std::string construct_match_tree_outer(auto const& vector, auto const& generator
 			// skip
 		} else if(count == 1) {
 			output += tabulate("case " + std::to_string(l) + ":\n");
+			tabulate_increment();
 			enum_with_prefix(vector, "", l, [&](auto& v) {
+				output += tabulate("// " + v.key + "\n");
 				output += tabulate("if(" + final_match_condition(v.key, 0, 0) + ") {\n");
 				tabulate_increment();
 				output += tabulate(generator_match(v) + "\n");
@@ -610,6 +570,7 @@ std::string construct_match_tree_outer(auto const& vector, auto const& generator
 				output += tabulate("}\n");
 			});
 			output += tabulate("break;\n");
+			tabulate_decrement();
 		} else {
 			output += tabulate("case " + std::to_string(l) + ":\n");
 			tabulate_increment();
