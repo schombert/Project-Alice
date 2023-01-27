@@ -1,6 +1,7 @@
 #include "system_state.hpp"
 #include "opengl_wrapper.hpp"
 #include "window.hpp"
+#include "gui_element_base.hpp"
 #include <algorithm>
 #include <functional>
 
