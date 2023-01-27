@@ -129,16 +129,16 @@ message_result element_base::impl_on_scroll(sys::state& state, int32_t x, int32_
 void element_base::impl_on_update(sys::state& state) noexcept {
 	on_update(state);
 }
-message_result element_base::impl_get(Cyto::Any& payload) noexcept {
-	if(auto res = get(payload); res != message_result::consumed) {
+message_result element_base::impl_get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(auto res = get(state, payload); res != message_result::consumed) {
 		if(parent)
-			return parent->impl_get(payload);
+			return parent->impl_get(state, payload);
 		return message_result::unseen;
 	}
 	return message_result::consumed;
 }
-message_result element_base::impl_set(Cyto::Any& payload) noexcept {
-	return set(payload);
+message_result element_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
+	return set(state, payload);
 }
 
 
@@ -165,10 +165,10 @@ message_result element_base::on_scroll(sys::state& state, int32_t x, int32_t y, 
 }
 void element_base::on_update(sys::state& state) noexcept {
 }
-message_result element_base::get(Cyto::Any& payload) noexcept {
+message_result element_base::get(sys::state& state, Cyto::Any& payload) noexcept {
 	return message_result::unseen;
 }
-message_result element_base::set(Cyto::Any& payload) noexcept {
+message_result element_base::set(sys::state& state, Cyto::Any& payload) noexcept {
 	return message_result::unseen;
 }
 

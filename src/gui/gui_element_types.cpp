@@ -89,12 +89,12 @@ void container_base::impl_on_update(sys::state& state) noexcept {
 	}
 	on_update(state);
 }
-message_result container_base::impl_set(Cyto::Any& payload) noexcept {
+message_result container_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
 	message_result res = message_result::unseen;
 	for(auto& c : children) {
-		res = greater_result(res, c->impl_set(payload));
+		res = greater_result(res, c->impl_set(state, payload));
 	}
-	return greater_result(res, set(payload));
+	return greater_result(res, set(state, payload));
 }
 
 void container_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -273,17 +273,6 @@ state::state() {
 	root = std::make_unique<container_base>();
 }
 
-void show_main_menu(sys::state& state) {
-	if(!state.ui_state.main_menu) {
-		auto new_mm = make_element_by_type<main_menu_window>(state, "alice_main_menu");
-		state.ui_state.main_menu = new_mm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_mm));
-	} else {
-		state.ui_state.main_menu->set_visible(state, true);
-		state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
-	}
-}
-
 
 void window_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::window) {
@@ -348,11 +337,250 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		res->on_create(state);
 		return res;
+	} else if(def.get_element_type() == ui::element_type::scrollbar) {
+		auto res = std::make_unique<scrollbar>();
+		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+		res->on_create(state);
+		return res;
 	}
 	// TODO: other defaults
 
 	return nullptr;
 }
 
+
+void scrollbar_left::button_action(sys::state& state) noexcept {
+	if(parent) {
+		Cyto::Any payload = value_change{ -step_size, true, true };
+		parent->impl_get(state, payload);
+	}
+}
+void scrollbar_right::button_action(sys::state& state) noexcept {
+	if(parent) {
+		Cyto::Any payload = value_change{ step_size, true, true };
+		parent->impl_get(state, payload);
+	}
+}
+
+message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(parent) {
+		Cyto::Any payload = scrollbar_settings{};
+		if(parent->impl_get(state, payload) == message_result::consumed) {
+			scrollbar_settings parent_state = any_cast<scrollbar_settings>(payload);
+			int32_t pos_in_track = parent_state.vertical ? y : x;
+			int32_t clamped_pos = std::clamp(pos_in_track, parent_state.buttons_size / 2, parent_state.track_size - parent_state.buttons_size / 2);
+			float fp_pos = float(clamped_pos - parent_state.buttons_size / 2) / float(parent_state.track_size - parent_state.buttons_size);
+
+			Cyto::Any adjustment_payload = value_change{
+				int32_t(parent_state.lower_value + fp_pos * (parent_state.upper_value - parent_state.lower_value)),
+				true, false };
+			parent->impl_get(state, adjustment_payload);
+		}
+	}
+	return message_result::consumed;
+}
+
+message_result scrollbar_slider::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	state.ui_state.drag_target = this;
+	return message_result::consumed;
+}
+void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(!parent)
+		return;
+
+	auto location_abs = get_absolute_location(*this);
+
+	scrollbar_settings parent_settings = [&]() {
+		Cyto::Any payload = scrollbar_settings{};
+		if(parent->impl_get(state, payload) == message_result::consumed) {
+			return any_cast<scrollbar_settings>(payload);
+		}
+		return scrollbar_settings{};
+	}();
+
+	if(parent_settings.vertical) {
+		if(!(location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y)) {
+			return; // drag has left slider behind
+		}
+	} else {
+		if(!(location_abs.x <= oldx && oldx < base_data.size.x + location_abs.x)) {
+			return; // drag has left slider behind
+		}
+	}
+
+	int32_t pos_in_track = 0;
+
+	// TODO: take care of case where there are partial range limits
+
+	if(parent_settings.vertical) {
+		base_data.position.y += int16_t(y - oldy);
+		base_data.position.y = int16_t(std::clamp(int32_t(base_data.position.y), parent_settings.buttons_size, parent_settings.track_size));
+		pos_in_track = base_data.position.y - parent_settings.buttons_size / 2;
+	} else {
+		base_data.position.x += int16_t(x - oldx);
+		base_data.position.x = int16_t(std::clamp(int32_t(base_data.position.x), parent_settings.buttons_size, parent_settings.track_size));
+		pos_in_track = base_data.position.x - parent_settings.buttons_size / 2;
+	}
+	float fp_pos = float(pos_in_track - parent_settings.buttons_size / 2) / float(parent_settings.track_size - parent_settings.buttons_size);
+
+	Cyto::Any adjustment_payload = value_change{
+		int32_t(parent_settings.lower_value + fp_pos * (parent_settings.upper_value - parent_settings.lower_value)),
+		false, false };
+	parent->impl_get(state, adjustment_payload);
+}
+
+
+void scrollbar::update_raw_value(int32_t v) {
+	// TODO: adjust to limits if using limits
+	stored_value = std::clamp(v, settings.lower_value, settings.upper_value);
+	float percentage = float(stored_value - settings.lower_value) / float(settings.upper_value - settings.lower_value);
+	auto offset = settings.buttons_size + int32_t((settings.track_size - settings.buttons_size) * percentage);
+	if(slider) {
+		if(settings.vertical)
+			slider->base_data.position.y = int16_t(offset);
+		else
+			slider->base_data.position.x = int16_t(offset);
+	}
+}
+void scrollbar::update_scaled_value(float v) {
+	int32_t rv = std::clamp(int32_t(v * settings.scaling_factor), settings.lower_value, settings.upper_value);
+	update_raw_value(rv);
+}
+float scrollbar::scaled_value() const {
+	return float(stored_value) / float(settings.scaling_factor);
+}
+
+void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings const& settings_s) {
+	settings.lower_limit = settings_s.lower_limit * settings.scaling_factor;
+	settings.lower_value = settings_s.lower_value * settings.scaling_factor;
+	settings.upper_limit = settings_s.upper_limit * settings.scaling_factor;
+	settings.upper_value = settings_s.upper_value * settings.scaling_factor;
+	settings.using_limits = settings_s.using_limits;
+
+	settings.upper_value = std::min(settings.upper_value, settings.lower_value + 1); // ensure the scrollbar is never of range zero
+
+	// TODO: adjust to limits if using limits
+	if(stored_value < settings.lower_value || stored_value > settings.upper_value) {
+		stored_value = std::clamp(stored_value, settings.lower_value, settings.upper_value);
+		on_value_change(state, stored_value);
+	}
+}
+
+void scrollbar::on_create(sys::state& state) noexcept {
+	// create & position sub elements
+	// fill out settings data
+	// set initial slider pos
+
+	if(base_data.get_element_type() == element_type::scrollbar) {
+		auto step = base_data.data.scrollbar.get_step_size();
+		settings.scaling_factor = 1;
+		switch(step) {
+			case step_size::one:
+				break;
+			case step_size::two:
+				break;
+			case step_size::one_tenth:
+				settings.scaling_factor = 10;
+				break;
+			case step_size::one_hundredth:
+				settings.scaling_factor = 100;
+				break;
+			case step_size::one_thousandth:
+				settings.scaling_factor = 1000;
+				break;
+		}
+		settings.lower_value = 0;
+		settings.upper_value = base_data.data.scrollbar.max_value * settings.scaling_factor;
+		settings.lower_limit = 0;
+		settings.upper_limit = settings.upper_value;
+
+		settings.vertical = !base_data.data.scrollbar.is_horizontal();
+		stored_value = settings.lower_value;
+
+		auto first_child = base_data.data.scrollbar.first_child;
+		auto num_children = base_data.data.scrollbar.num_children;
+		if(num_children >= 4) {
+			{
+				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(2 + first_child.index()));
+				auto ch_res = make_element_by_type<scrollbar_slider>(state, child_tag);
+				slider = ch_res.get();
+				add_child_to_back(std::move(ch_res));
+			}
+			{
+				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(0 + first_child.index()));
+				auto ch_res = make_element_by_type<scrollbar_left>(state, child_tag);
+				left = ch_res.get();
+				add_child_to_back(std::move(ch_res));
+
+				settings.buttons_size = settings.vertical ? left->base_data.size.y : left->base_data.size.x;
+				if(step_size::two == step)
+					left->step_size = 2;
+				else
+					left->step_size = 1;
+			}
+			{
+				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(1 + first_child.index()));
+				auto ch_res = make_element_by_type<scrollbar_right>(state, child_tag);
+				right = ch_res.get();
+				add_child_to_back(std::move(ch_res));
+
+				if(step_size::two == step)
+					right->step_size = 2;
+				else
+					right->step_size = 1;
+			}
+			{
+				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(3 + first_child.index()));
+				auto ch_res = make_element_by_type<scrollbar_track>(state, child_tag);
+				track = ch_res.get();
+				add_child_to_back(std::move(ch_res));
+
+				settings.track_size = settings.vertical ? track->base_data.size.y : track->base_data.size.x;
+			}
+			left->base_data.position.x = 0;
+			left->base_data.position.y = 0;
+			if(settings.vertical) {
+				track->base_data.position.y = int16_t(settings.buttons_size);
+				slider->base_data.position.y = int16_t(settings.buttons_size);
+				right->base_data.position.y = int16_t(settings.track_size + settings.buttons_size);
+				track->base_data.position.x = 0;
+				slider->base_data.position.x = 0;
+				right->base_data.position.x = 0;
+			} else {
+				track->base_data.position.x = int16_t(settings.buttons_size);
+				slider->base_data.position.x = int16_t(settings.buttons_size);
+				right->base_data.position.x = int16_t(settings.track_size + settings.buttons_size);
+				track->base_data.position.y = 0;
+				slider->base_data.position.y = 0;
+				right->base_data.position.y = 0;
+			}
+		}
+	}
+}
+message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<scrollbar_settings>()) {
+		payload = settings;
+		return message_result::consumed;
+	} else if(payload.holds_type<value_change>()) {
+		auto adjustments = any_cast<value_change>(payload);
+
+		if(adjustments.is_relative)
+			stored_value += adjustments.new_value;
+		else
+			stored_value = adjustments.new_value;
+
+		if(adjustments.move_slider) {
+			update_raw_value(stored_value);
+		} else {
+			// TODO: adjust to limits if using limits
+			stored_value = std::clamp(stored_value, settings.lower_value, settings.upper_value);
+		}
+
+		on_value_change(state, stored_value);
+		return message_result::unseen;
+	} else {
+		return message_result::unseen;
+	}
+}
 
 }

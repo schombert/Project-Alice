@@ -18,7 +18,7 @@ std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::strin
 	return std::unique_ptr<element_base>{};
 }
 template<typename T>
-std::unique_ptr<element_base> make_element_by_type(sys::state& state, dcon::gui_def_id id) { // also bypasses global creation hooks
+std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id) { // also bypasses global creation hooks
 	auto res = std::make_unique<T>();
 	std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
 	make_size_from_graphics(state, res->base_data);
@@ -39,7 +39,7 @@ public:
 	message_result impl_on_text(sys::state& state, char ch) noexcept final;
 	message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept final;
 	void impl_on_update(sys::state& state) noexcept final;
-	message_result impl_set(Cyto::Any& payload) noexcept final;
+	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
 
 	std::unique_ptr<element_base> remove_child(element_base* child) noexcept final;
@@ -80,19 +80,21 @@ public:
 
 class button_element_base : public opaque_element_base {
 public:
-	button_element_base() : opaque_element_base() {
+	button_element_base() {
 		interactable = true;
 	}
 
 	virtual void button_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
-		// TODO: button click
-		button_action(state);
+		if(!disabled) {
+			// TODO: button click sound
+			button_action(state);
+		}
 		return message_result::consumed;
 	}
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
-		if(base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			// TODO: button click
+		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
+			// TODO: button click sound
 			button_action(state);
 			return message_result::consumed;
 		} else {
@@ -108,7 +110,6 @@ public:
 
 class window_element_base : public container_base {
 public:
-	//std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name)
 	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 		return nullptr;
 	}
@@ -124,16 +125,79 @@ public:
 	}
 };
 
-class main_menu_window : public window_element_base {
+class scrollbar_left : public button_element_base {
 public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button")
-			return make_element_by_type<generic_close_button>(state, id);
-		else if(name == "background")
-			return make_element_by_type<draggable_target>(state, id);
-		else
-			return nullptr;
-	}
+	int32_t step_size = 1;
+	void button_action(sys::state& state) noexcept final;
+};
+
+class scrollbar_right : public button_element_base {
+public:
+	int32_t step_size = 1;
+	void button_action(sys::state& state) noexcept final;
+};
+
+class scrollbar_track : public opaque_element_base {
+public:
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
+};
+
+class scrollbar_slider : public opaque_element_base {
+public:
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
+	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
+};
+
+
+struct mutable_scrollbar_settings {
+	int32_t lower_value = 0;
+	int32_t upper_value = 100;
+	int32_t lower_limit = 0;
+	int32_t upper_limit = 0;
+	bool using_limits = false;
+};
+
+struct scrollbar_settings  {
+	int32_t lower_value = 0;
+	int32_t upper_value = 100;
+	int32_t lower_limit = 0;
+	int32_t upper_limit = 0;
+	
+	int32_t buttons_size = 20;
+	int32_t track_size = 180;
+	int32_t scaling_factor = 0;
+
+	bool using_limits = false;
+	bool vertical = false;
+};
+
+struct value_change {
+	int32_t new_value = 0;
+	bool move_slider = false;
+	bool is_relative = false;
+};
+
+class scrollbar : public container_base {
+	scrollbar_left* left = nullptr;
+	scrollbar_right* right = nullptr;
+	scrollbar_track* track = nullptr;
+	scrollbar_slider* slider = nullptr;
+	image_element_base* left_limit = nullptr;
+	image_element_base* right_limit = nullptr;
+	scrollbar_settings settings;
+	int32_t stored_value = 0;
+public:
+	virtual void on_value_change(sys::state& state, int32_t v) noexcept { }
+
+	void update_raw_value(int32_t v);
+	void update_scaled_value(float v);
+
+	float scaled_value() const;
+
+	void change_settings(sys::state& state, mutable_scrollbar_settings const& settings_s);
+
+	void on_create(sys::state& state) noexcept final;
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 
 }

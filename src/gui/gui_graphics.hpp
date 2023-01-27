@@ -336,6 +336,8 @@ namespace ui {
 			if(vis && !old_visibility) {
 				impl_on_update(state);
 				on_visible(state);
+			} else if(!vis && old_visibility) {
+				on_hide(state);
 			}
 		}
 
@@ -352,8 +354,8 @@ namespace ui {
 		virtual message_result impl_on_text(sys::state& state, char ch) noexcept;
 		virtual message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
 		virtual void impl_on_update(sys::state& state) noexcept;
-		message_result impl_get(Cyto::Any& payload) noexcept;
-		virtual message_result impl_set(Cyto::Any& payload) noexcept;
+		message_result impl_get(sys::state& state, Cyto::Any& payload) noexcept;
+		virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
 		virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;
 
 		// these message handlers can be overridden by basically anyone
@@ -367,19 +369,19 @@ namespace ui {
 		virtual message_result on_text(sys::state& state, char ch) noexcept;
 		virtual message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
 		virtual void on_update(sys::state& state) noexcept;
-		virtual message_result get(Cyto::Any& payload) noexcept;
-		virtual message_result set(Cyto::Any& payload) noexcept;
+		virtual message_result get(sys::state& state, Cyto::Any& payload) noexcept;
+		virtual message_result set(sys::state& state, Cyto::Any& payload) noexcept;
 		virtual void render(sys::state& state, int32_t x, int32_t y) noexcept { }
 
 		// as above, but they need no internal framework to pass messages up or down
 		//         - may be called directly
-		virtual void on_resize(sys::state& state, int32_t x, int32_t y) noexcept { } // used to get a parent to reposition its children
 		virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
 			return focus_result::ingored;
 		}
 		virtual void on_lose_focus(sys::state& state) noexcept { } // called when the focus is taken away
 		virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
 		virtual void on_visible(sys::state& state) noexcept { }
+		virtual void on_hide(sys::state& state) noexcept { }
 		virtual tooltip_behavior has_tooltip(sys::state& state, int32_t x, int32_t y) noexcept { // used to test whether a tooltip is possible
 			return tooltip_behavior::transparent;
 		}
