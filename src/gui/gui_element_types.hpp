@@ -17,6 +17,15 @@ std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::strin
 	}
 	return std::unique_ptr<element_base>{};
 }
+template<typename T>
+std::unique_ptr<element_base> make_element_by_type(sys::state& state, dcon::gui_def_id id) { // also bypasses global creation hooks
+	auto res = std::make_unique<T>();
+	std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
+	make_size_from_graphics(state, res->base_data);
+	res->on_create(state);
+	res->on_update(state);
+	return res;
+}
 
 class container_base : public element_base {
 public:
@@ -26,7 +35,6 @@ public:
 	element_base* impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept final;
 	message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 	message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
-	message_result impl_on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final;
 	message_result impl_on_text(sys::state& state, char ch) noexcept final;
 	message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept final;
@@ -72,7 +80,7 @@ public:
 
 class button_element_base : public opaque_element_base {
 public:
-	button_element_base() {
+	button_element_base() : opaque_element_base() {
 		interactable = true;
 	}
 
@@ -93,27 +101,38 @@ public:
 	}
 };
 
+class draggable_target : public opaque_element_base {
+public:
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+};
+
 class window_element_base : public container_base {
 public:
 	//std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name)
-	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name) noexcept {
+	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 		return nullptr;
 	}
-	void on_create(sys::state& state) noexcept final {
-		if(base_data.get_element_type() == element_type::window) {
-			auto first_child = base_data.data.window.first_child;
-			auto num_children = base_data.data.window.num_children;
-			for(uint32_t i = 0; i < num_children; ++i) {
-				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i + first_child.index()));
-				auto ch_res = make_child(state, state.to_string_view(state.ui_defs.gui[child_tag].name));
-				if(!ch_res) {
-					ch_res = ui::make_element_immediate(state, child_tag);
-				}
-				if(ch_res) {
-					this->add_child_to_back(std::move(ch_res));
-				}
-			}
-		}
+	void on_create(sys::state& state) noexcept final;
+	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+};
+
+class generic_close_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent)
+			parent->set_visible(state, false);
+	}
+};
+
+class main_menu_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "close_button")
+			return make_element_by_type<generic_close_button>(state, id);
+		else if(name == "background")
+			return make_element_by_type<draggable_target>(state, id);
+		else
+			return nullptr;
 	}
 };
 

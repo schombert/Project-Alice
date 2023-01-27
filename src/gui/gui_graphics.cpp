@@ -30,7 +30,7 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 	{
 		auto all_files = list_files(interfc, NATIVE(".gfx"));
 
-		
+
 		for(auto& file : all_files) {
 			auto ofile = open_file(file);
 			if(ofile) {
@@ -75,6 +75,27 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 	}
 }
 
+xy_pair child_relative_location(element_base const& parent, element_base const& child) {
+	switch(child.base_data.get_orientation()) {
+		case orientation::upper_left:
+			return xy_pair{ int16_t(child.base_data.position.x), int16_t(child.base_data.position.y) };
+		case orientation::upper_right:
+			return xy_pair{ int16_t(parent.base_data.size.x + child.base_data.position.x), int16_t(child.base_data.position.y) };
+		case orientation::lower_left:
+			return xy_pair{ int16_t(child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y) };
+		case orientation::lower_right:
+			return xy_pair{ int16_t(parent.base_data.size.x + child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y) };
+		case orientation::upper_center:
+			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(child.base_data.position.y) };
+		case orientation::lower_center:
+			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y) };
+		case orientation::center:
+			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(parent.base_data.size.y / 2 + child.base_data.position.y) };
+		default:
+			return xy_pair{ int16_t(child.base_data.position.x), int16_t(child.base_data.position.y) };
+	}
+}
+
 element_base* element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(0 <= x && x <= base_data.size.x && 0 <= y && y <= base_data.size.y && test_mouse(state, x, y) == message_result::consumed)
 		return this;
@@ -90,12 +111,6 @@ message_result element_base::impl_on_lbutton_down(sys::state& state, int32_t x, 
 message_result element_base::impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	if(0 <= x && x <= base_data.size.x && 0 <= y && y <= base_data.size.y)
 		return on_rbutton_down(state, x, y, mods);
-	else
-		return message_result::unseen;
-}
-message_result element_base::impl_on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(0 <= x && x <= base_data.size.x && 0 <= y && y <= base_data.size.y)
-		return on_drag(state, x, y, mods);
 	else
 		return message_result::unseen;
 }
@@ -136,8 +151,8 @@ message_result element_base::on_lbutton_down(sys::state& state, int32_t x, int32
 message_result element_base::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return message_result::unseen;
 }
-message_result element_base::on_drag(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return message_result::unseen;
+void element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+
 }
 message_result element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	return message_result::unseen;
@@ -164,15 +179,25 @@ void element_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept
 xy_pair get_absolute_location(element_base const& node) {
 	if(node.parent) {
 		auto parent_loc = get_absolute_location(*node.parent);
-		return xy_pair{int16_t(parent_loc.x + node.base_data.position.x), int16_t(parent_loc.y + node.base_data.position.y) };
+		auto rel_loc = child_relative_location(*node.parent, node);
+		return xy_pair{ int16_t(parent_loc.x + rel_loc.x), int16_t(parent_loc.y + rel_loc.y) };
 	} else {
 		return node.base_data.position;
 	}
 }
 
+int32_t ui_width(sys::state const& state) {
+	return int32_t(state.x_size * state.user_settings.ui_scale);
+}
+int32_t ui_height(sys::state const& state) {
+	return int32_t(state.y_size * state.user_settings.ui_scale);
+}
+
 void populate_definitions_map(sys::state& state) {
 	for(size_t i = state.ui_defs.gui.size(); i-- > 0; ) {
-		state.ui_state.defs_by_name.insert_or_assign(state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].name), element_target{ nullptr, dcon::gui_def_id(dcon::gui_def_id::value_base_t(i)) });
+		auto key = state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].name);
+		auto value = element_target{ nullptr, dcon::gui_def_id(dcon::gui_def_id::value_base_t(i)) };
+		state.ui_state.defs_by_name.insert_or_assign(key, value);
 	}
 }
 

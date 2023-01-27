@@ -25,6 +25,11 @@ namespace sys {
 	};
 
 
+	struct user_settings_s {
+		bool prefer_fullscreen = false;
+		float ui_scale = 1.0f;
+	};
+
 	struct alignas(64) state {
 		// the state struct will eventually include (at least pointers to)
 		// the state of the sound system, the state of the windowing system,
@@ -39,6 +44,8 @@ namespace sys {
 
 		dcon::data_container world;
 
+		// scenario data
+
 		std::vector<char> text_data; // stores string data in the win1250 codepage
 		std::vector<text::text_component> text_components;
 		tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
@@ -46,10 +53,14 @@ namespace sys {
 
 		ui::definitions ui_defs; // definitions for graphics and ui
 
+		// persistent user settings
+
+		user_settings_s user_settings;
+
+		// current program / ui state
+
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
-
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platfom-dependent window information
-
 		ui::state ui_state; // transient information for the state of the ui
 
 		// common data for the window
