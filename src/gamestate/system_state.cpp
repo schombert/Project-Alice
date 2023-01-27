@@ -35,10 +35,11 @@ namespace sys {
 		is_dragging = true;
 
 		// TODO: take into account scale factor
-		// TODO: look at return value
-		ui_state.root->impl_on_drag(*this, x, y, mod);
+		if(ui_state.drag_target)
+			ui_state.drag_target->on_drag(*this, mouse_x_position, mouse_y_position, x, y, mod);
 	}
 	void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
+		ui_state.drag_target = nullptr;
 	}
 	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
 		if(win_state != window_state::minimized) {
@@ -68,16 +69,20 @@ namespace sys {
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 		glClearColor(0.5, 0.5, 0.5, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		if(ui_state.root) {
-			glUseProgram(open_gl.ui_shader_program);
-			glUniform1f(ogl::parameters::screen_width, float(x_size));
-			glUniform1f(ogl::parameters::screen_height, float(y_size));
+		
+		glUseProgram(open_gl.ui_shader_program);
+		glUniform1f(ogl::parameters::screen_width, float(x_size));
+		glUniform1f(ogl::parameters::screen_height, float(y_size));
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, mouse_x_position, mouse_y_position);
-			ui_state.root->impl_render(*this, 0, 0);
-		}
+		glViewport(0, 0, x_size, y_size);
+		glDepthRange(-1.0, 1.0);
+
+		ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, mouse_x_position, mouse_y_position);
+		ui_state.root->impl_render(*this, 0, 0);
 	}
 
 	//

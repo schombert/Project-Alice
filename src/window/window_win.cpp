@@ -132,7 +132,6 @@ namespace window {
 			
 			RECT crect{};
 			GetClientRect(hwnd, &crect);
-			glViewport(0, 0, crect.right - crect.left, crect.bottom - crect.top);
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
 
 			return 0;
@@ -191,6 +190,9 @@ namespace window {
 				if(wParam & MK_LBUTTON)
 					state->on_mouse_drag(x, y, get_current_modifiers());
 
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+
 				return 0;
 			}
 			case WM_RBUTTONDOWN:
@@ -226,8 +228,6 @@ namespace window {
 					break;
 				}
 
-				// redo OpenGL viewport
-				glViewport(0, 0, LOWORD(lParam), HIWORD(lParam));
 				state->on_resize(LOWORD(lParam), HIWORD(lParam), t);
 				state->x_size = LOWORD(lParam);
 				state->y_size = HIWORD(lParam);
