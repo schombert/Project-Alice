@@ -144,10 +144,10 @@ void load_shaders(sys::state& state) {
 }
 
 void load_global_squares(sys::state& state) {
-	glGenBuffers(1, &state.open_gl.global_sqaure_buffer);
+	glGenBuffers(1, &state.open_gl.global_square_buffer);
 
 	// Populate the position buffer
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_sqaure_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_data, GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &state.open_gl.global_square_vao);
@@ -155,7 +155,7 @@ void load_global_squares(sys::state& state) {
 	glEnableVertexAttribArray(0); //position
 	glEnableVertexAttribArray(1); //texture coordinates
 
-	glBindVertexBuffer(0, state.open_gl.global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
+	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
 
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0); //position
 	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2); //texture coordinates
@@ -163,31 +163,31 @@ void load_global_squares(sys::state& state) {
 	glVertexAttribBinding(1, 0); //texture coordinates -> to array zero
 
 
-	glGenBuffers(1, &state.open_gl.global_sqaure_left_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_sqaure_left_buffer);
+	glGenBuffers(1, &state.open_gl.global_square_left_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_left_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_left_data, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &state.open_gl.global_sqaure_right_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_sqaure_right_buffer);
+	glGenBuffers(1, &state.open_gl.global_square_right_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_right_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_right_data, GL_STATIC_DRAW);
 
 
-	glGenBuffers(1, &state.open_gl.global_sqaure_right_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_sqaure_right_flipped_buffer);
+	glGenBuffers(1, &state.open_gl.global_square_right_flipped_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_right_flipped_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_right_flipped_data, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &state.open_gl.global_sqaure_left_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_sqaure_left_flipped_buffer);
+	glGenBuffers(1, &state.open_gl.global_square_left_flipped_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_left_flipped_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_left_flipped_data, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &state.open_gl.global_sqaure_flipped_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_sqaure_flipped_buffer);
+	glGenBuffers(1, &state.open_gl.global_square_flipped_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_flipped_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_flipped_data, GL_STATIC_DRAW);
 
 
-	glGenBuffers(64, state.open_gl.sub_sqaure_buffers);
+	glGenBuffers(64, state.open_gl.sub_square_buffers);
 	for(uint32_t i = 0; i < 64; ++i) {
-		glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.sub_sqaure_buffers[i]);
+		glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.sub_square_buffers[i]);
 
 		const float cell_x = static_cast<float>(i & 7) / 8.0f;
 		const float cell_y = static_cast<float>((i >> 3) & 7) / 8.0f;
@@ -222,21 +222,21 @@ void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool fli
 	switch(r) {
 		case ui::rotation::upright:
 			if(!flipped)
-				glBindVertexBuffer(0, state.open_gl.global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
+				glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
 			else
-				glBindVertexBuffer(0, state.open_gl.global_sqaure_flipped_buffer, 0, sizeof(GLfloat) * 4);
+				glBindVertexBuffer(0, state.open_gl.global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
 			break;
 		case ui::rotation::r90_left:
 			if(!flipped)
-				glBindVertexBuffer(0, state.open_gl.global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4);
+				glBindVertexBuffer(0, state.open_gl.global_square_left_buffer, 0, sizeof(GLfloat) * 4);
 			else
-				glBindVertexBuffer(0, state.open_gl.global_sqaure_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
+				glBindVertexBuffer(0, state.open_gl.global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
 			break;
 		case ui::rotation::r90_right:
 			if(!flipped)
-				glBindVertexBuffer(0, state.open_gl.global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4);
+				glBindVertexBuffer(0, state.open_gl.global_square_right_buffer, 0, sizeof(GLfloat) * 4);
 			else
-				glBindVertexBuffer(0, state.open_gl.global_sqaure_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
+				glBindVertexBuffer(0, state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
 			break;
 	}
 }
@@ -261,7 +261,7 @@ void render_textured_rect(sys::state const& state, color_modification enabled, f
 void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	glBindVertexBuffer(0, state.open_gl.global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
+	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 
@@ -308,7 +308,7 @@ void render_barchart(sys::state const& state, color_modification enabled, float 
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	glBindVertexBuffer(0, state.open_gl.global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
+	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, size, size);
 
@@ -413,61 +413,54 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-/*
-void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, font& f) {
-	const auto g = f.get_render_glyph(codepoint);
 
-	glBindVertexBuffer(0, state.open_gl.sub_sqaure_buffers[g.buffer], 0, sizeof(GLfloat) * 4);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, g.texture);
+void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, text::font& f) {
+	if(text::win1250toUTF16(codepoint) != ' ') {
+		f.make_glyph(codepoint);
 
-	glUniform4f(parameters::drawing_rectangle, x, y, size, size);
-
-	glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
-
-	glUniform1f(parameters::border_size, 0.08f * 16.0f / size); // for normal outlines
-
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
-
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-}
-
-void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, font& f, float extra) {
-	for(uint32_t i = 0; i < count; ++i) {
-		const auto g = f.get_render_glyph(codepoints[i]);
-
-		glBindVertexBuffer(0, state.open_gl.sub_sqaure_buffers[g.buffer], 0, sizeof(GLfloat) * 4);
+		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint32_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, g.texture);
+		glBindTexture(GL_TEXTURE_2D, f.textures[uint32_t(codepoint) >> 6]);
 
-		glUniform4f(parameters::drawing_rectangle, x + g.x_offset * size / 64.0f, baseline_y + g.y_offset * size / 64.0f, size, size);
+		glUniform4f(parameters::drawing_rectangle, x, y, size, size);
+		glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
+		glUniform1f(parameters::border_size, 0.08f * 16.0f / size); 
+
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
+		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		x += g.advance * size / 64.0f + extra + ((i != count - 1) ? f.render_kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
 	}
 }
 
-void render_outlined_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, font& f) {
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f) {
+	for(uint32_t i = 0; i < count; ++i) {
+		if(text::win1250toUTF16(codepoints[i]) != ' ') {
+			f.make_glyph(codepoints[i]);
 
-	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-	glUniform1f(parameters::border_size, 0.08f * 16.0f / size); // for normal outlines
+			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint32_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, f.textures[uint32_t(codepoints[i]) >> 6]);
 
-	internal_text_render(state, codepoints, count, x, y + size, size, f, 0.6f);
+			glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[codepoints[i]].x * size / 64.0f, baseline_y + f.glyph_positions[codepoints[i]].y * size / 64.0f, size, size);
+
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		x += f.glyph_advances[codepoints[i]] * size / 64.0f + ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
+	}
 }
 
-void render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, font& f) {
+
+void render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
-	internal_text_render(state, codepoints, count, x, y + size, size, f, 0.0f);
+	internal_text_render(state, codepoints, count, x, y + size, size, f);
 }
-*/
+
 
 
 void lines::set_y(float* v) {

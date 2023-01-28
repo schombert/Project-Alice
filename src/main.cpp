@@ -7,6 +7,7 @@
 #include "texture.cpp"
 #include "gui_graphics.cpp"
 #include "gui_element_types.cpp"
+#include "gui_main_menu.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

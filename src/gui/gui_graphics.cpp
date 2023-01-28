@@ -1,5 +1,6 @@
 #include "gui_graphics.hpp"
 #include "simple_fs.hpp"
+#include "gui_element_base.hpp"
 
 namespace ui {
 
@@ -117,9 +118,6 @@ message_result element_base::impl_on_rbutton_down(sys::state& state, int32_t x, 
 message_result element_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	return on_key_down(state, key, mods);
 }
-message_result element_base::impl_on_text(sys::state& state, char ch) noexcept {
-	return on_text(state, ch);
-}
 message_result element_base::impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	if(0 <= x && x <= base_data.size.x && 0 <= y && y <= base_data.size.y)
 		return on_scroll(state, x, y, amount, mods);
@@ -129,16 +127,16 @@ message_result element_base::impl_on_scroll(sys::state& state, int32_t x, int32_
 void element_base::impl_on_update(sys::state& state) noexcept {
 	on_update(state);
 }
-message_result element_base::impl_get(Cyto::Any& payload) noexcept {
-	if(auto res = get(payload); res != message_result::consumed) {
+message_result element_base::impl_get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(auto res = get(state, payload); res != message_result::consumed) {
 		if(parent)
-			return parent->impl_get(payload);
+			return parent->impl_get(state, payload);
 		return message_result::unseen;
 	}
 	return message_result::consumed;
 }
-message_result element_base::impl_set(Cyto::Any& payload) noexcept {
-	return set(payload);
+message_result element_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
+	return set(state, payload);
 }
 
 
@@ -157,18 +155,15 @@ void element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_
 message_result element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	return message_result::unseen;
 }
-message_result element_base::on_text(sys::state& state, char ch) noexcept {
-	return message_result::unseen;
-}
 message_result element_base::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	return message_result::unseen;
 }
 void element_base::on_update(sys::state& state) noexcept {
 }
-message_result element_base::get(Cyto::Any& payload) noexcept {
+message_result element_base::get(sys::state& state, Cyto::Any& payload) noexcept {
 	return message_result::unseen;
 }
-message_result element_base::set(Cyto::Any& payload) noexcept {
+message_result element_base::set(sys::state& state, Cyto::Any& payload) noexcept {
 	return message_result::unseen;
 }
 
