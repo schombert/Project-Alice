@@ -77,6 +77,12 @@ public:
 };
 
 class button_element_base : public opaque_element_base {
+private:
+	std::string stored_text;
+	float text_offset = 0.0f;
+	bool black_text = true;
+	int32_t font_id = 1;
+	int32_t font_size = 14;
 public:
 	button_element_base() {
 		interactable = true;
@@ -99,6 +105,8 @@ public:
 			return message_result::unseen;
 		}
 	}
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
 class draggable_target : public opaque_element_base {

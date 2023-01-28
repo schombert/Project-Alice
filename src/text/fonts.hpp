@@ -54,7 +54,7 @@ public:
 
 	FT_Library ft_library;
 
-	void load_font(font& fnt, char* file_data, uint32_t file_size);
+	void load_font(font& fnt, char const* file_data, uint32_t file_size);
 };
 
 void load_standard_fonts(sys::state& state);
