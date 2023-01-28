@@ -55,6 +55,8 @@ target_include_directories(tests_project PUBLIC
 
 target_link_libraries(tests_project PRIVATE libglew_static)
 target_link_libraries(tests_project PRIVATE dependency_DataContainer)
+target_link_libraries(tests_project PRIVATE stb_image)
+target_link_libraries(tests_project PRIVATE freetype)
 if (NOT WIN32)
 	target_link_libraries(tests_project PRIVATE glfw)
 endif()
