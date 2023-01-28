@@ -357,7 +357,6 @@ namespace ui {
 	std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
 	std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id); // bypasses global map
 
-	xy_pair child_relative_location(element_base const& parent, element_base const& child);
 	void show_main_menu(sys::state& state);
 	int32_t ui_width(sys::state const& state);
 	int32_t ui_height(sys::state const& state);

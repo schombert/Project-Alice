@@ -249,7 +249,6 @@ std::unique_ptr<element_base> make_element(sys::state& state, std::string_view n
 				std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.defintion]), sizeof(ui::element_data));
 				make_size_from_graphics(state, res->base_data);
 				res->on_create(state);
-				res->on_update(state);
 				return res;
 			}
 		}
@@ -314,26 +313,22 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		make_size_from_graphics(state, res->base_data);
 		res->on_create(state);
-		res->on_update(state);
 		return res;
 	} else if(def.get_element_type() == ui::element_type::button) {
 		auto res = std::make_unique<button_element_base>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		make_size_from_graphics(state, res->base_data);
 		res->on_create(state);
-		res->on_update(state);
 		return res;
 	} else if(def.get_element_type() == ui::element_type::window) {
 		auto res = std::make_unique<window_element_base>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		res->on_create(state);
-		res->on_update(state);
 		return res;
 	} else if(def.get_element_type() == ui::element_type::scrollbar) {
 		auto res = std::make_unique<scrollbar>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		res->on_create(state);
-		res->on_update(state);
 		return res;
 	}
 	// TODO: other defaults
@@ -454,7 +449,7 @@ void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings co
 
 	// TODO: adjust to limits if using limits
 	if(stored_value < settings.lower_value || stored_value > settings.upper_value) {
-		stored_value = std::clamp(stored_value, settings.lower_value, settings.upper_value);
+		update_raw_value(stored_value);
 		on_value_change(state, stored_value);
 	}
 }

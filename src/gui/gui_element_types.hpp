@@ -13,7 +13,6 @@ std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::strin
 		std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.defintion]), sizeof(ui::element_data));
 		make_size_from_graphics(state, res->base_data);
 		res->on_create(state);
-		res->on_update(state);
 		return res;
 	}
 	return std::unique_ptr<element_base>{};
@@ -24,7 +23,6 @@ std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id) 
 	std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
 	make_size_from_graphics(state, res->base_data);
 	res->on_create(state);
-	res->on_update(state);
 	return res;
 }
 
