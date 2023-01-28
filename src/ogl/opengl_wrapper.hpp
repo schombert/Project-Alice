@@ -134,14 +134,14 @@ struct color3f {
 		GLuint ui_shader_program = 0;
 
 		GLuint global_square_vao = 0;
-		GLuint global_sqaure_buffer = 0;
-		GLuint global_sqaure_right_buffer = 0;
-		GLuint global_sqaure_left_buffer = 0;
-		GLuint global_sqaure_flipped_buffer = 0;
-		GLuint global_sqaure_right_flipped_buffer = 0;
-		GLuint global_sqaure_left_flipped_buffer = 0;
+		GLuint global_square_buffer = 0;
+		GLuint global_square_right_buffer = 0;
+		GLuint global_square_left_buffer = 0;
+		GLuint global_square_flipped_buffer = 0;
+		GLuint global_square_right_flipped_buffer = 0;
+		GLuint global_square_left_flipped_buffer = 0;
 
-		GLuint sub_sqaure_buffers[64] = { 0 };
+		GLuint sub_square_buffers[64] = { 0 };
 	};
 
 	void notify_user_of_fatal_opengl_error(std::string message); // this function calls std::abort

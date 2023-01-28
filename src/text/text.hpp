@@ -173,5 +173,6 @@ namespace text {
 	void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size);
 	variable_type variable_type_from_name(std::string_view);
 	void load_text_data(sys::state& state, uint32_t language);
+	char16_t win1250toUTF16(char in);
 }
 
