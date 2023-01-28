@@ -39,11 +39,21 @@
 
 #include <string.h>
 
+#ifndef _MSC_VER
 #ifndef ANY_ALWAYS_INLINE
 #ifdef NDEBUG
 #define ANY_ALWAYS_INLINE inline __attribute__ ((__visibility__("hidden"), __always_inline__))
 #else
 #define ANY_ALWAYS_INLINE inline
+#endif
+#endif
+#else
+#ifndef ANY_ALWAYS_INLINE
+#ifdef NDEBUG
+#define ANY_ALWAYS_INLINE inline __forceinline 
+#else
+#define ANY_ALWAYS_INLINE inline
+#endif
 #endif
 #endif
 

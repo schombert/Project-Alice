@@ -218,7 +218,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		ogl_target_end = GL_TEXTURE_2D;
 		opengl_texture_type = GL_TEXTURE_2D;
 	}
-	if((header.sCaps.dwCaps1 & DDSCAPS_MIPMAP) && (header.dwMipMapCount > 1)) {
+	if((header.sCaps.dwCaps1 & DDSCAPS_MIPMAP) != 0 && (header.dwMipMapCount > 1)) {
 		mipmaps = header.dwMipMapCount - 1;
 		DDS_full_size = DDS_main_size;
 		for(i = 1; i <= mipmaps; ++i) {
