@@ -403,12 +403,10 @@ std::string final_match_condition(std::string_view const key, size_t starting_po
 
 template<typename V, typename F>
 void enum_with_prefix(V const& vector, std::string_view const prefix, int32_t length, F const& fn) {
-	int32_t const sz = int32_t(vector.size());
-	for(int32_t i = 0; i < sz; ++i) {
-		if(int32_t(vector[i].key.length()) == length) {
-			int32_t psize = int32_t(prefix.length());
+	for(size_t i = 0; i < vector.size(); ++i) {
+		if(vector[i].key.length() == length) {
 			bool match = true;
-			for(int32_t j = 0; j < psize; ++j) {
+			for(size_t j = 0; j < prefix.length(); ++j) {
 				if((vector[i].key[j] | 0x20) != (prefix[j] | 0x20)) {
 					match = false;
 					break;
