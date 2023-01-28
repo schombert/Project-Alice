@@ -213,10 +213,15 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 
-	state->on_mouse_move((int32_t)xpos, (int32_t)ypos, get_current_modifiers(window));
+	int32_t x = (xpos > 0? (int32_t)std::round(xpos) : 0);
+	int32_t y = (ypos > 0? (int32_t)std::round(ypos) : 0);
+	state->on_mouse_move(x, y, get_current_modifiers(window));
 
 	if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-		state->on_mouse_drag((int32_t)xpos, (int32_t)ypos, get_current_modifiers(window));
+		state->on_mouse_drag(x, y, get_current_modifiers(window));
+
+	state->mouse_x_position = x;
+	state->mouse_y_position = y;
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -224,8 +229,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
-	int32_t x = (int32_t)xpos;
-	int32_t y = (int32_t)xpos;
+	int32_t x = (xpos > 0? (int32_t)std::round(xpos) : 0);
+	int32_t y = (ypos > 0? (int32_t)std::round(ypos) : 0);
 
 	switch(action) {
 		case GLFW_PRESS:
@@ -256,8 +261,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
-	int32_t x = (int32_t)xpos;
-	int32_t y = (int32_t)xpos;
+	int32_t x = (xpos > 0? (int32_t)std::round(xpos) : 0);
+	int32_t y = (ypos > 0? (int32_t)std::round(ypos) : 0);
 
 	state->on_mouse_wheel(x, y, get_current_modifiers(window), (float)(yoffset) / 120.0f);
 	state->mouse_x_position = x;
@@ -284,20 +289,19 @@ void on_window_change(GLFWwindow* window) {
 	// redo OpenGL viewport
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, width, height);
 	state->on_resize(width, height, t);
 	state->x_size = width;
 	state->y_size = height;
 }
 
 void window_size_callback(GLFWwindow* window, int width, int height) {
-	on_window_change(window);
+	// on_window_change(window);
+	// framebuffer_size_callback should be enough
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	on_window_change(window);
 }
-
 
 void window_iconify_callback(GLFWwindow* window, int iconified) {
 	on_window_change(window);
@@ -346,7 +350,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	ogl::initialize_opengl(game_state);
 
-	glViewport(0, 0, params.size_x, params.size_y);
+	on_window_change(window); // Init the window size
 
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();

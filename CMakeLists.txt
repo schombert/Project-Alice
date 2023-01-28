@@ -23,12 +23,12 @@ if(MSVC)
 	string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
-	target_compile_options(Alice PRIVATE 
+	target_compile_options(Alice PRIVATE
 									/wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
 		$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
 		$<$<NOT:$<CONFIG:Debug>>: 	/wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
 	target_link_options(Alice PRIVATE
-		$<$<CONFIG:Debug>: 			/DEBUG:FULL > 
+		$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 		$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 
 else() # GCC or CLANG
@@ -48,7 +48,6 @@ message("leftover CMAKE_CXX_FLAGS_RELEASE: \"${CMAKE_CXX_FLAGS_RELEASE}\"")
 
 add_compile_definitions(VE_NO_TBB)
 if(MSVC)
-
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
 		set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
@@ -93,7 +92,7 @@ add_custom_command(
   DEPENDS ${CONTAINER_PATH}.txt
   VERBATIM)
 
-# Sets a dependency on the generated file 
+# Sets a dependency on the generated file
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
 
@@ -104,7 +103,7 @@ add_custom_command(
   DEPENDS ${PROJECT_SOURCE_DIR}/src/parsing/parser_defs.txt
   VERBATIM)
 
-# Sets a dependency on the generated file 
+# Sets a dependency on the generated file
 add_custom_target(GENERATE_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/src/parsing/parser_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
 
