@@ -39,11 +39,21 @@
 
 #include <string.h>
 
+#ifndef _MSC_VER
 #ifndef ANY_ALWAYS_INLINE
 #ifdef NDEBUG
 #define ANY_ALWAYS_INLINE inline __attribute__ ((__visibility__("hidden"), __always_inline__))
 #else
 #define ANY_ALWAYS_INLINE inline
+#endif
+#endif
+#else
+#ifndef ANY_ALWAYS_INLINE
+#ifdef NDEBUG
+#define ANY_ALWAYS_INLINE inline __forceinline 
+#else
+#define ANY_ALWAYS_INLINE inline
+#endif
 #endif
 #endif
 
@@ -74,8 +84,9 @@ class bad_any_cast : public std::bad_cast { };
 static ANY_ALWAYS_INLINE void handle_bad_any_cast() {
 #if ANY_USE_EXCEPTIONS
 	throw bad_any_cast();
-#endif
+#else
 	abort();
+#endif
 }
 
 template <class T>  struct IsInPlaceType_ : std::false_type { };
@@ -84,7 +95,7 @@ template <class T>  struct IsInPlaceType_<std::in_place_type_t<T>> : std::true_t
 template <size_t S> struct IsInPlaceType_<std::in_place_index_t<S>> : std::true_type { };
 template <class T>  constexpr bool IsInPlaceType = IsInPlaceType_<T>::value;
 
-constexpr size_t StorageBufferSize = 3 * sizeof(void*);
+constexpr size_t StorageBufferSize = 4 * sizeof(void*);
 using StorageBuffer = std::aligned_storage_t<StorageBufferSize, std::alignment_of_v<void*>>;
 
 template <class T>

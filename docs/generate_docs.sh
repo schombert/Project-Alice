@@ -1,24 +1,24 @@
 # Get the external documentation
 mkdir -p data_container
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/README.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/changes.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/file_format_documentation.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/getting_started.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/iamtheecs.jpg
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/iamtheecs.jpg
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/multithreading.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/objects_and_properties.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/overview.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/queries.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/relationships.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/serialization.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/tutorial_color.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/tutorial_ecs.md
-wget -q -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/ve_documentation.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/README.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/changes.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/file_format_documentation.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/getting_started.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/iamtheecs.jpg
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/iamtheecs.jpg
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/multithreading.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/objects_and_properties.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/overview.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/queries.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/relationships.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/serialization.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/tutorial_color.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/tutorial_ecs.md
+wget -q -nc -P ./data_container https://raw.githubusercontent.com/schombert/DataContainer/master/ve_documentation.md
 
 # Generate the layout file
-echo "<doxygenlayout version="1.0">" 	> layout_file.xml
-echo "<navindex>"						>> layout_file.xml
+echo '<doxygenlayout version="1.0">' 	> layout_file.xml
+echo '<navindex>'						>> layout_file.xml
 
 gen_directory () {
 find $1 -maxdepth 1 -name "*.md" $3 -print0 |
@@ -39,8 +39,12 @@ gen_directory "data_container/" "data_container_" "! -name README.md"
 echo '</tab>' 	>> layout_file.xml
 
 
-echo "</navindex>"						>> layout_file.xml
-echo "</doxygenlayout version="1.0">" 	>> layout_file.xml
+echo '</navindex>'						>> layout_file.xml
+echo '</doxygenlayout>' 	>> layout_file.xml
 
 # Run doxygen
 doxygen
+
+# Replace broken code blocks in headers
+sed -i "s/&lt;tt&gt;/<code>/g" out/html/md_*.html
+sed -i "s/&lt;\/tt&gt;/<\/code>/g" out/html/md_*.html

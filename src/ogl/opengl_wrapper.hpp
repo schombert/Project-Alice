@@ -10,6 +10,7 @@
 
 #include "container_types.hpp"
 #include "texture.hpp"
+#include "fonts.hpp"
 
 namespace ogl {
 namespace parameters {
@@ -134,14 +135,14 @@ struct color3f {
 		GLuint ui_shader_program = 0;
 
 		GLuint global_square_vao = 0;
-		GLuint global_sqaure_buffer = 0;
-		GLuint global_sqaure_right_buffer = 0;
-		GLuint global_sqaure_left_buffer = 0;
-		GLuint global_sqaure_flipped_buffer = 0;
-		GLuint global_sqaure_right_flipped_buffer = 0;
-		GLuint global_sqaure_left_flipped_buffer = 0;
+		GLuint global_square_buffer = 0;
+		GLuint global_square_right_buffer = 0;
+		GLuint global_square_left_buffer = 0;
+		GLuint global_square_flipped_buffer = 0;
+		GLuint global_square_right_flipped_buffer = 0;
+		GLuint global_square_left_flipped_buffer = 0;
 
-		GLuint sub_sqaure_buffers[64] = { 0 };
+		GLuint sub_square_buffers[64] = { 0 };
 	};
 
 	void notify_user_of_fatal_opengl_error(std::string message); // this function calls std::abort
@@ -197,9 +198,5 @@ struct color3f {
 	void render_progress_bar(sys::state const& state, color_modification enabled, float progress, float x, float y, float width, float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped);
 	void render_tinted_textured_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped);
 	void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped);
-	/*
-	void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, font& f);
-	void render_outlined_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, font& f);
-	void render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, font& f);
-	*/
+	void render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f);
 }
