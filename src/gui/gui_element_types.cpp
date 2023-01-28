@@ -209,6 +209,40 @@ void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcep
 	}
 }
 
+void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	image_element_base::render(state, x, y);
+	if(stored_text.length() > 0) {
+
+		auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
+		auto ycentered = (base_data.size.y - linesz) / 2;
+
+		ogl::render_text(
+			state, stored_text.c_str(), uint32_t(stored_text.length()),
+			get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+			float(x + text_offset), float(y + ycentered * 0.5f), float(font_size),
+			black_text ? ogl::color3f{ 0.0f,0.0f,0.0f } : ogl::color3f{ 1.0f,1.0f,1.0f },
+			state.font_collection.fonts[font_id - 1]);
+	}
+}
+
+void button_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
+		auto base_text_handle = base_data.data.button.txt;
+		stored_text = text::produce_simple_string(state, base_text_handle);
+		font_id = text::font_index_from_font_id(base_data.data.button.font_handle);
+		font_size = text::size_from_font_id(base_data.data.button.font_handle);
+		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+
+		//if(base_data.data.button.get_alignment() == ui::alignment::centered || base_data.data.button.get_alignment() == ui::alignment::justified) {
+			text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size)) / 2.0f;
+		//} else if(base_data.data.button.get_alignment() == ui::alignment::right) {
+		//	text_offset = base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size);
+		//} else {
+		//	text_offset = 0.0f;
+		//}
+	}
+}
+
 void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
 	if(dat.size.x == 0 || dat.size.y == 0) {
 		dcon::gfx_object_id gfx_handle;

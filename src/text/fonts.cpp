@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "fonts.hpp"
 #include "parsers.hpp"
 
@@ -105,8 +107,8 @@ font_manager::~font_manager() {
 }
 
 font::~font() {
-	if(loaded)
-		FT_Done_Face(font_face);
+	//if(loaded)
+	//	FT_Done_Face(font_face);
 }
 
 
@@ -230,7 +232,7 @@ void dead_reckoning(float distance_map[dr_size * dr_size], const bool in_map[dr_
 	}
 }
 
-void font_manager::load_font(font& fnt, char* file_data, uint32_t file_size) {
+void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_size) {
 	fnt.file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[file_size]);
 	memcpy(fnt.file_data.get(), file_data, file_size);
 	FT_New_Memory_Face(ft_library, fnt.file_data.get(), file_size, 0, &fnt.font_face);
@@ -375,6 +377,21 @@ float font::text_extent(const char* codepoints, uint32_t count, int32_t size) co
 			((count != 0) ? kerning(codepoints[count - 1], codepoints[count]) * size / 64.0f : 0.0f);
 	}
 	return total;
+}
+
+
+void load_standard_fonts(sys::state& state) {
+	auto root = get_root(state.common_fs);
+	auto font_a = open_file(root, NATIVE("LibreCaslonText-Regular.ttf"));
+	if(font_a) {
+		auto file_content = view_contents(*font_a);
+		state.font_collection.load_font(state.font_collection.fonts[0], file_content.data, file_content.file_size);
+	}
+	auto font_b = open_file(root, NATIVE("AndadaSC-Regular.otf"));
+	if(font_b) {
+		auto file_content = view_contents(*font_b);
+		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size);
+	}
 }
 
 }

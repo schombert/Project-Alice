@@ -568,4 +568,24 @@ namespace text {
 
 		return converted[(uint8_t)in];
 	}
+
+	std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id) {
+		std::string result;
+
+		if(!id)
+			return result;
+
+		auto& seq = state.text_sequences[id];
+		for(uint32_t i = 0; i < seq.component_count; ++i) {
+			//std::variant<line_break, text_color, variable_type, dcon::text_key>
+			if(std::holds_alternative<dcon::text_key>(state.text_components[i + seq.starting_component])) {
+				result += state.to_string_view(std::get<dcon::text_key>(state.text_components[i + seq.starting_component]));
+			} else if(std::holds_alternative<variable_type>(state.text_components[i + seq.starting_component])) {
+				result += '?';
+			}
+		}
+
+		return result;
+
+	}
 }
