@@ -5,7 +5,7 @@
 struct basic_object_a {
     int32_t int_value = 0;
     float float_value = 0.0f;
-    int32_t key_A = 0;
+    int32_t key_a = 0;
     std::string_view stored_text;
     std::string_view left_free_text;
 
@@ -15,6 +15,20 @@ struct basic_object_a {
     }
 
     void finish(int32_t) {
+    }
+};
+
+struct optimize_names {
+	int namelong0 = 0;
+	int namelong1 = 0;
+	int namelong2 = 0;
+	int namelong3 = 0;
+
+	int lg0bb0 = 0;
+	int lg1bb1 = 0;
+	int lg0bb2 = 0;
+
+	void finish(int32_t) {
     }
 };
 
@@ -192,14 +206,14 @@ inline exercising_combinations ec_sv_stub(std::string_view sv, parsers::token_ge
 
 TEST_CASE("Generated parsers tests", "[parsers]") {
     SECTION("trivial cases") {
-        char file_data[] = "{ a b\nc }\nunk_key = free_text 11 key_A = 3\nkey_C = 2.5 key_B  = { 1 2 3}";
+        char file_data[] = "{ a b\nc }\nunk_key = free_text 11 key_a = 3\nkey_c = 2.5 key_b  = { 1 2 3}";
 
         parsers::error_handler err("no file");
         parsers::token_generator gen(file_data, file_data + strlen(file_data));
 
         auto created_object = parsers::parse_basic_object_a(gen, err, 0);
 
-        REQUIRE(created_object.key_A == 3);
+        REQUIRE(created_object.key_a == 3);
         REQUIRE(created_object.int_value == 11);
         REQUIRE(created_object.float_value == 2.5f);
         REQUIRE(created_object.stored_text == "free_text");
@@ -348,19 +362,43 @@ TEST_CASE("Generated parsers tests", "[parsers]") {
         }
     }
     SECTION("inheritance and error test") {
-        char file_data[] = "{ a b\nc }\nunk_key = free_text 11 bad_key = { 10 } key_A = 3\nkey_C = 2.5 key_B  = { 1 2 3}";
+        char file_data[] = "{ a b\nc }\nunk_key = free_text 11 bad_key = { 10 } key_a = 3\nkey_c = 2.5 key_b  = { 1 2 3}";
 
         parsers::error_handler err("no file");
         parsers::token_generator gen(file_data, file_data + strlen(file_data));
 
         auto created_object = parsers::parse_basic_copy(gen, err, 0);
 
-        REQUIRE(created_object.key_A == 3);
+        REQUIRE(created_object.key_a == 3);
         REQUIRE(created_object.int_value == 11);
         REQUIRE(created_object.float_value == 2.5f);
         REQUIRE(created_object.stored_text == "free_text");
         REQUIRE(created_object.left_free_text == "unk_key");
         REQUIRE(err.accumulated_errors.length() != size_t(0));
+    }
+	SECTION("branching optimization") {
+        char file_data[] =
+			"namelong0 = 1\n"
+			"namelong1 = 2\n"
+			"namelong2 = 3\n"
+			"namelong3 = 4\n"
+			"lg0bb0 = 5\n"
+			"lg1bb1 = 6\n"
+			"lg0bb2 = 7\n";
+
+        parsers::error_handler err("no file");
+        parsers::token_generator gen(file_data, file_data + strlen(file_data));
+
+        auto created_object = parsers::parse_optimize_names(gen, err, 0);
+
+        REQUIRE(created_object.namelong0 == 1);
+        REQUIRE(created_object.namelong1 == 2);
+        REQUIRE(created_object.namelong2 == 3);
+        REQUIRE(created_object.namelong3 == 4);
+		REQUIRE(created_object.lg0bb0 == 5);
+		REQUIRE(created_object.lg1bb1 == 6);
+		REQUIRE(created_object.lg0bb2 == 7);
+        REQUIRE(err.accumulated_errors.length() == size_t(0));
     }
 }
 

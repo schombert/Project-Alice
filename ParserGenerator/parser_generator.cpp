@@ -56,7 +56,6 @@ enum token_type {
 	group_ident,
 	group_item_ident,
 	ident,
-	comma,
 	lparen,
 	rparen,
 	newline
@@ -69,7 +68,6 @@ struct token {
 static std::string_view get_type_name(token_type const& type) {
 	switch(type) {
 	case token_type::none: return "none";
-	case token_type::comma: return ",";
 	case token_type::group_ident: return "group_ident";
 	case token_type::group_item_ident: return "group_item_ident";
 	case token_type::ident: return "ident";
@@ -82,7 +80,6 @@ static std::string_view get_type_name(token_type const& type) {
 };
 
 struct parser_state {
-	std::locale locale;
 	std::ctype<char> const* char_facet = nullptr;
 	std::vector<token> tokens;
 	location_info loc_info;
@@ -95,8 +92,7 @@ struct parser_state {
 parser_state(std::string_view const _file_name)
 	: file_name{ _file_name }
 {
-	locale = std::locale("en_US.UTF-8");
-	char_facet = &std::use_facet<std::ctype<char>>(std::locale());
+	char_facet = &std::use_facet<std::ctype<char>>(std::locale("C"));
 }
 
 void report_any(std::string_view const severity, int code, location_info local_loc_info, std::string_view const fmt, va_list ap) {
@@ -120,20 +116,12 @@ void report_error(int code, location_info local_loc_info, std::string_view const
 	error_count++;
 }
 
-void report_warning(int code, location_info local_loc_info, std::string_view const fmt, ...) {
-	va_list ap;
-	va_start(ap, fmt);
-	report_any("warning", code, local_loc_info, fmt, ap);
-	va_end(ap);
-	warning_count++;
-}
-
 size_t get_column(std::string_view const s, std::string_view::iterator const it) {
 	return size_t(std::distance(s.begin(), it));
 }
 
-bool is_ident(char ch) {
-	return char_facet->is(std::ctype_base::alnum, ch) || ch == '#' || ch == '@' || ch == '_';
+bool is_ident(char c) {
+	return std::isalnum(c) || c == '#' || c == '@' || c == '_';
 }
 
 void tokenize_line(std::string_view const line) {
@@ -145,7 +133,7 @@ void tokenize_line(std::string_view const line) {
 	while(it != line.cend()) {
 		token tok{};
 		// If a line starts with a space - it's a group identifier
-		if(it == line.begin() && char_facet->is(std::ctype_base::space, *it)) {
+		if(it == line.begin() && (std::isspace(*it) || *it == ',')) {
 			tok.type = token_type::group_item_ident;
 			++it;
 		} else if(it == line.begin()) {
@@ -153,16 +141,16 @@ void tokenize_line(std::string_view const line) {
 		}
 
 		// Skip a single spacing character
-		if(char_facet->is(std::ctype_base::space, *it))
+		if(std::isspace(*it) || *it == ',')
 			++it;
 		if(it == line.cend())
 			break;
 		
 		// Otherwise skip the rest...
-		while(char_facet->is(std::ctype_base::space, *it))
+		while(std::isspace(*it) || *it == ',')
 			++it;
 		if(it == line.cend()) {
-			report_warning(101, location_info(loc_info.row, int(get_column(line, it))), "Trailing spaces\n");
+			report_error(101, location_info(loc_info.row, int(get_column(line, it))), "Trailing spaces\n");
 			break;
 		}
 
@@ -171,9 +159,6 @@ void tokenize_line(std::string_view const line) {
 			++it;
 		} else if(*it == ')') {
 			tok.type = token_type::rparen;
-			++it;
-		} else if(*it == ',') {
-			tok.type = token_type::comma;
 			++it;
 		} else if(is_ident(*it)) {
 			if(tok.type != token_type::group_ident && tok.type != token_type::group_item_ident)
@@ -184,8 +169,17 @@ void tokenize_line(std::string_view const line) {
 			auto start_idx = std::distance(line.begin(), start_ident);
 			auto end_idx = std::distance(line.begin(), it);
 			tok.data = line.substr(start_idx, end_idx - start_idx);
-			for(auto& c : tok.data)
-				c = char_facet->tolower(c);
+
+			// Verify naming constraints for all identifiers
+			bool violated_casing = false;
+			for(auto const c : tok.data)
+				if(std::isalpha(c) && !std::islower(c)) {
+					violated_casing = true;
+					break;
+				}
+			
+			if(violated_casing)
+				report_error(120, location_info(loc_info.row, int(get_column(line, it))), "Naming constraints violated '%s'", tok.data);
 		} else {
 			report_error(100, location_info(loc_info.row, int(get_column(line, it))), "Unexpected token '%c'\n", *it);
 			break;
@@ -493,10 +487,8 @@ std::string construct_match_tree_internal(V const& vector, F const& generator_ma
 			output += tabulate("// " + running_prefix + "\n");
 			assert(running_prefix.length() > prefix.length() && running_prefix != prefix);
 
-			auto const key = running_prefix.substr(prefix.length());
-			
-			output += tabulate("// running -  " + key + "\n");
-			output += tabulate("if(" + final_match_condition(key, 0, running_prefix.length() - prefix.length()) + ") {\n");
+			output += tabulate("// running -  " + running_prefix.substr(prefix.length()) + "\n");
+			output += tabulate("if(" + final_match_condition(running_prefix, prefix.length(), running_prefix.length()) + ") {\n");
 			tabulate_increment();
 			output += construct_match_tree_internal(vector, generator_match, no_match, running_prefix, length);
 			tabulate_decrement();
