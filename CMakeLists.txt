@@ -104,6 +104,16 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${PROJECT_SOURCE_DIR}/src/mod/alice.gui
                 ${CMAKE_CURRENT_BINARY_DIR}/alice.gui)
+add_custom_command(
+        TARGET Alice POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${PROJECT_SOURCE_DIR}/src/mod/AndadaSC-Regular.otf
+                ${CMAKE_CURRENT_BINARY_DIR}/AndadaSC-Regular.otf)
+add_custom_command(
+        TARGET Alice POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${PROJECT_SOURCE_DIR}/src/mod/LibreCaslonText-Regular.ttf
+                ${CMAKE_CURRENT_BINARY_DIR}/LibreCaslonText-Regular.ttf)
 
 set(GAME_FILES_DIRECTORY "" CACHE PATH "location of game files (i.e. the folder containing the exe)")
 
