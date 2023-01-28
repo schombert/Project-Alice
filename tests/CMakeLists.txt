@@ -28,7 +28,7 @@ add_custom_command(
   DEPENDS ${PROJECT_SOURCE_DIR}/tests/test_parsers.txt
   VERBATIM)
 
-# Sets a dependency on the generated file 
+# Sets a dependency on the generated file
 add_custom_target(GENERATE_TEST_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/tests/test_parsers_generated.hpp)
 add_dependencies(tests_project GENERATE_TEST_PARSERS)
 
@@ -67,7 +67,7 @@ catch_discover_tests(tests_project)
 # add_custom_command(
 #    TARGET tests_project
 #     COMMENT "Run tests"
-#     POST_BUILD 
+#     POST_BUILD
 #     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 #     COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIGURATION> -R "^tests_project$" --output-on-failures
 # )
