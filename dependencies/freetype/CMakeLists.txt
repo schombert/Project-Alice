@@ -14,3 +14,11 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(freetype)
+
+if(MSVC)
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
+	else()
+		set_target_properties(freetype PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline")
+	endif()
+endif()
