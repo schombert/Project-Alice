@@ -95,7 +95,7 @@ parser_state(std::string_view const _file_name)
 	char_facet = &std::use_facet<std::ctype<char>>(std::locale("C"));
 }
 
-void report_any(std::string_view const severity, int code, location_info local_loc_info, std::string_view const fmt, va_list ap) {
+void report_any(std::string_view const severity, int code, location_info local_loc_info, std::string_view const fmt) {
 	console_stream << file_name;
 	if(local_loc_info.row > 0) {
 		if(local_loc_info.column > 0)
@@ -103,16 +103,11 @@ void report_any(std::string_view const severity, int code, location_info local_l
 		else
 			console_stream << "(" << std::to_string(local_loc_info.row) << ")";
 	}
-	char msgbuf[BUFSIZ];
-	vsnprintf(msgbuf, sizeof(msgbuf), fmt.data(), ap);
-	console_stream << ": " << severity << " " << std::to_string(code) << ": " << msgbuf << "\n";
+	console_stream << ": " << severity << " " << std::to_string(code) << ": " << fmt.data() << "\n";
 }
 
-void report_error(int code, location_info local_loc_info, std::string_view const fmt, ...) {
-	va_list ap;
-	va_start(ap, fmt);
-	report_any("error", code, local_loc_info, fmt, ap);
-	va_end(ap);
+void report_error(int code, location_info local_loc_info, std::string_view const fmt) {
+	report_any("error", code, local_loc_info, fmt);
 	error_count++;
 }
 
@@ -179,9 +174,9 @@ void tokenize_line(std::string_view const line) {
 				}
 			
 			if(violated_casing)
-				report_error(120, location_info(loc_info.row, int(get_column(line, it))), "Naming constraints violated '%s'", tok.data);
+				report_error(120, location_info(loc_info.row, int(get_column(line, it))), "Naming constraints violated '" + tok.data + "\n");
 		} else {
-			report_error(100, location_info(loc_info.row, int(get_column(line, it))), "Unexpected token '%c'\n", *it);
+			report_error(100, location_info(loc_info.row, int(get_column(line, it))), std::string() + "Unexpected token '" + *it + "'\n");
 			break;
 		}
 		tok.loc_info = loc_info;
@@ -210,13 +205,13 @@ token get_specific_token(auto& it, bool& err_cond, token_type const& type) {
 	auto o = get_token(it);
 	if(!o.has_value()) {
 		// TODO: This is risky - but allows for accurate-ish reporting
-		report_error(109, it[-1].loc_info, "Expected a '%s' token\n", token::get_type_name(type).data());
+		report_error(109, it[-1].loc_info, std::string() + "Expected a '" + token::get_type_name(type).data() + "' token\n");
 		err_cond = true;
 		return token{};
 	}
 	token tok{o.value()};
 	if(tok.type != type) {
-		report_error(110, tok.loc_info, "Expected a '%s' token, but found '%s'\n", token::get_type_name(type).data(), token::get_type_name(tok.type).data());
+		report_error(110, tok.loc_info, std::string() + "Expected a '" + token::get_type_name(type).data() + "' token, but found '" + token::get_type_name(tok.type).data() + "'\n");
 		err_cond = true;
 		return token{};
 	}
@@ -232,7 +227,7 @@ void parse() {
 			groups.back().group_object_type = key.data;
 		} else if(key.type == token_type::group_item_ident) {
 			if(groups.empty()) {
-				report_error(120, key.loc_info, "Item '%s' defined before first group\n", key.data.c_str());
+				report_error(120, key.loc_info, "Item '" + key.data + "' defined before first group\n");
 				continue;
 			}
 
@@ -260,7 +255,7 @@ void parse() {
 					groups.back().single_value_handler_type = opt.data;
 					groups.back().single_value_handler_result = value_and_optional{ handler_type.data, handler_opt.data };
 				} else {
-					report_error(102, type.loc_info, "Invalid #free type '%s'\n", type.data.c_str());
+					report_error(102, type.loc_info, "Invalid #free type '" + type.data + "'\n");
 				}
 			} else if(key.data == "#base") {
 				auto err_cond = false;
@@ -311,9 +306,9 @@ void parse() {
 					groups.back().any_group_handler = group_association{ "", opt.data, value_and_optional{handler_type.data, handler_opt.data}, true };
 					
 					if(std::find(valid_group_handler_values.begin(), valid_group_handler_values.end(), groups.back().any_group_handler.handler.value) == valid_group_handler_values.end())
-						report_error(104, type.loc_info, "Unhandled #any group '%s' with invalid handler_type '%s'\n", type.data.c_str(), handler_type.data.c_str());
+						report_error(104, type.loc_info, "Unhandled #any group '" + type.data + "' with invalid handler_type '" + handler_type.data + "'\n");
 				} else {
-					report_error(103, type.loc_info, "Invalid #any type '%s'\n", type.data.c_str());
+					report_error(103, type.loc_info, "Invalid #any type '" + type.data + "'\n");
 				}
 			} else {
 				/* key: type opt handler_type (handler_opt) */
@@ -330,7 +325,7 @@ void parse() {
 					get_specific_token(it, err_cond, token_type::rparen);
 
 				if(std::find_if(groups.back().groups.begin(), groups.back().groups.end(), [&](auto const& g) { return g.key == key.data; }) != groups.back().groups.end()) {
-					report_error(116, type.loc_info, "Duplicate key '%s' in group '%s'\n", key.data.c_str(), groups.back().group_object_type.c_str());
+					report_error(116, type.loc_info, "Duplicate key '" + key.data + "' in group '" + groups.back().group_object_type + "'\n");
 					err_cond = true;
 				}
 
@@ -344,13 +339,13 @@ void parse() {
 				} else if(type.data == "extern") {
 					groups.back().groups.push_back(group_association{ key.data, opt.data, value_and_optional{handler_type.data, handler_opt.data}, true });
 				} else {
-					report_error(104, type.loc_info, "Invalid #free type '%s'\n", type.data.c_str());
+					report_error(104, type.loc_info, "Invalid #free type '" + type.data + "'\n");
 				}
 			}
 		} else if(key.type == token_type::newline) {
 			// ignore newline
 		} else {
-			report_error(120, key.loc_info, "Unexpected token '%s'\n", token::get_type_name(key.type).data());
+			report_error(120, key.loc_info, std::string() + "Unexpected token '" + token::get_type_name(key.type).data() + "'\n");
 		}
 	}
 }
@@ -403,10 +398,10 @@ std::string final_match_condition(std::string_view const key, size_t starting_po
 
 template<typename V, typename F>
 void enum_with_prefix(V const& vector, std::string_view const prefix, int32_t length, F const& fn) {
-	for(size_t i = 0; i < vector.size(); ++i) {
-		if(vector[i].key.length() == length) {
+	for(int32_t i = 0; i < int32_t(vector.size()); ++i) {
+		if(int32_t(vector[i].key.length()) == length) {
 			bool match = true;
-			for(size_t j = 0; j < prefix.length(); ++j) {
+			for(int32_t j = 0; j < int32_t(prefix.length()); ++j) {
 				if((vector[i].key[j] | 0x20) != (prefix[j] | 0x20)) {
 					match = false;
 					break;
