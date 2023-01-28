@@ -407,7 +407,8 @@ std::string final_match_condition(std::string_view const key, size_t starting_po
 	return std::string("(true") + final_match_condition_internal(key, starting_position, ending_position) + ")";
 }
 
-void enum_with_prefix(auto const& vector, std::string_view const prefix, int32_t length, auto const& fn) {
+template<typename V, typename F>
+void enum_with_prefix(V const& vector, std::string_view const prefix, int32_t length, F const& fn) {
 	int32_t const sz = int32_t(vector.size());
 	for(int32_t i = 0; i < sz; ++i) {
 		if(int32_t(vector[i].key.length()) == length) {
@@ -426,7 +427,8 @@ void enum_with_prefix(auto const& vector, std::string_view const prefix, int32_t
 	}
 }
 
-int32_t count_with_prefix(auto const& vector, std::string_view const prefix, int32_t length) {
+template<typename V>
+int32_t count_with_prefix(V const& vector, std::string_view const prefix, int32_t length) {
 	int32_t total = 0;
 	enum_with_prefix(vector, prefix, length, [&](auto const&) {
 		++total;
@@ -434,7 +436,8 @@ int32_t count_with_prefix(auto const& vector, std::string_view const prefix, int
 	return total;
 }
 
-int32_t max_length(auto const& vector) {
+template<typename V>
+int32_t max_length(V const& vector) {
 	int32_t mx = 0;
 	for(auto const& e : vector)
 		mx = mx > int32_t(e.key.length()) ? mx : int32_t(e.key.length());
@@ -456,7 +459,8 @@ std::string tabulate(std::string_view const s) const {
 	return tabs + s.data();
 }
 
-std::string get_match_tree_running_prefix(auto const& vector, std::string prefix, int32_t length) {
+template<typename V>
+std::string get_match_tree_running_prefix(V const& vector, std::string prefix, int32_t length) {
 	int32_t top_count = count_with_prefix(vector, prefix, length);
 	for(int32_t c = 32; c <= 95; ++c) {
 		int32_t count = count_with_prefix(vector, prefix + char(c), length);
@@ -468,7 +472,8 @@ std::string get_match_tree_running_prefix(auto const& vector, std::string prefix
 	return prefix;
 }
 
-std::string construct_match_tree_internal(auto const& vector, auto const& generator_match, std::string_view const no_match, std::string_view const prefix, int32_t length) {
+template<typename V, typename F>
+std::string construct_match_tree_internal(V const& vector, F const& generator_match, std::string_view const no_match, std::string_view const prefix, int32_t length) {
 	int32_t top_count = count_with_prefix(vector, prefix, length);	
 	std::string output;
 	bool has_switch = false;
