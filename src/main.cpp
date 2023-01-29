@@ -1,4 +1,6 @@
+#ifndef GAME_DIR
 #include "local_user_settings.hpp"
+#endif
 #include "parsers.cpp"
 #include "float_from_chars.cpp"
 #include "system_state.cpp"
