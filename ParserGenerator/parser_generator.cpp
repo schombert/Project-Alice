@@ -393,7 +393,7 @@ std::string final_match_condition(std::string_view const key, size_t starting_po
 		ending_position = key.length();
 	assert(ending_position <= key.length());
 	assert(starting_position <= ending_position);
-	return std::string("(true") + final_match_condition_internal(key, starting_position, ending_position) + ")";
+	return std::string("(true") + final_match_condition_internal(key, int32_t(starting_position), int32_t(ending_position)) + ")";
 }
 
 template<typename V, typename F>
