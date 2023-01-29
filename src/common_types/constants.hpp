@@ -163,4 +163,16 @@ enum class key_modifiers : uint8_t {
 	modifiers_alt_shift = 0x5,
 	modifiers_all = 0x7
 };
+constexpr inline float ui_scales[] = {
+	0.75f,
+	1.0f,
+	1.25f,
+	1.5f,
+	1.75f,
+	2.0f,
+	2.5f,
+	3.0f
+};
+constexpr inline uint32_t ui_scales_count = 8;
+
 }

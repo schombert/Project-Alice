@@ -41,6 +41,7 @@ int WINAPI wWinMain(
 		ui::load_text_gui_definitions(*game_state, err);
 
 		// scenario loading functions (would have to run these even when scenario is pre-built
+		game_state->load_user_settings();
 		text::load_standard_fonts(*game_state);
 		ui::populate_definitions_map(*game_state);
 		game_state->open_gl.asset_textures.resize(game_state->ui_defs.textures.size());

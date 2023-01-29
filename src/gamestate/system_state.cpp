@@ -11,14 +11,12 @@ namespace sys {
 	//
 
 	void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-		// TODO: take into account scale factor
 		// TODO: look at return value
-		ui_state.root->impl_on_rbutton_down(*this, x, y, mod);
+		ui_state.root->impl_on_rbutton_down(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), mod);
 	}
 	void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-		// TODO: take into account scale factor
 		// TODO: look at return value
-		ui_state.root->impl_on_lbutton_down(*this, x, y, mod);
+		ui_state.root->impl_on_lbutton_down(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), mod);
 	}
 	void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 
@@ -35,9 +33,11 @@ namespace sys {
 	void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is held down
 		is_dragging = true;
 
-		// TODO: take into account scale factor
 		if(ui_state.drag_target)
-			ui_state.drag_target->on_drag(*this, mouse_x_position, mouse_y_position, x, y, mod);
+			ui_state.drag_target->on_drag(*this,
+				int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale),
+				int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale),
+				mod);
 	}
 	void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
 		if(ui_state.drag_target) {
@@ -47,15 +47,13 @@ namespace sys {
 	}
 	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
 		if(win_state != window_state::minimized) {
-			// TODO: take into account scale factor
-			ui_state.root->base_data.size.x = int16_t(x);
-			ui_state.root->base_data.size.y = int16_t(y);
+			ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
+			ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
 		}
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
-		// TODO: take into account scale factor
 		// TODO: look at return value
-		ui_state.root->impl_on_scroll(*this, x, y, amount, mod);
+		ui_state.root->impl_on_scroll(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), amount, mod);
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 		if(!ui_state.edit_target) {
@@ -70,7 +68,6 @@ namespace sys {
 
 	}
 	void state::on_text(char c) { // c is win1250 codepage value
-		// TODO: send to focused element
 		if(ui_state.edit_target)
 			ui_state.edit_target->on_text(*this, c);
 	}
@@ -80,8 +77,8 @@ namespace sys {
 
 
 		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size));
-		glUniform1f(ogl::parameters::screen_height, float(y_size));
+		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -148,5 +145,30 @@ namespace sys {
 		} else {
 			return add_to_pool(text);
 		}
+	}
+
+
+	void state::save_user_settings() const {
+		auto settings_location = simple_fs::get_or_create_settings_directory();
+		simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), reinterpret_cast<char const*>(&user_settings), uint32_t(sizeof(user_settings_s)));
+	}
+	void state::load_user_settings() {
+		auto settings_location = simple_fs::get_or_create_settings_directory();
+		auto settings_file = open_file(settings_location, NATIVE("user_settings.dat"));
+		if(settings_file) {
+			auto content = view_contents(*settings_file);
+			std::memcpy(&user_settings, content.data, std::min(uint32_t(sizeof(user_settings_s)), content.file_size));
+
+			user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);
+			user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
+			user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);
+			user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
+		}
+	}
+
+
+	void state::update_ui_scale(float new_scale) {
+		user_settings.ui_scale = new_scale;
+		// TODO move windows
 	}
 }

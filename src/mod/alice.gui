@@ -299,9 +299,9 @@ guiTypes = {
 				size = {x = 236 y = 16 }
 				position = {x= 58 y = 123 }	
 				minValue = 0
-				maxValue = 128
+				maxValue = 100
 				stepSize = 1
-				startValue = 128
+				startValue = 100
 				horizontal = 1
 			
 				guiButtonType = {
@@ -347,9 +347,9 @@ guiTypes = {
 				size = {x = 236 y = 16 }
 				position = {x= 58 y = 176 }	
 				minValue = 0
-				maxValue = 128
+				maxValue = 100
 				stepSize = 1
-				startValue = 128
+				startValue = 100
 				horizontal = 1
 			
 				guiButtonType = {
@@ -395,9 +395,9 @@ guiTypes = {
 				size = {x = 236 y = 16 }
 				position = {x= 58 y = 229 }	
 				minValue = 0
-				maxValue = 128
+				maxValue = 100
 				stepSize = 1
-				startValue = 128
+				startValue = 100
 				horizontal = 1
 			
 				guiButtonType = {
@@ -443,9 +443,9 @@ guiTypes = {
 				size = {x = 236 y = 16 }
 				position = {x= 58 y = 282 }	
 				minValue = 0
-				maxValue = 128
+				maxValue = 100
 				stepSize = 1
-				startValue = 128
+				startValue = 100
 				horizontal = 1
 			
 				guiButtonType = {
