@@ -127,6 +127,9 @@ message_result element_base::impl_on_scroll(sys::state& state, int32_t x, int32_
 void element_base::impl_on_update(sys::state& state) noexcept {
 	on_update(state);
 }
+void element_base::impl_on_resize(sys::state& state, int32_t x, int32_t y, sys::window_state win_state) noexcept {
+	on_resize(state, x, y, win_state);
+}
 message_result element_base::impl_get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(auto res = get(state, payload); res != message_result::consumed) {
 		if(parent)
@@ -159,6 +162,13 @@ message_result element_base::on_scroll(sys::state& state, int32_t x, int32_t y, 
 	return message_result::unseen;
 }
 void element_base::on_update(sys::state& state) noexcept {
+}
+void element_base::on_resize(sys::state& state, int32_t x, int32_t y, sys::window_state win_state) noexcept {
+	// Update coordinates
+	if(win_state != sys::window_state::minimized) {
+		// TODO: take into account scale factor
+		ui::make_size_from_graphics(state, base_data);
+	}
 }
 message_result element_base::get(sys::state& state, Cyto::Any& payload) noexcept {
 	return message_result::unseen;

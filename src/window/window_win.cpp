@@ -231,7 +231,6 @@ namespace window {
 				state->on_resize(LOWORD(lParam), HIWORD(lParam), t);
 				state->x_size = LOWORD(lParam);
 				state->y_size = HIWORD(lParam);
-
 				return 0;
 			};
 			case WM_MOUSEWHEEL:

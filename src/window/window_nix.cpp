@@ -295,7 +295,7 @@ void on_window_change(GLFWwindow* window) {
 }
 
 void window_size_callback(GLFWwindow* window, int width, int height) {
-	// on_window_change(window);
+	on_window_change(window);
 	// framebuffer_size_callback should be enough
 }
 
@@ -323,7 +323,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	if(!glfwInit())
 		std::abort(); // throw "Failed to init glfw\n";
 
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only

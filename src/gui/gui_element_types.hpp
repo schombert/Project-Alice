@@ -37,6 +37,7 @@ public:
 	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final;
 	message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept final;
 	void impl_on_update(sys::state& state) noexcept final;
+	void impl_on_resize(sys::state& state, int32_t x, int32_t y, sys::window_state win_state) noexcept final;
 	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
 

@@ -78,6 +78,14 @@ void container_base::impl_on_update(sys::state& state) noexcept {
 	}
 	on_update(state);
 }
+void container_base::impl_on_resize(sys::state& state, int32_t x, int32_t y, sys::window_state win_state) noexcept {
+	for(auto& c : children) {
+		if(c->is_visible()) {
+			c->impl_on_resize(state, x, y, win_state);
+		}
+	}
+	on_resize(state, x, y, win_state);
+}
 message_result container_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
 	message_result res = message_result::unseen;
 	for(auto& c : children) {
@@ -372,6 +380,12 @@ void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
 				dat.size.y = int16_t(dat.size.y * dat.data.image.scale);
 			}
 		}
+	}
+	
+	// Resize for fullscreen
+	if(dat.get_element_type() == ui::element_type::window && dat.data.window.is_fullscreen()) {
+		dat.size.x = ui::ui_width(state);
+		dat.size.y = ui::ui_height(state);
 	}
 }
 

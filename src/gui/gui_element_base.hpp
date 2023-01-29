@@ -39,6 +39,7 @@ public:
 	virtual message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
 	virtual void impl_on_update(sys::state& state) noexcept;
+	virtual void impl_on_resize(sys::state& state, int32_t x, int32_t y, sys::window_state win_state) noexcept;
 	message_result impl_get(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;
@@ -55,6 +56,7 @@ protected:
 	virtual message_result set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void render(sys::state& state, int32_t x, int32_t y) noexcept { }
 	virtual void on_update(sys::state& state) noexcept;
+	virtual void on_resize(sys::state& state, int32_t x, int32_t y, sys::window_state win_state) noexcept;
 	virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
 	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
 	virtual void on_text(sys::state& state, char ch) noexcept { }

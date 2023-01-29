@@ -46,11 +46,7 @@ namespace sys {
 		}
 	}
 	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
-		if(win_state != window_state::minimized) {
-			// TODO: take into account scale factor
-			ui_state.root->base_data.size.x = int16_t(x);
-			ui_state.root->base_data.size.y = int16_t(y);
-		}
+		ui_state.root->impl_on_resize(*this, x, y, win_state);
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 		// TODO: take into account scale factor
