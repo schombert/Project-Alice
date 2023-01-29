@@ -18,6 +18,20 @@ class ui_scale_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class window_mode_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class window_mode_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class window_mode_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
 
 struct notify_setting_update{ };
 
@@ -57,6 +71,13 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<ui_scale_left>(state, id);
 		else if(name == "ui_scale_right")
 			return make_element_by_type<ui_scale_right>(state, id);
+		else if(name == "window_mode_value")
+			return make_element_by_type<window_mode_display>(state, id);
+		else if(name == "window_mode_left")
+			return make_element_by_type<window_mode_left>(state, id);
+		else if(name == "window_mode_right")
+			return make_element_by_type<window_mode_right>(state, id);
+		//window_mode_left
 		else
 			return nullptr;
 	}
@@ -128,7 +149,12 @@ public:
 		}
 	}
 };
-
+class close_application_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		window::close_window(state);
+	}
+};
 
 class main_menu_window : public window_element_base {
 public:
@@ -147,6 +173,8 @@ public:
 			return make_element_by_type<open_controls_button>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
+		} else if(name == "exit") {
+			return make_element_by_type<close_application_button>(state, id);
 		} else if(name == "alice_graphics_menu") {
 			auto tmp = make_element_by_type<graphics_menu_window>(state, id);
 			graphics_menu = tmp.get();

@@ -10,6 +10,7 @@
 #include "text.hpp"
 #include "opengl_wrapper.hpp"
 #include "fonts.hpp"
+#include "sound.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -67,6 +68,7 @@ namespace sys {
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platfom-dependent window information
+		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platfom-dependent sound information
 		ui::state ui_state; // transient information for the state of the ui
 		text::font_manager font_collection;
 

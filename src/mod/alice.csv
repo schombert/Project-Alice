@@ -12,3 +12,5 @@ master_volume_label;Maseter volume;;;;;;;;;;;;x
 music_volume_label;Music volume;;;;;;;;;;;;x
 interface_volume_label;Interface volume;;;;;;;;;;;;x
 effect_volume_label;Sound effect volume;;;;;;;;;;;;x
+alice_mode_window;Windowed;;;;;;;;;;;;x
+alice_mode_fullscreen;Fullscreen;;;;;;;;;;;;x

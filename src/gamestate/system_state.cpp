@@ -85,7 +85,7 @@ namespace sys {
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0, 1.0);
 
-		ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, mouse_x_position, mouse_y_position);
+		ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
 		ui_state.root->impl_render(*this, 0, 0);
 	}
 

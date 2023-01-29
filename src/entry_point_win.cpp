@@ -46,7 +46,7 @@ int WINAPI wWinMain(
 		ui::populate_definitions_map(*game_state);
 		game_state->open_gl.asset_textures.resize(game_state->ui_defs.textures.size());
 
-		window::create_window(*game_state, window::creation_parameters());
+		window::create_window(*game_state, window::creation_parameters{ 1024, 780, sys::window_state::maximized, game_state->user_settings.prefer_fullscreen });
 
 		CoUninitialize();
 	}
