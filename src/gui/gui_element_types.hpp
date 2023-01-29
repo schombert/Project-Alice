@@ -88,6 +88,8 @@ public:
 		interactable = true;
 	}
 
+	void set_button_text(sys::state& state, std::string const& new_text);
+
 	virtual void button_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
@@ -105,6 +107,19 @@ public:
 			return message_result::unseen;
 		}
 	}
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+class simple_text_element_base : public element_base {
+private:
+	std::string stored_text;
+	float text_offset = 0.0f;
+	bool black_text = true;
+	int32_t font_id = 1;
+	int32_t font_size = 14;
+public:
+	void set_text(sys::state& state, std::string const& new_text);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };

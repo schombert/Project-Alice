@@ -25,7 +25,7 @@ guiTypes = {
 			name = "save_and_exit"
 			position = { x = 58 y = 104 }
 			quadTextureSprite ="GFX_frontend_button_236"	
-			buttonText = "Save and exit"
+			buttonText = "alice_save_exit"
 			buttonFont = "vic_22_black"
 		}
 
@@ -33,7 +33,7 @@ guiTypes = {
 			name = "save"
 			position = { x = 58 y = 157 }
 			quadTextureSprite ="GFX_frontend_button_236"	
-			buttonText = "Save"
+			buttonText = "alice_save"
 			buttonFont = "vic_22_black"
 		}
 		
@@ -41,7 +41,7 @@ guiTypes = {
 			name = "exit"
 			position = { x = 58 y = 210 }
 			quadTextureSprite ="GFX_frontend_button_236"	
-			buttonText = "Exit"
+			buttonText = "alice_exit"
 			buttonFont = "vic_22_black"
 		}
 		
@@ -49,7 +49,7 @@ guiTypes = {
 			name = "graphics"
 			position = { x = 58 y = 263 }
 			quadTextureSprite ="GFX_frontend_button_236"	
-			buttonText = "Graphics Options"
+			buttonText = "graphics_options"
 			buttonFont = "vic_22_black"
 		}
 		
@@ -57,7 +57,7 @@ guiTypes = {
 			name = "sound"
 			position = { x = 58 y = 316 }
 			quadTextureSprite ="GFX_frontend_button_236"	
-			buttonText = "Sound Options"
+			buttonText = "sound_options"
 			buttonFont = "vic_22_black"
 		}
 		
@@ -65,7 +65,7 @@ guiTypes = {
 			name = "controls"
 			position = { x = 58 y = 369 }
 			quadTextureSprite ="GFX_frontend_button_236"	
-			buttonText = "Controls Options"
+			buttonText = "controls_options"
 			buttonFont = "vic_22_black"
 		}
 	
@@ -99,7 +99,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}	
 				maxWidth = 236
 				maxHeight = 18
-				text = "Window mode"	
+				text = "window_mode"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -134,7 +134,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}	
 				maxWidth = 236
 				maxHeight = 18
-				text = "Map projection"	
+				text = "map_projection"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -169,7 +169,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}	
 				maxWidth = 236
 				maxHeight = 18
-				text = "UI scale"	
+				text = "ui_scale"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -227,7 +227,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}	
 				maxWidth = 236
 				maxHeight = 18
-				text = "Zoom style"	
+				text = "zoom_mode_label"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -285,7 +285,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}	
 				maxWidth = 236
 				maxHeight = 18
-				text = "SM_MASTER_VOLUME"	
+				text = "master_volume_label"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -333,7 +333,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}	
 				maxWidth = 236
 				maxHeight = 18
-				text = "SM_MUSIC_VOLUME"	
+				text = "music_volume_label"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -381,7 +381,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}	
 				maxWidth = 236
 				maxHeight = 18
-				text = "SM_INTERFACE_VOLUME"	
+				text = "interface_volume_label"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -429,7 +429,7 @@ guiTypes = {
 				borderSize = {x = 0 y = 0}	
 				maxWidth = 236
 				maxHeight = 18
-				text = "SM_EFFECT_VOLUME"	
+				text = "effect_volume_label"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}

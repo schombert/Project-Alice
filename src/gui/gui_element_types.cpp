@@ -219,10 +219,15 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 		ogl::render_text(
 			state, stored_text.c_str(), uint32_t(stored_text.length()),
 			get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-			float(x + text_offset), float(y + ycentered * 0.5f), float(font_size),
+			float(x + text_offset), float(y + ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size)), float(font_size),
 			black_text ? ogl::color3f{ 0.0f,0.0f,0.0f } : ogl::color3f{ 1.0f,1.0f,1.0f },
 			state.font_collection.fonts[font_id - 1]);
 	}
+}
+
+void button_element_base::set_button_text(sys::state& state, std::string const& new_text) {
+	stored_text = new_text;
+	text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size)) / 2.0f;
 }
 
 void button_element_base::on_create(sys::state& state) noexcept {
@@ -232,14 +237,112 @@ void button_element_base::on_create(sys::state& state) noexcept {
 		font_id = text::font_index_from_font_id(base_data.data.button.font_handle);
 		font_size = text::size_from_font_id(base_data.data.button.font_handle);
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size)) / 2.0f;
+		
+	}
+}
 
-		//if(base_data.data.button.get_alignment() == ui::alignment::centered || base_data.data.button.get_alignment() == ui::alignment::justified) {
-			text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size)) / 2.0f;
-		//} else if(base_data.data.button.get_alignment() == ui::alignment::right) {
-		//	text_offset = base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size);
-		//} else {
-		//	text_offset = 0.0f;
-		//}
+void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
+	stored_text = new_text;
+	if(base_data.get_element_type() == element_type::button) {
+		switch(base_data.data.button.get_alignment()) {
+			case alignment::centered:
+			case alignment::justified:
+				text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size)) / 2.0f;
+				break;
+			case alignment::right:
+				text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size));
+				break;
+			case alignment::left:
+				text_offset = 0.0f;
+				break;
+
+		}
+	} else if(base_data.get_element_type() == element_type::text) {
+		switch(base_data.data.button.get_alignment()) {
+			case alignment::centered:
+			case alignment::justified:
+				text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size) - base_data.data.text.border_size.x) / 2.0f;
+				break;
+			case alignment::right:
+				text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size) - base_data.data.text.border_size.x);
+				break;
+			case alignment::left:
+				text_offset = base_data.data.text.border_size.x;
+				break;
+
+		}
+	}
+}
+void simple_text_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
+		auto base_text_handle = base_data.data.button.txt;
+		stored_text = text::produce_simple_string(state, base_text_handle);
+		font_id = text::font_index_from_font_id(base_data.data.button.font_handle);
+		font_size = text::size_from_font_id(base_data.data.button.font_handle);
+		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+
+		switch(base_data.data.button.get_alignment()) {
+			case alignment::centered:
+			case alignment::justified:
+				text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size)) / 2.0f;
+				break;
+			case alignment::right:
+				text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size));
+				break;
+			case alignment::left:
+				text_offset = 0.0f;
+				break;
+
+		}
+
+	} else if(base_data.get_element_type() == element_type::text) {
+		auto base_text_handle = base_data.data.text.txt;
+		stored_text = text::produce_simple_string(state, base_text_handle);
+		font_id = text::font_index_from_font_id(base_data.data.text.font_handle);
+		font_size = text::size_from_font_id(base_data.data.text.font_handle);
+		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+
+		switch(base_data.data.button.get_alignment()) {
+			case alignment::centered:
+			case alignment::justified:
+				text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size) - base_data.data.text.border_size.x) / 2.0f;
+				break;
+			case alignment::right:
+				text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size) - base_data.data.text.border_size.x);
+				break;
+			case alignment::left:
+				text_offset = base_data.data.text.border_size.x;
+				break;
+
+		}
+	}
+}
+void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(stored_text.length() > 0) {
+		if(base_data.get_element_type() == element_type::text) {
+			auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
+			auto ycentered = (base_data.size.y - base_data.data.text.border_size.y - linesz) / 2;
+			ycentered = std::max(ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size), float(base_data.data.text.border_size.y));
+
+			ogl::render_text(
+				state, stored_text.c_str(), uint32_t(stored_text.length()),
+				ogl::color_modification::none,
+				float(x + text_offset), float(y + ycentered), float(font_size),
+				black_text ? ogl::color3f{ 0.0f,0.0f,0.0f } : ogl::color3f{ 1.0f,1.0f,1.0f },
+				state.font_collection.fonts[font_id - 1]);
+
+		} else {
+			auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
+			auto ycentered = (base_data.size.y - linesz) / 2;
+
+			ogl::render_text(
+				state, stored_text.c_str(), uint32_t(stored_text.length()),
+				ogl::color_modification::none,
+				float(x + text_offset), float(y + ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size)), float(font_size),
+				black_text ? ogl::color3f{ 0.0f,0.0f,0.0f } : ogl::color3f{ 1.0f,1.0f,1.0f },
+				state.font_collection.fonts[font_id - 1]);
+		}
 	}
 }
 
@@ -361,6 +464,11 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 		return res;
 	} else if(def.get_element_type() == ui::element_type::scrollbar) {
 		auto res = std::make_unique<scrollbar>();
+		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+		res->on_create(state);
+		return res;
+	} else if(def.get_element_type() == ui::element_type::text) {
+		auto res = std::make_unique<simple_text_element_base>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		res->on_create(state);
 		return res;

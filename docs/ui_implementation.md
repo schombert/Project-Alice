@@ -106,6 +106,8 @@ This class derives from `image_element_base` and functions as it does, except th
 #### `button_element_base`
 
 This class derives from `opaque_element_base` and implements the functionality required to support reacting to shortcut keys, making a click sound when activated, and not reacting to input when disabled. To make your own buttons, derive from this class and override its `virtual void button_action(sys::state& state) noexcept` member with what you want the button to do when it is activated.
+This class also provides the following member function:
+- `void set_button_text(sys::state& state, std::string const& new_text)` : Using this function changes the text that will be displayed on the face of the button.
 
 #### `draggable_target`
 
