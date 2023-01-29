@@ -10,6 +10,7 @@
 #include <iostream>
 #include <optional>
 #include <sstream>
+#include <cassert>
 
 // Objects
 struct value_and_optional {
@@ -55,7 +56,6 @@ enum token_type {
 	group_ident,
 	group_item_ident,
 	ident,
-	comma,
 	lparen,
 	rparen,
 	newline
@@ -68,7 +68,6 @@ struct token {
 static std::string_view get_type_name(token_type const& type) {
 	switch(type) {
 	case token_type::none: return "none";
-	case token_type::comma: return ",";
 	case token_type::group_ident: return "group_ident";
 	case token_type::group_item_ident: return "group_item_ident";
 	case token_type::ident: return "ident";
@@ -81,7 +80,6 @@ static std::string_view get_type_name(token_type const& type) {
 };
 
 struct parser_state {
-	std::locale locale;
 	std::ctype<char> const* char_facet = nullptr;
 	std::vector<token> tokens;
 	location_info loc_info;
@@ -94,11 +92,10 @@ struct parser_state {
 parser_state(std::string_view const _file_name)
 	: file_name{ _file_name }
 {
-	locale = std::locale("en_US.UTF-8");
-	char_facet = &std::use_facet<std::ctype<char>>(std::locale());
+	char_facet = &std::use_facet<std::ctype<char>>(std::locale("C"));
 }
 
-void report_any(std::string_view const severity, int code, location_info local_loc_info, std::string_view const fmt, va_list ap) {
+void report_any(std::string_view const severity, int code, location_info local_loc_info, std::string_view const fmt) {
 	console_stream << file_name;
 	if(local_loc_info.row > 0) {
 		if(local_loc_info.column > 0)
@@ -106,33 +103,20 @@ void report_any(std::string_view const severity, int code, location_info local_l
 		else
 			console_stream << "(" << std::to_string(local_loc_info.row) << ")";
 	}
-	char msgbuf[BUFSIZ];
-	vsnprintf(msgbuf, sizeof(msgbuf), fmt.data(), ap);
-	console_stream << ": " << severity << " " << std::to_string(code) << ": " << msgbuf << "\n";
+	console_stream << ": " << severity << " " << std::to_string(code) << ": " << fmt.data() << "\n";
 }
 
-void report_error(int code, location_info local_loc_info, std::string_view const fmt, ...) {
-	va_list ap;
-	va_start(ap, fmt);
-	report_any("error", code, local_loc_info, fmt, ap);
-	va_end(ap);
+void report_error(int code, location_info local_loc_info, std::string_view const fmt) {
+	report_any("error", code, local_loc_info, fmt);
 	error_count++;
-}
-
-void report_warning(int code, location_info local_loc_info, std::string_view const fmt, ...) {
-	va_list ap;
-	va_start(ap, fmt);
-	report_any("warning", code, local_loc_info, fmt, ap);
-	va_end(ap);
-	warning_count++;
 }
 
 size_t get_column(std::string_view const s, std::string_view::iterator const it) {
 	return size_t(std::distance(s.begin(), it));
 }
 
-bool is_ident(char ch) {
-	return char_facet->is(std::ctype_base::alnum, ch) || ch == '#' || ch == '@' || ch == '_';
+bool is_ident(char c) {
+	return std::isalnum(c) || c == '#' || c == '@' || c == '_';
 }
 
 void tokenize_line(std::string_view const line) {
@@ -144,7 +128,7 @@ void tokenize_line(std::string_view const line) {
 	while(it != line.cend()) {
 		token tok{};
 		// If a line starts with a space - it's a group identifier
-		if(it == line.begin() && char_facet->is(std::ctype_base::space, *it)) {
+		if(it == line.begin() && (std::isspace(*it) || *it == ',')) {
 			tok.type = token_type::group_item_ident;
 			++it;
 		} else if(it == line.begin()) {
@@ -152,16 +136,16 @@ void tokenize_line(std::string_view const line) {
 		}
 
 		// Skip a single spacing character
-		if(char_facet->is(std::ctype_base::space, *it))
+		if(std::isspace(*it) || *it == ',')
 			++it;
 		if(it == line.cend())
 			break;
 		
 		// Otherwise skip the rest...
-		while(char_facet->is(std::ctype_base::space, *it))
+		while(std::isspace(*it) || *it == ',')
 			++it;
 		if(it == line.cend()) {
-			report_warning(101, location_info(loc_info.row, int(get_column(line, it))), "Trailing spaces\n");
+			report_error(101, location_info(loc_info.row, int(get_column(line, it))), "Trailing spaces\n");
 			break;
 		}
 
@@ -170,9 +154,6 @@ void tokenize_line(std::string_view const line) {
 			++it;
 		} else if(*it == ')') {
 			tok.type = token_type::rparen;
-			++it;
-		} else if(*it == ',') {
-			tok.type = token_type::comma;
 			++it;
 		} else if(is_ident(*it)) {
 			if(tok.type != token_type::group_ident && tok.type != token_type::group_item_ident)
@@ -183,8 +164,19 @@ void tokenize_line(std::string_view const line) {
 			auto start_idx = std::distance(line.begin(), start_ident);
 			auto end_idx = std::distance(line.begin(), it);
 			tok.data = line.substr(start_idx, end_idx - start_idx);
+
+			// Verify naming constraints for all identifiers
+			bool violated_casing = false;
+			for(auto const c : tok.data)
+				if(std::isalpha(c) && !std::islower(c)) {
+					violated_casing = true;
+					break;
+				}
+			
+			if(violated_casing)
+				report_error(120, location_info(loc_info.row, int(get_column(line, it))), "Naming constraints violated '" + tok.data + "\n");
 		} else {
-			report_error(100, location_info(loc_info.row, int(get_column(line, it))), "Unexpected token '%c'\n", *it);
+			report_error(100, location_info(loc_info.row, int(get_column(line, it))), std::string() + "Unexpected token '" + *it + "'\n");
 			break;
 		}
 		tok.loc_info = loc_info;
@@ -192,7 +184,7 @@ void tokenize_line(std::string_view const line) {
 	}
 }
 
-void tokenize_file(std::istream& stream) {
+void tokenize_file(std::stringstream& stream) {
 	for(std::string line; std::getline(stream, line); ) {
 		tokenize_line(line);
 		
@@ -213,13 +205,13 @@ token get_specific_token(auto& it, bool& err_cond, token_type const& type) {
 	auto o = get_token(it);
 	if(!o.has_value()) {
 		// TODO: This is risky - but allows for accurate-ish reporting
-		report_error(109, it[-1].loc_info, "Expected a '%s' token\n", token::get_type_name(type).data());
+		report_error(109, it[-1].loc_info, std::string() + "Expected a '" + token::get_type_name(type).data() + "' token\n");
 		err_cond = true;
 		return token{};
 	}
 	token tok{o.value()};
 	if(tok.type != type) {
-		report_error(110, tok.loc_info, "Expected a '%s' token, but found '%s'\n", token::get_type_name(type).data(), token::get_type_name(tok.type).data());
+		report_error(110, tok.loc_info, std::string() + "Expected a '" + token::get_type_name(type).data() + "' token, but found '" + token::get_type_name(tok.type).data() + "'\n");
 		err_cond = true;
 		return token{};
 	}
@@ -235,7 +227,7 @@ void parse() {
 			groups.back().group_object_type = key.data;
 		} else if(key.type == token_type::group_item_ident) {
 			if(groups.empty()) {
-				report_error(120, key.loc_info, "Item '%s' defined before first group\n", key.data.c_str());
+				report_error(120, key.loc_info, "Item '" + key.data + "' defined before first group\n");
 				continue;
 			}
 
@@ -263,7 +255,7 @@ void parse() {
 					groups.back().single_value_handler_type = opt.data;
 					groups.back().single_value_handler_result = value_and_optional{ handler_type.data, handler_opt.data };
 				} else {
-					report_error(102, type.loc_info, "Invalid #free type '%s'\n", type.data.c_str());
+					report_error(102, type.loc_info, "Invalid #free type '" + type.data + "'\n");
 				}
 			} else if(key.data == "#base") {
 				auto err_cond = false;
@@ -314,24 +306,10 @@ void parse() {
 					groups.back().any_group_handler = group_association{ "", opt.data, value_and_optional{handler_type.data, handler_opt.data}, true };
 					
 					if(std::find(valid_group_handler_values.begin(), valid_group_handler_values.end(), groups.back().any_group_handler.handler.value) == valid_group_handler_values.end())
-						report_error(104, type.loc_info, "Unhandled #any group '%s' with invalid handler_type '%s'\n", type.data.c_str(), handler_type.data.c_str());
+						report_error(104, type.loc_info, "Unhandled #any group '" + type.data + "' with invalid handler_type '" + handler_type.data + "'\n");
 				} else {
-					report_error(103, type.loc_info, "Invalid #any type '%s'\n", type.data.c_str());
+					report_error(103, type.loc_info, "Invalid #any type '" + type.data + "'\n");
 				}
-
-				/*
-				if(g.any_group_handler.handler.value == "discard") {
-					no_match_effect = "gen.discard_group();";
-				} else if(g.any_group_handler.handler.value == "member") {
-					no_match_effect = "cobj." +
-						(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any_group")) +
-						" = parse_" + g.any_group_handler.type_or_function + "(gen, err, context);";
-				} else if(g.any_group_handler.handler.value == "member_fn") {
-					no_match_effect = "cobj." +
-						(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any_group")) +
-						"(cur.content, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, cur.line, context);";
-				} else if(g.any_group_handler.handler.value == "function") {
-				*/
 			} else {
 				/* key: type opt handler_type (handler_opt) */
 				auto err_cond = false;
@@ -347,7 +325,7 @@ void parse() {
 					get_specific_token(it, err_cond, token_type::rparen);
 
 				if(std::find_if(groups.back().groups.begin(), groups.back().groups.end(), [&](auto const& g) { return g.key == key.data; }) != groups.back().groups.end()) {
-					report_error(116, type.loc_info, "Duplicate key '%s' in group '%s'\n", key.data.c_str(), groups.back().group_object_type.c_str());
+					report_error(116, type.loc_info, "Duplicate key '" + key.data + "' in group '" + groups.back().group_object_type + "'\n");
 					err_cond = true;
 				}
 
@@ -361,116 +339,70 @@ void parse() {
 				} else if(type.data == "extern") {
 					groups.back().groups.push_back(group_association{ key.data, opt.data, value_and_optional{handler_type.data, handler_opt.data}, true });
 				} else {
-					report_error(104, type.loc_info, "Invalid #free type '%s'\n", type.data.c_str());
+					report_error(104, type.loc_info, "Invalid #free type '" + type.data + "'\n");
 				}
 			}
 		} else if(key.type == token_type::newline) {
 			// ignore newline
 		} else {
-			report_error(120, key.loc_info, "Unexpected token '%s'\n", token::get_type_name(key.type).data());
+			report_error(120, key.loc_info, std::string() + "Unexpected token '" + token::get_type_name(key.type).data() + "'\n");
 		}
 	}
 }
 };
 
-const char* value_to_digit(uint32_t val) {
-	switch(val) {
-		case 0:  return "0";
-		case 1:  return "1";
-		case 2:  return "2";
-		case 3:  return "3";
-		case 4:  return "4";
-		case 5:  return "5";
-		case 6:  return "6";
-		case 7:  return "7";
-		case 8:  return "8";
-		case 9:  return "9";
-		case 10:  return "A";
-		case 11:  return "B";
-		case 12:  return "C";
-		case 13:  return "D";
-		case 14:  return "E";
-		case 15:  return "F";
-		default: return "X";
-	}
-}
-
 std::string char_to_hex(char c) {
-/*	std::stringstream stream;
-	stream << std::hex << int(c);
-	return stream.str();*/
+	static std::string_view hexmap = "0123456789ABCDEF";
 	uint32_t v = c | 0x20;
-	if(v < 16) {
-		return std::string("0") + value_to_digit(v);
-	} else {
-		return std::string("") + value_to_digit(v / 16) + value_to_digit(v % 16);
-	}
+	std::string temp{};
+	temp.push_back(hexmap[(v / 16) % 16]);
+	temp.push_back(hexmap[v % 16]);
+	return temp;
 }
 
-std::string string_to_hex(std::string const& str, int32_t start, int32_t count) {
+std::string string_to_hex(std::string_view const s, int32_t start, int32_t count) {
 	std::string res = "0x";
 	for(int32_t i = count - 1; i >= 0; --i)
-		res += char_to_hex(str[start + i]);
+		res += char_to_hex(s[start + i]);
 	return res;
 }
 
-std::string final_match_condition_internal(std::string const& key, int32_t starting_position) {
-	if(starting_position >= int32_t(key.length()))
+std::string final_match_condition_internal(std::string_view const key, int32_t starting_position, int32_t ending_position) {
+	if(starting_position >= ending_position)
 		return "";
 
-	if(key.length() - starting_position >= 8) {
+	if(ending_position - starting_position >= 8) {
 		return
-			" && (*(uint64_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | uint64_t(0x2020202020202020) ) == uint64_t(" + string_to_hex(key, starting_position, 8) + ")"
-			+ final_match_condition_internal(key, starting_position + 8);
-	} else if(key.length() - starting_position >= 4) {
+			" && (*(uint64_t*)(&cur.content[" + std::to_string(starting_position) + "]) | uint64_t(0x2020202020202020) ) == uint64_t(" + string_to_hex(key, starting_position, 8) + ")"
+			+ final_match_condition_internal(key, starting_position + 8, ending_position);
+	} else if(ending_position - starting_position >= 4) {
 		return
-			" && (*(uint32_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | uint32_t(0x20202020) ) == uint32_t(" + string_to_hex(key, starting_position, 4) + ")"
-			+ final_match_condition_internal(key, starting_position + 4);
-	} else if(key.length() - starting_position >= 2) {
+			" && (*(uint32_t*)(&cur.content[" + std::to_string(starting_position) + "]) | uint32_t(0x20202020) ) == uint32_t(" + string_to_hex(key, starting_position, 4) + ")"
+			+ final_match_condition_internal(key, starting_position + 4, ending_position);
+	} else if(ending_position - starting_position >= 2) {
 		return
-			" && (*(uint16_t*)(cur.content.data() + " + std::to_string(starting_position) + ") | 0x2020 ) == " + string_to_hex(key, starting_position, 2)
-			+ final_match_condition_internal(key, starting_position + 2);
+			" && (*(uint16_t*)(&cur.content[" + std::to_string(starting_position) + "]) | 0x2020 ) == " + string_to_hex(key, starting_position, 2)
+			+ final_match_condition_internal(key, starting_position + 2, ending_position);
 	} else { /// single char
-		return " && (*(cur.content.data() + " + std::to_string(starting_position) + ") | 0x20 ) == " + string_to_hex(key, starting_position, 1);
+		return " && (cur.content[" + std::to_string(starting_position) + "] | 0x20 ) == " + string_to_hex(key, starting_position, 1);
 	}
 }
 
-std::string final_match_condition(std::string const& key, int32_t starting_position) {
-	return std::string("(true") + final_match_condition_internal(key, starting_position) + ")";
+std::string final_match_condition(std::string_view const key, size_t starting_position, size_t ending_position) {
+	if(!ending_position)
+		ending_position = key.length();
+	assert(ending_position <= key.length());
+	assert(starting_position <= ending_position);
+	return std::string("(true") + final_match_condition_internal(key, int32_t(starting_position), int32_t(ending_position)) + ")";
 }
 
-template<typename T>
-int32_t count_with_prefix(T const& vector, std::string const& prefix, int32_t length) {
-	int32_t const sz = int32_t(vector.size());
-	int32_t total = 0;
-	for(int32_t i = 0; i < sz; ++i) {
+template<typename V, typename F>
+void enum_with_prefix(V const& vector, std::string_view const prefix, int32_t length, F const& fn) {
+	for(int32_t i = 0; i < int32_t(vector.size()); ++i) {
 		if(int32_t(vector[i].key.length()) == length) {
-			int32_t psize = int32_t(prefix.length());
 			bool match = true;
-			for(int32_t j = 0; j < psize; ++j) {
-				if(((vector[i].key[j]) | 0x20) != (prefix[j] | 0x20)) {
-					match = false;
-					break;
-				}
-			}
-
-			if(match)
-				++total;
-		}
-	}
-
-	return total;
-}
-
-template<typename T, typename F>
-void enum_with_prefix(T const& vector, std::string const& prefix, int32_t length, F const& fn) {
-	int32_t const sz = int32_t(vector.size());
-	for(int32_t i = 0; i < sz; ++i) {
-		if(int32_t(vector[i].key.length()) == length) {
-			int32_t psize = int32_t(prefix.length());
-			bool match = true;
-			for(int32_t j = 0; j < psize; ++j) {
-				if(((vector[i].key[j]) | 0x20) != (prefix[j] | 0x20)) {
+			for(int32_t j = 0; j < int32_t(prefix.length()); ++j) {
+				if((vector[i].key[j] | 0x20) != (prefix[j] | 0x20)) {
 					match = false;
 					break;
 				}
@@ -482,72 +414,166 @@ void enum_with_prefix(T const& vector, std::string const& prefix, int32_t length
 	}
 }
 
-template<typename T>
-int32_t max_length(T const& vector) {
-	int32_t const sz = int32_t(vector.size());
+template<typename V>
+int32_t count_with_prefix(V const& vector, std::string_view const prefix, int32_t length) {
+	int32_t total = 0;
+	enum_with_prefix(vector, prefix, length, [&](auto const&) {
+		++total;
+	});
+	return total;
+}
+
+template<typename V>
+int32_t max_length(V const& vector) {
 	int32_t mx = 0;
-	for(int32_t i = 0; i < sz; ++i) {
-		mx = mx > int32_t(vector[i].key.length()) ? mx : int32_t(vector[i].key.length());
-	}
+	for(auto const& e : vector)
+		mx = mx > int32_t(e.key.length()) ? mx : int32_t(e.key.length());
 	return mx;
 }
 
-template<typename T, typename F>
-std::string construct_match_tree_internal(T const& vector, F const& generator_match, std::string const& no_match, std::string const& prefix, int32_t length) {
-	std::string output = "\t\t\t\t\t switch(0x20 | int32_t(*(cur.content.data() + " + std::to_string(prefix.length()) + "))) {\n";
+struct cxx_tree_builder {
+	std::string tabs;
+
+void tabulate_increment() {
+	tabs.push_back('\t');
+}
+
+void tabulate_decrement() {
+	tabs.pop_back();
+}
+
+std::string tabulate(std::string_view const s) const {
+	return tabs + s.data();
+}
+
+template<typename V>
+std::string get_match_tree_running_prefix(V const& vector, std::string prefix, int32_t length) {
+	int32_t top_count = count_with_prefix(vector, prefix, length);
 	for(int32_t c = 32; c <= 95; ++c) {
 		int32_t count = count_with_prefix(vector, prefix + char(c), length);
-		if(count == 0) {
-			//skip
-		} else if(count == 1) {
-			output += "\t\t\t\t\t case 0x" + char_to_hex(char(c)) + ":\n";
-			enum_with_prefix(vector, prefix + char(c), length, [&output, &generator_match, &no_match, &prefix](auto& v) {
-				output += "\t\t\t\t\t\t if(" + final_match_condition(v.key, int32_t(prefix.length()) + 1) + ") {\n";
-				output += "\t\t\t\t\t\t\t " + generator_match(v) + "\n";
-				output += "\t\t\t\t\t\t } else {\n";
-				output += "\t\t\t\t\t\t\t " + no_match + "\n";
-				output += "\t\t\t\t\t\t }\n";
-			});
-			output += "\t\t\t\t\t\t break;\n";
-		} else {
-			output += "\t\t\t\t\t case 0x" + char_to_hex(char(c)) + ":\n";
-			output += construct_match_tree_internal(vector, generator_match, no_match, prefix + char(c), length);
-			output += "\t\t\t\t\t\t break;\n";
+		if(top_count == count) {
+			prefix = get_match_tree_running_prefix(vector, prefix + char(c), length);
+			break;
 		}
 	}
-	output += "\t\t\t\t\t default:\n";
-	output += "\t\t\t\t\t\t " + no_match + "\n";
-	output += "\t\t\t\t\t }\n";
+	return prefix;
+}
+
+template<typename V, typename F>
+std::string construct_match_tree_internal(V const& vector, F const& generator_match, std::string_view const no_match, std::string_view const prefix, int32_t length) {
+	int32_t top_count = count_with_prefix(vector, prefix, length);	
+	std::string output;
+	bool has_switch = false;
+	for(int32_t c = 32; c <= 95; ++c) {
+		int32_t count = count_with_prefix(vector, std::string(prefix) + char(c), length);
+		if(count == 0) {
+			// skip
+		} else if(top_count == count) {
+			// Obtain the prefix that is equal on all the branches, for example if the branching options were
+			// namefoo
+			// namebar
+			// nameowa
+			//
+			// Then our running prefix would be [name] - instead of checking every character at a time
+			auto running_prefix = get_match_tree_running_prefix(vector, std::string(prefix), length);
+			assert(!running_prefix.empty());
+			output += tabulate("// " + running_prefix + "\n");
+			assert(running_prefix.length() > prefix.length() && running_prefix != prefix);
+
+			output += tabulate("// running -  " + running_prefix.substr(prefix.length()) + "\n");
+			output += tabulate("if(" + final_match_condition(running_prefix, prefix.length(), running_prefix.length()) + ") {\n");
+			tabulate_increment();
+			output += construct_match_tree_internal(vector, generator_match, no_match, running_prefix, length);
+			tabulate_decrement();
+
+			output += tabulate("} else {\n");
+			tabulate_increment();
+			output += tabulate(std::string(no_match) + "\n");
+			output += tabulate("}\n");
+			tabulate_decrement();
+		} else if(count == 1) {
+			if(!has_switch) {
+				output += tabulate("switch(0x20 | int32_t(cur.content[" + std::to_string(prefix.length()) + "])) {\n");
+				has_switch = true;
+			}
+
+			output += tabulate("case 0x" + char_to_hex(char(c)) + ":\n");
+			tabulate_increment();
+			enum_with_prefix(vector, std::string(prefix) + char(c), length, [&](auto& v) {
+				output += tabulate("// " + v.key + "\n");
+				output += tabulate("if(" + final_match_condition(v.key, prefix.length() + 1, 0) + ") {\n");
+				tabulate_increment();
+				output += tabulate(generator_match(v) + "\n");
+				tabulate_decrement();
+				output += tabulate("} else {\n");
+				tabulate_increment();
+				output += tabulate(std::string(no_match) + "\n");
+				tabulate_decrement();
+				output += tabulate("}\n");
+			});
+			output += tabulate("break;\n");
+			tabulate_decrement();
+		} else {
+			if(!has_switch) {
+				output += tabulate("switch(0x20 | int32_t(cur.content[" + std::to_string(prefix.length()) + "])) {\n");
+				has_switch = true;
+			}
+			
+			output += tabulate("case 0x" + char_to_hex(char(c)) + ":\n");
+			tabulate_increment();
+			output += construct_match_tree_internal(vector, generator_match, no_match, std::string(prefix) + char(c), length);
+			output += tabulate("break;\n");
+			tabulate_decrement();
+		}
+	}
+
+	if(has_switch) {
+		output += tabulate("default:\n");
+		tabulate_increment();
+		output += tabulate(std::string(no_match) + "\n");
+		tabulate_decrement();
+		output += tabulate("}\n");
+	}
 	return output;
 }
 
-template<typename T, typename F>
-std::string construct_match_tree_outer(T const& vector, F const& generator_match, std::string const& no_match) {
+std::string construct_match_tree_outer(auto const& vector, auto const& generator_match, std::string_view const no_match) {
 	auto const maxlen = max_length(vector);
-	std::string output = "\t\t\t\t switch(int32_t(cur.content.length())) {\n";
+	std::string output = tabulate("switch(int32_t(cur.content.length())) {\n");
 	for(int32_t l = 1; l <= maxlen; ++l) {
 		int32_t count = count_with_prefix(vector, "", l);
 		if(count == 0) {
 			// skip
 		} else if(count == 1) {
-			output += "\t\t\t\t case " + std::to_string(l) + ":\n";
-			enum_with_prefix(vector, "", l, [&output, &generator_match, &no_match](auto& v) {
-				output += "\t\t\t\t\t if(" + final_match_condition(v.key, 0) + ") {\n";
-				output += "\t\t\t\t\t\t " + generator_match(v) + "\n";
-				output += "\t\t\t\t\t } else {\n";
-				output += "\t\t\t\t\t\t " + no_match + "\n";
-				output += "\t\t\t\t\t }\n";
+			output += tabulate("case " + std::to_string(l) + ":\n");
+			tabulate_increment();
+			enum_with_prefix(vector, "", l, [&](auto& v) {
+				output += tabulate("// " + v.key + "\n");
+				output += tabulate("if(" + final_match_condition(v.key, 0, 0) + ") {\n");
+				tabulate_increment();
+				output += tabulate(generator_match(v) + "\n");
+				tabulate_decrement();
+				output += tabulate("} else {\n");
+				tabulate_increment();
+				output += tabulate(std::string(no_match) + "\n");
+				tabulate_decrement();
+				output += tabulate("}\n");
 			});
-			output += "\t\t\t\t\t break;\n";
+			output += tabulate("break;\n");
+			tabulate_decrement();
 		} else {
-			output += "\t\t\t\t case " + std::to_string(l) + ":\n";
+			output += tabulate("case " + std::to_string(l) + ":\n");
+			tabulate_increment();
 			output += construct_match_tree_internal(vector, generator_match, no_match, "", l);
-			output += "\t\t\t\t\t break;\n";
+			output += tabulate("break;\n");
+			tabulate_decrement();
 		}
 	}
-	output += "\t\t\t\t default:\n";
-	output += "\t\t\t\t\t " + no_match + "\n";
-	output += "\t\t\t\t }\n";
+	output += tabulate("default:\n");
+	tabulate_increment();
+	output += tabulate(std::string(no_match) + "\n");
+	tabulate_decrement();
+	output += tabulate("}\n");
 	return output;
 }
 
@@ -721,7 +747,15 @@ void file_write_out(std::fstream& stream, std::vector<group_contents>& groups) {
 				}
 				return out;
 			};
+			tabulate_increment();
+			tabulate_increment();
+			tabulate_increment();
+			tabulate_increment();
 			output += construct_match_tree_outer(g.groups, match_handler, no_match_effect);
+			tabulate_decrement();
+			tabulate_decrement();
+			tabulate_decrement();
+			tabulate_decrement();
 		}
 		output += "\t\t\t } else {\n"; // next next != open brace
 		output += "\t\t\t\t auto const assoc_token = gen.get();\n";
@@ -773,7 +807,15 @@ void file_write_out(std::fstream& stream, std::vector<group_contents>& groups) {
 				}
 				return out;
 			};
+			tabulate_increment();
+			tabulate_increment();
+			tabulate_increment();
+			tabulate_increment();
 			output += construct_match_tree_outer(g.values, match_handler, no_match_effect);
+			tabulate_decrement();
+			tabulate_decrement();
+			tabulate_decrement();
+			tabulate_decrement();
 		}
 		output += "\t\t\t }\n"; // end next next
 		output += "\t\t } else {\n"; // next != special identifier
@@ -809,6 +851,7 @@ void file_write_out(std::fstream& stream, std::vector<group_contents>& groups) {
 	output += "\n";
 	stream.write(output.data(), output.size());
 }
+};
 
 int main(int argc, char *argv[]) {
 	if(argc > 1) {
@@ -833,15 +876,17 @@ int main(int argc, char *argv[]) {
 		std::fstream output_file;
 		output_file.open(output_filename, std::ios::out);
 
+		std::stringstream file_contents_stream{std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>{})};
 		parser_state state(input_filename);
-		state.tokenize_file(input_file);
+		state.tokenize_file(file_contents_stream);
 		state.parse();
 
 		std::cout << state.console_stream.str() << std::endl;
 		if(state.error_count > 0)
 			std::exit(EXIT_FAILURE);
-
-		file_write_out(output_file, state.groups);
+		
+		cxx_tree_builder tree_builder{};
+		tree_builder.file_write_out(output_file, state.groups);
 	} else {
 		fprintf(stderr, "Usage: %s <input> [output]\n", argv[0]);
 	}
