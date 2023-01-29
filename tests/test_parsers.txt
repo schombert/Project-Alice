@@ -2,9 +2,9 @@ basic_object_a
 	#free     value    int    member     (int_value)
 	#free     extern   none   discard
 	#any      value    text   member_fn
-	key_A     value    int    member
-	key_C     value    float  member     (float_value)
-	key_B     group    none   discard
+	key_a     value    int    member
+	key_c     value    float  member     (float_value)
+	key_b     group    none   discard
 
 exercising_combinations
 	aaa       value    int    member
@@ -50,3 +50,12 @@ free_group_e_mem
 
 basic_copy
 	#base     basic_object_a
+
+optimize_names
+	namelong0 value    int    member
+	namelong1 value    int    member
+	namelong2 value    int    member
+	namelong3 value    int    member
+	lg0bb0    value    int    member
+	lg1bb1    value    int    member
+	lg0bb2    value    int    member
