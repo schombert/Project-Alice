@@ -96,6 +96,7 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/parsing
 	${PROJECT_SOURCE_DIR}/src/window
 	${PROJECT_SOURCE_DIR}/src/text
+	${PROJECT_SOURCE_DIR}/src/sound
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 

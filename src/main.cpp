@@ -17,6 +17,7 @@
 
 #include "simple_fs_win.cpp"
 #include "window_win.cpp"
+#include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
@@ -28,6 +29,7 @@
 
 #include "simple_fs_nix.cpp"
 #include "window_nix.cpp"
+#include "sound_nix.cpp"
 #include "opengl_wrapper_nix.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT

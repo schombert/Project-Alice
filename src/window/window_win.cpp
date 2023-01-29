@@ -10,6 +10,9 @@
 #include "Windows.h"
 #include "Windowsx.h"
 #include "wglew.h"
+#include "sound.hpp"
+
+#define WM_GRAPHNOTIFY  (WM_APP + 1)
 
 namespace window {
 	class window_data_impl {
@@ -274,11 +277,12 @@ namespace window {
 			
 			case WM_DPICHANGED:
 				return 0;
-			/*
+			
 			case WM_GRAPHNOTIFY:
-				// this is the message that tells us there is a DriectShow event
+				// this is the message that tells us there is a DirectShow event
+				sound::update_music_track(*state);
 				break;
-			*/
+			
 		}
 		return DefWindowProcW(hwnd, message, wParam, lParam);
 	}
@@ -353,9 +357,9 @@ namespace window {
 			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_FRAMECHANGED);
 			SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 
-			if(params.intitial_state == sys::window_state::maximized)
+			if(params.initial_state == sys::window_state::maximized)
 				ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
-			else if(params.intitial_state == sys::window_state::minimized)
+			else if(params.initial_state == sys::window_state::minimized)
 				ShowWindow(game_state.win_ptr->hwnd, SW_MINIMIZE);
 			else
 				ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
@@ -377,6 +381,9 @@ namespace window {
 		}
 
 		UpdateWindow(game_state.win_ptr->hwnd);
+
+		sound::initialize_sound_system(game_state);
+		sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);
 
 		MSG msg;
 		// pump message loop

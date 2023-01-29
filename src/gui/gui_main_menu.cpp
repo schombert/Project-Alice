@@ -53,5 +53,30 @@ void ui_scale_display::on_update(sys::state& state) noexcept {
 	set_text(state, temp);
 }
 
+
+void window_mode_left::button_action(sys::state& state) noexcept {
+	state.user_settings.prefer_fullscreen = !state.user_settings.prefer_fullscreen;
+	window::set_borderless_full_screen(state, state.user_settings.prefer_fullscreen);
+	Cyto::Any payload = notify_setting_update{ };
+	if(parent) parent->impl_get(state, payload);
+}
+void window_mode_left::on_update(sys::state& state) noexcept {
+	disabled = (state.user_settings.prefer_fullscreen == true);
+}
+void window_mode_right::button_action(sys::state& state) noexcept {
+	state.user_settings.prefer_fullscreen = !state.user_settings.prefer_fullscreen;
+	window::set_borderless_full_screen(state, state.user_settings.prefer_fullscreen);
+	Cyto::Any payload = notify_setting_update{ };
+	if(parent) parent->impl_get(state, payload);
+}
+void window_mode_right::on_update(sys::state& state) noexcept {
+	disabled = (state.user_settings.prefer_fullscreen == false);
+}
+void window_mode_display::on_update(sys::state& state) noexcept {
+	auto it = state.key_to_text_sequence.find(state.user_settings.prefer_fullscreen ? std::string_view("alice_mode_fullscreen") : std::string_view("alice_mode_window"));
+	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+	set_text(state, temp_string);
+}
+
 }
 

@@ -4,9 +4,9 @@
 
 namespace window {
 	struct creation_parameters {
-		int32_t size_x = 600;
-		int32_t size_y = 400;
-		sys::window_state intitial_state = sys::window_state::maximized;
+		int32_t size_x = 1024;
+		int32_t size_y = 768;
+		sys::window_state initial_state = sys::window_state::maximized;
 		bool borderless_fullscreen = false;
 	};
 
