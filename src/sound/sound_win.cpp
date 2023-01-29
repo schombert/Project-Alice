@@ -234,10 +234,12 @@ public:
 	bool music_finished() const;
 
 	void play_new_track(sys::state& ws) {
-		int32_t result = int32_t(rand() % music_list.size()); // well aware that using rand is terrible, thanks
-		while(result == last_music)
-			result = int32_t(rand() % music_list.size());
-		play_music(result, ws.user_settings.master_volume * ws.user_settings.music_volume);
+		if(music_list.size() > 0) {
+			int32_t result = int32_t(rand() % music_list.size()); // well aware that using rand is terrible, thanks
+			while(result == last_music)
+				result = int32_t(rand() % music_list.size());
+			play_music(result, ws.user_settings.master_volume * ws.user_settings.music_volume);
+		}
 	}
 };
 
@@ -342,10 +344,12 @@ void change_music_volume(sys::state& state, float v) {
 
 // these start playing an effect or track at the specified volume
 void play_effect(sys::state& state, audio_instance& s, float volume) {
-	state.sound_ptr->play_effect(s, volume);
+	if(volume > 0.0f)
+		state.sound_ptr->play_effect(s, volume);
 }
 void play_interface_sound(sys::state& state, audio_instance& s, float volume) {
-	state.sound_ptr->play_interface_sound(s, volume);
+	if(volume > 0.0f)
+		state.sound_ptr->play_interface_sound(s, volume);
 }
 
 // controls autoplaying music (start music should start with the main theme)
@@ -355,9 +359,11 @@ void stop_music(sys::state& state) {
 	state.sound_ptr->last_music = -1;
 }
 void start_music(sys::state& state, float v) {
-	auto vol = state.user_settings.master_volume * state.user_settings.music_volume;
-	if(vol > 0.0f && state.sound_ptr->first_music != -1) {
-		state.sound_ptr->play_music(state.sound_ptr->first_music, vol);
+	if(v > 0.0f && state.sound_ptr->music_list.size() != 0) {
+		if(state.sound_ptr->first_music != -1)
+			state.sound_ptr->play_music(state.sound_ptr->first_music, v);
+		else
+			state.sound_ptr->play_music(int32_t(rand() % state.sound_ptr->music_list.size()), v);
 	}
 }
 

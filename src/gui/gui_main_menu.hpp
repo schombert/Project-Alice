@@ -33,6 +33,23 @@ class window_mode_display : public simple_text_element_base {
 };
 
 
+class master_volume : public scrollbar {
+	void on_value_change(sys::state& state, int32_t v) noexcept final;
+	void on_update(sys::state& state) noexcept final;
+};
+class music_volume : public scrollbar {
+	void on_value_change(sys::state& state, int32_t v) noexcept final;
+	void on_update(sys::state& state) noexcept final;
+};
+class effects_volume : public scrollbar {
+	void on_value_change(sys::state& state, int32_t v) noexcept final;
+	void on_update(sys::state& state) noexcept final;
+};
+class interface_volume : public scrollbar {
+	void on_value_change(sys::state& state, int32_t v) noexcept final;
+	void on_update(sys::state& state) noexcept final;
+};
+
 struct notify_setting_update{ };
 
 class controls_menu_window : public window_element_base {
@@ -101,6 +118,14 @@ class audio_menu_window : public window_element_base {
 			return make_element_by_type<generic_close_button>(state, id);
 		else if(name == "background")
 			return make_element_by_type<draggable_target>(state, id);
+		else if(name == "master_volume_scroll_bar")
+			return make_element_by_type<master_volume>(state, id);
+		else if(name == "music_volume_scroll_bar")
+			return make_element_by_type<music_volume>(state, id);
+		else if(name == "interface_volume_scroll_bar")
+			return make_element_by_type<interface_volume>(state, id);
+		else if(name == "effect_volume_scroll_bar")
+			return make_element_by_type<effects_volume>(state, id);
 		else
 			return nullptr;
 	}

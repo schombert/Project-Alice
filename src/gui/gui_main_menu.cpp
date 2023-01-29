@@ -1,4 +1,5 @@
 #include "gui_main_menu.hpp"
+#include "sound.hpp"
 
 #include <cstdio>
 
@@ -76,6 +77,73 @@ void window_mode_display::on_update(sys::state& state) noexcept {
 	auto it = state.key_to_text_sequence.find(state.user_settings.prefer_fullscreen ? std::string_view("alice_mode_fullscreen") : std::string_view("alice_mode_window"));
 	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
 	set_text(state, temp_string);
+}
+
+
+void master_volume::on_value_change(sys::state& state, int32_t v) noexcept {
+	auto float_v = float(v) / 128.0f;
+
+	bool music_was_playing = state.user_settings.music_volume* state.user_settings.master_volume > 0;
+
+	state.user_settings.master_volume = float_v;
+	sound::change_music_volume(state, state.user_settings.music_volume * state.user_settings.master_volume);
+	sound::change_effect_volume(state, state.user_settings.effects_volume * state.user_settings.master_volume);
+	sound::change_interface_volume(state, state.user_settings.interface_volume * state.user_settings.master_volume);
+
+	bool music_is_playing = state.user_settings.music_volume * state.user_settings.master_volume > 0;
+	if(music_was_playing != music_is_playing) {
+		if(music_is_playing)
+			sound::start_music(state, state.user_settings.music_volume * state.user_settings.master_volume);
+		else
+			sound::stop_music(state);
+	}
+	Cyto::Any payload = notify_setting_update{ };
+	if(parent) parent->impl_get(state, payload);
+}
+void music_volume::on_value_change(sys::state& state, int32_t v) noexcept {
+	auto float_v = float(v) / 128.0f;
+	bool music_was_playing = state.user_settings.music_volume * state.user_settings.master_volume > 0;
+
+	state.user_settings.music_volume = float_v;
+	sound::change_music_volume(state, state.user_settings.music_volume * state.user_settings.master_volume);
+
+	bool music_is_playing = state.user_settings.music_volume * state.user_settings.master_volume > 0;
+	if(music_was_playing != music_is_playing) {
+		if(music_is_playing)
+			sound::start_music(state, state.user_settings.music_volume * state.user_settings.master_volume);
+		else
+			sound::stop_music(state);
+	}
+
+	Cyto::Any payload = notify_setting_update{ };
+	if(parent) parent->impl_get(state, payload);
+}
+void effects_volume::on_value_change(sys::state& state, int32_t v) noexcept {
+	auto float_v = float(v) / 128.0f;
+	state.user_settings.effects_volume = float_v;
+	sound::change_effect_volume(state, state.user_settings.effects_volume * state.user_settings.master_volume);
+	Cyto::Any payload = notify_setting_update{ };
+	if(parent) parent->impl_get(state, payload);
+}
+void interface_volume::on_value_change(sys::state& state, int32_t v) noexcept {
+	auto float_v = float(v) / 128.0f;
+	state.user_settings.interface_volume = float_v;
+	sound::change_interface_volume(state, state.user_settings.interface_volume * state.user_settings.master_volume);
+	Cyto::Any payload = notify_setting_update{ };
+	if(parent) parent->impl_get(state, payload);
+}
+
+void master_volume::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.master_volume * 128.0f));
+}
+void music_volume::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.music_volume * 128.0f));
+}
+void effects_volume::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.effects_volume * 128.0f));
+}
+void interface_volume::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.interface_volume * 128.0f));
 }
 
 }
