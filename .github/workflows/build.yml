@@ -41,7 +41,7 @@ jobs:
   windows-build:
     strategy:
       matrix:
-        config: [release-win-clang, debug-windows]
+        config: [debug-win-clang, debug-windows]
     runs-on: [windows-latest]
     name: Windows (${{ matrix.config }})
     steps:
