@@ -12,7 +12,12 @@ include(CTest)
 
 add_executable(Alice WIN32 "src/main.cpp")
 
-set(PRIMARY_PROJECT_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
+# Used for storing the local path to the Victoria 2 directory
+if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
+	target_compile_definitions(Alice PRIVATE LOCAL_USER_SETTINGS)
+else()
+	target_compile_definitions(Alice PRIVATE "GAME_DIR=\"NONE\"")
+endif()
 
 add_compile_definitions(VE_NO_TBB)
 if(WIN32)
@@ -156,7 +161,7 @@ add_custom_command(
                 ${PROJECT_SOURCE_DIR}/src/mod/alice.csv
                 ${CMAKE_CURRENT_BINARY_DIR}/alice.csv)
 
-				
+
 set(SECRET_GITHUB_MAGIC "NO" CACHE STRING "set to ignore the local_uset_settings.hpp file")
 if(${SECRET_GITHUB_MAGIC})
 	target_compile_definitions(Alice PRIVATE "GAME_DIR=\"NONE\"")
