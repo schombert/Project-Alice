@@ -290,7 +290,9 @@ namespace window {
 		game_state.win_ptr->in_fullscreen = params.borderless_fullscreen;
 
 		// create window
-		WNDCLASSEXW wcex = { sizeof(WNDCLASSEXW) };
+		WNDCLASSEXW wcex = { };
+
+		wcex.cbSize = sizeof(WNDCLASSEXW);
 		wcex.style = CS_OWNDC;
 		wcex.lpfnWndProc = WndProc;
 		wcex.cbClsExtra = 0;

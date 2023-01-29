@@ -23,4 +23,11 @@ Since this is an open-source project, you don't have to be an official member of
 
 ### Building the project
 
-The build uses CMake and should "just work". To make the tests and main program work, you will also need to set the CMake `GAME_FILES_DIRECTORY` cache variable to where the existing game files are located. There are a number of ways to do that, but here is the very non standard way that I found to be easiest. First run CMake once. Then go to the `out\build\your-configuration-goes-here` directory and open the `CMakeCache.txt` files. Seach for the text `GAME_FILES_DIRECTORY` and change the line you find it on to something like `GAME_FILES_DIRECTORY:PATH=D:/Programs/V2` (note that CMake likes the forward slashes). Then run CMake again and everything should work fine.
+The build uses CMake and should "just work", with one important exception. Because the project in its current state needs to use the existing game files (as a source of graphics, for starters), everyone needs to tell the compiler where their copy of the game is installed. You do this by creating a file named `local_user_settings.hpp` in the directory `src`. That file should contain the following four lines (the last one is an empty line):
+```
+#ifndef GAME_DIR
+#define GAME_DIR "D:\\programs\\V2"
+#endif
+
+```
+except replacing the path there with your installation location. Note that on Windows you need to write `\\` instead of just `\` for each path separator. (Linux does not have this issue, and you can write a single `/`)

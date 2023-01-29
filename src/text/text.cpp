@@ -86,7 +86,7 @@ namespace text {
 
 				auto to_lower_temp = lowercase_str(key);
 				if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
-					// maybe report an error here -- repreated definition
+					// maybe report an error here -- repeated definition
 					state.text_sequences[it->second] = text_sequence{
 							static_cast<uint16_t>(component_start_index),
 							static_cast<uint16_t>(state.text_components.size() - component_start_index) };

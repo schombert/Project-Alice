@@ -1,3 +1,4 @@
+#include "local_user_settings.hpp"
 #include "parsers.cpp"
 #include "float_from_chars.cpp"
 #include "system_state.cpp"

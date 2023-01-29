@@ -10,6 +10,7 @@ build/
 
 # Generated parsers
 *_generated.hpp
+*/local_user_settings.hpp
 
 DartConfiguration.tcl
 

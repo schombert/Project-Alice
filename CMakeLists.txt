@@ -16,22 +16,34 @@ set(PRIMARY_PROJECT_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
 
 add_compile_definitions(VE_NO_TBB)
 if(WIN32)
-	string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-	string(REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-	string(REPLACE "/MDd" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-	string(REPLACE "/MD" "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
-	string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-	string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-	string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+	# string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	# string(REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	# string(REPLACE "/MDd" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+	# string(REPLACE "/MD" "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+	# string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	# string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	# string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 
-	target_compile_options(Alice PRIVATE
-									/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
-		$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
-		$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
-	target_link_options(Alice PRIVATE
-		$<$<CONFIG:Debug>: 			/DEBUG:FULL >
-		$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
-
+	set(CMAKE_CXX_FLAGS "")
+	set(CMAKE_CXX_FLAGS_DEBUG "")
+	set(CMAKE_CXX_FLAGS_RELEASE "")
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		target_compile_options(Alice PRIVATE
+										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field
+			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
+			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
+		target_link_options(Alice PRIVATE
+			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
+			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
+	else()
+		target_compile_options(Alice PRIVATE
+										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
+			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
+			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
+		target_link_options(Alice PRIVATE
+			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
+			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
+	endif()
 else() # GCC or CLANG
 	target_compile_options(Alice PRIVATE
 									# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter
@@ -50,9 +62,17 @@ message("leftover CMAKE_CXX_FLAGS_RELEASE: \"${CMAKE_CXX_FLAGS_RELEASE}\"")
 add_compile_definitions(VE_NO_TBB)
 if(WIN32)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
+		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
+		else()
+			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
+		endif()
 	else()
-		set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline")
+		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline")
+		else()
+			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline")
+		endif()
 	endif()
 endif()
 
@@ -134,12 +154,6 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${PROJECT_SOURCE_DIR}/src/mod/alice.csv
                 ${CMAKE_CURRENT_BINARY_DIR}/alice.csv)
-
-set(GAME_FILES_DIRECTORY "" CACHE PATH "location of game files (i.e. the folder containing the exe)")
-
-message("Will attempt to find game files in: \"${GAME_FILES_DIRECTORY}\"")
-
-target_compile_definitions(Alice PRIVATE "GAME_DIR=\"${GAME_FILES_DIRECTORY}\"")
 
 if (BUILD_TESTING)
     enable_testing()

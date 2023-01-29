@@ -442,11 +442,11 @@ void internal_text_render(sys::state const& state, char const* codepoints, uint3
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, f.textures[uint32_t(codepoints[i]) >> 6]);
 
-			glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[codepoints[i]].x * size / 64.0f, baseline_y + f.glyph_positions[codepoints[i]].y * size / 64.0f, size, size);
+			glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[uint32_t(codepoints[i])].x * size / 64.0f, baseline_y + f.glyph_positions[uint32_t(codepoints[i])].y * size / 64.0f, size, size);
 
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
-		x += f.glyph_advances[codepoints[i]] * size / 64.0f + ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
+		x += f.glyph_advances[uint32_t(codepoints[i])] * size / 64.0f + ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
 	}
 }
 
