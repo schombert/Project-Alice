@@ -155,6 +155,12 @@ add_custom_command(
                 ${PROJECT_SOURCE_DIR}/src/mod/alice.csv
                 ${CMAKE_CURRENT_BINARY_DIR}/alice.csv)
 
+				
+set(SECRET_GITHUB_MAGIC "NO" CACHE STRING "set to ignore the local_uset_settings.hpp file")
+if(${SECRET_GITHUB_MAGIC})
+	target_compile_definitions(Alice PRIVATE "GAME_DIR=\"NONE\"")
+endif()
+
 if (BUILD_TESTING)
     enable_testing()
 	add_subdirectory(tests)
