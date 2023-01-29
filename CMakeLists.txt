@@ -12,7 +12,12 @@ include(CTest)
 
 add_executable(Alice WIN32 "src/main.cpp")
 
-set(PRIMARY_PROJECT_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
+# Used for storing the local path to the Victoria 2 directory
+if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
+	target_compile_definitions(Alice PRIVATE LOCAL_USER_SETTINGS)
+else()
+	target_compile_definitions(Alice PRIVATE "GAME_DIR=\"NONE\"")
+endif()
 
 add_compile_definitions(VE_NO_TBB)
 if(WIN32)
@@ -30,7 +35,7 @@ if(WIN32)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(Alice PRIVATE
 										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field
-			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
+			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(Alice PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
@@ -38,7 +43,7 @@ if(WIN32)
 	else()
 		target_compile_options(Alice PRIVATE
 										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
-			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
+			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
 		target_link_options(Alice PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
@@ -60,22 +65,6 @@ message("leftover CMAKE_CXX_FLAGS_DEBUG: \"${CMAKE_CXX_FLAGS_DEBUG}\"")
 message("leftover CMAKE_CXX_FLAGS_RELEASE: \"${CMAKE_CXX_FLAGS_RELEASE}\"")
 
 add_compile_definitions(VE_NO_TBB)
-if(WIN32)
-	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
-		else()
-			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
-		endif()
-	else()
-		if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /GF /w34388 /w34389 /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline")
-		else()
-			set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline")
-		endif()
-	endif()
-endif()
-
 
 target_link_libraries(Alice PRIVATE dependency_DataContainer)
 target_link_libraries(Alice PRIVATE libglew_static)
@@ -96,6 +85,7 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/parsing
 	${PROJECT_SOURCE_DIR}/src/window
 	${PROJECT_SOURCE_DIR}/src/text
+	${PROJECT_SOURCE_DIR}/src/sound
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 
@@ -155,7 +145,7 @@ add_custom_command(
                 ${PROJECT_SOURCE_DIR}/src/mod/alice.csv
                 ${CMAKE_CURRENT_BINARY_DIR}/alice.csv)
 
-				
+
 set(SECRET_GITHUB_MAGIC "NO" CACHE STRING "set to ignore the local_uset_settings.hpp file")
 if(${SECRET_GITHUB_MAGIC})
 	target_compile_definitions(Alice PRIVATE "GAME_DIR=\"NONE\"")

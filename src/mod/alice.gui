@@ -300,7 +300,7 @@ guiTypes = {
 				position = {x= 58 y = 123 }	
 				minValue = 0
 				maxValue = 128
-				stepSize = 1
+				stepSize = 2
 				startValue = 128
 				horizontal = 1
 			
@@ -348,7 +348,7 @@ guiTypes = {
 				position = {x= 58 y = 176 }	
 				minValue = 0
 				maxValue = 128
-				stepSize = 1
+				stepSize = 2
 				startValue = 128
 				horizontal = 1
 			
@@ -396,7 +396,7 @@ guiTypes = {
 				position = {x= 58 y = 229 }	
 				minValue = 0
 				maxValue = 128
-				stepSize = 1
+				stepSize = 2
 				startValue = 128
 				horizontal = 1
 			
@@ -444,7 +444,7 @@ guiTypes = {
 				position = {x= 58 y = 282 }	
 				minValue = 0
 				maxValue = 128
-				stepSize = 1
+				stepSize = 2
 				startValue = 128
 				horizontal = 1
 			

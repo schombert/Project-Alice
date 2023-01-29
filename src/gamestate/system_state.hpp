@@ -10,6 +10,7 @@
 #include "text.hpp"
 #include "opengl_wrapper.hpp"
 #include "fonts.hpp"
+#include "sound.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -27,8 +28,13 @@ namespace sys {
 
 
 	struct user_settings_s {
-		bool prefer_fullscreen = false;
 		float ui_scale = 1.0f;
+		float master_volume = 0.5f;
+		float music_volume = 1.0f;
+		float effects_volume = 1.0f;
+		float interface_volume = 1.0f;
+		bool prefer_fullscreen = false;
+		
 	};
 
 	struct alignas(64) state {
@@ -62,6 +68,7 @@ namespace sys {
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platfom-dependent window information
+		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platfom-dependent sound information
 		ui::state ui_state; // transient information for the state of the ui
 		text::font_manager font_collection;
 
@@ -108,5 +115,9 @@ namespace sys {
 
 		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)) {}
 		~state();
+
+		void save_user_settings() const;
+		void load_user_settings();
+		void update_ui_scale(float new_scale);
 	};
 }

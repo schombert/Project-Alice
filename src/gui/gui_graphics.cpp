@@ -192,10 +192,10 @@ xy_pair get_absolute_location(element_base const& node) {
 }
 
 int32_t ui_width(sys::state const& state) {
-	return int32_t(state.x_size * state.user_settings.ui_scale);
+	return int32_t(state.x_size / state.user_settings.ui_scale);
 }
 int32_t ui_height(sys::state const& state) {
-	return int32_t(state.y_size * state.user_settings.ui_scale);
+	return int32_t(state.y_size / state.user_settings.ui_scale);
 }
 
 void populate_definitions_map(sys::state& state) {

@@ -2,6 +2,7 @@
 
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
+#include "sound.hpp"
 
 namespace ui {
 
@@ -94,14 +95,14 @@ public:
 	virtual void button_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
-			// TODO: button click sound
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_action(state);
 		}
 		return message_result::consumed;
 	}
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			// TODO: button click sound
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_action(state);
 			return message_result::consumed;
 		} else {
@@ -211,8 +212,8 @@ class scrollbar : public container_base {
 public:
 	virtual void on_value_change(sys::state& state, int32_t v) noexcept { }
 
-	void update_raw_value(int32_t v);
-	void update_scaled_value(float v);
+	void update_raw_value(sys::state& state, int32_t v);
+	void update_scaled_value(sys::state& state, float v);
 
 	float scaled_value() const;
 

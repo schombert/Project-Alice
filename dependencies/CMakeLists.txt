@@ -1,4 +1,5 @@
 include(FetchContent)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 add_subdirectory(DataContainerGenerator)
 add_subdirectory(catch2)
