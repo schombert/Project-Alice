@@ -161,21 +161,21 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 		if(audio_interface) {
 			hr = audio_interface->put_Volume(volume_function(volume * volume_multiplier));
 			if(FAILED(hr)) {
-				MessageBox(nullptr, L"failed to put_Volume", L"Audio error", MB_OK);
+				MessageBoxW(nullptr, L"failed to put_Volume", L"Audio error", MB_OK);
 			}
 		}
 		if(seek_interface) {
 			LONGLONG new_position = 0;
 			hr = seek_interface->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 			if(FAILED(hr)) {
-				MessageBox(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
+				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
 			}
 		}
 
 		if(control_interface) {
 			hr = control_interface->Run();
 			if(FAILED(hr)) {
-				MessageBox(nullptr, L"failed to Run", L"Audio error", MB_OK);
+				MessageBoxW(nullptr, L"failed to Run", L"Audio error", MB_OK);
 			}
 		}
 	}
