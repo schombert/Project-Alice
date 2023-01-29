@@ -321,14 +321,14 @@ void simple_text_element_base::on_create(sys::state& state) noexcept {
 void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(stored_text.length() > 0) {
 		if(base_data.get_element_type() == element_type::text) {
-			auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
-			auto ycentered = (base_data.size.y - base_data.data.text.border_size.y - linesz) / 2;
-			ycentered = std::max(ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size), float(base_data.data.text.border_size.y));
+			//auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
+			//auto ycentered = (base_data.size.y - base_data.data.text.border_size.y - linesz) / 2;
+			//ycentered = std::max(ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size), float(base_data.data.text.border_size.y));
 
 			ogl::render_text(
 				state, stored_text.c_str(), uint32_t(stored_text.length()),
 				ogl::color_modification::none,
-				float(x + text_offset), float(y + ycentered), float(font_size),
+				float(x + text_offset), float(y + base_data.data.text.border_size.y), float(font_size),
 				black_text ? ogl::color3f{ 0.0f,0.0f,0.0f } : ogl::color3f{ 1.0f,1.0f,1.0f },
 				state.font_collection.fonts[font_id - 1]);
 
@@ -560,21 +560,21 @@ void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, in
 }
 
 
-void scrollbar::update_raw_value(int32_t v) {
+void scrollbar::update_raw_value(sys::state& state, int32_t v) {
 	// TODO: adjust to limits if using limits
 	stored_value = std::clamp(v, settings.lower_value, settings.upper_value);
 	float percentage = float(stored_value - settings.lower_value) / float(settings.upper_value - settings.lower_value);
 	auto offset = settings.buttons_size + int32_t((settings.track_size - settings.buttons_size) * percentage);
-	if(slider) {
+	if(slider && state.ui_state.drag_target != slider) {
 		if(settings.vertical)
 			slider->base_data.position.y = int16_t(offset);
 		else
 			slider->base_data.position.x = int16_t(offset);
 	}
 }
-void scrollbar::update_scaled_value(float v) {
+void scrollbar::update_scaled_value(sys::state& state, float v) {
 	int32_t rv = std::clamp(int32_t(v * settings.scaling_factor), settings.lower_value, settings.upper_value);
-	update_raw_value(rv);
+	update_raw_value(state, rv);
 }
 float scrollbar::scaled_value() const {
 	return float(stored_value) / float(settings.scaling_factor);
@@ -591,7 +591,7 @@ void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings co
 
 	// TODO: adjust to limits if using limits
 	if(stored_value < settings.lower_value || stored_value > settings.upper_value) {
-		update_raw_value(stored_value);
+		update_raw_value(state, stored_value);
 		on_value_change(state, stored_value);
 	}
 }
@@ -700,7 +700,7 @@ message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
 			stored_value = adjustments.new_value;
 
 		if(adjustments.move_slider) {
-			update_raw_value(stored_value);
+			update_raw_value(state, stored_value);
 		} else {
 			// TODO: adjust to limits if using limits
 			stored_value = std::clamp(stored_value, settings.lower_value, settings.upper_value);
