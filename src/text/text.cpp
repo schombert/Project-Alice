@@ -107,6 +107,15 @@ namespace text {
 
 	void load_text_data(sys::state& state, uint32_t language) {
 		auto rt = get_root(state.common_fs);
+
+		// first, load in special mod gui
+		// TODO put this in a better location
+		auto alice_csv = open_file(rt, NATIVE("alice.csv"));
+		if(alice_csv) {
+			auto content = view_contents(*alice_csv);
+			consume_csv_file(state, language, content.data, content.file_size);
+		}
+
 		auto text_dir = open_directory(rt, NATIVE("localisation"));
 		auto all_files = list_files(text_dir, NATIVE(".csv"));
 

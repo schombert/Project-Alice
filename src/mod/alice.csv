@@ -1,0 +1,14 @@
+alice_save_exit;Save and Exit;;;;;;;;;;;;x
+alice_save;Save and Exit;;;;;;;;;;;;x
+alice_exit;Exit;;;;;;;;;;;;x
+graphics_options;Graphics Options;;;;;;;;;;;;x
+sound_options;Sound Options;;;;;;;;;;;;x
+controls_options;Controls Options;;;;;;;;;;;;x
+window_mode;Window mode;;;;;;;;;;;;x
+map_projection;Map projection;;;;;;;;;;;;x
+ui_scale;UI scale;;;;;;;;;;;;x
+zoom_mode_label;Zoom style;;;;;;;;;;;;x
+master_volume_label;Maseter volume;;;;;;;;;;;;x
+music_volume_label;Music volume;;;;;;;;;;;;x
+interface_volume_label;Interface volume;;;;;;;;;;;;x
+effect_volume_label;Sound effect volume;;;;;;;;;;;;x

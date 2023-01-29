@@ -242,7 +242,7 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 
 	fnt.internal_line_height = static_cast<float>(fnt.font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
 	fnt.internal_ascender = static_cast<float>(fnt.font_face->size->metrics.ascender) / static_cast<float>((1 << 6) * magnification_factor);
-	fnt.internal_descender = static_cast<float>(fnt.font_face->size->metrics.descender) / static_cast<float>((1 << 6) * magnification_factor);
+	fnt.internal_descender = - static_cast<float>(fnt.font_face->size->metrics.descender) / static_cast<float>((1 << 6) * magnification_factor);
 	fnt.internal_top_adj = (fnt.internal_line_height - (fnt.internal_ascender + fnt.internal_descender)) / 2.0f;
 
 	// load all glyph metrics

@@ -15,18 +15,19 @@ add_executable(Alice WIN32 "src/main.cpp")
 set(PRIMARY_PROJECT_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
 
 add_compile_definitions(VE_NO_TBB)
-if(MSVC)
+if(WIN32)
 	string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	string(REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	string(REPLACE "/MDd" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 	string(REPLACE "/MD" "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
 	string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 
 	target_compile_options(Alice PRIVATE
-									/wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
+									/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
 		$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
-		$<$<NOT:$<CONFIG:Debug>>: 	/wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
+		$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
 	target_link_options(Alice PRIVATE
 		$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 		$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
@@ -47,7 +48,7 @@ message("leftover CMAKE_CXX_FLAGS_DEBUG: \"${CMAKE_CXX_FLAGS_DEBUG}\"")
 message("leftover CMAKE_CXX_FLAGS_RELEASE: \"${CMAKE_CXX_FLAGS_RELEASE}\"")
 
 add_compile_definitions(VE_NO_TBB)
-if(MSVC)
+if(WIN32)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set_target_properties(libglew_static PROPERTIES COMPILE_FLAGS "/MTd /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /RTC1 /EHsc /Od /RTC1")
 	else()
@@ -128,6 +129,11 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${PROJECT_SOURCE_DIR}/src/mod/LibreCaslonText-Regular.ttf
                 ${CMAKE_CURRENT_BINARY_DIR}/LibreCaslonText-Regular.ttf)
+add_custom_command(
+        TARGET Alice POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${PROJECT_SOURCE_DIR}/src/mod/alice.csv
+                ${CMAKE_CURRENT_BINARY_DIR}/alice.csv)
 
 set(GAME_FILES_DIRECTORY "" CACHE PATH "location of game files (i.e. the folder containing the exe)")
 

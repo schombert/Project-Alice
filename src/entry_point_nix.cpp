@@ -10,6 +10,7 @@ int main() {
 	parsers::error_handler err("");
 
 	// scenario making functions
+	text::load_text_data(*game_state, 2); // 2 = English
 	ui::load_text_gui_definitions(*game_state, err);
 
 	// scenario loading functions (would have to run these even when scenario is pre-built
