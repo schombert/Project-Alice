@@ -8,7 +8,7 @@ jobs:
   linux-build:
     strategy:
       matrix:
-        config: [release, debug]
+        config: [Release, Debug]
         compiler: [gcc, clang]
         os: [ubuntu-latest]
 
@@ -32,9 +32,7 @@ jobs:
 
     - name: Configure Build Files
       run: |
-        ls
-        cmake --preset=x64-${{ matrix.config }} -B build
-        cmake -DSECRET_GITHUB_MAGIC:STRING=YES
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} -B build
 
     - name: Build Project Alice
       run: |
@@ -43,7 +41,7 @@ jobs:
   windows-build:
     strategy:
       matrix:
-        config: [release, debug]
+        config: [release-win-clang, debug-windows]
     runs-on: [windows-latest]
     name: Windows (${{ matrix.config }})
     steps:
@@ -53,8 +51,7 @@ jobs:
 
     - name: Configure Build Files
       run: |
-        cmake -G "Visual Studio 17 2022" --preset=x64-${{ matrix.config }}-windows -B build
-        cmake -DSECRET_GITHUB_MAGIC:STRING=YES
+        cmake -G "Visual Studio 17 2022" --preset=x64-${{ matrix.config }} -B build
 
     - name: Build Project Alice
       run: |

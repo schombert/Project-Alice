@@ -45,16 +45,6 @@
       }
     },
     {
-      "name": "not-windows-base",
-      "inherits": "base",
-      "hidden": true,
-      "condition": {
-        "type": "notEquals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
       "name": "x64-debug-windows",
       "displayName": "x64 Debug",
       "inherits": "windows-base",
@@ -71,14 +61,6 @@
       }
     },
     {
-      "name": "x64-debug",
-      "displayName": "x64 Debug",
-      "inherits": "not-windows-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
       "name": "x64-release-windows",
       "displayName": "x64 Release",
       "inherits": "windows-base",
@@ -90,14 +72,6 @@
       "name": "x64-release-win-clang",
       "displayName": "x64 Release",
       "inherits": "windows-clang-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "x64-release",
-      "displayName": "x64 Release",
-      "inherits": "not-windows-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
