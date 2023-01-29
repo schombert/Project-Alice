@@ -290,9 +290,9 @@ float font::top_adjustment(int32_t size) const {
 
 
 void font::make_glyph(char ch_in) {
-	if(glyph_loaded[ch_in])
+	if(glyph_loaded[uint32_t(ch_in)])
 		return;
-	glyph_loaded[ch_in] = true;
+	glyph_loaded[uint32_t(ch_in)] = true;
 
 	auto codepoint = win1250toUTF16(ch_in);
 	if(codepoint == ' ')
@@ -332,8 +332,8 @@ void font::make_glyph(char ch_in) {
 		const int btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
 		const int btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
 
-		glyph_positions[ch_in].x = (hb_x - static_cast<float>(btmap_x_off)) * 1.0f / static_cast<float>(magnification_factor);
-		glyph_positions[ch_in].y = (-hb_y - static_cast<float>(btmap_y_off)) * 1.0f / static_cast<float>(magnification_factor);
+		glyph_positions[uint32_t(ch_in)].x = (hb_x - static_cast<float>(btmap_x_off)) * 1.0f / static_cast<float>(magnification_factor);
+		glyph_positions[uint32_t(ch_in)].y = (-hb_y - static_cast<float>(btmap_y_off)) * 1.0f / static_cast<float>(magnification_factor);
 
 		bool in_map[dr_size * dr_size] = { false };
 		float distance_map[dr_size * dr_size];
@@ -373,7 +373,7 @@ float font::text_extent(const char* codepoints, uint32_t count, int32_t size) co
 	for(; count-- > 0; ) {
 
 		total +=
-			this->glyph_advances[codepoints[count]] * size / 64.0f +
+			this->glyph_advances[uint32_t(codepoints[count])] * size / 64.0f +
 			((count != 0) ? kerning(codepoints[count - 1], codepoints[count]) * size / 64.0f : 0.0f);
 	}
 	return total;

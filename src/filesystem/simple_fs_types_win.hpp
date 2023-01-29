@@ -40,7 +40,7 @@ namespace simple_fs {
 		native_string relative_path;
 		file_system const* parent_system = nullptr;
 	public:
-		directory(file_system const* parent_system, native_string_view relative_path) : parent_system(parent_system), relative_path(relative_path) {}
+		directory(file_system const* parent_system, native_string_view relative_path) : relative_path(relative_path), parent_system(parent_system) {}
 
 		friend directory get_root(file_system const& fs);
 		friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
@@ -58,7 +58,7 @@ namespace simple_fs {
 		native_string file_name;
 		native_string absolute_path;
 	public:
-		unopened_file(native_string_view absolute_path, native_string_view file_name) : absolute_path(absolute_path), file_name(file_name) {}
+		unopened_file(native_string_view absolute_path, native_string_view file_name) : file_name(file_name), absolute_path(absolute_path)  {}
 
 		friend std::optional<file> open_file(unopened_file const& f);
 		friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
