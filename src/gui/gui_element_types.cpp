@@ -355,6 +355,12 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 }
 
 void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
+	// Automatically resize the element to fit the screen
+	if(dat.get_element_type() == ui::element_type::window && dat.data.window.is_fullscreen()) {
+		dat.size.x = int16_t(ui::ui_width(state) / state.user_settings.ui_scale);
+		dat.size.y = int16_t(ui::ui_height(state) / state.user_settings.ui_scale);
+	}
+	
 	if(dat.size.x == 0 || dat.size.y == 0) {
 		dcon::gfx_object_id gfx_handle;
 		float scale = 1.0f;
@@ -380,12 +386,6 @@ void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
 				dat.size.y = int16_t(dat.size.y * dat.data.image.scale);
 			}
 		}
-	}
-	
-	// Resize for fullscreen
-	if(dat.get_element_type() == ui::element_type::window && dat.data.window.is_fullscreen()) {
-		dat.size.x = ui::ui_width(state);
-		dat.size.y = ui::ui_height(state);
 	}
 }
 
