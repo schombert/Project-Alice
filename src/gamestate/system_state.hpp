@@ -27,8 +27,13 @@ namespace sys {
 
 
 	struct user_settings_s {
-		bool prefer_fullscreen = false;
 		float ui_scale = 1.0f;
+		float master_volume = 0.5f;
+		float music_volume = 1.0f;
+		float effects_volume = 1.0f;
+		float interface_volume = 1.0f;
+		bool prefer_fullscreen = false;
+		
 	};
 
 	struct alignas(64) state {
@@ -108,5 +113,9 @@ namespace sys {
 
 		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)) {}
 		~state();
+
+		void save_user_settings() const;
+		void load_user_settings();
+		void update_ui_scale(float new_scale);
 	};
 }

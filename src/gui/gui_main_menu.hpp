@@ -4,8 +4,25 @@
 
 namespace ui {
 
+class ui_scale_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class ui_scale_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class ui_scale_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
+
+struct notify_setting_update{ };
 
 class controls_menu_window : public window_element_base {
+	bool setting_changed = false;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button")
 			return make_element_by_type<generic_close_button>(state, id);
@@ -13,9 +30,51 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<draggable_target>(state, id);
 		else
 			return nullptr;
+	}
+	void on_hide(sys::state& state) noexcept override {
+		if(setting_changed)
+			state.save_user_settings();
+	}
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<notify_setting_update>()) {
+			setting_changed = true;
+			impl_on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 class graphics_menu_window : public window_element_base {
+	bool setting_changed = false;
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "close_button")
+			return make_element_by_type<generic_close_button>(state, id);
+		else if(name == "background")
+			return make_element_by_type<draggable_target>(state, id);
+		else if(name == "ui_scale_value")
+			return make_element_by_type<ui_scale_display>(state, id);
+		else if(name == "ui_scale_left")
+			return make_element_by_type<ui_scale_left>(state, id);
+		else if(name == "ui_scale_right")
+			return make_element_by_type<ui_scale_right>(state, id);
+		else
+			return nullptr;
+	}
+	void on_hide(sys::state& state) noexcept override {
+		if(setting_changed)
+			state.save_user_settings();
+	}
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<notify_setting_update>()) {
+			setting_changed = true;
+			impl_on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+class audio_menu_window : public window_element_base {
+	bool setting_changed = false;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button")
 			return make_element_by_type<generic_close_button>(state, id);
@@ -24,15 +83,17 @@ class graphics_menu_window : public window_element_base {
 		else
 			return nullptr;
 	}
-};
-class audio_menu_window : public window_element_base {
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button")
-			return make_element_by_type<generic_close_button>(state, id);
-		else if(name == "background")
-			return make_element_by_type<draggable_target>(state, id);
-		else
-			return nullptr;
+	void on_hide(sys::state& state) noexcept override {
+		if(setting_changed)
+			state.save_user_settings();
+	}
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<notify_setting_update>()) {
+			setting_changed = true;
+			impl_on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
@@ -67,6 +128,7 @@ public:
 		}
 	}
 };
+
 
 class main_menu_window : public window_element_base {
 public:

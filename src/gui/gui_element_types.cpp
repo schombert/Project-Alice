@@ -706,6 +706,10 @@ message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
 			stored_value = std::clamp(stored_value, settings.lower_value, settings.upper_value);
 		}
 
+		if(adjustments.move_slider == true && adjustments.is_relative == false && !state.ui_state.drag_target) { // track click
+			state.ui_state.drag_target = slider;
+		}
+
 		on_value_change(state, stored_value);
 		return message_result::unseen;
 	} else {
