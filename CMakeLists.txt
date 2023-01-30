@@ -140,16 +140,6 @@ add_custom_command(
 add_custom_command(
         TARGET Alice POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/ogl/map_f_shader.txt
-                ${CMAKE_CURRENT_BINARY_DIR}/map_f_shader.txt)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/ogl/map_v_shader.txt
-                ${CMAKE_CURRENT_BINARY_DIR}/map_v_shader.txt)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
                 ${PROJECT_SOURCE_DIR}/src/mod/alice.gui
                 ${CMAKE_CURRENT_BINARY_DIR}/alice.gui)
 add_custom_command(
