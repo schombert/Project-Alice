@@ -22,9 +22,9 @@ void initialize_opengl(sys::state& state) {
 	load_global_squares(state); // create various squares to drive the shaders with
 
 
-	
+
 	//glEnable(GL_SCISSOR_TEST);
-	
+
 }
 
 GLint compile_shader(std::string_view source, GLenum type) {
@@ -253,19 +253,28 @@ void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool fli
 	}
 }
 
-void render_map(sys::state& state) {
+void render_map(sys::state& state, map::display_data const& map_data) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
 
+	glUniform2f(1, GLfloat(map_data.map_x_size), GLfloat(map_data.map_y_size));
+	glUniform1f(2, map_data.map_zoom);
+
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, state.map_provinces_texture.get_texture_handle());
+	glBindTexture(GL_TEXTURE_2D, map_data.map_provinces_texture.get_texture_handle());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, state.map_terrain_texture.get_texture_handle());
+	glBindTexture(GL_TEXTURE_2D, map_data.map_terrain_texture.get_texture_handle());
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, state.map_rivers_texture.get_texture_handle());
+	glBindTexture(GL_TEXTURE_2D, map_data.map_rivers_texture.get_texture_handle());
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, state.map_terrainsheet_texture.get_texture_handle());
-	
+	glBindTexture(GL_TEXTURE_2D_ARRAY, map_data.map_terrainsheet_texture.get_texture_handle());
+
+	// TODO do this in one draw call
+	glUniform2f(0, map_data.map_x_pos-1.f, map_data.map_y_pos);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glUniform2f(0, map_data.map_x_pos, map_data.map_y_pos);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glUniform2f(0, map_data.map_x_pos+1.f, map_data.map_y_pos);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
@@ -452,7 +461,7 @@ void render_character(sys::state const& state, char codepoint, color_modificatio
 
 		glUniform4f(parameters::drawing_rectangle, x, y, size, size);
 		glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
-		glUniform1f(parameters::border_size, 0.08f * 16.0f / size); 
+		glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
 		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call

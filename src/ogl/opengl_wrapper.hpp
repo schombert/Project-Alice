@@ -11,6 +11,7 @@
 #include "container_types.hpp"
 #include "texture.hpp"
 #include "fonts.hpp"
+#include "map.hpp"
 
 namespace ogl {
 namespace parameters {
@@ -189,7 +190,7 @@ struct color3f {
 		void bind_buffer();
 	};
 
-	void render_map(sys::state& state);
+	void render_map(sys::state& state, map::display_data const& map_data);
 	void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped);
 	void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle);
 	void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, lines& l);
