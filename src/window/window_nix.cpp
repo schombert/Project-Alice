@@ -165,10 +165,8 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 }
 
 void close_window(sys::state& game_state) {
-	if(game_state.win_ptr->window) {
-		glfwDestroyWindow(game_state.win_ptr->window);
-		glfwTerminate();
-	}
+	// Signal to close window (should close = yes)
+	glfwSetWindowShouldClose(game_state.win_ptr->window, 1);
 }
 
 sys::key_modifiers get_current_modifiers(GLFWwindow* window) {
@@ -362,6 +360,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		glfwSwapBuffers(window);
 	}
 
-	close_window(game_state);
+	glfwDestroyWindow(window);
+	glfwTerminate();
 }
 }
