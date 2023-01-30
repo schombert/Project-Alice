@@ -96,7 +96,7 @@ namespace sys {
 		// TODO: Obtain map size from the bitmap size?
 		glUseProgram(open_gl.map_shader_program);
 		glUniform2f(0, map_x_pos, map_y_pos);
-		glUniform2f(1, map_x_size, map_y_size);
+		glUniform2f(1, GLfloat(map_x_size), GLfloat(map_y_size));
 		glUniform1f(2, map_zoom);
 		glDisable(GL_BLEND);
 
