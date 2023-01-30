@@ -9,6 +9,10 @@
 
 namespace ogl {
 
+class texture;
+
+GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data);
+GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data, int32_t tiles_x, int32_t tiles_y);
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
 
 class texture {
@@ -29,6 +33,10 @@ public:
 	texture& operator=(texture const&) = delete;
 	texture& operator=(texture&& other) noexcept;
 
+	GLuint get_texture_handle() const;
+
+	friend GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data);
+	friend GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data, int32_t tiles_x, int32_t tiles_y);
 	friend GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
 };
 
@@ -51,7 +59,5 @@ public:
 	GLuint handle();
 	~data_texture();
 };
-
-
 
 }

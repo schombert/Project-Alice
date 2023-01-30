@@ -71,6 +71,7 @@ target_include_directories(tests_project PUBLIC
 	${PROJECT_SOURCE_DIR}/src/window
 	${PROJECT_SOURCE_DIR}/src/text
 	${PROJECT_SOURCE_DIR}/src/sound
+	${PROJECT_SOURCE_DIR}/src/map
 	${PROJECT_SOURCE_DIR}/src/nations
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")

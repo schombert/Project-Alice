@@ -54,13 +54,31 @@ namespace sys {
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 		// TODO: look at return value
-		ui_state.root->impl_on_scroll(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), amount, mod);
+		auto r = ui_state.root->impl_on_scroll(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), amount, mod);
+		if(r != ui::message_result::consumed) {
+			// TODO Settings for making zooming the map faster
+			constexpr auto zoom_speed = 5.f;
+			assert(amount >= -1.f && amount <= 1.f);
+			map_zoom *= 1.f + amount * zoom_speed;
+		}
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 		if(!ui_state.edit_target) {
 			if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 				if(keycode == virtual_key::ESCAPE) {
 					ui::show_main_menu(*this);
+				} else if(keycode == virtual_key::A) {
+					map_x_vel += (1.f / map_x_size) * (1.f / map_zoom) * 0.0125f;
+				} else if(keycode == virtual_key::D) {
+					map_x_vel -= (1.f / map_x_size) * (1.f / map_zoom) * 0.0125f;
+				} else if(keycode == virtual_key::W) {
+					map_y_vel -= (1.f / map_y_size) * (1.f / map_zoom) * 0.0125f;
+				} else if(keycode == virtual_key::S) {
+					map_y_vel += (1.f / map_y_size) * (1.f / map_zoom) * 0.0125f;
+				} else if(keycode == virtual_key::Q) {
+					map_zoom *= 1.1f;
+				} else if(keycode == virtual_key::E) {
+					map_zoom *= 0.9f;
 				}
 			}
 		}
@@ -76,7 +94,34 @@ namespace sys {
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+		// TODO: Obtain map size from the bitmap size?
+		glUseProgram(open_gl.map_shader_program);
+		glUniform2f(0, map_x_pos, map_y_pos);
+		glUniform2f(1, GLfloat(map_x_size), GLfloat(map_y_size));
+		glUniform1f(2, map_zoom);
+		glDisable(GL_BLEND);
 
+		glViewport(0, 0, x_size, y_size);
+		glDepthRange(-1.0, 1.0);
+
+		ogl::render_map(*this);
+
+		map_x_pos += map_x_vel;
+		map_y_pos += map_y_vel;
+		auto const velocity_fn = [this](auto& v, auto const v_scale) {
+			auto const stop_movement_threshold = (1.f / map_zoom) * 0.0001f;
+			v *= 0.975f;
+
+			if(v > 0.f && v < v_scale * stop_movement_threshold) {
+				v = 0.f;
+			} else if(v < 0.f && v > -v_scale * stop_movement_threshold) {
+				v = 0.f;
+			}
+		};
+		velocity_fn(map_x_vel, 1.f / map_x_size);
+		velocity_fn(map_y_vel, 1.f / map_y_size);
+
+		// UI rendering
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
