@@ -132,7 +132,7 @@ void load_shaders(sys::state& state) {
 	auto root = get_root(state.common_fs);
 	auto ui_fshader = open_file(root, NATIVE("ui_f_shader.txt"));
 	auto ui_vshader = open_file(root, NATIVE("ui_v_shader.txt"));
-	if(bool(ui_fshader) && bool(ui_fshader)) {
+	if(bool(ui_fshader) && bool(ui_vshader)) {
 		auto vertex_content = view_contents(*ui_vshader);
 		auto fragment_content = view_contents(*ui_fshader);
 		state.open_gl.ui_shader_program = create_program(
