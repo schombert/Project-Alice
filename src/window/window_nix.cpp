@@ -265,7 +265,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	int32_t x = (xpos > 0? (int32_t)std::round(xpos) : 0);
 	int32_t y = (ypos > 0? (int32_t)std::round(ypos) : 0);
 
-	state->on_mouse_wheel(x, y, get_current_modifiers(window), (float)(yoffset) / 120.0f);
+	state->on_mouse_wheel(x, y, get_current_modifiers(window), yoffset);
 	state->mouse_x_position = x;
 	state->mouse_y_position = y;
 }

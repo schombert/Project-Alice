@@ -57,9 +57,7 @@ namespace sys {
 		auto r = ui_state.root->impl_on_scroll(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), amount, mod);
 		if(r != ui::message_result::consumed) {
 			// TODO Settings for making zooming the map faster
-			constexpr auto zoom_speed = 5.f;
-			assert(amount >= -1.f && amount <= 1.f);
-			map_zoom *= 1.f + amount * zoom_speed;
+			map_zoom *= 1.f + amount / 5.f;
 		}
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
