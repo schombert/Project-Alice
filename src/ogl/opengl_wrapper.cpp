@@ -261,13 +261,13 @@ void render_map(sys::state& state, map::display_data const& map_data) {
 	glUniform1f(2, map_data.map_zoom);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, map_data.map_provinces_texture.get_texture_handle());
+	glBindTexture(GL_TEXTURE_2D, map_data.provinces_texture_handle);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, map_data.map_terrain_texture.get_texture_handle());
+	glBindTexture(GL_TEXTURE_2D, map_data.terrain_texture_handle);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, map_data.map_rivers_texture.get_texture_handle());
+	glBindTexture(GL_TEXTURE_2D, map_data.rivers_texture_handle);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, map_data.map_terrainsheet_texture.get_texture_handle());
+	glBindTexture(GL_TEXTURE_2D_ARRAY, map_data.terrainsheet_texture.get_texture_handle());
 
 	// TODO do this in one draw call
 	glUniform2f(0, map_data.map_x_pos-1.f, map_data.map_y_pos);

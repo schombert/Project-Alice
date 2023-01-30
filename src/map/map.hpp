@@ -7,10 +7,10 @@ namespace map {
 class display_data {
 public:
 	// map data
-	ogl::texture map_provinces_texture;
-	ogl::texture map_terrain_texture;
-	ogl::texture map_rivers_texture;
-	ogl::texture map_terrainsheet_texture;
+	GLuint provinces_texture_handle = 0;
+	GLuint terrain_texture_handle = 0;
+	GLuint rivers_texture_handle = 0;
+	ogl::texture terrainsheet_texture;
 	int32_t map_x_size = 0;
 	int32_t map_y_size = 0;
 	float map_x_pos = 0.f;

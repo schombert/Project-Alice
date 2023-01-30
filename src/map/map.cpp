@@ -1,5 +1,37 @@
 #include "map.hpp"
 
+GLuint load_texture_from_file(simple_fs::file& file, bool linear, int32_t& size_x, int32_t& size_y) {
+	auto content = simple_fs::view_contents(file);
+	int32_t file_channels = 4;
+
+	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
+		&size_x, &size_y, &file_channels, 4);
+
+	GLuint texture_handle;
+	glGenTextures(1, &texture_handle);
+	if(texture_handle) {
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size_x, size_y);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linear ? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	STBI_FREE(data);
+	return texture_handle;
+}
+GLuint load_texture_from_file(simple_fs::file& file, bool linear) {
+	int32_t size_x;
+	int32_t size_y;
+	return load_texture_from_file(file, linear, size_x, size_y);
+}
+
 void map::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
@@ -9,15 +41,13 @@ void map::load_map(sys::state& state) {
 
 	// TODO Better error handling and reporting ^^
 	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
-	ogl::load_texture_from_file(state, map_display.map_provinces_texture, *provinces_bmp, false);
+	map_display.provinces_texture_handle = load_texture_from_file(*provinces_bmp, false, map_display.map_x_size, map_display.map_y_size);
 	auto terrain_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
-	ogl::load_texture_from_file(state, map_display.map_terrain_texture, *terrain_bmp, false);
+	map_display.terrain_texture_handle = load_texture_from_file(*terrain_bmp, false);
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
-	ogl::load_texture_from_file(state, map_display.map_rivers_texture, *rivers_bmp, false);
+	map_display.rivers_texture_handle = load_texture_from_file(*rivers_bmp, false);
 	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
-	ogl::load_texture_array_from_file(state, map_display.map_terrainsheet_texture, *texturesheet, false, 8, 8);
-	map_display.map_x_size = map_display.map_provinces_texture.size_x;
-	map_display.map_y_size = map_display.map_provinces_texture.size_y;
+	ogl::load_texture_array_from_file(state, map_display.terrainsheet_texture, *texturesheet, false, 8, 8);
 }
 
 void map::display_data::update() {
