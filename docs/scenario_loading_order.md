@@ -13,7 +13,7 @@ This document provides a rough order for loading the game files. This is based o
 In this phase we are focused mainly on figuring out the names of things that the contents of other files will refer to them by. In some cases we can just read in all the relevant data when we open the file, and there would be a performance cost to not just reading in the data as we see it, so we read it in. But in the case of a number of other files, there are parts of the file (descriptions of trigger conditions most commonly) that we cannot read until we have gathered all the names. These files are merely "pre parsed." In most of these cases, we parse the file only to the extent needed to gather the names that we need, and then we cache the parsing state "in progress" so that we can resume directly when we get to the next phase.
 
 - Read national tags from `countries.txt` *Done*
-- Read religions from `religion.txt`
+- Read religions from `religion.txt` *Done*
 - Read cultures from `cultures.txt`
 - Read goods from `goods.txt`
 - Read buildings from `buildings.txt`

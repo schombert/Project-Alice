@@ -1,6 +1,7 @@
 #include "catch2/catch.hpp"
 #include "parsers_declarations.hpp"
 #include "nations.hpp"
+#include "container_types.hpp"
 
 /*
 * parsers::scenario_building_context context(*this);
@@ -46,6 +47,26 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto id = it->second;
 		REQUIRE(bool(id) == true);
 		REQUIRE(context.file_names_for_idents[id] == "countries/Taiping.txt");
+	}
+	SECTION("religion") {
+		auto religion = open_file(common, NATIVE("religion.txt"));
+		if(religion) {
+			auto content = view_contents(*religion);
+			err.file_name = "religion.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_religion_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		auto it = context.map_of_religion_names.find(std::string("hindu"));
+		REQUIRE(it != context.map_of_religion_names.end());
+		auto id = it->second;
+		REQUIRE(state->world.religion_get_icon(id) == uint8_t(11));
+		REQUIRE(sys::red_from_int(state->world.religion_get_color(id)) == 0);
+		REQUIRE(sys::green_from_int(state->world.religion_get_color(id)) == 0.8f);
+		REQUIRE(state->world.religion_get_is_pagan(id) == false);
+
+		REQUIRE(state->world.religion_get_is_pagan(context.map_of_religion_names.find(std::string("animist"))->second) == true);
 	}
 }
 #endif

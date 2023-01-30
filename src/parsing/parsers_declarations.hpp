@@ -214,11 +214,53 @@ namespace parsers {
 		ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
 		tagged_vector<std::string, dcon::national_identity_id> file_names_for_idents;
 
+		ankerl::unordered_dense::map<std::string, dcon::religion_id> map_of_religion_names;
+
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
 
 	struct national_identity_file {
 		void any_value(std::string_view tag, association_type, std::string_view txt, error_handler& err, int32_t line, scenario_building_context& context);
+		void finish(scenario_building_context& context) { }
+	};
+
+	struct color_from_3f {
+		uint32_t value = 0;
+		template<typename T>
+		void free_value(float v, error_handler& err, int32_t line, T& context) {
+			value = (value >> 8) | (uint32_t(v * 255.0f) << 16);
+		}
+		template<typename T>
+		void finish(T& context) { }
+	};
+
+	struct religion_context {
+		dcon::religion_id id;
+		scenario_building_context& outer_context;
+	};
+	struct religion_def {
+		void icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.religion_set_icon(context.id, uint8_t(v));
+		}
+		void color(color_from_3f v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.religion_set_color(context.id, v.value);
+		}
+		void pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.religion_set_is_pagan(context.id, v);
+		}
+		void finish(religion_context& context) { }
+	};
+
+	void make_religion(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct religion_group {
+		void finish(scenario_building_context& context) { }
+	};
+
+	struct religion_file {
+		void any_group(std::string_view name, religion_group, error_handler& err, int32_t line, scenario_building_context& context) {
+
+		}
 		void finish(scenario_building_context& context) { }
 	};
 }

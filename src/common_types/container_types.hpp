@@ -5,6 +5,20 @@
 // this is here simply to declare the state struct in a very general location
 namespace sys {
 struct state;
+
+inline float red_from_int(uint32_t v) {
+	return float(v & 0xFF) / 255.0f;
+}
+inline float green_from_int(uint32_t v) {
+	return float((v >> 8) & 0xFF) / 255.0f;
+}
+inline float blue_from_int(uint32_t v) {
+	return float((v >> 16) & 0xFF) / 255.0f;
+}
+inline 	uint32_t pack_color(float r, float g, float b) {
+	return ((uint32_t(r * 255.0f) & 0xFF) << 0) | ((uint32_t(g * 255.0f) & 0xFF) << 8) | ((uint32_t(b * 255.0f) & 0xFF) << 16);
+}
+
 }
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>

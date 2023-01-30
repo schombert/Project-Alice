@@ -597,4 +597,21 @@ namespace text {
 		return result;
 
 	}
+
+	dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) {
+		auto it = state.key_to_text_sequence.find(lowercase_str(txt));
+		if(it != state.key_to_text_sequence.end()) {
+			return it->second;
+		} else {
+			auto new_key = state.add_to_pool_lowercase(txt);
+			auto component_sz = state.text_components.size();
+			state.text_components.push_back(new_key);
+			auto seq_size = state.text_sequences.size();
+			state.text_sequences.push_back(text::text_sequence{ uint16_t(component_sz), uint16_t(1) });
+			auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
+			state.key_to_text_sequence.insert_or_assign(new_key, new_id);
+			return new_id;
+		}
+	}
+
 }

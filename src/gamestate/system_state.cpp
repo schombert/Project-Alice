@@ -236,7 +236,16 @@ namespace sys {
 				parsers::parse_national_identity_file(gen, err, context);
 			}
 		}
-
+		// read religions from religion.txt
+		{
+			auto religion = open_file(common, NATIVE("religion.txt"));
+			if(religion) {
+				auto content = view_contents(*religion);
+				err.file_name = "religion.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_religion_file(gen, err, context);
+			}
+		}
 
 		// TODO do something with err
 	}
