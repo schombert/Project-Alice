@@ -130,8 +130,8 @@ static GLfloat global_square_left_flipped_data[] = {
 
 void load_shaders(sys::state& state) {
 	auto root = get_root(state.common_fs);
-	auto ui_fshader = open_file(root, NATIVE("ui_f_shader.txt"));
-	auto ui_vshader = open_file(root, NATIVE("ui_v_shader.txt"));
+	auto ui_fshader = open_file(root, NATIVE("assets/shaders/ui_f_shader.glsl"));
+	auto ui_vshader = open_file(root, NATIVE("assets/shaders/ui_v_shader.glsl"));
 	if(bool(ui_fshader) && bool(ui_vshader)) {
 		auto vertex_content = view_contents(*ui_vshader);
 		auto fragment_content = view_contents(*ui_fshader);
@@ -142,8 +142,8 @@ void load_shaders(sys::state& state) {
 		notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
 	}
 
-	auto map_fshader = open_file(root, NATIVE("map_f_shader.txt"));
-	auto map_vshader = open_file(root, NATIVE("map_v_shader.txt"));
+	auto map_fshader = open_file(root, NATIVE("assets/shaders/map_f_shader.glsl"));
+	auto map_vshader = open_file(root, NATIVE("assets/shaders/map_v_shader.glsl"));
 	if(bool(map_fshader) && bool(map_vshader)) {
 		auto vertex_content = view_contents(*map_vshader);
 		auto fragment_content = view_contents(*map_fshader);

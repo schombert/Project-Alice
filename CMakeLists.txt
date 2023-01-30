@@ -10,7 +10,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(CTest)
 
-add_executable(Alice WIN32 "src/main.cpp")
+# Copy everything from the assets directory into the CMAKE_CURRENT_BINARY_DIR/assets directory
+file(GLOB_RECURSE TESTING ${PROJECT_SOURCE_DIR}/assets/*)
+foreach(file ${TESTING})
+	string(LENGTH "${PROJECT_SOURCE_DIR}/" SOURCE_DIR_LENGHT)
+	string(SUBSTRING ${file} ${SOURCE_DIR_LENGHT} -1 file)
+	message(${file})
+	list(APPEND ASSET_FILES ${CMAKE_CURRENT_BINARY_DIR}/${file})
+
+	add_custom_command(
+			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
+			DEPENDS ${PROJECT_SOURCE_DIR}/${file}
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					${PROJECT_SOURCE_DIR}/${file}
+					${CMAKE_CURRENT_BINARY_DIR}/${file})
+endforeach()
+
+add_executable(Alice WIN32 "src/main.cpp" ${ASSET_FILES})
 
 # Used for storing the local path to the Victoria 2 directory
 if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
@@ -116,47 +132,6 @@ add_custom_command(
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_PARSERS DEPENDS ${PROJECT_SOURCE_DIR}/src/parsing/parser_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
-
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/ogl/map_f_shader.txt
-                ${CMAKE_CURRENT_BINARY_DIR}/map_f_shader.txt)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/ogl/map_v_shader.txt
-                ${CMAKE_CURRENT_BINARY_DIR}/map_v_shader.txt)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/ogl/ui_f_shader.txt
-                ${CMAKE_CURRENT_BINARY_DIR}/ui_f_shader.txt)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/ogl/ui_v_shader.txt
-                ${CMAKE_CURRENT_BINARY_DIR}/ui_v_shader.txt)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/mod/alice.gui
-                ${CMAKE_CURRENT_BINARY_DIR}/alice.gui)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/mod/AndadaSC-Regular.otf
-                ${CMAKE_CURRENT_BINARY_DIR}/AndadaSC-Regular.otf)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/mod/LibreCaslonText-Regular.ttf
-                ${CMAKE_CURRENT_BINARY_DIR}/LibreCaslonText-Regular.ttf)
-add_custom_command(
-        TARGET Alice POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${PROJECT_SOURCE_DIR}/src/mod/alice.csv
-                ${CMAKE_CURRENT_BINARY_DIR}/alice.csv)
 
 
 if (BUILD_TESTING)
