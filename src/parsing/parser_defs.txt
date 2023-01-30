@@ -165,3 +165,17 @@ gui_files
 national_identity_file
 	dynamic_tags   value      none       discard
 	#any           value      text       member_fn
+
+color_from_3f
+	#free          value      float      member_fn
+
+religion_def
+	icon           value      int              member_fn
+	color          group      color_from_3f    member_fn
+	pagan          value      bool             member_fn
+
+religion_group
+	#any           extern     make_religion    discard
+
+religion_file
+	#any           group      religion_group   member_fn
