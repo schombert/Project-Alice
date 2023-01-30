@@ -11,6 +11,7 @@
 #include "gui_graphics.cpp"
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"
+#include "nations_parsing.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

@@ -30,15 +30,15 @@ int WINAPI wWinMain(
 
 		std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 
-		assert(sizeof(GAME_DIR) > size_t(4)); // If this fails, then you have not set your GAME_FILES_DIRECTORY CMake cache variable
+		assert(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
+
 		add_root(game_state->common_fs, NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
 		add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
 
-		parsers::error_handler err("");
+		
 
 		// scenario making functions
-		text::load_text_data(*game_state, 2); // 2 = English
-		ui::load_text_gui_definitions(*game_state, err);
+		game_state->load_scenario_data();
 
 		// scenario loading functions (would have to run these even when scenario is pre-built
 		game_state->load_user_settings();

@@ -175,12 +175,13 @@ int32_t find_gui_by_name(sys::state const& state, std::string_view name) {
 	return -1;
 }
 
+#ifndef IGNORE_REAL_FILES_TESTS
+
 TEST_CASE("gfx game files parsing", "[parsers]") {
 	SECTION("empty_file_with_types") {
 		std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
 
-		REQUIRE(sizeof(NATIVE_M(GAME_DIR)) > size_t(4)); // If this fails, then you have not set your GAME_FILES_DIRECTORY CMake cache variable
-
+		REQUIRE(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
 		add_root(state->common_fs, NATIVE_M(GAME_DIR));
 		auto rt = get_root(state->common_fs);
 		auto interfc = open_directory(rt, NATIVE("interface"));
@@ -342,3 +343,5 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 		}
 	}
 }
+
+#endif

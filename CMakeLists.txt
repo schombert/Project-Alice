@@ -17,6 +17,7 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
 	target_compile_definitions(Alice PRIVATE LOCAL_USER_SETTINGS)
 else()
 	target_compile_definitions(Alice PRIVATE "GAME_DIR=\"NONE\"")
+	target_compile_definitions(Alice PRIVATE "IGNORE_REAL_FILES_TESTS=1")
 endif()
 
 add_compile_definitions(VE_NO_TBB)
@@ -86,6 +87,7 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/window
 	${PROJECT_SOURCE_DIR}/src/text
 	${PROJECT_SOURCE_DIR}/src/sound
+	${PROJECT_SOURCE_DIR}/src/nations
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 
@@ -145,11 +147,6 @@ add_custom_command(
                 ${PROJECT_SOURCE_DIR}/src/mod/alice.csv
                 ${CMAKE_CURRENT_BINARY_DIR}/alice.csv)
 
-
-set(SECRET_GITHUB_MAGIC "NO" CACHE STRING "set to ignore the local_uset_settings.hpp file")
-if(${SECRET_GITHUB_MAGIC})
-	target_compile_definitions(Alice PRIVATE "GAME_DIR=\"NONE\"")
-endif()
 
 if (BUILD_TESTING)
     enable_testing()
