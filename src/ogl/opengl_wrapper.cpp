@@ -258,13 +258,13 @@ void render_map(sys::state& state) {
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, state.map_provinces_texture.texture_handle);
+	glBindTexture(GL_TEXTURE_2D, state.map_provinces_texture.get_texture_handle());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, state.map_terrain_texture.texture_handle);
+	glBindTexture(GL_TEXTURE_2D, state.map_terrain_texture.get_texture_handle());
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, state.map_rivers_texture.texture_handle);
+	glBindTexture(GL_TEXTURE_2D, state.map_rivers_texture.get_texture_handle());
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, state.map_terrainsheet_texture.texture_handle);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, state.map_terrainsheet_texture.get_texture_handle());
 	
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }

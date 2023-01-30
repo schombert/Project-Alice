@@ -366,7 +366,12 @@ texture& texture::operator=(texture&& other) noexcept {
 	return *this;
 }
 
-GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, std::string_view const fname, bool keep_data) {
+GLuint texture::get_texture_handle() const {
+	assert(loaded);
+	return texture_handle;
+}
+
+GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, std::string_view fname, bool keep_data) {
 	auto root = get_root(state.common_fs);
 	auto file = open_file(root, fname);
 	if(file) {
@@ -400,11 +405,10 @@ GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, std::str
 		}
 		return texture.texture_handle;
 	}
-	printf("Unable to load %s\n", fname.data());
 	return 0;
 }
 
-GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, std::string_view const fname, bool keep_data, int32_t tiles_x, int32_t tiles_y) {
+GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, std::string_view fname, bool keep_data, int32_t tiles_x, int32_t tiles_y) {
 	auto root = get_root(state.common_fs);
 	auto file = open_file(root, fname);
 	if(file) {
@@ -428,16 +432,16 @@ GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, st
 
 			size_t p_dx = texture.size_x / tiles_x; // Pixels of each tile in x
 			size_t p_dy = texture.size_y / tiles_y; // Pixels of each tile in y
-			glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, p_dx, p_dy, tiles_x * tiles_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, texture.size_x);
 			glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, texture.size_y);
 
-			for(size_t x = 0; x < tiles_x; x++)
-				for(size_t y = 0; y < tiles_y; y++)
+			for(int32_t x = 0; x < tiles_x; x++)
+				for(int32_t y = 0; y < tiles_y; y++)
 					glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 						0, 0,
-						0, x * tiles_x + y,
-						p_dx, p_dy,
+						0, GLint(x * tiles_x + y),
+						GLsizei(p_dx), GLsizei(p_dy),
 						1,
 						GL_RGBA,
 						GL_UNSIGNED_BYTE,
@@ -454,7 +458,6 @@ GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, st
 		}
 		return texture.texture_handle;
 	}
-	printf("Unable to load %s\n", fname.data());
 	return 0;
 }
 

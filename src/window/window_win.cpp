@@ -133,7 +133,7 @@ namespace window {
 
 			// setup opengl here
 			ogl::initialize_opengl(*create_state);
-			map::load_map(game_state);
+			map::load_map(*create_state);
 			
 			RECT crect{};
 			GetClientRect(hwnd, &crect);
