@@ -80,6 +80,19 @@ namespace sys {
 		bool in_edit_control = false;
 		bool is_dragging = false;
 
+		// map data
+		ogl::texture map_provinces_texture;
+		ogl::texture map_terrain_texture;
+		ogl::texture map_rivers_texture;
+		ogl::texture map_terrainsheet_texture;
+		int32_t map_x_size = 0;
+		int32_t map_y_size = 0;
+		float map_x_pos = 0.f;
+		float map_x_vel = 0.f;
+		float map_y_pos = 0.f;
+		float map_y_vel = 0.f;
+		float map_zoom = 0.3486784401f;
+
 		// graphics data
 		ogl::data open_gl;
 

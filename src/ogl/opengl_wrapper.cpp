@@ -141,6 +141,18 @@ void load_shaders(sys::state& state) {
 	} else {
 		notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
 	}
+
+	auto map_fshader = open_file(root, NATIVE("map_f_shader.txt"));
+	auto map_vshader = open_file(root, NATIVE("map_v_shader.txt"));
+	if(bool(map_fshader) && bool(map_vshader)) {
+		auto vertex_content = view_contents(*map_vshader);
+		auto fragment_content = view_contents(*map_fshader);
+		state.open_gl.map_shader_program = create_program(
+			std::string_view(vertex_content.data, vertex_content.file_size),
+			std::string_view(fragment_content.data, fragment_content.file_size));
+	} else {
+		notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
+	}
 }
 
 void load_global_squares(sys::state& state) {
@@ -239,6 +251,22 @@ void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool fli
 				glBindVertexBuffer(0, state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
 			break;
 	}
+}
+
+void render_map(sys::state& state) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	bind_vertices_by_rotation(state, ui::rotation::upright, false);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, state.map_provinces_texture.get_texture_handle());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, state.map_terrain_texture.get_texture_handle());
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, state.map_rivers_texture.get_texture_handle());
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, state.map_terrainsheet_texture.get_texture_handle());
+	
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {

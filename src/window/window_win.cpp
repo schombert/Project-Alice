@@ -1,4 +1,5 @@
 #include "window.hpp"
+#include "map.hpp"
 #include "opengl_wrapper.hpp"
 
 #ifndef UNICODE
@@ -132,6 +133,7 @@ namespace window {
 
 			// setup opengl here
 			ogl::initialize_opengl(*create_state);
+			map::load_map(*create_state);
 			
 			RECT crect{};
 			GetClientRect(hwnd, &crect);
@@ -234,6 +236,9 @@ namespace window {
 				state->on_resize(LOWORD(lParam), HIWORD(lParam), t);
 				state->x_size = LOWORD(lParam);
 				state->y_size = HIWORD(lParam);
+
+				// TODO MAP CAMERA HERE CODE HERE
+				//state->map_camera = map::flat_camera(glm::vec2{ state->x_size, state->y_size }, glm::vec2{ state->map_provinces_texture.size_x, state->map_provinces_texture.size_y });
 
 				return 0;
 			};

@@ -40,6 +40,7 @@
 #endif
 
 #include "opengl_wrapper.cpp"
+#include "map.cpp"
 
 namespace sys {
 	state::~state() {
