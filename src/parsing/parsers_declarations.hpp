@@ -207,6 +207,20 @@ namespace parsers {
 		void finish(building_gfx_context& context) {
 		}
 	};
+
+	struct scenario_building_context {
+		sys::state& state;
+
+		ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
+		tagged_vector<std::string, dcon::national_identity_id> file_names_for_idents;
+
+		scenario_building_context(sys::state& state) : state(state) { }
+	};
+
+	struct national_identity_file {
+		void any_value(std::string_view tag, association_type, std::string_view txt, error_handler& err, int32_t line, scenario_building_context& context);
+		void finish(scenario_building_context& context) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"

@@ -161,3 +161,7 @@ guitypes
 
 gui_files
 	guitypes     extern     parse_guitypes     discard
+
+national_identity_file
+	dynamic_tags   value      none       discard
+	#any           value      text       member_fn

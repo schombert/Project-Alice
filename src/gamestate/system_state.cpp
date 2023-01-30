@@ -4,6 +4,7 @@
 #include "gui_element_base.hpp"
 #include <algorithm>
 #include <functional>
+#include "parsers_declarations.hpp"
 
 namespace sys {
 	//
@@ -170,5 +171,30 @@ namespace sys {
 	void state::update_ui_scale(float new_scale) {
 		user_settings.ui_scale = new_scale;
 		// TODO move windows
+	}
+
+	void state::load_scenario_data() {
+		parsers::error_handler err("");
+
+		text::load_text_data(*this, 2); // 2 = English
+		ui::load_text_gui_definitions(*this, err);
+
+		auto root = get_root(common_fs);
+		auto common = open_directory(root, NATIVE("common"));
+
+		parsers::scenario_building_context context(*this);
+		// Read national tags from countries.txt
+		{
+			auto countries = open_file(common, NATIVE("countries.txt"));
+			if(countries) {
+				auto content = view_contents(*countries);
+				err.file_name = "countries.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_national_identity_file(gen, err, context);
+			}
+		}
+
+
+		// TODO do something with err
 	}
 }

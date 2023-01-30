@@ -3,3 +3,9 @@ make_index{text_sequence_id}{uint16_t}
 make_index{texture_id}{uint16_t}
 make_index{gfx_object_id}{uint16_t}
 make_index{gui_def_id}{uint16_t}
+
+object{
+	name{ national_identity }
+	storage_type{contiguous}
+	size{ 1000 }
+}
