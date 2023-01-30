@@ -371,94 +371,84 @@ GLuint texture::get_texture_handle() const {
 	return texture_handle;
 }
 
-GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, native_string_view fname, bool keep_data) {
-	auto root = get_root(state.common_fs);
-	auto file = open_file(root, fname);
-	if(file) {
-		auto content = simple_fs::view_contents(*file);
-		int32_t file_channels = 4;
+GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data) {
+	auto content = simple_fs::view_contents(file);
+	int32_t file_channels = 4;
 
-		texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-			&(texture.size_x), &(texture.size_y), &file_channels, 4);
+	texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
+		&(texture.size_x), &(texture.size_y), &file_channels, 4);
 
-		texture.channels = 4;
-		texture.loaded = true;
+	texture.channels = 4;
+	texture.loaded = true;
 
-		glGenTextures(1, &texture.texture_handle);
-		if(texture.texture_handle) {
-			glBindTexture(GL_TEXTURE_2D, texture.texture_handle);
+	glGenTextures(1, &texture.texture_handle);
+	if(texture.texture_handle) {
+		glBindTexture(GL_TEXTURE_2D, texture.texture_handle);
 
-			glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, texture.size_x, texture.size_y);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture.size_x, texture.size_y, GL_RGBA, GL_UNSIGNED_BYTE, texture.data);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, texture.size_x, texture.size_y);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture.size_x, texture.size_y, GL_RGBA, GL_UNSIGNED_BYTE, texture.data);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
-
-		if(!keep_data) {
-			STBI_FREE(texture.data);
-			texture.data = nullptr;
-		}
-		return texture.texture_handle;
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	return 0;
+
+	if(!keep_data) {
+		STBI_FREE(texture.data);
+		texture.data = nullptr;
+	}
+	return texture.texture_handle;
 }
 
-GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, native_string_view fname, bool keep_data, int32_t tiles_x, int32_t tiles_y) {
-	auto root = get_root(state.common_fs);
-	auto file = open_file(root, fname);
-	if(file) {
-		auto content = simple_fs::view_contents(*file);
-		int32_t file_channels = 4;
+GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data, int32_t tiles_x, int32_t tiles_y) {
+	auto content = simple_fs::view_contents(file);
+	int32_t file_channels = 4;
 
-		texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-			&(texture.size_x), &(texture.size_y), &file_channels, 4);
+	texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
+		&(texture.size_x), &(texture.size_y), &file_channels, 4);
 
-		texture.channels = 4;
-		texture.loaded = true;
+	texture.channels = 4;
+	texture.loaded = true;
 
-		glGenTextures(1, &texture.texture_handle);
-		if(texture.texture_handle) {
-			glBindTexture(GL_TEXTURE_2D_ARRAY, texture.texture_handle);
+	glGenTextures(1, &texture.texture_handle);
+	if(texture.texture_handle) {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture.texture_handle);
 
-			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-			size_t p_dx = texture.size_x / tiles_x; // Pixels of each tile in x
-			size_t p_dy = texture.size_y / tiles_y; // Pixels of each tile in y
-			glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, texture.size_x);
-			glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, texture.size_y);
+		size_t p_dx = texture.size_x / tiles_x; // Pixels of each tile in x
+		size_t p_dy = texture.size_y / tiles_y; // Pixels of each tile in y
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, texture.size_x);
+		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, texture.size_y);
 
-			for(int32_t x = 0; x < tiles_x; x++)
-				for(int32_t y = 0; y < tiles_y; y++)
-					glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
-						0, 0,
-						0, GLint(x * tiles_x + y),
-						GLsizei(p_dx), GLsizei(p_dy),
-						1,
-						GL_RGBA,
-						GL_UNSIGNED_BYTE,
-						((uint32_t const*)texture.data) + (x * p_dy * texture.size_x + y * p_dx));
-			
-			glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-			glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
-		}
-
-		if(!keep_data) {
-			STBI_FREE(texture.data);
-			texture.data = nullptr;
-		}
-		return texture.texture_handle;
+		for(int32_t x = 0; x < tiles_x; x++)
+			for(int32_t y = 0; y < tiles_y; y++)
+				glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+					0, 0,
+					0, GLint(x * tiles_x + y),
+					GLsizei(p_dx), GLsizei(p_dy),
+					1,
+					GL_RGBA,
+					GL_UNSIGNED_BYTE,
+					((uint32_t const*)texture.data) + (x * p_dy * texture.size_x + y * p_dx));
+		
+		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
 	}
-	return 0;
+
+	if(!keep_data) {
+		STBI_FREE(texture.data);
+		texture.data = nullptr;
+	}
+	return texture.texture_handle;
 }
 
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data) {
@@ -496,8 +486,12 @@ GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data
 				}
 			}
 		}
-		return load_texture_from_file(state, state.open_gl.asset_textures[id], native_name, keep_data);
+		auto file = open_file(root, native_name);
+		if(file) {
+			return load_texture_from_file(state, state.open_gl.asset_textures[id], *file, keep_data);
+		}
 	} // end else (not already loaded)
+	return 0;
 }
 
 data_texture::data_texture(int32_t sz, int32_t ch) {
