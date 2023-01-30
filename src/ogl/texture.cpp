@@ -127,7 +127,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	unsigned int cf_target, ogl_target_start, ogl_target_end;
 	unsigned int opengl_texture_type;
 	int i;
-	
+
 	if(buffer_length < sizeof(DDS_header)) {
 		return 0;
 	}
@@ -190,7 +190,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		//
 		// TODO: properly restore this check
 		//
-		
+
 		//if(query_DXT_capability() != SOIL_CAPABILITY_PRESENT) {
 		//	return 0;
 		//}
@@ -438,7 +438,7 @@ GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, si
 					GL_RGBA,
 					GL_UNSIGNED_BYTE,
 					((uint32_t const*)texture.data) + (x * p_dy * texture.size_x + y * p_dx));
-		
+
 		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
