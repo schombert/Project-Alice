@@ -21,7 +21,7 @@
 #include "parsers_tests.cpp"
 #include "file_system_tests.cpp"
 #include "text_tests.cpp"
-
+#include "scenario_building.cpp"
 
 TEST_CASE("Dummy test", "[dummy test instance]") {
     REQUIRE(1 + 1 == 2); 
