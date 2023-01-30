@@ -11,8 +11,8 @@ namespace ogl {
 
 class texture;
 
-GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, std::string_view native_name, bool keep_data);
-GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, std::string_view fname, bool keep_data, int32_t tiles_x, int32_t tiles_y);
+GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, native_string_view native_name, bool keep_data);
+GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, native_string_view fname, bool keep_data, int32_t tiles_x, int32_t tiles_y);
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
 
 class texture {
@@ -35,8 +35,8 @@ public:
 
 	GLuint get_texture_handle() const;
 
-	friend GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, std::string_view native_name, bool keep_data);
-	friend GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, std::string_view fname, bool keep_data, int32_t tiles_x, int32_t tiles_y);
+	friend GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, native_string_view native_name, bool keep_data);
+	friend GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, native_string_view fname, bool keep_data, int32_t tiles_x, int32_t tiles_y);
 	friend GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
 };
 
