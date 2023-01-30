@@ -12,28 +12,40 @@ layout (binding = 3) uniform sampler2DArray terrainsheet_texture_sampler;
 
 const vec2 map_size = vec2(5616.0, 2160.0);
 
-vec4 get_terrain(vec2 terrain_tex_coord, vec2 offset) {
-	vec4 terrain = texture(terrain_texture_sampler, terrain_tex_coord);
-	vec4 river = texture(rivers_texture_sampler, terrain_tex_coord);
-
-	const int index = int(terrain.r * 64.0);
-	vec4 color = texture(terrainsheet_texture_sampler, vec3(offset, index));
-	return color;
-}
-
-vec4 get_terrain() {
-	vec2 pix = vec2(1.0) / map_size;
-	float xx = pix.x;
-	float yy = pix.y;
+vec4 get_terrain(vec2 tex_coord)
+{
+	// Pixel size on map texture
+	float xx = 1 / map_size.x;
+	float yy = 1 / map_size.y;
+	vec2 pix = vec2(xx, yy);
 	vec2 scaling = mod(tex_coord + 0.5 * pix, pix) / pix;
-
+	
 	vec2 offset = 196.0 * tex_coord;
 	offset.y *= xx / yy;
-	return get_terrain(tex_coord, offset);
+
+	vec4 colour0 = texture(terrain_texture_sampler, tex_coord + 0.5 * vec2(-xx, -yy));
+	vec4 colour1 = texture(terrain_texture_sampler, tex_coord + 0.5 * vec2(-xx, yy));
+	vec4 colour2 = texture(terrain_texture_sampler, tex_coord + 0.5 * vec2(xx, -yy));
+	vec4 colour3 = texture(terrain_texture_sampler, tex_coord + 0.5 * vec2(xx, yy));
+
+	const int index0 = int(colour0.r * 64.0);
+	const int index1 = int(colour1.r * 64.0);
+	const int index2 = int(colour2.r * 64.0);
+	const int index3 = int(colour3.r * 64.0);
+
+	vec4 emptyCol = vec4(0., 0., 0., 0.);
+	vec4 colourlu = texture(terrainsheet_texture_sampler, vec3(offset, index0));
+	vec4 colourld = texture(terrainsheet_texture_sampler, vec3(offset, index1));
+	vec4 colourru = texture(terrainsheet_texture_sampler, vec3(offset, index2));
+	vec4 colourrd = texture(terrainsheet_texture_sampler, vec3(offset, index3));
+
+	colour0 = mix(colourlu, colourru, scaling.x);
+	colour1 = mix(colourld, colourrd, scaling.x);
+	return mix(colour0, colour1, scaling.y);
 }
 
 void main() {
-	vec4 terrain_color = get_terrain();
+	vec4 terrain_color = get_terrain(tex_coord);
 	vec4 province_color = texture(provinces_texture_sampler, tex_coord);
 	vec4 final_color = mix(province_color, terrain_color, 0.5);
 	frag_color = final_color;

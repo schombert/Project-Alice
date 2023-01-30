@@ -42,7 +42,7 @@ void map::load_map(sys::state& state) {
 	// TODO Better error handling and reporting ^^
 	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
 	map_display.provinces_texture_handle = load_texture_from_file(*provinces_bmp, false, map_display.map_x_size, map_display.map_y_size);
-	auto terrain_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
+	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
 	map_display.terrain_texture_handle = load_texture_from_file(*terrain_bmp, false);
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
 	map_display.rivers_texture_handle = load_texture_from_file(*rivers_bmp, false);
