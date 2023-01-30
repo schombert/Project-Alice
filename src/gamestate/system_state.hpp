@@ -132,5 +132,7 @@ namespace sys {
 		void save_user_settings() const;
 		void load_user_settings();
 		void update_ui_scale(float new_scale);
+
+		void load_scenario_data(); // loads all scenario files other than map data
 	};
 }
