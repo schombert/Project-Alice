@@ -65,7 +65,7 @@ void map::display_data::update() {
 	};
 	velocity_fn(map_x_vel, 1.f / map_x_size);
 	velocity_fn(map_y_vel, 1.f / map_y_size);
-	map_x_pos = std::fmod(map_x_pos + 0.5f, 1.f) - 0.5;
+	map_x_pos = std::fmod(map_x_pos + 0.5f, 1.f) - 0.5f;
 	map_y_pos = std::clamp(map_y_pos, -0.5f, 0.5f);
 }
 
