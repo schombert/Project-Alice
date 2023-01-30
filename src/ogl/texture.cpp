@@ -371,7 +371,7 @@ GLuint texture::get_texture_handle() const {
 	return texture_handle;
 }
 
-GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, std::string_view fname, bool keep_data) {
+GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, native_string_view fname, bool keep_data) {
 	auto root = get_root(state.common_fs);
 	auto file = open_file(root, fname);
 	if(file) {
@@ -408,7 +408,7 @@ GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, std::str
 	return 0;
 }
 
-GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, std::string_view fname, bool keep_data, int32_t tiles_x, int32_t tiles_y) {
+GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, native_string_view fname, bool keep_data, int32_t tiles_x, int32_t tiles_y) {
 	auto root = get_root(state.common_fs);
 	auto file = open_file(root, fname);
 	if(file) {
@@ -496,7 +496,7 @@ GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data
 				}
 			}
 		}
-		return load_texture_from_file(state, state.open_gl.asset_textures[id], fname_view, keep_data);
+		return load_texture_from_file(state, state.open_gl.asset_textures[id], native_name, keep_data);
 	} // end else (not already loaded)
 }
 
