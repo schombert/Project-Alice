@@ -9,11 +9,15 @@
 
 namespace ogl {
 
+class texture;
+
+GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, std::string_view const native_name, bool keep_data);
+GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, std::string_view const fname, bool keep_data, int32_t tiles_x, int32_t tiles_y);
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
 
 class texture {
-	GLuint texture_handle = 0;
 public:
+	GLuint texture_handle = 0;
 	uint8_t* data = nullptr;
 	int32_t size_x = 0;
 	int32_t size_y = 0;
@@ -28,8 +32,6 @@ public:
 
 	texture& operator=(texture const&) = delete;
 	texture& operator=(texture&& other) noexcept;
-
-	friend GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
 };
 
 class data_texture {
@@ -51,7 +53,5 @@ public:
 	GLuint handle();
 	~data_texture();
 };
-
-
 
 }

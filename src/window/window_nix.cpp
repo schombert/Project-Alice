@@ -1,4 +1,5 @@
 #include "window.hpp"
+#include "map.hpp"
 
 #include <GLFW/glfw3.h>
 #include <unordered_map>
@@ -349,6 +350,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	ogl::initialize_opengl(game_state);
+	map::load_map(game_state);
 
 	on_window_change(window); // Init the window size
 
