@@ -120,6 +120,16 @@ add_dependencies(Alice GENERATE_PARSERS)
 add_custom_command(
         TARGET Alice POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
+                ${PROJECT_SOURCE_DIR}/src/ogl/map_f_shader.txt
+                ${CMAKE_CURRENT_BINARY_DIR}/map_f_shader.txt)
+add_custom_command(
+        TARGET Alice POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${PROJECT_SOURCE_DIR}/src/ogl/map_v_shader.txt
+                ${CMAKE_CURRENT_BINARY_DIR}/map_v_shader.txt)
+add_custom_command(
+        TARGET Alice POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${PROJECT_SOURCE_DIR}/src/ogl/ui_f_shader.txt
                 ${CMAKE_CURRENT_BINARY_DIR}/ui_f_shader.txt)
 add_custom_command(
