@@ -46,10 +46,10 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 	{
 		// first, load in special mod gui
 		// TODO put this in a better location
-		auto alice_gui = open_file(rt, NATIVE("alice.gui"));
+		auto alice_gui = open_file(rt, NATIVE("assets/alice.gui"));
 		if(alice_gui) {
 			auto content = view_contents(*alice_gui);
-			err.file_name = "alice.gui";
+			err.file_name = "assets/alice.gui";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
 			parsers::parse_gui_files(gen, err, context);
 		}

@@ -382,12 +382,12 @@ float font::text_extent(const char* codepoints, uint32_t count, int32_t size) co
 
 void load_standard_fonts(sys::state& state) {
 	auto root = get_root(state.common_fs);
-	auto font_a = open_file(root, NATIVE("LibreCaslonText-Regular.ttf"));
+	auto font_a = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
 	if(font_a) {
 		auto file_content = view_contents(*font_a);
 		state.font_collection.load_font(state.font_collection.fonts[0], file_content.data, file_content.file_size);
 	}
-	auto font_b = open_file(root, NATIVE("AndadaSC-Regular.otf"));
+	auto font_b = open_file(root, NATIVE("assets/fonts/AndadaSC-Regular.otf"));
 	if(font_b) {
 		auto file_content = view_contents(*font_b);
 		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size);

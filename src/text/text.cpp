@@ -110,7 +110,7 @@ namespace text {
 
 		// first, load in special mod gui
 		// TODO put this in a better location
-		auto alice_csv = open_file(rt, NATIVE("alice.csv"));
+		auto alice_csv = open_file(rt, NATIVE("assets/alice.csv"));
 		if(alice_csv) {
 			auto content = view_contents(*alice_csv);
 			consume_csv_file(state, language, content.data, content.file_size);
