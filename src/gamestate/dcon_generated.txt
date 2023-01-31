@@ -32,3 +32,65 @@ object{
 		type{ bitfield }
 	}
 }
+
+object{
+	name{ building }
+	storage_type{ contiguous }
+	size{ 128 }
+	property{
+		name{ on_completion }
+		type{ bitfield }
+	}
+	property{
+		name{ completion_size }
+		type{ float }
+	}
+	property{
+		name{ max_level }
+		type{ uint8_t }
+	}
+	property{
+		name{ time }
+		type{ int }
+	}
+	property{
+		name{ visibility }
+		type{ bitfield }
+	}
+	property{
+		name{ naval_capacity }
+		type{ uint8_t }
+	}
+	property{
+		name{ capital }
+		type{ bitfield }
+	}
+	property{
+		name{ port }
+		type{ bitfield }
+	}
+	property{
+		name{ pop_build_factory }
+		type{ bitfield }
+	}
+	property{
+		name{ advanced_factory }
+		type{ bitfield }
+	}
+	property{
+		name{ province }
+		type{ bitfield }
+	}
+	property{
+		name{ fort_level }
+		type{ uint8_t }
+	}
+	property{
+		name{ onmap }
+		type{ bitfield }
+	}
+	property{
+		name{ one_per_state }
+		type{ bitfield }
+	}
+}

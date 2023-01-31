@@ -263,6 +263,87 @@ namespace parsers {
 		}
 		void finish(scenario_building_context& context) { }
 	};
+
+	struct building_colonial_points {
+		std::vector<int32_t> values;
+		template<typename T>
+		void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
+			values.push_back(v);
+		}
+		template<typename T>
+		void finish(T& context) { }
+	};
+	struct building_goods_cost {
+		std::vector<int32_t> values;
+		template<typename T>
+		void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
+			values.push_back(v);
+		}
+		template<typename T>
+		void finish(T& context) { }
+	};
+
+	struct building_context {
+		dcon::building_id id;
+		scenario_building_context& outer_context;
+	};
+	struct building_def {
+		void type(association_type, std::string_view v, error_handler& err, int32_t line, religion_context& context) {
+			
+		}
+		void on_completion(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_on_completion(context.id, v);
+		}
+		void completion_size(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_completion_size(context.id, v);
+		}
+		void max_level(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_max_level(context.id, v);
+		}
+		void goods_cost(association_type, building_goods_cost v, error_handler& err, int32_t line, religion_context& context) {
+			//context.outer_context.state.world.building_set_goods_cost(context.id, v);
+		}
+		void time(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_time(context.id, v);
+		}
+		void visibility(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_visibility(context.id, v);
+		}
+		void naval_capacity(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_naval_capacity(context.id, v);
+		}
+		void capital(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_capital(context.id, v);
+		}
+		void port(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_port(context.id, v);
+		}
+		void onmap(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_onmap(context.id, v);
+		}
+		void production_type(association_type, std::string_view v, error_handler& err, int32_t line, religion_context& context) {
+			//context.outer_context.state.world.building_set_production_type(context.id, v);
+		}
+		void pop_build_factory(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_pop_build_factory(context.id, v);
+		}
+		void advanced_factory(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_advanced_factory(context.id, v);
+		}
+		void province(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_province(context.id, v);
+		}
+		void fort_level(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_fort_level(context.id, v);
+		}
+		void one_per_state(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
+			context.outer_context.state.world.building_set_one_per_state(context.id, v);
+		}
+		void colonial_points(association_type, building_colonial_points v, error_handler& err, int32_t line, religion_context& context) {
+			//context.outer_context.state.world.building_set_colonial_points(context.id, v);
+		}
+		void finish(building_context& context) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"
