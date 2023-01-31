@@ -125,6 +125,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			parsers::token_generator gen(content.data, content.data + content.file_size);
 			parsers::parse_goods_file(gen, err, context);
 		}
+		state->world.factory_type_resize_construction_costs(state->world.commodity_size());
 
 		REQUIRE(err.accumulated_errors == "");
 
@@ -146,6 +147,24 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			REQUIRE(id.get_is_available_from_start() == true);
 			REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::consumer_goods);
 		}
+	}
+	{
+		auto buildings = open_file(common, NATIVE("buildings.txt"));
+		if(buildings) {
+			auto content = view_contents(*buildings);
+			err.file_name = "buildings.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_building_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto it = context.map_of_production_types.find(std::string("liquor_distillery"));
+		REQUIRE(it != context.map_of_production_types.end());
+		auto id = fatten(state->world, it->second);
+		REQUIRE(id.get_construction_time() == 730);
+		REQUIRE(id.get_is_available_from_start() == true);
+		REQUIRE(id.get_construction_costs(context.map_of_commodity_names.find(std::string("machine_parts"))->second) == 80.0f);
 	}
 }
 #endif

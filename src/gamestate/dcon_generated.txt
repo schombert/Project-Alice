@@ -16,7 +16,7 @@ object{
 object{
 	name{ religion }
 	storage_type{ contiguous }
-	size{ 128 }
+	size{ 126 }
 	property{
 		name{ name }
 		type{ text_sequence_id }
@@ -38,7 +38,7 @@ object{
 object {
 	name{ culture_group }
 	storage_type{ contiguous }
-	size{ 128 }
+	size{ 126 }
 
 	property{
 		name{ name }
@@ -119,7 +119,7 @@ relationship{
 object {
 	name{ commodity }
 	storage_type{ contiguous }
-	size{ 128 }
+	size{ 126 }
 
 	property{
 		name{ name }
@@ -150,11 +150,38 @@ object {
 	size{ 1000 }
 
 	property{
-		name{ values }
+		name{ province_values }
+		type{ sys::modifier_definition }
+	}
+	property{
+		name{ national_values }
 		type{ sys::modifier_definition }
 	}
 	property{
 		name{ icon }
 		type{ uint8_t }
+	}
+}
+
+object {
+	name{ factory_type }
+	storage_type{ contiguous }
+	size{ 40 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ construction_costs }
+		type{array{commodity_id}{float}}
+	}
+	property{
+		name{ construction_time }
+		type{int16_t}
+	}
+	property{
+		name{ is_available_from_start }
+		type{ bitfield }
 	}
 }

@@ -250,6 +250,16 @@ namespace sys {
 				parsers::parse_goods_file(gen, err, context);
 			}
 		}
+		world.factory_type_resize_construction_costs(world.commodity_size());
+		{
+			auto buildings = open_file(common, NATIVE("buildings.txt"));
+			if(buildings) {
+				auto content = view_contents(*buildings);
+				err.file_name = "buildings.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_building_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }

@@ -106,6 +106,7 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/sound
 	${PROJECT_SOURCE_DIR}/src/map
 	${PROJECT_SOURCE_DIR}/src/nations
+	${PROJECT_SOURCE_DIR}/src/economy
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 

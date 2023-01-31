@@ -358,3 +358,41 @@ modifier_base
 	industry_tech_research_bonus              value      float            member_fn
 	navy_tech_research_bonus                  value      float            member_fn
 	culture_tech_research_bonus               value      float            member_fn
+
+int_vector
+	#free          value      int              member_fn
+
+commodity_array
+	#any           value      float            member_fn
+
+building_definition
+	#base   modifier_base
+	port                 value    none              discard
+	visibility           value    none              discard
+	onmap                value    none              discard
+	province             value    none              discard
+	fort_level           value    none              discard
+	pop_build_factory    value    none              discard
+	spawn_railway_track  value    none              discard
+	strategic_factory    value    none              discard
+	on_completion        value    none              discard
+	sail                 value    none              discard
+	steam                value    none              discard
+	completion_size      value    none              discard
+	one_per_state        value    none              discard
+	advanced_factory     value    none              discard
+	capital              value    none              discard
+	type                 value    text              member_fn
+	cost                 value    int               member
+	time                 value    int               member
+	naval_capacity       value    int               member
+	max_level            value    int               member
+	colonial_range       value    int               member
+	infrastructure       value    float             member
+	production_type      value    text              member
+	default_enabled      value    bool              member
+	colonial_points      group    int_vector        member
+	goods_cost           group    commodity_array   member
+
+building_file
+	#any           group     building_definition    member_fn    (result)
