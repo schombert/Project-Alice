@@ -90,6 +90,7 @@ target_link_libraries(Alice PRIVATE stb_image)
 target_link_libraries(Alice PRIVATE freetype)
 if (NOT WIN32)
 	target_link_libraries(Alice PRIVATE glfw)
+	target_link_libraries(Alice PRIVATE miniaudio)
 endif()
 
 target_include_directories(Alice PUBLIC

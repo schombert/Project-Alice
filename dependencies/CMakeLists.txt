@@ -10,4 +10,5 @@ add_subdirectory(freetype)
 
 if (NOT WIN32)
 	add_subdirectory(glfw)
+	add_subdirectory(miniaudio)
 endif()
