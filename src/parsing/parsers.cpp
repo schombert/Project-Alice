@@ -1,4 +1,5 @@
 #include "parsers.hpp"
+#include "nations.hpp"
 #include <charconv>
 #include <algorithm>
 
@@ -244,6 +245,13 @@ namespace parsers {
 		return rvalue;
 	}
 
+	uint32_t parse_tag(std::string_view tag, int32_t line, error_handler& err) {
+		if(tag.length() != 3) {
+			err.accumulated_errors += err.file_name + " line " + std::to_string(line) + ": encountered a tag that was not three characters\n";
+			return 0;
+		}
+		return nations::tag_to_int(tag[0], tag[1], tag[2]);
+	}
 	bool starts_with(std::string_view content, char v) {
 		return content.length() != 0 && content[0] == v;
 	}

@@ -215,6 +215,8 @@ namespace parsers {
 		tagged_vector<std::string, dcon::national_identity_id> file_names_for_idents;
 
 		ankerl::unordered_dense::map<std::string, dcon::religion_id> map_of_religion_names;
+		ankerl::unordered_dense::map<std::string, dcon::culture_id> map_of_culture_names;
+		ankerl::unordered_dense::map<std::string, dcon::culture_group_id> map_of_culture_group_names;
 
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -261,6 +263,101 @@ namespace parsers {
 		void any_group(std::string_view name, religion_group, error_handler& err, int32_t line, scenario_building_context& context) {
 
 		}
+		void finish(scenario_building_context& context) { }
+	};
+
+	struct color_from_3i {
+		uint32_t value = 0;
+		template<typename T>
+		void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
+			value = (value >> 8) | (uint32_t(v & 0xFF) << 16);
+		}
+		template<typename T>
+		void finish(T& context) { }
+	};
+
+	struct culture_group_context {
+		dcon::culture_group_id id;
+		scenario_building_context& outer_context;
+	};
+	struct culture_context {
+		dcon::culture_id id;
+		scenario_building_context& outer_context;
+	};
+	struct names_context {
+		dcon::culture_id id;
+		bool first_names = false;
+		scenario_building_context& outer_context;
+	};
+
+
+
+	void make_culture_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void make_culture(std::string_view name, token_generator& gen, error_handler& err, culture_group_context& context);
+	void make_fn_list(token_generator& gen, error_handler& err, culture_context& context);
+	void make_ln_list(token_generator& gen, error_handler& err, culture_context& context);
+
+	struct names_list {
+		void free_value(std::string_view text, error_handler& err, int32_t line, names_context& context) {
+			auto new_id = context.outer_context.state.add_to_pool(text);
+			if(context.first_names) {
+				context.outer_context.state.world.culture_get_first_names(context.id).push_back(new_id);
+			} else {
+				context.outer_context.state.world.culture_get_last_names(context.id).push_back(new_id);
+			}
+		}
+		void finish(names_context& context) { }
+	};
+
+	struct culture {
+		void color(color_from_3i v, error_handler& err, int32_t line, culture_context& context) {
+			context.outer_context.state.world.culture_set_color(context.id, v.value);
+		}
+		void radicalism(association_type, int32_t v, error_handler& err, int32_t line, culture_context& context) {
+			context.outer_context.state.world.culture_set_radicalism(context.id, int8_t(v));
+		}
+		void finish(culture_context& context) { }
+	};
+
+	struct culture_group {
+		void leader(association_type, std::string_view name, error_handler& err, int32_t line, culture_group_context& context) {
+			if(name == "european")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::european));
+			else if(name == "southamerican")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::southamerican));
+			else if(name == "russian")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::russian));
+			else if(name == "arab")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::arab));
+			else if(name == "asian")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::asian));
+			else if(name == "indian")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::indian));
+			else if(name == "nativeamerican")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::nativeamerican));
+			else if(name == "african")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::african));
+			else if(name == "polar_bear")
+				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::polar_bear));
+			else {
+				err.accumulated_errors += "Unknown leader type " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+			}
+		}
+		void is_overseas(association_type, bool v, error_handler& err, int32_t line, culture_group_context& context) {
+
+			context.outer_context.state.world.culture_group_set_is_overseas(context.id, v);
+		}
+		void union_tag(association_type, uint32_t v, error_handler& err, int32_t line, culture_group_context& context) {
+			auto nat_tag = context.outer_context.map_of_ident_names.find(v);
+			if(nat_tag != context.outer_context.map_of_ident_names.end())
+				context.outer_context.state.world.force_create_cultural_union_of(nat_tag->second, context.id);
+			else
+				err.accumulated_errors += "Unknown national tag in file " + err.file_name + " line " + std::to_string(line) + "\n";
+		}
+		void finish(culture_group_context& context) { }
+	};
+
+	struct culture_file {
 		void finish(scenario_building_context& context) { }
 	};
 }
