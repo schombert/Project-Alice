@@ -41,7 +41,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		{
 			auto factory_id = context.state.world.create_factory_type();
 			context.state.world.factory_type_set_name(factory_id, text::find_or_add_key(context.state, name));
-			context.state.world.factory_type_set_construction_time(factory_id, res.time);
+			context.state.world.factory_type_set_construction_time(factory_id, int16_t(res.time));
 			context.state.world.factory_type_set_is_available_from_start(factory_id, res.default_enabled);
 			for(uint32_t i = context.state.world.commodity_size(); i-- > 0; ) {
 				dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(i));
