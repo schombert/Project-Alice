@@ -13,6 +13,7 @@
 #include "gui_main_menu.cpp"
 #include "nations_parsing.cpp"
 #include "cultures_parsing.cpp"
+#include "econ_parsing.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

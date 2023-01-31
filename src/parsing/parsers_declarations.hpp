@@ -217,6 +217,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::religion_id> map_of_religion_names;
 		ankerl::unordered_dense::map<std::string, dcon::culture_id> map_of_culture_names;
 		ankerl::unordered_dense::map<std::string, dcon::culture_group_id> map_of_culture_group_names;
+		ankerl::unordered_dense::map<std::string, dcon::commodity_id> map_of_commodity_names;
 
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -358,6 +359,57 @@ namespace parsers {
 	};
 
 	struct culture_file {
+		void finish(scenario_building_context& context) { }
+	};
+
+
+	struct good_group_context {
+		sys::commodity_group group = sys::commodity_group::consumer_goods;
+		scenario_building_context& outer_context;
+	};
+	struct good_context {
+		dcon::commodity_id id;
+		scenario_building_context& outer_context;
+	};
+
+	struct good {
+		void money(association_type, bool v, error_handler& err, int32_t line, good_context& context) {
+			if(v) {
+				auto money_id = dcon::commodity_id(0);
+				context.outer_context.state.world.commodity_set_color(money_id, context.outer_context.state.world.commodity_get_color(context.id));
+				context.outer_context.state.world.commodity_set_cost(money_id, context.outer_context.state.world.commodity_get_cost(context.id));
+
+				for(auto& pr : context.outer_context.map_of_commodity_names) {
+					if(pr.second == context.id) {
+						pr.second = money_id;
+						break;
+					}
+				}
+				context.id = money_id;
+				context.outer_context.state.world.pop_back_commodity();
+			}
+		}
+		void color(color_from_3i v, error_handler& err, int32_t line, good_context& context) {
+			context.outer_context.state.world.commodity_set_color(context.id, v.value);
+		}
+		void cost(association_type, float v, error_handler& err, int32_t line, good_context& context) {
+			context.outer_context.state.world.commodity_set_cost(context.id, v);
+		}
+		void available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
+			context.outer_context.state.world.commodity_set_is_available_from_start(context.id, b);
+		}
+
+		void finish(good_context& context) { }
+	};
+
+	void make_good(std::string_view name, token_generator& gen, error_handler& err, good_group_context& context);
+	void make_goods_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct goods_group {
+		void finish(good_group_context& context) { }
+	};
+
+	struct goods_file {
 		void finish(scenario_building_context& context) { }
 	};
 }
