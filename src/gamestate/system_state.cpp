@@ -16,10 +16,7 @@ namespace sys {
 		ui_state.root->impl_on_rbutton_down(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), mod);
 	}
 	void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-		auto r = ui_state.root->impl_on_mbutton_down(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), mod);
-		if (r != ui::message_result::consumed) {
-			map_display.on_mbuttom_down(x, y, mod);
-		}
+		map_display.on_mbuttom_down(x, y, mod);
 	}
 	void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		// TODO: look at return value
@@ -29,10 +26,7 @@ namespace sys {
 
 	}
 	void state::on_mbutton_up(int32_t x, int32_t y, key_modifiers mod) {
-		auto r = ui_state.root->impl_on_mbutton_up(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), mod);
-		if (r != ui::message_result::consumed) {
-			map_display.on_mbuttom_up(x, y, mod);
-		}
+		map_display.on_mbuttom_up(x, y, mod);
 	}
 	void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		if(is_dragging) {

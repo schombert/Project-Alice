@@ -112,6 +112,12 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(union_tag == usa_tag);
 	}
 	{
+		// FIRST: make sure that we have a money good
+		if(state->world.commodity_size() == 0) {
+			// create money
+			auto money_id = state->world.create_commodity();
+			assert(money_id.index() == 0);
+		}
 		auto goods = open_file(common, NATIVE("goods.txt"));
 		if(goods) {
 			auto content = view_contents(*goods);

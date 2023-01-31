@@ -109,20 +109,11 @@ message_result element_base::impl_on_lbutton_down(sys::state& state, int32_t x, 
 	else
 		return message_result::unseen;
 }
-message_result element_base::impl_on_mbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(0 <= x && x <= base_data.size.x && 0 <= y && y <= base_data.size.y)
-		return on_mbutton_down(state, x, y, mods);
-	else
-		return message_result::unseen;
-}
 message_result element_base::impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	if(0 <= x && x <= base_data.size.x && 0 <= y && y <= base_data.size.y)
 		return on_rbutton_down(state, x, y, mods);
 	else
 		return message_result::unseen;
-}
-message_result element_base::impl_on_mbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return on_mbutton_up(state, x, y, mods);
 }
 message_result element_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	return on_key_down(state, key, mods);
@@ -162,15 +153,10 @@ message_result element_base::test_mouse(sys::state& state, int32_t x, int32_t y)
 message_result element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return message_result::unseen;
 }
-message_result element_base::on_mbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return message_result::unseen;
-}
 message_result element_base::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return message_result::unseen;
 }
-message_result element_base::on_mbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return message_result::unseen;
-}
+
 void element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 
 }
