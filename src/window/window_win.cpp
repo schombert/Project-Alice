@@ -218,6 +218,24 @@ namespace window {
 				state->mouse_y_position = y;
 				return 0;
 			}
+			case WM_MBUTTONDOWN:
+			{
+				auto x = GET_X_LPARAM(lParam);
+				auto y = GET_Y_LPARAM(lParam);
+				state->on_mbutton_down(x, y, get_current_modifiers());
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+				return 0;
+			}
+			case WM_MBUTTONUP:
+			{
+				auto x = GET_X_LPARAM(lParam);
+				auto y = GET_Y_LPARAM(lParam);
+				state->on_mbutton_up(x, y, get_current_modifiers());
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+				return 0;
+			}
 			case WM_SIZE:
 			{
 				sys::window_state t = sys::window_state::normal;
