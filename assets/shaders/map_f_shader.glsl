@@ -23,15 +23,16 @@ vec4 get_terrain(vec2 tex_coord)
 	vec2 offset = 196.0 * tex_coord;
 	offset.y *= xx / yy;
 
-	vec4 colour0 = texture(terrain_texture_sampler, tex_coord + 0.5 * vec2(-xx, -yy));
-	vec4 colour1 = texture(terrain_texture_sampler, tex_coord + 0.5 * vec2(-xx, yy));
-	vec4 colour2 = texture(terrain_texture_sampler, tex_coord + 0.5 * vec2(xx, -yy));
-	vec4 colour3 = texture(terrain_texture_sampler, tex_coord + 0.5 * vec2(xx, yy));
+	vec2 tex_coord_flipped = vec2(tex_coord.x, 1 - tex_coord.y);
+	vec4 colour0 = texture(terrain_texture_sampler, tex_coord_flipped + 0.5 * vec2(-xx, -yy));
+	vec4 colour1 = texture(terrain_texture_sampler, tex_coord_flipped + 0.5 * vec2(-xx, yy));
+	vec4 colour2 = texture(terrain_texture_sampler, tex_coord_flipped + 0.5 * vec2(xx, -yy));
+	vec4 colour3 = texture(terrain_texture_sampler, tex_coord_flipped + 0.5 * vec2(xx, yy));
 
-	const int index0 = int(colour0.r * 64.0);
-	const int index1 = int(colour1.r * 64.0);
-	const int index2 = int(colour2.r * 64.0);
-	const int index3 = int(colour3.r * 64.0);
+	const int index0 = int(colour0.r * 256);
+	const int index1 = int(colour1.r * 256);
+	const int index2 = int(colour2.r * 256);
+	const int index3 = int(colour3.r * 256);
 
 	vec4 emptyCol = vec4(0., 0., 0., 0.);
 	vec4 colourlu = texture(terrainsheet_texture_sampler, vec3(offset, index0));
@@ -41,12 +42,12 @@ vec4 get_terrain(vec2 tex_coord)
 
 	colour0 = mix(colourlu, colourru, scaling.x);
 	colour1 = mix(colourld, colourrd, scaling.x);
-	return mix(colour0, colour1, scaling.y);
+	return mix(colour0, colour1, 1-scaling.y);
 }
 
 void main() {
 	vec4 terrain_color = get_terrain(tex_coord);
 	vec4 province_color = texture(provinces_texture_sampler, tex_coord);
 	vec4 final_color = mix(province_color, terrain_color, 0.5);
-	frag_color = final_color;
+	frag_color = terrain_color;
 }

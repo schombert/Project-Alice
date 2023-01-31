@@ -1,5 +1,44 @@
 #include "map.hpp"
 
+// Load the terrain texture, will read the BMP file directly
+// The image is flipped for some reason
+GLuint load_terrain_texture(simple_fs::file& file) {
+	auto content = simple_fs::view_contents(file);
+	uint8_t* start = (unsigned char*)(content.data);
+
+	// TODO make a check for when the bmp format is unsupporeted
+
+	// Data offset is where the pixel data starts
+	uint8_t* ptr = start + 10;
+	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+
+	// The width & height of the image
+	ptr = start + 18;
+	uint32_t size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+	ptr = start + 22;
+	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+
+	char const* data = content.data + data_offset;
+
+	GLuint texture_handle;
+	glGenTextures(1, &texture_handle);
+	if(texture_handle) {
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+		// Create a texture with only one byte color
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, size_x, size_y);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED, GL_UNSIGNED_BYTE, data);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	return texture_handle;
+}
+
 GLuint load_texture_from_file(simple_fs::file& file, bool linear, int32_t& size_x, int32_t& size_y) {
 	auto content = simple_fs::view_contents(file);
 	int32_t file_channels = 4;
@@ -43,7 +82,7 @@ void map::load_map(sys::state& state) {
 	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
 	map_display.provinces_texture_handle = load_texture_from_file(*provinces_bmp, false, map_display.map_x_size, map_display.map_y_size);
 	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
-	map_display.terrain_texture_handle = load_texture_from_file(*terrain_bmp, false);
+	map_display.terrain_texture_handle = load_terrain_texture(*terrain_bmp);
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
 	map_display.rivers_texture_handle = load_texture_from_file(*rivers_bmp, false);
 	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
