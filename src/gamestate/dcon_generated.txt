@@ -1,3 +1,5 @@
+include{"modifiers.hpp"}
+
 make_index{text_key}{uint32_t}
 make_index{text_sequence_id}{uint16_t}
 make_index{texture_id}{uint16_t}
@@ -139,5 +141,20 @@ object {
 	property{
 		name{ is_available_from_start }
 		type{ bitfield }
+	}
+}
+
+object {
+	name{ modifier }
+	storage_type{ contiguous }
+	size{ 1000 }
+
+	property{
+		name{ values }
+		type{ sys::modifier_definition }
+	}
+	property{
+		name{ icon }
+		type{ uint8_t }
 	}
 }

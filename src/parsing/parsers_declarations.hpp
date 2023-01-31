@@ -8,6 +8,7 @@
 #include "parsers.hpp"
 #include "unordered_dense.h"
 #include "gui_graphics.hpp"
+#include "modifiers.hpp"
 
 namespace parsers {
 
@@ -412,6 +413,245 @@ namespace parsers {
 	struct goods_file {
 		void finish(scenario_building_context& context) { }
 	};
+
+#define MOD_PROV_FUNCTION(X) template<typename T> \
+	void X (association_type, float v, error_handler& err, int32_t line, T& context) { \
+		if(next_to_add >= sys::modifier_definition_size) { \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
+		} else { \
+			constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets:: X ); \
+			constructed_definition.values[next_to_add] = v; \
+			++next_to_add; \
+		} \
+	}
+#define MOD_NAT_FUNCTION(X) template<typename T> \
+	void X (association_type, float v, error_handler& err, int32_t line, T& context) { \
+		if(next_to_add >= sys::modifier_definition_size) { \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
+		} else { \
+			constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets:: X ); \
+			constructed_definition.values[next_to_add] = v; \
+			++next_to_add; \
+		} \
+	}
+
+	struct modifier_base {
+		uint8_t icon_index = 0;
+		sys::modifier_definition constructed_definition;
+		uint32_t next_to_add = 0;
+		template<typename T>
+		void icon(association_type, uint32_t v, error_handler& err, int32_t line, T& context) {
+			icon_index = uint8_t(v);
+		}
+
+		MOD_PROV_FUNCTION(supply_limit)
+		MOD_PROV_FUNCTION(attrition)
+		MOD_PROV_FUNCTION(max_attrition)
+		MOD_NAT_FUNCTION(war_exhaustion)
+		MOD_NAT_FUNCTION(max_war_exhaustion)
+		MOD_NAT_FUNCTION(leadership)
+		MOD_NAT_FUNCTION(leadership_modifier)
+		MOD_NAT_FUNCTION(supply_consumption)
+		MOD_NAT_FUNCTION(org_regain)
+		MOD_NAT_FUNCTION(reinforce_speed)
+		MOD_NAT_FUNCTION(land_organisation)
+		MOD_NAT_FUNCTION(naval_organisation)
+		MOD_NAT_FUNCTION(research_points)
+		MOD_NAT_FUNCTION(research_points_modifier)
+		MOD_NAT_FUNCTION(research_points_on_conquer)
+		MOD_NAT_FUNCTION(import_cost)
+		MOD_NAT_FUNCTION(loan_interest)
+		MOD_NAT_FUNCTION(tax_efficiency)
+		MOD_NAT_FUNCTION(min_tax)
+		MOD_NAT_FUNCTION(max_tax)
+		MOD_NAT_FUNCTION(min_military_spending)
+		MOD_NAT_FUNCTION(max_military_spending)
+		MOD_NAT_FUNCTION(min_social_spending)
+		MOD_NAT_FUNCTION(max_social_spending)
+		MOD_NAT_FUNCTION(factory_owner_cost)
+		MOD_NAT_FUNCTION(min_tariff)
+		MOD_NAT_FUNCTION(max_tariff)
+		MOD_NAT_FUNCTION(ruling_party_support)
+		MOD_PROV_FUNCTION(local_ruling_party_support)
+		MOD_NAT_FUNCTION(rich_vote)
+		MOD_NAT_FUNCTION(middle_vote)
+		MOD_NAT_FUNCTION(poor_vote)
+		MOD_NAT_FUNCTION(minimum_wage)
+		MOD_NAT_FUNCTION(factory_maintenance)
+		MOD_PROV_FUNCTION(poor_life_needs)
+		MOD_PROV_FUNCTION(rich_life_needs)
+		MOD_PROV_FUNCTION(middle_life_needs)
+		MOD_PROV_FUNCTION(poor_everyday_needs)
+		MOD_PROV_FUNCTION(middle_everyday_needs)
+		MOD_PROV_FUNCTION(rich_everyday_needs)
+		MOD_PROV_FUNCTION(poor_luxury_needs)
+		MOD_PROV_FUNCTION(middle_luxury_needs)
+		MOD_PROV_FUNCTION(rich_luxury_needs)
+		MOD_NAT_FUNCTION(unemployment_benefit)
+		MOD_NAT_FUNCTION(pension_level)
+		MOD_PROV_FUNCTION(population_growth)
+		MOD_NAT_FUNCTION(global_population_growth)
+		MOD_NAT_FUNCTION(factory_input)
+		MOD_NAT_FUNCTION(factory_output)
+		MOD_NAT_FUNCTION(factory_throughput)
+		MOD_NAT_FUNCTION(rgo_input)
+		MOD_NAT_FUNCTION(rgo_output)
+		MOD_NAT_FUNCTION(rgo_throughput)
+		MOD_NAT_FUNCTION(artisan_input)
+		MOD_NAT_FUNCTION(artisan_output)
+		MOD_NAT_FUNCTION(artisan_throughput)
+		MOD_PROV_FUNCTION(local_factory_input)
+		MOD_PROV_FUNCTION(local_factory_output)
+		MOD_PROV_FUNCTION(local_factory_throughput)
+		MOD_PROV_FUNCTION(local_rgo_input)
+		MOD_PROV_FUNCTION(local_rgo_output)
+		MOD_PROV_FUNCTION(local_rgo_throughput)
+		MOD_PROV_FUNCTION(local_artisan_input)
+		MOD_PROV_FUNCTION(local_artisan_output)
+		MOD_PROV_FUNCTION(local_artisan_throughput)
+		MOD_PROV_FUNCTION(number_of_voters)
+		MOD_PROV_FUNCTION(goods_demand)
+		MOD_NAT_FUNCTION(badboy)
+		MOD_PROV_FUNCTION(assimilation_rate)
+		MOD_NAT_FUNCTION(global_assimilation_rate)
+		MOD_NAT_FUNCTION(prestige)
+		MOD_NAT_FUNCTION(factory_cost)
+		MOD_PROV_FUNCTION(life_rating)
+		MOD_PROV_FUNCTION(farm_rgo_eff)
+		MOD_PROV_FUNCTION(mine_rgo_eff)
+		MOD_PROV_FUNCTION(farm_rgo_size)
+		MOD_PROV_FUNCTION(mine_rgo_size)
+		MOD_NAT_FUNCTION(issue_change_speed)
+		MOD_NAT_FUNCTION(social_reform_desire)
+		MOD_NAT_FUNCTION(political_reform_desire)
+		MOD_NAT_FUNCTION(literacy_con_impact)
+		MOD_PROV_FUNCTION(pop_militancy_modifier)
+		MOD_PROV_FUNCTION(pop_consciousness_modifier)
+		MOD_PROV_FUNCTION(rich_income_modifier)
+		MOD_PROV_FUNCTION(middle_income_modifier)
+		MOD_PROV_FUNCTION(poor_income_modifier)
+		MOD_PROV_FUNCTION(boost_strongest_party)
+		MOD_NAT_FUNCTION(global_immigrant_attract)
+		template<typename T>
+		void immigration(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::immigrant_attract);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			}
+		}
+		MOD_PROV_FUNCTION(immigrant_attract)
+		MOD_PROV_FUNCTION(immigrant_push)
+		MOD_PROV_FUNCTION(local_repair)
+		MOD_PROV_FUNCTION(local_ship_build)
+		MOD_NAT_FUNCTION(poor_savings_modifier)
+		MOD_NAT_FUNCTION(influence_modifier)
+		MOD_NAT_FUNCTION(diplomatic_points_modifier)
+		MOD_NAT_FUNCTION(mobilisation_size)
+		MOD_NAT_FUNCTION(mobilisation_economy_impact)
+		template<typename T> \
+		void mobilization_size(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+					err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilisation_size);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			}
+		}
+		template<typename T>
+		void mobilization_economy_impact(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilisation_economy_impact);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			}
+		}
+		MOD_NAT_FUNCTION(global_pop_militancy_modifier)
+		MOD_NAT_FUNCTION(global_pop_consciousness_modifier)
+		MOD_PROV_FUNCTION(movement_cost)
+		MOD_PROV_FUNCTION(combat_width)
+		MOD_PROV_FUNCTION(min_build_naval_base)
+		MOD_PROV_FUNCTION(min_build_railroad)
+		MOD_PROV_FUNCTION(min_build_fort)
+		MOD_PROV_FUNCTION(attack)
+		template<typename T>
+		void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::defense);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			}
+		}
+		template<typename T>
+		void attacker(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::attack);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			}
+		}
+		template<typename T>
+		void defence(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::defense);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			}
+		}
+		MOD_NAT_FUNCTION(core_pop_militancy_modifier)
+		MOD_NAT_FUNCTION(core_pop_consciousness_modifier)
+		MOD_NAT_FUNCTION(non_accepted_pop_militancy_modifier)
+		MOD_NAT_FUNCTION(non_accepted_pop_consciousness_modifier)
+		MOD_NAT_FUNCTION(cb_generation_speed_modifier)
+		MOD_NAT_FUNCTION(mobilization_impact)
+		template<typename T>
+		void mobilisation_impact(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilization_impact);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			}
+		}
+		MOD_NAT_FUNCTION(suppression_points_modifier)
+		MOD_NAT_FUNCTION(education_efficiency_modifier)
+		MOD_NAT_FUNCTION(civilization_progress_modifier)
+		MOD_NAT_FUNCTION(administrative_efficiency_modifier)
+		MOD_NAT_FUNCTION(land_unit_start_experience)
+		MOD_NAT_FUNCTION(naval_unit_start_experience)
+		MOD_NAT_FUNCTION(naval_attack_modifier)
+		MOD_NAT_FUNCTION(naval_defense_modifier)
+		MOD_NAT_FUNCTION(land_attack_modifier)
+		MOD_NAT_FUNCTION(land_defense_modifier)
+		MOD_NAT_FUNCTION(tariff_efficiency_modifier)
+		MOD_NAT_FUNCTION(max_loan_modifier)
+		MOD_NAT_FUNCTION(unciv_economic_modifier)
+		MOD_NAT_FUNCTION(unciv_military_modifier)
+		MOD_NAT_FUNCTION(self_unciv_economic_modifier)
+		MOD_NAT_FUNCTION(self_unciv_military_modifier)
+		MOD_NAT_FUNCTION(commerce_tech_research_bonus)
+		MOD_NAT_FUNCTION(army_tech_research_bonus)
+		MOD_NAT_FUNCTION(industry_tech_research_bonus)
+		MOD_NAT_FUNCTION(navy_tech_research_bonus)
+		MOD_NAT_FUNCTION(culture_tech_research_bonus)
+		template<typename T>
+		void finish(T& context) { }
+	};
+
+#undef MOD_PROV_FUNCTION
+#undef MOD_NAT_FUNCTION
 }
 
 #include "parser_defs_generated.hpp"
