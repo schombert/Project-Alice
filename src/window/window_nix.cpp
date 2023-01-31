@@ -238,6 +238,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 				state->win_ptr->left_mouse_down = true;
 			} else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
 				state->on_rbutton_down(x, y, get_current_modifiers(window));
+			} else if(button == GLFW_MOUSE_BUTTON_MIDDLE) {
+				state->on_mbutton_down(x, y, get_current_modifiers(window));
 			}
 			state->mouse_x_position = x;
 			state->mouse_y_position = y;
@@ -248,6 +250,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 				state->win_ptr->left_mouse_down = false;
 			} else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
 				state->on_rbutton_up(x, y, get_current_modifiers(window));
+			} else if(button == GLFW_MOUSE_BUTTON_MIDDLE) {
+				state->on_mbutton_up(x, y, get_current_modifiers(window));
 			}
 			state->mouse_x_position = x;
 			state->mouse_y_position = y;

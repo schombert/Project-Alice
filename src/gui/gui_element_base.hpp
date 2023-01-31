@@ -35,9 +35,12 @@ public:
 	//       - should be called in general when something happens
 	virtual element_base* impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // tests which element is under the cursor
 	virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+	virtual message_result impl_on_mbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+	virtual message_result impl_on_mbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
+	virtual message_result impl_on_mouse_move(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual void impl_on_update(sys::state& state) noexcept;
 	message_result impl_get(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
@@ -48,9 +51,12 @@ public:
 protected:
 	virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
 	virtual message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+	virtual message_result on_mbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
+	virtual message_result on_mbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
 	virtual message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept;
+	virtual message_result on_mouse_move(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result get(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual message_result set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void render(sys::state& state, int32_t x, int32_t y) noexcept { }

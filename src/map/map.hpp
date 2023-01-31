@@ -18,10 +18,14 @@ public:
 	float map_y_pos = 0.f;
 	float map_y_vel = 0.f;
 	float map_zoom = 0.3486784401f;
+	float mouse_pan_mul = 0.f;
 
 	void update();
 	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
 	void on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount);
+	void on_mouse_move(float rel_x, float rel_y, sys::key_modifiers mod);
+	void on_mbuttom_down(int32_t x, int32_t y, sys::key_modifiers mod);
+	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
 };
 void load_map(sys::state& state);
 }
