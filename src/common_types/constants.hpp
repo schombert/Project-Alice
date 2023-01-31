@@ -178,5 +178,7 @@ constexpr inline uint32_t ui_scales_count = 8;
 enum class leader_type : uint8_t {
 	european = 0, southamerican, russian, arab, asian, indian, nativeamerican, african, polar_bear
 };
-
+enum class commodity_group : uint8_t {
+	military_goods = 0, raw_material_goods, industrial_goods, consumer_goods
+};
 }
