@@ -32,3 +32,84 @@ object{
 		type{ bitfield }
 	}
 }
+
+object {
+	name{ culture_group }
+	storage_type{ contiguous }
+	size{ 128 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+
+	property{
+		name{ is_overseas }
+		type{ bitfield }
+	}
+
+	property{
+		name{ leader }
+		type{ uint8_t }
+	}
+}
+
+object {
+	name{ culture }
+	storage_type{ contiguous }
+	size{ 500 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+	property{
+		name{ radicalism }
+		type{ int8_t }
+	}
+
+	property{
+		name{ first_names }
+		type{vector_pool{10000}{text_key}}
+	}
+	property{
+		name{ last_names }
+		type{vector_pool{10000}{text_key}}
+	}
+}
+
+relationship{
+	name{culture_group_membership}
+	
+	link{
+		object{culture}
+		name{member}
+		type{unique}
+	}
+	link{
+		object{culture_group}
+		name{group}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ cultural_union_of }
+	
+	link{
+		object{national_identity}
+		name{identity}
+		type{unique}
+	}
+	link{
+		object{culture_group}
+		name{culture_group}
+		type{unique}
+	}
+}

@@ -212,7 +212,16 @@ namespace sys {
 				parsers::parse_religion_file(gen, err, context);
 			}
 		}
-
+		// read cultures from cultures.txt
+		{
+			auto cultures = open_file(common, NATIVE("cultures.txt"));
+			if(cultures) {
+				auto content = view_contents(*cultures);
+				err.file_name = "cultures.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_culture_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }
