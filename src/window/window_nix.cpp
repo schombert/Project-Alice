@@ -361,6 +361,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 		game_state.render();
 		glfwSwapBuffers(window);
+		
+		sound::update_music_track(game_state);
 	}
 	
 	glfwDestroyWindow(window);
