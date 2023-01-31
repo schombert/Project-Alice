@@ -5,19 +5,29 @@
 namespace map {
 
 class display_data {
+private:
+	// Last update time, used for smooth map movement
+	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
 public:
-	// map data
+	// Time in seconds, send to the map shader for animations
+	float time_counter = 0;
+
 	GLuint provinces_texture_handle = 0;
 	GLuint terrain_texture_handle = 0;
 	GLuint rivers_texture_handle = 0;
-	ogl::texture terrainsheet_texture;
-	int32_t map_x_size = 0;
-	int32_t map_y_size = 0;
-	float map_x_pos = 0.f;
-	float map_x_vel = 0.f;
-	float map_y_pos = 0.f;
-	float map_y_vel = 0.f;
-	float map_zoom = 0.3486784401f;
+	GLuint terrainsheet_texture_handle = 0;
+	GLuint water_normal = 0;
+	GLuint colormap_water = 0;
+	GLuint colormap_terrain = 0;
+	GLuint overlay = 0;
+
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+	float pos_x = 0.f;
+	float vel_x = 0.f;
+	float pos_y = 0.f;
+	float vel_y = 0.f;
+	float zoom = 0.3486784401f;
 	float mouse_pan_mul = 0.f;
 
 	void update();

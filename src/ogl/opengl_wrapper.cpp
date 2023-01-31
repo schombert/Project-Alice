@@ -257,24 +257,19 @@ void render_map(sys::state& state, map::display_data const& map_data) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
 
-	glUniform2f(1, GLfloat(map_data.map_x_size), GLfloat(map_data.map_y_size));
-	glUniform1f(2, map_data.map_zoom);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, map_data.provinces_texture_handle);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, map_data.terrain_texture_handle);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, map_data.rivers_texture_handle);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, map_data.terrainsheet_texture.get_texture_handle());
+	// uniform float aspect_ratio
+	glUniform1f(1, state.x_size / ((float)state.y_size));
+	// uniform float zoom
+	glUniform1f(2, map_data.zoom);
+	// uniform float time
+	glUniform1f(4, map_data.time_counter);
 
 	// TODO do this in one draw call
-	glUniform2f(0, map_data.map_x_pos-1.f, map_data.map_y_pos);
+	glUniform2f(0, map_data.pos_x-1.f, map_data.pos_y);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glUniform2f(0, map_data.map_x_pos, map_data.map_y_pos);
+	glUniform2f(0, map_data.pos_x, map_data.pos_y);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glUniform2f(0, map_data.map_x_pos+1.f, map_data.map_y_pos);
+	glUniform2f(0, map_data.pos_x+1.f, map_data.pos_y);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
