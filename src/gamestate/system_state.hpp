@@ -12,6 +12,7 @@
 #include "fonts.hpp"
 #include "sound.hpp"
 #include "map.hpp"
+#include "economy.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -57,6 +58,8 @@ namespace sys {
 		dcon::data_container world;
 
 		// scenario data
+
+		economy::global_economy_state economy;
 
 		std::vector<char> text_data; // stores string data in the win1250 codepage
 		std::vector<text::text_component> text_components;

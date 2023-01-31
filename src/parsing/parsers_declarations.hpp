@@ -219,6 +219,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::culture_id> map_of_culture_names;
 		ankerl::unordered_dense::map<std::string, dcon::culture_group_id> map_of_culture_group_names;
 		ankerl::unordered_dense::map<std::string, dcon::commodity_id> map_of_commodity_names;
+		ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_production_types;
 
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -648,10 +649,133 @@ namespace parsers {
 		MOD_NAT_FUNCTION(culture_tech_research_bonus)
 		template<typename T>
 		void finish(T& context) { }
+
+		void convert_to_national_mod() {
+			for(uint32_t i = 0; i < this->next_to_add; ++i) {
+				if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_life_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_life_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_life_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_life_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_life_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_life_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_everyday_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_everyday_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_everyday_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_everyday_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_everyday_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_everyday_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_luxury_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_luxury_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_luxury_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_luxury_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_luxury_needs) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_luxury_needs);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::goods_demand) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::goods_demand);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::assimilation_rate) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_assimilation_rate);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::farm_rgo_eff) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::farm_rgo_eff);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::mine_rgo_eff) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::mine_rgo_eff);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::farm_rgo_size) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::farm_rgo_size);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::mine_rgo_size) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::mine_rgo_size);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::pop_militancy_modifier) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_pop_militancy_modifier);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::pop_consciousness_modifier) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_pop_consciousness_modifier);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_income_modifier) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_income_modifier);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_income_modifier) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_income_modifier);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_income_modifier) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_income_modifier);
+				}
+				constructed_definition.offsets[i] += 1;
+			}
+		}
+		void convert_to_province_mod() {
+			for(uint32_t i = 0; i < this->next_to_add; ++i) {
+				constructed_definition.offsets[i] += 1;
+			}
+		}
+		void convert_to_neutral_mod() {
+			for(uint32_t i = 0; i < this->next_to_add; ++i) {
+				constructed_definition.offsets[i] -= 1;
+			}
+		}
 	};
 
 #undef MOD_PROV_FUNCTION
 #undef MOD_NAT_FUNCTION
+
+
+	struct int_vector {
+		std::vector<int32_t> data;
+		template<typename T>
+		void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
+			data.push_back(v);
+		}
+		template<typename T>
+		void finish(T& context) { }
+	};
+	struct commodity_array {
+		tagged_vector<float, dcon::commodity_id> data;
+
+		void any_value(std::string_view name, association_type, float value, error_handler& err, int32_t line, scenario_building_context& context) {
+			auto found_commodity = context.map_of_commodity_names.find(std::string(name));
+			if(found_commodity != context.map_of_commodity_names.end()) {
+				data.safe_get(found_commodity->second) = value;
+			} else {
+				err.accumulated_errors += "Unknown commodity " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+			}
+		}
+
+		void finish(scenario_building_context& context) {
+			data.resize(context.state.world.commodity_size());
+		}
+	};
+
+	enum class building_type {
+		factory, naval_base, fort, railroad
+	};
+	struct building_definition : public modifier_base {
+		int_vector colonial_points;
+		commodity_array goods_cost;
+		bool default_enabled = false;
+		std::string_view production_type;
+		float infrastructure = 0.0f;
+		int32_t colonial_range = 0;
+		int32_t max_level = 0;
+		int32_t naval_capacity = 0;
+		int32_t time = 0;
+		int32_t cost = 0;
+		building_type stored_type = building_type::factory;
+
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory")) {
+				stored_type = building_type::factory;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fort")) {
+				stored_type = building_type::fort;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval_base")) {
+				stored_type = building_type::naval_base;
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "infrastructure")) {
+				stored_type = building_type::railroad;
+			} else {
+				err.accumulated_errors += "Unknown building type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+			}
+		}
+		
+
+		void finish(scenario_building_context& context) { }
+	};
+
+	struct building_file {
+		void result(std::string_view name, building_definition&& res, error_handler& err, int32_t line, scenario_building_context& context);
+		void finish(scenario_building_context& context) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"

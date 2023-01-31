@@ -14,9 +14,9 @@ In this phase we are focused mainly on figuring out the names of things that the
 
 - Read national tags from `countries.txt` *Done*
 - Read religions from `religion.txt` *Done*
-- Read cultures from `cultures.txt`
-- Read goods from `goods.txt`
-- Read buildings from `buildings.txt`
+- Read cultures from `cultures.txt` *Done*
+- Read goods from `goods.txt` *Done*
+- Read buildings from `buildings.txt` *Done*
 - Pre-parse `ideologies.txt`
 - Pre-parse `issues.txt`
 - Pre-parse `ideologies.txt`

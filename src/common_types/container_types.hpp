@@ -31,6 +31,17 @@ public:
 
 	tagged_vector() {
 	}
+	tagged_vector(tagged_vector<value_type, tag_type, allocator> const& other) noexcept : storage(other.storage) { }
+	tagged_vector(tagged_vector<value_type, tag_type, allocator>&& other) noexcept : storage(std::move(other.storage)) { }
+
+	tagged_vector& operator=(tagged_vector<value_type, tag_type, allocator> const& other) noexcept {
+		storage = other.storage;
+		return *this;
+	}
+	tagged_vector& operator=(tagged_vector<value_type, tag_type, allocator>&& other) noexcept {
+		storage = std::move(other.storage);
+		return *this;
+	}
 	value_type const& operator[](tag_type t) const {
 		return *(storage.data() + t.index());
 	}
