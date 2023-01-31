@@ -113,3 +113,27 @@ relationship{
 		type{unique}
 	}
 }
+
+object {
+	name{ commodity }
+	storage_type{ contiguous }
+	size{ 128 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+	property{
+		name{ commodity_group }
+		type{ uint8_t }
+	}
+	property{
+		name{ is_available_from_start }
+		type{ bitfield }
+	}
+}
