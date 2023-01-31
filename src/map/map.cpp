@@ -84,6 +84,22 @@ void map::display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers
 		map_zoom *= 0.9f;
 	}
 }
+
 void map::display_data::on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount) {
 	map_zoom *= 1.f + amount / 5.f;
+}
+
+void map::display_data::on_mouse_move(float rel_x, float rel_y, sys::key_modifiers mod) {
+	// Only updating the velocity on mouse move is imperfect;
+	// the panning will stop on frames where the mouse hasn't moved.
+	map_x_vel += (-rel_x / map_x_size) * (1.f / map_zoom) * mouse_pan_mul;
+	map_y_vel += (rel_y / map_y_size) * (1.f / map_zoom) * mouse_pan_mul;
+}
+
+void map::display_data::on_mbuttom_down(int32_t x, int32_t y, sys::key_modifiers mod) {
+	mouse_pan_mul = .00125f;
+}
+
+void map::display_data::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) {
+	mouse_pan_mul = 0.f;
 }

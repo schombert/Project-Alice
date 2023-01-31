@@ -94,8 +94,10 @@ namespace sys {
 		// the following functions will be invoked by the window subsystem
 
 		void on_rbutton_down(int32_t x, int32_t y, key_modifiers mod);
+		void on_mbutton_down(int32_t x, int32_t y, key_modifiers mod);
 		void on_lbutton_down(int32_t x, int32_t y, key_modifiers mod);
 		void on_rbutton_up(int32_t x, int32_t y, key_modifiers mod);
+		void on_mbutton_up(int32_t x, int32_t y, key_modifiers mod);
 		void on_lbutton_up(int32_t x, int32_t y, key_modifiers mod);
 		void on_mouse_move(int32_t x, int32_t y, key_modifiers mod);
 		void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod); // called when the left button is held down
