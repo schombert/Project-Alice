@@ -175,4 +175,8 @@ constexpr inline float ui_scales[] = {
 };
 constexpr inline uint32_t ui_scales_count = 8;
 
+enum class leader_type : uint8_t {
+	european = 0, southamerican, russian, arab, asian, indian, nativeamerican, african, polar_bear
+};
+
 }

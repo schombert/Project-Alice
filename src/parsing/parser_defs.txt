@@ -205,3 +205,26 @@ building_def
 	fort_level			value	int							member_fn
 	one_per_state		value	bool						member_fn
 	colonial_points		group	building_colonial_points	member_fn
+
+color_from_3i
+	#free          value      int              member_fn
+
+names_list
+	#free          value      text             member_fn
+
+culture
+	color          group      color_from_3i    member_fn
+	radicalism     value      int              member_fn
+	primary        value      none             discard
+	first_names    extern     make_fn_list     discard
+	last_names     extern     make_ln_list     discard
+
+culture_group
+	#any           extern     make_culture     discard
+	unit           value      none             discard
+	leader         value      text             member_fn
+	is_overseas    value      bool             member_fn
+	union          value      tag              member_fn  (union_tag)
+
+culture_file
+	#any           extern     make_culture_group    discard
