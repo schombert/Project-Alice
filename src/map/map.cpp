@@ -174,7 +174,7 @@ void map::display_data::update() {
 	last_update_time = now;
 
 	time_counter += milliseconds_since_last_update.count() / 1000.f;
-	time_counter = fmod(time_counter, 600); // Reset it after every 10 minutes
+	time_counter = fmodf(time_counter, 600); // Reset it after every 10 minutes
 
 	pos_x += vel_x;
 	pos_y += vel_y;
@@ -190,7 +190,7 @@ void map::display_data::update() {
 	};
 	velocity_fn(vel_x, 1.f / size_x);
 	velocity_fn(vel_y, 1.f / size_y);
-	pos_x = std::fmod(pos_x + 0.5f, 1.f);
+	pos_x = std::fmodf(pos_x + 0.5f, 1.f);
 	pos_x = pos_x < 0 ? pos_x + 1.f : pos_x;
 	pos_x = pos_x - 0.5f;
 	pos_y = std::clamp(pos_y, -0.5f, 0.5f);
