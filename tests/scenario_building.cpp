@@ -111,5 +111,25 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		
 		REQUIRE(union_tag == usa_tag);
 	}
+	// (add goods here?)
+
+	// BUILDING
+	{
+		auto buildings = open_file(common, NATIVE("buildings.txt"));
+		if(buildings) {
+			auto content = view_contents(*buildings);
+			err.file_name = "buildings.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_building_file(gen, err, context);
+		}
+		REQUIRE(err.accumulated_errors == "");
+
+		auto it = context.map_of_building_names.find(std::string("naval_base"));
+		REQUIRE(it != context.map_of_building_names.end());
+		auto id = dcon::fatten(state->world, it->second);
+		REQUIRE(state->world.building_get_port(id) == true);
+		REQUIRE(state->world.building_get_onmap(id) == true);
+		REQUIRE(state->world.building_get_colonial_points(id).size() == state->world.building_get_max_level(id));
+	}
 }
 #endif

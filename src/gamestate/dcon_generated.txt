@@ -33,68 +33,6 @@ object{
 	}
 }
 
-object{
-	name{ building }
-	storage_type{ contiguous }
-	size{ 128 }
-	property{
-		name{ on_completion }
-		type{ bitfield }
-	}
-	property{
-		name{ completion_size }
-		type{ float }
-	}
-	property{
-		name{ max_level }
-		type{ uint8_t }
-	}
-	property{
-		name{ time }
-		type{ int }
-	}
-	property{
-		name{ visibility }
-		type{ bitfield }
-	}
-	property{
-		name{ naval_capacity }
-		type{ uint8_t }
-	}
-	property{
-		name{ capital }
-		type{ bitfield }
-	}
-	property{
-		name{ port }
-		type{ bitfield }
-	}
-	property{
-		name{ pop_build_factory }
-		type{ bitfield }
-	}
-	property{
-		name{ advanced_factory }
-		type{ bitfield }
-	}
-	property{
-		name{ province }
-		type{ bitfield }
-	}
-	property{
-		name{ fort_level }
-		type{ uint8_t }
-	}
-	property{
-		name{ onmap }
-		type{ bitfield }
-	}
-	property{
-		name{ one_per_state }
-		type{ bitfield }
-	}
-}
-
 object {
 	name{ culture_group }
 	storage_type{ contiguous }
@@ -173,5 +111,119 @@ relationship{
 		object{culture_group}
 		name{culture_group}
 		type{unique}
+	}
+}
+
+object{
+	name{ building }
+	storage_type{ contiguous }
+	size{ 1024 }
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ type }
+		type{ uint8_t }
+	}
+	property{
+		name{ colonial_points }
+		type{vector_pool{10000}{uint32_t}}
+	}
+	property{
+		name{ on_completion }
+		type{ bitfield }
+	}
+	property{
+		name{ completion_size }
+		type{ float }
+	}
+	property{
+		name{ max_level }
+		type{ uint8_t }
+	}
+	property{
+		name{ cost }
+		type{ uint32_t }
+	}
+	property{
+		name{ time }
+		type{ uint32_t }
+	}
+	property{
+		name{ visibility }
+		type{ bitfield }
+	}
+	property{
+		name{ naval_capacity }
+		type{ uint8_t }
+	}
+	property{
+		name{ capital }
+		type{ bitfield }
+	}
+	property{
+		name{ port }
+		type{ bitfield }
+	}
+	property{
+		name{ pop_build_factory }
+		type{ bitfield }
+	}
+	property{
+		name{ advanced_factory }
+		type{ bitfield }
+	}
+	property{
+		name{ strategic_factory }
+		type{ bitfield }
+	}
+	property{
+		name{ province }
+		type{ bitfield }
+	}
+	property{
+		name{ fort_level }
+		type{ uint8_t }
+	}
+	property{
+		name{ local_ship_build }
+		type{ float }
+	}
+	property{
+		name{ infrastructure }
+		type{ float }
+	}
+	property{
+		name{ movement_cost }
+		type{ float }
+	}
+	property{
+		name{ colonial_range }
+		type{ uint8_t }
+	}
+	property{
+		name{ onmap }
+		type{ bitfield }
+	}
+	property{
+		name{ one_per_state }
+		type{ bitfield }
+	}
+	property{
+		name{ spawn_railway_track }
+		type{ bitfield }
+	}
+	property{
+		name{ default_enabled }
+		type{ bitfield }
+	}
+	property{
+		name{ sail }
+		type{ bitfield }
+	}
+	property{
+		name{ steam }
+		type{ bitfield }
 	}
 }

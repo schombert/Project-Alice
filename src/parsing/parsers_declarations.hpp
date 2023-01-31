@@ -217,6 +217,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::religion_id> map_of_religion_names;
 		ankerl::unordered_dense::map<std::string, dcon::culture_id> map_of_culture_names;
 		ankerl::unordered_dense::map<std::string, dcon::culture_group_id> map_of_culture_group_names;
+		ankerl::unordered_dense::map<std::string, dcon::building_id> map_of_building_names;
 
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -361,83 +362,124 @@ namespace parsers {
 		void finish(scenario_building_context& context) { }
 	};
 
-
-	struct building_colonial_points {
-		std::vector<int32_t> values;
-		template<typename T>
-		void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
-			values.push_back(v);
-		}
-		template<typename T>
-		void finish(T& context) { }
+	struct colonial_points_context {
+		dcon::building_id id;
+		scenario_building_context& outer_context;
 	};
-	struct building_goods_cost {
-		std::vector<int32_t> values;
+	struct colonial_points_list {
 		template<typename T>
 		void free_value(int32_t v, error_handler& err, int32_t line, T& context) {
-			values.push_back(v);
+			context.outer_context.state.world.building_get_colonial_points(context.id).push_back(v);
 		}
+		void finish(colonial_points_context& context) { }
 	};
 	struct building_context {
 		dcon::building_id id;
 		scenario_building_context& outer_context;
 	};
-	struct building_def {
-		void type(association_type, std::string_view v, error_handler& err, int32_t line, religion_context& context) {
-			
-		}
-		void on_completion(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_on_completion(context.id, v);
-		}
-		void completion_size(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_completion_size(context.id, v);
-		}
-		void max_level(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_max_level(context.id, v);
-		}
-		void goods_cost(association_type, building_goods_cost v, error_handler& err, int32_t line, religion_context& context) {
-			//context.outer_context.state.world.building_set_goods_cost(context.id, v);
-		}
-		void time(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_time(context.id, v);
-		}
-		void visibility(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_visibility(context.id, v);
-		}
-		void naval_capacity(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_naval_capacity(context.id, v);
-		}
-		void capital(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_capital(context.id, v);
-		}
-		void port(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_port(context.id, v);
-		}
-		void onmap(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_onmap(context.id, v);
-		}
-		void production_type(association_type, std::string_view v, error_handler& err, int32_t line, religion_context& context) {
-			//context.outer_context.state.world.building_set_production_type(context.id, v);
-		}
-		void pop_build_factory(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_pop_build_factory(context.id, v);
-		}
-		void advanced_factory(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_advanced_factory(context.id, v);
-		}
-		void province(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_province(context.id, v);
-		}
-		void fort_level(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_fort_level(context.id, v);
-		}
-		void one_per_state(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.building_set_one_per_state(context.id, v);
-		}
-		void colonial_points(association_type, building_colonial_points v, error_handler& err, int32_t line, religion_context& context) {
-			//context.outer_context.state.world.building_set_colonial_points(context.id, v);
+	struct goods_cost_list {
+		template<typename T>
+		void any_value(std::string_view name, association_type, int32_t v, error_handler& err, int32_t line, T& context) {
+			// TODO add goods in here
 		}
 		void finish(building_context& context) { }
+	};
+	struct building {
+		void type(association_type, std::string_view name, error_handler& err, int32_t line, building_context& context) {
+			if(name == "factory")
+				context.outer_context.state.world.building_set_type(context.id, uint8_t(sys::building_type::factory));
+			else if(name == "fort")
+				context.outer_context.state.world.building_set_type(context.id, uint8_t(sys::building_type::fort));
+			else if(name == "naval_base")
+				context.outer_context.state.world.building_set_type(context.id, uint8_t(sys::building_type::naval_base));
+			else if(name == "infrastructure")
+				context.outer_context.state.world.building_set_type(context.id, uint8_t(sys::building_type::infrastructure));
+			else {
+				err.accumulated_errors += "Unknown building type " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+			}
+		}
+		void on_completion(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_on_completion(context.id, v);
+		}
+		void completion_size(association_type, int32_t v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_completion_size(context.id, v);
+		}
+		void max_level(association_type, int32_t v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_max_level(context.id, v);
+		}
+		void cost(association_type, int32_t v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_max_level(context.id, v);
+		}
+		void goods_cost(goods_cost_list v, error_handler& err, int32_t line, building_context& context) {
+			// TODO context.outer_context.state.world.building_set_goods_cost(context.id, v);
+		}
+		void time(association_type, int32_t v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_time(context.id, v);
+		}
+		void visibility(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_visibility(context.id, v);
+		}
+		void naval_capacity(association_type, int32_t v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_naval_capacity(context.id, v);
+		}
+		void capital(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_capital(context.id, v);
+		}
+		void port(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_port(context.id, v);
+		}
+		void onmap(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_onmap(context.id, v);
+		}
+		void production_type(association_type, std::string_view v, error_handler& err, int32_t line, building_context& context) {
+			// ignore...
+		}
+		void pop_build_factory(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_pop_build_factory(context.id, v);
+		}
+		void advanced_factory(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_advanced_factory(context.id, v);
+		}
+		void strategic_factory(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_strategic_factory(context.id, v);
+		}
+		void province(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_province(context.id, v);
+		}
+		void fort_level(association_type, int32_t v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_fort_level(context.id, v);
+		}
+		void local_ship_build(association_type, float v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_local_ship_build(context.id, v);
+		}
+		void movement_cost(association_type, float v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_movement_cost(context.id, v);
+		}
+		void infrastructure(association_type, float v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_infrastructure(context.id, v);
+		}
+		void colonial_range(association_type, int32_t v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_colonial_range(context.id, v);
+		}
+		void one_per_state(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_one_per_state(context.id, v);
+		}
+		void spawn_railway_track(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_spawn_railway_track(context.id, v);
+		}
+		void default_enabled(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_default_enabled(context.id, v);
+		}
+		void sail(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_sail(context.id, v);
+		}
+		void steam(association_type, bool v, error_handler& err, int32_t line, building_context& context) {
+			context.outer_context.state.world.building_set_steam(context.id, v);
+		}
+		void finish(building_context& context) { }
+	};
+	struct building_file {
+		void finish(scenario_building_context& context) { }
 	};
 }
 

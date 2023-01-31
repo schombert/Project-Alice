@@ -179,4 +179,8 @@ enum class leader_type : uint8_t {
 	european = 0, southamerican, russian, arab, asian, indian, nativeamerican, african, polar_bear
 };
 
+enum class building_type : uint8_t {
+	factory = 0, fort, naval_base, infrastructure
+};
+
 }
