@@ -82,6 +82,7 @@ target_link_libraries(tests_project PRIVATE stb_image)
 target_link_libraries(tests_project PRIVATE freetype)
 if (NOT WIN32)
 	target_link_libraries(tests_project PRIVATE glfw)
+	target_link_libraries(tests_project PRIVATE miniaudio)
 endif()
 
 include(Catch)
