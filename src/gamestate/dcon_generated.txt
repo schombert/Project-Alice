@@ -129,6 +129,10 @@ object {
 		type{ uint32_t }
 	}
 	property{
+		name{ cost }
+		type{ float }
+	}
+	property{
 		name{ commodity_group }
 		type{ uint8_t }
 	}

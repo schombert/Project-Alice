@@ -111,5 +111,35 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		
 		REQUIRE(union_tag == usa_tag);
 	}
+	{
+		auto goods = open_file(common, NATIVE("goods.txt"));
+		if(goods) {
+			auto content = view_contents(*goods);
+			err.file_name = "goods.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_goods_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		{
+			auto it = context.map_of_commodity_names.find(std::string("aeroplanes"));
+			REQUIRE(it != context.map_of_commodity_names.end());
+			auto id = dcon::fatten(state->world, it->second);
+			REQUIRE(sys::red_from_int(id.get_color()) >= 0.5f);
+			REQUIRE(id.get_cost() == 110.0f);
+			REQUIRE(id.get_is_available_from_start() == false);
+			REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::military_goods);
+		}
+		{
+			auto it = context.map_of_commodity_names.find(std::string("tobacco"));
+			REQUIRE(it != context.map_of_commodity_names.end());
+			auto id = dcon::fatten(state->world, it->second);
+			REQUIRE(sys::red_from_int(id.get_color()) <= 0.5f);
+			REQUIRE(id.get_cost() == Approx(1.1f));
+			REQUIRE(id.get_is_available_from_start() == true);
+			REQUIRE(sys::commodity_group(id.get_commodity_group()) == sys::commodity_group::consumer_goods);
+		}
+	}
 }
 #endif

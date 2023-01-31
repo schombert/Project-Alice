@@ -222,6 +222,22 @@ namespace sys {
 				parsers::parse_culture_file(gen, err, context);
 			}
 		}
+		// read commodities from goods.txt
+		{
+			// FIRST: make sure that we have a money good
+			if(world.commodity_size() == 0) {
+				// create money
+				auto money_id = world.create_commodity();
+				assert(money_id.index() == 0);
+			}
+			auto goods = open_file(common, NATIVE("goods.txt"));
+			if(goods) {
+				auto content = view_contents(*goods);
+				err.file_name = "goods.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_goods_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }

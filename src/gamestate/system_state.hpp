@@ -38,6 +38,10 @@ namespace sys {
 
 	};
 
+	struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
+
+	};
+
 	struct alignas(64) state {
 		// the state struct will eventually include (at least pointers to)
 		// the state of the sound system, the state of the windowing system,
