@@ -281,7 +281,16 @@ namespace sys {
 				parsers::parse_issues_file(gen, err, context);
 			}
 		}
-		
+		// parse governments.txt
+		{
+			auto governments = open_file(common, NATIVE("governments.txt"));
+			if(governments) {
+				auto content = view_contents(*governments);
+				err.file_name = "governments.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_governments_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }

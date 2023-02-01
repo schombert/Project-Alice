@@ -224,5 +224,29 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(std::find(state->culture.social_issues.begin(), state->culture.social_issues.end(), ita->second) != state->culture.social_issues.end());
 	}
+	{
+		auto governments = open_file(common, NATIVE("governments.txt"));
+		if(governments) {
+			auto content = view_contents(*governments);
+			err.file_name = "governments.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_governments_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		//prussian_constitutionalism
+
+		auto ita = context.map_of_governments.find(std::string("prussian_constitutionalism"));
+		REQUIRE(ita != context.map_of_governments.end());
+		auto ida = ita->second;
+		REQUIRE(state->culture.governments[ida].has_elections == true);
+		REQUIRE(state->culture.governments[ida].duration == 48);
+		REQUIRE(state->culture.governments[ida].can_appoint_ruling_party == true);
+		REQUIRE(state->culture.governments[ida].flag == ::culture::flag_type::monarchy);
+		REQUIRE(
+			(state->culture.governments[ida].ideologies_allowed &
+				::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
+	}
 }
 #endif

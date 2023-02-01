@@ -413,3 +413,13 @@ issues_group
 
 issues_file
 	#any           extern    make_issues_group      discard
+
+government_type
+	flagtype                 value     text        member_fn
+	election                 value     bool        member_fn
+	duration                 value     int         member_fn
+	appoint_ruling_party     value     bool        member_fn
+	#any                     value     bool        member_fn
+
+governments_file
+	#any           extern    make_government        discard
