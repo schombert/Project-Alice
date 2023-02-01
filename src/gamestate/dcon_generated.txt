@@ -6,6 +6,7 @@ make_index{text_sequence_id}{uint16_t}
 make_index{texture_id}{uint16_t}
 make_index{gfx_object_id}{uint16_t}
 make_index{gui_def_id}{uint16_t}
+make_index{government_type_id}{uint8_t}
 
 
 object{

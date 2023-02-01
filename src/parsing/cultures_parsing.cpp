@@ -143,4 +143,18 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 	gen.discard_group();
 }
 
+
+void make_government(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	dcon::government_type_id new_id = dcon::government_type_id(dcon::government_type_id::value_base_t(context.state.culture.governments.size()));
+	context.state.culture.governments.emplace_back();
+
+	auto name_id = text::find_or_add_key(context.state, name);
+
+	context.state.culture.governments[new_id].name = name_id;
+	context.map_of_governments.insert_or_assign(std::string(name), new_id);
+
+	government_type_context new_context{ context , new_id };
+	parse_government_type(gen, err, new_context);
+}
+
 }
