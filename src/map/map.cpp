@@ -181,8 +181,9 @@ void map::display_data::update() {
 	time_counter += seconds_since_last_update;
 	time_counter = (float)std::fmod(time_counter, 600.f); // Reset it after every 10 minutes
 
-	pos += pos_velocity * (seconds_since_last_update / zoom);
-	printf("%f\n", seconds_since_last_update);
+	auto velocity = pos_velocity * (seconds_since_last_update / zoom);
+	velocity.x *= size.y / size.x;
+	pos += velocity;
 
 	pos.x = glm::mod(pos.x, 1.f);
 	pos.y = glm::clamp(pos.y, 0.f, 1.0f);
