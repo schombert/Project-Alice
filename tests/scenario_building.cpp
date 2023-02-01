@@ -1,5 +1,6 @@
-#include "catch2/catch.hpp"
+#include "catch.hpp"
 #include "parsers_declarations.hpp"
+#include "dcon_generated.hpp"
 #include "nations.hpp"
 #include "container_types.hpp"
 
@@ -196,6 +197,32 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		for(auto c : fata.get_ideology_group_membership_as_ideology_group())
 			++count;
 		REQUIRE(count == 2);
+	}
+	{
+		context.issues_file = open_file(common, NATIVE("issues.txt"));
+		if(context.issues_file) {
+			auto content = view_contents(*context.issues_file);
+			err.file_name = "issues.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_issues_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		//school_reforms
+		auto ita = context.map_of_issues.find(std::string("school_reforms"));
+		REQUIRE(ita != context.map_of_issues.end());
+
+		auto fata = fatten(state->world, ita->second);
+		REQUIRE(fata.get_is_next_step_only() == true);
+		REQUIRE(fata.get_is_administrative() == true);
+
+		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
+		REQUIRE(itb != context.map_of_options.end());
+		auto fatb = fatten(state->world, itb->second.id);
+		REQUIRE(fata.get_options().at(2) == fatb);
+
+		REQUIRE(std::find(state->culture.social_issues.begin(), state->culture.social_issues.end(), ita->second) != state->culture.social_issues.end());
 	}
 }
 #endif

@@ -13,6 +13,7 @@
 #include "sound.hpp"
 #include "map.hpp"
 #include "economy.hpp"
+#include "culture.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -60,6 +61,7 @@ namespace sys {
 		// scenario data
 
 		economy::global_economy_state economy;
+		culture::global_cultural_state culture;
 
 		std::vector<char> text_data; // stores string data in the win1250 codepage
 		std::vector<text::text_component> text_components;

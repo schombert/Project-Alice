@@ -70,4 +70,77 @@ void make_ideology_group(std::string_view name, token_generator& gen, error_hand
 	parse_ideology_group(gen, err, new_context);
 }
 
+void make_issues_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+
+	::culture::issue_category type = ::culture::issue_category::party;
+
+	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "party_issues")) {
+		type = ::culture::issue_category::party;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "political_reforms")) {
+		type = ::culture::issue_category::political;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "social_reforms")) {
+		type = ::culture::issue_category::social;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "economic_reforms")) {
+		type = ::culture::issue_category::economic;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "military_reforms")) {
+		type = ::culture::issue_category::military;
+	} else {
+		err.accumulated_errors += "Unknown issue group " + std::string(name) + " in file " + err.file_name + "\n";
+	}
+
+	issue_group_context new_context(context, type);
+	parse_issues_group(gen, err, new_context);
+}
+
+void make_issue(std::string_view name, token_generator& gen, error_handler& err, issue_group_context& context) {
+	dcon::issue_id new_id = context.outer_context.state.world.create_issue();
+	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+	context.outer_context.state.world.issue_set_name(new_id, name_id);
+	context.outer_context.map_of_issues.insert_or_assign(std::string(name), new_id);
+
+	switch(context.issue_cat) {
+		case ::culture::issue_category::party:
+			context.outer_context.state.culture.party_issues.push_back(new_id);
+			break;
+		case ::culture::issue_category::economic:
+			context.outer_context.state.culture.economic_issues.push_back(new_id);
+			break;
+		case ::culture::issue_category::social:
+			context.outer_context.state.culture.social_issues.push_back(new_id);
+			break;
+		case ::culture::issue_category::political:
+			context.outer_context.state.culture.political_issues.push_back(new_id);
+			break;
+		case ::culture::issue_category::military:
+			context.outer_context.state.culture.military_issues.push_back(new_id);
+			break;
+	}
+
+	issue_context new_context{ context.outer_context, new_id };
+	parse_issue(gen, err, new_context);
+}
+void register_option(std::string_view name, token_generator& gen, error_handler& err, issue_context& context) {
+	dcon::issue_option_id new_id = context.outer_context.state.world.create_issue_option();
+	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+	context.outer_context.state.world.issue_option_set_name(new_id, name_id);
+	context.outer_context.map_of_options.insert_or_assign(std::string(name), pending_option_content{ gen, new_id });
+
+	bool assigned = false;
+	auto& existing_options = context.outer_context.state.world.issue_get_options(context.id);
+	for(uint32_t i = 0; i < existing_options.size(); ++i) {
+		if(!(existing_options[i])) {
+			existing_options[i] = new_id;
+			assigned = true;
+			break;
+		}
+	}
+	if(!assigned) {
+		err.accumulated_errors += "Option " + std::string(name) + " in file " + err.file_name + " was the 7th or later option\n";
+	}
+
+	gen.discard_group();
+}
+
 }
