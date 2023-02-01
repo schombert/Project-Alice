@@ -430,3 +430,20 @@ cb_list
 cb_types_file
 	peace_order    group     cb_list                member
 	#any           extern    register_cb_type       discard
+
+trait
+	organisation    value    float       member_fn
+	morale          value    float       member_fn
+	attack          value    float       member_fn
+	defence         value    float       member_fn
+	reconnaissance  value    float       member_fn
+	speed           value    float       member_fn
+	experience      value    float       member_fn
+	reliability     value    float       member_fn
+
+traits_set
+	#any           extern    make_trait              discard
+
+traits_file
+	personality    extern    personality_traits_set  discard
+	background     extern    background_traits_set   discard
