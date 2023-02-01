@@ -185,3 +185,42 @@ object {
 		type{ bitfield }
 	}
 }
+
+
+object {
+	name{ ideology_group }
+	storage_type{ contiguous }
+	size{ 32 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+}
+
+object {
+	name{ ideology }
+	storage_type{ contiguous }
+	size{ 32 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+}
+
+relationship{
+	name{ ideology_group_membership }
+	
+	link{
+		object{ideology}
+		name{ideology}
+		type{unique}
+	}
+	link{
+		object{ideology_group}
+		name{ideology_group}
+		type{many}
+		index_storage{array}
+	}
+}
