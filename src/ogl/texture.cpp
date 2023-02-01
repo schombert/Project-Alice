@@ -236,7 +236,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		if(mipmaps > 0 || (flags & SOIL_FLAG_MIPMAPS)) {
 			/*	instruct OpenGL to use the MIPmaps	*/
 			glTexParameteri(opengl_texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(opengl_texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(opengl_texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		} else {
 			/*	instruct OpenGL _NOT_ to use the MIPmaps	*/
 			glTexParameteri(opengl_texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
