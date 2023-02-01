@@ -1,4 +1,5 @@
 #pragma once
+#include "dcon_generated.hpp"
 
 namespace military {
 namespace cb_flag {
@@ -32,4 +33,9 @@ inline constexpr uint32_t po_liberate = 0x02000000;
 inline constexpr uint32_t po_take_from_sphere = 0x04000000;
 
 }
+
+struct global_military_state {
+	dcon::leader_trait_id first_background_trait;
+};
+
 }

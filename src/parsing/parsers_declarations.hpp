@@ -240,6 +240,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::issue_id> map_of_issues;
 		ankerl::unordered_dense::map<std::string, dcon::government_type_id> map_of_governments;
 		ankerl::unordered_dense::map<std::string, pending_cb_content> map_of_cb_types;
+		ankerl::unordered_dense::map<std::string, dcon::leader_trait_id> map_of_leader_traits;
 
 		std::optional<simple_fs::file> ideologies_file;
 		std::optional<simple_fs::file> issues_file;
@@ -908,6 +909,52 @@ namespace parsers {
 		cb_list peace_order;
 		void finish(scenario_building_context&) { }
 	};
+
+	struct trait_context {
+		scenario_building_context& outer_context;
+		dcon::leader_trait_id id;
+	};
+
+
+	struct trait {
+		void organisation(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+			context.outer_context.state.world.leader_trait_set_organisation(context.id, value);
+		}
+		void morale(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+			context.outer_context.state.world.leader_trait_set_morale(context.id, value);
+		}
+		void attack(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+			context.outer_context.state.world.leader_trait_set_attack(context.id, value);
+		}
+		void defence(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+			context.outer_context.state.world.leader_trait_set_defence(context.id, value);
+		}
+		void reconnaissance(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+			context.outer_context.state.world.leader_trait_set_reconnaissance(context.id, value);
+		}
+		void speed(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+			context.outer_context.state.world.leader_trait_set_speed(context.id, value);
+		}
+		void experience(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+			context.outer_context.state.world.leader_trait_set_experience(context.id, value);
+		}
+		void reliability(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+			context.outer_context.state.world.leader_trait_set_reliability(context.id, value);
+		}
+		void finish(trait_context&) { }
+	};
+
+	struct traits_set {
+		void finish(scenario_building_context&) { }
+	};
+
+	struct traits_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_trait(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void personality_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void background_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "parser_defs_generated.hpp"
