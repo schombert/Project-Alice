@@ -20,7 +20,7 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Pre-parse `ideologies.txt` *Done*
 - Pre-parse `issues.txt` *Done*
 - Read governments from `governments.txt` *Done*
-- Pre-parse `cb_types.txt`
+- Pre-parse `cb_types.txt` *Done*
 - Read leader traits from `traits.txt`
 - Read `defines.lua` (I'm not 100% sure this has to go here, but that is where open v2 placed it)
 - Pre parse `crime.txt`

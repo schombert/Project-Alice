@@ -248,5 +248,17 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			(state->culture.governments[ida].ideologies_allowed &
 				::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
 	}
+	{
+		context.cb_types_file = open_file(common, NATIVE("cb_types.txt"));
+		if(context.cb_types_file) {
+			auto content = view_contents(*context.cb_types_file);
+			err.file_name = "cb_types.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_cb_types_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(state->world.cb_type_size() > 5);
+	}
 }
 #endif

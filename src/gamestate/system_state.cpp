@@ -291,6 +291,16 @@ namespace sys {
 				parsers::parse_governments_file(gen, err, context);
 			}
 		}
+		// pre parse cb_types.txt
+		{
+			context.cb_types_file = open_file(common, NATIVE("cb_types.txt"));
+			if(context.cb_types_file) {
+				auto content = view_contents(*context.cb_types_file);
+				err.file_name = "cb_types.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_cb_types_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }

@@ -218,6 +218,10 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::issue_option_id id;
 	};
+	struct pending_cb_content {
+		token_generator generator_state;
+		dcon::cb_type_id id;
+	};
 
 	struct scenario_building_context {
 		sys::state& state;
@@ -235,9 +239,11 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, pending_option_content> map_of_options;
 		ankerl::unordered_dense::map<std::string, dcon::issue_id> map_of_issues;
 		ankerl::unordered_dense::map<std::string, dcon::government_type_id> map_of_governments;
-		
+		ankerl::unordered_dense::map<std::string, pending_cb_content> map_of_cb_types;
+
 		std::optional<simple_fs::file> ideologies_file;
 		std::optional<simple_fs::file> issues_file;
+		std::optional<simple_fs::file> cb_types_file;
 		
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -887,6 +893,21 @@ namespace parsers {
 	};
 
 	void make_government(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct cb_list {
+		void free_value(std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+			dcon::cb_type_id new_id = context.state.world.create_cb_type();
+			context.map_of_cb_types.insert_or_assign(std::string(text), pending_cb_content{ token_generator{}, new_id });
+		}
+		void finish(scenario_building_context&) { }
+	};
+
+	void register_cb_type(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct cb_types_file {
+		cb_list peace_order;
+		void finish(scenario_building_context&) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"
