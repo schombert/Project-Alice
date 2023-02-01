@@ -79,30 +79,23 @@ vec4 get_water(vec2 tex_coord)
 	tex_coord *= 100.;
 	tex_coord = tex_coord * 0.25 + time * 0.002;
 
-	vec3 eyeDirection = vec3(0.0, 1.0, 1.0);
-	vec3 lightDirection = vec3(0.0, 1.0, 1.0);
+	const vec3 eyeDirection = vec3(0.0, 1.0, 1.0);
+	const vec3 lightDirection = vec3(0.0, 1.0, 1.0);
 
-	vec2 coordA = tex_coord * 3;
-	coordA.xy += 0.1;
-	vec2 coordB = tex_coord;
-	coordB.y += 0.1;
-	vec2 coordC = tex_coord * 2;
-	coordC.y += 0.15;
-	vec2 coordD = tex_coord * 5;
-	coordD.y += 0.3;
+	vec2 coordA = tex_coord * 3 + vec2(0.10, 0.10);
+	vec2 coordB = tex_coord * 1 + vec2(0.00, 0.10);
+	vec2 coordC = tex_coord * 2 + vec2(0.00, 0.15);
+	vec2 coordD = tex_coord * 5 + vec2(0.00, 0.30);
 
 	// Uses textureNoTile for non repeting textures,
 	// probably unnecessarily expensive
-	vec4 vBumpA = textureNoTile(water_normal, coordA);
-	coordB.x += 0.03 * time;
-	coordB.y -= 0.02 * time;
-	vec4 vBumpB = textureNoTile(water_normal, coordB);
-	coordC.x += 0.03 * time;
-	coordC.y -= 0.01 * time;
-	vec4 vBumpC = textureNoTile(water_normal, coordC);
-	coordD.x += 0.02 * time;
-	coordD.y -= 0.01 * time;
-	vec4 vBumpD = textureNoTile(water_normal, coordD);
+	vec4 vBumpA = texture(water_normal, coordA);
+	coordB += vec2(0.03, -0.02) * time;
+	vec4 vBumpB = texture(water_normal, coordB);
+	coordC += vec2(0.03, -0.01) * time;
+	vec4 vBumpC = texture(water_normal, coordC);
+	coordD += vec2(0.02, -0.01) * time;
+	vec4 vBumpD = texture(water_normal, coordD);
 
 	vec3 vBumpTex = normalize(WaveModOne * (vBumpA.xyz + vBumpB.xyz +
 		vBumpC.xyz + vBumpD.xyz) - WaveModTwo);
@@ -155,10 +148,10 @@ vec4 get_terrain_mix(vec2 tex_coords) {
 
 void main() {
 	vec4 terrain_background = texture(colormap_terrain, tex_coord);
-	// vec4 water = get_water(tex_coord);
+	vec4 water = get_water(tex_coord);
 	vec4 terrain = get_terrain_mix(tex_coord);
 	float is_terrain = terrain.w;
 	frag_color = (terrain * 2. + terrain_background) / 3.;
 
-	// frag_color = mix(water, frag_color, is_terrain);
+	frag_color = mix(water, frag_color, is_terrain);
 }
