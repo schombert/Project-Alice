@@ -89,24 +89,6 @@ typedef struct {
 }
 DDS_header;
 
-enum {
-	SOIL_FLAG_POWER_OF_TWO = 1,
-	SOIL_FLAG_MIPMAPS = 2,
-	SOIL_FLAG_TEXTURE_REPEATS = 4,
-	SOIL_FLAG_MULTIPLY_ALPHA = 8,
-	SOIL_FLAG_INVERT_Y = 16,
-	SOIL_FLAG_COMPRESS_TO_DXT = 32,
-	SOIL_FLAG_DDS_LOAD_DIRECT = 64,
-	SOIL_FLAG_NTSC_SAFE_RGB = 128,
-	SOIL_FLAG_CoCg_Y = 256,
-	SOIL_FLAG_TEXTURE_RECTANGLE = 512,
-	SOIL_FLAG_PVR_LOAD_DIRECT = 1024,
-	SOIL_FLAG_ETC1_LOAD_DIRECT = 2048,
-	SOIL_FLAG_GL_MIPMAPS = 4096,
-	SOIL_FLAG_SRGB_COLOR_SPACE = 8192,
-	SOIL_FLAG_NEAREST = 16384,
-};
-
 unsigned int SOIL_direct_load_DDS_from_memory(
 		const unsigned char* const buffer,
 		unsigned int buffer_length,
@@ -251,7 +233,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	glBindTexture(opengl_texture_type, tex_ID);
 	if(tex_ID) {
 		/*	did I have MIPmaps?	*/
-		if(mipmaps > 0) {
+		if(mipmaps > 0 || (flags & SOIL_FLAG_MIPMAPS)) {
 			/*	instruct OpenGL to use the MIPmaps	*/
 			glTexParameteri(opengl_texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(opengl_texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -335,6 +317,9 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	}/* end reading each face */
 	free(DDS_data);
 
+	if(flags & SOIL_FLAG_MIPMAPS)
+		glGenerateMipmap(opengl_texture_type);
+
 quick_exit:
 	/*	report success or failure	*/
 	return tex_ID;
@@ -369,86 +354,6 @@ texture& texture::operator=(texture&& other) noexcept {
 GLuint texture::get_texture_handle() const {
 	assert(loaded);
 	return texture_handle;
-}
-
-GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data) {
-	auto content = simple_fs::view_contents(file);
-	int32_t file_channels = 4;
-
-	texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-		&(texture.size_x), &(texture.size_y), &file_channels, 4);
-
-	texture.channels = 4;
-	texture.loaded = true;
-
-	glGenTextures(1, &texture.texture_handle);
-	if(texture.texture_handle) {
-		glBindTexture(GL_TEXTURE_2D, texture.texture_handle);
-
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, texture.size_x, texture.size_y);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture.size_x, texture.size_y, GL_RGBA, GL_UNSIGNED_BYTE, texture.data);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	if(!keep_data) {
-		STBI_FREE(texture.data);
-		texture.data = nullptr;
-	}
-	return texture.texture_handle;
-}
-
-GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data, int32_t tiles_x, int32_t tiles_y) {
-	auto content = simple_fs::view_contents(file);
-	int32_t file_channels = 4;
-
-	texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-		&(texture.size_x), &(texture.size_y), &file_channels, 4);
-
-	texture.channels = 4;
-	texture.loaded = true;
-
-	glGenTextures(1, &texture.texture_handle);
-	if(texture.texture_handle) {
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture.texture_handle);
-
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		size_t p_dx = texture.size_x / tiles_x; // Pixels of each tile in x
-		size_t p_dy = texture.size_y / tiles_y; // Pixels of each tile in y
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, texture.size_x);
-		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, texture.size_y);
-
-		for(int32_t x = 0; x < tiles_x; x++)
-			for(int32_t y = 0; y < tiles_y; y++)
-				glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
-					0, 0,
-					0, GLint(x * tiles_x + y),
-					GLsizei(p_dx), GLsizei(p_dy),
-					1,
-					GL_RGBA,
-					GL_UNSIGNED_BYTE,
-					((uint32_t const*)texture.data) + (x * p_dy * texture.size_x + y * p_dx));
-
-		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
-	}
-
-	if(!keep_data) {
-		STBI_FREE(texture.data);
-		texture.data = nullptr;
-	}
-	return texture.texture_handle;
 }
 
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data) {
@@ -486,12 +391,44 @@ GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data
 				}
 			}
 		}
+
 		auto file = open_file(root, native_name);
 		if(file) {
-			return load_texture_from_file(state, state.open_gl.asset_textures[id], *file, keep_data);
+			auto content = simple_fs::view_contents(*file);
+
+			int32_t file_channels = 4;
+
+			state.open_gl.asset_textures[id].data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
+				&(state.open_gl.asset_textures[id].size_x), &(state.open_gl.asset_textures[id].size_y), &file_channels, 4);
+
+
+			state.open_gl.asset_textures[id].channels = 4;
+			state.open_gl.asset_textures[id].loaded = true;
+
+			glGenTextures(1, &state.open_gl.asset_textures[id].texture_handle);
+			if(state.open_gl.asset_textures[id].texture_handle) {
+				glBindTexture(GL_TEXTURE_2D, state.open_gl.asset_textures[id].texture_handle);
+
+				glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, state.open_gl.asset_textures[id].size_x, state.open_gl.asset_textures[id].size_y);
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, state.open_gl.asset_textures[id].size_x, state.open_gl.asset_textures[id].size_y, GL_RGBA, GL_UNSIGNED_BYTE, state.open_gl.asset_textures[id].data);
+
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+
+			if(!keep_data) {
+				STBI_FREE(state.open_gl.asset_textures[id].data);
+				state.open_gl.asset_textures[id].data = nullptr;
+			}
+
+			return state.open_gl.asset_textures[id].texture_handle;
 		}
+		return 0;
 	} // end else (not already loaded)
-	return 0;
 }
 
 data_texture::data_texture(int32_t sz, int32_t ch) {

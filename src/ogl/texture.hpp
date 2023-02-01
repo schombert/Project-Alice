@@ -11,9 +11,32 @@ namespace ogl {
 
 class texture;
 
-GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data);
-GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data, int32_t tiles_x, int32_t tiles_y);
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
+
+enum {
+	SOIL_FLAG_POWER_OF_TWO = 1,
+	SOIL_FLAG_MIPMAPS = 2,
+	SOIL_FLAG_TEXTURE_REPEATS = 4,
+	SOIL_FLAG_MULTIPLY_ALPHA = 8,
+	SOIL_FLAG_INVERT_Y = 16,
+	SOIL_FLAG_COMPRESS_TO_DXT = 32,
+	SOIL_FLAG_DDS_LOAD_DIRECT = 64,
+	SOIL_FLAG_NTSC_SAFE_RGB = 128,
+	SOIL_FLAG_CoCg_Y = 256,
+	SOIL_FLAG_TEXTURE_RECTANGLE = 512,
+	SOIL_FLAG_PVR_LOAD_DIRECT = 1024,
+	SOIL_FLAG_ETC1_LOAD_DIRECT = 2048,
+	SOIL_FLAG_GL_MIPMAPS = 4096,
+	SOIL_FLAG_SRGB_COLOR_SPACE = 8192,
+	SOIL_FLAG_NEAREST = 16384,
+};
+
+unsigned int SOIL_direct_load_DDS_from_memory(
+		const unsigned char* const buffer,
+		unsigned int buffer_length,
+		unsigned int& width,
+		unsigned int& height,
+		int flags);
 
 class texture {
 	GLuint texture_handle = 0;
@@ -35,8 +58,6 @@ public:
 
 	GLuint get_texture_handle() const;
 
-	friend GLuint load_texture_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data);
-	friend GLuint load_texture_array_from_file(sys::state& state, ogl::texture& texture, simple_fs::file& file, bool keep_data, int32_t tiles_x, int32_t tiles_y);
 	friend GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
 };
 
