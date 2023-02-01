@@ -46,7 +46,7 @@ namespace parsers {
 	class token_generator {
 	private:
 		char const* position;
-		char const* const file_end;
+		char const* file_end;
 		int32_t current_line = 1;
 
 		token_and_type peek_1;
@@ -56,7 +56,6 @@ namespace parsers {
 	public:
 		token_generator(char const* file_start, char const* fe) : position(file_start), file_end(fe) {
 		}
-
 		bool at_end() const {
 			return peek_2.type == token_type::unknown && peek_1.type == token_type::unknown && position >= file_end;
 		}

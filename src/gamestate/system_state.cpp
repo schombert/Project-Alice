@@ -189,6 +189,8 @@ namespace sys {
 
 	void state::update_ui_scale(float new_scale) {
 		user_settings.ui_scale = new_scale;
+		ui_state.root->base_data.size.x = int16_t(x_size / user_settings.ui_scale);
+		ui_state.root->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
 		// TODO move windows
 	}
 
@@ -248,6 +250,7 @@ namespace sys {
 				parsers::parse_goods_file(gen, err, context);
 			}
 		}
+		// read buildings.text
 		world.factory_type_resize_construction_costs(world.commodity_size());
 		{
 			auto buildings = open_file(common, NATIVE("buildings.txt"));
@@ -256,6 +259,16 @@ namespace sys {
 				err.file_name = "buildings.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_building_file(gen, err, context);
+			}
+		}
+		// pre parse ideologies.txt
+		{
+			context.ideologies_file = open_file(common, NATIVE("ideologies.txt"));
+			if(context.ideologies_file) {
+				auto content = view_contents(*context.ideologies_file);
+				err.file_name = "ideologies.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_ideology_file(gen, err, context);
 			}
 		}
 		// TODO do something with err

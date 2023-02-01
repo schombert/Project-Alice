@@ -45,4 +45,29 @@ void make_ln_list(token_generator& gen, error_handler& err, culture_context& con
 	parse_names_list(gen, err, new_context);
 }
 
+void register_ideology(std::string_view name, token_generator& gen, error_handler& err, ideology_group_context& context) {
+
+	dcon::ideology_id new_id = context.outer_context.state.world.create_ideology();
+	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+	context.outer_context.state.world.ideology_set_name(new_id, name_id);
+	context.outer_context.map_of_ideologies.insert_or_assign(std::string(name), pending_ideology_content{ gen , new_id });
+
+
+	context.outer_context.state.world.force_create_ideology_group_membership(new_id, context.id);
+
+	gen.discard_group();
+}
+
+void make_ideology_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	dcon::ideology_group_id new_id = context.state.world.create_ideology_group();
+	auto name_id = text::find_or_add_key(context.state, name);
+
+	context.state.world.ideology_group_set_name(new_id, name_id);
+	context.map_of_ideology_groups.insert_or_assign(std::string(name), new_id);
+
+	ideology_group_context new_context{ context , new_id };
+	parse_ideology_group(gen, err, new_context);
+}
+
 }

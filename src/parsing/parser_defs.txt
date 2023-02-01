@@ -396,3 +396,9 @@ building_definition
 
 building_file
 	#any           group     building_definition    member_fn    (result)
+
+ideology_group
+	#any           extern    register_ideology      discard
+
+ideology_file
+	#any           extern    make_ideology_group    discard
