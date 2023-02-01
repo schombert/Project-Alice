@@ -10,7 +10,7 @@ private:
 	// Last update time, used for smooth map movement
 	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
 
-	glm::vec2 pos;
+	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
 	glm::vec2 pos_velocity;
 	glm::vec2 last_camera_drag_pos;
 	bool is_dragging = false;
