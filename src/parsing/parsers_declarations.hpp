@@ -816,6 +816,8 @@ namespace parsers {
 	struct issue_group_context {
 		scenario_building_context& outer_context;
 		::culture::issue_category issue_cat = ::culture::issue_category::party;
+
+		issue_group_context(scenario_building_context& outer_context, ::culture::issue_category issue_cat) : outer_context(outer_context), issue_cat(issue_cat) { }
 	};
 	struct issue {
 		void next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
