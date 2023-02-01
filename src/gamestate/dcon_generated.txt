@@ -283,3 +283,46 @@ object {
 		type{ uint32_t }
 	}
 }
+
+object {
+	name{leader_trait}
+	storage_type{ contiguous }
+	size{ 200 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ organisation }
+		type{ float }
+	}
+	property{
+		name{ morale }
+		type{ float }
+	}
+	property{
+		name{ attack }
+		type{ float }
+	}
+	property{
+		name{ defence }
+		type{ float }
+	}
+	property{
+		name{ reconnaissance }
+		type{ float }
+	}
+	property{
+		name{ speed }
+		type{ float }
+	}
+	property{
+		name{ experience }
+		type{ float }
+	}
+	property{
+		name{ reliability }
+		type{ float }
+	}
+}

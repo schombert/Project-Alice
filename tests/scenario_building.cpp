@@ -3,6 +3,7 @@
 #include "dcon_generated.hpp"
 #include "nations.hpp"
 #include "container_types.hpp"
+#include "system_state.hpp"
 
 /*
 * parsers::scenario_building_context context(*this);
@@ -259,6 +260,24 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(err.accumulated_errors == "");
 		REQUIRE(state->world.cb_type_size() > 5);
+	}
+	{
+		auto traits = open_file(common, NATIVE("traits.txt"));
+		if(traits) {
+			auto content = view_contents(*traits);
+			err.file_name = "traits.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_traits_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto ita = context.map_of_leader_traits.find(std::string("wretched"));
+		REQUIRE(ita != context.map_of_leader_traits.end());
+
+		auto fata = fatten(state->world, ita->second);
+		REQUIRE(fata.get_attack() == -1.0f);
+		REQUIRE(fata.get_experience() == 0.0f);
 	}
 }
 #endif
