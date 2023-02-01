@@ -9,7 +9,7 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(tests_project PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof
+										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(tests_project PRIVATE
@@ -82,6 +82,7 @@ target_link_libraries(tests_project PRIVATE libglew_static)
 target_link_libraries(tests_project PRIVATE dependency_DataContainer)
 target_link_libraries(tests_project PRIVATE stb_image)
 target_link_libraries(tests_project PRIVATE freetype)
+target_link_libraries(tests_project PRIVATE glm)
 if (NOT WIN32)
 	target_link_libraries(tests_project PRIVATE glfw)
 	target_link_libraries(tests_project PRIVATE miniaudio)
