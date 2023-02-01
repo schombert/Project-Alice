@@ -265,11 +265,11 @@ void render_map(sys::state& state, map::display_data const& map_data) {
 	glUniform1f(4, map_data.time_counter);
 
 	// TODO do this in one draw call
-	glUniform2f(0, map_data.pos_x-1.f, map_data.pos_y);
+	glUniform2f(0, map_data.offset_x-1.f, map_data.offset_y);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glUniform2f(0, map_data.pos_x, map_data.pos_y);
+	glUniform2f(0, map_data.offset_x, map_data.offset_y);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glUniform2f(0, map_data.pos_x+1.f, map_data.pos_y);
+	glUniform2f(0, map_data.offset_x+1.f, map_data.offset_y);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 

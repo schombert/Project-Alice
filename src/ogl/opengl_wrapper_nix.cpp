@@ -7,7 +7,7 @@ namespace ogl {
 		assert(state.win_ptr && state.win_ptr->window);
 
 		glfwMakeContextCurrent(state.win_ptr->window);
-		glfwSwapInterval(0); // Vsync option
+		glfwSwapInterval(1); // Vsync option
 
 		glewExperimental = GL_TRUE;
 		if (glewInit() != GLEW_OK)

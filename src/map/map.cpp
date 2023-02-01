@@ -1,6 +1,7 @@
 #include "map.hpp"
 #include "texture.hpp"
 #include <cmath>
+#include <glm/glm.hpp>
 
 void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
 	if (filter == GL_LINEAR_MIPMAP_LINEAR) {
@@ -127,7 +128,9 @@ void map::load_map(sys::state& state) {
 	map::display_data& map_display = state.map_display;
 
 	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
-	map_display.terrain_texture_handle = load_terrain_texture(*terrain_bmp, map_display.size_x, map_display.size_y);
+	int32_t size_x, size_y;
+	map_display.terrain_texture_handle = load_terrain_texture(*terrain_bmp, size_x, size_y);
+	map_display.size = glm::vec2(size_x, size_y);
 
 	// TODO Better error handling and reporting ^^
 	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
@@ -145,7 +148,7 @@ void map::load_map(sys::state& state) {
 	glUseProgram(state.open_gl.map_shader_program);
 
 	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(map_display.size_x), GLfloat(map_display.size_y));
+	glUniform2f(3, GLfloat(map_display.size.x), GLfloat(map_display.size.y));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, map_display.provinces_texture_handle);
@@ -171,41 +174,32 @@ void map::display_data::update() {
 	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
 		last_update_time = now;
 
-	auto milliseconds_since_last_update = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_update_time);
+	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
+	float seconds_since_last_update = (float)(microseconds_since_last_update.count() / 1e6);
 	last_update_time = now;
 
-	time_counter += milliseconds_since_last_update.count() / 1000.f;
+	time_counter += seconds_since_last_update;
 	time_counter = (float)std::fmod(time_counter, 600.f); // Reset it after every 10 minutes
 
-	pos_x += vel_x;
-	pos_y += vel_y;
-	auto const velocity_fn = [this](auto& v, auto const v_scale) {
-		auto const stop_movement_threshold = (1.f / zoom) * 0.0001f;
-		v *= 0.975f;
+	auto velocity = pos_velocity * (seconds_since_last_update / zoom);
+	velocity.x *= size.y / size.x;
+	pos += velocity;
 
-		if(v > 0.f && v < v_scale * stop_movement_threshold) {
-			v = 0.f;
-		} else if(v < 0.f && v > -v_scale * stop_movement_threshold) {
-			v = 0.f;
-		}
-	};
-	velocity_fn(vel_x, 1.f / size_x);
-	velocity_fn(vel_y, 1.f / size_y);
-	pos_x = (float)std::fmod(pos_x + 0.5f, 1.f);
-	pos_x = pos_x < 0 ? pos_x + 1.f : pos_x;
-	pos_x = pos_x - 0.5f;
-	pos_y = std::clamp(pos_y, -0.5f, 0.5f);
+	pos.x = glm::mod(pos.x, 1.f);
+	pos.y = glm::clamp(pos.y, 0.f, 1.0f);
+	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
+	offset_y = pos.y - 0.5f;
 }
 
 void map::display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(keycode == sys::virtual_key::A) {
-		vel_x += (1.f / size_x) * (1.f / zoom) * 0.0125f;
+		pos_velocity.x = -1.f;
 	} else if(keycode == sys::virtual_key::D) {
-		vel_x -= (1.f / size_x) * (1.f / zoom) * 0.0125f;
+		pos_velocity.x = +1.f;
 	} else if(keycode == sys::virtual_key::W) {
-		vel_y -= (1.f / size_y) * (1.f / zoom) * 0.0125f;
+		pos_velocity.y = -1.f;
 	} else if(keycode == sys::virtual_key::S) {
-		vel_y += (1.f / size_y) * (1.f / zoom) * 0.0125f;
+		pos_velocity.y = +1.f;
 	} else if(keycode == sys::virtual_key::Q) {
 		zoom *= 1.1f;
 	} else if(keycode == sys::virtual_key::E) {
@@ -213,21 +207,61 @@ void map::display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers
 	}
 }
 
+void map::display_data::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
+	if(keycode == sys::virtual_key::A) {
+		pos_velocity.x = 0;
+	} else if(keycode == sys::virtual_key::D) {
+		pos_velocity.x = 0;
+	} else if(keycode == sys::virtual_key::W) {
+		pos_velocity.y = 0;
+	} else if(keycode == sys::virtual_key::S) {
+		pos_velocity.y = 0;
+	}
+}
+
+
+void map::display_data::set_pos(glm::vec2 new_pos) {
+	pos.x = glm::mod(pos.x, 1.f);
+	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
+	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
+	offset_y = pos.y - 0.5f;
+}
+
 void map::display_data::on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount) {
 	zoom *= 1.f + amount / 5.f;
 }
 
-void map::display_data::on_mouse_move(float rel_x, float rel_y, sys::key_modifiers mod) {
-	// Only updating the velocity on mouse move is imperfect;
-	// the panning will stop on frames where the mouse hasn't moved.
-	vel_x += (-rel_x / size_x) * (1.f / zoom) * mouse_pan_mul;
-	vel_y += (rel_y / size_y) * (1.f / zoom) * mouse_pan_mul;
+void map::display_data::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
+	if(is_dragging) {  // Drag the map with middlemouse
+		auto mouse_pos = glm::vec2(x, y);
+		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+		auto map_pos = screen_to_map(mouse_pos, screen_size);
+
+		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
+    }
 }
 
-void map::display_data::on_mbuttom_down(int32_t x, int32_t y, sys::key_modifiers mod) {
-	mouse_pan_mul = .00125f;
+glm::vec2 map::display_data::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size) {
+	screen_pos -= screen_size * 0.5f;
+	screen_pos /= screen_size;
+	screen_pos.x *= screen_size.x / screen_size.y;
+
+	screen_pos /= zoom;
+	screen_pos += pos;
+	return screen_pos;
+}
+
+void map::display_data::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
+	auto mouse_pos = glm::vec2(x, y);
+	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+
+	auto map_pos = screen_to_map(mouse_pos, screen_size);
+
+	last_camera_drag_pos = map_pos;
+	is_dragging = true;
+	pos_velocity = glm::vec2(0);
 }
 
 void map::display_data::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) {
-	mouse_pan_mul = 0.f;
+	is_dragging = false;
 }
