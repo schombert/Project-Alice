@@ -20,9 +20,9 @@ layout (location = 4) uniform float time;
 // sheet is composed of 64 files, in 4 cubes of 4 rows of 4 columns
 // so each column has 8 tiles, and each row has 8 tiles too
 
-const float xx = 1 / map_size.x;
-const float yy = 1 / map_size.y;
-const vec2 pix = vec2(xx, yy);
+float xx = 1 / map_size.x;
+float yy = 1 / map_size.y;
+vec2 pix = vec2(xx, yy);
 
 vec4 hash4( vec2 p ) { return fract(sin(vec4( 1.0+dot(p,vec2(37.0,17.0)),
                                               2.0+dot(p,vec2(11.0,47.0)),
