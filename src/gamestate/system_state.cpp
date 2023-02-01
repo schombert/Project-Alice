@@ -301,6 +301,16 @@ namespace sys {
 				parsers::parse_cb_types_file(gen, err, context);
 			}
 		}
+		// parse traits.txt
+		{
+			auto traits = open_file(common, NATIVE("traits.txt"));
+			if(traits) {
+				auto content = view_contents(*traits);
+				err.file_name = "traits.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_traits_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }
