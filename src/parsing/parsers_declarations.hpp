@@ -209,6 +209,11 @@ namespace parsers {
 		}
 	};
 
+	struct pending_ideology_content {
+		token_generator generator_state;
+		dcon::ideology_id id;
+	};
+
 	struct scenario_building_context {
 		sys::state& state;
 
@@ -220,7 +225,11 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::culture_group_id> map_of_culture_group_names;
 		ankerl::unordered_dense::map<std::string, dcon::commodity_id> map_of_commodity_names;
 		ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_production_types;
+		ankerl::unordered_dense::map<std::string, pending_ideology_content> map_of_ideologies;
+		ankerl::unordered_dense::map<std::string, dcon::ideology_group_id> map_of_ideology_groups;
 
+		std::optional<simple_fs::file> ideologies_file;
+		
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
 
@@ -776,6 +785,21 @@ namespace parsers {
 		void result(std::string_view name, building_definition&& res, error_handler& err, int32_t line, scenario_building_context& context);
 		void finish(scenario_building_context& context) { }
 	};
+
+	struct ideology_group_context {
+		scenario_building_context& outer_context;
+		dcon::ideology_group_id id;
+	};
+	struct ideology_group {
+		void finish(ideology_group_context& context) { }
+	};
+
+	struct ideology_file {
+		void finish(scenario_building_context& context) { }
+	};
+
+	void register_ideology(std::string_view name, token_generator& gen, error_handler& err, ideology_group_context& context);
+	void make_ideology_group(std::string_view name, token_generator& gen, error_handler& err, culture_group_context& context);
 }
 
 #include "parser_defs_generated.hpp"

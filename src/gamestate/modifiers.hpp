@@ -172,6 +172,13 @@ constexpr inline uint8_t modifier_bad_offset = 255;
 struct modifier_definition {
 	float values[modifier_definition_size] = { 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
 	uint8_t offsets[modifier_definition_size] = { 0,0,0,0,0,0,0,0 }; // stores actual offset + 1, with 0 for bad offset
+
+	bool valid_offset_at_index(int32_t i) {
+		return offsets[i] != 0;
+	}
+	int32_t get_offet_at_index(int32_t i) {
+		return offsets[i] - 1;
+	}
 };
 
 }

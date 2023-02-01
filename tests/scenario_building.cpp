@@ -165,6 +165,37 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(id.get_construction_time() == 730);
 		REQUIRE(id.get_is_available_from_start() == true);
 		REQUIRE(id.get_construction_costs(context.map_of_commodity_names.find(std::string("machine_parts"))->second) == 80.0f);
+
+		REQUIRE(bool(state->economy.railroad_definition.province_modifier) == true);
+		sys::modifier_definition pmod = state->world.modifier_get_province_values(state->economy.railroad_definition.province_modifier);
+		REQUIRE(pmod.get_offet_at_index(0) == sys::provincial_mod_offsets::movement_cost);
+		REQUIRE(pmod.values[0] == Approx(-0.05f));
+	}
+	{
+		context.ideologies_file = open_file(common, NATIVE("ideologies.txt"));
+		if(context.ideologies_file) {
+			auto content = view_contents(*context.ideologies_file);
+			err.file_name = "ideologies.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_ideology_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto ita = context.map_of_ideology_groups.find(std::string("socialist_group"));
+		REQUIRE(ita != context.map_of_ideology_groups.end());
+
+		auto itb = context.map_of_ideologies.find(std::string("communist"));
+		REQUIRE(itb != context.map_of_ideologies.end());
+
+		auto fata = fatten(state->world, ita->second);
+		auto fatb = fatten(state->world, itb->second.id);
+
+		REQUIRE(fatb.get_ideology_group_membership_as_ideology().get_ideology_group() == fata);
+		int32_t count = 0;
+		for(auto c : fata.get_ideology_group_membership_as_ideology_group())
+			++count;
+		REQUIRE(count == 2);
 	}
 }
 #endif

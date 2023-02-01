@@ -17,9 +17,8 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Read cultures from `cultures.txt` *Done*
 - Read goods from `goods.txt` *Done*
 - Read buildings from `buildings.txt` *Done*
-- Pre-parse `ideologies.txt`
+- Pre-parse `ideologies.txt` *Done*
 - Pre-parse `issues.txt`
-- Pre-parse `ideologies.txt`
 - Read governments from `governments.txt`
 - Pre-parse `cb_types.txt`
 - Read leader traits from `traits.txt`
