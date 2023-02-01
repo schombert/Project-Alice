@@ -14,8 +14,10 @@ TEST_CASE("defines tests", "[defines_tests]") {
 	if(file) {
 		auto content = view_contents(*file);
 		parsing::defines d{};
+		
+		// Overriden by file values
+		d.greatness_days = 0.f;
 		d.parse_file(content.data);
-
 		REQUIRE(d.greatness_days == 365.0f);
 	}
 #endif
