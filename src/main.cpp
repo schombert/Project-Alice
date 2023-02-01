@@ -2,6 +2,7 @@
 #include "local_user_settings.hpp"
 #endif
 #include "parsers.cpp"
+#include "defines.cpp"
 #include "float_from_chars.cpp"
 #include "system_state.cpp"
 #include "gui_graphics_parsers.cpp"
