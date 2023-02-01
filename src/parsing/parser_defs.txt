@@ -423,3 +423,10 @@ government_type
 
 governments_file
 	#any           extern    make_government        discard
+
+cb_list
+	#free          value     text                   member_fn
+
+cb_types_file
+	peace_order    group     cb_list                member
+	#any           extern    register_cb_type       discard

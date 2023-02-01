@@ -260,3 +260,26 @@ object {
 		type{ text_sequence_id }
 	}
 }
+
+object {
+	name{cb_type}
+	storage_type{ contiguous }
+	size{ 120 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ short_desc }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ long_desc }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ type_bits }
+		type{ uint32_t }
+	}
+}

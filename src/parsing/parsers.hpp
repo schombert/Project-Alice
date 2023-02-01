@@ -45,8 +45,8 @@ namespace parsers {
 
 	class token_generator {
 	private:
-		char const* position;
-		char const* file_end;
+		char const* position = nullptr;
+		char const* file_end = nullptr;
 		int32_t current_line = 1;
 
 		token_and_type peek_1;
@@ -54,6 +54,7 @@ namespace parsers {
 
 		token_and_type internal_next();
 	public:
+		token_generator() { }
 		token_generator(char const* file_start, char const* fe) : position(file_start), file_end(fe) {
 		}
 		bool at_end() const {
