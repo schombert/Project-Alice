@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 
 void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
-	if (filter == GL_LINEAR_MIPMAP_LINEAR) {
-		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	if (filter == GL_LINEAR_MIPMAP_NEAREST) {
+		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glGenerateMipmap(texture_type);
 	} else {
@@ -67,7 +67,7 @@ GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, in
 					GL_UNSIGNED_BYTE,
 					((uint32_t const*)data) + (x * p_dy * size_x + y * p_dx));
 
-		set_gltex_parameters(GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+		set_gltex_parameters(GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_NEAREST, GL_REPEAT);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
@@ -221,7 +221,7 @@ void map::display_data::on_key_up(sys::virtual_key keycode, sys::key_modifiers m
 
 
 void map::display_data::set_pos(glm::vec2 new_pos) {
-	pos.x = glm::mod(pos.x, 1.f);
+	pos.x = glm::mod(new_pos.x, 1.f);
 	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
 	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
 	offset_y = pos.y - 0.5f;
@@ -245,6 +245,7 @@ glm::vec2 map::display_data::screen_to_map(glm::vec2 screen_pos, glm::vec2 scree
 	screen_pos -= screen_size * 0.5f;
 	screen_pos /= screen_size;
 	screen_pos.x *= screen_size.x / screen_size.y;
+	screen_pos.x /= size.x / size.y;
 
 	screen_pos /= zoom;
 	screen_pos += pos;

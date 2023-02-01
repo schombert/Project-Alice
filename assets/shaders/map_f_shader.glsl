@@ -155,10 +155,10 @@ vec4 get_terrain_mix(vec2 tex_coords) {
 
 void main() {
 	vec4 terrain_background = texture(colormap_terrain, tex_coord);
-	vec4 water = get_water(tex_coord);
+	// vec4 water = get_water(tex_coord);
 	vec4 terrain = get_terrain_mix(tex_coord);
 	float is_terrain = terrain.w;
 	frag_color = (terrain * 2. + terrain_background) / 3.;
 
-	frag_color = mix(water, frag_color, is_terrain);
+	// frag_color = mix(water, frag_color, is_terrain);
 }
