@@ -1,3 +1,4 @@
+include{<array>}
 include{"modifiers.hpp"}
 
 make_index{text_key}{uint32_t}
@@ -222,5 +223,39 @@ relationship{
 		name{ideology_group}
 		type{many}
 		index_storage{array}
+	}
+}
+
+object {
+	name{ issue }
+	storage_type{ contiguous }
+	size{ 120 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ options }
+		type{ std::array<issue_option_id,6> }
+	}
+	property{
+		name{ is_next_step_only }
+		type{ bitfield }
+	}
+	property{
+		name{ is_administrative }
+		type{ bitfield }
+	}
+}
+
+object {
+	name{ issue_option }
+	storage_type{ contiguous }
+	size{ 720 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
 	}
 }

@@ -402,3 +402,14 @@ ideology_group
 
 ideology_file
 	#any           extern    make_ideology_group    discard
+
+issue
+	next_step_only value     bool                   member_fn
+	administrative value     bool                   member_fn
+	#any           extern    register_option        discard
+
+issues_group
+	#any           extern    make_issue             discard
+
+issues_file
+	#any           extern    make_issues_group      discard

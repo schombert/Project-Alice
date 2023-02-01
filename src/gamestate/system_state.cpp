@@ -273,6 +273,17 @@ namespace sys {
 				parsers::parse_ideology_file(gen, err, context);
 			}
 		}
+		// pre parse issues.txt
+		{
+			context.issues_file = open_file(common, NATIVE("issues.txt"));
+			if(context.issues_file) {
+				auto content = view_contents(*context.issues_file);
+				err.file_name = "issues.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_issues_file(gen, err, context);
+			}
+		}
+		
 		// TODO do something with err
 	}
 }

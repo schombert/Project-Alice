@@ -9,6 +9,7 @@
 #include "unordered_dense.h"
 #include "gui_graphics.hpp"
 #include "modifiers.hpp"
+#include "culture.hpp"
 
 namespace parsers {
 
@@ -213,6 +214,10 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::ideology_id id;
 	};
+	struct pending_option_content {
+		token_generator generator_state;
+		dcon::issue_option_id id;
+	};
 
 	struct scenario_building_context {
 		sys::state& state;
@@ -227,8 +232,11 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_production_types;
 		ankerl::unordered_dense::map<std::string, pending_ideology_content> map_of_ideologies;
 		ankerl::unordered_dense::map<std::string, dcon::ideology_group_id> map_of_ideology_groups;
+		ankerl::unordered_dense::map<std::string, pending_option_content> map_of_options;
+		ankerl::unordered_dense::map<std::string, dcon::issue_id> map_of_issues;
 
 		std::optional<simple_fs::file> ideologies_file;
+		std::optional<simple_fs::file> issues_file;
 		
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -800,6 +808,34 @@ namespace parsers {
 
 	void register_ideology(std::string_view name, token_generator& gen, error_handler& err, ideology_group_context& context);
 	void make_ideology_group(std::string_view name, token_generator& gen, error_handler& err, culture_group_context& context);
+
+	struct issue_context {
+		scenario_building_context& outer_context;
+		dcon::issue_id id;
+	};
+	struct issue_group_context {
+		scenario_building_context& outer_context;
+		::culture::issue_category issue_cat = ::culture::issue_category::party;
+	};
+	struct issue {
+		void next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
+			context.outer_context.state.world.issue_set_is_next_step_only(context.id, value);
+		}
+		void administrative(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
+			context.outer_context.state.world.issue_set_is_administrative(context.id, value);
+		}
+		void finish(issue_context&) { }
+	};
+	struct issues_group {
+		void finish(issue_group_context&) { }
+	};
+	struct issues_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_issues_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void make_issue(std::string_view name, token_generator& gen, error_handler& err, issue_group_context& context);
+	void register_option(std::string_view name, token_generator& gen, error_handler& err, issue_context& context);
 }
 
 #include "parser_defs_generated.hpp"
