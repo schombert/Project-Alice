@@ -10,8 +10,8 @@ layout (location = 3) uniform vec2 map_size;
 
 void main() {
 	gl_Position = vec4(
-		(((offset.x + vertex_position.x) * map_size.x) - (map_size.x / 2.f)) * zoom / aspect_ratio,
-		(((offset.y + vertex_position.y) * map_size.y) - (map_size.y / 2.f)) * zoom,
+		(2. * (-offset.x + vertex_position.x) - 1.f) * zoom / aspect_ratio,
+		(2. * (+offset.y + vertex_position.y) - 1.f) * zoom,
 		0.0, 1.0);
 	tex_coord = v_tex_coord;
 }

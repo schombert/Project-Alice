@@ -7,6 +7,7 @@ add_subdirectory(unordered_dense)
 add_subdirectory(glew)
 add_subdirectory(stb)
 add_subdirectory(freetype)
+add_subdirectory(glm)
 
 if (NOT WIN32)
 	add_subdirectory(glfw)

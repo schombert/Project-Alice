@@ -1,17 +1,17 @@
 #version 430 core
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 v_tex_coord;
-		
+
 out vec2 tex_coord;
 layout (location = 0) uniform float screen_width;
 layout (location = 1) uniform float screen_height;
-// The 2d coordinates on the screen 0-1
+// The 2d coordinates on the screen
 // d_rect.x - x cooridinate
 // d_rect.y - y cooridinate
 // d_rect.z - width
 // d_rect.w - height
 layout (location = 2) uniform vec4 d_rect;
-		
+
 void main() {
 	// Transform the d_rect rectangle to screen space coordinates
 	// vertex_position is used to flip and/or rotate the coordinates
