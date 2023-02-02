@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <functional>
 #include "parsers_declarations.hpp"
+#include "gui_menubar.hpp"
 #include "gui_minimap.hpp"
 
 namespace sys {
@@ -115,7 +116,11 @@ namespace sys {
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 		{
-			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
+			auto new_elm = ui::make_element_by_type<ui::menubar_container_window>(*this, "menubar");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "minimap_pic");
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 	}
