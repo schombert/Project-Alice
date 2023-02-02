@@ -290,9 +290,9 @@ float font::top_adjustment(int32_t size) const {
 
 
 void font::make_glyph(char ch_in) {
-	if(glyph_loaded[uint32_t(ch_in)])
+	if(glyph_loaded[uint8_t(ch_in)])
 		return;
-	glyph_loaded[uint32_t(ch_in)] = true;
+	glyph_loaded[uint8_t(ch_in)] = true;
 
 	auto codepoint = win1250toUTF16(ch_in);
 	if(codepoint == ' ')
@@ -305,7 +305,7 @@ void font::make_glyph(char ch_in) {
 		FT_Glyph g_result;
 		FT_Get_Glyph(font_face->glyph, &g_result);
 
-		auto texture_number = uint32_t(ch_in) >> 6;
+		auto texture_number = uint8_t(ch_in) >> 6;
 
 		if(textures[texture_number] == 0) {
 			glGenTextures(1, &textures[texture_number]);
@@ -325,15 +325,15 @@ void font::make_glyph(char ch_in) {
 		const float hb_x = static_cast<float>(font_face->glyph->metrics.horiBearingX) / static_cast<float>(1 << 6);
 		const float hb_y = static_cast<float>(font_face->glyph->metrics.horiBearingY) / static_cast<float>(1 << 6);
 
-		auto sub_index = (uint32_t(ch_in) & 63);
+		auto sub_index = (uint8_t(ch_in) & 63);
 
 		uint8_t pixel_buffer[64 * 64];
 
 		const int btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
 		const int btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
 
-		glyph_positions[uint32_t(ch_in)].x = (hb_x - static_cast<float>(btmap_x_off)) * 1.0f / static_cast<float>(magnification_factor);
-		glyph_positions[uint32_t(ch_in)].y = (-hb_y - static_cast<float>(btmap_y_off)) * 1.0f / static_cast<float>(magnification_factor);
+		glyph_positions[uint8_t(ch_in)].x = (hb_x - static_cast<float>(btmap_x_off)) * 1.0f / static_cast<float>(magnification_factor);
+		glyph_positions[uint8_t(ch_in)].y = (-hb_y - static_cast<float>(btmap_y_off)) * 1.0f / static_cast<float>(magnification_factor);
 
 		bool in_map[dr_size * dr_size] = { false };
 		float distance_map[dr_size * dr_size];

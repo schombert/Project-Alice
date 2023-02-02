@@ -15,6 +15,8 @@
 #include "economy.hpp"
 #include "culture.hpp"
 #include "military.hpp"
+#include "nations.hpp"
+#include "date_interface.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -61,9 +63,13 @@ namespace sys {
 
 		// scenario data
 
-		economy::global_economy_state economy;
-		culture::global_cultural_state culture;
-		military::global_military_state military;
+		economy::global_economy_state economy_definitions;
+		culture::global_cultural_state culture_definitions;
+		military::global_military_state military_definitions;
+		nations::global_national_state national_definitions;
+
+		absolute_time_point start_date;
+		absolute_time_point end_date;
 
 		std::vector<char> text_data; // stores string data in the win1250 codepage
 		std::vector<text::text_component> text_components;
@@ -100,6 +106,7 @@ namespace sys {
 
 		// the following functions will be invoked by the window subsystem
 
+		void on_create(); // called once after the window is created and opengl is ready
 		void on_rbutton_down(int32_t x, int32_t y, key_modifiers mod);
 		void on_mbutton_down(int32_t x, int32_t y, key_modifiers mod);
 		void on_lbutton_down(int32_t x, int32_t y, key_modifiers mod);

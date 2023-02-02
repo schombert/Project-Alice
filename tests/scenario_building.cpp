@@ -168,8 +168,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(id.get_is_available_from_start() == true);
 		REQUIRE(id.get_construction_costs(context.map_of_commodity_names.find(std::string("machine_parts"))->second) == 80.0f);
 
-		REQUIRE(bool(state->economy.railroad_definition.province_modifier) == true);
-		sys::modifier_definition pmod = state->world.modifier_get_province_values(state->economy.railroad_definition.province_modifier);
+		REQUIRE(bool(state->economy_definitions.railroad_definition.province_modifier) == true);
+		sys::modifier_definition pmod = state->world.modifier_get_province_values(state->economy_definitions.railroad_definition.province_modifier);
 		REQUIRE(pmod.get_offet_at_index(0) == sys::provincial_mod_offsets::movement_cost);
 		REQUIRE(pmod.values[0] == Approx(-0.05f));
 	}
@@ -223,7 +223,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fata.get_options().at(2) == fatb);
 
-		REQUIRE(std::find(state->culture.social_issues.begin(), state->culture.social_issues.end(), ita->second) != state->culture.social_issues.end());
+		REQUIRE(std::find(state->culture_definitions.social_issues.begin(), state->culture_definitions.social_issues.end(), ita->second) != state->culture_definitions.social_issues.end());
 	}
 	{
 		auto governments = open_file(common, NATIVE("governments.txt"));
@@ -241,12 +241,12 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto ita = context.map_of_governments.find(std::string("prussian_constitutionalism"));
 		REQUIRE(ita != context.map_of_governments.end());
 		auto ida = ita->second;
-		REQUIRE(state->culture.governments[ida].has_elections == true);
-		REQUIRE(state->culture.governments[ida].duration == 48);
-		REQUIRE(state->culture.governments[ida].can_appoint_ruling_party == true);
-		REQUIRE(state->culture.governments[ida].flag == ::culture::flag_type::monarchy);
+		REQUIRE(state->culture_definitions.governments[ida].has_elections == true);
+		REQUIRE(state->culture_definitions.governments[ida].duration == 48);
+		REQUIRE(state->culture_definitions.governments[ida].can_appoint_ruling_party == true);
+		REQUIRE(state->culture_definitions.governments[ida].flag == ::culture::flag_type::monarchy);
 		REQUIRE(
-			(state->culture.governments[ida].ideologies_allowed &
+			(state->culture_definitions.governments[ida].ideologies_allowed &
 				::culture::to_bits(context.map_of_ideologies.find(std::string("conservative"))->second.id)) != 0);
 	}
 	{
@@ -278,6 +278,102 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto fata = fatten(state->world, ita->second);
 		REQUIRE(fata.get_attack() == -1.0f);
 		REQUIRE(fata.get_experience() == 0.0f);
+	}
+	{
+		context.crimes_file = open_file(common, NATIVE("crime.txt"));
+		if(context.crimes_file) {
+			auto content = view_contents(*context.crimes_file);
+			err.file_name = "crime.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_crimes_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto ita = context.map_of_crimes.find(std::string("machine_politics"));
+		REQUIRE(ita != context.map_of_crimes.end());
+		REQUIRE(ita->second.id.index() != 0);
+		REQUIRE(state->culture_definitions.crimes.size() > size_t(ita->second.id.index()));
+	}
+	{
+		context.triggered_modifiers_file = open_file(common, NATIVE("triggered_modifiers.txt"));
+		if(context.triggered_modifiers_file) {
+			auto content = view_contents(*context.triggered_modifiers_file);
+			err.file_name = "triggered_modifiers.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_triggered_modifiers_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		// default file is empty, unfortunately
+	}
+	{
+		auto nv_file = open_file(common, NATIVE("nationalvalues.txt"));
+		if(nv_file) {
+			auto content = view_contents(*nv_file);
+			err.file_name = "nationalvalues.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_national_values_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto nvit = context.map_of_modifiers.find(std::string("nv_liberty"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(0) == sys::national_mod_offsets::mobilisation_size);
+		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(1) == sys::national_mod_offsets::mobilisation_economy_impact);
+		REQUIRE(state->world.modifier_get_national_values(id).offsets[2] == 0);
+
+		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(0.02f));
+		REQUIRE(state->world.modifier_get_national_values(id).values[1] == Approx(0.75f));
+	}
+	{
+		auto sm_file = open_file(common, NATIVE("static_modifiers.txt"));
+		if(sm_file) {
+			auto content = view_contents(*sm_file);
+			err.file_name = "static_modifiers.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_static_modifiers_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		/*
+		* has_siege = {
+			farm_rgo_eff = -0.5
+			mine_rgo_eff = -0.5
+		}
+		*/
+
+		REQUIRE(bool(state->national_definitions.has_siege) == true);
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).get_offet_at_index(0) == sys::provincial_mod_offsets::farm_rgo_eff);
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).get_offet_at_index(1) == sys::provincial_mod_offsets::mine_rgo_eff);
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).offsets[2] == 0);
+
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).values[0] == Approx(-0.5f));
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).values[1] == Approx(-0.5f));
+	}
+	{
+		auto em_file = open_file(common, NATIVE("event_modifiers.txt"));
+		if(em_file) {
+			auto content = view_contents(*em_file);
+			err.file_name = "event_modifiers.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_event_modifiers_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+
+		auto nvit = context.map_of_modifiers.find(std::string("stock_market_crash"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+
+		REQUIRE(state->world.modifier_get_icon(id) == 12);
+
+		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(0) == sys::national_mod_offsets::factory_throughput);
+		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(-0.2f));
 	}
 }
 #endif

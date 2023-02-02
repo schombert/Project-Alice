@@ -408,6 +408,8 @@ namespace window {
 		sound::initialize_sound_system(game_state);
 		sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);
 
+		game_state.on_create();
+
 		MSG msg;
 		// pump message loop
 		while(true) {

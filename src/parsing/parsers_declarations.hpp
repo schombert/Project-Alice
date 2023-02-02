@@ -222,6 +222,14 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::cb_type_id id;
 	};
+	struct pending_crime_content {
+		token_generator generator_state;
+		dcon::crime_id id;
+	};
+	struct pending_triggered_modifier_content {
+		token_generator generator_state;
+		uint32_t index;
+	};
 
 	struct scenario_building_context {
 		sys::state& state;
@@ -241,10 +249,15 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::government_type_id> map_of_governments;
 		ankerl::unordered_dense::map<std::string, pending_cb_content> map_of_cb_types;
 		ankerl::unordered_dense::map<std::string, dcon::leader_trait_id> map_of_leader_traits;
+		ankerl::unordered_dense::map<std::string, pending_crime_content> map_of_crimes;
+		std::vector<pending_triggered_modifier_content> set_of_triggered_modifiers;
+		ankerl::unordered_dense::map<std::string, dcon::modifier_id> map_of_modifiers;
 
 		std::optional<simple_fs::file> ideologies_file;
 		std::optional<simple_fs::file> issues_file;
 		std::optional<simple_fs::file> cb_types_file;
+		std::optional<simple_fs::file> crimes_file;
+		std::optional<simple_fs::file> triggered_modifiers_file;
 		
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -853,23 +866,23 @@ namespace parsers {
 	};
 	struct government_type {
 		void election(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
-			context.outer_context.state.culture.governments[context.id].has_elections = value;
+			context.outer_context.state.culture_definitions.governments[context.id].has_elections = value;
 		}
 		void appoint_ruling_party(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
-			context.outer_context.state.culture.governments[context.id].can_appoint_ruling_party = value;
+			context.outer_context.state.culture_definitions.governments[context.id].can_appoint_ruling_party = value;
 		}
 		void duration(association_type, int32_t value, error_handler& err, int32_t line, government_type_context& context) {
-			context.outer_context.state.culture.governments[context.id].duration = int8_t(value);
+			context.outer_context.state.culture_definitions.governments[context.id].duration = int8_t(value);
 		}
 		void flagtype(association_type, std::string_view value, error_handler& err, int32_t line, government_type_context& context) {
 			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist"))
-				context.outer_context.state.culture.governments[context.id].flag = ::culture::flag_type::communist;
+				context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::communist;
 			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist"))
-				context.outer_context.state.culture.governments[context.id].flag = ::culture::flag_type::fascist;
+				context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::fascist;
 			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy"))
-				context.outer_context.state.culture.governments[context.id].flag = ::culture::flag_type::monarchy;
+				context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy;
 			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic"))
-				context.outer_context.state.culture.governments[context.id].flag = ::culture::flag_type::republic;
+				context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic;
 			else {
 				err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 			}
@@ -878,7 +891,7 @@ namespace parsers {
 			if(value) {
 				auto found_ideology = context.outer_context.map_of_ideologies.find(std::string(text));
 				if(found_ideology != context.outer_context.map_of_ideologies.end()) {
-					context.outer_context.state.culture.governments[context.id].ideologies_allowed |= ::culture::to_bits(found_ideology->second.id);
+					context.outer_context.state.culture_definitions.governments[context.id].ideologies_allowed |= ::culture::to_bits(found_ideology->second.id);
 				} else {
 					err.accumulated_errors += "Unknown ideology " + std::string(text) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 				}
@@ -955,6 +968,85 @@ namespace parsers {
 	void make_trait(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 	void personality_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context);
 	void background_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	void register_crime(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct crimes_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	struct triggered_modifier_context {
+		scenario_building_context& outer_context;
+		uint32_t index = 0;
+		std::string_view name;
+		triggered_modifier_context(scenario_building_context& outer_context, uint32_t index, std::string_view name) : outer_context(outer_context), index(index), name(name) {}
+	};
+
+	struct triggered_modifier : public modifier_base {
+		void finish(triggered_modifier_context&);
+	};
+
+	struct triggered_modifiers_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void register_trigger(token_generator& gen, error_handler& err, triggered_modifier_context& context);
+	void make_triggered_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	void make_national_value(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct national_values_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_very_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_very_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_overseas(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_coastal(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_non_coastal(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_coastal_sea(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_sea_zone(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_land_province(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_blockaded(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_no_adjacent_controlled(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_core(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_has_siege(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_occupied(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_nationalism(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_infrastructure(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_base_values(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_war(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_peace(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_disarming(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_war_exhaustion(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_badboy(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_debt_default_to(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_bad_debter(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_great_power(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_second_power(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_civ_nation(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_unciv_nation(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_average_literacy(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_plurality(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_generalised_debt_default(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_total_occupation(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_total_blockaded(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct static_modifiers_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_event_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct event_modifiers_file {
+		void finish(scenario_building_context&) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"
