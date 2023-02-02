@@ -12,12 +12,13 @@ TEST_CASE("defines tests", "[defines_tests]") {
 	auto file = open_file(common, NATIVE("defines.lua"));
 	REQUIRE(file);
 	if(file) {
+		parsers::error_handler err("");
 		auto content = view_contents(*file);
 		parsing::defines d{};
 		
 		// Overriden by file values
 		d.greatness_days = 0.f;
-		d.parse_file(content.data);
+		d.parse_file(content.data, err);
 		REQUIRE(d.greatness_days == 365.0f);
 	}
 #endif
