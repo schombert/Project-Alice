@@ -152,6 +152,10 @@ object {
 	size{ 1000 }
 
 	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
 		name{ province_values }
 		type{ sys::modifier_definition }
 	}

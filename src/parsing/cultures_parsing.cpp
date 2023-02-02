@@ -101,19 +101,19 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 
 	switch(context.issue_cat) {
 		case ::culture::issue_category::party:
-			context.outer_context.state.culture.party_issues.push_back(new_id);
+			context.outer_context.state.culture_definitions.party_issues.push_back(new_id);
 			break;
 		case ::culture::issue_category::economic:
-			context.outer_context.state.culture.economic_issues.push_back(new_id);
+			context.outer_context.state.culture_definitions.economic_issues.push_back(new_id);
 			break;
 		case ::culture::issue_category::social:
-			context.outer_context.state.culture.social_issues.push_back(new_id);
+			context.outer_context.state.culture_definitions.social_issues.push_back(new_id);
 			break;
 		case ::culture::issue_category::political:
-			context.outer_context.state.culture.political_issues.push_back(new_id);
+			context.outer_context.state.culture_definitions.political_issues.push_back(new_id);
 			break;
 		case ::culture::issue_category::military:
-			context.outer_context.state.culture.military_issues.push_back(new_id);
+			context.outer_context.state.culture_definitions.military_issues.push_back(new_id);
 			break;
 	}
 
@@ -145,12 +145,12 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 
 
 void make_government(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	dcon::government_type_id new_id = dcon::government_type_id(dcon::government_type_id::value_base_t(context.state.culture.governments.size()));
-	context.state.culture.governments.emplace_back();
+	dcon::government_type_id new_id = dcon::government_type_id(dcon::government_type_id::value_base_t(context.state.culture_definitions.governments.size()));
+	context.state.culture_definitions.governments.emplace_back();
 
 	auto name_id = text::find_or_add_key(context.state, name);
 
-	context.state.culture.governments[new_id].name = name_id;
+	context.state.culture_definitions.governments[new_id].name = name_id;
 	context.map_of_governments.insert_or_assign(std::string(name), new_id);
 
 	government_type_context new_context{ context , new_id };
@@ -158,11 +158,11 @@ void make_government(std::string_view name, token_generator& gen, error_handler&
 }
 
 void register_crime(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	dcon::crime_id new_id = dcon::crime_id(dcon::crime_id::value_base_t(context.state.culture.crimes.size()));
-	context.state.culture.crimes.emplace_back();
+	dcon::crime_id new_id = dcon::crime_id(dcon::crime_id::value_base_t(context.state.culture_definitions.crimes.size()));
+	context.state.culture_definitions.crimes.emplace_back();
 
 	auto name_id = text::find_or_add_key(context.state, name);
-	context.state.culture.crimes[new_id].name = name_id;
+	context.state.culture_definitions.crimes[new_id].name = name_id;
 
 	context.map_of_crimes.insert_or_assign(std::string(name), pending_crime_content{ gen, new_id });
 

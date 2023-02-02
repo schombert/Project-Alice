@@ -321,7 +321,7 @@ namespace sys {
 				parsers::parse_traits_file(gen, err, context);
 			}
 		}
-		// parse crimes.txt
+		// pre parse crimes.txt
 		{
 			context.crimes_file = open_file(common, NATIVE("crime.txt"));
 			if(context.crimes_file) {
@@ -329,6 +329,16 @@ namespace sys {
 				err.file_name = "crime.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_crimes_file(gen, err, context);
+			}
+		}
+		// pre parse triggered_modifiers.txt
+		{
+			context.triggered_modifiers_file = open_file(common, NATIVE("triggered_modifiers.txt"));
+			if(context.triggered_modifiers_file) {
+				auto content = view_contents(*context.triggered_modifiers_file);
+				err.file_name = "triggered_modifiers.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_triggered_modifiers_file(gen, err, context);
 			}
 		}
 		// TODO do something with err
