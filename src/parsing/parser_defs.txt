@@ -457,3 +457,6 @@ triggered_modifier
 
 triggered_modifiers_file
 	#any           extern    make_triggered_modifier discard
+
+national_values_file
+	#any           extern    make_national_value     discard
