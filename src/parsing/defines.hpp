@@ -645,7 +645,7 @@
 
 namespace parsing {
 struct defines {
-#define LUA_DEFINES_LIST_ELEMENT(key, const_value) float key = const_value;
+#define LUA_DEFINES_LIST_ELEMENT(key, const_value) float key = const_value ## f;
 	LUA_DEFINES_LIST
 #undef LUA_DEFINES_LIST_ELEMENT
 
