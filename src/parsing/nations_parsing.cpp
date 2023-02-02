@@ -15,4 +15,32 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	context.map_of_ident_names.insert_or_assign(as_int, new_ident);
 
 }
+
+void triggered_modifier::finish(triggered_modifier_context& context) {
+	auto name_id = text::find_or_add_key(context.outer_context.state, context.name);
+
+	auto modifier_id = context.outer_context.state.world.create_modifier();
+
+	context.outer_context.state.world.modifier_set_icon(modifier_id, uint8_t(icon_index));
+	context.outer_context.state.world.modifier_set_name(modifier_id, name_id);
+	this->convert_to_national_mod();
+	context.outer_context.state.world.modifier_set_province_values(modifier_id, constructed_definition);
+
+	context.outer_context.map_of_modifiers.insert_or_assign(std::string(context.name), modifier_id);
+
+	context.outer_context.state.national_definitions.triggered_modifiers[context.index].linked_modifier = modifier_id;
+}
+
+void register_trigger(token_generator& gen, error_handler& err, triggered_modifier_context& context) {
+	context.outer_context.set_of_triggered_modifiers.push_back(pending_triggered_modifier_content{gen, context.index});
+}
+
+void make_triggered_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto index = uint32_t(context.state.national_definitions.triggered_modifiers.size());
+	context.state.national_definitions.triggered_modifiers.emplace_back();
+
+	triggered_modifier_context new_context{context, index, name };
+	parse_triggered_modifier(gen, err, new_context);
+}
+
 }
