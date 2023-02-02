@@ -118,6 +118,10 @@ namespace sys {
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::minimap_picture_window>(*this, "minimap_pic");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
 	}
 	//
 	// string pool functions
