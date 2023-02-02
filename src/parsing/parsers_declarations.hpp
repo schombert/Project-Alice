@@ -222,6 +222,10 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::cb_type_id id;
 	};
+	struct pending_crime_content {
+		token_generator generator_state;
+		dcon::crime_id id;
+	};
 
 	struct scenario_building_context {
 		sys::state& state;
@@ -241,10 +245,12 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::government_type_id> map_of_governments;
 		ankerl::unordered_dense::map<std::string, pending_cb_content> map_of_cb_types;
 		ankerl::unordered_dense::map<std::string, dcon::leader_trait_id> map_of_leader_traits;
+		ankerl::unordered_dense::map<std::string, pending_crime_content> map_of_crimes;
 
 		std::optional<simple_fs::file> ideologies_file;
 		std::optional<simple_fs::file> issues_file;
 		std::optional<simple_fs::file> cb_types_file;
+		std::optional<simple_fs::file> crimes_file;
 		
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -955,6 +961,12 @@ namespace parsers {
 	void make_trait(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 	void personality_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context);
 	void background_traits_set(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	void register_crime(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct crimes_file {
+		void finish(scenario_building_context&) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"
