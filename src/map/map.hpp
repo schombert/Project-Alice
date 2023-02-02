@@ -24,8 +24,8 @@ public:
 	GLuint water_vbo;
 	GLuint land_vbo;
 	GLuint vao;
-	int water_indicies;
-	int land_indicies;
+	uint32_t water_indicies;
+	uint32_t land_indicies;
 	void create_meshes(simple_fs::file& file);
 	// Time in seconds, send to the map shader for animations
 	float time_counter = 0;

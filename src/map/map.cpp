@@ -349,8 +349,8 @@ GLuint load_province_map(simple_fs::directory& map_dir) {
 
 void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
 	glBindTexture(GL_TEXTURE_2D, province_color);
-	uint32_t rows = prov_color.size() / 256;
-	uint32_t left_on_last_row = prov_color.size() % 256;
+	uint32_t rows = ((uint32_t)prov_color.size()) / 256;
+	uint32_t left_on_last_row = ((uint32_t)prov_color.size()) % 256;
 
 	uint32_t x = 0, y = 0;
 	uint32_t width = 256, height = rows;
