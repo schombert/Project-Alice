@@ -11,6 +11,10 @@ Priority 2: I would like a few people to help me with the core programming surro
 #### Art:
 I would like to find someone who could essentially redo all of the existing Victoria 2 UI assets in a new artistic style to give the game its own distinctive visual identity. Yes, I know that this is no trivial thing.
 
+
+#### Testers:
+We are looking for people who can build a C++ project and run it, but who don't want to (or aren't comfortable) contributing code. Testers are expected to build the project and poke at it on a semi-regular basis to find bugs, especially those that don't appear for the software/hardware combinations that we are developing on. Speak to our project coordinator if you are interested in being a tester.
+
 #### Not looking for at the moment:
 Translators -- this is a very late-stage consideration and we are nowhere near there yet.
 

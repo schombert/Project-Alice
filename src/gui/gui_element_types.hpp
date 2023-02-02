@@ -135,7 +135,7 @@ public:
 	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 		return nullptr;
 	}
-	void on_create(sys::state& state) noexcept final;
+	void on_create(sys::state& state) noexcept override;
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 

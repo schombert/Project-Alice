@@ -192,13 +192,13 @@ void map::display_data::update() {
 }
 
 void map::display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
-	if(keycode == sys::virtual_key::A) {
+	if(keycode == sys::virtual_key::LEFT) {
 		pos_velocity.x = -1.f;
-	} else if(keycode == sys::virtual_key::D) {
+	} else if(keycode == sys::virtual_key::RIGHT) {
 		pos_velocity.x = +1.f;
-	} else if(keycode == sys::virtual_key::W) {
+	} else if(keycode == sys::virtual_key::UP) {
 		pos_velocity.y = -1.f;
-	} else if(keycode == sys::virtual_key::S) {
+	} else if(keycode == sys::virtual_key::DOWN) {
 		pos_velocity.y = +1.f;
 	} else if(keycode == sys::virtual_key::Q) {
 		zoom *= 1.1f;
@@ -208,13 +208,13 @@ void map::display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers
 }
 
 void map::display_data::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
-	if(keycode == sys::virtual_key::A) {
+	if(keycode == sys::virtual_key::LEFT) {
 		pos_velocity.x = 0;
-	} else if(keycode == sys::virtual_key::D) {
+	} else if(keycode == sys::virtual_key::RIGHT) {
 		pos_velocity.x = 0;
-	} else if(keycode == sys::virtual_key::W) {
+	} else if(keycode == sys::virtual_key::UP) {
 		pos_velocity.y = 0;
-	} else if(keycode == sys::virtual_key::S) {
+	} else if(keycode == sys::virtual_key::DOWN) {
 		pos_velocity.y = 0;
 	}
 }
