@@ -140,32 +140,32 @@ void display_data::create_meshes(simple_fs::file& file) {
 	std::vector<float> water_vertices;
 	std::vector<float> land_vertices;
 
-	auto add_quad = [&map_size = this->size](std::vector<float>& vertices, float x0, float y0, float x1, float y1) {
-		vertices.push_back(x0 / map_size.x);
-		vertices.push_back(1 - y0 / map_size.y);
+	auto add_quad = [&map_size = this->size](std::vector<float>& vertices, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
+		vertices.push_back((float)(x0 / map_size.x));
+		vertices.push_back((float)(1 - y0 / map_size.y));
 
-		vertices.push_back(x1 / map_size.x);
-		vertices.push_back(1 - y0 / map_size.y);
+		vertices.push_back((float)(x1 / map_size.x));
+		vertices.push_back((float)(1 - y0 / map_size.y));
 
-		vertices.push_back(x1 / map_size.x);
-		vertices.push_back(1 - y1 / map_size.y);
+		vertices.push_back((float)(x1 / map_size.x));
+		vertices.push_back((float)(1 - y1 / map_size.y));
 
-		vertices.push_back(x1 / map_size.x);
-		vertices.push_back(1 - y1 / map_size.y);
+		vertices.push_back((float)(x1 / map_size.x));
+		vertices.push_back((float)(1 - y1 / map_size.y));
 
-		vertices.push_back(x0 / map_size.x);
-		vertices.push_back(1 - y1 / map_size.y);
+		vertices.push_back((float)(x0 / map_size.x));
+		vertices.push_back((float)(1 - y1 / map_size.y));
 
-		vertices.push_back(x0 / map_size.x);
-		vertices.push_back(1 - y0 / map_size.y);
+		vertices.push_back((float)(x0 / map_size.x));
+		vertices.push_back((float)(1 - y0 / map_size.y));
 	};
 
 
-	int index = 0;
-	for (int y = 0; y < size_y; y++) {
-		int last_x = 0;
+	uint32_t index = 0;
+	for (uint32_t y = 0; y < size_y; y++) {
+		uint32_t last_x = 0;
 		bool last_is_water = terrain_data[index++] > 64;
-		for (int x = 1; x < size_x; x++) {
+		for (uint32_t x = 1; x < size_x; x++) {
 			bool is_water = terrain_data[index++] > 64;
 			if (is_water != last_is_water) {
 				if (last_is_water)
@@ -296,13 +296,12 @@ GLuint load_province_map(simple_fs::directory& map_dir) {
 
 	ankerl::unordered_dense::map<int32_t, int16_t> color_to_id;
 
-	int32_t color = 0;
 	int16_t index = 0;
 	parsers::error_handler err("no_file");
 	while(cpos < end_of_file) {
 		cpos = parsers::parse_fixed_amount_csv_values<6>(cpos, end_of_file, ';',
 			[&](std::string_view const* values) {
-				color = 0;
+				int32_t color = 0;
 				int32_t color_part;
 				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
 				color += color_part << 16; 	// Red
@@ -350,10 +349,10 @@ GLuint load_province_map(simple_fs::directory& map_dir) {
 
 void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
 	glBindTexture(GL_TEXTURE_2D, province_color);
-	int rows = prov_color.size() / 256;
-	int left_on_last_row = prov_color.size() % 256;
+	uint32_t rows = prov_color.size() / 256;
+	uint32_t left_on_last_row = prov_color.size() % 256;
 
-	int32_t x = 0, y = 0;
+	uint32_t x = 0, y = 0;
 	uint32_t width = 256, height = rows;
 	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[0]);
 	x = 0, y = rows;
