@@ -351,6 +351,16 @@ namespace sys {
 				parsers::parse_national_values_file(gen, err, context);
 			}
 		}
+		// parse static_modifiers.txt
+		{
+			auto sm_file = open_file(common, NATIVE("static_modifiers.txt"));
+			if(sm_file) {
+				auto content = view_contents(*sm_file);
+				err.file_name = "static_modifiers.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_static_modifiers_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }
