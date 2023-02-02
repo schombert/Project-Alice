@@ -321,6 +321,16 @@ namespace sys {
 				parsers::parse_traits_file(gen, err, context);
 			}
 		}
+		// parse crimes.txt
+		{
+			context.crimes_file = open_file(common, NATIVE("crime.txt"));
+			if(context.crimes_file) {
+				auto content = view_contents(*context.crimes_file);
+				err.file_name = "crime.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_crimes_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }

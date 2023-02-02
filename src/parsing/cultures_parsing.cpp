@@ -157,4 +157,16 @@ void make_government(std::string_view name, token_generator& gen, error_handler&
 	parse_government_type(gen, err, new_context);
 }
 
+void register_crime(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	dcon::crime_id new_id = dcon::crime_id(dcon::crime_id::value_base_t(context.state.culture.crimes.size()));
+	context.state.culture.crimes.emplace_back();
+
+	auto name_id = text::find_or_add_key(context.state, name);
+	context.state.culture.crimes[new_id].name = name_id;
+
+	context.map_of_crimes.insert_or_assign(std::string(name), pending_crime_content{ gen, new_id });
+
+	gen.discard_group();
+}
+
 }

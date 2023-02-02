@@ -447,3 +447,6 @@ traits_set
 traits_file
 	personality    extern    personality_traits_set  discard
 	background     extern    background_traits_set   discard
+
+crimes_file
+	#any           extern    register_crime          discard
