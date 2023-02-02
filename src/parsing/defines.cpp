@@ -9,7 +9,7 @@
 
 void parsing::defines::assign_define(std::string_view text, float v) {
 #define LUA_DEFINES_LIST_ELEMENT(key, const_value) \
-	if(parsers::is_fixed_token_ci(text.begin(), text.end(), # key )) key = v;
+	if(parsers::is_fixed_token_ci((const char*)text.begin(), (const char*)text.end(), # key )) key = v;
 	LUA_DEFINES_LIST
 #undef LUA_DEFINES_LIST_ELEMENT
 }
