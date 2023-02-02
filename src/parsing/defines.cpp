@@ -8,9 +8,8 @@
 #include "parsers.hpp"
 
 void parsing::defines::assign_define(std::string_view text, float v) {
-	std::string tmp{ text };
 #define LUA_DEFINES_LIST_ELEMENT(key, const_value) \
-	if(parsers::is_fixed_token_ci(tmp.c_str(), tmp.c_str() + tmp.length(), # key )) key = v;
+	if(parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), # key )) key = v;
 	LUA_DEFINES_LIST
 #undef LUA_DEFINES_LIST_ELEMENT
 }
