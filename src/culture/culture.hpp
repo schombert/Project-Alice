@@ -25,6 +25,13 @@ constexpr inline uint32_t to_bits(dcon::ideology_id id) {
 		return 0;
 }
 
+struct crime_info {
+	dcon::text_sequence_id name;
+	dcon::modifier_id modifier;
+	// trigger id goes here
+	bool available_by_default = false;
+};
+
 struct global_cultural_state {
 	std::vector<dcon::issue_id> party_issues;
 	std::vector<dcon::issue_id> political_issues;
@@ -33,6 +40,7 @@ struct global_cultural_state {
 	std::vector<dcon::issue_id> economic_issues;
 
 	tagged_vector<government_type, dcon::government_type_id> governments;
+	tagged_vector<crime_info, dcon::crime_id> crimes;
 };
 
 enum class issue_category {
