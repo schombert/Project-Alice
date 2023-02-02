@@ -183,8 +183,8 @@ void display_data::create_meshes(simple_fs::file& file) {
 			add_quad(land_vertices, last_x, y, size_x, y + 1);
 	}
 
-	water_indicies = water_vertices.size() / 3 * 2;
-	land_indicies = land_vertices.size() / 3 * 2;
+	water_indicies = ((uint32_t)water_vertices.size()) / 3 * 2;
+	land_indicies = ((uint32_t)land_vertices.size()) / 3 * 2;
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
