@@ -141,18 +141,6 @@ void load_shaders(sys::state& state) {
 	} else {
 		notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
 	}
-
-	auto map_fshader = open_file(root, NATIVE("assets/shaders/map_f_shader.glsl"));
-	auto map_vshader = open_file(root, NATIVE("assets/shaders/map_v_shader.glsl"));
-	if(bool(map_fshader) && bool(map_vshader)) {
-		auto vertex_content = view_contents(*map_vshader);
-		auto fragment_content = view_contents(*map_fshader);
-		state.open_gl.map_shader_program = create_program(
-			std::string_view(vertex_content.data, vertex_content.file_size),
-			std::string_view(fragment_content.data, fragment_content.file_size));
-	} else {
-		notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
-	}
 }
 
 void load_global_squares(sys::state& state) {
@@ -251,26 +239,6 @@ void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool fli
 				glBindVertexBuffer(0, state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
 			break;
 	}
-}
-
-void render_map(sys::state& state, map::display_data const& map_data) {
-	glBindVertexArray(state.open_gl.global_square_vao);
-	bind_vertices_by_rotation(state, ui::rotation::upright, false);
-
-	// uniform float aspect_ratio
-	glUniform1f(1, state.x_size / ((float)state.y_size));
-	// uniform float zoom
-	glUniform1f(2, map_data.zoom);
-	// uniform float time
-	glUniform1f(4, map_data.time_counter);
-
-	// TODO do this in one draw call
-	glUniform2f(0, map_data.offset_x-1.f, map_data.offset_y);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glUniform2f(0, map_data.offset_x, map_data.offset_y);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glUniform2f(0, map_data.offset_x+1.f, map_data.offset_y);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {

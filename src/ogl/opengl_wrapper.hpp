@@ -134,7 +134,6 @@ struct color3f {
 
 		void* context = nullptr;
 		GLuint ui_shader_program = 0;
-		GLuint map_shader_program = 0;
 
 		GLuint global_square_vao = 0;
 		GLuint global_square_buffer = 0;
