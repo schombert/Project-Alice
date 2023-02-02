@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <functional>
 #include "parsers_declarations.hpp"
+#include "gui_minimap.hpp"
 
 namespace sys {
 	//
@@ -107,7 +108,20 @@ namespace sys {
 		ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
 		ui_state.root->impl_render(*this, 0, 0);
 	}
-
+	void state::on_create() {
+		{
+			auto new_elm = ui::make_element(*this, "topbar");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::minimap_picture_window>(*this, "minimap_pic");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+	}
 	//
 	// string pool functions
 	//
@@ -308,6 +322,56 @@ namespace sys {
 				err.file_name = "traits.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_traits_file(gen, err, context);
+			}
+		}
+		// pre parse crimes.txt
+		{
+			context.crimes_file = open_file(common, NATIVE("crime.txt"));
+			if(context.crimes_file) {
+				auto content = view_contents(*context.crimes_file);
+				err.file_name = "crime.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_crimes_file(gen, err, context);
+			}
+		}
+		// pre parse triggered_modifiers.txt
+		{
+			context.triggered_modifiers_file = open_file(common, NATIVE("triggered_modifiers.txt"));
+			if(context.triggered_modifiers_file) {
+				auto content = view_contents(*context.triggered_modifiers_file);
+				err.file_name = "triggered_modifiers.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_triggered_modifiers_file(gen, err, context);
+			}
+		}
+		// parse nationalvalues.txt
+		{
+			auto nv_file = open_file(common, NATIVE("nationalvalues.txt"));
+			if(nv_file) {
+				auto content = view_contents(*nv_file);
+				err.file_name = "nationalvalues.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_national_values_file(gen, err, context);
+			}
+		}
+		// parse static_modifiers.txt
+		{
+			auto sm_file = open_file(common, NATIVE("static_modifiers.txt"));
+			if(sm_file) {
+				auto content = view_contents(*sm_file);
+				err.file_name = "static_modifiers.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_static_modifiers_file(gen, err, context);
+			}
+		}
+		// parse event_modifiers.txt
+		{
+			auto em_file = open_file(common, NATIVE("event_modifiers.txt"));
+			if(em_file) {
+				auto content = view_contents(*em_file);
+				err.file_name = "event_modifiers.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_event_modifiers_file(gen, err, context);
 			}
 		}
 		// TODO do something with err

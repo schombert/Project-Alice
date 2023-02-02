@@ -447,3 +447,60 @@ traits_set
 traits_file
 	personality    extern    personality_traits_set  discard
 	background     extern    background_traits_set   discard
+
+crimes_file
+	#any           extern    register_crime          discard
+
+triggered_modifier
+	#base   modifier_base
+	trigger        extern    register_trigger        discard
+
+triggered_modifiers_file
+	#any           extern    make_triggered_modifier discard
+
+national_values_file
+	#any           extern    make_national_value     discard
+
+static_modifiers_file
+	very_easy_player         extern   m_very_easy_player         discard
+	easy_player              extern   m_easy_player              discard
+	hard_player              extern   m_hard_player              discard
+	very_hard_player         extern   m_very_hard_player         discard
+	very_easy_ai             extern   m_very_easy_ai             discard
+	easy_ai                  extern   m_easy_ai                  discard
+	hard_ai                  extern   m_hard_ai                  discard
+	very_hard_ai             extern   m_very_hard_ai             discard
+	overseas                 extern   m_overseas                 discard
+	coastal                  extern   m_coastal                  discard
+	non_coastal              extern   m_non_coastal              discard
+	coastal_sea              extern   m_coastal_sea              discard
+	sea_zone                 extern   m_sea_zone                 discard
+	land_province            extern   m_land_province            discard
+	blockaded                extern   m_blockaded                discard
+	no_adjacent_controlled   extern   m_no_adjacent_controlled   discard
+	core                     extern   m_core                     discard
+	has_siege                extern   m_has_siege                discard
+	occupied                 extern   m_occupied                 discard
+	nationalism              extern   m_nationalism              discard
+	infrastructure           extern   m_infrastructure           discard
+	base_values              extern   m_base_values              discard
+	war                      extern   m_war                      discard
+	peace                    extern   m_peace                    discard
+	disarming                extern   m_disarming                discard
+	war_exhaustion           extern   m_war_exhaustion           discard
+	badboy                   extern   m_badboy                   discard
+	debt_default_to          extern   m_debt_default_to          discard
+	bad_debter               extern   m_bad_debter               discard
+	great_power              extern   m_great_power              discard
+	second_power             extern   m_second_power             discard
+	civ_nation               extern   m_civ_nation               discard
+	unciv_nation             extern   m_unciv_nation             discard
+	average_literacy         extern   m_average_literacy         discard
+	plurality                extern   m_plurality                discard
+	generalised_debt_default extern   m_generalised_debt_default discard
+	total_occupation         extern   m_total_occupation         discard
+	total_blockaded          extern   m_total_blockaded          discard
+	in_bankrupcy             extern   m_in_bankrupcy             discard
+
+event_modifiers_file
+	#any           extern      make_event_modifier      discard

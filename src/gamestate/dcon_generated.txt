@@ -7,7 +7,7 @@ make_index{texture_id}{uint16_t}
 make_index{gfx_object_id}{uint16_t}
 make_index{gui_def_id}{uint16_t}
 make_index{government_type_id}{uint8_t}
-
+make_index{crime_id}{uint8_t}
 
 object{
 	name{ national_identity }
@@ -151,6 +151,10 @@ object {
 	storage_type{ contiguous }
 	size{ 1000 }
 
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
 	property{
 		name{ province_values }
 		type{ sys::modifier_definition }

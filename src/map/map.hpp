@@ -15,7 +15,6 @@ private:
 	glm::vec2 last_camera_drag_pos;
 	bool is_dragging = false;
 
-	void set_pos(glm::vec2 pos);
 	GLuint map_shader_program = 0;
 	GLuint map_water_shader_program = 0;
 
@@ -49,6 +48,7 @@ public:
 	void render(uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void update();
+	void set_pos(glm::vec2 pos);
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
 	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
 	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod);
