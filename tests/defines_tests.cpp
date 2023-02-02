@@ -18,8 +18,21 @@ TEST_CASE("defines tests", "[defines_tests]") {
 		
 		// Overriden by file values
 		d.greatness_days = 0.f;
-		d.parse_file(content.data, err);
+		d.parse_file(*state, content.data, err);
 		REQUIRE(d.greatness_days == 365.0f);
+
+		sys::date date{ 0 };
+		auto ymds = date.to_ymd(state->start_date);
+		REQUIRE(ymds.year == 1836);
+		REQUIRE(ymds.month == 1);
+		REQUIRE(ymds.day == 1);
+
+		auto ymde = date.to_ymd(state->end_date);
+		REQUIRE(ymde.year == 1935);
+		REQUIRE(ymde.month == 12);
+		REQUIRE(ymde.day == 31);
+
+		REQUIRE(err.accumulated_errors.length() == size_t(0));
 	}
 #endif
 }

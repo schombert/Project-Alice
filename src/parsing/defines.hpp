@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include "parsers.hpp"
+#include "date_interface.hpp"
 
 #define LUA_DEFINES_LIST \
 	LUA_DEFINES_LIST_ELEMENT(years_of_nationalism, 20.000000) \
@@ -650,8 +651,8 @@ struct defines {
 	LUA_DEFINES_LIST
 #undef LUA_DEFINES_LIST_ELEMENT
 
-	void assign_define(std::string_view key, float v, parsers::error_handler& err);
-	void parse_line(std::string_view line, parsers::error_handler& err);
-	void parse_file(std::string_view data, parsers::error_handler& err);
+	void assign_define(sys::state& state, std::string_view key, float v, parsers::error_handler& err);
+	void parse_line(sys::state& state, std::string_view line, parsers::error_handler& err);
+	void parse_file(sys::state& state, std::string_view data, parsers::error_handler& err);
 };
 }
