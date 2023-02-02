@@ -16,7 +16,18 @@ private:
 	bool is_dragging = false;
 
 	void set_pos(glm::vec2 pos);
+	GLuint map_shader_program = 0;
+	GLuint map_water_shader_program = 0;
+
 public:
+	void load_shaders(simple_fs::directory& root);
+
+	GLuint water_vbo;
+	GLuint land_vbo;
+	GLuint vao;
+	int water_indicies;
+	int land_indicies;
+	void create_meshes(simple_fs::file& file);
 	// Time in seconds, send to the map shader for animations
 	float time_counter = 0;
 
@@ -28,12 +39,15 @@ public:
 	GLuint colormap_water = 0;
 	GLuint colormap_terrain = 0;
 	GLuint overlay = 0;
+	GLuint province_color = 0;
 
 	glm::vec2 size;
 	float offset_x = 0.f;
 	float offset_y = 0.f;
 	float zoom = 1;
 
+	void render(uint32_t screen_x, uint32_t screen_y);
+	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void update();
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
 	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
