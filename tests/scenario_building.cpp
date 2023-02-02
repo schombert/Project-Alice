@@ -307,5 +307,26 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(err.accumulated_errors == "");
 		// default file is empty, unfortunately
 	}
+	{
+		auto nv_file = open_file(common, NATIVE("nationalvalues.txt"));
+		if(nv_file) {
+			auto content = view_contents(*nv_file);
+			err.file_name = "nationalvalues.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_national_values_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto nvit = context.map_of_modifiers.find(std::string("nv_liberty"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(0) == sys::national_mod_offsets::mobilisation_size);
+		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(1) == sys::national_mod_offsets::mobilisation_economy_impact);
+		REQUIRE(state->world.modifier_get_national_values(id).offsets[2] == 0);
+
+		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(0.02f));
+		REQUIRE(state->world.modifier_get_national_values(id).values[1] == Approx(0.75f));
+	}
 }
 #endif

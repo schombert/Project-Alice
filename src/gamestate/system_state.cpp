@@ -346,6 +346,16 @@ namespace sys {
 				parsers::parse_triggered_modifiers_file(gen, err, context);
 			}
 		}
+		// parse nationalvalues.txt
+		{
+			auto nv_file = open_file(common, NATIVE("nationalvalues.txt"));
+			if(nv_file) {
+				auto content = view_contents(*nv_file);
+				err.file_name = "nationalvalues.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_national_values_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }
