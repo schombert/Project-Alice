@@ -328,5 +328,31 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(0.02f));
 		REQUIRE(state->world.modifier_get_national_values(id).values[1] == Approx(0.75f));
 	}
+	{
+		auto sm_file = open_file(common, NATIVE("static_modifiers.txt"));
+		if(sm_file) {
+			auto content = view_contents(*sm_file);
+			err.file_name = "static_modifiers.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_static_modifiers_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		/*
+		* has_siege = {
+			farm_rgo_eff = -0.5
+			mine_rgo_eff = -0.5
+		}
+		*/
+
+		REQUIRE(bool(state->national_definitions.has_siege) == true);
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).get_offet_at_index(0) == sys::provincial_mod_offsets::farm_rgo_eff);
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).get_offet_at_index(1) == sys::provincial_mod_offsets::mine_rgo_eff);
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).offsets[2] == 0);
+
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).values[0] == Approx(-0.5f));
+		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).values[1] == Approx(-0.5f));
+	}
 }
 #endif
