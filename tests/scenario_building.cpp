@@ -279,5 +279,21 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(fata.get_attack() == -1.0f);
 		REQUIRE(fata.get_experience() == 0.0f);
 	}
+	{
+		context.crimes_file = open_file(common, NATIVE("crime.txt"));
+		if(context.crimes_file) {
+			auto content = view_contents(*context.crimes_file);
+			err.file_name = "crime.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_crimes_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto ita = context.map_of_crimes.find(std::string("machine_politics"));
+		REQUIRE(ita != context.map_of_crimes.end());
+		REQUIRE(ita->second.id.index() != 0);
+		REQUIRE(state->culture.crimes.size() > size_t(ita->second.id.index()));
+	}
 }
 #endif

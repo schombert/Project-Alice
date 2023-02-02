@@ -23,7 +23,7 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Pre-parse `cb_types.txt` *Done*
 - Read leader traits from `traits.txt` *Done*
 - Read `defines.lua` (I'm not 100% sure this has to go here, but that is where open v2 placed it)
-- Pre parse `crime.txt`
+- Pre parse `crime.txt` *Done*
 - Pre parse `triggered_modifiers.txt`
 - Read national values from `nationalvalues.txt`
 - Read static modifiers from `static_modifiers.txt`
