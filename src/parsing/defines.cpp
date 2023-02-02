@@ -34,7 +34,7 @@ void parsing::defines::parse_line(std::string_view line) {
 				it++;
 			
 			// TODO is it okay to use atof? - probably not...
-			auto value = float(std::atof(it));
+			auto value = float(std::atof((const char*)it));
 			assign_define(key, value);
 		}
 	}
