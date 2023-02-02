@@ -992,6 +992,61 @@ namespace parsers {
 
 	void register_trigger(token_generator& gen, error_handler& err, triggered_modifier_context& context);
 	void make_triggered_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	void make_national_value(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct national_values_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_very_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_very_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_overseas(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_coastal(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_non_coastal(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_coastal_sea(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_sea_zone(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_land_province(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_blockaded(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_no_adjacent_controlled(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_core(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_has_siege(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_occupied(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_nationalism(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_infrastructure(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_base_values(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_war(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_peace(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_disarming(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_war_exhaustion(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_badboy(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_debt_default_to(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_bad_debter(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_great_power(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_second_power(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_civ_nation(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_unciv_nation(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_average_literacy(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_plurality(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_generalised_debt_default(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_total_occupation(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_total_blockaded(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct static_modifiers_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_event_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct event_modifiers_file {
+		void finish(scenario_building_context&) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"

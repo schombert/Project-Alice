@@ -15,7 +15,6 @@ private:
 	glm::vec2 last_camera_drag_pos;
 	bool is_dragging = false;
 
-	void set_pos(glm::vec2 pos);
 public:
 	// Time in seconds, send to the map shader for animations
 	float time_counter = 0;
@@ -35,6 +34,7 @@ public:
 	float zoom = 1;
 
 	void update();
+	void set_pos(glm::vec2 pos);
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
 	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
 	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod);

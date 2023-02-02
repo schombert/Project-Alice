@@ -25,9 +25,9 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Read `defines.lua` (I'm not 100% sure this has to go here, but that is where open v2 placed it)
 - Pre parse `crime.txt` *Done*
 - Pre parse `triggered_modifiers.txt` *Done*
-- Read national values from `nationalvalues.txt`
-- Read static modifiers from `static_modifiers.txt`
-- Read event modifiers from `event_modifiers.txt`
+- Read national values from `nationalvalues.txt` *Done*
+- Read static modifiers from `static_modifiers.txt` *Done*
+- Read event modifiers from `event_modifiers.txt` *Done*
 - Pre parse pop types from the `poptypes` directory
 - Pre parse rebel types from `rebel_types.txt`
 - Read `default.map`
