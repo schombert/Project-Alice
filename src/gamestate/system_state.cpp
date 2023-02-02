@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <functional>
 #include "parsers_declarations.hpp"
+#include "gui_minimap.hpp"
 
 namespace sys {
 	//
@@ -108,7 +109,16 @@ namespace sys {
 		ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
 		ui_state.root->impl_render(*this, 0, 0);
 	}
-
+	void state::on_create() {
+		{
+			auto new_elm = ui::make_element(*this, "topbar");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+	}
 	//
 	// string pool functions
 	//

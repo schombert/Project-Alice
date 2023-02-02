@@ -359,6 +359,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	on_window_change(window); // Init the window size
 
+	game_state.on_create();
+
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		// Run game code

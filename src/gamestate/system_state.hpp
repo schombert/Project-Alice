@@ -100,6 +100,7 @@ namespace sys {
 
 		// the following functions will be invoked by the window subsystem
 
+		void on_create(); // called once after the window is created and opengl is ready
 		void on_rbutton_down(int32_t x, int32_t y, key_modifiers mod);
 		void on_mbutton_down(int32_t x, int32_t y, key_modifiers mod);
 		void on_lbutton_down(int32_t x, int32_t y, key_modifiers mod);

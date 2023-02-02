@@ -450,9 +450,9 @@ void render_character(sys::state const& state, char codepoint, color_modificatio
 	if(text::win1250toUTF16(codepoint) != ' ') {
 		f.make_glyph(codepoint);
 
-		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint32_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
+		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, f.textures[uint32_t(codepoint) >> 6]);
+		glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoint) >> 6]);
 
 		glUniform4f(parameters::drawing_rectangle, x, y, size, size);
 		glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
@@ -470,15 +470,15 @@ void internal_text_render(sys::state const& state, char const* codepoints, uint3
 		if(text::win1250toUTF16(codepoints[i]) != ' ') {
 			f.make_glyph(codepoints[i]);
 
-			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint32_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
+			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.textures[uint32_t(codepoints[i]) >> 6]);
+			glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoints[i]) >> 6]);
 
-			glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[uint32_t(codepoints[i])].x * size / 64.0f, baseline_y + f.glyph_positions[uint32_t(codepoints[i])].y * size / 64.0f, size, size);
+			glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[uint8_t(codepoints[i])].x * size / 64.0f, baseline_y + f.glyph_positions[uint8_t(codepoints[i])].y * size / 64.0f, size, size);
 
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
-		x += f.glyph_advances[uint32_t(codepoints[i])] * size / 64.0f + ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
+		x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f + ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
 	}
 }
 
