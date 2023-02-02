@@ -992,6 +992,12 @@ namespace parsers {
 
 	void register_trigger(token_generator& gen, error_handler& err, triggered_modifier_context& context);
 	void make_triggered_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	void make_national_value(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct national_values_file {
+		void finish(scenario_building_context&) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"

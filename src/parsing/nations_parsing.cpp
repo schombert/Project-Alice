@@ -43,4 +43,19 @@ void make_triggered_modifier(std::string_view name, token_generator& gen, error_
 	parse_triggered_modifier(gen, err, new_context);
 }
 
+void make_national_value(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, name);
+
+	auto parsed_modifier = parse_modifier_base(gen, err, context);
+	parsed_modifier.convert_to_national_mod();
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+
+	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
+}
+
 }
