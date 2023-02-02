@@ -1041,6 +1041,12 @@ namespace parsers {
 	struct static_modifiers_file {
 		void finish(scenario_building_context&) { }
 	};
+
+	void make_event_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct event_modifiers_file {
+		void finish(scenario_building_context&) { }
+	};
 }
 
 #include "parser_defs_generated.hpp"

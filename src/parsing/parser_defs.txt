@@ -501,3 +501,6 @@ static_modifiers_file
 	total_occupation         extern   m_total_occupation         discard
 	total_blockaded          extern   m_total_blockaded          discard
 	in_bankrupcy             extern   m_in_bankrupcy             discard
+
+event_modifiers_file
+	#any           extern      make_event_modifier      discard

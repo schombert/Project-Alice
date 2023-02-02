@@ -365,6 +365,16 @@ namespace sys {
 				parsers::parse_static_modifiers_file(gen, err, context);
 			}
 		}
+		// parse event_modifiers.txt
+		{
+			auto em_file = open_file(common, NATIVE("event_modifiers.txt"));
+			if(em_file) {
+				auto content = view_contents(*em_file);
+				err.file_name = "event_modifiers.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_event_modifiers_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }

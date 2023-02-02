@@ -354,5 +354,26 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).values[0] == Approx(-0.5f));
 		REQUIRE(state->world.modifier_get_province_values(state->national_definitions.has_siege).values[1] == Approx(-0.5f));
 	}
+	{
+		auto em_file = open_file(common, NATIVE("event_modifiers.txt"));
+		if(em_file) {
+			auto content = view_contents(*em_file);
+			err.file_name = "event_modifiers.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_event_modifiers_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+
+		auto nvit = context.map_of_modifiers.find(std::string("stock_market_crash"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+
+		REQUIRE(state->world.modifier_get_icon(id) == 12);
+
+		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(0) == sys::national_mod_offsets::factory_throughput);
+		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(-0.2f));
+	}
 }
 #endif
