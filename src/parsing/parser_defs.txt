@@ -450,3 +450,10 @@ traits_file
 
 crimes_file
 	#any           extern    register_crime          discard
+
+triggered_modifier
+	#base   modifier_base
+	trigger        extern    register_trigger        discard
+
+triggered_modifiers_file
+	#any           extern    make_triggered_modifier discard
