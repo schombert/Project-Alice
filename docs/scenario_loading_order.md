@@ -30,7 +30,7 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Read event modifiers from `event_modifiers.txt` *Done*
 - Pre parse pop types from the `poptypes` directory *Done*
 - Pre parse rebel types from `rebel_types.txt` *Done*
-- Read `default.map`
+- Read `default.map` *Done*
 - Read terrain modifiers from `map\terrain.txt`
 - Read states from `map\region.txt`
 - Read continents from `map\continent.txt`

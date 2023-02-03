@@ -401,9 +401,24 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			parsers::parse_rebel_types_file(gen, err, context);
 		}
 
+		REQUIRE(err.accumulated_errors == "");
+
 		auto nvit = context.map_of_rebeltypes.find(std::string("boxer_rebels"));
 		REQUIRE(nvit != context.map_of_rebeltypes.end());
 		REQUIRE(bool(nvit->second.id) == true);
+	}
+	auto map = open_directory(root, NATIVE("map"));
+	{
+		auto def_map_file = open_file(map, NATIVE("default.map"));
+		if(def_map_file) {
+			auto content = view_contents(*def_map_file);
+			err.file_name = "default.map";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_default_map_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(state->world.province_size() == size_t(3248));
 	}
 }
 #endif
