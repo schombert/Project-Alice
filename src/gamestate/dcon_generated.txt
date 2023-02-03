@@ -371,3 +371,30 @@ object {
 		type{ text_sequence_id }
 	}
 }
+
+object {
+	name{ state_definition }
+	storage_type{ contiguous }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+}
+
+relationship{
+	name{ abstract_state_membership }
+	
+	link{
+		object{province}
+		name{province}
+		type{unique}
+	}
+	link{
+		object{state_definition}
+		name{state}
+		type{many}
+		index_storage{array}
+	}
+}

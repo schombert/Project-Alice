@@ -462,5 +462,21 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->province_definitions.modifier_by_terrain_index[24] == id);
 		REQUIRE(state->province_definitions.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
 	}
+	{
+		auto region_file = open_file(map, NATIVE("region.txt"));
+		if(region_file) {
+			auto content = view_contents(*region_file);
+			err.file_name = "region.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_region_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		auto id721 = fatten(state->world, context.original_id_to_prov_id_map[721]);
+		auto id724 = fatten(state->world, context.original_id_to_prov_id_map[724]);
+		auto absa = id721.get_abstract_state_membership_as_province().get_state();
+		auto absb = id724.get_abstract_state_membership_as_province().get_state();
+		REQUIRE(absa == absb);
+	}
 }
 #endif

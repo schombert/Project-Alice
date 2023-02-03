@@ -32,7 +32,7 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Pre parse rebel types from `rebel_types.txt` *Done*
 - Read `default.map` *Done*
 - Read terrain modifiers from `map\terrain.txt` *Done*
-- Read states from `map\region.txt`
+- Read states from `map\region.txt` *Done*
 - Read continents from `map\continent.txt`
 - Read climates from `map\climate.txt`
 - Pre parse technologies from `technology.txt`

@@ -454,6 +454,16 @@ namespace sys {
 				parsers::parse_terrain_file(gen, err, context);
 			}
 		}
+		// parse region.txt
+		{
+			auto region_file = open_file(map, NATIVE("region.txt"));
+			if(region_file) {
+				auto content = view_contents(*region_file);
+				err.file_name = "region.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_region_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }
