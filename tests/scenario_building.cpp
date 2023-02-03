@@ -392,5 +392,18 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nvit != context.map_of_poptypes.end());
 		REQUIRE(bool(nvit->second) == true);
 	}
+	{
+		context.rebel_types_file = open_file(common, NATIVE("rebel_types.txt"));
+		if(context.rebel_types_file) {
+			auto content = view_contents(*context.rebel_types_file);
+			err.file_name = "rebel_types.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_rebel_types_file(gen, err, context);
+		}
+
+		auto nvit = context.map_of_rebeltypes.find(std::string("boxer_rebels"));
+		REQUIRE(nvit != context.map_of_rebeltypes.end());
+		REQUIRE(bool(nvit->second.id) == true);
+	}
 }
 #endif

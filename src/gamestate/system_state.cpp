@@ -413,7 +413,16 @@ namespace sys {
 		}
 		// gather names of poptypes
 		list_pop_types(*this, context);
-
+		// read rebel_types.txt
+		{
+			context.rebel_types_file = open_file(common, NATIVE("rebel_types.txt"));
+			if(context.rebel_types_file) {
+				auto content = view_contents(*context.rebel_types_file);
+				err.file_name = "rebel_types.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_rebel_types_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }

@@ -504,3 +504,6 @@ static_modifiers_file
 
 event_modifiers_file
 	#any           extern      make_event_modifier      discard
+
+rebel_types_file
+	#any           extern      register_rebel_type      discard

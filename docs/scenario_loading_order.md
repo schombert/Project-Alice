@@ -28,8 +28,8 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Read national values from `nationalvalues.txt` *Done*
 - Read static modifiers from `static_modifiers.txt` *Done*
 - Read event modifiers from `event_modifiers.txt` *Done*
-- Pre parse pop types from the `poptypes` directory
-- Pre parse rebel types from `rebel_types.txt`
+- Pre parse pop types from the `poptypes` directory *Done*
+- Pre parse rebel types from `rebel_types.txt` *Done*
 - Read `default.map`
 - Read terrain modifiers from `map\terrain.txt`
 - Read states from `map\region.txt`

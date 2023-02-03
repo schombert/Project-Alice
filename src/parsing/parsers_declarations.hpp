@@ -230,6 +230,10 @@ namespace parsers {
 		token_generator generator_state;
 		uint32_t index;
 	};
+	struct pending_rebel_type_content {
+		token_generator generator_state;
+		dcon::rebel_type_id id;
+	};
 
 	struct scenario_building_context {
 		sys::state& state;
@@ -253,12 +257,14 @@ namespace parsers {
 		std::vector<pending_triggered_modifier_content> set_of_triggered_modifiers;
 		ankerl::unordered_dense::map<std::string, dcon::modifier_id> map_of_modifiers;
 		ankerl::unordered_dense::map<std::string, dcon::pop_type_id> map_of_poptypes;
+		ankerl::unordered_dense::map<std::string, pending_rebel_type_content> map_of_rebeltypes;
 
 		std::optional<simple_fs::file> ideologies_file;
 		std::optional<simple_fs::file> issues_file;
 		std::optional<simple_fs::file> cb_types_file;
 		std::optional<simple_fs::file> crimes_file;
 		std::optional<simple_fs::file> triggered_modifiers_file;
+		std::optional<simple_fs::file> rebel_types_file;
 		
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -1046,6 +1052,12 @@ namespace parsers {
 	void make_event_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 	struct event_modifiers_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void register_rebel_type(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct rebel_types_file {
 		void finish(scenario_building_context&) { }
 	};
 }

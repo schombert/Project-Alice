@@ -341,3 +341,22 @@ object {
 		type{ text_sequence_id }
 	}
 }
+
+object {
+	name{ rebel_type}
+	storage_type{ contiguous }
+	size{ 60 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ army_name }
+		type{ text_sequence_id }
+	}
+}
