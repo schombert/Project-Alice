@@ -52,17 +52,17 @@ void parsing::defines::parse_line(sys::state& state, std::string_view line, pars
 			if(*it == '"' || *it == '\'') {
 				it++;
 				// TODO for now this will do, but we need a method to parse dates
-				ymd.year = parsers::parse_int(it, 0, err);
+				ymd.year = parsers::parse_int(line.data() + std::distance(line.begin(), it), 0, err);
 				while(isdigit(*it))
 					it++;
 				if(*it == '.') {
 					it++;
-					ymd.month = uint16_t(parsers::parse_uint(it, 0, err));
+					ymd.month = uint16_t(parsers::parse_uint(line.data() + std::distance(line.begin(), it), 0, err));
 					while(isdigit(*it))
 						it++;
 					if(*it == '.') {
 						it++;
-						ymd.day = uint16_t(parsers::parse_uint(it, 0, err));
+						ymd.day = uint16_t(parsers::parse_uint(line.data() + std::distance(line.begin(), it), 0, err));
 					}
 				}
 			}
