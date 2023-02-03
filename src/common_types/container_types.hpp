@@ -19,6 +19,19 @@ inline 	uint32_t pack_color(float r, float g, float b) {
 	return ((uint32_t(r * 255.0f) & 0xFF) << 0) | ((uint32_t(g * 255.0f) & 0xFF) << 8) | ((uint32_t(b * 255.0f) & 0xFF) << 16);
 }
 
+inline int32_t int_red_from_int(uint32_t v) {
+	return int32_t(v & 0xFF);
+}
+inline int32_t int_green_from_int(uint32_t v) {
+	return int32_t((v >> 8) & 0xFF);
+}
+inline int32_t int_blue_from_int(uint32_t v) {
+	return int32_t((v >> 16) & 0xFF);
+}
+inline uint32_t pack_color(int32_t r, int32_t g, int32_t b) {
+	return ((uint32_t(r) & 0xFF) << 0) | ((uint32_t(g) & 0xFF) << 8) | ((uint32_t(b) & 0xFF) << 16);
+}
+
 }
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
