@@ -207,6 +207,34 @@ namespace sys {
 		// TODO move windows
 	}
 
+	void list_pop_types(sys::state& state, parsers::scenario_building_context& context) {
+		auto root = get_root(state.common_fs);
+		auto poptypes = open_directory(root, NATIVE("poptypes"));
+
+		for(auto& file : simple_fs::list_files(poptypes, NATIVE("txt"))) {
+			auto full_name = get_full_name(file);
+			auto last = full_name.c_str() + full_name.length();
+			auto first = full_name.c_str();
+			for(; last > first; --last) {
+				if(*last == NATIVE('.'))
+					break;
+			}
+			auto start_of_name = last;
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+					++start_of_name;
+					break;
+				}
+			}
+			auto utf8typename = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
+
+			auto name_id = text::find_or_add_key(context.state, utf8typename);
+			auto type_id = state.world.create_pop_type();
+			state.world.pop_type_set_name(type_id, name_id);
+			context.map_of_poptypes.insert_or_assign(std::string(utf8typename), type_id);
+		}
+	}
+
 	void state::load_scenario_data() {
 		parsers::error_handler err("");
 
@@ -374,6 +402,18 @@ namespace sys {
 				parsers::parse_event_modifiers_file(gen, err, context);
 			}
 		}
+		// read defines.lua
+		{
+			auto defines_file = open_file(common, NATIVE("defines.lua"));
+			if(defines_file) {
+				auto content = view_contents(*defines_file);
+				err.file_name = "defines.lua";
+				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
+			}
+		}
+		// gather names of poptypes
+		list_pop_types(*this, context);
+
 		// TODO do something with err
 	}
 }

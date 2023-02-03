@@ -252,6 +252,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, pending_crime_content> map_of_crimes;
 		std::vector<pending_triggered_modifier_content> set_of_triggered_modifiers;
 		ankerl::unordered_dense::map<std::string, dcon::modifier_id> map_of_modifiers;
+		ankerl::unordered_dense::map<std::string, dcon::pop_type_id> map_of_poptypes;
 
 		std::optional<simple_fs::file> ideologies_file;
 		std::optional<simple_fs::file> issues_file;

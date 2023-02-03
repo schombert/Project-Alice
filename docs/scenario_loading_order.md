@@ -22,7 +22,7 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Read governments from `governments.txt` *Done*
 - Pre-parse `cb_types.txt` *Done*
 - Read leader traits from `traits.txt` *Done*
-- Read `defines.lua` (I'm not 100% sure this has to go here, but that is where open v2 placed it)
+- Read `defines.lua` *Done*
 - Pre parse `crime.txt` *Done*
 - Pre parse `triggered_modifiers.txt` *Done*
 - Read national values from `nationalvalues.txt` *Done*
