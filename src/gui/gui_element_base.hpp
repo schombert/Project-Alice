@@ -72,6 +72,8 @@ protected:
 		return tooltip_behavior::transparent;
 	}
 	virtual void create_tooltip(sys::state& state, int32_t x, int32_t y, element_base& /*tooltip_window*/) noexcept { }
+private:
+	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
 public:
 
 	// these commands are meaningful only if the element has children
