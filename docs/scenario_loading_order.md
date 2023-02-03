@@ -31,7 +31,7 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Pre parse pop types from the `poptypes` directory *Done*
 - Pre parse rebel types from `rebel_types.txt` *Done*
 - Read `default.map` *Done*
-- Read terrain modifiers from `map\terrain.txt`
+- Read terrain modifiers from `map\terrain.txt` *Done*
 - Read states from `map\region.txt`
 - Read continents from `map\continent.txt`
 - Read climates from `map\climate.txt`

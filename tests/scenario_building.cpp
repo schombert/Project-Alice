@@ -438,5 +438,29 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		//REQUIRE(context.prov_id_to_original_id_map[id].is_sea == false);
 		REQUIRE(context.prov_id_to_original_id_map[id].id == 2702);
 	}
+	{
+		auto terrain_file = open_file(map, NATIVE("terrain.txt"));
+		if(terrain_file) {
+			auto content = view_contents(*terrain_file);
+			err.file_name = "terrain.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_terrain_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+
+		auto nvit = context.map_of_modifiers.find(std::string("mountain"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+		REQUIRE(state->world.modifier_get_province_values(id).get_offet_at_index(0) == sys::provincial_mod_offsets::movement_cost);
+		REQUIRE(state->world.modifier_get_province_values(id).get_offet_at_index(1) == sys::provincial_mod_offsets::defense);
+
+		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(1.4f));
+		REQUIRE(state->world.modifier_get_province_values(id).values[1] == Approx(2.0f));
+
+		REQUIRE(state->province_definitions.modifier_by_terrain_index[24] == id);
+		REQUIRE(state->province_definitions.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
+	}
 }
 #endif
