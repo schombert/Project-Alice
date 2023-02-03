@@ -370,8 +370,4 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
-	property{
-		name{ is_water }
-		type{ bitfield }
-	}
 }

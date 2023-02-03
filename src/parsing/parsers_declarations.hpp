@@ -235,6 +235,10 @@ namespace parsers {
 		dcon::rebel_type_id id;
 	};
 
+	struct province_data {
+		int32_t id = 0; // original
+		bool is_sea = false;
+	};
 	struct scenario_building_context {
 		sys::state& state;
 
@@ -258,6 +262,9 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::modifier_id> map_of_modifiers;
 		ankerl::unordered_dense::map<std::string, dcon::pop_type_id> map_of_poptypes;
 		ankerl::unordered_dense::map<std::string, pending_rebel_type_content> map_of_rebeltypes;
+
+		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
+		std::vector<dcon::province_id> original_id_to_prov_id_map;
 
 		std::optional<simple_fs::file> ideologies_file;
 		std::optional<simple_fs::file> issues_file;
@@ -1059,6 +1066,33 @@ namespace parsers {
 
 	struct rebel_types_file {
 		void finish(scenario_building_context&) { }
+	};
+
+	struct sea_list {
+		void free_value(int32_t value, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(size_t(value - 1) > context.prov_id_to_original_id_map.size()) {
+				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			} else {
+				context.prov_id_to_original_id_map[dcon::province_id(dcon::province_id::value_base_t(value - 1))].is_sea = true;
+			}
+		}
+		void finish(scenario_building_context&) { }
+	};
+
+	struct default_map_file {
+		sea_list sea_starts;
+
+		void max_provinces(association_type, int32_t value, error_handler& err, int32_t line, scenario_building_context& context) {
+			context.state.world.province_resize(int32_t(value - 1));
+			context.original_id_to_prov_id_map.resize(value);
+			context.prov_id_to_original_id_map.resize(value - 1);
+
+			for(int32_t i = 1; i < value; ++i) {
+				context.prov_id_to_original_id_map[dcon::province_id(dcon::province_id::value_base_t(value))].id = value;
+			}
+		}
+
+		void finish(scenario_building_context&);
 	};
 }
 

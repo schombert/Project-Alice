@@ -17,6 +17,7 @@
 #include "econ_parsing.cpp"
 #include "military_parsing.cpp"
 #include "date_interface.cpp"
+#include "provinces_parsing.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

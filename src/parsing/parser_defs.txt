@@ -507,3 +507,26 @@ event_modifiers_file
 
 rebel_types_file
 	#any           extern      register_rebel_type      discard
+
+sea_list
+	#free                 value       int               member_fn
+
+default_map_file
+	max_provinces         value       int               member_fn
+	sea_starts            group       sea_list          member
+	definitions           value       none              discard
+	provinces             value       none              discard
+	positions             value       none              discard
+	terrain               value       none              discard
+	rivers                value       none              discard
+	terrain_definition    value       none              discard
+	tree_definition       value       none              discard
+	continent             value       none              discard
+	adjacencies           value       none              discard
+	region                value       none              discard
+	region_sea            value       none              discard
+	province_flag_sprite  value       none              discard
+	border_heights        group       none              discard
+	terrain_sheet_heights group       none              discard
+	tree                  value       none              discard
+	border_cutoff         value       none              discard

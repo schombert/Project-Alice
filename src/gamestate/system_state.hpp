@@ -18,6 +18,7 @@
 #include "nations.hpp"
 #include "date_interface.hpp"
 #include "defines.hpp"
+#include "province.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -70,6 +71,7 @@ namespace sys {
 		culture::global_cultural_state culture_definitions;
 		military::global_military_state military_definitions;
 		nations::global_national_state national_definitions;
+		province::global_provincial_state province_definitions;
 
 		absolute_time_point start_date;
 		absolute_time_point end_date;
