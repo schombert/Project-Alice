@@ -1133,6 +1133,29 @@ namespace parsers {
 	};
 
 	void make_terrain_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct state_def_building_context {
+		scenario_building_context& outer_context;
+		dcon::state_definition_id id;
+	};
+
+	struct state_definition {
+		void free_value(int32_t value, error_handler& err, int32_t line, state_def_building_context& context) {
+			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			} else {
+				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+				context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
+			}
+		}
+		void finish(state_def_building_context&) { }
+	};
+
+	struct region_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "parser_defs_generated.hpp"

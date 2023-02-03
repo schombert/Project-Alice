@@ -80,5 +80,15 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 	context.map_of_terrain_types.insert_or_assign(std::string(name), terrain_type{ new_modifier, parsed_modifier.color.value });
 }
 
+void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, name);
+	auto state_id = context.state.world.create_state_definition();
+
+	context.state.world.state_definition_set_name(state_id, name_id);
+
+	state_def_building_context new_context{ context, state_id };
+
+	parsers::parse_state_definition(gen, err, new_context);
+}
 
 }

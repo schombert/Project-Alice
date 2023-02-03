@@ -552,3 +552,9 @@ terrain_file
 	terrain        value      none                      discard
 	categories     group      terrain_modifiers_list    member
 	#any           group      palette_definition        member
+
+state_definition
+	#free          value      int                       member_fn
+
+region_file
+	#any           extern     make_state_definition     discard
