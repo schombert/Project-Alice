@@ -51,4 +51,34 @@ void read_map_colors(char const* start, char const* end, error_handler& err, sce
 	}
 }
 
+
+void palette_definition::finish(scenario_building_context& context) {
+	if(color.free_value < 0 || color.free_value >= 64)
+		return;
+
+	auto it = context.map_of_terrain_types.find(std::string(type));
+	if(it != context.map_of_terrain_types.end()) {
+		context.state.province_definitions.color_by_terrain_index[color.free_value] = it->second.color;
+		context.state.province_definitions.modifier_by_terrain_index[color.free_value] = it->second.id;
+	}
+}
+
+void make_terrain_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, name);
+
+	auto parsed_modifier = parse_terrain_modifier(gen, err, context);
+
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_name(new_modifier, name_id);
+
+	parsed_modifier.convert_to_province_mod();
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+
+	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
+	context.map_of_terrain_types.insert_or_assign(std::string(name), terrain_type{ new_modifier, parsed_modifier.color.value });
+}
+
+
 }

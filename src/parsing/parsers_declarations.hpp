@@ -239,6 +239,11 @@ namespace parsers {
 		int32_t id = 0; // original
 		bool is_sea = false;
 	};
+	struct terrain_type {
+		dcon::modifier_id id;
+		uint32_t color = 0;
+	};
+
 	struct scenario_building_context {
 		sys::state& state;
 
@@ -262,6 +267,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::modifier_id> map_of_modifiers;
 		ankerl::unordered_dense::map<std::string, dcon::pop_type_id> map_of_poptypes;
 		ankerl::unordered_dense::map<std::string, pending_rebel_type_content> map_of_rebeltypes;
+		ankerl::unordered_dense::map<std::string, terrain_type> map_of_terrain_types;
 
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -1098,6 +1104,35 @@ namespace parsers {
 	};
 
 	void read_map_colors(char const* start, char const* end, error_handler& err, scenario_building_context& context);
+
+
+	struct terrain_modifier : public modifier_base {
+		color_from_3i color;
+		void finish(scenario_building_context&) { }
+	};
+
+	struct terrain_modifiers_list {
+		void finish(scenario_building_context&) { }
+	};
+
+	struct select_an_int {
+		int32_t free_value = 0;
+		void finish(scenario_building_context&) { }
+	};
+
+	struct palette_definition {
+		std::string_view type;
+		select_an_int color;
+		void finish(scenario_building_context& context);
+	};
+
+	struct terrain_file {
+		terrain_modifiers_list categories;
+		palette_definition any_group;
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_terrain_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "parser_defs_generated.hpp"

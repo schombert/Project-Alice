@@ -166,7 +166,7 @@ constexpr inline uint32_t count = 102 + provincial_mod_offsets::count;
 
 constexpr inline uint32_t total_modifiers_count = national_mod_offsets::count;
 
-constexpr inline uint32_t modifier_definition_size = 8;
+constexpr inline uint32_t modifier_definition_size = 10;
 constexpr inline uint8_t modifier_bad_offset = 255;
 
 struct modifier_definition {

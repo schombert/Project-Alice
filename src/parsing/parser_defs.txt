@@ -530,3 +530,25 @@ default_map_file
 	terrain_sheet_heights group       none              discard
 	tree                  value       none              discard
 	border_cutoff         value       none              discard
+
+terrain_modifier
+	#base          modifier_base
+	color          group      color_from_3i             member
+	is_water       value      none                      discard
+
+terrain_modifiers_list
+	#any           extern     make_terrain_modifier     discard
+
+select_an_int
+	#free          value      int                       member
+
+palette_definition
+	type           value      text                      member
+	has_texture    value      none                      discard
+	priority       value      none                      discard
+	color          group      select_an_int             member
+
+terrain_file
+	terrain        value      none                      discard
+	categories     group      terrain_modifiers_list    member
+	#any           group      palette_definition        member

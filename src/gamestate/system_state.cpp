@@ -444,6 +444,16 @@ namespace sys {
 				parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
 			}
 		}
+		// parse terrain.txt
+		{
+			auto terrain_file = open_file(map, NATIVE("terrain.txt"));
+			if(terrain_file) {
+				auto content = view_contents(*terrain_file);
+				err.file_name = "terrain.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_terrain_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }
