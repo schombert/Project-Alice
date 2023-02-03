@@ -141,10 +141,10 @@ namespace parsers {
 	separator_scan_result csv_find_separator_token(char const* start, char const* end, char seperator);
 
 	template<size_t count_values, typename T>
-	char const* parse_fixed_amount_csv_values(char const* start, char const* end, char seperator, T&& function) {
+	char const* parse_fixed_amount_csv_values(char const* start, char const* end, char separator, T&& function) {
 		std::string_view values[count_values];
 		for(uint32_t i = 0; i < count_values; ++i) {
-			auto r = csv_find_separator_token(start, end, seperator);
+			auto r = csv_find_separator_token(start, end, separator);
 			values[i] = std::string_view(start, r.new_position - start);
 			start = r.new_position + int32_t(r.found);
 		}
@@ -154,14 +154,14 @@ namespace parsers {
 	}
 
 	template<typename T>
-	char const* parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char seperator, T&& function) {
-		auto first_separator = csv_find_separator_token(start, end, seperator);
+	char const* parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char separator, T&& function) {
+		auto first_separator = csv_find_separator_token(start, end, separator);
 
 		std::string_view first_value = std::string_view(start, first_separator.new_position - start);
 
-		start = csv_advance_n(nth - uint32_t(2), first_separator.new_position + int32_t(first_separator.found), end, seperator);
+		start = csv_advance_n(nth - uint32_t(2), first_separator.new_position + int32_t(first_separator.found), end, separator);
 
-		auto second_end = csv_find_separator_token(start, end, seperator);
+		auto second_end = csv_find_separator_token(start, end, separator);
 
 		function(first_value, std::string_view(start, second_end.new_position - start));
 		return csv_advance_to_next_line(second_end.new_position + int32_t(second_end.found), end);

@@ -420,5 +420,23 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(err.accumulated_errors == "");
 		REQUIRE(state->world.province_size() == size_t(3248));
 	}
+	{
+		auto def_csv_file = open_file(map, NATIVE("definition.csv"));
+		if(def_csv_file) {
+			auto content = view_contents(*def_csv_file);
+			err.file_name = "definition.csv";
+			parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
+		}
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(context.map_color_to_province_id.size() != size_t(0));
+		auto clr = sys::pack_color(4, 78, 135);
+		auto it = context.map_color_to_province_id.find(clr);
+		REQUIRE(it != context.map_color_to_province_id.end());
+		auto id = it->second;
+		REQUIRE(id);
+		REQUIRE(id.index() < state->province_definitions.first_sea_province.index());
+		//REQUIRE(context.prov_id_to_original_id_map[id].is_sea == false);
+		REQUIRE(context.prov_id_to_original_id_map[id].id == 2702);
+	}
 }
 #endif

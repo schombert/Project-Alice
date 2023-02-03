@@ -413,7 +413,7 @@ namespace sys {
 		}
 		// gather names of poptypes
 		list_pop_types(*this, context);
-		// read rebel_types.txt
+		// pre parse rebel_types.txt
 		{
 			context.rebel_types_file = open_file(common, NATIVE("rebel_types.txt"));
 			if(context.rebel_types_file) {
@@ -425,6 +425,7 @@ namespace sys {
 		}
 
 		auto map = open_directory(root, NATIVE("map"));
+		// parse default.map
 		{
 			auto def_map_file = open_file(map, NATIVE("default.map"));
 			if(def_map_file) {
@@ -432,6 +433,15 @@ namespace sys {
 				err.file_name = "default.map";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_default_map_file(gen, err, context);
+			}
+		}
+		// parse definition.csv
+		{
+			auto def_csv_file = open_file(map, NATIVE("definition.csv"));
+			if(def_csv_file) {
+				auto content = view_contents(*def_csv_file);
+				err.file_name = "definition.csv";
+				parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
 			}
 		}
 		// TODO do something with err

@@ -266,6 +266,8 @@ namespace parsers {
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
 
+		ankerl::unordered_dense::map<uint32_t, dcon::province_id> map_color_to_province_id;
+
 		std::optional<simple_fs::file> ideologies_file;
 		std::optional<simple_fs::file> issues_file;
 		std::optional<simple_fs::file> cb_types_file;
@@ -1088,12 +1090,14 @@ namespace parsers {
 			context.prov_id_to_original_id_map.resize(value - 1);
 
 			for(int32_t i = 1; i < value; ++i) {
-				context.prov_id_to_original_id_map[dcon::province_id(dcon::province_id::value_base_t(value))].id = value;
+				context.prov_id_to_original_id_map[dcon::province_id(dcon::province_id::value_base_t(i - 1))].id = i;
 			}
 		}
 
 		void finish(scenario_building_context&);
 	};
+
+	void read_map_colors(char const* start, char const* end, error_handler& err, scenario_building_context& context);
 }
 
 #include "parser_defs_generated.hpp"
