@@ -375,5 +375,22 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(0) == sys::national_mod_offsets::factory_throughput);
 		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(-0.2f));
 	}
+	{
+		auto defines_file = open_file(common, NATIVE("defines.lua"));
+		if(defines_file) {
+			auto content = view_contents(*defines_file);
+			err.file_name = "defines.lua";
+			state->defines.parse_file(*state, std::string_view(content.data, content.data + content.file_size), err);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+	}
+	{
+		sys::list_pop_types(*state, context);
+
+		auto nvit = context.map_of_poptypes.find(std::string("clergymen"));
+		REQUIRE(nvit != context.map_of_poptypes.end());
+		REQUIRE(bool(nvit->second) == true);
+	}
 }
 #endif

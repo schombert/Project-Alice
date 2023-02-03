@@ -17,6 +17,7 @@
 #include "military.hpp"
 #include "nations.hpp"
 #include "date_interface.hpp"
+#include "defines.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -62,6 +63,8 @@ namespace sys {
 		dcon::data_container world;
 
 		// scenario data
+
+		parsing::defines defines;
 
 		economy::global_economy_state economy_definitions;
 		culture::global_cultural_state culture_definitions;

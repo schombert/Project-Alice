@@ -330,3 +330,14 @@ object {
 		type{ float }
 	}
 }
+
+object {
+	name{ pop_type}
+	storage_type{ contiguous }
+	size{ 20 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+}
