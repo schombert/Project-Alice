@@ -360,3 +360,18 @@ object {
 		type{ text_sequence_id }
 	}
 }
+
+object {
+	name{ province }
+	storage_type{ contiguous }
+	size{ 8000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ is_water }
+		type{ bitfield }
+	}
+}
