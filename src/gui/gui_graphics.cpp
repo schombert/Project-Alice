@@ -97,11 +97,40 @@ xy_pair child_relative_location(element_base const& parent, element_base const& 
 	}
 }
 
+uint8_t element_base::get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid) {
+	uint8_t* pixels = state.open_gl.asset_textures[tid].data;
+	int32_t width = state.open_gl.asset_textures[tid].size_x;
+	int32_t stride = state.open_gl.asset_textures[tid].channels;
+	return pixels[(y * width * stride) + (x * stride) + stride - 1];
+}
+
 element_base* element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(0 <= x && x <= base_data.size.x && 0 <= y && y <= base_data.size.y && test_mouse(state, x, y) == message_result::consumed)
-		return this;
-	else
-		return nullptr;
+	if(0 <= x && x < base_data.size.x && 0 <= y && y < base_data.size.y && test_mouse(state, x, y) == message_result::consumed) {
+		auto elem_type = base_data.get_element_type();
+		if(elem_type == element_type::button || elem_type == element_type::image || elem_type == element_type::listbox) {
+			dcon::gfx_object_id gfx_id;
+			if(elem_type == element_type::button) {
+				gfx_id = base_data.data.button.button_image;
+			} else if(elem_type == element_type::image) {
+				gfx_id = base_data.data.image.gfx_object;
+			} else {
+				gfx_id = base_data.data.list_box.background_image;
+			}
+			auto& gfx_def = state.ui_defs.gfx[gfx_id];
+			auto mask_handle = gfx_def.type_dependant;
+			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle) {
+				return get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle) ? this : nullptr;
+			} else if(mask_handle && gfx_def.primary_texture_handle) {
+				ogl::get_texture_handle(state, dcon::texture_id(mask_handle - 1), true);
+				return get_pixel_opacity(state, x, y, dcon::texture_id(mask_handle - 1)) ? this : nullptr;
+			} else {
+				return this;
+			}
+		} else {
+			return this;
+		}
+	}
+	return nullptr;
 }
 message_result element_base::impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	if(0 <= x && x <= base_data.size.x && 0 <= y && y <= base_data.size.y)
