@@ -375,6 +375,11 @@ object {
 		name{ continent }
 		type{ modifier_id }
 	}
+
+	property{
+		name{ climate }
+		type{ modifier_id }
+	}
 }
 
 object {

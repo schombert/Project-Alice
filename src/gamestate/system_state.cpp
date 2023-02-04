@@ -474,6 +474,16 @@ namespace sys {
 				parsers::parse_continent_file(gen, err, context);
 			}
 		}
+		// parse climate.txt
+		{
+			auto climate_file = open_file(map, NATIVE("climate.txt"));
+			if(climate_file) {
+				auto content = view_contents(*climate_file);
+				err.file_name = "climate.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_climate_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }

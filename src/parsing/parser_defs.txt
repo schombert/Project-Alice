@@ -568,3 +568,10 @@ continent_definition
 
 continent_file
 	#any           extern     make_continent_definition discard
+
+climate_definition
+	#base          modifier_base
+	#free          value     int                        member_fn
+
+climate_file
+	#any           extern     make_climate_definition   discard
