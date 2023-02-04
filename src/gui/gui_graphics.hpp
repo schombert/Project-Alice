@@ -343,6 +343,7 @@ namespace ui {
 
 		// elements we are keeping track of
 		element_base* main_menu = nullptr;
+		element_base* production_window = nullptr;
 
 		state();
 	};
