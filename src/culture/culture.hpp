@@ -32,12 +32,23 @@ struct crime_info {
 	bool available_by_default = false;
 };
 
+enum class tech_category : uint8_t {
+	army, navy, commerce, culture, industry
+};
+
+struct folder_info {
+	dcon::text_sequence_id name;
+	tech_category category = tech_category::army;
+};
+
 struct global_cultural_state {
 	std::vector<dcon::issue_id> party_issues;
 	std::vector<dcon::issue_id> political_issues;
 	std::vector<dcon::issue_id> social_issues;
 	std::vector<dcon::issue_id> military_issues;
 	std::vector<dcon::issue_id> economic_issues;
+
+	std::vector<folder_info> tech_folders; // contains *all* the folder names; techs index into this by an integer index
 
 	tagged_vector<government_type, dcon::government_type_id> governments;
 	tagged_vector<crime_info, dcon::crime_id> crimes;

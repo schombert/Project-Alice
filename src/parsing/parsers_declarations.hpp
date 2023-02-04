@@ -243,6 +243,10 @@ namespace parsers {
 		dcon::modifier_id id;
 		uint32_t color = 0;
 	};
+	struct pending_tech_content {
+		token_generator generator_state;
+		dcon::technology_id id;
+	};
 
 	struct scenario_building_context {
 		sys::state& state;
@@ -268,6 +272,8 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::pop_type_id> map_of_poptypes;
 		ankerl::unordered_dense::map<std::string, pending_rebel_type_content> map_of_rebeltypes;
 		ankerl::unordered_dense::map<std::string, terrain_type> map_of_terrain_types;
+		ankerl::unordered_dense::map<std::string, int32_t> map_of_tech_folders;
+		ankerl::unordered_dense::map<std::string, pending_tech_content> map_of_technologies;
 
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -280,6 +286,7 @@ namespace parsers {
 		std::optional<simple_fs::file> crimes_file;
 		std::optional<simple_fs::file> triggered_modifiers_file;
 		std::optional<simple_fs::file> rebel_types_file;
+		std::vector<simple_fs::file> tech_and_invention_files;
 		
 		scenario_building_context(sys::state& state) : state(state) { }
 	};
@@ -1207,6 +1214,59 @@ namespace parsers {
 	};
 
 	void make_climate_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	/*
+tech_folder_list
+	#free           value     text                      member_fn
+
+tech_groups_list
+	#any           extern    make_tech_folder_list      discard
+
+tech_schools_list
+	#any           extern    read_school_modifier       discard
+
+technology_main_file
+	folders        group     tech_groups_list           member
+	schools        group     tech_schools_list          member
+
+technology_sub_file
+	#any           extern    register_technology        discard
+	*/
+
+	struct tech_group_context {
+		scenario_building_context& outer_context;
+		::culture::tech_category category = ::culture::tech_category::army;
+		tech_group_context(scenario_building_context& outer_context, ::culture::tech_category category) : outer_context(outer_context), category(category) { }
+	};
+	struct tech_folder_list {
+		void free_value(std::string_view name, error_handler& err, int32_t line, tech_group_context& context) {
+			auto name_id = text::find_or_add_key(context.outer_context.state, name);
+			auto cindex = context.outer_context.state.culture_definitions.tech_folders.size();
+			context.outer_context.state.culture_definitions.tech_folders.push_back(::culture::folder_info{ name_id , context.category });
+			context.outer_context.map_of_tech_folders.insert_or_assign(std::string(name), int32_t(cindex));
+		}
+		void finish(tech_group_context&) { }
+	};
+	struct tech_groups_list {
+		void finish(scenario_building_context&) { }
+	};
+	struct tech_schools_list {
+		void finish(scenario_building_context&) { }
+	};
+	struct technology_main_file {
+		tech_groups_list folders;
+		tech_schools_list schools;
+		void finish(scenario_building_context&) { }
+	};
+	struct technology_sub_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_tech_folder_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void read_school_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void register_technology(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+
 }
 
 #include "parser_defs_generated.hpp"

@@ -484,6 +484,16 @@ namespace sys {
 				parsers::parse_climate_file(gen, err, context);
 			}
 		}
+		// parse technology.txt
+		{
+			auto tech_file = open_file(common, NATIVE("technology.txt"));
+			if(tech_file) {
+				auto content = view_contents(*tech_file);
+				err.file_name = "technology.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_technology_main_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }
