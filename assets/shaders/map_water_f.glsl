@@ -13,10 +13,9 @@ layout (location = 4) uniform float time;
 
 // sheet is composed of 64 files, in 4 cubes of 4 rows of 4 columns
 // so each column has 8 tiles, and each row has 8 tiles too
-
-const float xx = 1 / map_size.x;
-const float yy = 1 / map_size.y;
-const vec2 pix = vec2(xx, yy);
+float xx = 1 / map_size.x;
+float yy = 1 / map_size.y;
+vec2 pix = vec2(xx, yy);
 
 // Water effect taken from Vic2 fx/water/PixelShader_HoiWater_2_0
 const float WRAP = 0.8;
@@ -26,6 +25,7 @@ const float SpecValueOne = 8.0;
 const float SpecValueTwo = 2.0;
 const float vWaterTransparens = 1.0; //more transparance lets you see more of background
 const float vColorMapFactor = 1.0f; //how much colormap
+
 vec4 get_water(vec2 tex_coord)
 {
 	vec3 WorldColorColor = texture(colormap_water, tex_coord).rgb;
