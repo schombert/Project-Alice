@@ -35,8 +35,8 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Read states from `map\region.txt` *Done*
 - Read continents from `map\continent.txt` *Done*
 - Read climates from `map\climate.txt` *Done*
-- Pre parse technologies from `technology.txt`
-- Pre parse inventions from the `inventions` directory
+- Pre parse technologies from `technology.txt` *Done*
+- Pre parse inventions from the `inventions` directory *Done*
 
 ### Phase 3: main data loading
 

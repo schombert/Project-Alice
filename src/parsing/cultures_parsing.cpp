@@ -243,4 +243,15 @@ void register_technology(std::string_view name, token_generator& gen, error_hand
 	gen.discard_group();
 }
 
+void register_invention(std::string_view name, token_generator& gen, error_handler& err, tech_group_context& context) {
+	auto new_id = context.outer_context.state.world.create_invention();
+
+	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	context.outer_context.state.world.invention_set_name(new_id, name_id);
+	context.outer_context.state.world.invention_set_technology_type(new_id, uint8_t(context.category));
+
+	context.outer_context.map_of_inventions.insert_or_assign(std::string(name), pending_invention_content{ gen, new_id });
+	gen.discard_group();
+}
+
 }

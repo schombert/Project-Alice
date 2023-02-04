@@ -433,4 +433,8 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
+	property{
+		name{technology_type}
+		type{uint8_t}
+	}
 }

@@ -494,6 +494,65 @@ namespace sys {
 				parsers::parse_technology_main_file(gen, err, context);
 			}
 		}
+		// pre parse inventions
+		{
+			auto inventions = open_directory(root, NATIVE("inventions"));
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::army };
+				auto i_file = open_file(inventions, NATIVE("army_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "army_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::navy };
+				auto i_file = open_file(inventions, NATIVE("navy_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "navy_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::commerce };
+				auto i_file = open_file(inventions, NATIVE("commerce_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "commerce_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::culture };
+				auto i_file = open_file(inventions, NATIVE("culture_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "culture_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::industry };
+				auto i_file = open_file(inventions, NATIVE("industry_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "industry_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+		}
 		// TODO do something with err
 	}
 }
