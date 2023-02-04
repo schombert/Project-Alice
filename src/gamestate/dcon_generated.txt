@@ -8,6 +8,7 @@ make_index{gfx_object_id}{uint16_t}
 make_index{gui_def_id}{uint16_t}
 make_index{government_type_id}{uint8_t}
 make_index{crime_id}{uint8_t}
+make_index{unit_type_id}{uint8_t}
 
 object{
 	name{ national_identity }
@@ -375,6 +376,11 @@ object {
 		name{ continent }
 		type{ modifier_id }
 	}
+
+	property{
+		name{ climate }
+		type{ modifier_id }
+	}
 }
 
 object {
@@ -401,5 +407,35 @@ relationship{
 		name{state}
 		type{many}
 		index_storage{array}
+	}
+}
+
+object {
+	name{ technology }
+	storage_type{ contiguous }
+	size{ 200 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{folder_index}
+		type{uint8_t}
+	}
+}
+
+object {
+	name{ invention }
+	storage_type{ contiguous }
+	size{ 600 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{technology_type}
+		type{uint8_t}
 	}
 }

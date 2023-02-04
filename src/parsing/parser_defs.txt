@@ -568,3 +568,79 @@ continent_definition
 
 continent_file
 	#any           extern     make_continent_definition discard
+
+climate_definition
+	#base          modifier_base
+	#free          value      int                       member_fn
+
+climate_file
+	#any           extern     make_climate_definition   discard
+
+tech_folder_list
+	#free          value      text                      member_fn
+
+tech_groups_list
+	#any           extern     make_tech_folder_list     discard
+
+tech_schools_list
+	#any           extern     read_school_modifier      discard
+
+technology_main_file
+	folders        group      tech_groups_list          member
+	schools        group      tech_schools_list         member
+
+technology_sub_file
+	#any           extern     register_technology       discard
+
+inventions_file
+	#any           extern     register_invention        discard
+
+commodity_set
+	#any           value      float            member_fn
+
+unit_definition
+	icon           value      int              member
+	type           value      text             member_fn   (type_text)
+	sprite         value      none             discard
+	unit_type      value      text             member_fn   (unit_type_text)
+	active         value      bool             member
+	default_organisation  value   int          member
+	maximum_speed  value      float            member
+	build_time     value      int              member
+	supply_consumption  value float            member
+	build_cost     group      commodity_set    member
+	supply_cost    group      commodity_set    member
+	reconnaissance value      float            member  (reconnaissance_or_fire_range)
+	attack         value      float            member  (attack_or_gun_power)
+	defence        value      float            member  (defence_or_hull)
+	discipline     value      float            member
+	support        value      float            member
+	maneuver       value      float            member  (maneuver_or_evasion)
+	siege          value      float            member  (siege_or_torpedo_attack)
+	move_sound     value      none             discard
+	select_sound   value      none             discard
+	floating_flag  value      none             discard
+	weighted_value value      none             discard
+	priority       value      none             discard
+	max_strength   value      none             discard
+	limit_per_port value      none             discard
+	naval_icon     value      int              member
+	capital        value      bool             member
+	colonial_points value     int              member
+	can_build_overseas value  bool             member
+	min_port_level value      int              member
+	supply_consumption_score  value   int      member
+	hull           value      float            member  (defence_or_hull)
+	gun_power      value      float            member  (attack_or_gun_power)
+	fire_range     value      float            member  (reconnaissance_or_fire_range)
+	evasion        value      float            member  (maneuver_or_evasion)
+	torpedo_attack value      float            member  (siege_or_torpedo_attack)
+	transport      value      none             discard
+	sprite_mount   value      none             discard
+	sprite_override value      none             discard
+	primary_culture value     bool             member
+	sail           value      none             discard
+	sprite_mount_attach_node  value   none     discard
+
+unit_file
+	#any           extern     make_unit                 discard

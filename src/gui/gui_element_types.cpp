@@ -23,30 +23,6 @@ element_base* container_base::impl_probe_mouse(sys::state& state, int32_t x, int
 	return element_base::impl_probe_mouse(state, x, y);
 }
 
-message_result container_base::impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	message_result res = message_result::unseen;
-	for(auto& c : children) {
-		if(c->is_visible()) {
-			auto relative_location = child_relative_location(*this, *c);
-			res = greater_result(res, c->impl_on_lbutton_down(state, x - relative_location.x, y - relative_location.y, mods));
-			if(res == message_result::consumed)
-				return message_result::consumed;
-		}
-	}
-	return greater_result(res, element_base::impl_on_lbutton_down(state, x , y, mods));
-}
-message_result container_base::impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	message_result res = message_result::unseen;
-	for(auto& c : children) {
-		if(c->is_visible()) {
-			auto relative_location = child_relative_location(*this, *c);
-			res = greater_result(res, c->impl_on_rbutton_down(state, x - relative_location.x, y - relative_location.y, mods));
-			if(res == message_result::consumed)
-				return message_result::consumed;
-		}
-	}
-	return greater_result(res, element_base::impl_on_rbutton_down(state, x, y, mods));
-}
 message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	message_result res = message_result::unseen;
 	for(auto& c : children) {
@@ -57,18 +33,6 @@ message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_
 		}
 	}
 	return greater_result(res, element_base::impl_on_key_down(state, key, mods));
-}
-message_result container_base::impl_on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	message_result res = message_result::unseen;
-	for(auto& c : children) {
-		if(c->is_visible()) {
-			auto relative_location = child_relative_location(*this, *c);
-			res = greater_result(res, c->impl_on_scroll(state, x - relative_location.x, y - relative_location.y, amount, mods));
-			if(res == message_result::consumed)
-				return message_result::consumed;
-		}
-	}
-	return greater_result(res, element_base::impl_on_scroll(state, x, y, amount, mods));
 }
 void container_base::impl_on_update(sys::state& state) noexcept {
 	for(auto& c : children) {

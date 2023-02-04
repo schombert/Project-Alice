@@ -110,7 +110,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		auto union_tag = idc.get_identity_from_cultural_union_of();
 		auto usa_tag = context.map_of_ident_names.find(nations::tag_to_int('U', 'S', 'A'))->second;
-		
+
 		REQUIRE(union_tag == usa_tag);
 	}
 	{
@@ -497,6 +497,147 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(-0.5f));
 		REQUIRE(state->world.province_get_continent(context.original_id_to_prov_id_map[2702]) == id);
+	}
+	{
+		auto climate_file = open_file(map, NATIVE("climate.txt"));
+		if(climate_file) {
+			auto content = view_contents(*climate_file);
+			err.file_name = "climate.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_climate_file(gen, err, context);
+		}
+
+		//inhospitable_climate
+
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto nvit = context.map_of_modifiers.find(std::string("inhospitable_climate"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+
+		REQUIRE(state->world.modifier_get_province_values(id).get_offet_at_index(0) == sys::provincial_mod_offsets::farm_rgo_size);
+
+		REQUIRE(state->world.modifier_get_province_values(id).values[0] == 0.0f);
+		REQUIRE(state->world.province_get_climate(context.original_id_to_prov_id_map[2702]) == id);
+	}
+	{
+		auto tech_file = open_file(common, NATIVE("technology.txt"));
+		if(tech_file) {
+			auto content = view_contents(*tech_file);
+			err.file_name = "technology.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_technology_main_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto nvit = context.map_of_modifiers.find(std::string("army_tech_school"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+
+		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(0) == sys::national_mod_offsets::army_tech_research_bonus);
+		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(0.15f));
+
+		auto fit = context.map_of_tech_folders.find("naval_engineering");
+		REQUIRE(fit != context.map_of_tech_folders.end());
+		REQUIRE(state->culture_definitions.tech_folders[fit->second].category == culture::tech_category::navy);
+
+		auto tit = context.map_of_technologies.find(std::string("modern_army_doctrine"));
+		REQUIRE(tit != context.map_of_technologies.end());
+		REQUIRE(bool(tit->second.id) == true);
+	}
+	{
+		auto inventions = open_directory(root, NATIVE("inventions"));
+		{
+			parsers::tech_group_context invention_context{ context, culture::tech_category::army };
+			auto i_file = open_file(inventions, NATIVE("army_inventions.txt"));
+			if(i_file) {
+				auto content = view_contents(*i_file);
+				err.file_name = "army_inventions.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_inventions_file(gen, err, invention_context);
+				context.tech_and_invention_files.emplace_back(std::move(*i_file));
+			}
+		}
+		{
+			parsers::tech_group_context invention_context{ context, culture::tech_category::navy };
+			auto i_file = open_file(inventions, NATIVE("navy_inventions.txt"));
+			if(i_file) {
+				auto content = view_contents(*i_file);
+				err.file_name = "navy_inventions.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_inventions_file(gen, err, invention_context);
+				context.tech_and_invention_files.emplace_back(std::move(*i_file));
+			}
+		}
+		{
+			parsers::tech_group_context invention_context{ context, culture::tech_category::commerce };
+			auto i_file = open_file(inventions, NATIVE("commerce_inventions.txt"));
+			if(i_file) {
+				auto content = view_contents(*i_file);
+				err.file_name = "commerce_inventions.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_inventions_file(gen, err, invention_context);
+				context.tech_and_invention_files.emplace_back(std::move(*i_file));
+			}
+		}
+		{
+			parsers::tech_group_context invention_context{ context, culture::tech_category::culture };
+			auto i_file = open_file(inventions, NATIVE("culture_inventions.txt"));
+			if(i_file) {
+				auto content = view_contents(*i_file);
+				err.file_name = "culture_inventions.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_inventions_file(gen, err, invention_context);
+				context.tech_and_invention_files.emplace_back(std::move(*i_file));
+			}
+		}
+		{
+			parsers::tech_group_context invention_context{ context, culture::tech_category::industry };
+			auto i_file = open_file(inventions, NATIVE("industry_inventions.txt"));
+			if(i_file) {
+				auto content = view_contents(*i_file);
+				err.file_name = "industry_inventions.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_inventions_file(gen, err, invention_context);
+				context.tech_and_invention_files.emplace_back(std::move(*i_file));
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto tit = context.map_of_inventions.find(std::string("direct_current"));
+		REQUIRE(tit != context.map_of_inventions.end());
+		REQUIRE(bool(tit->second.id) == true);
+		REQUIRE(culture::tech_category(state->world.invention_get_technology_type(tit->second.id)) == culture::tech_category::industry);
+	}
+	{
+		auto units = open_directory(root, NATIVE("units"));
+		for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
+			auto opened_file = open_file(unit_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_unit_file(gen, err, context);
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto uit = context.map_of_unit_types.find("battleship");
+		REQUIRE(uit != context.map_of_unit_types.end());
+		auto id = uit->second;
+
+		REQUIRE(state->military_definitions.unit_base_definitions[id].active == false);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].defence_or_hull == 70.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].supply_consumption_score == 50);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[0] == 80.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[1] == 20.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[2] == 10.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[3] == 25.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[4] == 0.0f);
 	}
 }
 #endif
