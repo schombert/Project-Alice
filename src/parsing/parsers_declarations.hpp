@@ -1156,6 +1156,34 @@ namespace parsers {
 	};
 
 	void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct continent_building_context {
+		scenario_building_context& outer_context;
+		dcon::modifier_id id;
+	};
+
+	struct continent_provinces {
+		void free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context) {
+			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			} else {
+				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+				context.outer_context.state.world.province_set_continent(province_id, context.id);
+			}
+		}
+		void finish(continent_building_context&) { }
+	};
+
+	struct continent_definition : public modifier_base {
+		continent_provinces provinces;
+		void finish(continent_building_context&) { }
+	};
+
+	struct continent_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_continent_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "parser_defs_generated.hpp"
