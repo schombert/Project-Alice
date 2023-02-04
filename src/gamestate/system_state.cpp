@@ -464,6 +464,16 @@ namespace sys {
 				parsers::parse_region_file(gen, err, context);
 			}
 		}
+		// parse continent.txt
+		{
+			auto continent_file = open_file(map, NATIVE("continent.txt"));
+			if(continent_file) {
+				auto content = view_contents(*continent_file);
+				err.file_name = "continent.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_continent_file(gen, err, context);
+			}
+		}
 		// TODO do something with err
 	}
 }
