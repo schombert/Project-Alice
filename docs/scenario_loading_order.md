@@ -34,7 +34,7 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Read terrain modifiers from `map\terrain.txt` *Done*
 - Read states from `map\region.txt` *Done*
 - Read continents from `map\continent.txt` *Done*
-- Read climates from `map\climate.txt`
+- Read climates from `map\climate.txt` *Done*
 - Pre parse technologies from `technology.txt`
 - Pre parse inventions from the `inventions` directory
 

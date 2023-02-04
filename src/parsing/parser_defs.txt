@@ -571,7 +571,23 @@ continent_file
 
 climate_definition
 	#base          modifier_base
-	#free          value     int                        member_fn
+	#free          value      int                       member_fn
 
 climate_file
 	#any           extern     make_climate_definition   discard
+
+tech_folder_list
+	#free          value      text                      member_fn
+
+tech_groups_list
+	#any           extern     make_tech_folder_list     discard
+
+tech_schools_list
+	#any           extern     read_school_modifier      discard
+
+technology_main_file
+	folders        group      tech_groups_list          member
+	schools        group      tech_schools_list         member
+
+technology_sub_file
+	#any           extern     register_technology       discard

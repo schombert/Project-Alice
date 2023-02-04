@@ -408,3 +408,29 @@ relationship{
 		index_storage{array}
 	}
 }
+
+object {
+	name{ technology }
+	storage_type{ contiguous }
+	size{ 200 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{folder_index}
+		type{uint8_t}
+	}
+}
+
+object {
+	name{ invention }
+	storage_type{ contiguous }
+	size{ 600 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+}

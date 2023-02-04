@@ -1,4 +1,5 @@
 #include "parsers_declarations.hpp"
+#include "culture.hpp"
 
 namespace parsers {
 
@@ -180,8 +181,65 @@ void register_rebel_type(std::string_view name, token_generator& gen, error_hand
 	context.state.world.rebel_type_set_description(new_id, desc_id);
 	context.state.world.rebel_type_set_army_name(new_id, army_id);
 
-	context.map_of_rebeltypes.insert_or_assign(std::string(name), pending_rebel_type_content{ gen ,new_id });
+	context.map_of_rebeltypes.insert_or_assign(std::string(name), pending_rebel_type_content{ gen, new_id });
 
+	gen.discard_group();
+}
+
+void make_tech_folder_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+
+	::culture::tech_category cat = ::culture::tech_category::army;
+	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "army_tech")) {
+		cat = ::culture::tech_category::army;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "navy_tech")) {
+		cat = ::culture::tech_category::navy;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "commerce_tech")) {
+		cat = ::culture::tech_category::commerce;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "culture_tech")) {
+		cat = ::culture::tech_category::culture;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "industry_tech")) {
+		cat = ::culture::tech_category::industry;
+	} else {
+		err.accumulated_errors += "Unknown technology category " + std::string(name) + " in file " + err.file_name + "\n";
+	}
+
+	tech_group_context new_context{context, cat};
+	parse_tech_folder_list(gen, err, new_context);
+
+	// read sub file
+	auto root = get_root(context.state.common_fs);
+	auto tech_folder = open_directory(root, NATIVE("technologies"));
+	auto tech_file = open_file(tech_folder, simple_fs::win1250_to_native(name) + NATIVE(".txt"));
+	if(tech_file) {
+		auto content = view_contents(*tech_file);
+		err.file_name = std::string(name) + ".txt";
+		token_generator file_gen(content.data, content.data + content.file_size);
+		parse_technology_sub_file(file_gen, err, context);
+
+		context.tech_and_invention_files.emplace_back(std::move(*tech_file));
+	}	
+}
+void read_school_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, name);
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
+	context.state.world.modifier_set_name(new_modifier, name_id);
+
+	auto school = parse_modifier_base(gen, err, context);
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(school.icon_index));
+	school.convert_to_national_mod();
+	context.state.world.modifier_set_national_values(new_modifier, school.constructed_definition);
+}
+
+void register_technology(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto new_id = context.state.world.create_technology();
+
+	auto name_id = text::find_or_add_key(context.state, name);
+	context.state.world.technology_set_name(new_id, name_id);
+
+	context.map_of_technologies.insert_or_assign(std::string(name), pending_tech_content{ gen, new_id });
 	gen.discard_group();
 }
 

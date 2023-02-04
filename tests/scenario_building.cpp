@@ -521,5 +521,31 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == 0.0f);
 		REQUIRE(state->world.province_get_climate(context.original_id_to_prov_id_map[2702]) == id);
 	}
+	{
+		auto tech_file = open_file(common, NATIVE("technology.txt"));
+		if(tech_file) {
+			auto content = view_contents(*tech_file);
+			err.file_name = "technology.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_technology_main_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto nvit = context.map_of_modifiers.find(std::string("army_tech_school"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+
+		REQUIRE(state->world.modifier_get_national_values(id).get_offet_at_index(0) == sys::national_mod_offsets::army_tech_research_bonus);
+		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(0.15f));
+
+		auto fit = context.map_of_tech_folders.find("naval_engineering");
+		REQUIRE(fit != context.map_of_tech_folders.end());
+		REQUIRE(state->culture_definitions.tech_folders[fit->second].category == culture::tech_category::navy);
+
+		auto tit = context.map_of_technologies.find(std::string("modern_army_doctrine"));
+		REQUIRE(tit != context.map_of_technologies.end());
+		REQUIRE(bool(tit->second.id) == true);
+	}
 }
 #endif
