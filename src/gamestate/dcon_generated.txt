@@ -8,6 +8,7 @@ make_index{gfx_object_id}{uint16_t}
 make_index{gui_def_id}{uint16_t}
 make_index{government_type_id}{uint8_t}
 make_index{crime_id}{uint8_t}
+make_index{unit_type_id}{uint8_t}
 
 object{
 	name{ national_identity }

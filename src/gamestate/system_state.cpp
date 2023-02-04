@@ -568,6 +568,19 @@ namespace sys {
 				}
 			}
 		}
+		// load unit type definitions
+		{
+			auto units = open_directory(root, NATIVE("units"));
+			for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
+				auto opened_file = open_file(unit_file);
+				if(opened_file) {
+					auto content = view_contents(*opened_file);
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_unit_file(gen, err, context);
+				}
+			}
+		}
 		// TODO do something with err
 	}
 
