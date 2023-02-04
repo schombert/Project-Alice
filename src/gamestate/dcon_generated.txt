@@ -149,7 +149,7 @@ object {
 object {
 	name{ modifier }
 	storage_type{ contiguous }
-	size{ 1000 }
+	size{ 1500 }
 
 	property{
 		name{ name }
@@ -172,7 +172,7 @@ object {
 object {
 	name{ factory_type }
 	storage_type{ contiguous }
-	size{ 40 }
+	size{ 64 }
 
 	property{
 		name{ name }
