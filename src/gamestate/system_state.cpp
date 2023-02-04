@@ -13,15 +13,21 @@ namespace sys {
 	//
 
 	void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-		// TODO: look at return value
-		ui_state.root->impl_on_rbutton_down(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), mod);
+		if(ui_state.under_mouse != nullptr) {
+			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
+			// TODO: look at return value
+			ui_state.under_mouse->impl_on_rbutton_down(*this, relative_location.x, relative_location.y, mod);
+		}
 	}
 	void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		map_display.on_mbuttom_down(x, y, x_size, y_size, mod);
 	}
 	void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-		// TODO: look at return value
-		ui_state.root->impl_on_lbutton_down(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), mod);
+		if(ui_state.under_mouse != nullptr) {
+			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
+			// TODO: look at return value
+			ui_state.under_mouse->impl_on_lbutton_down(*this, relative_location.x, relative_location.y, mod);
+		}
 	}
 	void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 
@@ -36,9 +42,14 @@ namespace sys {
 		}
 	}
 	void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
-		// TODO figure out tooltips
-		auto r = ui_state.root->impl_on_mouse_move(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), mod);
-		if(r != ui::message_result::consumed) {
+		if(ui_state.under_mouse != nullptr) {
+			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
+			// TODO figure out tooltips
+			auto r = ui_state.under_mouse->impl_on_mouse_move(*this, relative_location.x, relative_location.y, mod);
+			if(r != ui::message_result::consumed) {
+				map_display.on_mouse_move(x, y, x_size, y_size, mod);
+			}
+		} else {
 			map_display.on_mouse_move(x, y, x_size, y_size, mod);
 		}
 	}
@@ -64,10 +75,14 @@ namespace sys {
 		}
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
-		// TODO: look at return value
-		auto r = ui_state.root->impl_on_scroll(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), amount, mod);
-		if(r != ui::message_result::consumed) {
-			// TODO Settings for making zooming the map faster
+		if(ui_state.under_mouse != nullptr) {
+			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
+			auto r = ui_state.under_mouse->impl_on_scroll(*this, relative_location.x, relative_location.y, amount, mod);
+			if(r != ui::message_result::consumed) {
+				// TODO Settings for making zooming the map faster
+				map_display.on_mouse_wheel(x, y, mod, amount);
+			}
+		} else {
 			map_display.on_mouse_wheel(x, y, mod, amount);
 		}
 	}
@@ -474,6 +489,105 @@ namespace sys {
 				parsers::parse_continent_file(gen, err, context);
 			}
 		}
+		// parse climate.txt
+		{
+			auto climate_file = open_file(map, NATIVE("climate.txt"));
+			if(climate_file) {
+				auto content = view_contents(*climate_file);
+				err.file_name = "climate.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_climate_file(gen, err, context);
+			}
+		}
+		// parse technology.txt
+		{
+			auto tech_file = open_file(common, NATIVE("technology.txt"));
+			if(tech_file) {
+				auto content = view_contents(*tech_file);
+				err.file_name = "technology.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_technology_main_file(gen, err, context);
+			}
+		}
+		// pre parse inventions
+		{
+			auto inventions = open_directory(root, NATIVE("inventions"));
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::army };
+				auto i_file = open_file(inventions, NATIVE("army_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "army_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::navy };
+				auto i_file = open_file(inventions, NATIVE("navy_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "navy_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::commerce };
+				auto i_file = open_file(inventions, NATIVE("commerce_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "commerce_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::culture };
+				auto i_file = open_file(inventions, NATIVE("culture_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "culture_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+			{
+				parsers::tech_group_context invention_context{ context, culture::tech_category::industry };
+				auto i_file = open_file(inventions, NATIVE("industry_inventions.txt"));
+				if(i_file) {
+					auto content = view_contents(*i_file);
+					err.file_name = "industry_inventions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_inventions_file(gen, err, invention_context);
+					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				}
+			}
+		}
+		// load unit type definitions
+		{
+			auto units = open_directory(root, NATIVE("units"));
+			for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
+				auto opened_file = open_file(unit_file);
+				if(opened_file) {
+					auto content = view_contents(*opened_file);
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_unit_file(gen, err, context);
+				}
+			}
+		}
 		// TODO do something with err
+	}
+
+	ui::xy_pair state::get_scaled_relative_location(const ui::element_base& parent, const ui::element_base& child, int x, int y) {
+		auto relative_location = ui::child_relative_location(*ui_state.root, *ui_state.under_mouse);
+		relative_location.x = int16_t(x / user_settings.ui_scale) - relative_location.x;
+		relative_location.y = int16_t(y / user_settings.ui_scale) - relative_location.y;
+		return relative_location;
 	}
 }

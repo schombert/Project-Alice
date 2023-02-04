@@ -30,7 +30,7 @@ public:
 	}
 };
 
-class minimap_picture_window : public image_element_base {
+class minimap_picture_window : public opaque_element_base {
 public:
     void render(sys::state& state, int32_t x, int32_t y) noexcept override {
         image_element_base::render(state, x, y);
@@ -38,10 +38,14 @@ public:
     }
     
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-        auto minimap_size = glm::vec2(base_data.size.x, base_data.size.y);
+		auto minimap_size = glm::vec2(base_data.size.x, base_data.size.y);
         state.map_display.set_pos(glm::vec2(x, y) / minimap_size);
         return message_result::consumed;
-    }
+	}
+
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return message_result::unseen;
+	}
 };
 
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "dcon_generated.hpp"
+#include "container_types.hpp"
 
 namespace military {
 namespace cb_flag {
@@ -34,8 +35,44 @@ inline constexpr uint32_t po_take_from_sphere = 0x04000000;
 
 }
 
+enum class unit_type : uint8_t {
+	support, big_ship, cavalry, transport, light_ship, special, infantry
+};
+
+struct unit_definition {
+	dcon::text_sequence_id name;
+	int32_t icon = 0;
+	int32_t naval_icon = 0;
+	unit_type type = unit_type::infantry;
+
+	bool active = true;
+	float maximum_speed = 1.0f;
+	int32_t build_time = 30;
+	float supply_consumption = 1.0f;
+	economy::commodity_set build_cost;
+	economy::commodity_set supply_cost;
+
+	bool is_land = true;
+	bool capital = false;
+	bool can_build_overseas = true;
+	bool primary_culture = false;
+
+	float reconnaissance_or_fire_range = 0.0f;
+	float attack_or_gun_power = 0.0f;
+	float defence_or_hull = 0.0f;
+	float discipline = 0.0f;
+	float support = 0.0f;
+	float maneuver_or_evasion = 0.0f;
+	float siege_or_torpedo_attack = 0.0f;
+	int32_t colonial_points = 0;
+	int32_t min_port_level = 0;
+	int32_t supply_consumption_score = 0;
+	int32_t default_organisation = 30;
+};
+
 struct global_military_state {
 	dcon::leader_trait_id first_background_trait;
+	tagged_vector<unit_definition, dcon::unit_type_id> unit_base_definitions;
 };
 
 }

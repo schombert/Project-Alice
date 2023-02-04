@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "dcon_generated.hpp"
 
 // this is here simply to declare the state struct in a very general location
 namespace sys {
@@ -123,3 +124,14 @@ public:
 		return storage.back();
 	}
 };
+
+namespace economy {
+
+struct commodity_set {
+	static constexpr uint32_t set_size = 8;
+
+	float commodity_amounts[set_size] = { 0.0f };
+	dcon::commodity_id commodity_type[set_size] = { dcon::commodity_id{} };
+};
+
+}
