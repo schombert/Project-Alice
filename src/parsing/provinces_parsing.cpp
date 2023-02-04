@@ -123,4 +123,28 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 	}
 }
 
+void make_climate_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, name);
+
+	auto new_modifier = [&]() {
+		if(auto it = context.map_of_modifiers.find(std::string(name)); it != context.map_of_modifiers.end())
+			return it->second;
+
+		auto new_id = context.state.world.create_modifier();
+		context.map_of_modifiers.insert_or_assign(std::string(name), new_id);
+		context.state.world.modifier_set_name(new_id, name_id);
+		return new_id;
+	}();
+
+	climate_building_context new_context{ context, new_modifier };
+	auto climate = parse_climate_definition(gen, err, new_context);
+
+	if(climate.icon_index != 0)
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(climate.icon_index));
+	if(climate.constructed_definition.valid_offset_at_index(0)) {
+		climate.convert_to_province_mod();
+		context.state.world.modifier_set_province_values(new_modifier, climate.constructed_definition);
+	}
+}
+
 }

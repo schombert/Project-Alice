@@ -498,5 +498,28 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(-0.5f));
 		REQUIRE(state->world.province_get_continent(context.original_id_to_prov_id_map[2702]) == id);
 	}
+	{
+		auto climate_file = open_file(map, NATIVE("climate.txt"));
+		if(climate_file) {
+			auto content = view_contents(*climate_file);
+			err.file_name = "climate.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_climate_file(gen, err, context);
+		}
+
+		//inhospitable_climate
+
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto nvit = context.map_of_modifiers.find(std::string("inhospitable_climate"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+
+		REQUIRE(state->world.modifier_get_province_values(id).get_offet_at_index(0) == sys::provincial_mod_offsets::farm_rgo_size);
+
+		REQUIRE(state->world.modifier_get_province_values(id).values[0] == 0.0f);
+		REQUIRE(state->world.province_get_climate(context.original_id_to_prov_id_map[2702]) == id);
+	}
 }
 #endif
