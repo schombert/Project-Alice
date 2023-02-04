@@ -370,6 +370,11 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
+
+	property{
+		name{ continent }
+		type{ modifier_id }
+	}
 }
 
 object {
