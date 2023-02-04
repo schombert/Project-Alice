@@ -247,6 +247,10 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::technology_id id;
 	};
+	struct pending_invention_content {
+		token_generator generator_state;
+		dcon::invention_id id;
+	};
 
 	struct scenario_building_context {
 		sys::state& state;
@@ -274,6 +278,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, terrain_type> map_of_terrain_types;
 		ankerl::unordered_dense::map<std::string, int32_t> map_of_tech_folders;
 		ankerl::unordered_dense::map<std::string, pending_tech_content> map_of_technologies;
+		ankerl::unordered_dense::map<std::string, pending_invention_content> map_of_inventions;
 
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -1215,24 +1220,6 @@ namespace parsers {
 
 	void make_climate_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
-	/*
-tech_folder_list
-	#free           value     text                      member_fn
-
-tech_groups_list
-	#any           extern    make_tech_folder_list      discard
-
-tech_schools_list
-	#any           extern    read_school_modifier       discard
-
-technology_main_file
-	folders        group     tech_groups_list           member
-	schools        group     tech_schools_list          member
-
-technology_sub_file
-	#any           extern    register_technology        discard
-	*/
-
 	struct tech_group_context {
 		scenario_building_context& outer_context;
 		::culture::tech_category category = ::culture::tech_category::army;
@@ -1266,7 +1253,11 @@ technology_sub_file
 	void read_school_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 	void register_technology(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
+	struct inventions_file {
+		void finish(tech_group_context&) { }
+	};
 
+	void register_invention(std::string_view name, token_generator& gen, error_handler& err, tech_group_context& context); //but not at the patent office
 }
 
 #include "parser_defs_generated.hpp"

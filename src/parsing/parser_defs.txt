@@ -591,3 +591,6 @@ technology_main_file
 
 technology_sub_file
 	#any           extern     register_technology       discard
+
+inventions_file
+	#any           extern     register_invention        discard
