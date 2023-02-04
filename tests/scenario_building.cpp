@@ -110,7 +110,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		auto union_tag = idc.get_identity_from_cultural_union_of();
 		auto usa_tag = context.map_of_ident_names.find(nations::tag_to_int('U', 'S', 'A'))->second;
-		
+
 		REQUIRE(union_tag == usa_tag);
 	}
 	{
@@ -611,6 +611,33 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(tit != context.map_of_inventions.end());
 		REQUIRE(bool(tit->second.id) == true);
 		REQUIRE(culture::tech_category(state->world.invention_get_technology_type(tit->second.id)) == culture::tech_category::industry);
+	}
+	{
+		auto units = open_directory(root, NATIVE("units"));
+		for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
+			auto opened_file = open_file(unit_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_unit_file(gen, err, context);
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto uit = context.map_of_unit_types.find("battleship");
+		REQUIRE(uit != context.map_of_unit_types.end());
+		auto id = uit->second;
+
+		REQUIRE(state->military_definitions.unit_base_definitions[id].active == false);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].defence_or_hull == 70.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].supply_consumption_score == 50);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[0] == 80.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[1] == 20.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[2] == 10.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[3] == 25.0f);
+		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[4] == 0.0f);
 	}
 }
 #endif

@@ -279,6 +279,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, int32_t> map_of_tech_folders;
 		ankerl::unordered_dense::map<std::string, pending_tech_content> map_of_technologies;
 		ankerl::unordered_dense::map<std::string, pending_invention_content> map_of_inventions;
+		ankerl::unordered_dense::map<std::string, dcon::unit_type_id> map_of_unit_types;
 
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -1258,6 +1259,61 @@ namespace parsers {
 	};
 
 	void register_invention(std::string_view name, token_generator& gen, error_handler& err, tech_group_context& context); //but not at the patent office
+
+	struct commodity_set : public economy::commodity_set {
+		int32_t num_added = 0;
+		void any_value(std::string_view name, association_type, float value, error_handler& err, int32_t line, scenario_building_context& context) {
+			auto found_commodity = context.map_of_commodity_names.find(std::string(name));
+			if(found_commodity != context.map_of_commodity_names.end()) {
+				if(num_added < int32_t(economy::commodity_set::set_size)) {
+					commodity_amounts[num_added] = value;
+					commodity_type[num_added] = found_commodity->second;
+					++num_added;
+				} else {
+					err.accumulated_errors += "Too many items in a commodity set, in file " + err.file_name + " line " + std::to_string(line) + "\n";
+				}
+			} else {
+				err.accumulated_errors += "Unknown commodity " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+			}
+		}
+
+		void finish(scenario_building_context&) { }
+	};
+
+	struct unit_definition : public military::unit_definition {
+		void unit_type_text(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "support"))
+				type = military::unit_type::support;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "big_ship"))
+				type = military::unit_type::big_ship;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cavalry"))
+				type = military::unit_type::cavalry;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "transport"))
+				type = military::unit_type::transport;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "light_ship"))
+				type = military::unit_type::light_ship;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "special"))
+				type = military::unit_type::special;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "infantry"))
+				type = military::unit_type::infantry;
+		}
+		void type_text(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "land"))
+				is_land = true;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval"))
+				is_land = false;
+			else
+				err.accumulated_errors += std::string(value) + " is not a valid unit type (" + err.file_name + " line " + std::to_string(line) + ")\n";
+
+		}
+		void finish(scenario_building_context&) { }
+	};
+
+	struct unit_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_unit(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "parser_defs_generated.hpp"

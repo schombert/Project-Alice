@@ -55,5 +55,18 @@ void background_traits_set(token_generator& gen, error_handler& err, scenario_bu
 	parse_traits_set(gen, err, context);
 }
 
+
+void make_unit(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	dcon::unit_type_id new_id = dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
+	context.state.military_definitions.unit_base_definitions.emplace_back();
+
+	auto name_id = text::find_or_add_key(context.state, name);
+	context.state.military_definitions.unit_base_definitions.back().name = name_id;
+
+	context.state.military_definitions.unit_base_definitions.back() = parsers::parse_unit_definition(gen, err, context);
+
+	context.map_of_unit_types.insert_or_assign(std::string(name), new_id);
+}
+
 }
 
