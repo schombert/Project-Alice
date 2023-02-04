@@ -558,3 +558,13 @@ state_definition
 
 region_file
 	#any           extern     make_state_definition     discard
+
+continent_provinces
+	#free          value      int                       member_fn
+
+continent_definition
+	#base          modifier_base
+	provinces      group      continent_provinces       member
+
+continent_file
+	#any           extern     make_continent_definition discard

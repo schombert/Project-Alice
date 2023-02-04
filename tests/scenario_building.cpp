@@ -478,5 +478,25 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto absb = id724.get_abstract_state_membership_as_province().get_state();
 		REQUIRE(absa == absb);
 	}
+	{
+		auto continent_file = open_file(map, NATIVE("continent.txt"));
+		if(continent_file) {
+			auto content = view_contents(*continent_file);
+			err.file_name = "continent.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_continent_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto nvit = context.map_of_modifiers.find(std::string("asia"));
+		REQUIRE(nvit != context.map_of_modifiers.end());
+		auto id = nvit->second;
+
+		REQUIRE(state->world.modifier_get_province_values(id).get_offet_at_index(0) == sys::provincial_mod_offsets::assimilation_rate);
+
+		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(-0.5f));
+		REQUIRE(state->world.province_get_continent(context.original_id_to_prov_id_map[2702]) == id);
+	}
 }
 #endif

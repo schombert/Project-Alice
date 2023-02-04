@@ -91,4 +91,36 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 	parsers::parse_state_definition(gen, err, new_context);
 }
 
+void make_continent_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, name);
+	auto new_modifier = context.state.world.create_modifier();
+
+	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
+
+	continent_building_context new_context{ context, new_modifier };
+	context.state.world.modifier_set_name(new_modifier, name_id);
+
+	auto continent = parse_continent_definition(gen, err, new_context);
+
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(continent.icon_index));
+	continent.convert_to_province_mod();
+	context.state.world.modifier_set_province_values(new_modifier, continent.constructed_definition);
+
+	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "europe")) {
+		context.state.province_definitions.europe = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "asia")) {
+		context.state.province_definitions.asia = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "africa")) {
+		context.state.province_definitions.africa = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "north_america")) {
+		context.state.province_definitions.north_america = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "south_america")) {
+		context.state.province_definitions.south_america = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "oceania")) {
+		context.state.province_definitions.oceania = new_modifier;
+	} else {
+		err.accumulated_errors += "Unknown continent " + std::string(name) + " in file " + err.file_name + "\n";
+	}
+}
+
 }
