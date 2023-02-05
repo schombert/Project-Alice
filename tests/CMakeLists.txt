@@ -55,8 +55,15 @@ add_dependencies(tests_project GENERATE_TEST_PARSERS)
 add_dependencies(tests_project GENERATE_PARSERS)
 add_dependencies(tests_project GENERATE_CONTAINER ParserGenerator)
 
+
+if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
+	target_compile_definitions(tests_project PRIVATE LOCAL_USER_SETTINGS)
+else()
+	target_compile_definitions(tests_project PRIVATE "GAME_DIR=\"NONE\"")
+	target_compile_definitions(tests_project PRIVATE "IGNORE_REAL_FILES_TESTS=1")
+endif()
+
 target_compile_definitions(tests_project PRIVATE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
-target_compile_definitions(tests_project PRIVATE "GAME_DIR=\"${GAME_FILES_DIRECTORY}\"")
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 

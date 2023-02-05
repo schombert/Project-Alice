@@ -703,4 +703,30 @@ void make_event_modifier(std::string_view name, token_generator& gen, error_hand
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 }
 
+void make_party(token_generator& gen, error_handler& err, country_file_context& context) {
+	auto party_id = context.outer_context.state.world.create_political_party();
+	if(!(context.outer_context.state.world.national_identity_get_political_party_first(context.id))) {
+		context.outer_context.state.world.national_identity_set_political_party_first(context.id, party_id);
+		context.outer_context.state.world.national_identity_set_political_party_count(context.id, uint8_t(1));
+	} else {
+		context.outer_context.state.world.national_identity_get_political_party_count(context.id) += uint8_t(1);
+	}
+
+	party_context new_context{ context.outer_context, party_id };
+	parse_party(gen, err, new_context);
+}
+
+void make_unit_names_list(std::string_view name, token_generator& gen, error_handler& err, country_file_context& context) {
+	if(auto it = context.outer_context.map_of_unit_types.find(std::string(name)); it != context.outer_context.map_of_unit_types.end()) {
+		auto found_type = it->second;
+		unit_names_context new_context{ context.outer_context, context.id, found_type };
+		parse_unit_names_list(gen, err, new_context);
+	} else {
+		err.accumulated_errors += "No unit type named " + std::string(name) + " (" + err.file_name + ")\n";
+		gen.discard_group();
+	}
+
+	
+}
+
 }

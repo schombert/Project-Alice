@@ -3,6 +3,7 @@
 #include <string_view>
 #include <stdint.h>
 #include <string>
+#include "date_interface.hpp"
 
 /*
 * must support 
@@ -121,7 +122,7 @@ namespace parsers {
 	uint32_t parse_tag(std::string_view content, int32_t line, error_handler& err);
 	association_type parse_association_type(std::string_view content, int32_t line, error_handler& err);
 	inline std::string_view parse_text(std::string_view content, int32_t line, error_handler& err) { return content; }
-	//date_tag parse_date(std::string_view content, int32_t line, error_handler& err);
+	sys::year_month_day parse_date(std::string_view content, int32_t line, error_handler& err);
 
 
 	//
