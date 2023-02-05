@@ -5,6 +5,31 @@
 
 namespace map {
 
+enum class map_mode : uint8_t {
+	terrain = 0x01,
+	political = 0x02,
+	revolt = 0x03,
+	diplomatic = 0x04,
+	region = 0x05,
+	infrastructure = 0x06,
+	colonial = 0x07,
+	admin = 0x08,
+	recruitment = 0x09,
+	national_focus = 0x0A,
+	rgo_output = 0x0B,
+	population = 0x0C,
+	nationality = 0x0D,
+	sphere = 0x0E,
+	supply = 0x0F,
+	party_loyalty = 0x10,
+	rank = 0x11,
+	migration = 0x12,
+	civilization_level = 0x13,
+	relation = 0x14,
+	crisis = 0x15,
+	naval = 0x16
+};
+
 class display_data {
 private:
 	// Last update time, used for smooth map movement
@@ -40,6 +65,7 @@ public:
 	GLuint overlay = 0;
 	GLuint province_color = 0;
 
+	map_mode active_map_mode = map_mode::terrain;
 	glm::vec2 size;
 	float offset_x = 0.f;
 	float offset_y = 0.f;
