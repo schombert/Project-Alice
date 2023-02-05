@@ -45,7 +45,7 @@ object{
 object {
 	name{ political_party }
 	storage_type{contiguous}
-	size{ 6000 }
+	size{ 8000 }
 
 	property{
 		name{ name }
