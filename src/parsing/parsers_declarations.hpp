@@ -265,6 +265,7 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::culture_group_id> map_of_culture_group_names;
 		ankerl::unordered_dense::map<std::string, dcon::commodity_id> map_of_commodity_names;
 		ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_production_types;
+		ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_factory_names;
 		ankerl::unordered_dense::map<std::string, pending_ideology_content> map_of_ideologies;
 		ankerl::unordered_dense::map<std::string, dcon::ideology_group_id> map_of_ideology_groups;
 		ankerl::unordered_dense::map<std::string, pending_option_content> map_of_options;
@@ -1411,6 +1412,109 @@ namespace parsers {
 
 	void make_party(token_generator& gen, error_handler& err, country_file_context& context);
 	void make_unit_names_list(std::string_view name, token_generator& gen, error_handler& err, country_file_context& context);
+
+	struct province_file_context {
+		scenario_building_context& outer_context;
+		dcon::province_id id;
+	};
+
+	struct pv_party_loyalty {
+		int32_t loyalty_value = 0;
+		dcon::ideology_id id;
+		void ideology(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+			if(auto it = context.outer_context.map_of_ideologies.find(std::string(text)); it != context.outer_context.map_of_ideologies.end()) {
+				id = it->second.id;
+			} else {
+				err.accumulated_errors += std::string(text) + " is not a valid ideology name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(province_file_context&) { }
+	};
+	struct pv_state_building {
+		int32_t level = 1;
+		dcon::factory_type_id id;
+		void building(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+			if(auto it = context.outer_context.map_of_factory_names.find(std::string(text)); it != context.outer_context.map_of_factory_names.end()) {
+				id = it->second;
+			} else {
+				err.accumulated_errors += std::string(text) + " is not a valid factory name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(province_file_context&) { }
+	};
+
+	struct province_history_file {
+		void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+			context.outer_context.state.world.province_set_life_rating(context.id, uint8_t(value));
+		}
+		void fort(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+			context.outer_context.state.world.province_set_fort_naval_base_level(context.id,
+				province::set_fort_level(value, context.outer_context.state.world.province_get_fort_naval_base_level(context.id))
+				);
+		}
+		void naval_base(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+			context.outer_context.state.world.province_set_fort_naval_base_level(context.id,
+				province::set_naval_base_level(value, context.outer_context.state.world.province_get_fort_naval_base_level(context.id))
+			);
+		}
+		void railroad(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+			context.outer_context.state.world.province_set_railroad_level(context.id, uint8_t(value));
+		}
+		void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+			context.outer_context.state.world.province_set_is_colonial(context.id, value != 0);
+		}
+		void trade_goods(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(text)); it != context.outer_context.map_of_commodity_names.end()) {
+				context.outer_context.state.world.province_set_rgo(context.id, it->second);
+			} else {
+				err.accumulated_errors += std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void owner(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void controller(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void terrain(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+			if(auto it = context.outer_context.map_of_terrain_types.find(std::string(text)); it != context.outer_context.map_of_terrain_types.end()) {
+				context.outer_context.state.world.province_set_terrain(context.id, it->second.id);
+			} else {
+				err.accumulated_errors += std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void add_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+			if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
+				context.outer_context.state.world.try_create_core(context.id, it->second);
+			} else {
+				err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void remove_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+			if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
+				auto core = context.outer_context.state.world.get_core_by_prov_tag_key(context.id, it->second);
+				context.outer_context.state.world.delete_core(core);
+			} else {
+				err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line, province_file_context& context) {
+			if(value.id) {
+				context.outer_context.state.world.province_set_party_loyalty(context.id, value.id, uint8_t(value.loyalty_value));
+			}
+		}
+		void state_building(pv_state_building const& value, error_handler& err, int32_t line, province_file_context& context) {
+			if(value.id) {
+				auto new_fac = context.outer_context.state.world.create_factory();
+				context.outer_context.state.world.factory_set_building_type(new_fac, value.id);
+				context.outer_context.state.world.factory_set_level(new_fac, uint8_t(value.level));
+				context.outer_context.state.world.force_create_factory_location(new_fac, context.id);
+			}
+		}
+		void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context) {
+			context.outer_context.state.world.province_set_is_slave(context.id, value);
+		}
+		void finish(province_file_context&) { }
+	};
+
+	void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context);
+
 }
 
 #include "parser_defs_generated.hpp"

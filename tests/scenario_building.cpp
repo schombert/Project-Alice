@@ -654,6 +654,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.national_identity_resize_unit_names_first(uint32_t(state->military_definitions.unit_base_definitions.size()));
 
 	state->world.political_party_resize_party_issues(uint32_t(state->culture_definitions.party_issues.size()));
+
+	state->world.province_resize_party_loyalty(state->world.ideology_size());
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -685,6 +687,54 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto first_party = state->world.national_identity_get_political_party_first(id);
 		REQUIRE(state->world.political_party_get_end_date(first_party) == sys::date(sys::year_month_day{ 2000, uint16_t(1), uint16_t(1) }, state->start_date));
 		REQUIRE(context.map_of_ideologies.find(std::string("conservative"))->second.id == state->world.political_party_get_ideology(first_party));
+	}
+	auto history = open_directory(root, NATIVE("history"));
+	{
+		auto prov_history = open_directory(history, NATIVE("provinces"));
+		for(auto subdir : list_subdirectories(prov_history)) {
+			for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
+				auto file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
+				auto name_begin = file_name.c_str();
+				auto name_end = name_begin + file_name.length();
+				for(; --name_end > name_begin; ) {
+					if(isdigit(*name_end))
+						break;
+				}
+				auto value_start = name_end;
+				for(; value_start > name_begin; --value_start) {
+					if(!isdigit(*value_start))
+						break;
+				}
+				++value_start;
+				++name_end;
+
+				err.file_name = file_name;
+				auto province_id = parsers::parse_int(std::string_view(value_start, name_end - value_start), 0, err);
+				if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
+					auto opened_file = open_file(prov_file);
+					if(opened_file) {
+						auto pid = context.original_id_to_prov_id_map[province_id];
+						parsers::province_file_context pf_context{ context, pid };
+						auto content = view_contents(*opened_file);
+						parsers::token_generator gen(content.data, content.data + content.file_size);
+						parsers::parse_province_history_file(gen, err, pf_context);
+					}
+				}
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		auto france_tag = context.map_of_ident_names.find(nations::tag_to_int('F', 'R', 'A'))->second;
+		auto ident_rel = state->world.national_identity_get_identity_holder(france_tag);
+		auto france = state->world.identity_holder_get_nation(ident_rel);
+
+		auto prov = fatten(state->world, context.original_id_to_prov_id_map[408]);
+		REQUIRE(prov.get_nation_from_province_ownership() == france);
+		REQUIRE(prov.get_nation_from_province_control() == france);
+		REQUIRE(prov.get_rgo() == context.map_of_commodity_names.find(std::string("fruit"))->second);
+		REQUIRE(prov.get_life_rating() == uint8_t(34));
+		REQUIRE(prov.get_railroad_level() == uint8_t(0));
+	
 	}
 }
 #endif

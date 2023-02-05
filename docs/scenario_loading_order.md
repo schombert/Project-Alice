@@ -44,7 +44,7 @@ In this phase we are focused mainly on figuring out the names of things that the
 With all the names figured out, we can get back to the business of dumping all the data out
 
 - Read country files from `common\countries` *Done*
-- Read province history files
+- Read province history files *Done*
 - Read flag graphics from the `gfx\flags` to determine which flags are available
 - Populate the country names
 - Read production types from `production_types.txt`

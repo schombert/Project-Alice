@@ -22,6 +22,14 @@ object{
 		name{ color }
 		type{ uint32_t }
 	}
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ adjective }
+		type{ text_sequence_id }
+	}
 
 	property{
 		name{ unit_names_first }
@@ -434,6 +442,46 @@ object {
 		name{ climate }
 		type{ modifier_id }
 	}
+
+	property{
+		name{ terrain }
+		type{ modifier_id }
+	}
+
+	property{
+		name{ life_rating }
+		type{ uint8_t }
+	}
+
+	property{
+		name{ rgo }
+		type{ commodity_id }
+	}
+
+	property{
+		name{ fort_naval_base_level }
+		type{ uint8_t }
+	}
+
+	property{
+		name{ railroad_level }
+		type{ uint8_t }
+	}
+
+	property{
+		name{ is_slave }
+		type{ bitfield }
+	}
+
+	property{
+		name{ is_colonial }
+		type{ bitfield }
+	}
+
+	property{
+		name{ party_loyalty }
+		type{array{ideology_id}{uint8_t}}
+	}
 }
 
 object {
@@ -460,6 +508,46 @@ relationship{
 		name{state}
 		type{many}
 		index_storage{array}
+	}
+}
+
+relationship{
+	name{ core }
+	storage_type{ compactable }
+	size{ 16000 }
+
+	link{
+		object{province}
+		name{province}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{national_identity}
+		name{identity}
+		type{many}
+		index_storage{array}
+	}
+
+	composite_key{
+		name{prov_tag_key}
+		index{province}
+		index{identity}
+	}
+}
+
+relationship{
+	name{ identity_holder }
+
+	link{
+		object{nation}
+		name{nation}
+		type{unique}
+	}
+	link{
+		object{national_identity}
+		name{identity}
+		type{unique}
 	}
 }
 
@@ -490,5 +578,74 @@ object {
 	property{
 		name{technology_type}
 		type{uint8_t}
+	}
+}
+
+object {
+	name{ nation }
+	storage_type{ contiguous }
+	size{ 1000 }
+}
+
+
+object {
+	name { factory }
+	size{ 10000 }
+
+	property{
+		name{ building_type }
+		type{ factory_type_id }
+	}
+	property{
+		name{ level }
+		type{ uint8_t }
+	}
+}
+
+relationship{
+	name{ factory_location }
+	
+	link{
+		object{factory}
+		name{factory}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{province}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ province_ownership }
+	
+	link{
+		object{province}
+		name{province}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ province_control }
+	
+	link{
+		object{province}
+		name{province}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
 	}
 }

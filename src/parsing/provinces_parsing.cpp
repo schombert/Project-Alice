@@ -147,4 +147,42 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 	}
 }
 
+void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context) {
+	auto ymd = parse_date(name, 0, err);
+	auto block_date = sys::date(ymd, context.outer_context.state.start_date);
+	if(block_date.to_raw_value() > 1) { // is after the start date
+		gen.discard_group();
+	} else {
+		parse_province_history_file(gen, err, context);
+	}
+}
+
+dcon::nation_id prov_parse_force_tag_owner(dcon::national_identity_id tag, dcon::data_container& world) {
+	auto fat_tag = fatten(world, tag);
+	auto tag_holder = fat_tag.get_nation_from_identity_holder();
+	if(tag_holder)
+		return tag_holder;
+
+	tag_holder = world.create_nation();
+	world.force_create_identity_holder(tag_holder, tag);
+
+	return tag_holder;
+}
+
+void province_history_file::owner(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
+		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
+		context.outer_context.state.world.force_create_province_ownership(context.id, holder);
+	} else {
+		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void province_history_file::controller(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
+		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
+		context.outer_context.state.world.force_create_province_control(context.id, holder);
+	} else {
+		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
 }
