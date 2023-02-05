@@ -144,6 +144,13 @@ public:
 	}
 };
 
+class generic_tab_close_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.tab_window->set_visible(state, false);
+	}
+};
+
 class scrollbar_left : public button_element_base {
 public:
 	int32_t step_size = 1;
