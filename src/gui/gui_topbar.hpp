@@ -33,9 +33,8 @@ class topbar_tab_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		const auto override_and_show_tab = [&]() {
-			//state.ui_state.topbar_window->background_pic->set_visible(state, true);
-			//tab_background_image->set_visible(state, true);
-			state.ui_state.topbar_window->move_child_to_front(tab_background_image);
+			tab_background_image->set_visible(state, true);
+			state.ui_state.topbar_window->move_child_to_back(tab_background_image);
 			state.ui_state.tab_background_image = tab_background_image;
 
 			tab_window->set_visible(state, true);
@@ -44,7 +43,6 @@ public:
 		};
 
 		if(state.ui_state.tab_window->is_visible() || state.ui_state.tab_background_image->is_visible()) {
-			//state.ui_state.topbar_window->background_pic->set_visible(state, false);
 			state.ui_state.tab_window->set_visible(state, false);
 			state.ui_state.tab_background_image->set_visible(state, false);
 			if(state.ui_state.tab_window != tab_window || state.ui_state.tab_background_image != tab_background_image) {
