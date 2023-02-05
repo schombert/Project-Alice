@@ -33,7 +33,7 @@ public:
 class minimap_picture_window : public opaque_element_base {
 public:
     void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-        image_element_base::render(state, x, y);
+        opaque_element_base::render(state, x, y);
         // TODO draw white box to represent window borders
     }
     
