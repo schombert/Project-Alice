@@ -6,6 +6,7 @@
 #include <functional>
 #include "parsers_declarations.hpp"
 #include "gui_minimap.hpp"
+#include "gui_topbar.hpp"
 
 namespace sys {
 	//
@@ -125,15 +126,15 @@ namespace sys {
 	}
 	void state::on_create() {
 		{
-			auto new_elm = ui::make_element(*this, "topbar");
-			ui_state.root->add_child_to_front(std::move(new_elm));
-		}
-		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_picture_window>(*this, "minimap_pic");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 	}
