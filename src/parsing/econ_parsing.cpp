@@ -40,6 +40,7 @@ void building_file::result(std::string_view name, building_definition&& res, err
 		case building_type::factory:
 		{
 			auto factory_id = context.state.world.create_factory_type();
+			context.map_of_factory_names.insert_or_assign(std::string(name), factory_id);
 			context.state.world.factory_type_set_name(factory_id, text::find_or_add_key(context.state, name));
 			context.state.world.factory_type_set_construction_time(factory_id, int16_t(res.time));
 			context.state.world.factory_type_set_is_available_from_start(factory_id, res.default_enabled);
