@@ -13,7 +13,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
-			return make_element_by_type<generic_tab_close_button>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else {
 			return nullptr;
 		}
