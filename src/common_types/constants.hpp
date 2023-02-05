@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stdint.h>
 
 namespace sys {
 enum class virtual_key : uint8_t {
@@ -181,4 +181,8 @@ enum class leader_type : uint8_t {
 enum class commodity_group : uint8_t {
 	military_goods = 0, raw_material_goods, industrial_goods, consumer_goods
 };
+}
+
+namespace culture {
+inline constexpr int32_t max_issue_options = 6;
 }

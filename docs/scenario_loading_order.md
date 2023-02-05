@@ -37,13 +37,14 @@ In this phase we are focused mainly on figuring out the names of things that the
 - Read climates from `map\climate.txt` *Done*
 - Pre parse technologies from `technology.txt` *Done*
 - Pre parse inventions from the `inventions` directory *Done*
+- Read unit definitions from `units` directory *Done*
 
 ### Phase 3: main data loading
 
 With all the names figured out, we can get back to the business of dumping all the data out
 
-- Read in the prepared issues
-- Read country files from `common\countries`
+- Read country files from `common\countries` *Done*
+- Read province history files
 - Read flag graphics from the `gfx\flags` to determine which flags are available
 - Populate the country names
 - Read production types from `production_types.txt`

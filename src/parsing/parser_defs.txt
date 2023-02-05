@@ -644,3 +644,24 @@ unit_definition
 
 unit_file
 	#any           extern     make_unit                 discard
+
+unit_names_list
+	#free          value      text                      member_fn
+
+unit_names_collection
+	#any           extern     make_unit_names_list      discard
+
+party
+	name           value      text                      member_fn
+	start_date     value      date                      member_fn
+	end_date       value      date                      member_fn
+	ideology       value      text                      member_fn
+	#any           value      text                      member_fn
+
+country_file
+	color          group      color_from_3i             member_fn
+	graphical_culture   value     none                  discard
+	party          extern     make_party                discard
+	unit_names     group      unit_names_collection     member
+	proletarian_dictatorship  group      none           discard
+	fascist_dictatorship      group      none           discard

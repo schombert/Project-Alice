@@ -252,6 +252,39 @@ namespace parsers {
 		}
 		return nations::tag_to_int(tag[0], tag[1], tag[2]);
 	}
+
+	sys::year_month_day parse_date(std::string_view content, int32_t line, error_handler& err) {
+		auto position = content.data();
+		auto value_end = position + content.length();
+
+		for(; position < value_end && !isdigit(*position); ++position) // advance to year
+			;
+		auto year_start = position;
+		for(; position < value_end && isdigit(*position); ++position) // advance to year end
+			;
+		auto year_end = position;
+
+		for(; position < value_end && !isdigit(*position); ++position) // advance to month
+			;
+		auto month_start = position;
+		for(; position < value_end && isdigit(*position); ++position) // advance to month end
+			;
+		auto month_end = position;
+
+		for(; position < value_end && !isdigit(*position); ++position) // advance to day
+			;
+		auto day_start = position;
+		for(; position < value_end && isdigit(*position); ++position) // advance to day end
+			;
+		auto day_end = position;
+
+		return sys::year_month_day{
+			parsers::parse_int(std::string_view(year_start, year_end - year_start), line, err),
+			uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
+			uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))
+		};
+	}
+
 	bool starts_with(std::string_view content, char v) {
 		return content.length() != 0 && content[0] == v;
 	}

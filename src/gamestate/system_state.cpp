@@ -195,6 +195,26 @@ namespace sys {
 		}
 	}
 
+	dcon::unit_name_id state::add_unit_name(std::string_view text) {
+		auto start = unit_names.size();
+		auto length = text.length();
+		unit_names.resize(start + length + 1, char(0));
+		std::memcpy(unit_names.data() + start, text.data(), length);
+		unit_names.back() = 0;
+		return dcon::unit_name_id(uint16_t(start));
+	}
+	std::string_view state::to_string_view(dcon::unit_name_id tag) const {
+		if(!tag)
+			return std::string_view();
+		auto start_position = unit_names.data() + tag.index();
+		auto data_size = unit_names.size();
+		auto end_position = start_position;
+		for(; end_position < unit_names.data() + data_size; ++end_position) {
+			if(*end_position == 0)
+				break;
+		}
+		return std::string_view(unit_names.data() + tag.index(), size_t(end_position - start_position));
+	}
 
 	void state::save_user_settings() const {
 		auto settings_location = simple_fs::get_or_create_settings_directory();
@@ -581,6 +601,24 @@ namespace sys {
 				}
 			}
 		}
+		// make space in arrays
+
+		world.national_identity_resize_unit_names_count(uint32_t(military_definitions.unit_base_definitions.size()));
+		world.national_identity_resize_unit_names_first(uint32_t(military_definitions.unit_base_definitions.size()));
+
+		world.political_party_resize_party_issues(uint32_t(culture_definitions.party_issues.size()));
+
+		// load country files
+		world.for_each_national_identity([&](dcon::national_identity_id i) {
+			auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));
+			if(country_file) {
+				parsers::country_file_context c_context{context, i};
+				auto content = view_contents(*country_file);
+				err.file_name = context.file_names_for_idents[i];
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_country_file(gen, err, c_context);
+			}
+		});
 		// TODO do something with err
 	}
 
