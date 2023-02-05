@@ -344,8 +344,7 @@ namespace ui {
 		// elements we are keeping track of
 		element_base* main_menu = nullptr;
 		element_base* topbar_window = nullptr;
-		element_base* tab_window = nullptr; // Current tab window
-		element_base* tab_background_image = nullptr; // Current tab background image
+		element_base* topbar_subwindow = nullptr; // Current tab window
 
 		state();
 	};

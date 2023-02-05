@@ -147,8 +147,7 @@ public:
 class generic_tab_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		state.ui_state.tab_background_image->set_visible(state, false);
-		state.ui_state.tab_window->set_visible(state, false);
+		state.ui_state.topbar_subwindow->set_visible(state, false);
 	}
 };
 
