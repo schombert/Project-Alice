@@ -734,7 +734,13 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(prov.get_rgo() == context.map_of_commodity_names.find(std::string("fruit"))->second);
 		REQUIRE(prov.get_life_rating() == uint8_t(34));
 		REQUIRE(prov.get_railroad_level() == uint8_t(0));
-	
+
+		bool found_france = false;
+		for(auto cr : prov.get_core()) {
+			if(cr.get_identity() == france_tag)
+				found_france = true;
+		}
+		REQUIRE(found_france);
 	}
 }
 #endif
