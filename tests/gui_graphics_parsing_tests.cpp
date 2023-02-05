@@ -182,6 +182,7 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 		std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
 
 		REQUIRE(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
+		REQUIRE(std::string("") != GAME_DIR);
 		add_root(state->common_fs, NATIVE_M(GAME_DIR));
 		auto rt = get_root(state->common_fs);
 		auto interfc = open_directory(rt, NATIVE("interface"));

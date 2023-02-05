@@ -44,12 +44,23 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		}
 		REQUIRE(err.accumulated_errors == "");
 
-		auto name_num = nations::tag_to_int('T', 'P', 'G');
-		auto it = context.map_of_ident_names.find(name_num);
-		REQUIRE(it != context.map_of_ident_names.end());
-		auto id = it->second;
-		REQUIRE(bool(id) == true);
-		REQUIRE(context.file_names_for_idents[id] == "countries/Taiping.txt");
+		{
+			auto name_num = nations::tag_to_int('T', 'P', 'G');
+			auto it = context.map_of_ident_names.find(name_num);
+			REQUIRE(it != context.map_of_ident_names.end());
+			auto id = it->second;
+			REQUIRE(bool(id) == true);
+			REQUIRE(context.file_names_for_idents[id] == "countries/Taiping.txt");
+		}
+		{
+			REQUIRE(nations::tag_to_int('M', 'E', 'X') != nations::tag_to_int('M', 'T', 'C'));
+			auto name_num = nations::tag_to_int('M', 'E', 'X');
+			auto it = context.map_of_ident_names.find(name_num);
+			REQUIRE(it != context.map_of_ident_names.end());
+			auto id = it->second;
+			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[id]);
+			REQUIRE(file_name == NATIVE("countries/Mexico.txt"));
+		}
 	}
 	//RELIGION
 	{
@@ -638,6 +649,42 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[2] == 10.0f);
 		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[3] == 25.0f);
 		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[4] == 0.0f);
+	}
+	state->world.national_identity_resize_unit_names_count(uint32_t(state->military_definitions.unit_base_definitions.size()));
+	state->world.national_identity_resize_unit_names_first(uint32_t(state->military_definitions.unit_base_definitions.size()));
+
+	state->world.political_party_resize_party_issues(uint32_t(state->culture_definitions.party_issues.size()));
+	{
+		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
+			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
+			auto country_file = open_file(common, file_name);
+			if(country_file) {
+				parsers::country_file_context c_context{ context, i };
+				auto content = view_contents(*country_file);
+				err.file_name = context.file_names_for_idents[i];
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_country_file(gen, err, c_context);
+			}
+		});
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto name_num = nations::tag_to_int('M', 'E', 'X');
+		auto it = context.map_of_ident_names.find(name_num);
+		REQUIRE(it != context.map_of_ident_names.end());
+		auto id = it->second;
+
+		
+		REQUIRE(sys::int_red_from_int(state->world.national_identity_get_color(id)) == 173);
+		REQUIRE(sys::int_green_from_int(state->world.national_identity_get_color(id)) == 242);
+		REQUIRE(sys::int_blue_from_int(state->world.national_identity_get_color(id)) == 175);
+		REQUIRE(state->world.national_identity_get_color(id) == sys::pack_color(173, 242, 175));
+
+		REQUIRE(state->world.national_identity_get_political_party_count(id) == uint8_t(12));
+
+		auto first_party = state->world.national_identity_get_political_party_first(id);
+		REQUIRE(state->world.political_party_get_end_date(first_party) == sys::date(sys::year_month_day{ 2000, uint16_t(1), uint16_t(1) }, state->start_date));
+		REQUIRE(context.map_of_ideologies.find(std::string("conservative"))->second.id == state->world.political_party_get_ideology(first_party));
 	}
 }
 #endif

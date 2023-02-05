@@ -1,5 +1,7 @@
 include{<array>}
+include{"constants.hpp"}
 include{"modifiers.hpp"}
+include{"date_interface.hpp"}
 
 make_index{text_key}{uint32_t}
 make_index{text_sequence_id}{uint16_t}
@@ -9,11 +11,62 @@ make_index{gui_def_id}{uint16_t}
 make_index{government_type_id}{uint8_t}
 make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
+make_index{unit_name_id}{uint16_t}
 
 object{
 	name{ national_identity }
 	storage_type{contiguous}
 	size{ 1000 }
+
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+
+	property{
+		name{ unit_names_first }
+		type{array{unit_type_id}{unit_name_id}}
+	}
+	property{
+		name{ unit_names_count }
+		type{array{unit_type_id}{uint8_t}}
+	}
+
+	property{
+		name{ political_party_first }
+		type{ political_party_id }
+	}
+	property{
+		name{ political_party_count }
+		type{ uint8_t }
+	}
+}
+
+object {
+	name{ political_party }
+	storage_type{contiguous}
+	size{ 6000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ start_date }
+		type{ sys::date }
+	}
+	property{
+		name{ end_date }
+		type{ sys::date }
+	}
+	property{
+		name{ ideology }
+		type{ ideology_id }
+	}
+	property{
+		name{ party_issues }
+		type{array{issue_id}{uint8_t}}
+	}
 }
 
 object{
@@ -243,7 +296,7 @@ object {
 	}
 	property{
 		name{ options }
-		type{ std::array<issue_option_id,6> }
+		type{ std::array<issue_option_id,culture::max_issue_options> }
 	}
 	property{
 		name{ is_next_step_only }
