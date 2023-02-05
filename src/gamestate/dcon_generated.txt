@@ -413,7 +413,7 @@ relationship{
 object {
 	name{ technology }
 	storage_type{ contiguous }
-	size{ 200 }
+	size{ 400 }
 
 	property{
 		name{ name }
@@ -428,7 +428,7 @@ object {
 object {
 	name{ invention }
 	storage_type{ contiguous }
-	size{ 600 }
+	size{ 900 }
 
 	property{
 		name{ name }
