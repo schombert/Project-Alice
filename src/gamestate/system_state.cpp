@@ -109,7 +109,6 @@ namespace sys {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		map_display.render(x_size, y_size);
-		map_display.update();
 
 		// UI rendering
 		glUseProgram(open_gl.ui_shader_program);
@@ -609,6 +608,8 @@ namespace sys {
 
 		world.political_party_resize_party_issues(uint32_t(culture_definitions.party_issues.size()));
 
+		world.province_resize_party_loyalty(world.ideology_size());
+
 		// load country files
 		world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));
@@ -620,6 +621,46 @@ namespace sys {
 				parsers::parse_country_file(gen, err, c_context);
 			}
 		});
+
+		// load province history files
+
+		auto history = open_directory(root, NATIVE("history"));
+		{
+			auto prov_history = open_directory(history, NATIVE("provinces"));
+			for(auto subdir : list_subdirectories(prov_history)) {
+				for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
+					auto file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
+					auto name_begin = file_name.c_str();
+					auto name_end = name_begin + file_name.length();
+					for(; --name_end > name_begin; ) {
+						if(isdigit(*name_end))
+							break;
+					}
+					auto value_start = name_end;
+					for(; value_start > name_begin; --value_start) {
+						if(!isdigit(*value_start))
+							break;
+					}
+					++value_start;
+					++name_end;
+
+					err.file_name = file_name;
+					auto province_id = parsers::parse_int(std::string_view(value_start, name_end - value_start), 0, err);
+					if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
+						auto opened_file = open_file(prov_file);
+						if(opened_file) {
+							auto pid = context.original_id_to_prov_id_map[province_id];
+							parsers::province_file_context pf_context{ context, pid };
+							auto content = view_contents(*opened_file);
+							parsers::token_generator gen(content.data, content.data + content.file_size);
+							parsers::parse_province_history_file(gen, err, pf_context);
+						}
+					}
+				}
+			}
+		}
+
+
 		// TODO do something with err
 	}
 

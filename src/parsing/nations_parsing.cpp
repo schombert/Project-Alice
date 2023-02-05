@@ -10,6 +10,12 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	}
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
+
+	auto name_id = text::find_or_add_key(context.state, txt);
+	auto adj_id = text::find_or_add_key(context.state, std::string(txt) + "_ADJ");
+	context.state.world.national_identity_set_name(new_ident, name_id);
+	context.state.world.national_identity_set_adjective(new_ident, adj_id);
+
 	context.file_names_for_idents.resize(context.state.world.national_identity_size());
 	context.file_names_for_idents[new_ident] = txt;
 	context.map_of_ident_names.insert_or_assign(as_int, new_ident);

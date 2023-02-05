@@ -665,3 +665,33 @@ country_file
 	unit_names     group      unit_names_collection     member
 	proletarian_dictatorship  group      none           discard
 	fascist_dictatorship      group      none           discard
+
+pv_party_loyalty
+	ideology          value          text               member_fn
+	loyalty_value     value          int                member
+
+pv_state_building
+	level             value          int                member
+	building          value          text               member_fn
+	upgrade           value          none               discard
+
+province_history_file
+	life_rating       value          uint               member_fn
+	fort              value          uint               member_fn
+	naval_base        value          uint               member_fn
+	railroad          value          uint               member_fn
+	colony            value          uint               member_fn
+	colonial          value          uint               member_fn  (colony)
+	trade_goods       value          text               member_fn
+	owner             value          tag                member_fn
+	controller        value          tag                member_fn
+	terrain           value          text               member_fn
+	add_core          value          tag                member_fn
+	remove_core       value          tag                member_fn
+	party_loyalty     group          pv_party_loyalty   member_fn
+	state_building    group          pv_state_building  member_fn
+	revolt            value          none               discard
+	is_slave          value          bool               member_fn
+	set_province_flag value          none               discard
+	clr_province_flag value          none               discard
+	#any              extern         enter_dated_block  discard

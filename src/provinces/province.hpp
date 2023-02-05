@@ -28,5 +28,17 @@ struct global_provincial_state {
 	dcon::modifier_id oceania;
 };
 
+inline uint8_t set_fort_level(uint32_t new_level, uint8_t old_value) {
+	return uint8_t((new_level & 0x0F) | (old_value & 0xF0));
+}
+inline uint8_t set_naval_base_level(uint32_t new_level, uint8_t old_value) {
+	return uint8_t(((new_level << 4) & 0xF0) | (old_value & 0x0F));
+}
+inline int32_t get_fort_level(uint8_t value) {
+	return int32_t(value & 0x0F);
+}
+inline int32_t get_naval_base_level(uint8_t value) {
+	return int32_t((value >> 4) & 0x0F);
+}
 }
 
