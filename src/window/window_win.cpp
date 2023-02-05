@@ -91,7 +91,7 @@ namespace window {
 			PostMessageW(game_state.win_ptr->hwnd, WM_CLOSE, 0, 0);
 	}
 
-	
+
 	bool is_low_surrogate(uint16_t char_code) noexcept {
 		return char_code >= 0xDC00 && char_code <= 0xDFFF;
 	}
@@ -108,21 +108,21 @@ namespace window {
 		WideCharToMultiByte(1250, 0, &c, 1, &char_out, 1, nullptr, nullptr);
 		return char_out;
 	}
-	
+
 	sys::key_modifiers get_current_modifiers() {
-		uint32_t val =  
+		uint32_t val =
 			uint32_t((GetKeyState(VK_CONTROL) & 0x8000) ? sys::key_modifiers::modifiers_ctrl : sys::key_modifiers::modifiers_none) |
 			uint32_t((GetKeyState(VK_MENU) & 0x8000) ? sys::key_modifiers::modifiers_alt : sys::key_modifiers::modifiers_none) |
 			uint32_t((GetKeyState(VK_SHIFT) & 0x8000) ? sys::key_modifiers::modifiers_shift : sys::key_modifiers::modifiers_none);
 		return sys::key_modifiers(val);
 	}
-	
+
 	LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 		static int drag_x_start = 0;
 		static int drag_y_start = 0;
 
-		
+
 
 		if(message == WM_CREATE) {
 			CREATESTRUCTW* cptr = (CREATESTRUCTW*)lParam;
@@ -133,8 +133,8 @@ namespace window {
 
 			// setup opengl here
 			ogl::initialize_opengl(*create_state);
-			map::load_map(*create_state);
-			
+			create_state->map_display.load_map(*create_state);
+
 			RECT crect{};
 			GetClientRect(hwnd, &crect);
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
@@ -288,7 +288,7 @@ namespace window {
 				}
 				return 0;
 			}
-			
+
 			case WM_PAINT:
 			case WM_DISPLAYCHANGE:
 			{
@@ -297,15 +297,15 @@ namespace window {
 				EndPaint(hwnd, &ps);
 				return 0;
 			}
-			
+
 			case WM_DPICHANGED:
 				return 0;
-			
+
 			case WM_GRAPHNOTIFY:
 				// this is the message that tells us there is a DirectShow event
 				sound::update_music_track(*state);
 				break;
-			
+
 		}
 		return DefWindowProcW(hwnd, message, wParam, lParam);
 	}
@@ -357,9 +357,9 @@ namespace window {
 
 		if(!game_state.win_ptr->hwnd)
 			return;
-		
+
 		SetCursor(LoadCursor(NULL, IDC_ARROW));
-			
+
 		if(!params.borderless_fullscreen) {
 
 			auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);

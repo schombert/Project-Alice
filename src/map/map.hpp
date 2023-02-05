@@ -31,30 +31,44 @@ enum class map_mode : uint8_t {
 };
 
 class display_data {
+public:
+	display_data() {};
+	~display_data();
+
+	// Called to load the map. Will load the texture and shaders from disk
+	void load_map(sys::state& state);
+
+	map_mode active_map_mode = map_mode::terrain;
+
+	void render(uint32_t screen_x, uint32_t screen_y);
+	void set_province_color(std::vector<uint32_t> const& prov_color);
+
+	// Set the position of camera. Position relative from 0-1
+	void set_pos(glm::vec2 pos);
+
+	// Input methods
+	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
+	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod);
+	void on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount);
+	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
+	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
+	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
+
 private:
 	// Last update time, used for smooth map movement
 	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
 
-	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
-	glm::vec2 pos_velocity = glm::vec2(0.f);
-	glm::vec2 last_camera_drag_pos;
-	bool is_dragging = false;
+	// Time in seconds, send to the map shader for animations
+	float time_counter = 0;
 
-	GLuint map_shader_program = 0;
-	GLuint map_water_shader_program = 0;
-
-public:
-	void load_shaders(simple_fs::directory& root);
-
+	// Meshes
 	GLuint water_vbo;
 	GLuint land_vbo;
 	GLuint vao;
 	uint32_t water_indicies;
 	uint32_t land_indicies;
-	void create_meshes(simple_fs::file& file);
-	// Time in seconds, send to the map shader for animations
-	float time_counter = 0;
 
+	// Textures
 	GLuint provinces_texture_handle = 0;
 	GLuint terrain_texture_handle = 0;
 	GLuint rivers_texture_handle = 0;
@@ -65,23 +79,25 @@ public:
 	GLuint overlay = 0;
 	GLuint province_color = 0;
 
-	map_mode active_map_mode = map_mode::terrain;
-	glm::vec2 size;
+	// Shaders
+	GLuint map_shader_program = 0;
+	GLuint map_water_shader_program = 0;
+
+	// Position and movement
+	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
+	glm::vec2 pos_velocity = glm::vec2(0.f);
+	glm::vec2 last_camera_drag_pos;
+	bool is_dragging = false;
+	glm::vec2 size; // Map size
 	float offset_x = 0.f;
 	float offset_y = 0.f;
 	float zoom = 1;
 
-	void render(uint32_t screen_x, uint32_t screen_y);
-	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void update();
-	void set_pos(glm::vec2 pos);
+
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
-	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
-	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod);
-	void on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount);
-	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
-	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
-	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
+
+	void load_shaders(simple_fs::directory& root);
+	void create_meshes(simple_fs::file& file);
 };
-void load_map(sys::state& state);
 }
