@@ -201,9 +201,41 @@ void display_data::create_meshes(simple_fs::file& file) {
 	glEnableVertexAttribArray(0);
 }
 
+display_data::~display_data() {
+	if(provinces_texture_handle)
+		glDeleteTextures(1, &provinces_texture_handle);
+	if(terrain_texture_handle)
+		glDeleteTextures(1, &terrain_texture_handle);
+	if(rivers_texture_handle)
+		glDeleteTextures(1, &rivers_texture_handle);
+	if(terrainsheet_texture_handle)
+		glDeleteTextures(1, &terrainsheet_texture_handle);
+	if(water_normal)
+		glDeleteTextures(1, &water_normal);
+	if(colormap_water)
+		glDeleteTextures(1, &colormap_water);
+	if(colormap_terrain)
+		glDeleteTextures(1, &colormap_terrain);
+	if(overlay)
+		glDeleteTextures(1, &overlay);
+	if(province_color)
+		glDeleteTextures(1, &province_color);
+
+	if(vao)
+		glDeleteVertexArrays(1, &vao);
+	if(land_vbo)
+		glDeleteBuffers(1, &land_vbo);
+	if(water_vbo)
+		glDeleteBuffers(1, &water_vbo);
+	if(map_shader_program)
+		glDeleteProgram(map_shader_program);
+	if(map_water_shader_program)
+		glDeleteProgram(map_water_shader_program);
+}
+
 void display_data::load_shaders(simple_fs::directory& root) {
-	auto map_fshader = simple_fs::open_file(root, NATIVE("assets/shaders/map_f_shader.glsl"));
-	auto map_vshader = simple_fs::open_file(root, NATIVE("assets/shaders/map_v_shader.glsl"));
+	auto map_fshader = simple_fs::open_file(root, NATIVE("assets/shaders/map_f.glsl"));
+	auto map_vshader = simple_fs::open_file(root, NATIVE("assets/shaders/map_v.glsl"));
 	auto map_water_fshader = simple_fs::open_file(root, NATIVE("assets/shaders/map_water_f.glsl"));
 	if(bool(map_fshader) && bool(map_vshader) && bool(map_water_fshader)) {
 		auto vertex_content = simple_fs::view_contents(*map_vshader);
@@ -221,6 +253,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 }
 
 void display_data::render(uint32_t screen_x, uint32_t screen_y) {
+	update();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, provinces_texture_handle);
 	glActiveTexture(GL_TEXTURE1);
@@ -361,35 +394,36 @@ void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void load_map(sys::state& state) {
+void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
 
-	display_data& map_display = state.map_display;
-	map_display.load_shaders(root);
+	// display_data& map_display = state.map_display;
+	load_shaders(root);
 
 	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
 	int32_t size_x, size_y;
-	map_display.terrain_texture_handle = load_terrain_texture(*terrain_bmp, size_x, size_y);
-	map_display.size = glm::vec2(size_x, size_y);
-	map_display.create_meshes(*terrain_bmp);
+	terrain_texture_handle = load_terrain_texture(*terrain_bmp, size_x, size_y);
+	size = glm::vec2(size_x, size_y);
+	create_meshes(*terrain_bmp);
 
 	// TODO Better error handling and reporting ^^
-	map_display.provinces_texture_handle = load_province_map(map_dir);
+	provinces_texture_handle = load_province_map(map_dir);
 
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
-	map_display.rivers_texture_handle = load_texture_from_file(*rivers_bmp, GL_NEAREST);
+	rivers_texture_handle = load_texture_from_file(*rivers_bmp, GL_NEAREST);
 	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
-	map_display.terrainsheet_texture_handle = load_texture_array_from_file(state, *texturesheet, 8, 8);
+	terrainsheet_texture_handle = load_texture_array_from_file(state, *texturesheet, 8, 8);
 
-	map_display.water_normal = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
-	map_display.colormap_water = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
-	map_display.colormap_terrain = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
-	map_display.overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
+	water_normal = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
+	colormap_water = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
+	colormap_terrain = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
+	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
+
 	// Get the province_colorhandle
-	glGenTextures(1, &map_display.province_color);
-	glBindTexture(GL_TEXTURE_2D, map_display.province_color);
+	glGenTextures(1, &province_color);
+	glBindTexture(GL_TEXTURE_2D, province_color);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
 	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -398,7 +432,7 @@ void load_map(sys::state& state) {
 	for (int i = 0; i < nr_provinces; i++) {
 		test.push_back(255);
 	}
-	map_display.set_province_color(test);
+	set_province_color(test);
 }
 
 void display_data::update() {

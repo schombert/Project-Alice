@@ -152,6 +152,17 @@ public:
 	}
 };
 
+class checkbox_button : public button_element_base {
+public:
+	virtual bool is_active(sys::state& state) noexcept {
+		return false;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		frame = int32_t(is_active(state));
+		button_element_base::render(state, x, y);
+	}
+};
+
 class scrollbar_left : public button_element_base {
 public:
 	int32_t step_size = 1;

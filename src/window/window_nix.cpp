@@ -352,7 +352,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	ogl::initialize_opengl(game_state);
-	map::load_map(game_state);
+	game_state.map_display.load_map(game_state);
 
 	sound::initialize_sound_system(game_state);
 	sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);
@@ -367,10 +367,10 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 		game_state.render();
 		glfwSwapBuffers(window);
-		
+
 		sound::update_music_track(game_state);
 	}
-	
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
