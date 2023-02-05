@@ -81,6 +81,11 @@ namespace sys {
 		tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
 		ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
+		std::vector<char> unit_names; // a second text buffer, this time for just the unit names
+		                              // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
+									  // ordinary game text, partly because I envision the possibility that we may stick dynamic names into this
+		                              // We also may push this into the save game if we handle unit renaming using this
+
 		ui::definitions ui_defs; // definitions for graphics and ui
 
 		// persistent user settings
@@ -141,6 +146,9 @@ namespace sys {
 		// use this function sparingly; i.e. only when you think it is likely that
 		// the text has already been added. Searching *all* the text may not be cheap
 		dcon::text_key add_unique_to_pool(std::string const& text);
+
+		dcon::unit_name_id add_unit_name(std::string_view text); // returns the newly added text
+		std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
 
 		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)) {}
 		~state();

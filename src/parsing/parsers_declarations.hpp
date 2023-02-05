@@ -5,11 +5,13 @@
 #include <string_view>
 #include <string>
 
+#include "constants.hpp"
 #include "parsers.hpp"
 #include "unordered_dense.h"
 #include "gui_graphics.hpp"
 #include "modifiers.hpp"
 #include "culture.hpp"
+#include "date_interface.hpp"
 
 namespace parsers {
 
@@ -1314,6 +1316,101 @@ namespace parsers {
 	};
 
 	void make_unit(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct country_file_context {
+		scenario_building_context& outer_context;
+		dcon::national_identity_id id;
+	};
+
+	struct party_context {
+		scenario_building_context& outer_context;
+		dcon::political_party_id id;
+	};
+	struct unit_names_context {
+		scenario_building_context& outer_context;
+		dcon::national_identity_id id;
+		dcon::unit_type_id u_id;
+	};
+
+	struct party {
+		void ideology(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context) {
+			if(auto it = context.outer_context.map_of_ideologies.find(std::string(text)); it != context.outer_context.map_of_ideologies.end()) {
+				context.outer_context.state.world.political_party_set_ideology(context.id, it->second.id);
+			} else {
+				err.accumulated_errors += std::string(text) + " is not a valid ideology (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void name(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context) {
+			auto name_id = text::find_or_add_key(context.outer_context.state, text);
+			context.outer_context.state.world.political_party_set_name(context.id, name_id);
+		}
+		void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context) {
+			auto date_tag = sys::date(ymd, context.outer_context.state.start_date);
+			context.outer_context.state.world.political_party_set_start_date(context.id, date_tag);
+		}
+		void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context) {
+			auto date_tag = sys::date(ymd, context.outer_context.state.start_date);
+			context.outer_context.state.world.political_party_set_end_date(context.id, date_tag);
+		}
+		void any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line, party_context& context) {
+			if(auto it = context.outer_context.map_of_issues.find(std::string(issue)); it != context.outer_context.map_of_issues.end()) {
+				if(it->second.index() < int32_t(context.outer_context.state.culture_definitions.party_issues.size())) {
+					if(auto oit = context.outer_context.map_of_options.find(std::string(option)); oit != context.outer_context.map_of_options.end()) {
+						int32_t found = -1;
+						for(int32_t i = 0; i < ::culture::max_issue_options; ++i) {
+							if(context.outer_context.state.world.issue_get_options(it->second)[i] == oit->second.id) {
+								found = i;
+								break;
+							}
+						}
+						if(found == -1) {
+							err.accumulated_errors += std::string(option) + " is not an option for " + std::string(issue) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+							return;
+						}
+						context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, uint8_t(found));
+					} else {
+						err.accumulated_errors += std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+					}
+				} else {
+					err.accumulated_errors += std::string(issue) + " is not a proper party issue (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+				//context.outer_context.state.world.political_party_set_ideology(context.id, it->second.id);
+			} else {
+				err.accumulated_errors += std::string(issue) + " is not a valid issue name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(party_context&) { }
+	};
+	struct unit_names_list {
+		void free_value(std::string_view text, error_handler& err, int32_t line, unit_names_context& context) {
+			if(text.length() <= 2)
+				return;
+
+			auto existing_count = context.outer_context.state.world.national_identity_get_unit_names_count(context.id, context.u_id);
+			if(existing_count == 0) {
+				auto first_id = context.outer_context.state.add_unit_name(text);
+				context.outer_context.state.world.national_identity_set_unit_names_first(context.id, context.u_id, first_id);
+				context.outer_context.state.world.national_identity_set_unit_names_count(context.id, context.u_id, uint8_t(1));
+			} else {
+				context.outer_context.state.add_unit_name(text);
+				context.outer_context.state.world.national_identity_set_unit_names_count(context.id, context.u_id, uint8_t(existing_count + 1));
+			}
+		}
+		void finish(unit_names_context&) { }
+	};
+	struct unit_names_collection {
+		void finish(country_file_context&) { }
+	};
+	struct country_file {
+		void color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {
+			context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);
+		}
+		unit_names_collection unit_names;
+		void finish(country_file_context&) { }
+	};
+
+	void make_party(token_generator& gen, error_handler& err, country_file_context& context);
+	void make_unit_names_list(std::string_view name, token_generator& gen, error_handler& err, country_file_context& context);
 }
 
 #include "parser_defs_generated.hpp"
