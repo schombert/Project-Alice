@@ -6,6 +6,7 @@ layout (binding = 0) uniform sampler2D provinces_texture_sampler;
 layout (binding = 1) uniform sampler2D terrain_texture_sampler;
 layout (binding = 3) uniform sampler2DArray terrainsheet_texture_sampler;
 layout (binding = 6) uniform sampler2D colormap_terrain;
+layout (binding = 8) uniform sampler2D province_color;
 
 // location 0 : offset
 // location 1 : zoom
@@ -41,8 +42,22 @@ vec4 get_terrain_mix(vec2 tex_coords) {
 	return mix(colour_u, colour_d, 1-scaling.y);
 }
 
+const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
+
 void main() {
 	vec4 terrain_background = texture(colormap_terrain, tex_coord);
 	vec4 terrain = get_terrain_mix(tex_coord);
-	frag_color = (terrain * 2. + terrain_background) / 3.;
+	terrain = (terrain * 2. + terrain_background) / 3.;
+
+
+    float grey = dot( terrain.rgb, GREYIFY );
+ 	terrain.rgb = vec3(grey);
+
+	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
+	vec3 political = texture(province_color, prov_id).rgb;
+	political = political - 0.7;
+
+	frag_color.rgb = mix(terrain.rgb, political, 0.3);
+	frag_color.rgb *= 1.5;
+	frag_color.a = 1;
 }

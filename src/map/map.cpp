@@ -5,7 +5,7 @@
 
 namespace map {
 void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
-	if (filter == GL_LINEAR_MIPMAP_NEAREST) {
+	if(filter == GL_LINEAR_MIPMAP_NEAREST) {
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glGenerateMipmap(texture_type);
@@ -135,7 +135,7 @@ void display_data::create_meshes(simple_fs::file& file) {
 	ptr = start + 22;
 	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
-	uint8_t * terrain_data = start + data_offset;
+	uint8_t* terrain_data = start + data_offset;
 
 	std::vector<float> water_vertices;
 	std::vector<float> land_vertices;
@@ -162,13 +162,13 @@ void display_data::create_meshes(simple_fs::file& file) {
 
 
 	uint32_t index = 0;
-	for (uint32_t y = 0; y < size_y; y++) {
+	for(uint32_t y = 0; y < size_y; y++) {
 		uint32_t last_x = 0;
 		bool last_is_water = terrain_data[index++] > 64;
-		for (uint32_t x = 1; x < size_x; x++) {
+		for(uint32_t x = 1; x < size_x; x++) {
 			bool is_water = terrain_data[index++] > 64;
-			if (is_water != last_is_water) {
-				if (last_is_water)
+			if(is_water != last_is_water) {
+				if(last_is_water)
 					add_quad(water_vertices, last_x, y, x, y + 1);
 				else
 					add_quad(land_vertices, last_x, y, x, y + 1);
@@ -177,7 +177,7 @@ void display_data::create_meshes(simple_fs::file& file) {
 				last_is_water = is_water;
 			}
 		}
-		if (last_is_water)
+		if(last_is_water)
 			add_quad(water_vertices, last_x, y, size_x, y + 1);
 		else
 			add_quad(land_vertices, last_x, y, size_x, y + 1);
@@ -227,29 +227,52 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &land_vbo);
 	if(water_vbo)
 		glDeleteBuffers(1, &water_vbo);
-	if(map_shader_program)
-		glDeleteProgram(map_shader_program);
-	if(map_water_shader_program)
-		glDeleteProgram(map_water_shader_program);
+
+	if(terrain_shader)
+		glDeleteProgram(terrain_shader);
+	if(terrain_political_close_shader)
+		glDeleteProgram(terrain_political_close_shader);
+	if(terrain_political_far_shader)
+		glDeleteProgram(terrain_political_far_shader);
+	if(water_shader)
+		glDeleteProgram(water_shader);
+	if(water_political_shader)
+		glDeleteProgram(water_political_shader);
+}
+
+std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
+	auto shader = simple_fs::open_file(root, name);
+	if(!bool(shader))
+		ogl::notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
+	return shader;
+}
+
+std::string_view get_content(simple_fs::file& file) {
+	auto content = simple_fs::view_contents(file);
+	return std::string_view(content.data, content.file_size);
 }
 
 void display_data::load_shaders(simple_fs::directory& root) {
-	auto map_fshader = simple_fs::open_file(root, NATIVE("assets/shaders/map_f.glsl"));
-	auto map_vshader = simple_fs::open_file(root, NATIVE("assets/shaders/map_v.glsl"));
-	auto map_water_fshader = simple_fs::open_file(root, NATIVE("assets/shaders/map_water_f.glsl"));
-	if(bool(map_fshader) && bool(map_vshader) && bool(map_water_fshader)) {
-		auto vertex_content = simple_fs::view_contents(*map_vshader);
-		auto fragment_content = simple_fs::view_contents(*map_fshader);
-		auto water_fragment_content = simple_fs::view_contents(*map_water_fshader);
-		map_shader_program = ogl::create_program(
-			std::string_view(vertex_content.data, vertex_content.file_size),
-			std::string_view(fragment_content.data, fragment_content.file_size));
-		map_water_shader_program = ogl::create_program(
-			std::string_view(vertex_content.data, vertex_content.file_size),
-			std::string_view(water_fragment_content.data, water_fragment_content.file_size));
-	} else {
-		ogl::notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
-	}
+	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/map_v.glsl"));
+
+	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/map_f.glsl"));
+	auto map_political_close_fshader = try_load_shader(root, NATIVE("assets/shaders/map_political_close_f.glsl"));
+	auto map_political_far_fshader = try_load_shader(root, NATIVE("assets/shaders/map_political_far_f.glsl"));
+
+	auto map_water_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_f.glsl"));
+	auto map_water_political_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_political_f.glsl"));
+
+	terrain_shader = ogl::create_program(
+		get_content(*map_vshader), get_content(*map_fshader));
+	terrain_political_close_shader = ogl::create_program(
+		get_content(*map_vshader), get_content(*map_political_close_fshader));
+	terrain_political_far_shader = ogl::create_program(
+		get_content(*map_vshader), get_content(*map_political_far_fshader));
+
+	water_shader = ogl::create_program(
+		get_content(*map_vshader), get_content(*map_water_fshader));
+	water_political_shader = ogl::create_program(
+		get_content(*map_vshader), get_content(*map_water_political_fshader));
 }
 
 void display_data::render(uint32_t screen_x, uint32_t screen_y) {
@@ -272,10 +295,19 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glBindTexture(GL_TEXTURE_2D, overlay);
 	glActiveTexture(GL_TEXTURE8);
 	glBindTexture(GL_TEXTURE_2D, province_color);
+	glActiveTexture(GL_TEXTURE9);
+	glBindTexture(GL_TEXTURE_2D, colormap_political);
 
 	glBindVertexArray(vao);
 
-	glUseProgram(map_shader_program);
+	if (active_map_mode == map_mode::mode::terrain)
+		glUseProgram(terrain_shader);
+	else {
+		if (zoom > 5)
+			glUseProgram(terrain_political_close_shader);
+		else
+			glUseProgram(terrain_political_far_shader);
+	}
 
 	// uniform float aspect_ratio
 	glUniform1f(1, screen_x / ((float)screen_y));
@@ -288,14 +320,21 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 
 	glBindVertexBuffer(0, land_vbo, 0, sizeof(GLfloat) * 2);
 
-	glUniform2f(0, offset_x-1.f, offset_y);
+	glUniform2f(0, offset_x - 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
-	glUniform2f(0, offset_x+0.f, offset_y);
+	glUniform2f(0, offset_x + 0.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
-	glUniform2f(0, offset_x+1.f, offset_y);
+	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
 
-	glUseProgram(map_water_shader_program);
+	if (active_map_mode == map_mode::mode::terrain)
+		glUseProgram(water_shader);
+	else {
+		if (zoom > 5)
+			glUseProgram(water_shader);
+		else
+			glUseProgram(water_political_shader);
+	}
 
 	glUniform2f(0, offset_x, offset_y);
 	// uniform float aspect_ratio
@@ -309,16 +348,15 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 
 	glBindVertexBuffer(0, water_vbo, 0, sizeof(GLfloat) * 2);
 
-	glUniform2f(0, offset_x-1.f, offset_y);
+	glUniform2f(0, offset_x - 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
-	glUniform2f(0, offset_x+0.f, offset_y);
+	glUniform2f(0, offset_x + 0.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
-	glUniform2f(0, offset_x+1.f, offset_y);
+	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
 }
 
-int nr_provinces;
-GLuint load_province_map(simple_fs::directory& map_dir) {
+GLuint load_province_map(simple_fs::directory& map_dir, int& nr_of_province) {
 	auto defs = simple_fs::open_file(map_dir, NATIVE("definition.csv"));
 
 	auto defs_content = simple_fs::view_contents(*defs);
@@ -345,7 +383,7 @@ GLuint load_province_map(simple_fs::directory& map_dir) {
 				color_to_id.insert_or_assign(color, index++);
 			});
 	}
-	nr_provinces = index;
+	nr_of_province = index;
 
 	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
 	auto bmp_content = simple_fs::view_contents(*provinces_bmp);
@@ -355,14 +393,14 @@ GLuint load_province_map(simple_fs::directory& map_dir) {
 		&size_x, &size_y, &file_channels, 4);
 
 	std::vector<int16_t> province_ids(size_x * size_y);
-	for (int i = 0; i < size_x * size_y; i++) {
-		uint8_t* ptr = data + i*4;
+	for(int i = 0; i < size_x * size_y; i++) {
+		uint8_t* ptr = data + i * 4;
 		int b = ptr[2];
 		int g = ptr[1];
 		int r = ptr[0];
 		int32_t color = (r << 16) | (g << 8) | b;
 
-		province_ids[i] = color_to_id[color];
+		province_ids[i] = color_to_id[color] + 1;
 	}
 	STBI_FREE(data);
 
@@ -380,7 +418,8 @@ GLuint load_province_map(simple_fs::directory& map_dir) {
 	return texture_handle;
 }
 
-void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
+void display_data::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
+	active_map_mode = new_map_mode;
 	glBindTexture(GL_TEXTURE_2D, province_color);
 	uint32_t rows = ((uint32_t)prov_color.size()) / 256;
 	uint32_t left_on_last_row = ((uint32_t)prov_color.size()) % 256;
@@ -392,6 +431,10 @@ void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
 	width = left_on_last_row, height = 1;
 	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[rows * 256]);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void display_data::set_terrain_map_mode() {
+	active_map_mode = map_mode::mode::terrain;
 }
 
 void display_data::load_map(sys::state& state) {
@@ -409,7 +452,7 @@ void display_data::load_map(sys::state& state) {
 	create_meshes(*terrain_bmp);
 
 	// TODO Better error handling and reporting ^^
-	provinces_texture_handle = load_province_map(map_dir);
+	provinces_texture_handle = load_province_map(map_dir, nr_of_provinces);
 
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
 	rivers_texture_handle = load_texture_from_file(*rivers_bmp, GL_NEAREST);
@@ -419,6 +462,7 @@ void display_data::load_map(sys::state& state) {
 	water_normal = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
 	colormap_water = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
 	colormap_terrain = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
+	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 
 	// Get the province_colorhandle
@@ -429,10 +473,10 @@ void display_data::load_map(sys::state& state) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	std::vector<uint32_t> test;
-	for (int i = 0; i < nr_provinces; i++) {
+	for(int i = 0; i < nr_of_provinces; i++) {
 		test.push_back(255);
 	}
-	set_province_color(test);
+	set_province_color(test, map_mode::mode::terrain);
 }
 
 void display_data::update() {
@@ -505,7 +549,7 @@ void display_data::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, in
 		auto map_pos = screen_to_map(mouse_pos, screen_size);
 
 		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
-    }
+	}
 }
 
 glm::vec2 display_data::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size) {

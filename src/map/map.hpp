@@ -1,34 +1,10 @@
 #pragma once
 
 #include "system_state.hpp"
+#include "map_modes.hpp"
 #include <glm/vec2.hpp>
 
 namespace map {
-
-enum class map_mode : uint8_t {
-	terrain = 0x01,
-	political = 0x02,
-	revolt = 0x03,
-	diplomatic = 0x04,
-	region = 0x05,
-	infrastructure = 0x06,
-	colonial = 0x07,
-	admin = 0x08,
-	recruitment = 0x09,
-	national_focus = 0x0A,
-	rgo_output = 0x0B,
-	population = 0x0C,
-	nationality = 0x0D,
-	sphere = 0x0E,
-	supply = 0x0F,
-	party_loyalty = 0x10,
-	rank = 0x11,
-	migration = 0x12,
-	civilization_level = 0x13,
-	relation = 0x14,
-	crisis = 0x15,
-	naval = 0x16
-};
 
 class display_data {
 public:
@@ -38,10 +14,12 @@ public:
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	map_mode active_map_mode = map_mode::terrain;
+	int nr_of_provinces = 0;
+	map_mode::mode active_map_mode = map_mode::mode::terrain;
 
 	void render(uint32_t screen_x, uint32_t screen_y);
-	void set_province_color(std::vector<uint32_t> const& prov_color);
+	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
+	void set_terrain_map_mode();
 
 	// Set the position of camera. Position relative from 0-1
 	void set_pos(glm::vec2 pos);
@@ -76,12 +54,16 @@ private:
 	GLuint water_normal = 0;
 	GLuint colormap_water = 0;
 	GLuint colormap_terrain = 0;
+	GLuint colormap_political = 0;
 	GLuint overlay = 0;
 	GLuint province_color = 0;
 
 	// Shaders
-	GLuint map_shader_program = 0;
-	GLuint map_water_shader_program = 0;
+	GLuint terrain_shader = 0;
+	GLuint terrain_political_far_shader = 0;
+	GLuint terrain_political_close_shader = 0;
+	GLuint water_shader = 0;
+	GLuint water_political_shader = 0;
 
 	// Position and movement
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);

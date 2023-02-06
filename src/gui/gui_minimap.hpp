@@ -4,6 +4,7 @@
 #include "gui_graphics.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
+#include "map_modes.hpp"
 #include <glm/glm.hpp>
 
 namespace ui {
@@ -11,7 +12,7 @@ namespace ui {
 class minimap_mapmode_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		state.map_display.active_map_mode = target;
+		map_mode::set_map_mode(state, target);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -19,7 +20,7 @@ public:
 		button_element_base::render(state, x, y);
 	}
 
-	map::map_mode target = map::map_mode::terrain;
+	map_mode::mode target = map_mode::mode::terrain;
 };
 
 class minimap_container_window: public window_element_base {
@@ -42,13 +43,13 @@ public:
 				num *= 10;
 				num += name[i] - '0';
 			}
-			ptr->target = static_cast<map::map_mode>(num);
+			ptr->target = static_cast<map_mode::mode>(num);
 			return ptr;
 		} else {
 			return nullptr;
 		}
 	}
-	
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		base_data.size.x = int16_t(ui_width(state));
 		base_data.size.y = int16_t(ui_height(state));
@@ -65,7 +66,7 @@ public:
         opaque_element_base::render(state, x, y);
         // TODO draw white box to represent window borders
     }
-    
+
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		auto minimap_size = glm::vec2(base_data.size.x, base_data.size.y);
         state.map_display.set_pos(glm::vec2(x, y) / minimap_size);
