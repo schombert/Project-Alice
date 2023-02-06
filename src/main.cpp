@@ -12,6 +12,8 @@
 #include "gui_graphics.cpp"
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"
+#include "gui_production_window.cpp"
+#include "gui_politics_window.cpp"
 #include "nations_parsing.cpp"
 #include "cultures_parsing.cpp"
 #include "econ_parsing.cpp"
