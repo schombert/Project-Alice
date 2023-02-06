@@ -29,7 +29,7 @@ public:
 	}
 };
 
-class topbar_tab_button : public button_element_base {
+class topbar_tab_button : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override {
 		const auto override_and_show_tab = [&]() {
@@ -48,9 +48,8 @@ public:
 		}
 	}
 
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		frame = int32_t(state.ui_state.topbar_subwindow == topbar_subwindow && state.ui_state.topbar_subwindow->is_visible());
-		button_element_base::render(state, x, y);
+	bool is_active(sys::state& state) noexcept override {
+		return state.ui_state.topbar_subwindow == topbar_subwindow && state.ui_state.topbar_subwindow->is_visible();
 	}
 
 	element_base* topbar_subwindow = nullptr;
