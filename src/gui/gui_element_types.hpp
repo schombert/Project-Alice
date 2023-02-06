@@ -150,13 +150,6 @@ public:
 	}
 };
 
-class generic_tab_close_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		state.ui_state.topbar_subwindow->set_visible(state, false);
-	}
-};
-
 class checkbox_button : public button_element_base {
 public:
 	virtual bool is_active(sys::state& state) noexcept {
