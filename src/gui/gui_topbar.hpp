@@ -2,7 +2,6 @@
 
 #include "gui_element_types.hpp"
 #include "gui_production_window.hpp"
-#include "gui_military_window.hpp"
 
 namespace ui {
 
@@ -45,28 +44,6 @@ public:
 	}
 };
 
-class topbar_military_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(!state.ui_state.military_window) {
-			auto new_pw = make_element_by_type<military_window>(state, "country_production");
-			state.ui_state.military_window = new_pw.get();
-			state.ui_state.root->add_child_to_front(std::move(new_pw));
-		} else if(state.ui_state.military_window->is_visible()) {
-			state.ui_state.military_window->set_visible(state, false);
-			state.ui_state.root->move_child_to_back(state.ui_state.military_window);
-		} else {
-			state.ui_state.military_window->set_visible(state, true);
-			state.ui_state.root->move_child_to_front(state.ui_state.military_window);
-		}
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		frame = int32_t(state.ui_state.military_window && state.ui_state.military_window->is_visible());
-		button_element_base::render(state, x, y);
-	}
-};
-
 class topbar_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -82,11 +59,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "topbarbutton_production") {
 			return make_element_by_type<topbar_production_button>(state, id);
-		}
-		else if(name == "topbarbutton_military") {
-			return make_element_by_type<topbar_military_button>(state, id);
-		}
-		else {
+		} else {
 			return nullptr;
 		}
 	}
