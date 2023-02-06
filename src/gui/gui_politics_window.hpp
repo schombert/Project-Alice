@@ -5,45 +5,38 @@
 
 namespace ui {
 
-enum class politics_window_sub_window : uint8_t {
+enum class politics_window_tab : uint8_t {
 	reforms = 0x0,
 	movements = 0x1,
 	decisions = 0x2,
 	releasables = 0x3
 };
 
-class politics_window_tab_button : public checkbox_button {
-public:
-	bool is_active(sys::state& state) noexcept override;
-	void button_action(sys::state& state) noexcept override;
-	politics_window_sub_window target = politics_window_sub_window::reforms;
-};
-
-class politics_window : public window_element_base {
+class politics_window : public generic_tabbed_window<politics_window_tab> {
 public:
 	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
+		generic_tabbed_window::on_create(state);
 		set_visible(state, false);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
-			return make_element_by_type<generic_tab_close_button>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "reforms_tab") {
-			auto ptr = make_element_by_type<politics_window_tab_button>(state, id);
-			ptr->target = politics_window_sub_window::reforms;
+			auto ptr = make_element_by_type<generic_tab_button<politics_window_tab>>(state, id);
+			ptr->target = politics_window_tab::reforms;
 			return ptr;
 		} else if(name == "movements_tab") {
-			auto ptr = make_element_by_type<politics_window_tab_button>(state, id);
-			ptr->target = politics_window_sub_window::movements;
+			auto ptr = make_element_by_type<generic_tab_button<politics_window_tab>>(state, id);
+			ptr->target = politics_window_tab::movements;
 			return ptr;
 		} else if(name == "decisions_tab") {
-			auto ptr = make_element_by_type<politics_window_tab_button>(state, id);
-			ptr->target = politics_window_sub_window::decisions;
+			auto ptr = make_element_by_type<generic_tab_button<politics_window_tab>>(state, id);
+			ptr->target = politics_window_tab::decisions;
 			return ptr;
 		} else if(name == "release_nations_tab") {
-			auto ptr = make_element_by_type<politics_window_tab_button>(state, id);
-			ptr->target = politics_window_sub_window::releasables;
+			auto ptr = make_element_by_type<generic_tab_button<politics_window_tab>>(state, id);
+			ptr->target = politics_window_tab::releasables;
 			return ptr;
 		} else {
 			return nullptr;
@@ -67,24 +60,24 @@ public:
 		hide_vector_elements(state, release_elements);
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<politics_window_sub_window>()) {
-			auto enum_val = any_cast<politics_window_sub_window>(payload);
+		if(payload.holds_type<politics_window_tab>()) {
+			auto enum_val = any_cast<politics_window_tab>(payload);
 			hide_sub_windows(state);
 			switch(enum_val) {
-				case politics_window_sub_window::reforms:
+				case politics_window_tab::reforms:
 					show_vector_elements(state, reform_elements);
 					break;
-				case politics_window_sub_window::movements:
+				case politics_window_tab::movements:
 					show_vector_elements(state, movement_elements);
 					break;
-				case politics_window_sub_window::decisions:
+				case politics_window_tab::decisions:
 					show_vector_elements(state, decision_elements);
 					break;
-				case politics_window_sub_window::releasables:
+				case politics_window_tab::releasables:
 					show_vector_elements(state, release_elements);
 					break;
 			}
-			active_sub_window = enum_val;
+			active_tab = enum_val;
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -93,7 +86,6 @@ public:
 	std::vector<element_base*> movement_elements;
 	std::vector<element_base*> decision_elements;
 	std::vector<element_base*> release_elements;
-	politics_window_sub_window active_sub_window = politics_window_sub_window::reforms;
 };
 
 }
