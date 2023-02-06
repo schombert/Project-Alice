@@ -431,7 +431,7 @@ int32_t max_length(V const& vector) {
 	return mx;
 }
 
-struct cxx_tree_builder {
+struct match_tree_builder {
 	std::string tabs;
 
 void tabulate_increment() {
@@ -446,128 +446,33 @@ std::string tabulate(std::string_view const s) const {
 	return tabs + s.data();
 }
 
-template<typename V>
-std::string get_match_tree_running_prefix(V const& vector, std::string prefix, int32_t length) {
-	int32_t top_count = count_with_prefix(vector, prefix, length);
-	for(int32_t c = 32; c <= 95; ++c) {
-		int32_t count = count_with_prefix(vector, prefix + char(c), length);
-		if(top_count == count) {
-			prefix = get_match_tree_running_prefix(vector, prefix + char(c), length);
-			break;
-		}
-	}
-	return prefix;
+uint32_t token_string_hash(std::string_view const s) {
+	uint32_t h = 5381;
+	for(auto it = s.begin(); it != s.end(); it++)
+		h = ((h << 5) + h) + uint8_t(*it | 0x20);
+	return h;
 }
 
 template<typename V, typename F>
-std::string construct_match_tree_internal(V const& vector, F const& generator_match, std::string_view const no_match, std::string_view const prefix, int32_t length) {
-	int32_t top_count = count_with_prefix(vector, prefix, length);	
+std::string construct_match_tree_outer(V const& vector, F const& generator_match, std::string_view const no_match) {
+	if(vector.empty())
+		return tabulate(std::string(no_match) + "\n");
+	
+	// No duplicates
+	for(auto const& e1 : vector)
+		assert(std::count_if(vector.begin(), vector.end(), [&](auto const& e2) {
+			return e1.key == e2.key;
+		}) == 1);
+	
 	std::string output;
-	bool has_switch = false;
-	for(int32_t c = 32; c <= 95; ++c) {
-		int32_t count = count_with_prefix(vector, std::string(prefix) + char(c), length);
-		if(count == 0) {
-			// skip
-		} else if(top_count == count) {
-			// Obtain the prefix that is equal on all the branches, for example if the branching options were
-			// namefoo
-			// namebar
-			// nameowa
-			//
-			// Then our running prefix would be [name] - instead of checking every character at a time
-			auto running_prefix = get_match_tree_running_prefix(vector, std::string(prefix), length);
-			assert(!running_prefix.empty());
-			output += tabulate("// " + running_prefix + "\n");
-			assert(running_prefix.length() > prefix.length() && running_prefix != prefix);
-
-			output += tabulate("// running -  " + running_prefix.substr(prefix.length()) + "\n");
-			output += tabulate("if(" + final_match_condition(running_prefix, prefix.length(), running_prefix.length()) + ") {\n");
-			tabulate_increment();
-			output += construct_match_tree_internal(vector, generator_match, no_match, running_prefix, length);
-			tabulate_decrement();
-
-			output += tabulate("} else {\n");
-			tabulate_increment();
-			output += tabulate(std::string(no_match) + "\n");
-			output += tabulate("}\n");
-			tabulate_decrement();
-		} else if(count == 1) {
-			if(!has_switch) {
-				output += tabulate("switch(0x20 | int32_t(cur.content[" + std::to_string(prefix.length()) + "])) {\n");
-				has_switch = true;
-			}
-
-			output += tabulate("case 0x" + char_to_hex(char(c)) + ":\n");
-			tabulate_increment();
-			enum_with_prefix(vector, std::string(prefix) + char(c), length, [&](auto& v) {
-				output += tabulate("// " + v.key + "\n");
-				output += tabulate("if(" + final_match_condition(v.key, prefix.length() + 1, 0) + ") {\n");
-				tabulate_increment();
-				output += tabulate(generator_match(v) + "\n");
-				tabulate_decrement();
-				output += tabulate("} else {\n");
-				tabulate_increment();
-				output += tabulate(std::string(no_match) + "\n");
-				tabulate_decrement();
-				output += tabulate("}\n");
-			});
-			output += tabulate("break;\n");
-			tabulate_decrement();
-		} else {
-			if(!has_switch) {
-				output += tabulate("switch(0x20 | int32_t(cur.content[" + std::to_string(prefix.length()) + "])) {\n");
-				has_switch = true;
-			}
-			
-			output += tabulate("case 0x" + char_to_hex(char(c)) + ":\n");
-			tabulate_increment();
-			output += construct_match_tree_internal(vector, generator_match, no_match, std::string(prefix) + char(c), length);
-			output += tabulate("break;\n");
-			tabulate_decrement();
-		}
-	}
-
-	if(has_switch) {
-		output += tabulate("default:\n");
+	output += tabulate("switch(parsers::token_string_hash(cur.content)) {\n");
+	for(auto const& e : vector) {
+		output += tabulate("case " + std::to_string(token_string_hash(e.key)) + "ul:\n");
 		tabulate_increment();
-		output += tabulate(std::string(no_match) + "\n");
+		output += tabulate("// " + e.key + "\n");
+		output += tabulate(generator_match(e) + "\n");
+		output += tabulate("break;\n");
 		tabulate_decrement();
-		output += tabulate("}\n");
-	}
-	return output;
-}
-
-std::string construct_match_tree_outer(auto const& vector, auto const& generator_match, std::string_view const no_match) {
-	auto const maxlen = max_length(vector);
-	std::string output = tabulate("switch(int32_t(cur.content.length())) {\n");
-	for(int32_t l = 1; l <= maxlen; ++l) {
-		int32_t count = count_with_prefix(vector, "", l);
-		if(count == 0) {
-			// skip
-		} else if(count == 1) {
-			output += tabulate("case " + std::to_string(l) + ":\n");
-			tabulate_increment();
-			enum_with_prefix(vector, "", l, [&](auto& v) {
-				output += tabulate("// " + v.key + "\n");
-				output += tabulate("if(" + final_match_condition(v.key, 0, 0) + ") {\n");
-				tabulate_increment();
-				output += tabulate(generator_match(v) + "\n");
-				tabulate_decrement();
-				output += tabulate("} else {\n");
-				tabulate_increment();
-				output += tabulate(std::string(no_match) + "\n");
-				tabulate_decrement();
-				output += tabulate("}\n");
-			});
-			output += tabulate("break;\n");
-			tabulate_decrement();
-		} else {
-			output += tabulate("case " + std::to_string(l) + ":\n");
-			tabulate_increment();
-			output += construct_match_tree_internal(vector, generator_match, no_match, "", l);
-			output += tabulate("break;\n");
-			tabulate_decrement();
-		}
 	}
 	output += tabulate("default:\n");
 	tabulate_increment();
@@ -885,7 +790,7 @@ int main(int argc, char *argv[]) {
 		if(state.error_count > 0)
 			std::exit(EXIT_FAILURE);
 		
-		cxx_tree_builder tree_builder{};
+		match_tree_builder tree_builder{};
 		tree_builder.file_write_out(output_file, state.groups);
 	} else {
 		fprintf(stderr, "Usage: %s <input> [output]\n", argv[0]);

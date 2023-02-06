@@ -261,4 +261,11 @@ namespace parsers {
 		}
 		return true;
 	}
+
+	uint32_t token_string_hash(std::string_view const s) {
+		uint32_t h = 5381;
+		for(auto it = s.begin(); it != s.end(); it++)
+			h = ((h << 5) + h) + uint8_t(*it | 0x20);
+		return h;
+	}
 }
