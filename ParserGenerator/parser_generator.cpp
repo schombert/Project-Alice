@@ -459,11 +459,13 @@ std::string construct_match_tree_outer(V const& vector, F const& generator_match
 		return tabulate(std::string(no_match) + "\n");
 	
 	// No duplicates
+#ifndef NDEBUG
 	for(auto const& e1 : vector)
 		assert(std::count_if(vector.begin(), vector.end(), [&](auto const& e2) {
 			return e1.key == e2.key;
 		}) == 1);
-	
+#endif
+
 	std::string output;
 	output += tabulate("switch(parsers::token_string_hash(cur.content)) {\n");
 	for(auto const& e : vector) {
