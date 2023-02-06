@@ -48,6 +48,7 @@
 
 #include "opengl_wrapper.cpp"
 #include "map.cpp"
+#include "map_modes.cpp"
 
 namespace sys {
 	state::~state() {

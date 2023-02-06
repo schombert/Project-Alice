@@ -15,8 +15,7 @@ file(GLOB_RECURSE TESTING ${PROJECT_SOURCE_DIR}/assets/*)
 foreach(file ${TESTING})
 	string(LENGTH "${PROJECT_SOURCE_DIR}/" SOURCE_DIR_LENGHT)
 	string(SUBSTRING ${file} ${SOURCE_DIR_LENGHT} -1 file)
-	message(${file})
-	list(APPEND ASSET_FILES ${CMAKE_CURRENT_BINARY_DIR}/${file})
+	list(APPEND ASSET_FILES "${CMAKE_CURRENT_BINARY_DIR}/${file}")
 
 	add_custom_command(
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
