@@ -373,7 +373,7 @@ float font::text_extent(const char* codepoints, uint32_t count, int32_t size) co
 	for(; count-- > 0; ) {
 
 		total +=
-			this->glyph_advances[uint32_t(codepoints[count])] * size / 64.0f +
+			this->glyph_advances[uint8_t(codepoints[count])] * size / 64.0f +
 			((count != 0) ? kerning(codepoints[count - 1], codepoints[count]) * size / 64.0f : 0.0f);
 	}
 	return total;

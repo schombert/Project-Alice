@@ -62,11 +62,11 @@ private:
 	float time_counter = 0;
 
 	// Meshes
-	GLuint water_vbo;
-	GLuint land_vbo;
-	GLuint vao;
-	uint32_t water_indicies;
-	uint32_t land_indicies;
+	GLuint water_vbo = 0;
+	GLuint land_vbo = 0;
+	GLuint vao = 0;
+	uint32_t water_indicies = 0;
+	uint32_t land_indicies = 0;
 
 	// Textures
 	GLuint provinces_texture_handle = 0;
