@@ -136,11 +136,24 @@ public:
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
+template<class TabT>
+class generic_tabbed_window : public window_element_base {
+public:
+	TabT active_tab = TabT();
+};
+
 class generic_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent)
 			parent->set_visible(state, false);
+	}
+};
+
+class generic_tab_close_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.topbar_subwindow->set_visible(state, false);
 	}
 };
 
@@ -153,6 +166,23 @@ public:
 		frame = int32_t(is_active(state));
 		button_element_base::render(state, x, y);
 	}
+};
+
+template<class TabT>
+class generic_tab_button : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept final {
+		return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
+	}
+
+	void button_action(sys::state& state) noexcept final {
+		if(parent) {
+			Cyto::Any payload = target;
+			parent->impl_get(state, payload);
+		}
+	}
+
+	TabT target = TabT();
 };
 
 class scrollbar_left : public button_element_base {
