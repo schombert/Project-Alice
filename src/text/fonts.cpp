@@ -22,41 +22,38 @@ bool is_black_font(std::string_view txt) {
 }
 
 uint32_t font_size(std::string_view txt) {
+	const auto scaling = 0.75f; // Conservative scaling
+
 	const char* first_int = txt.data();
 	const char* end = txt.data() + txt.size();
-	while(first_int != end) {
-		if(isdigit(*first_int))
-			break;
+	while(first_int != end && !isdigit(*first_int))
 		++first_int;
-	}
 	const char* last_int = first_int;
-	while(last_int != end) {
-		if(!isdigit(*last_int))
-			break;
+	while(last_int != end && isdigit(*last_int))
 		++last_int;
-	}
+	
 	if(first_int == last_int) {
 		if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "fps_font"))
-			return 14;
+			return uint32_t(14.f * scaling);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "tooltip_font"))
-			return 16;
+			return uint32_t(16.f * scaling);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "frangoth_bold"))
-			return 18;
+			return uint32_t(18.f * scaling);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "impact_small"))
-			return 24;
+			return uint32_t(24.f * scaling);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "old_english"))
-			return 50;
+			return uint32_t(50.f * scaling);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "timefont"))
-			return 24;
+			return uint32_t(24.f * scaling);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "vic_title"))
-			return 42;
+			return uint32_t(42.f * scaling);
 		else
-			return 14;
+			return uint32_t(14.f * scaling);
 	}
 
 	uint32_t rvalue = 0;
 	std::from_chars(first_int, last_int, rvalue);
-	return rvalue;
+	return uint32_t(float(rvalue) * scaling);
 }
 
 uint32_t font_index(std::string_view txt) {
