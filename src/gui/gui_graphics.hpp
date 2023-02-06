@@ -343,7 +343,8 @@ namespace ui {
 
 		// elements we are keeping track of
 		element_base* main_menu = nullptr;
-		element_base* production_window = nullptr;
+		element_base* topbar_window = nullptr;
+		element_base* topbar_subwindow = nullptr; // Current tab window
 
 		state();
 	};
