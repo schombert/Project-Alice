@@ -53,7 +53,7 @@ object{
 object {
 	name{ political_party }
 	storage_type{contiguous}
-	size{ 8000 }
+	size{ 10000 }
 
 	property{
 		name{ name }
@@ -211,7 +211,7 @@ object {
 object {
 	name{ modifier }
 	storage_type{ contiguous }
-	size{ 1500 }
+	size{ 2500 }
 
 	property{
 		name{ name }
@@ -353,7 +353,7 @@ object {
 object {
 	name{leader_trait}
 	storage_type{ contiguous }
-	size{ 200 }
+	size{ 1400 }
 
 	property{
 		name{ name }
