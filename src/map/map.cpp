@@ -539,12 +539,7 @@ void display_data::set_pos(glm::vec2 new_pos) {
 }
 
 void display_data::on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount) {
-	if(amount < -4.f) {
-		amount = -4.f;
-	}
-	else if(amount > 4.f) {
-		amount = 4.f;
-	}
+	amount = std::clamp(amount, -4.f, 4.f);
 	if(amount >= 0) {
 		zoom *= 1.f + amount / 5.f;
 	}
