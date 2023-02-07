@@ -120,6 +120,17 @@ public:
 	void set_text(sys::state& state, std::string const& new_text);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	std::string_view get_text(sys::state& state) const {
+		return stored_text;
+	}
+};
+
+class textbox_element_base : public simple_text_element_base {
+public:
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
+	void on_text(sys::state& state, char ch) noexcept final;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
 class draggable_target : public opaque_element_base {
@@ -134,6 +145,17 @@ public:
 	}
 	void on_create(sys::state& state) noexcept override;
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+};
+
+class listbox_element_base : public container_base {
+public:
+	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+		return nullptr;
+	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
 template<class TabT>

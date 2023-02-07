@@ -7,6 +7,7 @@
 #include "parsers_declarations.hpp"
 #include "gui_minimap.hpp"
 #include "gui_topbar.hpp"
+#include "gui_console.hpp"
 
 namespace sys {
 	//
@@ -92,6 +93,8 @@ namespace sys {
 			if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 				if(keycode == virtual_key::ESCAPE) {
 					ui::show_main_menu(*this);
+				} else if(keycode == virtual_key::TILDA) {
+					ui::console_window::show_toggle(*this);
 				}
 				map_display.on_key_down(keycode, mod);
 			}

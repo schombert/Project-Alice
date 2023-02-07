@@ -113,7 +113,7 @@ element_base* element_base::impl_probe_mouse(sys::state& state, int32_t x, int32
 				gfx_id = base_data.data.button.button_image;
 			} else if(elem_type == element_type::image) {
 				gfx_id = base_data.data.image.gfx_object;
-			} else {
+			} else if(elem_type == element_type::listbox) {
 				gfx_id = base_data.data.list_box.background_image;
 			}
 			auto& gfx_def = state.ui_defs.gfx[gfx_id];

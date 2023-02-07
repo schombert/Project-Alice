@@ -135,6 +135,7 @@ void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcep
 	} else if(base_data.get_element_type() == element_type::button) {
 		gid = base_data.data.button.button_image;
 	}
+	// TODO: More elements defaults?
 	if(gid) {
 		auto& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
@@ -202,8 +203,62 @@ void button_element_base::on_create(sys::state& state) noexcept {
 		font_size = text::size_from_font_id(base_data.data.button.font_handle);
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		text_offset = (base_data.size.x - state.font_collection.fonts[font_id - 1].text_extent(stored_text.c_str(), uint32_t(stored_text.length()), font_size)) / 2.0f;
-		
 	}
+}
+
+message_result textbox_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	// Set edit control so we get on_text events
+	state.in_edit_control = true;
+	state.ui_state.edit_target = this;
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+	return message_result::consumed;
+}
+
+void textbox_element_base::on_text(sys::state& state, char ch) noexcept {
+	auto s = std::string(get_text(state));
+	switch(ch) {
+	case '\b': // backspace
+		s.pop_back();
+		set_text(state, s);
+		break;
+	case '\n': // enter
+		// TODO: on_enter
+		s.clear();
+		set_text(state, s);
+		break;
+	default:
+		s += ch;
+		set_text(state, s);
+		break;
+	}
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+}
+
+void textbox_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(base_data.get_element_type() == element_type::text) {
+		dcon::texture_id background_texture_id;
+		if((base_data.data.text.flags & uint8_t(ui::text_background::tiles_dialog)) != 0) {
+			background_texture_id = definitions::tiles_dialog;
+		} else if((base_data.data.text.flags & uint8_t(ui::text_background::transparency)) != 0) {
+			background_texture_id = definitions::transparency;
+		} else if((base_data.data.text.flags & uint8_t(ui::text_background::small_tiles_dialog)) != 0) {
+			background_texture_id = definitions::small_tiles_dialog;
+		}
+		// TODO: Partial transparency is ignored, might cause issues with "transparency"?
+		// is-vertically-flipped is also ignored, also the border size **might** be
+		// variable/stored somewhere, but I don't know where?
+		if(background_texture_id) {
+			ogl::render_textured_rect(
+				state,
+				get_color_modification(false, false, false),
+				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				ogl::get_texture_handle(state, background_texture_id, false),
+				base_data.get_rotation(),
+				false
+			);
+		}
+	}
+	simple_text_element_base::render(state, x, y);
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
@@ -288,14 +343,12 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 			//auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
 			//auto ycentered = (base_data.size.y - base_data.data.text.border_size.y - linesz) / 2;
 			//ycentered = std::max(ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size), float(base_data.data.text.border_size.y));
-
 			ogl::render_text(
 				state, stored_text.c_str(), uint32_t(stored_text.length()),
 				ogl::color_modification::none,
 				float(x + text_offset), float(y + base_data.data.text.border_size.y), float(font_size),
 				black_text ? ogl::color3f{ 0.0f,0.0f,0.0f } : ogl::color3f{ 1.0f,1.0f,1.0f },
 				state.font_collection.fonts[font_id - 1]);
-
 		} else {
 			auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
 			auto ycentered = (base_data.size.y - linesz) / 2;
@@ -395,6 +448,36 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 		base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
 		base_data.position.y += int16_t(new_abs_pos.y - location_abs.y);
 	}
+}
+
+void listbox_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	dcon::gfx_object_id gid = base_data.data.list_box.background_image;
+	if(gid) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.primary_texture_handle) {
+			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
+				ogl::render_bordered_rect(
+					state,
+					get_color_modification(false, false, true),
+					gfx_def.type_dependant,
+					float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(),
+					gfx_def.is_vertically_flipped()
+				);
+			} else {
+				ogl::render_textured_rect(
+					state,
+					get_color_modification(false, false, true),
+					float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(),
+					gfx_def.is_vertically_flipped()
+				);
+			}
+		}
+	}
+	container_base::render(state, x, y);
 }
 
 message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
