@@ -295,7 +295,7 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].get_orientation() == ui::orientation::upper_left);
 				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.is_instant() == true);
 				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.is_edit() == false);
-				REQUIRE(text::size_from_font_id(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.font_handle) == uint16_t(22));
+				REQUIRE(text::size_from_font_id(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.font_handle) == uint16_t(16));
 				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].size.x == int16_t(172));
 				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].size.y == int16_t(18));
 				REQUIRE(state->ui_defs.gui[dcon::gui_def_id(uint16_t(index))].data.text.border_size.x == 0);

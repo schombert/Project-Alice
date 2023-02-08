@@ -21,6 +21,8 @@ struct trigger_building_context {
 	trigger::slot_contents from_slot = trigger::slot_contents::empty;
 
 
+	trigger_building_context(scenario_building_context& outer_context, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : outer_context(outer_context), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
+
 	void add_float_to_payload(float f) {
 		union {
 			struct {
