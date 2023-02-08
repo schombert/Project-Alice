@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_movements_window.hpp"
 #include <vector>
 
 namespace ui {
@@ -18,7 +19,7 @@ public:
 		generic_tabbed_window::on_create(state);
 		set_visible(state, false);
 	}
-
+	movements_window* movewin = nullptr;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
@@ -38,6 +39,16 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<politics_window_tab>>(state, id);
 			ptr->target = politics_window_tab::releasables;
 			return ptr;
+		} else if(name == "decision_window") {
+			auto ptr = make_element_immediate(state, id);
+			decision_elements.push_back(ptr.get());
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "movements_window") {
+			auto ptr = make_element_by_type<movements_window>(state, id);
+			movewin = ptr.get();
+			ptr->set_visible(state, false);
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -56,6 +67,7 @@ public:
 	void hide_sub_windows(sys::state& state) {
 		hide_vector_elements(state, reform_elements);
 		hide_vector_elements(state, movement_elements);
+		movewin->set_visible(state, false);
 		hide_vector_elements(state, decision_elements);
 		hide_vector_elements(state, release_elements);
 	}
@@ -69,6 +81,8 @@ public:
 					break;
 				case politics_window_tab::movements:
 					show_vector_elements(state, movement_elements);
+					movewin->set_visible(state, true);
+					this->move_child_to_front(movewin);
 					break;
 				case politics_window_tab::decisions:
 					show_vector_elements(state, decision_elements);
