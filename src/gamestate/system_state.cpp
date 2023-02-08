@@ -19,9 +19,8 @@ namespace sys {
 		ui_state.edit_target = nullptr;
 		
 		if(ui_state.under_mouse != nullptr) {
-			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
 			// TODO: look at return value
-			ui_state.under_mouse->impl_on_rbutton_down(*this, relative_location.x, relative_location.y, mod);
+			ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 		}
 	}
 	void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
@@ -35,8 +34,7 @@ namespace sys {
 		ui_state.edit_target = nullptr;
 
 		if(ui_state.under_mouse != nullptr) {
-			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
-			auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, relative_location.x, relative_location.y, mod);
+			auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 			if(r != ui::message_result::consumed) {
 				map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			}
@@ -58,9 +56,8 @@ namespace sys {
 	}
 	void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 		if(ui_state.under_mouse != nullptr) {
-			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
 			// TODO figure out tooltips
-			auto r = ui_state.under_mouse->impl_on_mouse_move(*this, relative_location.x, relative_location.y, mod);
+			auto r = ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 			if(r != ui::message_result::consumed) {
 				map_display.on_mouse_move(x, y, x_size, y_size, mod);
 			}
@@ -91,8 +88,7 @@ namespace sys {
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 		if(ui_state.under_mouse != nullptr) {
-			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
-			auto r = ui_state.under_mouse->impl_on_scroll(*this, relative_location.x, relative_location.y, amount, mod);
+			auto r = ui_state.under_mouse->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
 			if(r != ui::message_result::consumed) {
 				// TODO Settings for making zooming the map faster
 				map_display.on_mouse_wheel(x, y, mod, amount);
@@ -138,7 +134,9 @@ namespace sys {
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0, 1.0);
 
-		ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		ui_state.under_mouse = mouse_probe.under_mouse;
+		ui_state.relative_mouse_location = mouse_probe.relative_location;
 		ui_state.root->impl_render(*this, 0, 0);
 	}
 	void state::on_create() {
@@ -680,12 +678,5 @@ namespace sys {
 
 
 		// TODO do something with err
-	}
-
-	ui::xy_pair state::get_scaled_relative_location(const ui::element_base& parent, const ui::element_base& child, int x, int y) {
-		auto relative_location = ui::child_relative_location(*ui_state.root, *ui_state.under_mouse);
-		relative_location.x = int16_t(x / user_settings.ui_scale) - relative_location.x;
-		relative_location.y = int16_t(y / user_settings.ui_scale) - relative_location.y;
-		return relative_location;
 	}
 }
