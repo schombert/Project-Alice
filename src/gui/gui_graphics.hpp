@@ -338,6 +338,7 @@ namespace ui {
 		element_base* drag_target = nullptr;
 		element_base* edit_target = nullptr;
 
+		xy_pair relative_mouse_location = xy_pair{ 0, 0 };
 		std::unique_ptr<element_base> root;
 		ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
@@ -348,6 +349,11 @@ namespace ui {
 		element_base* topbar_subwindow = nullptr; // current tab window
 
 		state();
+	};
+
+	struct mouse_probe {
+		element_base* under_mouse;
+		xy_pair relative_location;
 	};
 
 	template<typename T>
