@@ -158,7 +158,5 @@ namespace sys {
 		void update_ui_scale(float new_scale);
 
 		void load_scenario_data(); // loads all scenario files other than map data
-
-		ui::xy_pair get_scaled_relative_location(const ui::element_base& parent, const ui::element_base& child, int x, int y);
 	};
 }

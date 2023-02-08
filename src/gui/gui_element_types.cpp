@@ -12,12 +12,12 @@ inline message_result greater_result(message_result a, message_result b) {
 }
 
 
-element_base* container_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
+mouse_probe container_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
 	for(auto& c : children) {
 		if(c->is_visible()) {
 			auto relative_location = child_relative_location(*this, *c);
 			auto res = c->impl_probe_mouse(state, x - relative_location.x, y - relative_location.y);
-			if(res)
+			if(res.under_mouse)
 				return res;
 		}
 	}
@@ -580,7 +580,6 @@ message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, in
 			int32_t pos_in_track = parent_state.vertical ? y : x;
 			int32_t clamped_pos = std::clamp(pos_in_track, parent_state.buttons_size / 2, parent_state.track_size - parent_state.buttons_size / 2);
 			float fp_pos = float(clamped_pos - parent_state.buttons_size / 2) / float(parent_state.track_size - parent_state.buttons_size);
-
 			Cyto::Any adjustment_payload = value_change{
 				int32_t(parent_state.lower_value + fp_pos * (parent_state.upper_value - parent_state.lower_value)),
 				true, false };
