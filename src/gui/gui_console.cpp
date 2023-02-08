@@ -1,6 +1,6 @@
 #include "gui_console.hpp"
 
-void ui::console_edit::textbox_enter(sys::state& state, std::string_view s) noexcept {
+void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
     if(s == "reload") {
         state.map_display.load_map(state);
     } else if(s == "abort") {

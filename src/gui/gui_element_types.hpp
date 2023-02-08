@@ -126,11 +126,11 @@ public:
 	}
 };
 
-class textbox_element_base : public simple_text_element_base {
+class edit_box_element_base : public simple_text_element_base {
 	int32_t edit_index = 0;
 public:
-	virtual void textbox_enter(sys::state& state, std::string_view s) noexcept { }
-	virtual void textbox_update(sys::state& state, std::string_view s) noexcept { }
+	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept { }
+	virtual void edit_box_update(sys::state& state, std::string_view s) noexcept { }
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;

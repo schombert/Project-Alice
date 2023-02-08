@@ -207,7 +207,7 @@ void button_element_base::on_create(sys::state& state) noexcept {
 	}
 }
 
-message_result textbox_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	// Set edit control so we get on_text events
 	state.in_edit_control = true;
 	state.ui_state.edit_target = this;
@@ -215,20 +215,20 @@ message_result textbox_element_base::on_lbutton_down(sys::state& state, int32_t 
 	return message_result::consumed;
 }
 
-void textbox_element_base::on_text(sys::state& state, char ch) noexcept {
+void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
 	auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
 	edit_index++;
 	set_text(state, s);
-	textbox_update(state, s);
+	edit_box_update(state, s);
 }
 
-message_result textbox_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	if(state.ui_state.edit_target == this) {
 		// Typable keys are handled by on_text callback, we only handle control keys
 		auto s = std::string(get_text(state));
 		switch(key) {
 		case sys::virtual_key::RETURN:
-			textbox_enter(state, s);
+			edit_box_enter(state, s);
 			s.clear();
 			set_text(state, s);
 			edit_index = 0;
@@ -248,7 +248,7 @@ message_result textbox_element_base::on_key_down(sys::state& state, sys::virtual
 				s.erase(edit_index - 1, 1);
 				set_text(state, s);
 				edit_index--;
-				textbox_update(state, s);
+				edit_box_update(state, s);
 			}
 			break;
 		default:
@@ -259,7 +259,7 @@ message_result textbox_element_base::on_key_down(sys::state& state, sys::virtual
 	return message_result::unseen;
 }
 
-void textbox_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		dcon::texture_id background_texture_id;
 		if((base_data.data.text.flags & uint8_t(ui::text_background::tiles_dialog)) != 0) {
