@@ -172,6 +172,8 @@ namespace parsers {
 	// other utility functions
 	//
 
+	bool is_integer(const char* start, const char* end);
+
 	template<size_t N>
 	bool has_fixed_prefix(const char* start, const char* end, const char(&t)[N]) {
 		if(end - start < ((std::ptrdiff_t)N - 1))

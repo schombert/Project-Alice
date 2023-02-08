@@ -735,4 +735,26 @@ void make_unit_names_list(std::string_view name, token_generator& gen, error_han
 	
 }
 
+dcon::national_variable_id scenario_building_context::get_national_variable(std::string const& name) {
+	if(auto it = map_of_national_variables.find(name); it != map_of_national_variables.end()) {
+		return it->second;
+	} else {
+		dcon::national_variable_id new_id = dcon::national_variable_id(dcon::national_variable_id::value_base_t(state.national_definitions.num_allocated_national_variables));
+		++state.national_definitions.num_allocated_national_variables;
+		map_of_national_variables.insert_or_assign(name, new_id);
+		return new_id;
+	}
+}
+
+dcon::global_variable_id scenario_building_context::get_global_variable(std::string const& name) {
+	if(auto it = map_of_global_variables.find(name); it != map_of_global_variables.end()) {
+		return it->second;
+	} else {
+		dcon::global_variable_id new_id = dcon::global_variable_id(dcon::global_variable_id::value_base_t(state.national_definitions.num_allocated_global_variables));
+		++state.national_definitions.num_allocated_global_variables;
+		map_of_global_variables.insert_or_assign(name, new_id);
+		return new_id;
+	}
+}
+
 }

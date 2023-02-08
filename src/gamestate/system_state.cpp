@@ -216,6 +216,23 @@ namespace sys {
 		return std::string_view(unit_names.data() + tag.index(), size_t(end_position - start_position));
 	}
 
+	dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
+		if(data.size() == 0)
+			return dcon::trigger_key();
+
+		auto search_result = std::search(trigger_data.data(), trigger_data.data() + trigger_data.size(), std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+		if(search_result != trigger_data.data() + trigger_data.size()) {
+			return dcon::trigger_key(uint16_t(search_result - trigger_data.data()));
+		} else {
+			auto start = trigger_data.size();
+			auto size = data.size();
+
+			trigger_data.resize(start + size, uint16_t(0));
+			std::memcpy(text_data.data() + start, data.data(), size);
+			return dcon::trigger_key(uint16_t(start));
+		}
+	}
+
 	void state::save_user_settings() const {
 		auto settings_location = simple_fs::get_or_create_settings_directory();
 		simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), reinterpret_cast<char const*>(&user_settings), uint32_t(sizeof(user_settings_s)));

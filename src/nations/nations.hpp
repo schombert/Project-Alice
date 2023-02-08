@@ -59,6 +59,9 @@ struct global_national_state {
 	dcon::modifier_id total_occupation;
 	dcon::modifier_id total_blockaded;
 	dcon::modifier_id in_bankrupcy;
+
+	int32_t num_allocated_national_variables = 0;
+	int32_t num_allocated_global_variables = 0;
 };
 
 }
