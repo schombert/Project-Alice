@@ -695,3 +695,295 @@ province_history_file
 	set_province_flag value          none               discard
 	clr_province_flag value          none               discard
 	#any              extern         enter_dated_block  discard
+
+tr_diplomatic_influence
+	who              value           text               member
+	value            value           int                member_fn
+
+tr_party_loyalty
+	value            value           float              member_fn
+	ideology         value           text               member
+	province_id      value           int                member
+
+tr_unemployment_by_type
+	value            value           float              member_fn
+	type             value           text               member
+
+tr_upper_house
+	value            value           float              member_fn
+	ideology         value           text               member
+
+tr_check_variable
+	value            value           float              member_fn
+	which            value           text               member
+
+tr_relation
+	who              value           text               member
+	value            value           int                member_fn
+
+tr_pop_unemployment
+	value            value           float              member_fn
+	type             value           text               member
+
+tr_can_build_in_province
+	building         value           text               member
+	limit_to_world_greatest_level    value    bool      member
+
+tr_can_build_fort_in_capital
+	in_whole_capital_state           value    bool      member
+	limit_to_world_greatest_level    value    bool      member
+
+tr_can_build_railway_in_capital
+	in_whole_capital_state           value    bool      member
+	limit_to_world_greatest_level    value    bool      member
+
+tr_work_available
+    worker           value           text               member_fn
+
+trigger_body
+	ai               value           bool               member_fn
+	tag              value           text               member_fn
+	war              value           bool               member_fn
+	owns             value           int                member_fn
+	port             value           bool               member_fn
+	rank             value           int                member_fn
+	type             value           text               member_fn (has_pop_type)
+	year             value           int                member_fn
+	empty            value           bool               member_fn
+	money            value           float              member_fn
+	month            value           int                member_fn
+	always           value           bool               member_fn
+	badboy           value           float              member_fn
+	exists           value           text               member_fn
+	region           value           text               member_fn
+	strata           value           text               member_fn
+	capital          value           int                member_fn
+	culture          value           text               member_fn
+	is_core          value           text               member_fn
+	terrain          value           text               member_fn
+	blockade         value           bool               member_fn
+	controls         value           int                member_fn
+	election         value           bool               member_fn
+	is_slave         value           bool               member_fn
+	literacy         value           float              member_fn
+	neighbor         value           text               member_fn (neighbour)
+	owned_by         value           text               member_fn
+	poor_tax         value           float              member_fn
+	pop_type         value           text               member_fn (has_pop_type)
+	prestige         value           text               member_fn
+	produces         value           text               member_fn
+	religion         value           text               member_fn
+	rich_tax         value           float              member_fn
+	state_id         value           int                member_fn
+	treasury         value           float              member_fn (money)
+	war_with         value           text               member_fn
+	civilized        value           bool               member_fn
+	continent        value           text               member_fn
+	has_crime        value           text               member_fn
+	in_sphere        value           text               member_fn
+	invention        value           text               member_fn
+	is_vassal        value           bool               member_fn
+	militancy        value           float              member_fn
+	neighbour        value           text               member_fn
+	plurality        value           float              member_fn
+	vassal_of        value           text               member_fn
+	war_score        value           float              member_fn
+	corruption       value           float              member_fn
+	government       value           text               member_fn
+	has_leader       value           text               member_fn
+	in_default       value           text               member_fn
+	is_capital       value           bool               member_fn
+	is_coastal       value           bool               member_fn
+	life_needs       value           float              member_fn
+	middle_tax       value           float              member_fn
+	minorities       value           bool               member_fn
+	revanchism       value           float              member_fn
+	total_pops       value           float              member_fn
+	truce_with       value           text               member_fn
+	casus_belli      value           text               member_fn
+	has_faction      value           text               member_fn
+	is_colonial      value           bool               member_fn
+	is_disarmed      value           bool               member_fn
+	is_overseas      value           bool               member_fn
+	is_substate      value           bool               member_fn
+	life_rating      value           int                member_fn
+	nationalism      value           int                member_fn
+	province_id      value           int                member_fn
+	substate_of      value           text               member_fn
+	tech_school      value           text               member_fn
+	trade_goods      value           text               member_fn
+	big_producer     value           text               member_fn
+	crisis_exist     value           bool               member_fn
+	has_building     value           text               member_fn
+	has_pop_type     value           text               member_fn
+	is_blockaded     value           bool               member_fn
+	is_mobilised     value           bool               member_fn
+	luxury_needs     value           float              member_fn
+	num_of_ports     value           int                member_fn
+	ruling_party     value           text               member_fn
+	unemployment     value           float              member_fn
+	alliance_with    value           text               member_fn
+	cash_reserves    value           float              member_fn
+	consciousness    value           float              member_fn
+	controlled_by    value           text               member_fn
+	culture_group    value           text               member_fn
+	has_factories    value           bool               member_fn
+	is_our_vassal    value           text               member_fn
+	lost_national    value           float              member_fn
+	nationalvalue    value           text               member_fn
+	num_of_allies    value           int                member_fn
+	num_of_cities    value           text               member_fn
+	crime_fighting   value           float              member_fn (administration_spending)
+	everyday_needs   value           float              member_fn
+	has_flashpoint   value           bool               member_fn
+	is_independant   value           bool               member_fn
+	is_next_reform   value           text               member_fn
+	military_score   value           text               member_fn
+	num_of_revolts   value           int                member_fn
+	num_of_vassals   value           int                member_fn
+	part_of_sphere   value           bool               member_fn
+	unit_in_battle   value           bool               member_fn
+	war_exhaustion   value           float              member_fn
+	can_nationalize       value      bool               member_fn
+	colonial_nation       value      bool               member_fn
+	constructing_cb       value      text               member_fn
+	has_global_flag       value      text               member_fn
+	has_pop_culture       value      text               member_fn
+	is_claim_crisis       value      bool               member_fn
+	military_access       value      text               member_fn
+	primary_culture       value      text               member_fn
+	social_movement       value      bool               member_fn
+	social_spending       value      float              member_fn
+	accepted_culture      value      text               member_fn
+	brigades_compare      value      float              member_fn
+	has_country_flag      value      text               member_fn
+	has_culture_core      value      bool               member_fn
+	has_pop_religion      value      text               member_fn
+	industrial_score      value      text               member_fn
+	is_canal_enabled      value      int                member_fn
+	is_culture_group      value      text               member_fn (culture_group)
+	is_greater_power      value      bool               member_fn
+	is_state_capital      value      bool               member_fn
+	num_of_substates      value      int                member_fn
+	number_of_states      value      int                member_fn
+	average_militancy     value      float              member_fn
+	can_build_factory     value      bool               member_fn
+	is_cultural_union     value      text               member_fn
+	is_state_religion     value      bool               member_fn
+	military_spending     value      float              member_fn
+	mobilisation_size     value      float              member_fn
+	revolt_percentage     value      float              member_fn
+	units_in_province     value      text               member_fn
+	can_create_vassals    value      bool               member_fn
+	crisis_temperature    value      float              member_fn
+	education_spending    value      float              member_fn
+	flashpoint_tension    value      float              member_fn
+	great_wars_enabled    value      bool               member_fn
+	involved_in_crisis    value      bool               member_fn
+	is_possible_vassal    value      text               member_fn
+	is_primary_culture    value      text               member_fn
+	is_secondary_power    value      bool               member_fn
+	political_movement    value      bool               member_fn
+	pop_majority_issue    value      text               member_fn
+	social_reform_want    value      float              member_fn
+	this_culture_union    value      text               member_fn
+	total_num_of_ports    value      int                member_fn
+	world_wars_enabled    value      bool               member_fn
+	has_cultural_sphere   value      bool               member_fn
+	has_unclaimed_cores   value      bool               member_fn
+	is_accepted_culture   value      bool               member_fn
+	is_ideology_enabled   value      text               member_fn
+	is_sphere_leader_of   value      text               member_fn
+	rich_tax_above_poor   value      bool               member_fn
+	constructing_cb_type  value      text               member_fn
+	controlled_by_rebels  value      int                member_fn
+	has_country_modifier  value      text               member_fn
+	is_liberation_crisis  value      bool               member_fn
+	is_releasable_vassal  value      text               member_fn
+	pop_majority_culture  value      text               member_fn
+	rebel_power_fraction  value      float              member_fn
+	recruited_percentage  value      float              member_fn
+	trade_goods_in_state  value      text               member_fn
+	average_consciousness value      float              member_fn
+	civilization_progress value      float              member_fn
+	culture_has_union_tag      value       bool         member_fn
+	has_national_minority      value       bool         member_fn
+	has_province_modifier      value       text         member_fn
+	has_recent_imigration      value       int          member_fn
+	has_recent_immigration     value       bool         member_fn (has_recent_imigration)
+	has_recently_lost_war      value       bool         member_fn
+	political_reform_want      value       float        member_fn
+	poor_strata_militancy      value       float        member_fn
+	pop_majority_ideology      value       text         member_fn
+	pop_majority_religion      value       text         member_fn
+	province_control_days      value       int          member_fn
+	rich_strata_militancy      value       float        member_fn
+	ruling_party_ideology      value       text         member_fn
+	total_amount_of_ships      value       int          member_fn
+	poor_strata_life_needs     value       float        member_fn
+	rich_strata_life_needs     value       float        member_fn
+	administration_spending    value       float        member_fn
+	agree_with_ruling_party    value       float        member_fn
+	middle_strata_militancy    value       float        member_fn
+	constructing_cb_progress   value       float        member_fn
+	has_empty_adjacent_state   value       bool         member_fn
+	middle_strata_life_needs   value       float        member_fn
+	poor_strata_luxury_needs   value       float        member_fn
+	rich_strata_luxury_needs   value       float        member_fn
+	social_movement_strength   value       float        member_fn
+	country_units_in_province  value       text         member_fn (units_in_province)
+	total_amount_of_divisions  value       int          member_fn
+	middle_strata_luxury_needs value       float        member_fn
+	poor_strata_everyday_needs value       float        member_fn
+	rich_strata_everyday_needs value       float        member_fn
+	constructing_cb_discovered value       bool         member_fn
+	someone_can_form_union_tag     value     text       member_fn
+	crime_higher_than_education    value     bool       member_fn
+	has_empty_adjacent_province    value     bool       member_fn
+	national_provinces_occupied    value     float      member_fn
+	num_of_vassals_no_substates    value     int        member_fn
+	political_movement_strength    value     float      member_fn
+	middle_strata_everyday_needs   value     float      member_fn
+	can_build_factory_in_capital_state value   text     member_fn
+	#any                         value  text                            member_fn
+	diplomatic_influence         group  tr_diplomatic_influence         member_fn
+	pop_unemployment             group  tr_pop_unemployment             member_fn
+	relation                     group  tr_relation                     member_fn
+	check_variable               group  tr_check_variable               member_fn
+	upper_house                  group  tr_upper_house                  member_fn
+	unemployment_by_type         group  tr_unemployment_by_type         member_fn
+	party_loyalty                group  tr_party_loyalty                member_fn
+	can_build_in_province        group  tr_can_build_in_province        member_fn
+	can_build_railway_in_capital group  tr_can_build_railway_in_capital member_fn
+	can_build_fort_in_capital    group  tr_can_build_fort_in_capital    member_fn
+	work_available               group  tr_work_available               member_fn
+	and                          extern tr_scope_and                    discard
+	or                           extern tr_scope_or                     discard
+	not                          extern tr_scope_not                    discard
+	any_neighbor_province        extern tr_scope_any_neighbor_province  discard
+	any_neighbor_country         extern tr_scope_any_neighbor_country   discard
+	war_countries                extern tr_scope_war_countries          discard
+	any_greater_power            extern tr_scope_any_greater_power      discard
+	any_owned_province           extern tr_scope_any_owned_province     discard
+	any_core                     extern tr_scope_any_core               discard
+	all_core                     extern tr_scope_all_core               discard
+	any_state                    extern tr_scope_any_state              discard
+	any_substate                 extern tr_scope_any_substate           discard
+	any_sphere_member            extern tr_scope_any_sphere_member      discard
+	any_pop                      extern tr_scope_any_pop                discard
+	owner                        extern tr_scope_owner                  discard
+	controller                   extern tr_scope_controller             discard
+	location                     extern tr_scope_location               discard
+	country                      extern tr_scope_country                discard
+	capital_scope                extern tr_capital_scope                discard
+	this                         extern tr_scope_this                   discard
+	from                         extern tr_scope_from                   discard
+	sea_zone                     extern tr_scope_sea_zone               discard
+	cultural_union               extern tr_scope_cultural_union         discard
+	overlord                     extern tr_scope_overlord               discard
+	sphere_owner                 extern tr_scope_sphere_owner           discard
+	independence                 extern tr_scope_independence           discard
+	flashpoint_tag_scope         extern tr_flashpoint_tag_scope         discard
+	crisis_state_scope           extern tr_crisis_state_scope           discard
+	state_scope                  extern tr_state_scope                  discard
+	#any                         extern tr_scope_variable               discard

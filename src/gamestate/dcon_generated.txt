@@ -12,6 +12,9 @@ make_index{government_type_id}{uint8_t}
 make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
 make_index{unit_name_id}{uint16_t}
+make_index{national_variable_id}{uint16_t}
+make_index{global_variable_id}{uint16_t}
+make_index{trigger_key}{uint16_t}
 
 object{
 	name{ national_identity }

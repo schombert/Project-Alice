@@ -76,6 +76,8 @@ namespace sys {
 		absolute_time_point start_date;
 		absolute_time_point end_date;
 
+		std::vector<uint16_t> trigger_data;
+
 		std::vector<char> text_data; // stores string data in the win1250 codepage
 		std::vector<text::text_component> text_components;
 		tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
@@ -149,6 +151,8 @@ namespace sys {
 
 		dcon::unit_name_id add_unit_name(std::string_view text); // returns the newly added text
 		std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
+
+		dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 
 		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)) {}
 		~state();
