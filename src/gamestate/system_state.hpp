@@ -54,7 +54,7 @@ namespace sys {
 		// the state of the sound system, the state of the windowing system,
 		// and the game data / state itself
 
-		// utlimately it is the system struct that gets passed around everywhere
+		// ultimately it is the system struct that gets passed around everywhere
 		// so that bits of the ui, for example, can control the overall state of
 		// the game
 
@@ -97,8 +97,8 @@ namespace sys {
 		// current program / ui state
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
-		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platfom-dependent window information
-		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platfom-dependent sound information
+		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information
+		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platform-dependent sound information
 		ui::state ui_state; // transient information for the state of the ui
 		text::font_manager font_collection;
 
