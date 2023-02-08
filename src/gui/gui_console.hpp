@@ -6,6 +6,7 @@ namespace ui {
 
 class console_edit : public textbox_element_base {
 public:
+	virtual void textbox_enter(sys::state& state, std::string_view s) noexcept;
 };
 
 class console_list : public listbox_element_base {
