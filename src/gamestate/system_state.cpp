@@ -36,8 +36,12 @@ namespace sys {
 
 		if(ui_state.under_mouse != nullptr) {
 			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
-			// TODO: look at return value
-			ui_state.under_mouse->impl_on_lbutton_down(*this, relative_location.x, relative_location.y, mod);
+			auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, relative_location.x, relative_location.y, mod);
+			if(r != ui::message_result::consumed) {
+				map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			}
+		} else {
+			map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 		}
 	}
 	void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) {
