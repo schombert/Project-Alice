@@ -7,7 +7,7 @@
 namespace map_mode {
 
 void set_political(sys::state& state) {
-	std::vector<uint32_t> prov_color(state.map_display.nr_of_provinces);
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
 
 	state.world.for_each_province([&](dcon::province_id prov_id){
 		auto fat_id = dcon::fatten(state.world, prov_id);

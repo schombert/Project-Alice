@@ -352,6 +352,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	ogl::initialize_opengl(game_state);
+	game_state.map_display.load_map_data(game_state, {});
 	game_state.map_display.load_map(game_state);
 
 	sound::initialize_sound_system(game_state);

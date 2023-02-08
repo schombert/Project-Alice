@@ -11,10 +11,11 @@ public:
 	display_data() {};
 	~display_data();
 
+	// Called to load the terrain and province map data
+	void load_map_data(sys::state& state, ankerl::unordered_dense::map<uint32_t, dcon::province_id> const& color_map);
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	int nr_of_provinces = 0;
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
 
 	void render(uint32_t screen_x, uint32_t screen_y);
@@ -42,9 +43,11 @@ private:
 	// Meshes
 	GLuint water_vbo = 0;
 	GLuint land_vbo = 0;
+	GLuint border_vbo = 0;
 	GLuint vao = 0;
 	uint32_t water_indicies = 0;
 	uint32_t land_indicies = 0;
+	uint32_t border_indicies = 0;
 
 	// Textures
 	GLuint provinces_texture_handle = 0;
@@ -64,6 +67,12 @@ private:
 	GLuint terrain_political_close_shader = 0;
 	GLuint water_shader = 0;
 	GLuint water_political_shader = 0;
+	GLuint border_shader = 0;
+
+	std::vector<uint8_t> terrain_id_map;
+	std::vector<uint16_t> province_id_map;
+	std::vector<glm::vec2> province_mid_point;
+	std::vector<uint8_t> median_terrain_type;
 
 	// Position and movement
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
@@ -80,6 +89,6 @@ private:
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
 
 	void load_shaders(simple_fs::directory& root);
-	void create_meshes(simple_fs::file& file);
+	void create_meshes();
 };
 }

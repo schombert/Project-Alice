@@ -81,23 +81,9 @@ GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, in
 
 // Load the terrain texture, will read the BMP file directly
 // The image is flipped for some reason
-GLuint load_terrain_texture(simple_fs::file& file, int32_t& size_x, int32_t& size_y) {
-	auto content = simple_fs::view_contents(file);
-	uint8_t* start = (uint8_t*)(content.data);
-
-	// TODO make a check for when the bmp format is unsupporeted
-
-	// Data offset is where the pixel data starts
-	uint8_t* ptr = start + 10;
-	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-
-	// The width & height of the image
-	ptr = start + 18;
-	size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-	ptr = start + 22;
-	size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-
-	char const* data = content.data + data_offset;
+GLuint load_terrain_texture(std::vector<uint8_t>& terrain_index, glm::vec2 size) {
+	uint32_t size_x = size.x;
+	uint32_t size_y = size.y;
 
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
@@ -106,7 +92,7 @@ GLuint load_terrain_texture(simple_fs::file& file, int32_t& size_x, int32_t& siz
 
 		// Create a texture with only one byte color
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, size_x, size_y);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED, GL_UNSIGNED_BYTE, data);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED, GL_UNSIGNED_BYTE, &terrain_index[0]);
 		set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -121,21 +107,9 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 
-void display_data::create_meshes(simple_fs::file& file) {
-	auto content = simple_fs::view_contents(file);
-	uint8_t* start = (uint8_t*)(content.data);
-
-	// TODO make a check for when the bmp format is unsupporeted
-
-	// Data offset is where the pixel data starts
-	uint8_t* ptr = start + 10;
-	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-	ptr = start + 18;
-	uint32_t size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-	ptr = start + 22;
-	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
-
-	uint8_t* terrain_data = start + data_offset;
+void display_data::create_meshes() {
+	uint32_t size_x = size.x;
+	uint32_t size_y = size.y;
 
 	std::vector<float> water_vertices;
 	std::vector<float> land_vertices;
@@ -164,9 +138,9 @@ void display_data::create_meshes(simple_fs::file& file) {
 	uint32_t index = 0;
 	for(uint32_t y = 0; y < size_y; y++) {
 		uint32_t last_x = 0;
-		bool last_is_water = terrain_data[index++] > 64;
+		bool last_is_water = terrain_id_map[index++] > 64;
 		for(uint32_t x = 1; x < size_x; x++) {
-			bool is_water = terrain_data[index++] > 64;
+			bool is_water = terrain_id_map[index++] > 64;
 			if(is_water != last_is_water) {
 				if(last_is_water)
 					add_quad(water_vertices, last_x, y, x, y + 1);
@@ -196,6 +170,37 @@ void display_data::create_meshes(simple_fs::file& file) {
 	glGenBuffers(1, &land_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, land_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * land_vertices.size(), &land_vertices[0], GL_STATIC_DRAW);
+
+	std::vector<bool> is_border(size_x * size_y, false);
+	std::vector<float> border_vertices;
+	auto add_border = [&](uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
+		if (!is_border[x0 + y0 * size_y]) {
+			is_border[x0 + y0 * size_y] = true;
+			add_quad(border_vertices, x0, y0, x1, y1);
+		}
+	};
+
+	for(uint32_t y = 0; y < size_y - 1; y++) {
+		for(uint32_t x = 0; x < size_x - 1; x++) {
+			auto prov_id = province_id_map[x + y * size_x];
+			auto prov_id_right = province_id_map[(x + 1) + y * size_x];
+			auto prov_id_down = province_id_map[x + (y + 1) * size_x];
+			if (prov_id != prov_id_right) {
+				add_border(x + 0, y + 0, x + 1, y + 1);
+				add_border(x + 1, y + 0, x + 2, y + 1);
+			}
+			if (prov_id != prov_id_down) {
+				add_border(x + 0, y + 0, x + 1, y + 1);
+				add_border(x + 1, y + 1, x + 2, y + 2);
+			}
+		}
+	}
+
+	border_indicies = ((uint32_t)border_vertices.size()) / 3 * 2;
+
+	glGenBuffers(1, &border_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -227,6 +232,8 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &land_vbo);
 	if(water_vbo)
 		glDeleteBuffers(1, &water_vbo);
+	if(border_vbo)
+		glDeleteBuffers(1, &border_vbo);
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
@@ -238,6 +245,8 @@ display_data::~display_data() {
 		glDeleteProgram(water_shader);
 	if(water_political_shader)
 		glDeleteProgram(water_political_shader);
+	if(border_shader)
+		glDeleteProgram(border_shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -262,6 +271,8 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto map_water_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_f.glsl"));
 	auto map_water_political_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_political_f.glsl"));
 
+	auto border_fshader = try_load_shader(root, NATIVE("assets/shaders/map_border_f.glsl"));
+
 	terrain_shader = ogl::create_program(
 		get_content(*map_vshader), get_content(*map_fshader));
 	terrain_political_close_shader = ogl::create_program(
@@ -273,6 +284,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		get_content(*map_vshader), get_content(*map_water_fshader));
 	water_political_shader = ogl::create_program(
 		get_content(*map_vshader), get_content(*map_water_political_fshader));
+
+	border_shader = ogl::create_program(
+		get_content(*map_vshader), get_content(*border_fshader));
 }
 
 void display_data::render(uint32_t screen_x, uint32_t screen_y) {
@@ -313,8 +327,6 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glUniform1f(1, screen_x / ((float)screen_y));
 	// uniform float zoom
 	glUniform1f(2, zoom);
-	// uniform float time
-	glUniform1f(4, time_counter);
 	// uniform vec2 map_size
 	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
 
@@ -327,22 +339,19 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
 
-	if (active_map_mode == map_mode::mode::terrain)
+	if (active_map_mode == map_mode::mode::terrain || zoom > 5) {
 		glUseProgram(water_shader);
+		// uniform float time
+		glUniform1f(4, time_counter);
+	}
 	else {
-		if (zoom > 5)
-			glUseProgram(water_shader);
-		else
-			glUseProgram(water_political_shader);
+		glUseProgram(water_political_shader);
 	}
 
-	glUniform2f(0, offset_x, offset_y);
 	// uniform float aspect_ratio
 	glUniform1f(1, screen_x / ((float)screen_y));
 	// uniform float zoom
 	glUniform1f(2, zoom);
-	// uniform float time
-	glUniform1f(4, time_counter);
 	// uniform vec2 map_size
 	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
 
@@ -354,55 +363,29 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
 	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
+
+	glUseProgram(border_shader);
+
+	// uniform float aspect_ratio
+	glUniform1f(1, screen_x / ((float)screen_y));
+	// uniform float zoom
+	glUniform1f(2, zoom);
+	// uniform vec2 map_size
+	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
+
+	glBindVertexBuffer(0, border_vbo, 0, sizeof(GLfloat) * 2);
+
+	glUniform2f(0, offset_x - 1.f, offset_y);
+	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
+	glUniform2f(0, offset_x + 0.f, offset_y);
+	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
+	glUniform2f(0, offset_x + 1.f, offset_y);
+	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
 }
 
-GLuint load_province_map(simple_fs::directory& map_dir, int& nr_of_province) {
-	auto defs = simple_fs::open_file(map_dir, NATIVE("definition.csv"));
-
-	auto defs_content = simple_fs::view_contents(*defs);
-	char const* cpos = defs_content.data;
-	char const* end_of_file = defs_content.data + defs_content.file_size;
-
-	cpos = parsers::csv_advance_to_next_line(cpos, end_of_file);
-
-	ankerl::unordered_dense::map<int32_t, int16_t> color_to_id;
-
-	int16_t index = 0;
-	parsers::error_handler err("no_file");
-	while(cpos < end_of_file) {
-		cpos = parsers::parse_fixed_amount_csv_values<6>(cpos, end_of_file, ';',
-			[&](std::string_view const* values) {
-				int32_t color = 0;
-				int32_t color_part;
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
-				color += color_part << 16; 	// Red
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
-				color += color_part << 8; 	// Green
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
-				color += color_part; 		// Blue
-				color_to_id.insert_or_assign(color, index++);
-			});
-	}
-	nr_of_province = index;
-
-	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
-	auto bmp_content = simple_fs::view_contents(*provinces_bmp);
-	int32_t file_channels, size_x, size_y;
-
-	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(bmp_content.data), int32_t(bmp_content.file_size),
-		&size_x, &size_y, &file_channels, 4);
-
-	std::vector<int16_t> province_ids(size_x * size_y);
-	for(int i = 0; i < size_x * size_y; i++) {
-		uint8_t* ptr = data + i * 4;
-		int b = ptr[2];
-		int g = ptr[1];
-		int r = ptr[0];
-		int32_t color = (r << 16) | (g << 8) | b;
-
-		province_ids[i] = color_to_id[color] + 1;
-	}
-	STBI_FREE(data);
+GLuint load_province_map(std::vector<uint16_t>& province_index, glm::vec2 size) {
+	uint32_t size_x = size.x;
+	uint32_t size_y = size.y;
 
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
@@ -411,7 +394,7 @@ GLuint load_province_map(simple_fs::directory& map_dir, int& nr_of_province) {
 
 		// Create a texture with only one byte color
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG8, size_x, size_y);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RG, GL_UNSIGNED_BYTE, &province_ids[0]);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RG, GL_UNSIGNED_BYTE, &province_index[0]);
 		set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -437,6 +420,110 @@ void display_data::set_terrain_map_mode() {
 	active_map_mode = map_mode::mode::terrain;
 }
 
+void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map<uint32_t, dcon::province_id> const& color_map) {
+	auto root = simple_fs::get_root(state.common_fs);
+	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
+	// Replace this with the color_map once that is implemented
+	// --------------------------------------------------------
+	auto defs = simple_fs::open_file(map_dir, NATIVE("definition.csv"));
+
+	auto defs_content = simple_fs::view_contents(*defs);
+	char const* cpos = defs_content.data;
+	char const* end_of_file = defs_content.data + defs_content.file_size;
+
+	cpos = parsers::csv_advance_to_next_line(cpos, end_of_file);
+
+	ankerl::unordered_dense::map<uint32_t, uint16_t> color_to_id;
+
+	uint16_t index = 0;
+	parsers::error_handler err("no_file");
+	while(cpos < end_of_file) {
+		cpos = parsers::parse_fixed_amount_csv_values<6>(cpos, end_of_file, ';',
+			[&](std::string_view const* values) {
+				uint32_t color = 0;
+				uint32_t color_part;
+				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
+				color += color_part << 16; 	// Red
+				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
+				color += color_part << 8; 	// Green
+				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
+				color += color_part; 		// Blue
+				color_to_id.insert_or_assign(color, index++);
+			});
+	}
+	int nr_of_provinces = index;
+	// --------------------------------------------------------
+
+	// Load the province map
+	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
+	auto bmp_content = simple_fs::view_contents(*provinces_bmp);
+	int32_t file_channels, size_x, size_y;
+
+	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(bmp_content.data), int32_t(bmp_content.file_size),
+		&size_x, &size_y, &file_channels, 4);
+
+	province_id_map = std::vector<uint16_t>(size_x * size_y);
+	for(int i = 0; i < size_x * size_y; i++) {
+		uint8_t* ptr = data + i * 4;
+		int b = ptr[2];
+		int g = ptr[1];
+		int r = ptr[0];
+		int32_t color = (r << 16) | (g << 8) | b;
+
+		province_id_map[i] = color_to_id[color] + 1;
+	}
+	STBI_FREE(data);
+
+	size = glm::vec2(size_x, size_y);
+
+	// Load the terrain map
+	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
+	auto content = simple_fs::view_contents(*terrain_bmp);
+	uint8_t* start = (uint8_t*)(content.data);
+
+	// TODO make a check for when the bmp format is unsupporeted
+
+	// Data offset is where the pixel data starts
+	uint8_t* ptr = start + 10;
+	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+
+	// The width & height of the image
+	ptr = start + 18;
+	size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+	ptr = start + 22;
+	size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+
+	uint8_t* terrain_data = start + data_offset;
+
+	terrain_id_map.insert(terrain_id_map.end(), terrain_data, terrain_data + size_x * size_y);
+
+	median_terrain_type = std::vector<uint8_t>(nr_of_provinces);
+	std::vector<std::array<int,16>> terrain_histogram(nr_of_provinces, std::array<int, 16>{});
+	std::vector<glm::ivec3> province_acc_tile_pos(nr_of_provinces, glm::ivec3(0));
+	for (int i = size_x * size_y; i --> 0;) {
+		auto prov_id = province_id_map[i];
+		auto terrain_id = terrain_id_map[i];
+		terrain_histogram[prov_id][terrain_id]++;
+		int x = i % size_x;
+		int y = i / size_x;
+		province_acc_tile_pos[prov_id] += glm::ivec3(x, y, 1);
+	}
+	province_mid_point = std::vector<glm::vec2>(nr_of_provinces);
+	for (int i = nr_of_provinces; i --> 0;) {
+		int max_index = 15;
+		int max = 0;
+		for (int j = max_index; j --> 0;) {
+			if (terrain_histogram[i][j] > max) {
+				max_index = j;
+				max = terrain_histogram[i][j];
+			}
+		}
+		median_terrain_type[i] = max_index;
+		auto acc_tile_pos = glm::vec2(province_acc_tile_pos[i].x, province_acc_tile_pos[i].y);
+		province_mid_point[i] = acc_tile_pos / (float)province_acc_tile_pos[i].z;
+	}
+}
+
 void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
@@ -445,14 +532,12 @@ void display_data::load_map(sys::state& state) {
 	// display_data& map_display = state.map_display;
 	load_shaders(root);
 
-	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
-	int32_t size_x, size_y;
-	terrain_texture_handle = load_terrain_texture(*terrain_bmp, size_x, size_y);
-	size = glm::vec2(size_x, size_y);
-	create_meshes(*terrain_bmp);
+	// auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
+	terrain_texture_handle = load_terrain_texture(terrain_id_map, size);
+	create_meshes();
 
 	// TODO Better error handling and reporting ^^
-	provinces_texture_handle = load_province_map(map_dir, nr_of_provinces);
+	provinces_texture_handle = load_province_map(province_id_map, size);
 
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
 	rivers_texture_handle = load_texture_from_file(*rivers_bmp, GL_NEAREST);
@@ -471,12 +556,6 @@ void display_data::load_map(sys::state& state) {
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
 	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	std::vector<uint32_t> test;
-	for(int i = 0; i < nr_of_provinces; i++) {
-		test.push_back(255);
-	}
-	set_province_color(test, map_mode::mode::terrain);
 }
 
 void display_data::update() {
