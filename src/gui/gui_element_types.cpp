@@ -237,14 +237,14 @@ message_result textbox_element_base::on_key_down(sys::state& state, sys::virtual
 			edit_index = std::max<int32_t>(edit_index - 1, 0);
 			break;
 		case sys::virtual_key::RIGHT:
-			edit_index = std::min<int32_t>(edit_index + 1, s.length());
+			edit_index = std::min<int32_t>(edit_index + 1, int32_t(s.length()));
 			break;
 		case sys::virtual_key::DELETE_KEY:
-			if(edit_index < s.length())
+			if(edit_index < int32_t(s.length()))
 				s.erase(edit_index, 1);
 			break;
 		case sys::virtual_key::BACK:
-			if(edit_index > 0 && edit_index <= s.length()) {
+			if(edit_index > 0 && edit_index <= int32_t(s.length())) {
 				s.erase(edit_index - 1, 1);
 				set_text(state, s);
 				edit_index--;
