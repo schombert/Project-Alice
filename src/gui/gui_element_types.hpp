@@ -120,6 +120,25 @@ public:
 	void set_text(sys::state& state, std::string const& new_text);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	std::string_view get_text(sys::state& state) const {
+		return stored_text;
+	}
+};
+
+class edit_box_element_base : public simple_text_element_base {
+	int32_t edit_index = 0;
+public:
+	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept { }
+	virtual void edit_box_update(sys::state& state, std::string_view s) noexcept { }
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
+	void on_text(sys::state& state, char ch) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
 class draggable_target : public opaque_element_base {
@@ -136,6 +155,17 @@ public:
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
+class listbox_element_base : public container_base {
+public:
+	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+		return nullptr;
+	}
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
 template<class TabT>
 class generic_tabbed_window : public window_element_base {
 public:
@@ -147,13 +177,6 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent)
 			parent->set_visible(state, false);
-	}
-};
-
-class generic_tab_close_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		state.ui_state.topbar_subwindow->set_visible(state, false);
 	}
 };
 

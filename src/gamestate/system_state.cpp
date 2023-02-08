@@ -7,6 +7,7 @@
 #include "parsers_declarations.hpp"
 #include "gui_minimap.hpp"
 #include "gui_topbar.hpp"
+#include "gui_console.hpp"
 
 namespace sys {
 	//
@@ -14,6 +15,9 @@ namespace sys {
 	//
 
 	void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+		// Lose focus on text
+		ui_state.edit_target = nullptr;
+		
 		if(ui_state.under_mouse != nullptr) {
 			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
 			// TODO: look at return value
@@ -21,13 +25,23 @@ namespace sys {
 		}
 	}
 	void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+		// Lose focus on text
+		ui_state.edit_target = nullptr;
+
 		map_display.on_mbuttom_down(x, y, x_size, y_size, mod);
 	}
 	void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+		// Lose focus on text
+		ui_state.edit_target = nullptr;
+
 		if(ui_state.under_mouse != nullptr) {
 			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
-			// TODO: look at return value
-			ui_state.under_mouse->impl_on_lbutton_down(*this, relative_location.x, relative_location.y, mod);
+			auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, relative_location.x, relative_location.y, mod);
+			if(r != ui::message_result::consumed) {
+				map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			}
+		} else {
+			map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 		}
 	}
 	void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) {
@@ -88,10 +102,14 @@ namespace sys {
 		}
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-		if(!ui_state.edit_target) {
+		if(ui_state.edit_target) {
+			ui_state.edit_target->impl_on_key_down(*this, keycode, mod);
+		} else {
 			if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 				if(keycode == virtual_key::ESCAPE) {
 					ui::show_main_menu(*this);
+				} else if(keycode == virtual_key::TILDA) {
+					ui::console_window::show_toggle(*this);
 				}
 				map_display.on_key_down(keycode, mod);
 			}
