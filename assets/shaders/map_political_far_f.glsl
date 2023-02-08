@@ -6,6 +6,7 @@ layout (binding = 0) uniform sampler2D provinces_texture_sampler;
 layout (binding = 7) uniform sampler2D overlay;
 layout (binding = 8) uniform sampler2D province_color;
 layout (binding = 9) uniform sampler2D colormap_political;
+layout (binding = 10) uniform sampler2D province_highlight;
 
 // location 0 : offset
 // location 1 : zoom
@@ -14,7 +15,7 @@ layout (location = 3) uniform vec2 map_size;
 
 void main() {
 	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
-	vec3 political = texture(province_color, prov_id).rgb;
+	vec3 political = clamp(texture(province_color, prov_id) + texture(province_highlight, prov_id), 0.0, 1.0).rgb;
 	political = political - 0.7;
 
 	vec4 OverlayColor = texture(overlay, tex_coord * vec2(11., 11.*map_size.y/map_size.x));
