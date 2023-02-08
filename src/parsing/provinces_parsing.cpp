@@ -84,6 +84,7 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 	auto name_id = text::find_or_add_key(context.state, name);
 	auto state_id = context.state.world.create_state_definition();
 
+	context.map_of_state_names.insert_or_assign(std::string(name), state_id);
 	context.state.world.state_definition_set_name(state_id, name_id);
 
 	state_def_building_context new_context{ context, state_id };
