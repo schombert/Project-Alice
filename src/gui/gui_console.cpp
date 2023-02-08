@@ -1,5 +1,13 @@
 #include "gui_console.hpp"
 
+void ui::console_edit::textbox_enter(sys::state& state, std::string_view s) noexcept {
+    if(s == "reload") {
+        state.map_display.load_map(state);
+    } else if(s == "abort") {
+        std::abort();
+    }
+}
+
 void ui::console_window::show_toggle(sys::state& state) {
 	if(!state.ui_state.console_window) {
 		auto window = make_element_by_type<console_window>(state, "console_wnd");
