@@ -6,7 +6,6 @@ namespace ui {
 
 class console_edit : public textbox_element_base {
 public:
-
 };
 
 class console_list : public listbox_element_base {

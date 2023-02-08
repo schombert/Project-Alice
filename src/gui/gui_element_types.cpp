@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "gui_element_types.hpp"
 
 namespace ui {
@@ -215,23 +216,47 @@ message_result textbox_element_base::on_lbutton_down(sys::state& state, int32_t 
 }
 
 void textbox_element_base::on_text(sys::state& state, char ch) noexcept {
-	auto s = std::string(get_text(state));
-	switch(ch) {
-	case '\b': // backspace
-		s.pop_back();
-		set_text(state, s);
-		break;
-	case '\n': // enter
-		// TODO: on_enter
-		s.clear();
-		set_text(state, s);
-		break;
-	default:
-		s += ch;
-		set_text(state, s);
-		break;
+	auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
+	edit_index++;
+	set_text(state, s);
+	textbox_update(state, s);
+}
+
+message_result textbox_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	if(state.ui_state.edit_target == this) {
+		// Typable keys are handled by on_text callback, we only handle control keys
+		auto s = std::string(get_text(state));
+		switch(key) {
+		case sys::virtual_key::RETURN:
+			textbox_enter(state, s);
+			s.clear();
+			set_text(state, s);
+			edit_index = 0;
+			break;
+		case sys::virtual_key::LEFT:
+			edit_index = std::max<int32_t>(edit_index - 1, 0);
+			break;
+		case sys::virtual_key::RIGHT:
+			edit_index = std::min<int32_t>(edit_index + 1, s.length());
+			break;
+		case sys::virtual_key::DELETE_KEY:
+			if(edit_index < s.length())
+				s.erase(edit_index, 1);
+			break;
+		case sys::virtual_key::BACK:
+			if(edit_index > 0 && edit_index <= s.length()) {
+				s.erase(edit_index - 1, 1);
+				set_text(state, s);
+				edit_index--;
+				textbox_update(state, s);
+			}
+			break;
+		default:
+			break;
+		}
+		return message_result::consumed;
 	}
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+	return message_result::unseen;
 }
 
 void textbox_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -247,10 +272,11 @@ void textbox_element_base::render(sys::state& state, int32_t x, int32_t y) noexc
 		// TODO: Partial transparency is ignored, might cause issues with "transparency"?
 		// is-vertically-flipped is also ignored, also the border size **might** be
 		// variable/stored somewhere, but I don't know where?
-		if(background_texture_id) {
-			ogl::render_textured_rect(
+		if(bool(background_texture_id)) {
+			ogl::render_bordered_rect(
 				state,
 				get_color_modification(false, false, false),
+				16.f,
 				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 				ogl::get_texture_handle(state, background_texture_id, false),
 				base_data.get_rotation(),
@@ -258,7 +284,14 @@ void textbox_element_base::render(sys::state& state, int32_t x, int32_t y) noexc
 			);
 		}
 	}
+
+	// TODO: A better way to show the cursor!
+	auto old_s = std::string(get_text(state));
+	auto blink_s = std::string(get_text(state));
+	blink_s.insert(size_t(edit_index), 1, '|');
+	set_text(state, blink_s);
 	simple_text_element_base::render(state, x, y);
+	set_text(state, old_s);
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
