@@ -33,7 +33,7 @@ public:
 	// impl members: to be overridden only for the very basic container / not a container distinction
 	//       - are responsible for propagating messages and responses
 	//       - should be called in general when something happens
-	virtual element_base* impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // tests which element is under the cursor
+	virtual mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // tests which element is under the cursor
 	virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
