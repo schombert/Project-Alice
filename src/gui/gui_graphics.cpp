@@ -221,9 +221,11 @@ int32_t ui_height(sys::state const& state) {
 
 void populate_definitions_map(sys::state& state) {
 	for(size_t i = state.ui_defs.gui.size(); i-- > 0; ) {
-		auto key = state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].name);
-		auto value = element_target{ nullptr, dcon::gui_def_id(dcon::gui_def_id::value_base_t(i)) };
-		state.ui_state.defs_by_name.insert_or_assign(key, value);
+		if(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].is_top_level()) {
+			auto key = state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(dcon::gui_def_id::value_base_t(i))].name);
+			auto value = element_target{ nullptr, dcon::gui_def_id(dcon::gui_def_id::value_base_t(i)) };
+			state.ui_state.defs_by_name.insert_or_assign(key, value);
+		}
 	}
 }
 
