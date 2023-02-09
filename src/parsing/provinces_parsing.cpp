@@ -186,4 +186,16 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
+
+void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto province_int = parse_int(name, 0, err);
+	if(province_int < 0 || size_t(province_int) >= context.original_id_to_prov_id_map.size()) {
+		err.accumulated_errors += "Province id " + std::string(name) + " is invalid (" + err.file_name + ")\n";
+		gen.discard_group();
+	} else {
+		auto province_id = context.original_id_to_prov_id_map[province_int];
+		pop_history_province_context new_context{ context, province_id };
+		parse_pop_province_list(gen, err, new_context);
+	}
+}
 }

@@ -1521,6 +1521,63 @@ namespace parsers {
 
 	void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context);
 
+	struct pop_history_province_context {
+		scenario_building_context& outer_context;
+		dcon::province_id id;
+	};
+
+	struct pop_history_definition {
+		dcon::religion_id rel_id;
+		dcon::culture_id cul_id;
+		int32_t size = 0;
+		void culture(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
+			if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
+				cul_id = it->second;
+			} else {
+				err.accumulated_errors += "Invalid culture " + std::string(value)  + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void religion(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
+			if(auto it = context.outer_context.map_of_religion_names.find(std::string(value)); it != context.outer_context.map_of_religion_names.end()) {
+				rel_id = it->second;
+			} else {
+				err.accumulated_errors += "Invalid religion " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(pop_history_province_context&) { }
+	};
+
+	struct pop_province_list {
+		void any_group(std::string_view type, pop_history_definition const& def, error_handler& err, int32_t line, pop_history_province_context& context) {
+			dcon::pop_type_id ptype;
+			if(auto it = context.outer_context.map_of_poptypes.find(std::string(type)); it != context.outer_context.map_of_poptypes.end()) {
+				ptype = it->second;
+			} else {
+				err.accumulated_errors += "Invalid pop type " + std::string(type) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			for(auto pops_by_location : context.outer_context.state.world.province_get_pop_location(context.id)) {
+				auto pop_id = pops_by_location.get_pop();
+				if(pop_id.get_culture() == def.cul_id && pop_id.get_poptype() == ptype && pop_id.get_religion() == def.rel_id) {
+					pop_id.get_size() += float(def.size);
+					return; // done with this pop
+				}
+			}
+			// no existing pop matched -- make a new pop
+			auto new_pop = fatten(context.outer_context.state.world, context.outer_context.state.world.create_pop());
+			new_pop.set_culture(def.cul_id);
+			new_pop.set_religion(def.rel_id);
+			new_pop.set_size(float(def.size));
+			new_pop.set_poptype(ptype);
+			context.outer_context.state.world.force_create_pop_location(new_pop, context.id);
+		}
+		void finish(pop_history_province_context&) { }
+	};
+
+	struct pop_history_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"
