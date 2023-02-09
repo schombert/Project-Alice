@@ -487,6 +487,35 @@ object {
 	}
 }
 
+relationship{
+	name{ province_adjacency }
+	storage_type{ compactable }
+	size{ 24000 }
+
+	link{
+		object{province}
+		name{connected_provinces}
+		type{many}
+		index_storage{array}
+		multiple{2}
+	}
+	
+	composite_key{
+		name{province_pair}
+		index{connected_provinces}
+	}
+
+	property{
+		name{ distance }
+		type{ float }
+	}
+
+	property{
+		name{ type }
+		type{ uint8_t }
+	}
+}
+
 object {
 	name{ state_definition }
 	storage_type{ contiguous }
