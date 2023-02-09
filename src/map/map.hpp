@@ -45,6 +45,7 @@ private:
 	GLuint land_vbo = 0;
 	GLuint border_vbo = 0;
 	GLuint vao = 0;
+	GLuint border_vao = 0;
 	uint32_t water_indicies = 0;
 	uint32_t land_indicies = 0;
 	uint32_t border_indicies = 0;
@@ -67,7 +68,8 @@ private:
 	GLuint terrain_political_close_shader = 0;
 	GLuint water_shader = 0;
 	GLuint water_political_shader = 0;
-	GLuint border_shader = 0;
+	GLuint vic2_border_shader = 0;
+	GLuint line_border_shader = 0;
 
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint16_t> province_id_map;
@@ -90,5 +92,7 @@ private:
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
+	void create_borders1();
+	void create_borders2();
 };
 }

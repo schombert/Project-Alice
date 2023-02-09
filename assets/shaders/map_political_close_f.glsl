@@ -18,8 +18,7 @@ float yy = 1 / map_size.y;
 vec2 pix = vec2(xx, yy);
 
 vec4 get_terrain(vec2 tex_coords, vec2 corner, vec2 offset) {
-	vec2 tex_coord_flipped = vec2(tex_coord.x, 1 - tex_coord.y);
-	float index = texture(terrain_texture_sampler, tex_coord_flipped + 0.5 * pix * corner).r;
+	float index = texture(terrain_texture_sampler, tex_coords + 0.5 * pix * corner).r;
 	index = floor(index * 256);
 	float is_water = step(64, index);
 	vec4 colour = texture(terrainsheet_texture_sampler, vec3(offset, index));
@@ -39,7 +38,7 @@ vec4 get_terrain_mix(vec2 tex_coords) {
 
 	vec4 colour_u = mix(colourlu, colourru, scaling.x);
 	vec4 colour_d = mix(colourld, colourrd, scaling.x);
-	return mix(colour_u, colour_d, 1-scaling.y);
+	return mix(colour_u, colour_d, scaling.y);
 }
 
 const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
