@@ -742,5 +742,38 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		}
 		REQUIRE(found_france);
 	}
+
+	// load pop history files
+	{
+		auto pop_history = open_directory(history, NATIVE("pops"));
+		auto startdate = sys::date(0).to_ymd(state->start_date);
+		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
+
+		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
+			auto opened_file = open_file(pop_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_pop_history_file(gen, err, context);
+			}
+		}
+
+
+		dcon::pop_type_id ptype = context.map_of_poptypes.find(std::string("artisans"))->second;
+		dcon::culture_id cid = context.map_of_culture_names.find(std::string("british"))->second;
+		dcon::religion_id rid = context.map_of_religion_names.find(std::string("protestant"))->second;
+
+		float count = 0;
+
+		for(auto pops_by_location : state->world.province_get_pop_location(context.original_id_to_prov_id_map[302])) {
+			auto pop_id = pops_by_location.get_pop();
+			if(pop_id.get_culture() == cid && pop_id.get_poptype() == ptype && pop_id.get_religion() == rid) {
+				count = pop_id.get_size();
+			}
+		}
+
+		REQUIRE(count == 11250.0f);
+	}
 }
 #endif
