@@ -987,3 +987,14 @@ trigger_body
 	crisis_state_scope           extern tr_crisis_state_scope           discard
 	state_scope                  extern tr_state_scope                  discard
 	#any                         extern tr_scope_variable               discard
+
+pop_history_definition
+	culture            value         text                               member_fn
+	religion           value         text                               member_fn
+	size               value         int                                member
+
+pop_province_list
+	#any               group         pop_history_definition             member_fn
+
+pop_history_file
+	#any               extern        make_pop_province_list             discard

@@ -693,6 +693,23 @@ namespace sys {
 			}
 		}
 
+		// load pop history files
+		{
+			auto pop_history = open_directory(history, NATIVE("pops"));
+			auto startdate = sys::date(0).to_ymd(start_date);
+			auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+			auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
+
+			for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
+				auto opened_file = open_file(pop_file);
+				if(opened_file) {
+					auto content = view_contents(*opened_file);
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_pop_history_file(gen, err, context);
+				}
+			}
+		}
+
 
 		// TODO do something with err
 	}
