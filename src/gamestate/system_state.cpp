@@ -703,6 +703,7 @@ namespace sys {
 			for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 				auto opened_file = open_file(pop_file);
 				if(opened_file) {
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 					auto content = view_contents(*opened_file);
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_pop_history_file(gen, err, context);
