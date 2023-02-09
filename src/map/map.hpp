@@ -84,7 +84,8 @@ private:
 	glm::vec2 size; // Map size
 	float offset_x = 0.f;
 	float offset_y = 0.f;
-	float zoom = 1;
+	float zoom = 1.f;
+	float zoom_change = 1.f;
 
 	void update();
 
