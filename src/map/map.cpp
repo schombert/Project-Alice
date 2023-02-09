@@ -1,5 +1,6 @@
 #include "map.hpp"
 #include "texture.hpp"
+#include "province.hpp"
 #include <cmath>
 #include <glm/glm.hpp>
 
@@ -617,7 +618,12 @@ void display_data::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int3
 	auto idx = int32_t(size.y - map_pos.y) * int32_t(size.x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < province_id_map.size()) {
 		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-		set_selected_province(province_id_map[idx]);
+		auto fat_id = dcon::fatten(state.world, province::from_map_id(province_id_map[idx]));
+		if(province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+			set_selected_province(province_id_map[idx]);
+		} else {
+			set_selected_province(0);
+		}
 	} else {
 		set_selected_province(0);
 	}
