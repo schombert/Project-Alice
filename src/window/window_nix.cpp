@@ -374,4 +374,12 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
+
+void emit_error_message(std::string const& content, bool fatal) {
+	printf("%s", content.c_str());
+	if(fatal) {
+		std::terminate();
+	}
+}
+
 }

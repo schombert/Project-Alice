@@ -71,6 +71,7 @@ namespace parsers {
 	public:
 		std::string file_name;
 		std::string accumulated_errors;
+		bool fatal = false;
 
 		error_handler(std::string file_name) : file_name(std::move(file_name)) { }
 
