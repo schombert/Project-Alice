@@ -321,6 +321,9 @@ namespace sys {
 				err.file_name = "countries.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_national_identity_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/countries.txt could not be opened\n";
 			}
 		}
 		// read religions from religion.txt
@@ -331,6 +334,9 @@ namespace sys {
 				err.file_name = "religion.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_religion_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/religion.txt could not be opened\n";
 			}
 		}
 		// read cultures from cultures.txt
@@ -341,6 +347,9 @@ namespace sys {
 				err.file_name = "cultures.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_culture_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/cultures.txt could not be opened\n";
 			}
 		}
 		// read commodities from goods.txt
@@ -357,6 +366,9 @@ namespace sys {
 				err.file_name = "goods.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_goods_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/goods.txt could not be opened\n";
 			}
 		}
 		// read buildings.text
@@ -368,6 +380,9 @@ namespace sys {
 				err.file_name = "buildings.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_building_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/buildings.txt could not be opened\n";
 			}
 		}
 		// pre parse ideologies.txt
@@ -378,6 +393,9 @@ namespace sys {
 				err.file_name = "ideologies.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_ideology_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/ideologies.txt could not be opened\n";
 			}
 		}
 		// pre parse issues.txt
@@ -388,6 +406,9 @@ namespace sys {
 				err.file_name = "issues.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_issues_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/ideologies.txt could not be opened\n";
 			}
 		}
 		// parse governments.txt
@@ -398,6 +419,9 @@ namespace sys {
 				err.file_name = "governments.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_governments_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/governments.txt could not be opened\n";
 			}
 		}
 		// pre parse cb_types.txt
@@ -408,6 +432,9 @@ namespace sys {
 				err.file_name = "cb_types.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_cb_types_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/cb_types.txt could not be opened\n";
 			}
 		}
 		// parse traits.txt
@@ -418,6 +445,9 @@ namespace sys {
 				err.file_name = "traits.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_traits_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/traits.txt could not be opened\n";
 			}
 		}
 		// pre parse crimes.txt
@@ -428,6 +458,9 @@ namespace sys {
 				err.file_name = "crime.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_crimes_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/crime.txt could not be opened\n";
 			}
 		}
 		// pre parse triggered_modifiers.txt
@@ -438,6 +471,9 @@ namespace sys {
 				err.file_name = "triggered_modifiers.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_triggered_modifiers_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/triggered_modifiers.txt could not be opened\n";
 			}
 		}
 		// parse nationalvalues.txt
@@ -448,6 +484,9 @@ namespace sys {
 				err.file_name = "nationalvalues.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_national_values_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/nationalvalues.txt could not be opened\n";
 			}
 		}
 		// parse static_modifiers.txt
@@ -458,6 +497,9 @@ namespace sys {
 				err.file_name = "static_modifiers.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_static_modifiers_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/static_modifiers.txt could not be opened\n";
 			}
 		}
 		// parse event_modifiers.txt
@@ -468,6 +510,9 @@ namespace sys {
 				err.file_name = "event_modifiers.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_event_modifiers_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/event_modifiers.txt could not be opened\n";
 			}
 		}
 		// read defines.lua
@@ -477,6 +522,9 @@ namespace sys {
 				auto content = view_contents(*defines_file);
 				err.file_name = "defines.lua";
 				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/defines.lua could not be opened\n";
 			}
 		}
 		// gather names of poptypes
@@ -489,6 +537,9 @@ namespace sys {
 				err.file_name = "rebel_types.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_rebel_types_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/rebel_types.txt could not be opened\n";
 			}
 		}
 
@@ -501,6 +552,9 @@ namespace sys {
 				err.file_name = "default.map";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_default_map_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/default.map could not be opened\n";
 			}
 		}
 		// parse definition.csv
@@ -510,6 +564,9 @@ namespace sys {
 				auto content = view_contents(*def_csv_file);
 				err.file_name = "definition.csv";
 				parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/definition.csv could not be opened\n";
 			}
 		}
 		// parse terrain.txt
@@ -520,6 +577,9 @@ namespace sys {
 				err.file_name = "terrain.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_terrain_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/terrain.txt could not be opened\n";
 			}
 		}
 		// parse region.txt
@@ -530,6 +590,9 @@ namespace sys {
 				err.file_name = "region.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_region_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/region.txt could not be opened\n";
 			}
 		}
 		// parse continent.txt
@@ -540,6 +603,9 @@ namespace sys {
 				err.file_name = "continent.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_continent_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/continent.txt could not be opened\n";
 			}
 		}
 		// parse climate.txt
@@ -550,6 +616,9 @@ namespace sys {
 				err.file_name = "climate.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_climate_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/climate.txt could not be opened\n";
 			}
 		}
 		// parse technology.txt
@@ -560,6 +629,9 @@ namespace sys {
 				err.file_name = "technology.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_technology_main_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/technology.txt could not be opened\n";
 			}
 		}
 		// pre parse inventions
@@ -574,6 +646,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/army_inventions.txt could not be opened\n";
 				}
 			}
 			{
@@ -585,6 +660,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/navy_inventions.txt could not be opened\n";
 				}
 			}
 			{
@@ -596,6 +674,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/commerce_inventions.txt could not be opened\n";
 				}
 			}
 			{
@@ -607,6 +688,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/culture_inventions.txt could not be opened\n";
 				}
 			}
 			{
@@ -618,6 +702,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/industry_inventions.txt could not be opened\n";
 				}
 			}
 		}
@@ -712,6 +799,7 @@ namespace sys {
 		}
 
 
-		// TODO do something with err
+		if(err.accumulated_errors.length() > 0)
+			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
 }

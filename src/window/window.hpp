@@ -15,4 +15,6 @@ namespace window {
 	void set_borderless_full_screen(sys::state& game_state, bool fullscreen);
 	bool is_in_fullscreen(sys::state const& game_state);
 	bool is_key_depressed(sys::state const& game_state, sys::virtual_key key); // why not cheer it up then?
+
+	void emit_error_message(std::string const& content, bool fatal); // also terminates the program if fatal
 }
