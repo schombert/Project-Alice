@@ -1,6 +1,7 @@
 #include "map.hpp"
 #include "texture.hpp"
 #include <cmath>
+#include <numbers>
 #include <glm/glm.hpp>
 
 namespace map {
@@ -107,6 +108,205 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 
+void display_data::create_borders1() {
+	uint32_t size_x = size.x;
+	uint32_t size_y = size.y;
+	auto add_line = [&map_size = this->size](std::vector<float>& vertices, uint32_t x0, uint32_t y0, glm::vec2 pos1, glm::vec2 pos2) {
+		pos1 = (pos1 + glm::vec2(x0 + 0.5f, y0 + 0.5f)) / map_size;
+		pos2 = (pos2 + glm::vec2(x0 + 0.5f, y0 + 0.5f)) / map_size;
+		glm::vec2 dir = glm::normalize(pos2 - pos1) / map_size;
+		dir = glm::vec2(-dir.y, dir.x);
+
+		// glm::vec2 dir = glm::vec2(100, 100) / map_size;
+		vertices.push_back(pos1.x);
+		vertices.push_back(pos1.y);
+		vertices.push_back(dir.x);
+		vertices.push_back(dir.y);
+
+		vertices.push_back(pos1.x);
+		vertices.push_back(pos1.y);
+		vertices.push_back(-dir.x);
+		vertices.push_back(-dir.y);
+
+		vertices.push_back(pos2.x);
+		vertices.push_back(pos2.y);
+		vertices.push_back(-dir.x);
+		vertices.push_back(-dir.y);
+
+		vertices.push_back(pos2.x);
+		vertices.push_back(pos2.y);
+		vertices.push_back(-dir.x);
+		vertices.push_back(-dir.y);
+
+		vertices.push_back(pos2.x);
+		vertices.push_back(pos2.y);
+		vertices.push_back(dir.x);
+		vertices.push_back(dir.y);
+
+		vertices.push_back(pos1.x);
+		vertices.push_back(pos1.y);
+		vertices.push_back(dir.x);
+		vertices.push_back(dir.y);
+	};
+
+	enum direction {
+		UP = 1 << 3,
+		DOWN = 1 << 2,
+		LEFT = 1 << 1,
+		RIGHT = 1 << 0,
+	};
+	std::vector<bool> is_border(size_x * size_y, false);
+	std::vector<float> border_vertices;
+	auto add_border = [&](uint32_t x0, uint32_t y0, uint16_t id_ul, uint16_t id_ur, uint16_t id_dl, uint16_t id_dr) {
+		// Yes this can be done better and more optimized. But for its good for now
+		uint8_t diff_u = id_ul != id_ur;
+		uint8_t diff_d = id_dl != id_dr;
+		uint8_t diff_l = id_ul != id_dl;
+		uint8_t diff_r = id_ur != id_dr;
+		uint8_t diff = diff_u << 3 | diff_d << 2 | diff_l << 1 | diff_r;
+
+		float offset = 0.5f * std::cos((float)std::numbers::pi / 4);
+		if(diff == (LEFT | UP)) {
+			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
+			glm::vec2 pos2 = glm::vec2(0.5f, 0.0f);
+			add_line(border_vertices, x0, y0, pos1, pos2);
+			return;
+		}
+		if(diff == (LEFT | DOWN)) {
+			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
+			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
+			add_line(border_vertices, x0, y0, pos1, pos2);
+			return;
+		}
+		if(diff == (RIGHT | UP)) {
+			glm::vec2 pos1 = glm::vec2(1.0f, 0.5f);
+			glm::vec2 pos2 = glm::vec2(0.5f, 0.0f);
+			add_line(border_vertices, x0, y0, pos1, pos2);
+			return;
+		}
+		if(diff == (RIGHT | DOWN)) {
+			glm::vec2 pos1 = glm::vec2(1.0f, 0.5f);
+			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
+			add_line(border_vertices, x0, y0, pos1, pos2);
+			return;
+		}
+		if(diff_u) {
+			glm::vec2 pos1 = glm::vec2(0.5f, 0.0f);
+			glm::vec2 pos2 = glm::vec2(0.5f, 0.5f);
+			add_line(border_vertices, x0, y0, pos1, pos2);
+		}
+		if(diff_d) {
+			glm::vec2 pos1 = glm::vec2(0.5f, 0.5f);
+			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
+			add_line(border_vertices, x0, y0, pos1, pos2);
+		}
+		if(diff_l) {
+			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
+			glm::vec2 pos2 = glm::vec2(0.5f, 0.5f);
+			add_line(border_vertices, x0, y0, pos1, pos2);
+		}
+		if(diff_r) {
+			glm::vec2 pos1 = glm::vec2(0.5f, 0.5f);
+			glm::vec2 pos2 = glm::vec2(1.0f, 0.5f);
+			add_line(border_vertices, x0, y0, pos1, pos2);
+		}
+	};
+
+	for(uint32_t y = 0; y < size_y - 1; y++) {
+		for(uint32_t x = 0; x < size_x - 1; x++) {
+			auto prov_id_ul = province_id_map[(x + 0) + (y + 0) * size_x];
+			auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
+			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
+			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
+			if((prov_id_ul != prov_id_ur) ||
+				(prov_id_ul != prov_id_dl) ||
+				(prov_id_ul != prov_id_dr)) {
+				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+			}
+		}
+	}
+
+	border_indicies = ((uint32_t)border_vertices.size()) / 3;
+
+	glGenVertexArrays(1, &border_vao);
+	glBindVertexArray(border_vao);
+
+	glGenBuffers(1, &border_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glBindVertexArray(0);
+}
+
+void display_data::create_borders2() {
+	uint32_t size_x = size.x;
+	uint32_t size_y = size.y;
+
+	std::vector<bool> is_border(size_x * size_y, false);
+	std::vector<float> border_vertices;
+	auto add_border = [&, &map_size = this->size](uint32_t x0, uint32_t y0) {
+		// Yes this can be done better and more optimized. But for its good for now
+		if(is_border[x0 + y0 * size.x])
+			return;
+		is_border[x0 + y0 * size_x] = true;
+
+		glm::vec2 pos0 = glm::vec2(x0 + 0, y0 + 0) / size;
+		glm::vec2 pos1 = glm::vec2(x0 + 1, y0 + 1) / size;
+
+		border_vertices.push_back(pos0.x);
+		border_vertices.push_back(pos0.y);
+
+		border_vertices.push_back(pos1.x);
+		border_vertices.push_back(pos0.y);
+
+		border_vertices.push_back(pos1.x);
+		border_vertices.push_back(pos1.y);
+
+		border_vertices.push_back(pos1.x);
+		border_vertices.push_back(pos1.y);
+
+		border_vertices.push_back(pos0.x);
+		border_vertices.push_back(pos1.y);
+
+		border_vertices.push_back(pos0.x);
+		border_vertices.push_back(pos0.y);
+	};
+
+	for(uint32_t y = 0; y < size_y - 1; y++) {
+		for(uint32_t x = 0; x < size_x - 1; x++) {
+			auto prov_id_ul = province_id_map[(x + 0) + (y + 0) * size_x];
+			auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
+			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
+			if(prov_id_ul != prov_id_ur) {
+				add_border(x, y);
+				add_border(x + 1, y);
+			}
+			if(prov_id_ul != prov_id_dl) {
+				add_border(x, y);
+				add_border(x, y + 1);
+			}
+		}
+	}
+
+	border_indicies = ((uint32_t)border_vertices.size()) / 3 * 2;
+
+	glGenVertexArrays(1, &border_vao);
+	glBindVertexArray(border_vao);
+
+	glGenBuffers(1, &border_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+}
+
 void display_data::create_meshes() {
 	uint32_t size_x = size.x;
 	uint32_t size_y = size.y;
@@ -114,24 +314,24 @@ void display_data::create_meshes() {
 	std::vector<float> water_vertices;
 	std::vector<float> land_vertices;
 
-	auto add_quad = [&map_size = this->size](std::vector<float>& vertices, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
-		vertices.push_back((float)(x0 / map_size.x));
-		vertices.push_back((float)(1 - y0 / map_size.y));
+	auto add_quad = [&map_size = this->size](std::vector<float>& vertices, float x0, float y0, float x1, float y1) {
+		vertices.push_back(x0 / map_size.x);
+		vertices.push_back(y0 / map_size.y);
 
-		vertices.push_back((float)(x1 / map_size.x));
-		vertices.push_back((float)(1 - y0 / map_size.y));
+		vertices.push_back(x1 / map_size.x);
+		vertices.push_back(y0 / map_size.y);
 
-		vertices.push_back((float)(x1 / map_size.x));
-		vertices.push_back((float)(1 - y1 / map_size.y));
+		vertices.push_back(x1 / map_size.x);
+		vertices.push_back(y1 / map_size.y);
 
-		vertices.push_back((float)(x1 / map_size.x));
-		vertices.push_back((float)(1 - y1 / map_size.y));
+		vertices.push_back(x1 / map_size.x);
+		vertices.push_back(y1 / map_size.y);
 
-		vertices.push_back((float)(x0 / map_size.x));
-		vertices.push_back((float)(1 - y1 / map_size.y));
+		vertices.push_back(x0 / map_size.x);
+		vertices.push_back(y1 / map_size.y);
 
-		vertices.push_back((float)(x0 / map_size.x));
-		vertices.push_back((float)(1 - y0 / map_size.y));
+		vertices.push_back(x0 / map_size.x);
+		vertices.push_back(y0 / map_size.y);
 	};
 
 
@@ -171,39 +371,11 @@ void display_data::create_meshes() {
 	glBindBuffer(GL_ARRAY_BUFFER, land_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * land_vertices.size(), &land_vertices[0], GL_STATIC_DRAW);
 
-	std::vector<bool> is_border(size_x * size_y, false);
-	std::vector<float> border_vertices;
-	auto add_border = [&](uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1) {
-		if (!is_border[x0 + y0 * size_y]) {
-			is_border[x0 + y0 * size_y] = true;
-			add_quad(border_vertices, x0, y0, x1, y1);
-		}
-	};
-
-	for(uint32_t y = 0; y < size_y - 1; y++) {
-		for(uint32_t x = 0; x < size_x - 1; x++) {
-			auto prov_id = province_id_map[x + y * size_x];
-			auto prov_id_right = province_id_map[(x + 1) + y * size_x];
-			auto prov_id_down = province_id_map[x + (y + 1) * size_x];
-			if (prov_id != prov_id_right) {
-				add_border(x + 0, y + 0, x + 1, y + 1);
-				add_border(x + 1, y + 0, x + 2, y + 1);
-			}
-			if (prov_id != prov_id_down) {
-				add_border(x + 0, y + 0, x + 1, y + 1);
-				add_border(x + 1, y + 1, x + 2, y + 2);
-			}
-		}
-	}
-
-	border_indicies = ((uint32_t)border_vertices.size()) / 3 * 2;
-
-	glGenBuffers(1, &border_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
-
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
+	create_borders2();
 }
 
 display_data::~display_data() {
@@ -228,6 +400,8 @@ display_data::~display_data() {
 
 	if(vao)
 		glDeleteVertexArrays(1, &vao);
+	if(border_vao)
+		glDeleteVertexArrays(1, &border_vao);
 	if(land_vbo)
 		glDeleteBuffers(1, &land_vbo);
 	if(water_vbo)
@@ -245,8 +419,10 @@ display_data::~display_data() {
 		glDeleteProgram(water_shader);
 	if(water_political_shader)
 		glDeleteProgram(water_political_shader);
-	if(border_shader)
-		glDeleteProgram(border_shader);
+	if(line_border_shader)
+		glDeleteProgram(line_border_shader);
+	if(vic2_border_shader)
+		glDeleteProgram(vic2_border_shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -271,7 +447,11 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto map_water_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_f.glsl"));
 	auto map_water_political_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_political_f.glsl"));
 
-	auto border_fshader = try_load_shader(root, NATIVE("assets/shaders/map_border_f.glsl"));
+	auto line_border_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
+	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
+
+	auto vic2_border_vshader = try_load_shader(root, NATIVE("assets/shaders/vic2_border_v.glsl"));
+	auto vic2_border_fshader = try_load_shader(root, NATIVE("assets/shaders/vic2_border_f.glsl"));
 
 	terrain_shader = ogl::create_program(
 		get_content(*map_vshader), get_content(*map_fshader));
@@ -285,8 +465,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	water_political_shader = ogl::create_program(
 		get_content(*map_vshader), get_content(*map_water_political_fshader));
 
-	border_shader = ogl::create_program(
-		get_content(*map_vshader), get_content(*border_fshader));
+	line_border_shader = ogl::create_program(
+		get_content(*line_border_vshader), get_content(*line_border_fshader));
+	vic2_border_shader = ogl::create_program(
+		get_content(*vic2_border_vshader), get_content(*vic2_border_fshader));
 }
 
 void display_data::render(uint32_t screen_x, uint32_t screen_y) {
@@ -314,10 +496,10 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 
 	glBindVertexArray(vao);
 
-	if (active_map_mode == map_mode::mode::terrain)
+	if(active_map_mode == map_mode::mode::terrain)
 		glUseProgram(terrain_shader);
 	else {
-		if (zoom > 5)
+		if(zoom > 5)
 			glUseProgram(terrain_political_close_shader);
 		else
 			glUseProgram(terrain_political_far_shader);
@@ -339,12 +521,11 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
 
-	if (active_map_mode == map_mode::mode::terrain || zoom > 5) {
+	if(active_map_mode == map_mode::mode::terrain || zoom > 5) {
 		glUseProgram(water_shader);
 		// uniform float time
 		glUniform1f(4, time_counter);
-	}
-	else {
+	} else {
 		glUseProgram(water_political_shader);
 	}
 
@@ -364,7 +545,9 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
 
-	glUseProgram(border_shader);
+	glBindVertexArray(border_vao);
+
+	glUseProgram(vic2_border_shader);
 
 	// uniform float aspect_ratio
 	glUniform1f(1, screen_x / ((float)screen_y));
@@ -441,14 +624,14 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 		cpos = parsers::parse_fixed_amount_csv_values<6>(cpos, end_of_file, ';',
 			[&](std::string_view const* values) {
 				uint32_t color = 0;
-				uint32_t color_part;
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
-				color += color_part << 16; 	// Red
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
-				color += color_part << 8; 	// Green
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
-				color += color_part; 		// Blue
-				color_to_id.insert_or_assign(color, index++);
+		uint32_t color_part;
+		color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
+		color += color_part << 16; 	// Red
+		color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
+		color += color_part << 8; 	// Green
+		color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
+		color += color_part; 		// Blue
+		color_to_id.insert_or_assign(color, index++);
 			});
 	}
 	int nr_of_provinces = index;
@@ -495,12 +678,18 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 
 	uint8_t* terrain_data = start + data_offset;
 
-	terrain_id_map.insert(terrain_id_map.end(), terrain_data, terrain_data + size_x * size_y);
+	// terrain_id_map.insert(terrain_id_map.begin(), terrain_data, terrain_data + size_x * size_y);
+	terrain_id_map = std::vector<uint8_t>(size_x * size_y);
+	for(int y = 0; y < size_y; y++) {
+		auto start = terrain_data + (size_y - y - 1) * size_x;
+		auto end = terrain_data + (size_y - y) * size_x;
+		terrain_id_map.insert(terrain_id_map.begin() + y * size_x, start, end);
+	}
 
 	median_terrain_type = std::vector<uint8_t>(nr_of_provinces);
-	std::vector<std::array<int,16>> terrain_histogram(nr_of_provinces, std::array<int, 16>{});
+	std::vector<std::array<int, 16>> terrain_histogram(nr_of_provinces, std::array<int, 16>{});
 	std::vector<glm::ivec3> province_acc_tile_pos(nr_of_provinces, glm::ivec3(0));
-	for (int i = size_x * size_y; i --> 0;) {
+	for(int i = size_x * size_y; i-- > 0;) {
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
 		terrain_histogram[prov_id][terrain_id]++;
@@ -509,11 +698,11 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 		province_acc_tile_pos[prov_id] += glm::ivec3(x, y, 1);
 	}
 	province_mid_point = std::vector<glm::vec2>(nr_of_provinces);
-	for (int i = nr_of_provinces; i --> 0;) {
+	for(int i = nr_of_provinces; i-- > 0;) {
 		int max_index = 15;
 		int max = 0;
-		for (int j = max_index; j --> 0;) {
-			if (terrain_histogram[i][j] > max) {
+		for(int j = max_index; j-- > 0;) {
+			if(terrain_histogram[i][j] > max) {
 				max_index = j;
 				max = terrain_histogram[i][j];
 			}
