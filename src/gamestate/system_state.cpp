@@ -279,7 +279,7 @@ namespace sys {
 		auto root = get_root(state.common_fs);
 		auto poptypes = open_directory(root, NATIVE("poptypes"));
 
-		for(auto& file : simple_fs::list_files(poptypes, NATIVE("txt"))) {
+		for(auto& file : simple_fs::list_files(poptypes, NATIVE(".txt"))) {
 			auto full_name = get_full_name(file);
 			auto last = full_name.c_str() + full_name.length();
 			auto first = full_name.c_str();
