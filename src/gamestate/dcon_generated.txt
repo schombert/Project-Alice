@@ -397,7 +397,7 @@ object {
 }
 
 object {
-	name{ pop_type}
+	name{ pop_type }
 	storage_type{ contiguous }
 	size{ 20 }
 
@@ -408,7 +408,7 @@ object {
 }
 
 object {
-	name{ rebel_type}
+	name{ rebel_type }
 	storage_type{ contiguous }
 	size{ 60 }
 
@@ -674,6 +674,19 @@ object {
 	property{
 		name{ size }
 		type{ float }
+	}
+
+	property{
+		name{ consciousness }
+		type{ float }
+	}
+	property{
+		name{ militancy }
+		type{ float }
+	}
+	property{
+		name{ rebel_group }
+		type{ rebel_type_id }
 	}
 }
 

@@ -1529,7 +1529,9 @@ namespace parsers {
 	struct pop_history_definition {
 		dcon::religion_id rel_id;
 		dcon::culture_id cul_id;
+		dcon::rebel_type_id reb_id;
 		int32_t size = 0;
+		float militancy = 0;
 		void culture(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
 			if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
 				cul_id = it->second;
@@ -1542,6 +1544,13 @@ namespace parsers {
 				rel_id = it->second;
 			} else {
 				err.accumulated_errors += "Invalid religion " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void rebel_type(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
+			if(auto it = context.outer_context.map_of_rebeltypes.find(std::string(value)); it != context.outer_context.map_of_rebeltypes.end()) {
+				reb_id = it->second.id;
+			} else {
+				err.accumulated_errors += "Invalid rebel type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 			}
 		}
 		void finish(pop_history_province_context&) { }
@@ -1568,6 +1577,8 @@ namespace parsers {
 			new_pop.set_religion(def.rel_id);
 			new_pop.set_size(float(def.size));
 			new_pop.set_poptype(ptype);
+			new_pop.set_militancy(def.militancy);
+			new_pop.set_rebel_group(def.reb_id);
 			context.outer_context.state.world.force_create_pop_location(new_pop, context.id);
 		}
 		void finish(pop_history_province_context&) { }
