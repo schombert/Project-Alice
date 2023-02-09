@@ -593,6 +593,7 @@ object {
 
 object {
 	name { factory }
+	storage_type{ contiguous }
 	size{ 10000 }
 
 	property{
@@ -648,6 +649,45 @@ relationship{
 	link{
 		object{nation}
 		name{nation}
+		type{many}
+		index_storage{array}
+	}
+}
+
+object {
+	name { pop }
+	storage_type{ compactable }
+	size{ 30000 }
+
+	property{
+		name{ poptype }
+		type{ pop_type_id }
+	}
+	property{
+		name{ religion }
+		type{ religion_id }
+	}
+	property{
+		name{ culture }
+		type{ culture_id }
+	}
+	property{
+		name{ size }
+		type{ float }
+	}
+}
+
+relationship{
+	name{ pop_location }
+	
+	link{
+		object{pop}
+		name{pop}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{province}
 		type{many}
 		index_storage{array}
 	}
