@@ -9,12 +9,15 @@
 #include "parsers.hpp"
 #include "script_constants.hpp"
 #include "nations.hpp"
+#include "container_types.hpp"
 
 namespace parsers {
 
 struct trigger_building_context {
 	scenario_building_context& outer_context;
 	std::vector<uint16_t> compiled_trigger;
+
+	float factor = 0.0f;
 
 	trigger::slot_contents main_slot = trigger::slot_contents::empty;
 	trigger::slot_contents this_slot = trigger::slot_contents::empty;
@@ -239,6 +242,10 @@ inline bool is_reb(std::string_view value) {
 
 struct trigger_body {
 	void finish(trigger_building_context&) { }
+
+	void factor(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
+		context.factor = value;
+	}
 
 	void ai(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -2719,6 +2726,8 @@ struct trigger_body {
 		if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_trigger.push_back(uint16_t(trigger::is_ideology_enabled | association_to_bool_code(a)));
+			} else if(context.main_slot == trigger::slot_contents::pop) {
+				context.compiled_trigger.push_back(uint16_t(trigger::is_ideology_enabled_pop | association_to_bool_code(a)));
 			} else {
 				err.accumulated_errors += "is_ideology_enabled trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
@@ -3917,7 +3926,7 @@ struct trigger_body {
 			context.compiled_trigger.push_back(trigger::payload(itg->second.id).value);
 			context.add_float_to_payload(parse_float(value, line, err) / 100.0f);
 		} else if(auto itf = context.outer_context.map_of_issues.find(str_label); itf != context.outer_context.map_of_issues.end()) {
-			if(auto itopt = context.outer_context.map_of_options.find(str_label); itopt != context.outer_context.map_of_options.end()) {
+			if(auto itopt = context.outer_context.map_of_options.find(std::string(value)); itopt != context.outer_context.map_of_options.end()) {
 				if(context.main_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(uint16_t(trigger::variable_issue_group_name_nation | association_to_bool_code(a)));
 				else if(context.main_slot == trigger::slot_contents::pop)
@@ -3975,5 +3984,15 @@ void tr_state_scope(token_generator& gen, error_handler& err, trigger_building_c
 void tr_scope_variable(std::string_view name, token_generator& gen, error_handler& err, trigger_building_context& context);
 
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context);
+
+struct value_modifier_definition {
+	float factor = 0.0f;
+	void group(value_modifier_definition const& value, error_handler& err, int32_t line, trigger_building_context& context) { }
+	void finish(trigger_building_context&) { }
+};
+
+void make_value_modifier_segment(token_generator& gen, error_handler& err, trigger_building_context& context);
+dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler& err, trigger_building_context& context);
+
 }
 

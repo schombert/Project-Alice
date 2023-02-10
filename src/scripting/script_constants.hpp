@@ -1065,6 +1065,7 @@ constexpr inline uint16_t has_building_state_from_province = 0x026A;
 constexpr inline uint16_t has_building_factory_from_province = 0x026B;
 constexpr inline uint16_t party_loyalty_generic = 0x026C;
 constexpr inline uint16_t invention = 0x026D;
+constexpr inline uint16_t is_ideology_enabled_pop = 0x026E;
 
 //technology name -- payload 1
 //ideology name -- 4 variants payload 2
@@ -1758,6 +1759,7 @@ inline constexpr int32_t data_sizes[] = {
 	0, //constexpr uint16_t has_building_factory_from_province = 0x026B;
 	0, //constexpr uint16_t party_loyalty_generic = 0x026C;
 	1, //constexpr inline uint16_t invention = 0x026D;
+	1, //constexpr inline uint16_t is_ideology_enabled_pop = 0x026E;
 };
 
 enum class slot_contents {

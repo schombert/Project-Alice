@@ -77,6 +77,8 @@ namespace sys {
 		absolute_time_point end_date;
 
 		std::vector<uint16_t> trigger_data;
+		std::vector<value_modifier_segment> value_modifier_segments;
+		tagged_vector<value_modifier_description, dcon::value_modifier_key> value_modifiers;
 
 		std::vector<char> text_data; // stores string data in the win1250 codepage
 		std::vector<text::text_component> text_components;

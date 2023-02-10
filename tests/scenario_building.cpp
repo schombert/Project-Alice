@@ -656,6 +656,14 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.political_party_resize_party_issues(uint32_t(state->culture_definitions.party_issues.size()));
 
 	state->world.province_resize_party_loyalty(state->world.ideology_size());
+
+	state->world.pop_type_resize_everyday_needs(state->world.commodity_size());
+	state->world.pop_type_resize_luxury_needs(state->world.commodity_size());
+	state->world.pop_type_resize_life_needs(state->world.commodity_size());
+	state->world.pop_type_resize_ideology(state->world.ideology_size());
+	state->world.pop_type_resize_issues(state->world.issue_option_size());
+	state->world.pop_type_resize_promotion(state->world.pop_type_size());
+
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -776,6 +784,33 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(err.accumulated_errors == "");
 		REQUIRE(count == 11250.0f);
+	}
+	// load poptype definitions
+	{
+		auto poptypes = open_directory(root, NATIVE("poptypes"));
+		for(auto pr : context.map_of_poptypes) {
+			auto opened_file = open_file(poptypes, simple_fs::utf8_to_native(pr.first + ".txt"));
+			if(opened_file) {
+				err.file_name = pr.first + ".txt";
+				auto content = view_contents(*opened_file);
+				parsers::poptype_context inner_context{ context, pr.second };
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_poptype_file(gen, err, inner_context);
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(bool(state->culture_definitions.artisans) == true);
+		REQUIRE(state->world.pop_type_get_sprite(state->culture_definitions.artisans) == uint8_t(11));
+		REQUIRE(state->world.pop_type_get_color(state->culture_definitions.artisans) == sys::pack_color(127, 3, 3));
+		REQUIRE(state->world.pop_type_get_strata(state->culture_definitions.artisans) == uint8_t(culture::pop_strata::middle));
+
+		auto wine = context.map_of_commodity_names.find("wine")->second;
+		REQUIRE(state->world.pop_type_get_luxury_needs(state->culture_definitions.artisans, wine) == 10.0f);
+		REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].base_factor == 1.0f);
+
+		auto react = context.map_of_ideologies.find("reactionary")->second.id;
+		REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].base_factor == 1.0f);
 	}
 }
 #endif
