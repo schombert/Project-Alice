@@ -812,5 +812,18 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto react = context.map_of_ideologies.find("reactionary")->second.id;
 		REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].base_factor == 1.0f);
 	}
+	// load ideology contents
+	{
+		for(auto& pr : context.map_of_ideologies) {
+			parsers::individual_ideology_context new_context{ context, pr.second.id };
+			parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(bool(state->culture_definitions.conservative) == true);
+		REQUIRE(state->world.ideology_get_color(state->culture_definitions.conservative) == sys::pack_color(10, 10, 250));
+		auto mkey = state->world.ideology_get_add_economic_reform(state->culture_definitions.conservative);
+		REQUIRE(state->value_modifiers[mkey].base_factor == -0.5f);
+	}
 }
 #endif

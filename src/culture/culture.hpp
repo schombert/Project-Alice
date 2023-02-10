@@ -73,6 +73,9 @@ struct global_cultural_state {
 
 	int32_t officer_leadership_points = 0;
 	float bureaucrat_tax_efficiency = 0.0f;
+
+	//special ideology
+	dcon::ideology_id conservative;
 };
 
 enum class issue_category {

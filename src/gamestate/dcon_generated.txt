@@ -279,6 +279,43 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
+
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+	property{
+		name{ is_civilized_only }
+		type{ bitfield }
+	}
+	property{
+		name{ activation_date }
+		type{ sys::date }
+	}
+	property{
+		name{ add_political_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ remove_political_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ add_social_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ remove_social_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ add_military_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ add_economic_reform }
+		type{ value_modifier_key }
+	}
 }
 
 relationship{

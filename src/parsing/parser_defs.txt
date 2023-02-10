@@ -946,6 +946,7 @@ trigger_body
 	middle_strata_everyday_needs   value     float      member_fn
 	can_build_factory_in_capital_state value   text     member_fn
 	factor                       value  float                           member_fn
+	base                         value  float                           member_fn (factor)
 	#any                         value  text                            member_fn
 	diplomatic_influence         group  tr_diplomatic_influence         member_fn
 	pop_unemployment             group  tr_pop_unemployment             member_fn
@@ -1005,6 +1006,7 @@ pop_history_file
 
 value_modifier_definition
 	factor             value         float                              member
+	base               value         float                              member (factor)
 	group              group         value_modifier_definition          member_fn
 	modifier           extern        make_value_modifier_segment        discard
 
@@ -1059,3 +1061,15 @@ poptype_file
 	everyday_needs_income      group     income                         member_fn
 	luxury_needs_income        group     income                         member_fn
 	life_needs_income          group     income                         member_fn
+
+individual_ideology
+	can_reduce_militancy       value     bool                           member_fn
+	uncivilized                value     bool                           member_fn
+	color                      group     color_from_3i                  member_fn
+	date                       value     date                           member_fn
+	add_political_reform       extern    ideology_condition             member_fn
+	remove_political_reform    extern    ideology_condition             member_fn
+	add_social_reform          extern    ideology_condition             member_fn
+	remove_social_reform       extern    ideology_condition             member_fn
+	add_military_reform        extern    ideology_condition             member_fn
+	add_economic_reform        extern    ideology_condition             member_fn

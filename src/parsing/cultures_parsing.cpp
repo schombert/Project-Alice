@@ -297,4 +297,9 @@ commodity_array stub_commodity_array(token_generator& gen, error_handler& err, p
 	return parse_commodity_array(gen, err, context.outer_context);
 }
 
+dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler& err, individual_ideology_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_value_modifier(gen, err, t_context);
+}
+
 }
