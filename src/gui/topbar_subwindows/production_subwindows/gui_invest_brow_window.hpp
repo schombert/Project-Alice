@@ -4,7 +4,7 @@
 
 namespace ui {
 
-class investment_window : public window_element_base {
+class invest_brow_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
