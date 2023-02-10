@@ -112,41 +112,55 @@ void display_data::create_borders1() {
 	uint32_t size_x = size.x;
 	uint32_t size_y = size.y;
 	auto add_line = [&map_size = this->size](std::vector<float>& vertices, uint32_t x0, uint32_t y0, glm::vec2 pos1, glm::vec2 pos2) {
+		glm::vec2 dir = normalize(pos2 - pos1);
+		glm::vec2 dir2 = dir;
+		dir = glm::vec2(-dir.y, dir.x);
+
 		pos1 = (pos1 + glm::vec2(x0 + 0.5f, y0 + 0.5f)) / map_size;
 		pos2 = (pos2 + glm::vec2(x0 + 0.5f, y0 + 0.5f)) / map_size;
-		glm::vec2 dir = glm::normalize(pos2 - pos1) / map_size;
-		dir = glm::vec2(-dir.y, dir.x);
 
 		// glm::vec2 dir = glm::vec2(100, 100) / map_size;
 		vertices.push_back(pos1.x);
 		vertices.push_back(pos1.y);
 		vertices.push_back(dir.x);
 		vertices.push_back(dir.y);
+		vertices.push_back(dir2.x);
+		vertices.push_back(dir2.y);
 
 		vertices.push_back(pos1.x);
 		vertices.push_back(pos1.y);
 		vertices.push_back(-dir.x);
 		vertices.push_back(-dir.y);
+		vertices.push_back(dir2.x);
+		vertices.push_back(dir2.y);
 
 		vertices.push_back(pos2.x);
 		vertices.push_back(pos2.y);
 		vertices.push_back(-dir.x);
 		vertices.push_back(-dir.y);
+		vertices.push_back(-dir2.x);
+		vertices.push_back(-dir2.y);
 
 		vertices.push_back(pos2.x);
 		vertices.push_back(pos2.y);
 		vertices.push_back(-dir.x);
 		vertices.push_back(-dir.y);
+		vertices.push_back(-dir2.x);
+		vertices.push_back(-dir2.y);
 
 		vertices.push_back(pos2.x);
 		vertices.push_back(pos2.y);
 		vertices.push_back(dir.x);
 		vertices.push_back(dir.y);
+		vertices.push_back(-dir2.x);
+		vertices.push_back(-dir2.y);
 
 		vertices.push_back(pos1.x);
 		vertices.push_back(pos1.y);
 		vertices.push_back(dir.x);
 		vertices.push_back(dir.y);
+		vertices.push_back(dir2.x);
+		vertices.push_back(dir2.y);
 	};
 
 	enum direction {
@@ -235,10 +249,12 @@ void display_data::create_borders1() {
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(4 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0);
 }
@@ -249,7 +265,7 @@ void display_data::create_borders2() {
 
 	std::vector<bool> is_border(size_x * size_y, false);
 	std::vector<float> border_vertices;
-	auto add_border = [&, &map_size = this->size](uint32_t x0, uint32_t y0) {
+	auto add_border = [&, &map_size = this->size](uint32_t x0, uint32_t y0, int type1, int type2) {
 		// Yes this can be done better and more optimized. But for its good for now
 		if(is_border[x0 + y0 * size.x])
 			return;
@@ -260,36 +276,115 @@ void display_data::create_borders2() {
 
 		border_vertices.push_back(pos0.x);
 		border_vertices.push_back(pos0.y);
+		border_vertices.push_back(0);
+		border_vertices.push_back(0);
+		border_vertices.push_back(type1 / 32.f);
+		border_vertices.push_back(type2 / 32.f);
 
 		border_vertices.push_back(pos1.x);
 		border_vertices.push_back(pos0.y);
+		border_vertices.push_back(1);
+		border_vertices.push_back(0);
+		border_vertices.push_back(type1 / 32.f);
+		border_vertices.push_back(type2 / 32.f);
 
 		border_vertices.push_back(pos1.x);
 		border_vertices.push_back(pos1.y);
+		border_vertices.push_back(1);
+		border_vertices.push_back(1);
+		border_vertices.push_back(type1 / 32.f);
+		border_vertices.push_back(type2 / 32.f);
 
 		border_vertices.push_back(pos1.x);
 		border_vertices.push_back(pos1.y);
+		border_vertices.push_back(1);
+		border_vertices.push_back(1);
+		border_vertices.push_back(type1 / 32.f);
+		border_vertices.push_back(type2 / 32.f);
 
 		border_vertices.push_back(pos0.x);
 		border_vertices.push_back(pos1.y);
+		border_vertices.push_back(0);
+		border_vertices.push_back(1);
+		border_vertices.push_back(type1 / 32.f);
+		border_vertices.push_back(type2 / 32.f);
 
 		border_vertices.push_back(pos0.x);
 		border_vertices.push_back(pos0.y);
+		border_vertices.push_back(0);
+		border_vertices.push_back(0);
+		border_vertices.push_back(type1 / 32.f);
+		border_vertices.push_back(type2 / 32.f);
 	};
 
-	for(uint32_t y = 0; y < size_y - 1; y++) {
-		for(uint32_t x = 0; x < size_x - 1; x++) {
-			auto prov_id_ul = province_id_map[(x + 0) + (y + 0) * size_x];
-			auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
-			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
-			if(prov_id_ul != prov_id_ur) {
-				add_border(x, y);
-				add_border(x + 1, y);
-			}
-			if(prov_id_ul != prov_id_dl) {
-				add_border(x, y);
-				add_border(x, y + 1);
-			}
+	enum direction {
+		NW = 1 << 7,
+		NE = 1 << 6,
+		SW = 1 << 5,
+		SE = 1 << 4,
+		N = 1 << 3,
+		S = 1 << 2,
+		W = 1 << 1,
+		E = 1 << 0,
+	};
+	for(uint32_t y = 1; y < size_y - 1; y++) {
+		for(uint32_t x = 1; x < size_x - 1; x++) {
+			auto id_m = province_id_map[(x + 0) + (y + 0) * size_x];
+			auto id_u = province_id_map[(x + 0) + (y + 1) * size_x];
+			auto id_d = province_id_map[(x + 0) + (y - 1) * size_x];
+			auto id_l = province_id_map[(x - 1) + (y + 0) * size_x];
+			auto id_r = province_id_map[(x + 1) + (y + 0) * size_x];
+			auto id_ul = province_id_map[(x - 1) + (y + 1) * size_x];
+			auto id_ur = province_id_map[(x + 1) + (y + 1) * size_x];
+			auto id_dl = province_id_map[(x - 1) + (y - 1) * size_x];
+			auto id_dr = province_id_map[(x + 1) + (y - 1) * size_x];
+			uint8_t diff_u = id_m != id_u;
+			uint8_t diff_d = id_m != id_d;
+			uint8_t diff_l = id_m != id_l;
+			uint8_t diff_r = id_m != id_r;
+			uint8_t diff_ul = id_m != id_ul;
+			uint8_t diff_ur = id_m != id_ur;
+			uint8_t diff_dl = id_m != id_dl;
+			uint8_t diff_dr = id_m != id_dr;
+			uint8_t diff = diff_ul << 7 | diff_ur << 6 | diff_dl << 5 | diff_dr << 4 | diff_u << 3 | diff_d << 2 | diff_l << 1 | diff_r;
+			if (diff == (NW | N | NE))
+				add_border(x, y, 20, 0);
+			if (diff == (NW | N | NE | E))
+				add_border(x, y, 20, 22);
+			if (diff == (W | NW | N | NE))
+				add_border(x, y, 20, 19);
+			if (diff == (N | W | NW))
+				add_border(x, y, 20, 19);
+			if (diff == (N | E | NE))
+				add_border(x, y, 20, 22);
+			if (diff == (SW | S | SE))
+				add_border(x, y, 24, 0);
+			if (diff == (SW | S))
+				add_border(x, y, 24, 0);
+			if (diff == (S | SE))
+				add_border(x, y, 24, 0);
+			if (diff == (NW | W | SW))
+				add_border(x, y, 18, 0);
+			if (diff == (W | SW | S | SE | E))
+				add_border(x, y, 18, 17);
+			if (diff == (NE | E | SE))
+				add_border(x, y, 17, 0);
+			if (diff == (W | SW | S | SE))
+				add_border(x, y, 0, 18);
+			if (diff == (E | SE | S | SW))
+				add_border(x, y, 0, 17);
+			if (diff == (N | NW))
+				add_border(x, y, 0, 19);
+			if (diff == (N | NE))
+				add_border(x, y, 0, 22);
+			if (diff == SW)
+				add_border(x, y, 0, 20);
+			if (diff == SE)
+				add_border(x, y, 0, 21);
+			if (diff == (SW | SE))
+				add_border(x, y, 0, 21);
+			if (diff == N)
+				add_border(x, y, 0, 3);
 		}
 	}
 
@@ -302,8 +397,14 @@ void display_data::create_borders2() {
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(4 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
 }
 
@@ -375,7 +476,7 @@ void display_data::create_meshes() {
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 
-	create_borders2();
+	create_borders1();
 }
 
 display_data::~display_data() {
@@ -397,6 +498,8 @@ display_data::~display_data() {
 		glDeleteTextures(1, &overlay);
 	if(province_color)
 		glDeleteTextures(1, &province_color);
+	if(border_texture)
+		glDeleteTextures(1, &border_texture);
 
 	if(vao)
 		glDeleteVertexArrays(1, &vao);
@@ -545,9 +648,12 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, border_texture);
+
 	glBindVertexArray(border_vao);
 
-	glUseProgram(vic2_border_shader);
+	glUseProgram(line_border_shader);
 
 	// uniform float aspect_ratio
 	glUniform1f(1, screen_x / ((float)screen_y));
@@ -556,7 +662,7 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	// uniform vec2 map_size
 	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
 
-	glBindVertexBuffer(0, border_vbo, 0, sizeof(GLfloat) * 2);
+	glBindVertexBuffer(0, border_vbo, 0, sizeof(GLfloat) * 6);
 
 	glUniform2f(0, offset_x - 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
@@ -738,6 +844,7 @@ void display_data::load_map(sys::state& state) {
 	colormap_terrain = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
 	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
+	border_texture = load_dds_texture(map_terrain_dir, NATIVE("borders.dds"));
 
 	// Get the province_colorhandle
 	glGenTextures(1, &province_color);

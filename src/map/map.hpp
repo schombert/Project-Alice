@@ -61,6 +61,7 @@ private:
 	GLuint colormap_political = 0;
 	GLuint overlay = 0;
 	GLuint province_color = 0;
+	GLuint border_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
