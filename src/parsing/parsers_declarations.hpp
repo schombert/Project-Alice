@@ -1741,6 +1741,49 @@ namespace parsers {
 	void read_pop_issue(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context);
 	void read_c_migration_target(token_generator& gen, error_handler& err, poptype_context& context);
 	void read_migration_target(token_generator& gen, error_handler& err, poptype_context& context);
+
+	struct individual_ideology_context {
+		scenario_building_context& outer_context;
+		dcon::ideology_id id;
+	};
+
+	struct individual_ideology {
+		void finish(individual_ideology_context&) { }
+		void can_reduce_militancy(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.conservative = context.id;
+		}
+		void uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_is_civilized_only(context.id, !value);
+		}
+		void color(color_from_3i cvalue, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_color(context.id, cvalue.value);
+		}
+		void date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, individual_ideology_context& context) {
+			auto date_tag = sys::date(ymd, context.outer_context.state.start_date);
+			context.outer_context.state.world.ideology_set_activation_date(context.id, date_tag);
+		}
+		void add_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_add_political_reform(context.id, value);
+		}
+		void remove_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_remove_political_reform(context.id, value);
+		}
+		void add_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_add_social_reform(context.id, value);
+		}
+		void remove_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_remove_social_reform(context.id, value);
+		}
+		void add_military_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_add_military_reform(context.id, value);
+		}
+		void add_economic_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_add_economic_reform(context.id, value);
+		}
+	};
+
+	dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler& err, individual_ideology_context& context);
 }
 
 #include "trigger_parsing.hpp"

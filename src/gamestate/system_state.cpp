@@ -819,6 +819,13 @@ namespace sys {
 			}
 		}
 
+		// load ideology contents
+		{
+			for(auto& pr : context.map_of_ideologies) {
+				parsers::individual_ideology_context new_context{ context, pr.second.id };
+				parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
+			}
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
