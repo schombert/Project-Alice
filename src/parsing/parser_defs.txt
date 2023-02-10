@@ -945,6 +945,7 @@ trigger_body
 	political_movement_strength    value     float      member_fn
 	middle_strata_everyday_needs   value     float      member_fn
 	can_build_factory_in_capital_state value   text     member_fn
+	factor                       value  float                           member_fn
 	#any                         value  text                            member_fn
 	diplomatic_influence         group  tr_diplomatic_influence         member_fn
 	pop_unemployment             group  tr_pop_unemployment             member_fn
@@ -1001,3 +1002,60 @@ pop_province_list
 
 pop_history_file
 	#any               extern        make_pop_province_list             discard
+
+value_modifier_definition
+	factor             value         float                              member
+	group              group         value_modifier_definition          member_fn
+	modifier           extern        make_value_modifier_segment        discard
+
+promotion_targets
+	#any               extern        read_promotion_target              discard
+
+pop_ideologies
+	#any               extern        read_pop_ideology                  discard
+
+pop_issues
+	#any               extern        read_pop_issue                     discard
+
+income
+	weight             value         float                              member
+	type               value         text                               member_fn
+
+poptype_file
+	sprite             value         int                                member_fn
+	color              group         color_from_3i                      member_fn
+	is_artisan         value         bool                               member_fn
+	max_size           value         none                               discard
+	merge_max_size     value         none                               discard
+	strata             value         text                               member_fn
+	rebel              group         none                               discard
+	state_capital_only value         bool                               discard
+	unemployment       value         bool                               member_fn
+	equivalent         value         text                               member_fn
+	allowed_to_vote    value         bool                               discard
+	is_slave           value         bool                               member_fn
+	can_be_recruited   value         bool                               member_fn
+	leadership         value         int                                member_fn
+	research_optimum   value         float                              member_fn
+	demote_migrant     value         bool                               discard
+	administrative_efficiency        value         bool                 member_fn
+	tax_eff            value         float                              member_fn
+	can_build          value         bool                               member_fn
+	research_points    value         float                              member_fn
+	can_reduce_consciousness         value         bool                 member_fn
+	factory            value         bool                               discard
+	workplace_input    value         float                              member_fn
+	workplace_output   value         float                              member_fn
+	starter_share      value         float                              discard
+	can_work_factory   value         bool                               discard
+	luxury_needs               extern    stub_commodity_array           member_fn
+	everyday_needs             extern    stub_commodity_array           member_fn
+	life_needs                 extern    stub_commodity_array           member_fn
+	country_migration_target   extern    read_c_migration_target        discard
+	migration_target           extern    read_migration_target          discard
+	promote_to                 group     promotion_targets              member
+	ideologies                 group     pop_ideologies                 member
+	issues                     group     pop_issues                     member
+	everyday_needs_income      group     income                         member_fn
+	luxury_needs_income        group     income                         member_fn
+	life_needs_income          group     income                         member_fn

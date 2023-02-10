@@ -15,6 +15,7 @@ make_index{unit_name_id}{uint16_t}
 make_index{national_variable_id}{uint16_t}
 make_index{global_variable_id}{uint16_t}
 make_index{trigger_key}{uint16_t}
+make_index{value_modifier_key}{uint16_t}
 
 object{
 	name{ national_identity }
@@ -405,6 +406,98 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
+
+	property{
+		name{ sprite }
+		type{ uint8_t }
+	}
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+	property{
+		name{ strata }
+		type{ uint8_t }
+	}
+
+	property{
+		name{ everyday_needs_income_type }
+		type{ uint8_t }
+	}
+	property{
+		name{ luxury_needs_income_type }
+		type{ uint8_t }
+	}
+	property{
+		name{ life_needs_income_type }
+		type{ uint8_t }
+	}
+	property{
+		name{ everyday_needs_income_weight }
+		type{ float }
+	}
+	property{
+		name{ luxury_needs_income_weight }
+		type{ float }
+	}
+	property{
+		name{ life_needs_income_weight }
+		type{ float }
+	}
+
+	property{
+		name{ research_optimum }
+		type{ float }
+	}
+	property{
+		name{ research_points }
+		type{ float }
+	}
+	property{
+		name{ workplace_input }
+		type{ float }
+	}
+	property{
+		name{ workplace_output }
+		type{ float }
+	}
+	property{
+		name{ has_unemployment }
+		type{ bitfield }
+	}
+	property{
+		name{ migration_target }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ country_migration_target }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ issues }
+		type{array{issue_option_id}{value_modifier_key}}
+	}
+	property{
+		name{ ideology }
+		type{array{ideology_id}{value_modifier_key}}
+	}
+	property{
+		name{ promotion }
+		type{array{pop_type_id}{value_modifier_key}}
+	}
+	property{
+		name{ life_needs }
+		type{array{commodity_id}{float}}
+	}
+	property{
+		name{ everyday_needs }
+		type{array{commodity_id}{float}}
+	}
+	property{
+		name{ luxury_needs }
+		type{array{commodity_id}{float}}
+	}
+
 }
 
 object {

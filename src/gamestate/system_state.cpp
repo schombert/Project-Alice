@@ -730,6 +730,13 @@ namespace sys {
 
 		world.province_resize_party_loyalty(world.ideology_size());
 
+		world.pop_type_resize_everyday_needs(world.commodity_size());
+		world.pop_type_resize_luxury_needs(world.commodity_size());
+		world.pop_type_resize_life_needs(world.commodity_size());
+		world.pop_type_resize_ideology(world.ideology_size());
+		world.pop_type_resize_issues(world.issue_option_size());
+		world.pop_type_resize_promotion(world.pop_type_size());
+
 		// load country files
 		world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));
@@ -797,7 +804,20 @@ namespace sys {
 				}
 			}
 		}
-
+		// load poptype definitions
+		{
+			auto poptypes = open_directory(root, NATIVE("poptypes"));
+			for(auto pr : context.map_of_poptypes) {
+				auto opened_file = open_file(poptypes, simple_fs::utf8_to_native(pr.first + ".txt"));
+				if(opened_file) {
+					err.file_name = pr.first + ".txt";
+					auto content = view_contents(*opened_file);
+					parsers::poptype_context inner_context{context, pr.second};
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_poptype_file(gen, err, inner_context);
+				}
+			}
+		}
 
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);

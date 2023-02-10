@@ -1589,6 +1589,158 @@ namespace parsers {
 	};
 
 	void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct poptype_context {
+		scenario_building_context& outer_context;
+		dcon::pop_type_id id;
+	};
+
+	struct promotion_targets {
+		void finish(poptype_context&) { }
+	};
+
+	struct pop_ideologies {
+		void finish(poptype_context&) { }
+	};
+
+	struct pop_issues {
+		void finish(poptype_context&) { }
+	};
+
+	struct income {
+		float weight = 0;
+		::culture::income_type itype = ::culture::income_type::none;
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "administration"))
+				itype = ::culture::income_type::administration;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "military"))
+				itype = ::culture::income_type::military;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "education"))
+				itype = ::culture::income_type::education;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "reforms"))
+				itype = ::culture::income_type::reforms;
+			else {
+				err.accumulated_errors += "Invalid income type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(poptype_context&) { }
+	};
+
+
+	struct poptype_file {
+		void finish(poptype_context&) { }
+		void sprite(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_sprite(context.id, uint8_t(value));
+		}
+		void color(color_from_3i cvalue, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_color(context.id, cvalue.value);
+		}
+		void is_artisan(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.artisans = context.id;
+		}
+		void strata(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "rich"))
+				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::rich));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "middle"))
+				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::middle));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "poor"))
+				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::poor));
+			else {
+				err.accumulated_errors += "Invalid pop strata " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_has_unemployment(context.id, value);
+		}
+		void is_slave(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.slaves = context.id;
+		}
+		void can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.soldiers = context.id;
+		}
+		void leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.culture_definitions.officer_leadership_points = value;
+			context.outer_context.state.culture_definitions.officers = context.id;
+		}
+		void research_optimum(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_research_optimum(context.id, value);
+		}
+		void administrative_efficiency(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.bureaucrat = context.id;
+		}
+		void tax_eff(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.culture_definitions.bureaucrat_tax_efficiency = value;
+		}
+		void can_build(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.capitalists = context.id;
+		}
+		void research_points(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_research_points(context.id, value);
+		}
+		void can_reduce_consciousness(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.clergy = context.id;
+		}
+		void workplace_input(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_workplace_input(context.id, value);
+		}
+		void workplace_output(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_workplace_output(context.id, value);
+		}
+		void equivalent(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value.length() > 0 && value[0] == 'f') {
+				context.outer_context.state.culture_definitions.laborers = context.id;
+			} else if(value.length() > 0 && value[0] == 'l') {
+				context.outer_context.state.culture_definitions.farmers = context.id;
+			}
+		}
+		void life_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				if(cid.index() < value.data.ssize())
+					context.outer_context.state.world.pop_type_set_life_needs(context.id, cid, value.data[cid]);
+			});
+		}
+		void everyday_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				if(cid.index() < value.data.ssize())
+					context.outer_context.state.world.pop_type_set_everyday_needs(context.id, cid, value.data[cid]);
+			});
+		}
+		void luxury_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				if(cid.index() < value.data.ssize())
+					context.outer_context.state.world.pop_type_set_luxury_needs(context.id, cid, value.data[cid]);
+			});
+		}
+		promotion_targets promote_to;
+		pop_ideologies ideologies;
+		pop_issues issues;
+
+		void life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
+			context.outer_context.state.world.pop_type_set_life_needs_income_type(context.id, uint8_t(value.itype));
+		}
+		void everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
+			context.outer_context.state.world.pop_type_set_everyday_needs_income_type(context.id, uint8_t(value.itype));
+		}
+		void luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
+			context.outer_context.state.world.pop_type_set_luxury_needs_income_type(context.id, uint8_t(value.itype));
+		}
+	};
+
+	commodity_array stub_commodity_array(token_generator& gen, error_handler& err, poptype_context& context);
+	void read_promotion_target(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context);
+	void read_pop_ideology(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context);
+	void read_pop_issue(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context);
+	void read_c_migration_target(token_generator& gen, error_handler& err, poptype_context& context);
+	void read_migration_target(token_generator& gen, error_handler& err, poptype_context& context);
 }
 
 #include "trigger_parsing.hpp"

@@ -690,4 +690,30 @@ dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger
 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
 }
 
+void make_value_modifier_segment(token_generator& gen, error_handler& err, trigger_building_context& context) {
+	auto old_factor = context.factor;
+	context.factor = 0.0f;
+	tr_scope_and(gen, err, context);
+	auto new_factor = context.factor;
+	context.factor = old_factor;
+
+	const auto new_size = simplify_trigger(context.compiled_trigger.data());
+	context.compiled_trigger.resize(static_cast<size_t>(new_size));
+
+	auto tkey = context.outer_context.state.commit_trigger_data(context.compiled_trigger);
+	context.compiled_trigger.clear();
+
+	context.outer_context.state.value_modifier_segments.push_back(sys::value_modifier_segment{ new_factor, tkey });
+}
+
+dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler& err, trigger_building_context& context) {
+	auto old_count = context.outer_context.state.value_modifier_segments.size();
+	value_modifier_definition result = parse_value_modifier_definition(gen, err, context);
+
+	auto overall_factor = result.factor;
+	auto new_count = context.outer_context.state.value_modifier_segments.size();
+
+	return context.outer_context.state.value_modifiers.push_back(sys::value_modifier_description{ overall_factor, uint16_t(old_count), uint16_t(new_count - old_count) });
+}
+
 }

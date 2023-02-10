@@ -41,6 +41,13 @@ struct folder_info {
 	tech_category category = tech_category::army;
 };
 
+enum class pop_strata : uint8_t {
+	poor = 0, middle = 1, rich = 2
+};
+enum class income_type : uint8_t {
+	none = 0, administration = 1, military = 2, education = 3, reforms = 4,
+};
+
 struct global_cultural_state {
 	std::vector<dcon::issue_id> party_issues;
 	std::vector<dcon::issue_id> political_issues;
@@ -52,6 +59,20 @@ struct global_cultural_state {
 
 	tagged_vector<government_type, dcon::government_type_id> governments;
 	tagged_vector<crime_info, dcon::crime_id> crimes;
+
+	// these are not intended to be a complete list of *all* poptypes, just those with special rules
+	dcon::pop_type_id artisans;
+	dcon::pop_type_id capitalists;
+	dcon::pop_type_id farmers;
+	dcon::pop_type_id laborers;
+	dcon::pop_type_id clergy;
+	dcon::pop_type_id soldiers;
+	dcon::pop_type_id officers;
+	dcon::pop_type_id slaves;
+	dcon::pop_type_id bureaucrat;
+
+	int32_t officer_leadership_points = 0;
+	float bureaucrat_tax_efficiency = 0.0f;
 };
 
 enum class issue_category {
