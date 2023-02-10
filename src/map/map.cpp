@@ -514,8 +514,11 @@ void display_data::update() {
 	velocity.x *= size.y / size.x;
 	pos += velocity;
 
+	zoom += zoom_change * seconds_since_last_update;
+	zoom_change *= 0.9f;
+
 	pos.x = glm::mod(pos.x, 1.f);
-	pos.y = glm::clamp(pos.y, 0.f, 1.0f);
+	pos.y = glm::clamp(pos.y, 0.f, 1.f);
 	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
 	offset_y = pos.y - 0.5f;
 
@@ -538,9 +541,9 @@ void display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod)
 	} else if(keycode == sys::virtual_key::DOWN) {
 		pos_velocity.y = +1.f;
 	} else if(keycode == sys::virtual_key::Q) {
-		zoom *= 1.1f;
+		zoom_change = zoom * 1.1f;
 	} else if(keycode == sys::virtual_key::E) {
-		zoom *= 0.9f;
+		zoom_change = zoom * 0.9f;
 	}
 }
 
@@ -566,11 +569,11 @@ void display_data::set_pos(glm::vec2 new_pos) {
 
 void display_data::on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount) {
 	amount = std::clamp(amount, -4.f, 4.f);
+	constexpr auto zoom_speed_factor = 2.5f;
 	if(amount >= 0) {
-		zoom *= 1.f + amount / 5.f;
-	}
-	else if(amount < 0) {
-		zoom /= 1.f - amount / 5.f;
+		zoom_change = zoom * ((1.f + amount / 5.f) * zoom_speed_factor);
+	} else if(amount < 0) {
+		zoom_change = -(zoom * ((1.f - amount / 5.f) * zoom_speed_factor));
 	}
 }
 
