@@ -7,6 +7,7 @@
 #include "parsers_declarations.hpp"
 #include "gui_minimap.hpp"
 #include "gui_topbar.hpp"
+#include "gui_console.hpp"
 
 namespace sys {
 	//
@@ -14,20 +15,31 @@ namespace sys {
 	//
 
 	void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+		// Lose focus on text
+		ui_state.edit_target = nullptr;
+		
 		if(ui_state.under_mouse != nullptr) {
-			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
 			// TODO: look at return value
-			ui_state.under_mouse->impl_on_rbutton_down(*this, relative_location.x, relative_location.y, mod);
+			ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 		}
 	}
 	void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+		// Lose focus on text
+		ui_state.edit_target = nullptr;
+
 		map_display.on_mbuttom_down(x, y, x_size, y_size, mod);
 	}
 	void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+		// Lose focus on text
+		ui_state.edit_target = nullptr;
+
 		if(ui_state.under_mouse != nullptr) {
-			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
-			// TODO: look at return value
-			ui_state.under_mouse->impl_on_lbutton_down(*this, relative_location.x, relative_location.y, mod);
+			auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
+			if(r != ui::message_result::consumed) {
+				map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			}
+		} else {
+			map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 		}
 	}
 	void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) {
@@ -44,9 +56,8 @@ namespace sys {
 	}
 	void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 		if(ui_state.under_mouse != nullptr) {
-			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
 			// TODO figure out tooltips
-			auto r = ui_state.under_mouse->impl_on_mouse_move(*this, relative_location.x, relative_location.y, mod);
+			auto r = ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 			if(r != ui::message_result::consumed) {
 				map_display.on_mouse_move(x, y, x_size, y_size, mod);
 			}
@@ -77,8 +88,7 @@ namespace sys {
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
 		if(ui_state.under_mouse != nullptr) {
-			auto relative_location = get_scaled_relative_location(*ui_state.root, *ui_state.under_mouse, x, y);
-			auto r = ui_state.under_mouse->impl_on_scroll(*this, relative_location.x, relative_location.y, amount, mod);
+			auto r = ui_state.under_mouse->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
 			if(r != ui::message_result::consumed) {
 				// TODO Settings for making zooming the map faster
 				map_display.on_mouse_wheel(x, y, mod, amount);
@@ -88,10 +98,14 @@ namespace sys {
 		}
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-		if(!ui_state.edit_target) {
+		if(ui_state.edit_target) {
+			ui_state.edit_target->impl_on_key_down(*this, keycode, mod);
+		} else {
 			if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 				if(keycode == virtual_key::ESCAPE) {
 					ui::show_main_menu(*this);
+				} else if(keycode == virtual_key::TILDA) {
+					ui::console_window::show_toggle(*this);
 				}
 				map_display.on_key_down(keycode, mod);
 			}
@@ -120,7 +134,9 @@ namespace sys {
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0, 1.0);
 
-		ui_state.under_mouse = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		ui_state.under_mouse = mouse_probe.under_mouse;
+		ui_state.relative_mouse_location = mouse_probe.relative_location;
 		ui_state.root->impl_render(*this, 0, 0);
 	}
 	void state::on_create() {
@@ -154,50 +170,58 @@ namespace sys {
 		return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
 	}
 
-	dcon::text_key state::add_to_pool_lowercase(std::string const& text) {
-		auto res = add_to_pool(text);
-		for(auto i = 0; i < int32_t(text.length()); ++i) {
+	dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
+		auto res = add_to_pool(new_text);
+		for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 			text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
 		}
 		return res;
 	}
-	dcon::text_key state::add_to_pool_lowercase(std::string_view text) {
-		auto res = add_to_pool(text);
-		for(auto i = 0; i < int32_t(text.length()); ++i) {
+	dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
+		auto res = add_to_pool(new_text);
+		for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 			text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
 		}
 		return res;
 	}
-	dcon::text_key state::add_to_pool(std::string const& text) {
+	dcon::text_key state::add_to_pool(std::string const& new_text) {
 		auto start = text_data.size();
-		auto size = text.size();
+		auto size = new_text.length();
 		if(size == 0)
 			return dcon::text_key();
 		text_data.resize(start + size + 1, char(0));
-		std::memcpy(text_data.data() + start, text.c_str(), size + 1);
+		std::memcpy(text_data.data() + start, new_text.c_str(), size + 1);
 		return dcon::text_key(uint32_t(start));
 	}
-	dcon::text_key state::add_to_pool(std::string_view text) {
+	dcon::text_key state::add_to_pool(std::string_view new_text) {
 		auto start = text_data.size();
-		auto length = text.length();
+		auto length = new_text.length();
+		if(length == 0)
+			return dcon::text_key();
 		text_data.resize(start + length + 1, char(0));
-		std::memcpy(text_data.data() + start, text.data(), length);
+		std::memcpy(text_data.data() + start, new_text.data(), length);
 		text_data.back() = 0;
 		return dcon::text_key(uint32_t(start));
 	}
 
-	dcon::text_key state::add_unique_to_pool(std::string const& text) {
-		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(text.c_str(), text.c_str() + text.length() + 1));
-		if(search_result != text_data.data() + text_data.size()) {
-			return dcon::text_key(uint32_t(search_result - text_data.data()));
+	dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
+		if(new_text.length() > 0) {
+			auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
+			if(search_result != text_data.data() + text_data.size()) {
+				return dcon::text_key(uint32_t(search_result - text_data.data()));
+			} else {
+				return add_to_pool(new_text);
+			}
 		} else {
-			return add_to_pool(text);
+			return dcon::text_key();
 		}
 	}
 
 	dcon::unit_name_id state::add_unit_name(std::string_view text) {
 		auto start = unit_names.size();
 		auto length = text.length();
+		if(length == 0)
+			return dcon::unit_name_id();
 		unit_names.resize(start + length + 1, char(0));
 		std::memcpy(unit_names.data() + start, text.data(), length);
 		unit_names.back() = 0;
@@ -214,6 +238,23 @@ namespace sys {
 				break;
 		}
 		return std::string_view(unit_names.data() + tag.index(), size_t(end_position - start_position));
+	}
+
+	dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
+		if(data.size() == 0)
+			return dcon::trigger_key();
+
+		auto search_result = std::search(trigger_data.data(), trigger_data.data() + trigger_data.size(), std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+		if(search_result != trigger_data.data() + trigger_data.size()) {
+			return dcon::trigger_key(uint16_t(search_result - trigger_data.data()));
+		} else {
+			auto start = trigger_data.size();
+			auto size = data.size();
+
+			trigger_data.resize(start + size, uint16_t(0));
+			std::memcpy(trigger_data.data() + start, data.data(), size);
+			return dcon::trigger_key(uint16_t(start));
+		}
 	}
 
 	void state::save_user_settings() const {
@@ -246,7 +287,7 @@ namespace sys {
 		auto root = get_root(state.common_fs);
 		auto poptypes = open_directory(root, NATIVE("poptypes"));
 
-		for(auto& file : simple_fs::list_files(poptypes, NATIVE("txt"))) {
+		for(auto& file : simple_fs::list_files(poptypes, NATIVE(".txt"))) {
 			auto full_name = get_full_name(file);
 			auto last = full_name.c_str() + full_name.length();
 			auto first = full_name.c_str();
@@ -288,6 +329,9 @@ namespace sys {
 				err.file_name = "countries.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_national_identity_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/countries.txt could not be opened\n";
 			}
 		}
 		// read religions from religion.txt
@@ -298,6 +342,9 @@ namespace sys {
 				err.file_name = "religion.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_religion_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/religion.txt could not be opened\n";
 			}
 		}
 		// read cultures from cultures.txt
@@ -308,6 +355,9 @@ namespace sys {
 				err.file_name = "cultures.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_culture_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/cultures.txt could not be opened\n";
 			}
 		}
 		// read commodities from goods.txt
@@ -324,6 +374,9 @@ namespace sys {
 				err.file_name = "goods.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_goods_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/goods.txt could not be opened\n";
 			}
 		}
 		// read buildings.text
@@ -335,6 +388,9 @@ namespace sys {
 				err.file_name = "buildings.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_building_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/buildings.txt could not be opened\n";
 			}
 		}
 		// pre parse ideologies.txt
@@ -345,6 +401,9 @@ namespace sys {
 				err.file_name = "ideologies.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_ideology_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/ideologies.txt could not be opened\n";
 			}
 		}
 		// pre parse issues.txt
@@ -355,6 +414,9 @@ namespace sys {
 				err.file_name = "issues.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_issues_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/ideologies.txt could not be opened\n";
 			}
 		}
 		// parse governments.txt
@@ -365,6 +427,9 @@ namespace sys {
 				err.file_name = "governments.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_governments_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/governments.txt could not be opened\n";
 			}
 		}
 		// pre parse cb_types.txt
@@ -375,6 +440,9 @@ namespace sys {
 				err.file_name = "cb_types.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_cb_types_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/cb_types.txt could not be opened\n";
 			}
 		}
 		// parse traits.txt
@@ -385,6 +453,9 @@ namespace sys {
 				err.file_name = "traits.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_traits_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/traits.txt could not be opened\n";
 			}
 		}
 		// pre parse crimes.txt
@@ -395,6 +466,9 @@ namespace sys {
 				err.file_name = "crime.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_crimes_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/crime.txt could not be opened\n";
 			}
 		}
 		// pre parse triggered_modifiers.txt
@@ -405,6 +479,9 @@ namespace sys {
 				err.file_name = "triggered_modifiers.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_triggered_modifiers_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/triggered_modifiers.txt could not be opened\n";
 			}
 		}
 		// parse nationalvalues.txt
@@ -415,6 +492,9 @@ namespace sys {
 				err.file_name = "nationalvalues.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_national_values_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/nationalvalues.txt could not be opened\n";
 			}
 		}
 		// parse static_modifiers.txt
@@ -425,6 +505,9 @@ namespace sys {
 				err.file_name = "static_modifiers.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_static_modifiers_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/static_modifiers.txt could not be opened\n";
 			}
 		}
 		// parse event_modifiers.txt
@@ -435,6 +518,9 @@ namespace sys {
 				err.file_name = "event_modifiers.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_event_modifiers_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/event_modifiers.txt could not be opened\n";
 			}
 		}
 		// read defines.lua
@@ -444,6 +530,9 @@ namespace sys {
 				auto content = view_contents(*defines_file);
 				err.file_name = "defines.lua";
 				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/defines.lua could not be opened\n";
 			}
 		}
 		// gather names of poptypes
@@ -456,6 +545,9 @@ namespace sys {
 				err.file_name = "rebel_types.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_rebel_types_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/rebel_types.txt could not be opened\n";
 			}
 		}
 
@@ -468,6 +560,9 @@ namespace sys {
 				err.file_name = "default.map";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_default_map_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/default.map could not be opened\n";
 			}
 		}
 		// parse definition.csv
@@ -477,6 +572,9 @@ namespace sys {
 				auto content = view_contents(*def_csv_file);
 				err.file_name = "definition.csv";
 				parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/definition.csv could not be opened\n";
 			}
 		}
 		// parse terrain.txt
@@ -487,6 +585,9 @@ namespace sys {
 				err.file_name = "terrain.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_terrain_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/terrain.txt could not be opened\n";
 			}
 		}
 		// parse region.txt
@@ -497,6 +598,9 @@ namespace sys {
 				err.file_name = "region.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_region_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/region.txt could not be opened\n";
 			}
 		}
 		// parse continent.txt
@@ -507,6 +611,9 @@ namespace sys {
 				err.file_name = "continent.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_continent_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/continent.txt could not be opened\n";
 			}
 		}
 		// parse climate.txt
@@ -517,6 +624,9 @@ namespace sys {
 				err.file_name = "climate.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_climate_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/climate.txt could not be opened\n";
 			}
 		}
 		// parse technology.txt
@@ -527,6 +637,9 @@ namespace sys {
 				err.file_name = "technology.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_technology_main_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/technology.txt could not be opened\n";
 			}
 		}
 		// pre parse inventions
@@ -541,6 +654,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/army_inventions.txt could not be opened\n";
 				}
 			}
 			{
@@ -552,6 +668,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/navy_inventions.txt could not be opened\n";
 				}
 			}
 			{
@@ -563,6 +682,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/commerce_inventions.txt could not be opened\n";
 				}
 			}
 			{
@@ -574,6 +696,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/culture_inventions.txt could not be opened\n";
 				}
 			}
 			{
@@ -585,6 +710,9 @@ namespace sys {
 					parsers::token_generator gen(content.data, content.data + content.file_size);
 					parsers::parse_inventions_file(gen, err, invention_context);
 					context.tech_and_invention_files.emplace_back(std::move(*i_file));
+				} else {
+					err.fatal = true;
+					err.accumulated_errors += "File common/industry_inventions.txt could not be opened\n";
 				}
 			}
 		}
@@ -609,6 +737,13 @@ namespace sys {
 		world.political_party_resize_party_issues(uint32_t(culture_definitions.party_issues.size()));
 
 		world.province_resize_party_loyalty(world.ideology_size());
+
+		world.pop_type_resize_everyday_needs(world.commodity_size());
+		world.pop_type_resize_luxury_needs(world.commodity_size());
+		world.pop_type_resize_life_needs(world.commodity_size());
+		world.pop_type_resize_ideology(world.ideology_size());
+		world.pop_type_resize_issues(world.issue_option_size());
+		world.pop_type_resize_promotion(world.pop_type_size());
 
 		// load country files
 		world.for_each_national_identity([&](dcon::national_identity_id i) {
@@ -660,14 +795,52 @@ namespace sys {
 			}
 		}
 
+		// load pop history files
+		{
+			auto pop_history = open_directory(history, NATIVE("pops"));
+			auto startdate = sys::date(0).to_ymd(start_date);
+			auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+			auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 
-		// TODO do something with err
-	}
+			for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
+				auto opened_file = open_file(pop_file);
+				if(opened_file) {
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+					auto content = view_contents(*opened_file);
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_pop_history_file(gen, err, context);
+				}
+			}
+		}
+		// load poptype definitions
+		{
+			auto poptypes = open_directory(root, NATIVE("poptypes"));
+			for(auto pr : context.map_of_poptypes) {
+				auto opened_file = open_file(poptypes, simple_fs::utf8_to_native(pr.first + ".txt"));
+				if(opened_file) {
+					err.file_name = pr.first + ".txt";
+					auto content = view_contents(*opened_file);
+					parsers::poptype_context inner_context{context, pr.second};
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_poptype_file(gen, err, inner_context);
+				}
+			}
+		}
 
-	ui::xy_pair state::get_scaled_relative_location(const ui::element_base& parent, const ui::element_base& child, int x, int y) {
-		auto relative_location = ui::child_relative_location(*ui_state.root, *ui_state.under_mouse);
-		relative_location.x = int16_t(x / user_settings.ui_scale) - relative_location.x;
-		relative_location.y = int16_t(y / user_settings.ui_scale) - relative_location.y;
-		return relative_location;
+		// load ideology contents
+		{
+			for(auto& pr : context.map_of_ideologies) {
+				parsers::individual_ideology_context new_context{ context, pr.second.id };
+				parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
+			}
+		}
+		// triggered modifier contents
+		{
+			for(auto& r : context.set_of_triggered_modifiers) {
+				national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+			}
+		}
+		if(err.accumulated_errors.length() > 0)
+			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
 }

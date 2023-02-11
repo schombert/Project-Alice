@@ -1,6 +1,7 @@
 #include "system_state.hpp"
 #include "nations.hpp"
 #include "parsers_declarations.hpp"
+#include "trigger_parsing.hpp"
 
 namespace parsers {
 void national_identity_file::any_value(std::string_view tag, association_type, std::string_view txt, error_handler& err, int32_t line, scenario_building_context& context) {
@@ -733,6 +734,33 @@ void make_unit_names_list(std::string_view name, token_generator& gen, error_han
 	}
 
 	
+}
+
+dcon::national_variable_id scenario_building_context::get_national_variable(std::string const& name) {
+	if(auto it = map_of_national_variables.find(name); it != map_of_national_variables.end()) {
+		return it->second;
+	} else {
+		dcon::national_variable_id new_id = dcon::national_variable_id(dcon::national_variable_id::value_base_t(state.national_definitions.num_allocated_national_variables));
+		++state.national_definitions.num_allocated_national_variables;
+		map_of_national_variables.insert_or_assign(name, new_id);
+		return new_id;
+	}
+}
+
+dcon::global_variable_id scenario_building_context::get_global_variable(std::string const& name) {
+	if(auto it = map_of_global_variables.find(name); it != map_of_global_variables.end()) {
+		return it->second;
+	} else {
+		dcon::global_variable_id new_id = dcon::global_variable_id(dcon::global_variable_id::value_base_t(state.national_definitions.num_allocated_global_variables));
+		++state.national_definitions.num_allocated_global_variables;
+		map_of_global_variables.insert_or_assign(name, new_id);
+		return new_id;
+	}
+}
+
+dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
 }
 
 }

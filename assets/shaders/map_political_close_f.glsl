@@ -7,6 +7,7 @@ layout (binding = 1) uniform sampler2D terrain_texture_sampler;
 layout (binding = 3) uniform sampler2DArray terrainsheet_texture_sampler;
 layout (binding = 6) uniform sampler2D colormap_terrain;
 layout (binding = 8) uniform sampler2D province_color;
+layout (binding = 10) uniform sampler2D province_highlight;
 
 // location 0 : offset
 // location 1 : zoom
@@ -53,7 +54,7 @@ void main() {
  	terrain.rgb = vec3(grey);
 
 	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
-	vec3 political = texture(province_color, prov_id).rgb;
+	vec3 political = clamp(texture(province_color, prov_id) + texture(province_highlight, prov_id), 0.0, 1.0).rgb;
 	political = political - 0.7;
 
 	frag_color.rgb = mix(terrain.rgb, political, 0.3);

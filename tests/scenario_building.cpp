@@ -656,6 +656,14 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.political_party_resize_party_issues(uint32_t(state->culture_definitions.party_issues.size()));
 
 	state->world.province_resize_party_loyalty(state->world.ideology_size());
+
+	state->world.pop_type_resize_everyday_needs(state->world.commodity_size());
+	state->world.pop_type_resize_luxury_needs(state->world.commodity_size());
+	state->world.pop_type_resize_life_needs(state->world.commodity_size());
+	state->world.pop_type_resize_ideology(state->world.ideology_size());
+	state->world.pop_type_resize_issues(state->world.issue_option_size());
+	state->world.pop_type_resize_promotion(state->world.pop_type_size());
+
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -741,6 +749,88 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 				found_france = true;
 		}
 		REQUIRE(found_france);
+	}
+
+	// load pop history files
+	{
+		auto pop_history = open_directory(history, NATIVE("pops"));
+		auto startdate = sys::date(0).to_ymd(state->start_date);
+		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
+
+		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
+			auto opened_file = open_file(pop_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_pop_history_file(gen, err, context);
+			}
+		}
+
+
+		dcon::pop_type_id ptype = context.map_of_poptypes.find(std::string("artisans"))->second;
+		dcon::culture_id cid = context.map_of_culture_names.find(std::string("british"))->second;
+		dcon::religion_id rid = context.map_of_religion_names.find(std::string("protestant"))->second;
+
+		float count = 0;
+
+		for(auto pops_by_location : state->world.province_get_pop_location(context.original_id_to_prov_id_map[302])) {
+			auto pop_id = pops_by_location.get_pop();
+			if(pop_id.get_culture() == cid && pop_id.get_poptype() == ptype && pop_id.get_religion() == rid) {
+				count = pop_id.get_size();
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(count == 11250.0f);
+	}
+	// load poptype definitions
+	{
+		auto poptypes = open_directory(root, NATIVE("poptypes"));
+		for(auto pr : context.map_of_poptypes) {
+			auto opened_file = open_file(poptypes, simple_fs::utf8_to_native(pr.first + ".txt"));
+			if(opened_file) {
+				err.file_name = pr.first + ".txt";
+				auto content = view_contents(*opened_file);
+				parsers::poptype_context inner_context{ context, pr.second };
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_poptype_file(gen, err, inner_context);
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(bool(state->culture_definitions.artisans) == true);
+		REQUIRE(state->world.pop_type_get_sprite(state->culture_definitions.artisans) == uint8_t(11));
+		REQUIRE(state->world.pop_type_get_color(state->culture_definitions.artisans) == sys::pack_color(127, 3, 3));
+		REQUIRE(state->world.pop_type_get_strata(state->culture_definitions.artisans) == uint8_t(culture::pop_strata::middle));
+
+		auto wine = context.map_of_commodity_names.find("wine")->second;
+		REQUIRE(state->world.pop_type_get_luxury_needs(state->culture_definitions.artisans, wine) == 10.0f);
+		REQUIRE(state->value_modifiers[state->world.pop_type_get_country_migration_target(state->culture_definitions.artisans)].base_factor == 1.0f);
+
+		auto react = context.map_of_ideologies.find("reactionary")->second.id;
+		REQUIRE(state->value_modifiers[state->world.pop_type_get_ideology(state->culture_definitions.artisans, react)].base_factor == 1.0f);
+	}
+	// load ideology contents
+	{
+		for(auto& pr : context.map_of_ideologies) {
+			parsers::individual_ideology_context new_context{ context, pr.second.id };
+			parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(bool(state->culture_definitions.conservative) == true);
+		REQUIRE(state->world.ideology_get_color(state->culture_definitions.conservative) == sys::pack_color(10, 10, 250));
+		auto mkey = state->world.ideology_get_add_economic_reform(state->culture_definitions.conservative);
+		REQUIRE(state->value_modifiers[mkey].base_factor == -0.5f);
+	}
+	// triggered modifier contents
+	{
+		for(auto& r : context.set_of_triggered_modifiers) {
+			state->national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+		}
+		REQUIRE(err.accumulated_errors == "");
 	}
 }
 #endif

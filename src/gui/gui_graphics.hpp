@@ -255,27 +255,31 @@ namespace ui {
 		static constexpr uint8_t rotation_mask = (0x03 << rotation_bit_offset);
 		static constexpr uint8_t orientation_mask = (0x07 << orientation_bit_offset);
 
+		static constexpr uint8_t ex_is_top_level = 0x01;
+
 		xy_pair position; // 4
 		xy_pair size;     // 8
+		dcon::text_key name; // 12
 
-		union internal_data {
-			text_base_data text_common;
-			button_data button;
-			text_data text;
-			image_data image;
-			overlapping_data overlapping;
-			list_box_data list_box;
-			scrollbar_data scrollbar;
-			window_data window;
-			position_data position;
+		union alignas(4) internal_data {
+			text_base_data text_common; // +5
+			button_data button; // +5 + ? +3
+			text_data text; // +5 + ? +4
+			image_data image; // +6
+			overlapping_data overlapping; //+5
+			list_box_data list_box; // +11
+			scrollbar_data scrollbar; //+10
+			window_data window; // +4
+			position_data position; //+0
 
 			internal_data() { 
 				position = position_data{};
 			}
-		} data;
+		} data; // +12 = 24
 
-		dcon::text_key name;
-		uint8_t flags = 0;
+		uint8_t flags = 0; // 25
+		uint8_t ex_flags = 0; // 26
+		
 
 		element_data() {
 			memset(this, 0, sizeof(element_data));
@@ -290,8 +294,11 @@ namespace ui {
 		orientation get_orientation() const {
 			return orientation(flags & orientation_mask);
 		}
+		bool is_top_level() const {
+			return (ex_flags & ex_is_top_level) != 0;
+		}
 	};
-
+	static_assert(sizeof(element_data) == 28);
 
 	class definitions {
 	public:
@@ -338,15 +345,22 @@ namespace ui {
 		element_base* drag_target = nullptr;
 		element_base* edit_target = nullptr;
 
+		xy_pair relative_mouse_location = xy_pair{ 0, 0 };
 		std::unique_ptr<element_base> root;
 		ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
 		// elements we are keeping track of
 		element_base* main_menu = nullptr;
+		element_base* console_window = nullptr; // console window
 		element_base* topbar_window = nullptr;
-		element_base* topbar_subwindow = nullptr; // Current tab window
+		element_base* topbar_subwindow = nullptr; // current tab window
 
 		state();
+	};
+
+	struct mouse_probe {
+		element_base* under_mouse;
+		xy_pair relative_location;
 	};
 
 	template<typename T>

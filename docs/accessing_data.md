@@ -17,11 +17,35 @@ Let us assume that you have a `province_id` called `id`. To start with, you want
 
 In addition to its properties, a province can be related to other objects, and often this is where the more interesting data lives. At the moment, provinces can be related to nations by control and ownership (two different relationship), factories can be located in them, and a province can be related to a national identity (i.e. a tag) by the relationship of a core being there. You can get a handle to the relationship itself (each relationship can be worked with as a kind of pseudo-object) as if it were a property. For example, you could call `fat_id.get_province_ownership();`. This would give you a fat handle to the relationship itself, and from that you could call `ownership_handle.get_nation();` to retrieve the owning nation. However, for some of these common situations where you want to "reach across" a relationship to find the other things related to, data container provides a shortcut. In this case you can call `fat_id.get_nation_from_province_ownership();` to get a handle to the owning nation directly.
 
+#### Is this province water?
+
+A common question that curiously may not seem to have an obvious answer, because there is no `get_is_sea()` member. This is because the provinces are grouped by whether they are land or sea. Thus, to test whether a province is water, you simply test whether it is in the water group of provinces, which you do by comparing `province_id.index()` to the index of the `province_definitions.first_sea_province` member of the `sys::state` object. Provinces with an equal or greater index are part of the sea group of provinces.
+
+#### Does this province have an owner?
+
+As a general rule of thumb, you get invalid indices out of the data container when you ask for something that doesn't exist. Thus, if a province is unowned and you ask for the owner, you get an invalid `nation_id` handle back. And you can test for invalid handles by casting them to bool (invalid handles are false, valid handles are true). Thus the contents of an if such as `if(bool(fat_id.get_nation_from_province_ownership())) { ... }` will only be evaluatef for provinces that have an owner.
+
 ### National identity
 
 The name, flags, political parties, and map color of a tag are considered to be part of a national identity object. These objects are related uniquely (as in every nation has a national identity, and every national identity belongs to at most one nation at a time) by the `identity_holder` relationship. If you have a fat handle to a nation, you can go directly to its national identity via `get_identity_from_identity_holder()`. And from a national identity you can get its color (packed into a unit32_t) via `get_color()`. And the components of this color can be extracted as `float`s or integers using the `int_red_from_int` and `red_from_int` family of functions defined in `container_types.hpp`. (**Important Note**: Currently you have to go from the province to the owning nation to its identity to get a color, which could be something like `prov.get_nation_from_province_ownership().get_identity_from_identity_holder().get_color()` -- in the future we may cache things like the current color and name of a nation in the nation itself, so be aware that you may have to go back to some places and remove the `get_identity_from_identity_holder` step later.)
 
 Note that identities and cores exist in a many-to-many relationship: each national identity can have cores in many provinces, and each province can have many national identity cores. Thus, you can't get a singular national identity from the `core` relationship when you start from a province. Instead the function `fat_id.get_core()` returns a range of the `core` relationships involving that province, which you could iterate over with `for(auto relationship : fat_id.get_core())`, and then extract the national identities with `relationship.get_identity()`.
+
+
+### Population
+
+Most provinces have more than one pop (although some may have none at all). There are two ways to iterator over the pops in a province. First, you can use `fat_pop_id.for_each_pop_from_pop_location([&](dcon::pop_id pop_id) { ... })`. This will call the function you provide once on each pop in the province. The downside is that you have to refatten the id you get.  Alternatively you can write a loop such as the following:
+```
+for(auto pops_by_location : state.world.province_get_pop_location(province_id)) {
+	auto pop_id = pops_by_location.get_pop();
+	...
+}
+```
+This loop iterates over all of the pop-to-province location relationships involving the specified province. In the body of the loop, `pops_by_location` will fat handle to one of the instances of that relationship. And then you can pull the pop out of the relationship with `get_pop`, which will also produce a fat handle to the pop. The downside of writing the loop this way is that it involves a little more typing to get the pop out of the relationship. However, it both allows you to avoid having to refatten the pop handle, and it is possible to exit out of the loop early (if you use the lambada versions described first, you will always have to iterate over all the pops present in the province).
+
+#### Storing pop ids
+
+**Never** store a `pop_id` without taking some precautions. Unlike most objects, pops can come and go, and to improve performance the data container will move pops around as they are deleted to keep them in a compact group. This means that, if you hold a handle to a pop over a tick of the game day, it may end up pointing to a different pop entirely. And yet, for the sake of making the ui responsive, you may very well want to store the id of the pop that a window or element is displaying. To solve this problem, when you store a pop_id you should also store the province_id of the location of the pop, the culture_id of the pop, the religion_id of the pop, and the pop_type_id of the pop. This combination of properties is guaranteed to be unique. And so when you store a pop_id, not only should you store these other properties, you should also write an `update` function for the ui element (`update` is sent to visible ui elements after a game tick has happened), in which you search the province you have stored for a pop with the same matching culture, religion, and pop type. Then take the id you find this way and update the stored pop id with it. (If you do not find a matching pop in this way, it means that the pop has disappeared, and you should no longer attempt to display information about it.)
 
 ### Final reminder
 

@@ -84,6 +84,7 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 	auto name_id = text::find_or_add_key(context.state, name);
 	auto state_id = context.state.world.create_state_definition();
 
+	context.map_of_state_names.insert_or_assign(std::string(name), state_id);
 	context.state.world.state_definition_set_name(state_id, name_id);
 
 	state_def_building_context new_context{ context, state_id };
@@ -183,6 +184,18 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 		context.outer_context.state.world.force_create_province_control(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto province_int = parse_int(name, 0, err);
+	if(province_int < 0 || size_t(province_int) >= context.original_id_to_prov_id_map.size()) {
+		err.accumulated_errors += "Province id " + std::string(name) + " is invalid (" + err.file_name + ")\n";
+		gen.discard_group();
+	} else {
+		auto province_id = context.original_id_to_prov_id_map[province_int];
+		pop_history_province_context new_context{ context, province_id };
+		parse_pop_province_list(gen, err, new_context);
 	}
 }
 }

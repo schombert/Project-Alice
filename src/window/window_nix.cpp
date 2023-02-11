@@ -276,7 +276,7 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 	if(state->in_edit_control) {
 		// TODO change UTF32 to (win1250??)
-		// state->on_text(turned_into);
+		state->on_text(char(codepoint));
 	}
 }
 
@@ -375,4 +375,12 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
+
+void emit_error_message(std::string const& content, bool fatal) {
+	printf("%s", content.c_str());
+	if(fatal) {
+		std::terminate();
+	}
+}
+
 }

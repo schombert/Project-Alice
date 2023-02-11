@@ -1,5 +1,6 @@
 #include "map.hpp"
 #include "texture.hpp"
+#include "province.hpp"
 #include <cmath>
 #include <numbers>
 #include <glm/glm.hpp>
@@ -500,6 +501,8 @@ display_data::~display_data() {
 		glDeleteTextures(1, &province_color);
 	if(border_texture)
 		glDeleteTextures(1, &border_texture);
+	if(province_highlight)
+		glDeleteTextures(1, &province_highlight);
 
 	if(vao)
 		glDeleteVertexArrays(1, &vao);
@@ -596,6 +599,8 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glBindTexture(GL_TEXTURE_2D, province_color);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, colormap_political);
+	glActiveTexture(GL_TEXTURE10);
+	glBindTexture(GL_TEXTURE_2D, province_highlight);
 
 	glBindVertexArray(vao);
 
@@ -690,9 +695,8 @@ GLuint load_province_map(std::vector<uint16_t>& province_index, glm::vec2 size) 
 	return texture_handle;
 }
 
-void display_data::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
-	active_map_mode = new_map_mode;
-	glBindTexture(GL_TEXTURE_2D, province_color);
+void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color) {
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
 	uint32_t rows = ((uint32_t)prov_color.size()) / 256;
 	uint32_t left_on_last_row = ((uint32_t)prov_color.size()) % 256;
 
@@ -703,6 +707,11 @@ void display_data::set_province_color(std::vector<uint32_t> const& prov_color, m
 	width = left_on_last_row, height = 1;
 	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[rows * 256]);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void display_data::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
+	active_map_mode = new_map_mode;
+	gen_prov_color_texture(province_color, prov_color);
 }
 
 void display_data::set_terrain_map_mode() {
@@ -730,14 +739,14 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 		cpos = parsers::parse_fixed_amount_csv_values<6>(cpos, end_of_file, ';',
 			[&](std::string_view const* values) {
 				uint32_t color = 0;
-		uint32_t color_part;
-		color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
-		color += color_part << 16; 	// Red
-		color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
-		color += color_part << 8; 	// Green
-		color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
-		color += color_part; 		// Blue
-		color_to_id.insert_or_assign(color, index++);
+				uint32_t color_part;
+				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
+				color += color_part << 16; 	// Red
+				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
+				color += color_part << 8; 	// Green
+				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
+				color += color_part; 		// Blue
+				color_to_id.insert_or_assign(color, index++);
 			});
 	}
 	int nr_of_provinces = index;
@@ -846,12 +855,26 @@ void display_data::load_map(sys::state& state) {
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	border_texture = load_dds_texture(map_terrain_dir, NATIVE("borders.dds"));
 
-	// Get the province_colorhandle
+	// Get the province_color handle
 	glGenTextures(1, &province_color);
 	glBindTexture(GL_TEXTURE_2D, province_color);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
 	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// Get the province_highlight handle
+	glGenTextures(1, &province_highlight);
+	glBindTexture(GL_TEXTURE_2D, province_highlight);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
+	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	std::vector<uint32_t> test(province_id_map.size());
+	gen_prov_color_texture(province_highlight, test);
+	for(int i = 0; i < test.size(); i++) {
+		test[i] = 255;
+	}
+	set_province_color(test, map_mode::mode::terrain);
 }
 
 void display_data::update() {
@@ -871,10 +894,21 @@ void display_data::update() {
 	velocity.x *= size.y / size.x;
 	pos += velocity;
 
+	zoom += zoom_change * seconds_since_last_update;
+	zoom_change *= 0.9f;
+
 	pos.x = glm::mod(pos.x, 1.f);
-	pos.y = glm::clamp(pos.y, 0.f, 1.0f);
+	pos.y = glm::clamp(pos.y, 0.f, 1.f);
 	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
 	offset_y = pos.y - 0.5f;
+
+	if(unhandled_province_selection) {
+		std::vector<uint32_t> province_highlights(province_id_map.size());
+		if(selected_province)
+			province_highlights[selected_province] = 0x2B2B2B2B;
+		gen_prov_color_texture(province_highlight, province_highlights);
+		unhandled_province_selection = false;
+	}
 }
 
 void display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
@@ -887,9 +921,9 @@ void display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod)
 	} else if(keycode == sys::virtual_key::DOWN) {
 		pos_velocity.y = +1.f;
 	} else if(keycode == sys::virtual_key::Q) {
-		zoom *= 1.1f;
+		zoom_change = zoom * 1.1f;
 	} else if(keycode == sys::virtual_key::E) {
-		zoom *= 0.9f;
+		zoom_change = zoom * 0.9f;
 	}
 }
 
@@ -914,7 +948,13 @@ void display_data::set_pos(glm::vec2 new_pos) {
 }
 
 void display_data::on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount) {
-	zoom *= 1.f + amount / 5.f;
+	amount = std::clamp(amount, -4.f, 4.f);
+	constexpr auto zoom_speed_factor = 2.5f;
+	if(amount >= 0) {
+		zoom_change = zoom * ((1.f + amount / 5.f) * zoom_speed_factor);
+	} else if(amount < 0) {
+		zoom_change = -(zoom * ((1.f - amount / 5.f) * zoom_speed_factor));
+	}
 }
 
 void display_data::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
@@ -951,5 +991,33 @@ void display_data::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, 
 
 void display_data::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) {
 	is_dragging = false;
+}
+
+void display_data::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
+	auto mouse_pos = glm::vec2(x, y);
+	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+	auto map_pos = screen_to_map(mouse_pos, screen_size);
+	map_pos *= size;
+	auto idx = int32_t(size.y - map_pos.y) * int32_t(size.x) + int32_t(map_pos.x);
+	if(0 <= idx && size_t(idx) < province_id_map.size()) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		auto fat_id = dcon::fatten(state.world, province::from_map_id(province_id_map[idx]));
+		if(province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+			set_selected_province(province_id_map[idx]);
+		} else {
+			set_selected_province(0);
+		}
+	} else {
+		set_selected_province(0);
+	}
+}
+
+int16_t display_data::get_selected_province() {
+	return selected_province;
+}
+
+void display_data::set_selected_province(int16_t prov_id) {
+	unhandled_province_selection = selected_province != prov_id;
+	selected_province = prov_id;
 }
 }

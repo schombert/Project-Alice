@@ -729,68 +729,60 @@ namespace parsers {
 
 	void guitypes::guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
 		context.full_state.ui_defs.gui.back().data.window.flags |= ui::window_data::is_dialog_mask;
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::instanttextboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
 		context.full_state.ui_defs.gui.back().data.text.flags |= ui::text_data::is_instant_mask;
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::listboxtype(listbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::positiontype(gui_element_common const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::scrollbartype(scrollbar const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::windowtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::checkboxtype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
 		context.full_state.ui_defs.gui.back().data.button.flags |= ui::button_data::is_checkbox_mask;
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::shieldtype(image const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
 		context.full_state.ui_defs.gui.back().data.image.flags |= ui::image_data::is_mask_mask;
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
 		context.full_state.ui_defs.gui.back().data.text.flags |= ui::text_data::is_edit_mask;
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
 	void guitypes::textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 		context.full_state.ui_defs.gui.push_back(v.target);
+		context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
 	}
-	/*
 
-	struct guitypes {
-		void finish(building_gfx_context& context) {
-		}
-		void fullscreen(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
-		void moveable(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
-		void guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void instanttextboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void listboxtype(listbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void positiontype(gui_element_common const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void scrollbartype(scrollbar const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void windowtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void checkboxtype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void shieldtype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
-		void textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
-	};
-	*/
 }
