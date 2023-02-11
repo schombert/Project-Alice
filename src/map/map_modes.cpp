@@ -57,7 +57,7 @@ void set_region(sys::state& state) {
 
 std::vector<uint32_t> get_global_population_color(sys::state& state) {
 	std::vector<float> prov_population(state.map_display.nr_of_provinces);
-	std::unordered_map<uint16_t, float> continent_max_pop = {};
+	std::unordered_map<int32_t, float> continent_max_pop = {};
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
