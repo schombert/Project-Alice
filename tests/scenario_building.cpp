@@ -825,5 +825,12 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto mkey = state->world.ideology_get_add_economic_reform(state->culture_definitions.conservative);
 		REQUIRE(state->value_modifiers[mkey].base_factor == -0.5f);
 	}
+	// triggered modifier contents
+	{
+		for(auto& r : context.set_of_triggered_modifiers) {
+			state->national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+		}
+		REQUIRE(err.accumulated_errors == "");
+	}
 }
 #endif

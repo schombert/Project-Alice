@@ -826,6 +826,12 @@ namespace sys {
 				parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
 			}
 		}
+		// triggered modifier contents
+		{
+			for(auto& r : context.set_of_triggered_modifiers) {
+				national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+			}
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
