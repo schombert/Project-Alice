@@ -10,7 +10,7 @@ uint32_t tag_to_int(char first, char second, char third) {
 
 struct triggered_modifier {
 	dcon::modifier_id linked_modifier;
-	// trigger id
+	dcon::trigger_key trigger_condition;
 };
 
 struct global_national_state {

@@ -1,6 +1,7 @@
 #include "system_state.hpp"
 #include "nations.hpp"
 #include "parsers_declarations.hpp"
+#include "trigger_parsing.hpp"
 
 namespace parsers {
 void national_identity_file::any_value(std::string_view tag, association_type, std::string_view txt, error_handler& err, int32_t line, scenario_building_context& context) {
@@ -755,6 +756,11 @@ dcon::global_variable_id scenario_building_context::get_global_variable(std::str
 		map_of_global_variables.insert_or_assign(name, new_id);
 		return new_id;
 	}
+}
+
+dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
 }
 
 }
