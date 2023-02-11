@@ -170,50 +170,58 @@ namespace sys {
 		return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
 	}
 
-	dcon::text_key state::add_to_pool_lowercase(std::string const& text) {
-		auto res = add_to_pool(text);
-		for(auto i = 0; i < int32_t(text.length()); ++i) {
+	dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
+		auto res = add_to_pool(new_text);
+		for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 			text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
 		}
 		return res;
 	}
-	dcon::text_key state::add_to_pool_lowercase(std::string_view text) {
-		auto res = add_to_pool(text);
-		for(auto i = 0; i < int32_t(text.length()); ++i) {
+	dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
+		auto res = add_to_pool(new_text);
+		for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 			text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
 		}
 		return res;
 	}
-	dcon::text_key state::add_to_pool(std::string const& text) {
+	dcon::text_key state::add_to_pool(std::string const& new_text) {
 		auto start = text_data.size();
-		auto size = text.size();
+		auto size = new_text.length();
 		if(size == 0)
 			return dcon::text_key();
 		text_data.resize(start + size + 1, char(0));
-		std::memcpy(text_data.data() + start, text.c_str(), size + 1);
+		std::memcpy(text_data.data() + start, new_text.c_str(), size + 1);
 		return dcon::text_key(uint32_t(start));
 	}
-	dcon::text_key state::add_to_pool(std::string_view text) {
+	dcon::text_key state::add_to_pool(std::string_view new_text) {
 		auto start = text_data.size();
-		auto length = text.length();
+		auto length = new_text.length();
+		if(length == 0)
+			return dcon::text_key();
 		text_data.resize(start + length + 1, char(0));
-		std::memcpy(text_data.data() + start, text.data(), length);
+		std::memcpy(text_data.data() + start, new_text.data(), length);
 		text_data.back() = 0;
 		return dcon::text_key(uint32_t(start));
 	}
 
-	dcon::text_key state::add_unique_to_pool(std::string const& text) {
-		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(text.c_str(), text.c_str() + text.length() + 1));
-		if(search_result != text_data.data() + text_data.size()) {
-			return dcon::text_key(uint32_t(search_result - text_data.data()));
+	dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
+		if(new_text.length() > 0) {
+			auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
+			if(search_result != text_data.data() + text_data.size()) {
+				return dcon::text_key(uint32_t(search_result - text_data.data()));
+			} else {
+				return add_to_pool(new_text);
+			}
 		} else {
-			return add_to_pool(text);
+			return dcon::text_key();
 		}
 	}
 
 	dcon::unit_name_id state::add_unit_name(std::string_view text) {
 		auto start = unit_names.size();
 		auto length = text.length();
+		if(length == 0)
+			return dcon::unit_name_id();
 		unit_names.resize(start + length + 1, char(0));
 		std::memcpy(unit_names.data() + start, text.data(), length);
 		unit_names.back() = 0;
@@ -244,7 +252,7 @@ namespace sys {
 			auto size = data.size();
 
 			trigger_data.resize(start + size, uint16_t(0));
-			std::memcpy(text_data.data() + start, data.data(), size);
+			std::memcpy(trigger_data.data() + start, data.data(), size);
 			return dcon::trigger_key(uint16_t(start));
 		}
 	}
