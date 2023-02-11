@@ -3,6 +3,7 @@
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
 #include "province.hpp"
+#include <unordered_map>
 
 namespace map_mode {
 
@@ -56,7 +57,7 @@ void set_region(sys::state& state) {
 
 std::vector<uint32_t> get_global_population_color(sys::state& state) {
 	std::vector<float> prov_population(state.map_display.nr_of_provinces);
-	std::vector<float> continent_max_pop(6);
+	std::unordered_map<uint16_t, float> continent_max_pop = {};
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
@@ -77,7 +78,7 @@ std::vector<uint32_t> get_global_population_color(sys::state& state) {
 		auto cid = fat_id.get_continent().id.index();
 		auto i = province::to_map_id(prov_id);
 		float gradient_index = prov_population[i] / continent_max_pop[cid];
-		uint32_t color = uint32_t(135.f * (1.f - gradient_index)) << 8;
+		uint32_t color = uint32_t(100.f * (1.f - gradient_index)) << 8;
 		color |= uint32_t(210.f * gradient_index);
 		prov_color[i] = color;
 	});
