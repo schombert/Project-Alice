@@ -3,9 +3,8 @@
 #include <vector>
 #include "dcon_generated.hpp"
 
-// this is here simply to declare the state struct in a very general location
 namespace sys {
-struct state;
+struct state; // this is here simply to declare the state struct in a very general location
 
 inline float red_from_int(uint32_t v) {
 	return float(v & 0xFF) / 255.0f;
@@ -32,6 +31,16 @@ inline int32_t int_blue_from_int(uint32_t v) {
 inline uint32_t pack_color(int32_t r, int32_t g, int32_t b) {
 	return ((uint32_t(r) & 0xFF) << 0) | ((uint32_t(g) & 0xFF) << 8) | ((uint32_t(b) & 0xFF) << 16);
 }
+
+struct value_modifier_segment {
+	float factor = 0.0f;
+	dcon::trigger_key condition;
+};
+struct value_modifier_description {
+	float base_factor = 0.0f;
+	uint16_t first_segment_offset = 0;
+	uint16_t segments_count = 0;
+};
 
 }
 
@@ -111,11 +120,13 @@ public:
 	void pop_back() {
 		storage.pop_back();
 	}
-	void push_back(value_type const& v) {
+	tag_type push_back(value_type const& v) {
 		storage.push_back(v);
+		return tag_type(typename tag_type::value_base_t(storage.size() - 1));
 	}
-	void push_back(value_type&& v) {
+	tag_type push_back(value_type&& v) {
 		storage.push_back(std::move(v));
+		return tag_type(typename tag_type::value_base_t(storage.size() - 1));
 	}
 	value_type& back() {
 		return storage.back();

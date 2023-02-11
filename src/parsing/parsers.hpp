@@ -71,6 +71,7 @@ namespace parsers {
 	public:
 		std::string file_name;
 		std::string accumulated_errors;
+		bool fatal = false;
 
 		error_handler(std::string file_name) : file_name(std::move(file_name)) { }
 
@@ -171,6 +172,8 @@ namespace parsers {
 	//
 	// other utility functions
 	//
+
+	bool is_integer(const char* start, const char* end);
 
 	template<size_t N>
 	bool has_fixed_prefix(const char* start, const char* end, const char(&t)[N]) {

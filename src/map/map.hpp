@@ -32,13 +32,23 @@ public:
 	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
+	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 
+	int16_t get_selected_province();
+	void set_selected_province(int16_t prov_id);
 private:
 	// Last update time, used for smooth map movement
 	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
 
 	// Time in seconds, send to the map shader for animations
 	float time_counter = 0;
+
+	// map pixel -> province id
+	std::vector<uint16_t> province_id_map = {};
+
+	// interaction
+	bool unhandled_province_selection = false;
+	int16_t selected_province = 0;
 
 	// Meshes
 	GLuint water_vbo = 0;
@@ -62,6 +72,7 @@ private:
 	GLuint overlay = 0;
 	GLuint province_color = 0;
 	GLuint border_texture = 0;
+	GLuint province_highlight = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
@@ -73,7 +84,6 @@ private:
 	GLuint line_border_shader = 0;
 
 	std::vector<uint8_t> terrain_id_map;
-	std::vector<uint16_t> province_id_map;
 	std::vector<glm::vec2> province_mid_point;
 	std::vector<uint8_t> median_terrain_type;
 
@@ -85,7 +95,8 @@ private:
 	glm::vec2 size; // Map size
 	float offset_x = 0.f;
 	float offset_y = 0.f;
-	float zoom = 1;
+	float zoom = 1.f;
+	float zoom_change = 1.f;
 
 	void update();
 
@@ -95,5 +106,6 @@ private:
 	void create_meshes();
 	void create_borders1();
 	void create_borders2();
+	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color);
 };
 }

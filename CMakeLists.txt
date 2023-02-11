@@ -99,6 +99,9 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/filesystem
 	${PROJECT_SOURCE_DIR}/src/gamestate
 	${PROJECT_SOURCE_DIR}/src/gui
+	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows
+	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/production_subwindows
+	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/politics_subwindows
 	${PROJECT_SOURCE_DIR}/src/ogl
 	${PROJECT_SOURCE_DIR}/src/parsing
 	${PROJECT_SOURCE_DIR}/src/window
@@ -110,6 +113,7 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/economy
 	${PROJECT_SOURCE_DIR}/src/culture
 	${PROJECT_SOURCE_DIR}/src/military
+	${PROJECT_SOURCE_DIR}/src/scripting
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 

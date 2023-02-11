@@ -283,6 +283,9 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, pending_tech_content> map_of_technologies;
 		ankerl::unordered_dense::map<std::string, pending_invention_content> map_of_inventions;
 		ankerl::unordered_dense::map<std::string, dcon::unit_type_id> map_of_unit_types;
+		ankerl::unordered_dense::map<std::string, dcon::national_variable_id> map_of_national_variables;
+		ankerl::unordered_dense::map<std::string, dcon::global_variable_id> map_of_global_variables;
+		ankerl::unordered_dense::map<std::string, dcon::state_definition_id> map_of_state_names;
 
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -298,6 +301,9 @@ namespace parsers {
 		std::vector<simple_fs::file> tech_and_invention_files;
 		
 		scenario_building_context(sys::state& state) : state(state) { }
+
+		dcon::national_variable_id get_national_variable(std::string const& name);
+		dcon::global_variable_id get_global_variable(std::string const& name);
 	};
 
 	struct national_identity_file {
@@ -1515,7 +1521,272 @@ namespace parsers {
 
 	void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context);
 
+	struct pop_history_province_context {
+		scenario_building_context& outer_context;
+		dcon::province_id id;
+	};
+
+	struct pop_history_definition {
+		dcon::religion_id rel_id;
+		dcon::culture_id cul_id;
+		dcon::rebel_type_id reb_id;
+		int32_t size = 0;
+		float militancy = 0;
+		void culture(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
+			if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
+				cul_id = it->second;
+			} else {
+				err.accumulated_errors += "Invalid culture " + std::string(value)  + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void religion(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
+			if(auto it = context.outer_context.map_of_religion_names.find(std::string(value)); it != context.outer_context.map_of_religion_names.end()) {
+				rel_id = it->second;
+			} else {
+				err.accumulated_errors += "Invalid religion " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void rebel_type(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
+			if(auto it = context.outer_context.map_of_rebeltypes.find(std::string(value)); it != context.outer_context.map_of_rebeltypes.end()) {
+				reb_id = it->second.id;
+			} else {
+				err.accumulated_errors += "Invalid rebel type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(pop_history_province_context&) { }
+	};
+
+	struct pop_province_list {
+		void any_group(std::string_view type, pop_history_definition const& def, error_handler& err, int32_t line, pop_history_province_context& context) {
+			dcon::pop_type_id ptype;
+			if(auto it = context.outer_context.map_of_poptypes.find(std::string(type)); it != context.outer_context.map_of_poptypes.end()) {
+				ptype = it->second;
+			} else {
+				err.accumulated_errors += "Invalid pop type " + std::string(type) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			for(auto pops_by_location : context.outer_context.state.world.province_get_pop_location(context.id)) {
+				auto pop_id = pops_by_location.get_pop();
+				if(pop_id.get_culture() == def.cul_id && pop_id.get_poptype() == ptype && pop_id.get_religion() == def.rel_id) {
+					pop_id.get_size() += float(def.size);
+					return; // done with this pop
+				}
+			}
+			// no existing pop matched -- make a new pop
+			auto new_pop = fatten(context.outer_context.state.world, context.outer_context.state.world.create_pop());
+			new_pop.set_culture(def.cul_id);
+			new_pop.set_religion(def.rel_id);
+			new_pop.set_size(float(def.size));
+			new_pop.set_poptype(ptype);
+			new_pop.set_militancy(def.militancy);
+			new_pop.set_rebel_group(def.reb_id);
+			context.outer_context.state.world.force_create_pop_location(new_pop, context.id);
+		}
+		void finish(pop_history_province_context&) { }
+	};
+
+	struct pop_history_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct poptype_context {
+		scenario_building_context& outer_context;
+		dcon::pop_type_id id;
+	};
+
+	struct promotion_targets {
+		void finish(poptype_context&) { }
+	};
+
+	struct pop_ideologies {
+		void finish(poptype_context&) { }
+	};
+
+	struct pop_issues {
+		void finish(poptype_context&) { }
+	};
+
+	struct income {
+		float weight = 0;
+		::culture::income_type itype = ::culture::income_type::none;
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "administration"))
+				itype = ::culture::income_type::administration;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "military"))
+				itype = ::culture::income_type::military;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "education"))
+				itype = ::culture::income_type::education;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "reforms"))
+				itype = ::culture::income_type::reforms;
+			else {
+				err.accumulated_errors += "Invalid income type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(poptype_context&) { }
+	};
+
+
+	struct poptype_file {
+		void finish(poptype_context&) { }
+		void sprite(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_sprite(context.id, uint8_t(value));
+		}
+		void color(color_from_3i cvalue, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_color(context.id, cvalue.value);
+		}
+		void is_artisan(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.artisans = context.id;
+		}
+		void strata(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "rich"))
+				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::rich));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "middle"))
+				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::middle));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "poor"))
+				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::poor));
+			else {
+				err.accumulated_errors += "Invalid pop strata " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_has_unemployment(context.id, value);
+		}
+		void is_slave(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.slaves = context.id;
+		}
+		void can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.soldiers = context.id;
+		}
+		void leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.culture_definitions.officer_leadership_points = value;
+			context.outer_context.state.culture_definitions.officers = context.id;
+		}
+		void research_optimum(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_research_optimum(context.id, value);
+		}
+		void administrative_efficiency(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.bureaucrat = context.id;
+		}
+		void tax_eff(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.culture_definitions.bureaucrat_tax_efficiency = value;
+		}
+		void can_build(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.capitalists = context.id;
+		}
+		void research_points(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_research_points(context.id, value);
+		}
+		void can_reduce_consciousness(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.clergy = context.id;
+		}
+		void workplace_input(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_workplace_input(context.id, value);
+		}
+		void workplace_output(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_workplace_output(context.id, value);
+		}
+		void equivalent(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
+			if(value.length() > 0 && value[0] == 'f') {
+				context.outer_context.state.culture_definitions.laborers = context.id;
+			} else if(value.length() > 0 && value[0] == 'l') {
+				context.outer_context.state.culture_definitions.farmers = context.id;
+			}
+		}
+		void life_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				if(cid.index() < value.data.ssize())
+					context.outer_context.state.world.pop_type_set_life_needs(context.id, cid, value.data[cid]);
+			});
+		}
+		void everyday_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				if(cid.index() < value.data.ssize())
+					context.outer_context.state.world.pop_type_set_everyday_needs(context.id, cid, value.data[cid]);
+			});
+		}
+		void luxury_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				if(cid.index() < value.data.ssize())
+					context.outer_context.state.world.pop_type_set_luxury_needs(context.id, cid, value.data[cid]);
+			});
+		}
+		promotion_targets promote_to;
+		pop_ideologies ideologies;
+		pop_issues issues;
+
+		void life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
+			context.outer_context.state.world.pop_type_set_life_needs_income_type(context.id, uint8_t(value.itype));
+		}
+		void everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
+			context.outer_context.state.world.pop_type_set_everyday_needs_income_type(context.id, uint8_t(value.itype));
+		}
+		void luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
+			context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
+			context.outer_context.state.world.pop_type_set_luxury_needs_income_type(context.id, uint8_t(value.itype));
+		}
+	};
+
+	commodity_array stub_commodity_array(token_generator& gen, error_handler& err, poptype_context& context);
+	void read_promotion_target(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context);
+	void read_pop_ideology(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context);
+	void read_pop_issue(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context);
+	void read_c_migration_target(token_generator& gen, error_handler& err, poptype_context& context);
+	void read_migration_target(token_generator& gen, error_handler& err, poptype_context& context);
+
+	struct individual_ideology_context {
+		scenario_building_context& outer_context;
+		dcon::ideology_id id;
+	};
+
+	struct individual_ideology {
+		void finish(individual_ideology_context&) { }
+		void can_reduce_militancy(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.conservative = context.id;
+		}
+		void uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_is_civilized_only(context.id, !value);
+		}
+		void color(color_from_3i cvalue, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_color(context.id, cvalue.value);
+		}
+		void date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, individual_ideology_context& context) {
+			auto date_tag = sys::date(ymd, context.outer_context.state.start_date);
+			context.outer_context.state.world.ideology_set_activation_date(context.id, date_tag);
+		}
+		void add_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_add_political_reform(context.id, value);
+		}
+		void remove_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_remove_political_reform(context.id, value);
+		}
+		void add_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_add_social_reform(context.id, value);
+		}
+		void remove_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_remove_social_reform(context.id, value);
+		}
+		void add_military_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_add_military_reform(context.id, value);
+		}
+		void add_economic_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
+			context.outer_context.state.world.ideology_set_add_economic_reform(context.id, value);
+		}
+	};
+
+	dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler& err, individual_ideology_context& context);
+	dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
+#include "trigger_parsing.hpp"
 #include "parser_defs_generated.hpp"
 

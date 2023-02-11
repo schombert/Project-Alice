@@ -12,6 +12,10 @@ make_index{government_type_id}{uint8_t}
 make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
 make_index{unit_name_id}{uint16_t}
+make_index{national_variable_id}{uint16_t}
+make_index{global_variable_id}{uint16_t}
+make_index{trigger_key}{uint16_t}
+make_index{value_modifier_key}{uint16_t}
 
 object{
 	name{ national_identity }
@@ -275,6 +279,43 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
+
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+	property{
+		name{ is_civilized_only }
+		type{ bitfield }
+	}
+	property{
+		name{ activation_date }
+		type{ sys::date }
+	}
+	property{
+		name{ add_political_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ remove_political_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ add_social_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ remove_social_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ add_military_reform }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ add_economic_reform }
+		type{ value_modifier_key }
+	}
 }
 
 relationship{
@@ -394,7 +435,7 @@ object {
 }
 
 object {
-	name{ pop_type}
+	name{ pop_type }
 	storage_type{ contiguous }
 	size{ 20 }
 
@@ -402,10 +443,102 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
+
+	property{
+		name{ sprite }
+		type{ uint8_t }
+	}
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+	property{
+		name{ strata }
+		type{ uint8_t }
+	}
+
+	property{
+		name{ everyday_needs_income_type }
+		type{ uint8_t }
+	}
+	property{
+		name{ luxury_needs_income_type }
+		type{ uint8_t }
+	}
+	property{
+		name{ life_needs_income_type }
+		type{ uint8_t }
+	}
+	property{
+		name{ everyday_needs_income_weight }
+		type{ float }
+	}
+	property{
+		name{ luxury_needs_income_weight }
+		type{ float }
+	}
+	property{
+		name{ life_needs_income_weight }
+		type{ float }
+	}
+
+	property{
+		name{ research_optimum }
+		type{ float }
+	}
+	property{
+		name{ research_points }
+		type{ float }
+	}
+	property{
+		name{ workplace_input }
+		type{ float }
+	}
+	property{
+		name{ workplace_output }
+		type{ float }
+	}
+	property{
+		name{ has_unemployment }
+		type{ bitfield }
+	}
+	property{
+		name{ migration_target }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ country_migration_target }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ issues }
+		type{array{issue_option_id}{value_modifier_key}}
+	}
+	property{
+		name{ ideology }
+		type{array{ideology_id}{value_modifier_key}}
+	}
+	property{
+		name{ promotion }
+		type{array{pop_type_id}{value_modifier_key}}
+	}
+	property{
+		name{ life_needs }
+		type{array{commodity_id}{float}}
+	}
+	property{
+		name{ everyday_needs }
+		type{array{commodity_id}{float}}
+	}
+	property{
+		name{ luxury_needs }
+		type{array{commodity_id}{float}}
+	}
+
 }
 
 object {
-	name{ rebel_type}
+	name{ rebel_type }
 	storage_type{ contiguous }
 	size{ 60 }
 
@@ -481,6 +614,35 @@ object {
 	property{
 		name{ party_loyalty }
 		type{array{ideology_id}{uint8_t}}
+	}
+}
+
+relationship{
+	name{ province_adjacency }
+	storage_type{ compactable }
+	size{ 24000 }
+
+	link{
+		object{province}
+		name{connected_provinces}
+		type{many}
+		index_storage{array}
+		multiple{2}
+	}
+	
+	composite_key{
+		name{province_pair}
+		index{connected_provinces}
+	}
+
+	property{
+		name{ distance }
+		type{ float }
+	}
+
+	property{
+		name{ type }
+		type{ uint8_t }
 	}
 }
 
@@ -590,6 +752,7 @@ object {
 
 object {
 	name { factory }
+	storage_type{ contiguous }
 	size{ 10000 }
 
 	property{
@@ -645,6 +808,58 @@ relationship{
 	link{
 		object{nation}
 		name{nation}
+		type{many}
+		index_storage{array}
+	}
+}
+
+object {
+	name { pop }
+	storage_type{ compactable }
+	size{ 30000 }
+
+	property{
+		name{ poptype }
+		type{ pop_type_id }
+	}
+	property{
+		name{ religion }
+		type{ religion_id }
+	}
+	property{
+		name{ culture }
+		type{ culture_id }
+	}
+	property{
+		name{ size }
+		type{ float }
+	}
+
+	property{
+		name{ consciousness }
+		type{ float }
+	}
+	property{
+		name{ militancy }
+		type{ float }
+	}
+	property{
+		name{ rebel_group }
+		type{ rebel_type_id }
+	}
+}
+
+relationship{
+	name{ pop_location }
+	
+	link{
+		object{pop}
+		name{pop}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{province}
 		type{many}
 		index_storage{array}
 	}

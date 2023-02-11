@@ -4,7 +4,7 @@
 
 namespace ui {
 
-class population_window : public window_element_base {
+class release_nation_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -12,8 +12,9 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
-			return make_element_by_type<generic_tab_close_button>(state, id);
+		if(name == "nations") {
+			auto ptr = make_element_by_type<listbox_element_base>(state, id);
+			return ptr;
 		} else {
 			return nullptr;
 		}

@@ -48,14 +48,14 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read flag graphics from the `gfx\flags` to determine which flags are available
 - Populate the country names
 - Read production types from `production_types.txt`
-- Read prepared ideologies
+- Read prepared ideologies *Done*
 - Read prepared issue options
 - Read prepared CB types
 - Read prepared crimes (from modifiers)
-- Read prepared triggered modifiers
+- Read prepared triggered modifiers *Done*
 - Read `national_focus.txt`
 - Read main poptypes file (`pop_types.txt`)
-- Read files in directory `poptypes`
+- Read files in directory `poptypes` *Done*
 - Read prepared rebel types
 - Read `on_actions.txt`
 - Read event files from directory `events`

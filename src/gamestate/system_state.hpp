@@ -54,7 +54,7 @@ namespace sys {
 		// the state of the sound system, the state of the windowing system,
 		// and the game data / state itself
 
-		// utlimately it is the system struct that gets passed around everywhere
+		// ultimately it is the system struct that gets passed around everywhere
 		// so that bits of the ui, for example, can control the overall state of
 		// the game
 
@@ -76,6 +76,10 @@ namespace sys {
 		absolute_time_point start_date;
 		absolute_time_point end_date;
 
+		std::vector<uint16_t> trigger_data;
+		std::vector<value_modifier_segment> value_modifier_segments;
+		tagged_vector<value_modifier_description, dcon::value_modifier_key> value_modifiers;
+
 		std::vector<char> text_data; // stores string data in the win1250 codepage
 		std::vector<text::text_component> text_components;
 		tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
@@ -95,8 +99,8 @@ namespace sys {
 		// current program / ui state
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
-		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platfom-dependent window information
-		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platfom-dependent sound information
+		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information
+		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platform-dependent sound information
 		ui::state ui_state; // transient information for the state of the ui
 		text::font_manager font_collection;
 
@@ -150,6 +154,8 @@ namespace sys {
 		dcon::unit_name_id add_unit_name(std::string_view text); // returns the newly added text
 		std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
 
+		dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
+
 		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)) {}
 		~state();
 
@@ -158,7 +164,5 @@ namespace sys {
 		void update_ui_scale(float new_scale);
 
 		void load_scenario_data(); // loads all scenario files other than map data
-
-		ui::xy_pair get_scaled_relative_location(const ui::element_base& parent, const ui::element_base& child, int x, int y);
 	};
 }

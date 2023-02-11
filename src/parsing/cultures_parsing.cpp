@@ -1,5 +1,6 @@
 #include "parsers_declarations.hpp"
 #include "culture.hpp"
+#include "trigger_parsing.hpp"
 
 namespace parsers {
 
@@ -252,6 +253,53 @@ void register_invention(std::string_view name, token_generator& gen, error_handl
 
 	context.outer_context.map_of_inventions.insert_or_assign(std::string(name), pending_invention_content{ gen, new_id });
 	gen.discard_group();
+}
+
+void read_promotion_target(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
+	if(auto it = context.outer_context.map_of_poptypes.find(std::string(name)); it != context.outer_context.map_of_poptypes.end()) {
+		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop, trigger::slot_contents::empty };
+		auto result = make_value_modifier(gen, err, t_context);
+		context.outer_context.state.world.pop_type_set_promotion(context.id, it->second, result);
+	} else {
+		err.accumulated_errors += "Unknown pop type " + std::string(name) + " in file " + err.file_name + "\n";
+	}
+}
+void read_pop_ideology(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
+	if(auto it = context.outer_context.map_of_ideologies.find(std::string(name)); it != context.outer_context.map_of_ideologies.end()) {
+		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop, trigger::slot_contents::empty };
+		auto result = make_value_modifier(gen, err, t_context);
+		context.outer_context.state.world.pop_type_set_ideology(context.id, it->second.id, result);
+	} else {
+		err.accumulated_errors += "Unknown ideology " + std::string(name) + " in file " + err.file_name + "\n";
+	}
+}
+void read_pop_issue(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
+	if(auto it = context.outer_context.map_of_options.find(std::string(name)); it != context.outer_context.map_of_options.end()) {
+		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop, trigger::slot_contents::empty };
+		auto result = make_value_modifier(gen, err, t_context);
+		context.outer_context.state.world.pop_type_set_issues(context.id, it->second.id, result);
+	} else {
+		err.accumulated_errors += "Unknown issue option " + std::string(name) + " in file " + err.file_name + "\n";
+	}
+}
+void read_c_migration_target(token_generator& gen, error_handler& err, poptype_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::pop, trigger::slot_contents::empty };
+	auto result = make_value_modifier(gen, err, t_context);
+	context.outer_context.state.world.pop_type_set_country_migration_target(context.id, result);
+}
+void read_migration_target(token_generator& gen, error_handler& err, poptype_context& context) {
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::province, trigger::slot_contents::pop, trigger::slot_contents::empty };
+	auto result = make_value_modifier(gen, err, t_context);
+	context.outer_context.state.world.pop_type_set_migration_target(context.id, result);
+}
+
+commodity_array stub_commodity_array(token_generator& gen, error_handler& err, poptype_context& context) {
+	return parse_commodity_array(gen, err, context.outer_context);
+}
+
+dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler& err, individual_ideology_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_value_modifier(gen, err, t_context);
 }
 
 }

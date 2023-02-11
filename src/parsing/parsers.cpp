@@ -294,7 +294,7 @@ namespace parsers {
 			if(content[0] == '>')
 				return association_type::gt;
 			else if(content[0] == '<')
-				return association_type::gt;
+				return association_type::lt;
 			else if(content[0] == '=')
 				return association_type::eq_default;
 		} else if(content.length() == 2) {
