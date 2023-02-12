@@ -13,7 +13,8 @@ make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
 make_index{unit_name_id}{uint16_t}
 make_index{national_variable_id}{uint16_t}
-make_index{global_variable_id}{uint16_t}
+make_index{national_flag_id}{uint16_t}
+make_index{global_flag_id}{uint16_t}
 make_index{trigger_key}{uint16_t}
 make_index{value_modifier_key}{uint16_t}
 
@@ -863,4 +864,16 @@ relationship{
 		type{many}
 		index_storage{array}
 	}
+}
+
+object {
+	name { national_event }
+	storage_type{ contiguous }
+	size{ 5000 }
+}
+
+object {
+	name { provincial_event }
+	storage_type{ contiguous }
+	size{ 5000 }
 }

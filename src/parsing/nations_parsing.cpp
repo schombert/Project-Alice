@@ -747,13 +747,24 @@ dcon::national_variable_id scenario_building_context::get_national_variable(std:
 	}
 }
 
-dcon::global_variable_id scenario_building_context::get_global_variable(std::string const& name) {
-	if(auto it = map_of_global_variables.find(name); it != map_of_global_variables.end()) {
+dcon::national_flag_id scenario_building_context::get_national_flag(std::string const& name) {
+	if(auto it = map_of_national_flags.find(name); it != map_of_national_flags.end()) {
 		return it->second;
 	} else {
-		dcon::global_variable_id new_id = dcon::global_variable_id(dcon::global_variable_id::value_base_t(state.national_definitions.num_allocated_global_variables));
-		++state.national_definitions.num_allocated_global_variables;
-		map_of_global_variables.insert_or_assign(name, new_id);
+		dcon::national_flag_id new_id = dcon::national_flag_id(dcon::national_flag_id::value_base_t(state.national_definitions.num_allocated_national_flags));
+		++state.national_definitions.num_allocated_national_flags;
+		map_of_national_flags.insert_or_assign(name, new_id);
+		return new_id;
+	}
+}
+
+dcon::global_flag_id scenario_building_context::get_global_flag(std::string const& name) {
+	if(auto it = map_of_global_flags.find(name); it != map_of_global_flags.end()) {
+		return it->second;
+	} else {
+		dcon::global_flag_id new_id = dcon::global_flag_id(dcon::global_flag_id::value_base_t(state.national_definitions.num_allocated_global_flags));
+		++state.national_definitions.num_allocated_global_flags;
+		map_of_global_flags.insert_or_assign(name, new_id);
 		return new_id;
 	}
 }

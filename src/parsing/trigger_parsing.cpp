@@ -628,6 +628,7 @@ bool scope_has_single_member(const uint16_t* source) {
 
 //yields new source size
 int32_t simplify_trigger(uint16_t* source) {
+	assert(0 < *source && *source < trigger::first_invalid_code);
 	if((source[0] & trigger::is_scope) != 0) {
 		if(scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
