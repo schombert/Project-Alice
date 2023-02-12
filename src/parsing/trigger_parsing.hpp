@@ -990,7 +990,7 @@ struct trigger_body {
 			err.accumulated_errors += "military_spending trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.add_float_to_payload(value);
+		context.compiled_trigger.push_back(uint16_t(value * 100.0f));
 	}
 	void administration_spending(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -1005,7 +1005,7 @@ struct trigger_body {
 			err.accumulated_errors += "administration_spending trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.add_float_to_payload(value);
+		context.compiled_trigger.push_back(uint16_t(value * 100.0f));
 	}
 	void education_spending(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -1020,7 +1020,7 @@ struct trigger_body {
 			err.accumulated_errors += "education_spending trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.add_float_to_payload(value);
+		context.compiled_trigger.push_back(uint16_t(value * 100.0f));
 	}
 	void national_provinces_occupied(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -1042,7 +1042,7 @@ struct trigger_body {
 			err.accumulated_errors += "social_spending trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.add_float_to_payload(value);
+		context.compiled_trigger.push_back(uint16_t(value * 100.0f));
 	}
 	void brigades_compare(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -2167,11 +2167,11 @@ struct trigger_body {
 			err.accumulated_errors += "has_country_flag trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.compiled_trigger.push_back(trigger::payload(context.outer_context.get_national_variable(std::string(value))).value);
+		context.compiled_trigger.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
 	}
 	void has_global_flag(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		context.compiled_trigger.push_back(uint16_t(trigger::has_global_flag | association_to_bool_code(a)));
-		context.compiled_trigger.push_back(trigger::payload(context.outer_context.get_global_variable(std::string(value))).value);
+		context.compiled_trigger.push_back(trigger::payload(context.outer_context.get_global_flag(std::string(value))).value);
 	}
 
 	void continent(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
@@ -2491,7 +2491,7 @@ struct trigger_body {
 			}
 			context.compiled_trigger.push_back(trigger::payload(it->second).value);
 		} else {
-			err.accumulated_errors += "region trigger supplied with an invalid modifier (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "region trigger supplied with an state name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
 

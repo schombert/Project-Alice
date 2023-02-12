@@ -8,6 +8,7 @@
 #include "gui_minimap.hpp"
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
+#include <algorithm>
 
 namespace sys {
 	//
@@ -190,7 +191,7 @@ namespace sys {
 		if(size == 0)
 			return dcon::text_key();
 		text_data.resize(start + size + 1, char(0));
-		std::memcpy(text_data.data() + start, new_text.c_str(), size + 1);
+		std::copy_n(new_text.c_str(), size + 1, text_data.data() + start);
 		return dcon::text_key(uint32_t(start));
 	}
 	dcon::text_key state::add_to_pool(std::string_view new_text) {
@@ -199,7 +200,7 @@ namespace sys {
 		if(length == 0)
 			return dcon::text_key();
 		text_data.resize(start + length + 1, char(0));
-		std::memcpy(text_data.data() + start, new_text.data(), length);
+		std::copy_n(new_text.data(), length, text_data.data() + start);
 		text_data.back() = 0;
 		return dcon::text_key(uint32_t(start));
 	}
@@ -223,7 +224,7 @@ namespace sys {
 		if(length == 0)
 			return dcon::unit_name_id();
 		unit_names.resize(start + length + 1, char(0));
-		std::memcpy(unit_names.data() + start, text.data(), length);
+		std::copy_n(text.data(), length, unit_names.data() + start);
 		unit_names.back() = 0;
 		return dcon::unit_name_id(uint16_t(start));
 	}
@@ -252,7 +253,7 @@ namespace sys {
 			auto size = data.size();
 
 			trigger_data.resize(start + size, uint16_t(0));
-			std::memcpy(trigger_data.data() + start, data.data(), size);
+			std::copy_n(data.data(), size, trigger_data.data() + start);
 			return dcon::trigger_key(uint16_t(start));
 		}
 	}

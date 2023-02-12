@@ -284,8 +284,11 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, pending_invention_content> map_of_inventions;
 		ankerl::unordered_dense::map<std::string, dcon::unit_type_id> map_of_unit_types;
 		ankerl::unordered_dense::map<std::string, dcon::national_variable_id> map_of_national_variables;
-		ankerl::unordered_dense::map<std::string, dcon::global_variable_id> map_of_global_variables;
+		ankerl::unordered_dense::map<std::string, dcon::national_flag_id> map_of_national_flags;
+		ankerl::unordered_dense::map<std::string, dcon::global_flag_id> map_of_global_flags;
 		ankerl::unordered_dense::map<std::string, dcon::state_definition_id> map_of_state_names;
+		ankerl::unordered_dense::map<int32_t, dcon::national_event_id> map_of_national_events;
+		ankerl::unordered_dense::map<int32_t, dcon::provincial_event_id> map_of_provincial_events;
 
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -303,7 +306,8 @@ namespace parsers {
 		scenario_building_context(sys::state& state) : state(state) { }
 
 		dcon::national_variable_id get_national_variable(std::string const& name);
-		dcon::global_variable_id get_global_variable(std::string const& name);
+		dcon::national_flag_id get_national_flag(std::string const& name);
+		dcon::global_flag_id get_global_flag(std::string const& name);
 	};
 
 	struct national_identity_file {
@@ -1788,5 +1792,6 @@ namespace parsers {
 }
 
 #include "trigger_parsing.hpp"
+#include "effect_parsing.hpp"
 #include "parser_defs_generated.hpp"
 
