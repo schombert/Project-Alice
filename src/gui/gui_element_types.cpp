@@ -1,5 +1,6 @@
 #include <algorithm>
 #include "gui_element_types.hpp"
+#include "fonts.hpp"
 
 namespace ui {
 
@@ -392,6 +393,123 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 				float(x + text_offset), float(y + ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size)), float(font_size),
 				black_text ? ogl::color3f{ 0.0f,0.0f,0.0f } : ogl::color3f{ 1.0f,1.0f,1.0f },
 				state.font_collection.fonts[font_id - 1]);
+		}
+	}
+}
+
+ogl::color3f get_text_color(text::text_color text_color) {
+	switch(text_color) {
+	case text::text_color::black:
+	case text::text_color::unspecified:
+		return ogl::color3f{ 0.f, 0.f, 0.f };
+	case text::text_color::white:
+		return ogl::color3f{ 1.f, 1.f, 1.f };
+	case text::text_color::red:
+		return ogl::color3f{ 1.f, 0.f, 0.f };
+	case text::text_color::green:
+		return ogl::color3f{ 0.f, 1.f, 0.f };
+	case text::text_color::yellow:
+		return ogl::color3f{ 1.f, 1.f, 0.f };
+	case text::text_color::light_blue:
+		return ogl::color3f{ 0.f, 0.f, 1.f };
+	case text::text_color::dark_blue:
+		return ogl::color3f{ 0.f, 0.f, .5f };
+	default:
+		return ogl::color3f{ 0.f, 0.f, 0.f };
+	}
+}
+
+void multiline_text_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::text) {
+		auto& seq = state.text_sequences[base_data.data.text.txt];
+		font_id = text::font_index_from_font_id(base_data.data.text.font_handle);
+		font_size = text::size_from_font_id(base_data.data.text.font_handle);
+		auto& font = state.font_collection.fonts[font_id - 1];
+		line_height = font.line_height(font_size);
+		text::text_color current_color = text::text_color::black;
+		float current_x = 0.f;
+		float current_y = 0.f;
+		
+		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); i++) {
+			if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
+				auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+				std::string_view text = state.to_string_view(tkey);
+				size_t str_i = 0;
+				size_t current_len = 0;
+				while(str_i < text.size()) {
+					// FIXME: this approach of finding word breaks does not apply to all languages
+					auto next_wb = text.find_first_of(" \n\t", str_i + current_len);
+					if(next_wb == std::string_view::npos) {
+						next_wb = text.size();
+					}
+					next_wb = std::min(next_wb, text.size()) - str_i;
+					if(next_wb == current_len) {
+						current_len++;
+					} else {
+						auto seg_start = std::next(text.begin(), str_i);
+						std::string_view segment{ seg_start, std::next(seg_start, next_wb) };
+						if(current_x + font.text_extent(segment.data(), uint32_t(segment.size()), font_size) >= base_data.size.x) {
+							std::string_view section{ seg_start, std::next(seg_start, current_len) };
+							sections.push_back(multiline_text_section{ section, current_x, current_y, current_color });
+							current_x = 0.f;
+							current_y += line_height + vertical_spacing;
+							str_i += current_len;
+							current_len = 0;
+							line_count++;
+						} else if(next_wb == text.size() - str_i) {
+							// we've reached the end of the text
+							std::string_view remaining{ seg_start, text.end() };
+							sections.push_back(multiline_text_section{ remaining, current_x, current_y, current_color });
+							current_x += font.text_extent(remaining.data(), uint32_t(remaining.size()), font_size);
+							if(current_x >= base_data.size.x) {
+								current_x = 0.f;
+								current_y += line_height + vertical_spacing;
+								line_count++;
+							}
+							break;
+						} else {
+							current_len = next_wb;
+						}
+					}
+				}
+				
+			} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
+				current_x = 0.f;
+				current_y += line_height + vertical_spacing;
+				line_count++;
+
+			} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
+				current_color = std::get<text::text_color>(state.text_components[i]);
+				
+			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {  // TODO handle variables properly
+				std::string_view qmark{ "?" };
+				sections.push_back(multiline_text_section{ qmark, current_x, current_y, current_color });
+				current_x += font.text_extent(qmark.data(), 1, font_size);
+				if(current_x >= base_data.size.x) {
+					current_x = 0.f;
+					current_y += line_height + vertical_spacing;
+					line_count++;
+				}
+			}
+		}
+		if(current_x) {
+			line_count++;
+		}
+		visible_lines = std::min(line_count, base_data.size.y / int32_t(line_height));
+	}
+}
+
+void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	for(auto& section : sections) {
+		float line_offset = section.y_offset - line_height * float(current_line);
+		if(section.stored_text.size() && 0 <= line_offset && line_offset < base_data.size.y) {
+			ogl::render_text(
+				state, section.stored_text.data(), uint32_t(section.stored_text.size()),
+				ogl::color_modification::none,
+				float(x + section.x_offset), float(y + base_data.size.y + line_offset), float(font_size),
+				get_text_color(section.color),
+				state.font_collection.fonts[font_id - 1]
+			);
 		}
 	}
 }
