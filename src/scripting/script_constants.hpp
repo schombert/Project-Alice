@@ -2144,6 +2144,7 @@ union payload {
 	dcon::national_event_id nev_id;
 	dcon::provincial_event_id pev_id;
 	dcon::unit_name_id unam_id;
+	dcon::trigger_key tr_id;
 
 
 	//variables::national_variable_tag nat_var;
@@ -2267,6 +2268,10 @@ union payload {
 	payload(dcon::unit_name_id i) {
 		memset(this, 0, sizeof(payload));
 		unam_id = i;
+	}
+	payload(dcon::trigger_key i) {
+		memset(this, 0, sizeof(payload));
+		tr_id = i;
 	}
 };
 

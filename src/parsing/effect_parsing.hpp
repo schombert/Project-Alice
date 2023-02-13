@@ -9,8 +9,7 @@ namespace parsers {
 struct effect_building_context {
 	scenario_building_context& outer_context;
 	std::vector<uint16_t> compiled_effect;
-
-	float factor = 0.0f;
+	size_t limit_position = 0;
 
 	trigger::slot_contents main_slot = trigger::slot_contents::empty;
 	trigger::slot_contents this_slot = trigger::slot_contents::empty;
@@ -442,7 +441,16 @@ struct ef_build_fort_in_capital {
 	void finish(effect_building_context&) { }
 };
 
+struct ef_random_list {
+	int32_t chances_sum = 0;
+	void any_group(std::string_view label, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
+		chances_sum += value;
+	}
+	void finish(effect_building_context&) { }
+};
+
 struct effect_body {
+	int32_t chance = 0;
 	void finish(effect_building_context&) { }
 	void capital(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -2806,7 +2814,9 @@ struct effect_body {
 			return;
 		}
 	}
-	void limit(dcon::trigger_key lim, error_handler& err, int32_t line, effect_building_context& context) { }
+	void limit(dcon::trigger_key lim, error_handler& err, int32_t line, effect_building_context& context) {
+		context.compiled_effect[context.limit_position] = trigger::payload(lim).value;
+	}
 };
 
 dcon::trigger_key ef_limit(token_generator& gen, error_handler& err, effect_building_context& context);
@@ -2824,7 +2834,6 @@ void ef_scope_middle_strata(token_generator& gen, error_handler& err, effect_bui
 void ef_scope_rich_strata(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_pop(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_building_context& context);
-void ef_scope_random_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_owned(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_all_core(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_state(token_generator& gen, error_handler& err, effect_building_context& context);
@@ -2848,5 +2857,8 @@ void ef_state_scope(token_generator& gen, error_handler& err, effect_building_co
 void ef_scope_random(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_list(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_variable(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
+int32_t add_to_random_list(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
+
+dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_building_context& context);
 
 }

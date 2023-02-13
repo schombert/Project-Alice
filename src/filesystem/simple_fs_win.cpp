@@ -1,4 +1,5 @@
 #include "simple_fs.hpp"
+#include "simple_fs_types_win.hpp"
 #include "text.hpp"
 
 #ifndef UNICODE

@@ -1205,6 +1205,9 @@ ef_build_fort_in_capital
 	in_whole_capital_state         value     bool                       member
 	limit_to_world_greatest_level  value     bool                       member
 
+ef_random_list
+	#any                            extern      add_to_random_list  member_fn
+
 effect_body
 	capital                         value       int                 member_fn
 	add_core                        value       text                member_fn
@@ -1291,6 +1294,7 @@ effect_body
 	railroad                        value       int                 member_fn  (infrastructure)
 	set_province_flag               value       none                discard
 	clr_province_flag               value       none                discard
+	chance                          value       int                 member
 	#any                            value       text                member_fn
 	limit                           extern      ef_limit                    member_fn
 	trigger_revolt                  group       ef_trigger_revolt           member_fn
@@ -1334,7 +1338,7 @@ effect_body
 	rich_strata                     extern      ef_scope_rich_strata        discard
 	random_pop                      extern      ef_scope_random_pop         discard
 	random_owned                    extern      ef_scope_random_owned       discard
-	random_province                 extern      ef_scope_random_province    discard
+	random_province                 extern      ef_scope_random_owned       discard
 	any_owned                       extern      ef_scope_any_owned          discard
 	all_core                        extern      ef_scope_all_core           discard
 	any_state                       extern      ef_scope_any_state          discard

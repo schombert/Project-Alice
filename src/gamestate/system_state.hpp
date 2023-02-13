@@ -77,6 +77,7 @@ namespace sys {
 		absolute_time_point end_date;
 
 		std::vector<uint16_t> trigger_data;
+		std::vector<uint16_t> effect_data;
 		std::vector<value_modifier_segment> value_modifier_segments;
 		tagged_vector<value_modifier_description, dcon::value_modifier_key> value_modifiers;
 
@@ -155,6 +156,7 @@ namespace sys {
 		std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
 
 		dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
+		dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
 		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)) {}
 		~state();

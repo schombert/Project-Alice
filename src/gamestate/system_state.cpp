@@ -258,6 +258,18 @@ namespace sys {
 		}
 	}
 
+	dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
+		if(data.size() == 0)
+			return dcon::effect_key();
+
+		auto start = effect_data.size();
+		auto size = data.size();
+
+		effect_data.resize(start + size, uint16_t(0));
+		std::copy_n(data.data(), size, effect_data.data() + start);
+		return dcon::effect_key(uint16_t(start));
+	}
+
 	void state::save_user_settings() const {
 		auto settings_location = simple_fs::get_or_create_settings_directory();
 		simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), reinterpret_cast<char const*>(&user_settings), uint32_t(sizeof(user_settings_s)));
