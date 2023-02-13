@@ -16,6 +16,7 @@ make_index{national_variable_id}{uint16_t}
 make_index{national_flag_id}{uint16_t}
 make_index{global_flag_id}{uint16_t}
 make_index{trigger_key}{uint16_t}
+make_index{effect_key}{uint16_t}
 make_index{value_modifier_key}{uint16_t}
 
 object{
