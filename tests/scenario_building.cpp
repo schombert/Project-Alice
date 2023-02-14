@@ -909,5 +909,21 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.national_focus_get_icon(state->national_definitions.flashpoint_focus) == uint8_t(4));
 		REQUIRE(bool(state->world.national_focus_get_limit(state->national_definitions.flashpoint_focus)) == true);
 	}
+	// load pop_types.txt
+	{
+		auto pop_types_file = open_file(common, NATIVE("pop_types.txt"));
+		if(pop_types_file) {
+			auto content = view_contents(*pop_types_file);
+			err.file_name = "pop_types.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_main_pop_type_file(gen, err, context);
+		} else {
+			err.fatal = true;
+			err.accumulated_errors += "File common/pop_types.txt could not be opened\n";
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(bool(state->culture_definitions.migration_chance) == true);
+	}
 }
 #endif

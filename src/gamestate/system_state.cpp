@@ -892,6 +892,19 @@ namespace sys {
 				err.accumulated_errors += "File common/national_focus.txt could not be opened\n";
 			}
 		}
+		// load pop_types.txt
+		{
+			auto pop_types_file = open_file(common, NATIVE("pop_types.txt"));
+			if(pop_types_file) {
+				auto content = view_contents(*pop_types_file);
+				err.file_name = "pop_types.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_main_pop_type_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/pop_types.txt could not be opened\n";
+			}
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}

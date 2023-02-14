@@ -1485,3 +1485,12 @@ focus_group
 
 national_focus_file
 	#any                      group        focus_group      member
+
+main_pop_type_file
+	promotion_chance          extern       make_poptype_pop_chance    member_fn
+	demotion_chance           extern       make_poptype_pop_chance    member_fn
+	migration_chance          extern       make_poptype_pop_chance    member_fn
+	colonialmigration_chance  extern       make_poptype_pop_chance    member_fn
+	emigration_chance         extern       make_poptype_pop_chance    member_fn
+	assimilation_chance       extern       make_poptype_pop_chance    member_fn
+	conversion_chance         extern       make_poptype_pop_chance    member_fn

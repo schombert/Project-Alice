@@ -54,7 +54,7 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read prepared crimes (from modifiers) *Done*
 - Read prepared triggered modifiers *Done*
 - Read `national_focus.txt` *Done*
-- Read main poptypes file (`pop_types.txt`)
+- Read main poptypes file (`pop_types.txt`) *Done*
 - Read files in directory `poptypes` *Done*
 - Read prepared rebel types
 - Read `on_actions.txt`
