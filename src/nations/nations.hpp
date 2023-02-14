@@ -63,6 +63,9 @@ struct global_national_state {
 	int32_t num_allocated_national_variables = 0;
 	int32_t num_allocated_national_flags = 0;
 	int32_t num_allocated_global_flags = 0;
+
+	dcon::national_focus_id flashpoint_focus;
+	float flashpoint_amount = 0.15f;
 };
 
 }

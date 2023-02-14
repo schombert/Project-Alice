@@ -2176,6 +2176,66 @@ namespace parsers {
 	dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_option_context& context);
 	dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_option_context& context);
 	void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct national_focus_context {
+		scenario_building_context& outer_context;
+		dcon::national_focus_id id;
+	};
+
+	struct national_focus {
+		void finish(national_focus_context&) { }
+		void railroads(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
+			context.outer_context.state.world.national_focus_set_railroads(context.id, value);
+		}
+		void icon(association_type, int32_t value, error_handler& err, int32_t line, national_focus_context& context) {
+			context.outer_context.state.world.national_focus_set_icon(context.id, uint8_t(value));
+		}
+		void limit(dcon::trigger_key value, error_handler& err, int32_t line, national_focus_context& context) {
+			context.outer_context.state.world.national_focus_set_limit(context.id, value);
+		}
+		void has_flashpoint(association_type, bool value, error_handler& err, int32_t line, national_focus_context& context) {
+			if(value)
+				context.outer_context.state.national_definitions.flashpoint_focus = context.id;
+		}
+		void flashpoint_tension(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
+			context.outer_context.state.national_definitions.flashpoint_amount = value;
+		}
+		void ideology(association_type, std::string_view value, error_handler& err, int32_t line, national_focus_context& context) {
+			if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
+				context.outer_context.state.world.national_focus_set_ideology(context.id, it->second.id);
+			} else {
+				err.accumulated_errors += "Invalid ideology " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void loyalty_value(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
+			context.outer_context.state.world.national_focus_set_loyalty_value(context.id, value);
+		}
+		void immigrant_attract(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
+			context.outer_context.state.world.national_focus_set_immigrant_attract(context.id, value);
+		}
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
+			std::string str_label{label};
+			if(auto it = context.outer_context.map_of_poptypes.find(str_label); it != context.outer_context.map_of_poptypes.end()) {
+				context.outer_context.state.world.national_focus_set_promotion_type(context.id, it->second);
+				context.outer_context.state.world.national_focus_set_promotion_amount(context.id, value);
+			} else if(auto itb = context.outer_context.map_of_commodity_names.find(str_label); itb != context.outer_context.map_of_commodity_names.end()) {
+				context.outer_context.state.world.national_focus_set_production_focus(context.id, itb->second, value);
+			} else {
+				err.accumulated_errors += "Invalid pop type / commodity " + str_label + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+
+	struct focus_group {
+		void finish(scenario_building_context&) { }
+	};
+	struct national_focus_file {
+		focus_group any_group;
+		void finish(scenario_building_context&) { }
+	};
+
+	dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, national_focus_context& context);
+	void make_focus(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"

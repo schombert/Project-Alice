@@ -758,6 +758,8 @@ namespace sys {
 		world.pop_type_resize_issues(world.issue_option_size());
 		world.pop_type_resize_promotion(world.pop_type_size());
 
+		world.national_focus_resize_production_focus(world.commodity_size());
+
 		// load country files
 		world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));
@@ -875,6 +877,19 @@ namespace sys {
 			err.file_name = "issues.txt";
 			for(auto& r : context.map_of_options) {
 				parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
+			}
+		}
+		// parse national_focus.txt
+		{
+			auto nat_focus = open_file(common, NATIVE("national_focus.txt"));
+			if(nat_focus) {
+				auto content = view_contents(*nat_focus);
+				err.file_name = "national_focus.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_national_focus_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/national_focus.txt could not be opened\n";
 			}
 		}
 		if(err.accumulated_errors.length() > 0)
