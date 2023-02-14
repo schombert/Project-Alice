@@ -2011,6 +2011,171 @@ namespace parsers {
 
 	dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context);
 	void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct individual_option_context {
+		scenario_building_context& outer_context;
+		dcon::issue_option_id id;
+	};
+
+	struct option_rules {
+		void finish(individual_option_context&) { }
+		void build_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_factory;
+		}
+		void expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::expand_factory;
+		}
+		void open_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::open_factory;
+		}
+		void destroy_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::destroy_factory;
+		}
+		void factory_priority(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::factory_priority;
+		}
+		void can_subsidise(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::can_subsidise;
+		}
+		void pop_build_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::pop_build_factory;
+		}
+		void pop_expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::pop_expand_factory;
+		}
+		void pop_open_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::pop_open_factory;
+		}
+		void delete_factory_if_no_input(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::delete_factory_if_no_input;
+		}
+		void build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_factory_invest;
+		}
+		void expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::expand_factory_invest;
+		}
+		void open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::open_factory_invest;
+		}
+		void build_railway_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_railway_invest;
+		}
+		void can_invest_in_pop_projects(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::can_invest_in_pop_projects;
+		}
+		void pop_build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::pop_build_factory_invest;
+		}
+		void pop_expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::pop_expand_factory_invest;
+		}
+		void pop_open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::pop_open_factory_invest;
+		}
+		void allow_foreign_investment(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::allow_foreign_investment;
+		}
+		void slavery_allowed(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::slavery_allowed;
+		}
+		void primary_culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::primary_culture_voting;
+		}
+		void culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::culture_voting;
+		}
+		void all_voting(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::all_voting;
+		}
+		void largest_share(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::largest_share;
+		}
+		void dhont(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::dhont;
+		}
+		void sainte_laque(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::sainte_laque;
+		}
+		void same_as_ruling_party(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::same_as_ruling_party;
+		}
+		void rich_only(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::rich_only;
+		}
+		void state_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::state_vote;
+		}
+		void population_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::population_vote;
+		}
+		void build_railway(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_railway;
+		}
+	};
+
+	struct on_execute_body {
+		dcon::trigger_key trigger;
+		dcon::effect_key effect;
+		void finish(individual_option_context&) { }
+	};
+
+	struct issue_option_body : public modifier_base {
+		void technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_option_context& context) {
+			context.outer_context.state.world.issue_option_set_technology_cost(context.id, value);
+		}
+		void war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_option_context& context) {
+			context.outer_context.state.world.issue_option_set_war_exhaustion_effect(context.id, value);
+		}
+		void administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_option_context& context) {
+			context.outer_context.state.world.issue_option_set_administrative_multiplier(context.id, value);
+		}
+		void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context) {
+			if(value)
+				context.outer_context.state.culture_definitions.jingoism = context.id;
+		}
+		void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context) {
+			context.outer_context.state.world.issue_option_set_on_execute_trigger(context.id, value.trigger);
+			context.outer_context.state.world.issue_option_set_on_execute_effect(context.id, value.effect);
+		}
+		option_rules rules;
+	};
+
+	void make_opt_allow(token_generator& gen, error_handler& err, individual_option_context& context);
+	dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_option_context& context);
+	dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_option_context& context);
+	void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"

@@ -870,6 +870,13 @@ namespace sys {
 				parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
 			}
 		}
+		// pending issue options
+		{
+			err.file_name = "issues.txt";
+			for(auto& r : context.map_of_options) {
+				parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
+			}
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
