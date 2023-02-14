@@ -110,10 +110,19 @@ struct global_cultural_state {
 	int32_t officer_leadership_points = 0;
 	float bureaucrat_tax_efficiency = 0.0f;
 
-	//special ideology
+	// special ideology
 	dcon::ideology_id conservative;
-	//special issue
+	// special issue
 	dcon::issue_option_id jingoism;
+
+	// from pop_types.txt
+	dcon::value_modifier_key promotion_chance;
+	dcon::value_modifier_key demotion_chance;
+	dcon::value_modifier_key migration_chance;
+	dcon::value_modifier_key colonialmigration_chance;
+	dcon::value_modifier_key emigration_chance;
+	dcon::value_modifier_key assimilation_chance;
+	dcon::value_modifier_key conversion_chance;
 };
 
 enum class issue_category {

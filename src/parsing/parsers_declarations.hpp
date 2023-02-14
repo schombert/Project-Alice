@@ -2236,6 +2236,33 @@ namespace parsers {
 
 	dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, national_focus_context& context);
 	void make_focus(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct main_pop_type_file {
+		void finish(scenario_building_context&) { }
+		void promotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
+			context.state.culture_definitions.promotion_chance = value;
+		}
+		void demotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
+			context.state.culture_definitions.demotion_chance = value;
+		}
+		void migration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
+			context.state.culture_definitions.migration_chance = value;
+		}
+		void colonialmigration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
+			context.state.culture_definitions.colonialmigration_chance = value;
+		}
+		void emigration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
+			context.state.culture_definitions.emigration_chance = value;
+		}
+		void assimilation_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
+			context.state.culture_definitions.assimilation_chance = value;
+		}
+		void conversion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
+			context.state.culture_definitions.conversion_chance = value;
+		}
+	};
+
+	dcon::value_modifier_key make_poptype_pop_chance(token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"
