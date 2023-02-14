@@ -832,5 +832,26 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		}
 		REQUIRE(err.accumulated_errors == "");
 	}
+	// cb contents
+	{
+		err.file_name = "cb_types.txt";
+		for(auto& r : context.map_of_cb_types) {
+			parsers::individual_cb_context new_context{ context, r.second.id };
+			parsers::parse_cb_body(r.second.generator_state, err, new_context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(bool(state->military_definitions.standard_civil_war) == true);
+		REQUIRE(state->world.cb_type_get_sprite_index(state->military_definitions.standard_civil_war) == uint8_t(2));
+		REQUIRE(state->world.cb_type_get_months(state->military_definitions.standard_civil_war) == uint8_t(1));
+		REQUIRE(state->world.cb_type_get_peace_cost_factor(state->military_definitions.standard_civil_war) == 1.0f);
+		REQUIRE(state->world.cb_type_get_break_truce_militancy_factor(state->military_definitions.standard_civil_war) == 2.0f);
+		REQUIRE(state->world.cb_type_get_truce_months(state->military_definitions.standard_civil_war) == uint8_t(0));
+		REQUIRE(state->world.cb_type_get_type_bits(state->military_definitions.standard_civil_war) ==
+			uint32_t(military::cb_flag::is_civil_war | military::cb_flag::po_annex | military::cb_flag::is_triggered_only | military::cb_flag::is_not_constructing_cb | military::cb_flag::not_in_crisis));
+		REQUIRE(bool(state->world.cb_type_get_can_use(state->military_definitions.standard_civil_war))== true);
+		REQUIRE(bool(state->world.cb_type_get_on_add(state->military_definitions.standard_civil_war)) == true);
+		REQUIRE(bool(state->world.cb_type_get_allowed_states(state->military_definitions.standard_civil_war)) == false);
+	}
 }
 #endif

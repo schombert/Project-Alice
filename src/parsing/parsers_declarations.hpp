@@ -1789,6 +1789,220 @@ namespace parsers {
 
 	dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler& err, individual_ideology_context& context);
 	dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct individual_cb_context {
+		scenario_building_context& outer_context;
+		dcon::cb_type_id id;
+	};
+
+
+	struct cb_body {
+		void finish(individual_cb_context&) { }
+		void is_civil_war(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::is_civil_war;
+				context.outer_context.state.military_definitions.standard_civil_war = context.id;
+			}
+		}
+		void months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_months(context.id, uint8_t(value));
+		}
+		void truce_months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_truce_months(context.id, uint8_t(value));
+		}
+		void sprite_index(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_sprite_index(context.id, uint8_t(value));
+		}
+		void always(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::always;
+			}
+		}
+		void is_triggered_only(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::is_triggered_only;
+			}
+		}
+		void constructing_cb(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(!value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::is_not_constructing_cb;
+			}
+		}
+		void great_war_obligatory(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::great_war_obligatory;
+				context.outer_context.state.military_definitions.standard_great_war = context.id;
+			}
+		}
+		void all_allowed_states(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::all_allowed_states;
+			}
+		}
+		void crisis(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(!value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::not_in_crisis;
+			}
+		}
+		void po_clear_union_sphere(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_clear_union_sphere;
+			}
+		}
+		void po_gunboat(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_gunboat;
+			}
+		}
+		void po_annex(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_annex;
+			}
+		}
+		void po_demand_state(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_demand_state;
+			}
+		}
+		void po_add_to_sphere(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_add_to_sphere;
+			}
+		}
+		void po_disarmament(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_disarmament;
+			}
+		}
+		void po_reparations(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_reparations;
+			}
+		}
+		void po_transfer_provinces(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_transfer_provinces;
+			}
+		}
+		void po_remove_prestige(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_remove_prestige;
+			}
+		}
+		void po_make_puppet(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_make_puppet;
+			}
+		}
+		void po_release_puppet(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_release_puppet;
+			}
+		}
+		void po_status_quo(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_status_quo;
+			}
+		}
+		void po_install_communist_gov_type(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_install_communist_gov_type;
+			}
+		}
+		void po_uninstall_communist_gov_type(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_uninstall_communist_gov_type;
+			}
+		}
+		void po_remove_cores(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_remove_cores;
+			}
+		}
+		void po_colony(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_colony;
+			}
+		}
+		void po_destroy_forts(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_destroy_forts;
+			}
+		}
+		void po_destroy_naval_bases(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context) {
+			if(value) {
+				context.outer_context.state.world.cb_type_get_type_bits(context.id) |= military::cb_flag::po_destroy_naval_bases;
+			}
+		}
+		void war_name(association_type, std::string_view value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_war_name(context.id, text::find_or_add_key(context.outer_context.state, value));
+		}
+		void badboy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_badboy_factor(context.id, value);
+		}
+		void prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_prestige_factor(context.id, value);
+		}
+		void peace_cost_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_peace_cost_factor(context.id, value);
+		}
+		void penalty_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_penalty_factor(context.id, value);
+		}
+		void break_truce_prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_break_truce_prestige_factor(context.id, value);
+		}
+		void break_truce_infamy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_break_truce_infamy_factor(context.id, value);
+		}
+		void break_truce_militancy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_break_truce_militancy_factor(context.id, value);
+		}
+		void good_relation_prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_good_relation_prestige_factor(context.id, value);
+		}
+		void good_relation_infamy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_good_relation_infamy_factor(context.id, value);
+		}
+		void good_relation_militancy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_good_relation_militancy_factor(context.id, value);
+		}
+		void construction_speed(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_construction_speed(context.id, value);
+		}
+		void tws_battle_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_tws_battle_factor(context.id, value);
+		}
+		void allowed_states(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_allowed_states(context.id, value);
+		}
+		void allowed_states_in_crisis(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_allowed_states_in_crisis(context.id, value);
+		}
+		void allowed_substate_regions(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_allowed_substate_regions(context.id, value);
+		}
+		void allowed_countries(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_allowed_countries(context.id, value);
+		}
+		void can_use(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_can_use(context.id, value);
+		}
+		void on_add(dcon::effect_key value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_on_add(context.id, value);
+		}
+		void on_po_accepted(dcon::effect_key value, error_handler& err, int32_t line, individual_cb_context& context) {
+			context.outer_context.state.world.cb_type_set_on_po_accepted(context.id, value);
+		}
+	};
+
+	dcon::trigger_key cb_allowed_states(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::trigger_key cb_allowed_crisis_states(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::trigger_key cb_allowed_substates(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::trigger_key cb_allowed_countries(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::trigger_key cb_can_use(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::effect_key cb_on_add(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, individual_cb_context& context);
 }
 
 #include "trigger_parsing.hpp"

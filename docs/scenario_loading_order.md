@@ -50,7 +50,7 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read production types from `production_types.txt`
 - Read prepared ideologies *Done*
 - Read prepared issue options
-- Read prepared CB types
+- Read prepared CB types *Done*
 - Read prepared crimes (from modifiers)
 - Read prepared triggered modifiers *Done*
 - Read `national_focus.txt`

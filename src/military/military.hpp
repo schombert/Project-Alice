@@ -7,7 +7,7 @@ namespace cb_flag {
 
 inline constexpr uint32_t is_civil_war = 0x00000001;
 inline constexpr uint32_t always = 0x00000002;
-inline constexpr uint32_t is_not_triggered_only = 0x00000004;
+inline constexpr uint32_t is_triggered_only = 0x00000004;
 inline constexpr uint32_t is_not_constructing_cb = 0x00000008;
 inline constexpr uint32_t great_war_obligatory = 0x00000010;
 inline constexpr uint32_t all_allowed_states = 0x00000020;
@@ -73,6 +73,9 @@ struct unit_definition {
 struct global_military_state {
 	dcon::leader_trait_id first_background_trait;
 	tagged_vector<unit_definition, dcon::unit_type_id> unit_base_definitions;
+
+	dcon::cb_type_id standard_civil_war;
+	dcon::cb_type_id standard_great_war;
 };
 
 }

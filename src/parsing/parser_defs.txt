@@ -1362,3 +1362,55 @@ effect_body
 	random                          extern      ef_scope_random             discard
 	random_list                     extern      ef_scope_random_list        discard
 	#any                            extern      ef_scope_variable           discard
+
+cb_body
+	is_civil_war                    value       bool                        member_fn
+	months                          value       int                         member_fn
+	truce_months                    value       int                         member_fn
+	sprite_index                    value       int                         member_fn
+	always                          value       bool                        member_fn
+	is_triggered_only               value       bool                        member_fn
+	constructing_cb                 value       bool                        member_fn
+	allowed_states                  extern      cb_allowed_states           member_fn
+	allowed_states_in_crisis        extern      cb_allowed_crisis_states    member_fn
+	allowed_substate_regions        extern      cb_allowed_substates        member_fn
+	allowed_countries               extern      cb_allowed_countries        member_fn
+	can_use                         extern      cb_can_use                  member_fn
+	on_add                          extern      cb_on_add                   member_fn
+	on_po_accepted                  extern      cb_on_po_accepted           member_fn
+	badboy_factor                   value       float                       member_fn
+	prestige_factor                 value       float                       member_fn
+	peace_cost_factor               value       float                       member_fn
+	penalty_factor                  value       float                       member_fn
+	break_truce_prestige_factor     value       float                       member_fn
+	break_truce_infamy_factor       value       float                       member_fn
+	break_truce_militancy_factor    value       float                       member_fn
+	good_relation_prestige_factor   value       float                       member_fn
+	good_relation_infamy_factor     value       float                       member_fn
+	good_relation_militancy_factor  value       float                       member_fn
+	war_name                        value       text                        member_fn
+	construction_speed              value       float                       member_fn
+	tws_battle_factor               value       float                       member_fn
+	great_war_obligatory            value       bool                        member_fn
+	all_allowed_states              value       bool                        member_fn
+	crisis                          value       bool                        member_fn
+	po_clear_union_sphere           value       bool                        member_fn
+	po_gunboat                      value       bool                        member_fn
+	po_annex                        value       bool                        member_fn
+	po_demand_state                 value       bool                        member_fn
+	po_add_to_sphere                value       bool                        member_fn
+	po_disarmament                  value       bool                        member_fn
+	po_reparations                  value       bool                        member_fn
+	po_transfer_provinces           value       bool                        member_fn
+	po_remove_prestige              value       bool                        member_fn
+	po_make_puppet                  value       bool                        member_fn
+	po_release_puppet               value       bool                        member_fn
+	po_status_quo                   value       bool                        member_fn
+	po_install_communist_gov_type   value       bool                        member_fn
+	po_uninstall_communist_gov_type value       bool                        member_fn
+	po_remove_cores                 value       bool                        member_fn
+	po_colony                       value       bool                        member_fn
+	po_destroy_forts                value       bool                        member_fn
+	po_destroy_naval_bases          value       bool                        member_fn
+	mutual                          value       none                        discard
+	is_valid                        group       none                        discard
