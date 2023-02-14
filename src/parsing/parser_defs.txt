@@ -1466,3 +1466,22 @@ issue_option_body
 	rules                     group        option_rules     member
 	allow                     extern       make_opt_allow   discard
 	on_execute                group        on_execute_body  member_fn
+
+national_focus
+	railroads                 value        float            member_fn
+	icon                      value        int              member_fn
+	limit                     extern       make_focus_limit member_fn
+	own_provinces             value        bool             discard
+	has_flashpoint            value        bool             member_fn
+	flashpoint_tension        value        float            member_fn
+	outliner_show_as_percent  value        bool             discard
+	ideology                  value        text             member_fn
+	loyalty_value             value        float            member_fn
+	immigrant_attract         value        float            member_fn
+	#any                      value        float            member_fn
+
+focus_group
+	#any                      extern       make_focus       discard
+
+national_focus_file
+	#any                      group        focus_group      member

@@ -1010,3 +1010,50 @@ object {
 	storage_type{ contiguous }
 	size{ 5000 }
 }
+
+object {
+	name{ national_focus }
+	storage_type{ contiguous }
+	size{ 64 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ icon }
+		type{ uint8_t }
+	}
+	property{
+		name{ loyalty_value }
+		type{ float }
+	}
+	property{
+		name{ ideology }
+		type{ ideology_id }
+	}
+	property{
+		name{ limit }
+		type{ trigger_key }
+	}
+	property{
+		name{ promotion_type }
+		type{ pop_type_id }
+	}
+	property{
+		name{ promotion_amount }
+		type{ float }
+	}
+	property{
+		name{ immigrant_attract }
+		type{ float }
+	}
+	property{
+		name{ railroads }
+		type{ float }
+	}
+	property{
+		name{ production_focus }
+		type{array{commodity_id}{float}}
+	}
+}

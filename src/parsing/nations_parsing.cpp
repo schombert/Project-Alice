@@ -774,4 +774,17 @@ dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_
 	return make_trigger(gen, err, t_context);
 }
 
+
+dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, national_focus_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+void make_focus(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto name_id = text::find_or_add_key(context.state, name);
+	auto new_focus = context.state.world.create_national_focus();
+	context.state.world.national_focus_set_name(new_focus, name_id);
+	national_focus_context new_context{context, new_focus};
+	parse_national_focus(gen, err, new_context);
+}
+
 }
