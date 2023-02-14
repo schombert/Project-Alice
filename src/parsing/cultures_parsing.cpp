@@ -313,13 +313,41 @@ void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& 
 	context.state.culture_definitions.crimes[id].available_by_default = crime_body.active;
 	context.state.culture_definitions.crimes[id].trigger = crime_body.trigger;
 
-	auto new_modifier = context.state.world.create_modifier();
-	context.state.world.modifier_set_name(new_modifier, context.state.culture_definitions.crimes[id].name);
-	context.state.world.modifier_set_icon(new_modifier, uint8_t(crime_body.icon_index));
+	if(crime_body.next_to_add != 0) {
+		auto new_modifier = context.state.world.create_modifier();
+		context.state.world.modifier_set_name(new_modifier, context.state.culture_definitions.crimes[id].name);
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(crime_body.icon_index));
 
-	crime_body.convert_to_province_mod();
-	context.state.world.modifier_set_province_values(new_modifier, crime_body.constructed_definition);
-	context.state.culture_definitions.crimes[id].modifier = new_modifier;
+		crime_body.convert_to_province_mod();
+		context.state.world.modifier_set_province_values(new_modifier, crime_body.constructed_definition);
+		context.state.culture_definitions.crimes[id].modifier = new_modifier;
+	}
+}
+
+void make_opt_allow(token_generator& gen, error_handler& err, individual_option_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	context.outer_context.state.world.issue_option_set_allow(context.id, make_trigger(gen, err, t_context));
+}
+dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_option_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_option_context& context) {
+	effect_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_effect(gen, err, t_context);
+}
+void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	individual_option_context new_context{context, id};
+	issue_option_body opt = parse_issue_option_body(gen, err, new_context);
+
+	if(opt.next_to_add != 0) {
+		auto new_modifier = context.state.world.create_modifier();
+		context.state.world.modifier_set_name(new_modifier, context.state.world.issue_option_get_name(id));
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(opt.icon_index));
+		opt.convert_to_national_mod();
+		context.state.world.modifier_set_national_values(new_modifier, opt.constructed_definition);
+		context.state.world.issue_option_set_modifier(id, new_modifier);
+	}
 }
 
 }

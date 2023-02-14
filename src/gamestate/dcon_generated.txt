@@ -368,6 +368,46 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
+
+	property{
+		name{ rules }
+		type{ uint32_t }
+	}
+
+	property{
+		name{ modifier }
+		type{ modifier_id }
+	}
+
+	property{
+		name{ technology_cost }
+		type{ int32_t }
+	}
+
+	property{
+		name{ war_exhaustion_effect }
+		type{ float }
+	}
+
+	property{
+		name{ administrative_multiplier }
+		type{ float }
+	}
+
+	property{
+		name{ allow }
+		type{ trigger_key }
+	}
+
+	property{
+		name{ on_execute_trigger }
+		type{ trigger_key }
+	}
+
+	property{
+		name{ on_execute_effect }
+		type{ effect_key }
+	}
 }
 
 object {

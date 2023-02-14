@@ -1419,3 +1419,50 @@ crime_modifier
 	#base          modifier_base
 	active         value      bool                      member
 	trigger        extern     make_crime_trigger        member
+
+option_rules
+	build_factory               value      bool        member_fn
+	expand_factory              value      bool        member_fn
+	open_factory                value      bool        member_fn
+	destroy_factory             value      bool        member_fn
+	factory_priority            value      bool        member_fn
+	can_subsidise               value      bool        member_fn
+	pop_build_factory           value      bool        member_fn
+	pop_expand_factory          value      bool        member_fn
+	pop_open_factory            value      bool        member_fn
+	delete_factory_if_no_input  value      bool        member_fn
+	build_factory_invest        value      bool        member_fn
+	expand_factory_invest       value      bool        member_fn
+	open_factory_invest         value      bool        member_fn
+	build_railway_invest        value      bool        member_fn
+	can_invest_in_pop_projects  value      bool        member_fn
+	pop_build_factory_invest    value      bool        member_fn
+	pop_expand_factory_invest   value      bool        member_fn
+	pop_open_factory_invest     value      bool        member_fn
+	allow_foreign_investment    value      bool        member_fn
+	slavery_allowed             value      bool        member_fn
+	primary_culture_voting      value      bool        member_fn
+	culture_voting              value      bool        member_fn
+	all_voting                  value      bool        member_fn
+	largest_share               value      bool        member_fn
+	dhont                       value      bool        member_fn
+	sainte_laque                value      bool        member_fn
+	same_as_ruling_party        value      bool        member_fn
+	rich_only                   value      bool        member_fn
+	state_vote                  value      bool        member_fn
+	population_vote             value      bool        member_fn
+	build_railway               value      bool        member_fn
+
+on_execute_body
+	trigger                extern    make_execute_trigger   member
+	effect                 extern    make_execute_effect    member
+
+issue_option_body
+	#base          modifier_base
+	technology_cost           value        int              member_fn
+	war_exhaustion_effect     value        float            member_fn
+	administrative_multiplier value        float            member_fn
+	is_jingoism               value        bool             member_fn
+	rules                     group        option_rules     member
+	allow                     extern       make_opt_allow   discard
+	on_execute                group        on_execute_body  member_fn

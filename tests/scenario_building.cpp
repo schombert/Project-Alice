@@ -870,5 +870,24 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(mod_id).get_offet_at_index(0) == sys::provincial_mod_offsets::boost_strongest_party);
 		REQUIRE(state->world.modifier_get_province_values(mod_id).values[0] == 5.0f);
 	}
+	// pending issue options
+	{
+		err.file_name = "issues.txt";
+		for(auto& r : context.map_of_options) {
+			parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		REQUIRE(bool(state->culture_definitions.jingoism) == true);
+
+		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
+		auto fatb = fatten(state->world, itb->second.id);
+		REQUIRE(fatb.get_administrative_multiplier() == 2.0f);
+		auto mid = fatb.get_modifier();
+		REQUIRE(bool(mid) == true);
+		REQUIRE(state->world.modifier_get_national_values(mid).get_offet_at_index(0) == sys::national_mod_offsets::education_efficiency_modifier);
+
+	}
 }
 #endif
