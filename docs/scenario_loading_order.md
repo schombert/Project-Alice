@@ -51,7 +51,7 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read prepared ideologies *Done*
 - Read prepared issue options
 - Read prepared CB types *Done*
-- Read prepared crimes (from modifiers)
+- Read prepared crimes (from modifiers) *Done*
 - Read prepared triggered modifiers *Done*
 - Read `national_focus.txt`
 - Read main poptypes file (`pop_types.txt`)

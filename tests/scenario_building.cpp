@@ -853,5 +853,22 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(bool(state->world.cb_type_get_on_add(state->military_definitions.standard_civil_war)) == true);
 		REQUIRE(bool(state->world.cb_type_get_allowed_states(state->military_definitions.standard_civil_war)) == false);
 	}
+	// pending crimes
+	{
+		err.file_name = "crime.txt";
+		for(auto& r : context.map_of_crimes) {
+			parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto ita = context.map_of_crimes.find(std::string("machine_politics"));
+		REQUIRE(state->culture_definitions.crimes[ita->second.id].available_by_default == true);
+		auto mod_id = state->culture_definitions.crimes[ita->second.id].modifier;
+		REQUIRE(bool(mod_id) == true);
+		REQUIRE(state->world.modifier_get_icon(mod_id) == uint8_t(4));
+		REQUIRE(state->world.modifier_get_province_values(mod_id).get_offet_at_index(0) == sys::provincial_mod_offsets::boost_strongest_party);
+		REQUIRE(state->world.modifier_get_province_values(mod_id).values[0] == 5.0f);
+	}
 }
 #endif

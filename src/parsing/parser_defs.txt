@@ -1414,3 +1414,8 @@ cb_body
 	po_destroy_naval_bases          value       bool                        member_fn
 	mutual                          value       none                        discard
 	is_valid                        group       none                        discard
+
+crime_modifier
+	#base          modifier_base
+	active         value      bool                      member
+	trigger        extern     make_crime_trigger        member

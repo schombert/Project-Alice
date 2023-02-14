@@ -302,4 +302,24 @@ dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler&
 	return make_value_modifier(gen, err, t_context);
 }
 
+dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+
+
+void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	crime_modifier crime_body = parse_crime_modifier(gen, err, context);
+	context.state.culture_definitions.crimes[id].available_by_default = crime_body.active;
+	context.state.culture_definitions.crimes[id].trigger = crime_body.trigger;
+
+	auto new_modifier = context.state.world.create_modifier();
+	context.state.world.modifier_set_name(new_modifier, context.state.culture_definitions.crimes[id].name);
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(crime_body.icon_index));
+
+	crime_body.convert_to_province_mod();
+	context.state.world.modifier_set_province_values(new_modifier, crime_body.constructed_definition);
+	context.state.culture_definitions.crimes[id].modifier = new_modifier;
+}
+
 }
