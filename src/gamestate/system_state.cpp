@@ -863,6 +863,13 @@ namespace sys {
 				parsers::parse_cb_body(r.second.generator_state, err, new_context);
 			}
 		}
+		// pending crimes
+		{
+			err.file_name = "crime.txt";
+			for(auto& r : context.map_of_crimes) {
+				parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
+			}
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}

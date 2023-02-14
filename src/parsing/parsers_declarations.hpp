@@ -2003,6 +2003,14 @@ namespace parsers {
 	dcon::trigger_key cb_can_use(token_generator& gen, error_handler& err, individual_cb_context& context);
 	dcon::effect_key cb_on_add(token_generator& gen, error_handler& err, individual_cb_context& context);
 	dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, individual_cb_context& context);
+
+	struct crime_modifier : public modifier_base {
+		bool active = false;
+		dcon::trigger_key trigger;
+	};
+
+	dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"

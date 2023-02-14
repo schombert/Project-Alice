@@ -28,7 +28,7 @@ constexpr inline uint32_t to_bits(dcon::ideology_id id) {
 struct crime_info {
 	dcon::text_sequence_id name;
 	dcon::modifier_id modifier;
-	// trigger id goes here
+	dcon::trigger_key trigger;
 	bool available_by_default = false;
 };
 
