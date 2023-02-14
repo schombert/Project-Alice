@@ -68,5 +68,34 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 	context.map_of_unit_types.insert_or_assign(std::string(name), new_id);
 }
 
+dcon::trigger_key cb_allowed_states(token_generator& gen, error_handler& err, individual_cb_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::nation };
+	return make_trigger(gen, err, t_context);
+}
+dcon::trigger_key cb_allowed_crisis_states(token_generator& gen, error_handler& err, individual_cb_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::nation };
+	return make_trigger(gen, err, t_context);
+}
+dcon::trigger_key cb_allowed_substates(token_generator& gen, error_handler& err, individual_cb_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::nation };
+	return make_trigger(gen, err, t_context);
+}
+dcon::trigger_key cb_allowed_countries(token_generator& gen, error_handler& err, individual_cb_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+	return make_trigger(gen, err, t_context);
+}
+dcon::trigger_key cb_can_use(token_generator& gen, error_handler& err, individual_cb_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+	return make_trigger(gen, err, t_context);
+}
+dcon::effect_key cb_on_add(token_generator& gen, error_handler& err, individual_cb_context& context) {
+	effect_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+	return make_effect(gen, err, t_context);
+}
+dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, individual_cb_context& context) {
+	effect_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+	return make_effect(gen, err, t_context);
+}
+
 }
 

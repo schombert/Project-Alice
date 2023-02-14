@@ -842,6 +842,7 @@ namespace sys {
 
 		// load ideology contents
 		{
+			err.file_name = "ideologies.txt";
 			for(auto& pr : context.map_of_ideologies) {
 				parsers::individual_ideology_context new_context{ context, pr.second.id };
 				parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
@@ -849,8 +850,17 @@ namespace sys {
 		}
 		// triggered modifier contents
 		{
+			err.file_name = "triggered_modifiers.txt";
 			for(auto& r : context.set_of_triggered_modifiers) {
 				national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+			}
+		}
+		// cb contents
+		{
+			err.file_name = "cb_types.txt";
+			for(auto& r : context.map_of_cb_types) {
+				parsers::individual_cb_context new_context{ context, r.second.id };
+				parsers::parse_cb_body(r.second.generator_state, err, new_context);
 			}
 		}
 		if(err.accumulated_errors.length() > 0)

@@ -388,8 +388,100 @@ object {
 		type{ text_sequence_id }
 	}
 	property{
+		name{ war_name }
+		type{ text_sequence_id }
+	}
+	property{
 		name{ type_bits }
 		type{ uint32_t }
+	}
+	property{
+		name{ months }
+		type{ uint8_t }
+	}
+	property{
+		name{ truce_months }
+		type{ uint8_t }
+	}
+	property{
+		name{ sprite_index }
+		type{ uint8_t }
+	}
+	property{
+		name{ allowed_states }
+		type{ trigger_key }
+	}
+	property{
+		name{ allowed_states_in_crisis }
+		type{ trigger_key }
+	}
+	property{
+		name{ allowed_substate_regions }
+		type{ trigger_key }
+	}
+	property{
+		name{ allowed_countries }
+		type{ trigger_key }
+	}
+	property{
+		name{ can_use }
+		type{ trigger_key }
+	}
+	property{
+		name{ on_add }
+		type{ effect_key }
+	}
+	property{
+		name{ on_po_accepted }
+		type{ effect_key }
+	}
+	property{
+		name{ badboy_factor }
+		type{ float }
+	}
+	property{
+		name{ prestige_factor }
+		type{ float }
+	}
+	property{
+		name{ peace_cost_factor }
+		type{ float }
+	}
+	property{
+		name{ penalty_factor }
+		type{ float }
+	}
+	property{
+		name{ break_truce_prestige_factor }
+		type{ float }
+	}
+	property{
+		name{ break_truce_infamy_factor }
+		type{ float }
+	}
+	property{
+		name{ break_truce_militancy_factor }
+		type{ float }
+	}
+	property{
+		name{ good_relation_prestige_factor }
+		type{ float }
+	}
+	property{
+		name{ good_relation_infamy_factor }
+		type{ float }
+	}
+	property{
+		name{ good_relation_militancy_factor }
+		type{ float }
+	}
+	property{
+		name{ construction_speed }
+		type{ float }
+	}
+	property{
+		name{ tws_battle_factor }
+		type{ float }
 	}
 }
 
