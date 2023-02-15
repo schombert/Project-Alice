@@ -748,6 +748,15 @@ namespace parsers {
 		MOD_NAT_FUNCTION(supply_range)
 		MOD_NAT_FUNCTION(regular_experience_level)
 		MOD_NAT_FUNCTION(increase_research)
+		MOD_NAT_FUNCTION(permanent_prestige)
+		MOD_NAT_FUNCTION(soldier_to_pop_loss)
+		MOD_NAT_FUNCTION(naval_attrition)
+		MOD_NAT_FUNCTION(land_attrition)
+		MOD_NAT_FUNCTION(pop_growth)
+		MOD_NAT_FUNCTION(colonial_life_rating)
+		MOD_NAT_FUNCTION(seperatism)
+		MOD_NAT_FUNCTION(plurality)
+		MOD_NAT_FUNCTION(colonial_prestige)
 
 		template<typename T>
 		void finish(T& context) { }
@@ -2292,14 +2301,15 @@ namespace parsers {
 	};
 
 	struct unit_modifier_body : public sys::unit_modifier {
-		void finish(tech_context&) { }
+		template<typename T>
+		void finish(T&) { }
 	};
 
 	struct tech_rgo_goods_output {
 		void finish(tech_context&) { }
 		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context) {
 			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
-				context.outer_context.state.world.technology_get_rgo_goods_output(context.id).push_back(sys::rgo_modifier{value, it->second});
+				context.outer_context.state.world.technology_get_rgo_goods_output(context.id).push_back(sys::commodity_modifier{value, it->second});
 			} else {
 				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 			}
@@ -2309,7 +2319,7 @@ namespace parsers {
 		void finish(tech_context&) { }
 		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context) {
 			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
-				context.outer_context.state.world.technology_get_factory_goods_output(context.id).push_back(sys::rgo_modifier{ value, it->second });
+				context.outer_context.state.world.technology_get_factory_goods_output(context.id).push_back(sys::commodity_modifier{ value, it->second });
 			} else {
 				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 			}
@@ -2319,7 +2329,7 @@ namespace parsers {
 		void finish(tech_context&) { }
 		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context) {
 			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
-				context.outer_context.state.world.technology_get_rgo_size(context.id).push_back(sys::rgo_modifier{ value, it->second });
+				context.outer_context.state.world.technology_get_rgo_size(context.id).push_back(sys::commodity_modifier{ value, it->second });
 			} else {
 				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 			}
@@ -2403,6 +2413,128 @@ namespace parsers {
 
 	dcon::value_modifier_key make_ai_chance(token_generator& gen, error_handler& err, tech_context& context);
 	void read_pending_technology(dcon::technology_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct invention_context {
+		scenario_building_context& outer_context;
+		dcon::invention_id id;
+	};
+
+	struct inv_rgo_goods_output {
+		void finish(invention_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, invention_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
+				context.outer_context.state.world.invention_get_rgo_goods_output(context.id).push_back(sys::commodity_modifier{ value, it->second });
+			} else {
+				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct inv_fac_goods_output {
+		void finish(invention_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, invention_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
+				context.outer_context.state.world.invention_get_factory_goods_output(context.id).push_back(sys::commodity_modifier{ value, it->second });
+			} else {
+				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct inv_fac_goods_throughput {
+		void finish(invention_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, invention_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
+				context.outer_context.state.world.invention_get_factory_goods_throughput(context.id).push_back(sys::commodity_modifier{ value, it->second });
+			} else {
+				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct inv_rebel_org_gain {
+		void finish(invention_context&) { }
+		dcon::rebel_type_id faction_;
+		float value = 0.0f;
+		void faction(association_type, std::string_view v, error_handler& err, int32_t line, invention_context& context) {
+			if(is_fixed_token_ci(v.data(), v.data() + v.size(), "all")) {
+				// do nothing
+			} else if(auto it = context.outer_context.map_of_rebeltypes.find(std::string(v)); it != context.outer_context.map_of_rebeltypes.end()) {
+				faction_ = it->second.id;
+			} else {
+				err.accumulated_errors += "Invalid rebel type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct inv_effect : public modifier_base {
+		void any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line, invention_context& context) {
+			if(auto it = context.outer_context.map_of_unit_types.find(std::string(label)); it != context.outer_context.map_of_unit_types.end()) {
+				sys::unit_modifier temp = value;
+				temp.type = it->second;
+				context.outer_context.state.world.invention_get_modified_units(context.id).push_back(temp);
+			} else {
+				err.accumulated_errors += "Invalid unit type " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context) {
+			if(auto it = context.outer_context.map_of_unit_types.find(std::string(value)); it != context.outer_context.map_of_unit_types.end()) {
+				context.outer_context.state.world.invention_set_activate_unit(context.id, it->second, true);
+			} else {
+				err.accumulated_errors += "Invalid unit type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context) {
+			if(auto it = context.outer_context.map_of_factory_names.find(std::string(value)); it != context.outer_context.map_of_factory_names.end()) {
+				context.outer_context.state.world.invention_set_activate_building(context.id, it->second, true);
+			} else {
+				err.accumulated_errors += "Invalid factory type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		inv_rgo_goods_output rgo_goods_output;
+		inv_fac_goods_throughput factory_goods_throughput;
+		inv_fac_goods_output factory_goods_output;
+
+		void shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context) {
+			context.outer_context.state.world.invention_set_shared_prestige(context.id, value);
+		}
+		void enable_crime(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context) {
+			if(auto it = context.outer_context.map_of_crimes.find(std::string(value)); it != context.outer_context.map_of_crimes.end()) {
+				context.outer_context.state.world.invention_set_activate_crime(context.id, it->second.id, true);
+			} else {
+				err.accumulated_errors += "Invalid crime " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context) {
+			context.outer_context.state.world.invention_set_enable_gas_attack(context.id, value);
+		}
+		void gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context) {
+			context.outer_context.state.world.invention_set_enable_gas_defence(context.id, value);
+		}
+		void rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context) {
+			context.outer_context.state.world.invention_get_rebel_org(context.id).push_back(sys::rebel_org_modifier{value.value, value.faction_});
+		}
+	};
+
+	struct invention_contents : public modifier_base {
+		void limit(dcon::trigger_key value, error_handler& err, int32_t line, invention_context& context) {
+			context.outer_context.state.world.invention_set_limit(context.id, value);
+		}
+		void chance(dcon::value_modifier_key value, error_handler& err, int32_t line, invention_context& context) {
+			context.outer_context.state.world.invention_set_chance(context.id, value);
+		}
+		void effect(inv_effect const& value, error_handler& err, int32_t line, invention_context& context) {
+			for(uint32_t i = 0; i < value.next_to_add; ++i) {
+				if(next_to_add >= sys::modifier_definition_size) {
+					err.accumulated_errors += "Too many modifiers attached to invention (" + err.file_name + " line " + std::to_string(line) + ")\n";
+					break;
+				}
+				constructed_definition.offsets[next_to_add] = value.constructed_definition.offsets[i];
+				constructed_definition.values[next_to_add] = value.constructed_definition.values[i];
+				++next_to_add;
+			}
+		}
+	};
+
+	dcon::value_modifier_key make_inv_chance(token_generator& gen, error_handler& err, invention_context& context);
+	dcon::trigger_key make_inv_limit(token_generator& gen, error_handler& err, invention_context& context);
+	void read_pending_invention(dcon::invention_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"

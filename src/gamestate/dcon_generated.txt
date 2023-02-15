@@ -902,15 +902,15 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{800}{sys::rgo_modifier}} 
+		type{vector_pool{800}{sys::commodity_modifier}} 
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{800}{sys::rgo_modifier}} 
+		type{vector_pool{800}{sys::commodity_modifier}} 
 	}
 	property{
 		name{ rgo_size }
-		type{vector_pool{800}{sys::rgo_modifier}}
+		type{vector_pool{800}{sys::commodity_modifier}}
 	}
 	property{
 		name{ modified_units }
@@ -930,6 +930,62 @@ object {
 	property{
 		name{ technology_type }
 		type{ uint8_t }
+	}
+	property{
+		name{ modifier }
+		type{ modifier_id }
+	}
+	property{
+		name{ chance }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ limit }
+		type{ trigger_key }
+	}
+	property{
+		name{ enable_gas_attack }
+		type{ bitfield }
+	}
+	property{
+		name{ enable_gas_defence }
+		type{ bitfield }
+	}
+	property{
+		name{ shared_prestige }
+		type{ float }
+	}
+	property{
+		name{ activate_unit }
+		type{array{unit_type_id}{bitfield}}
+	}
+	property{
+		name{ activate_crime }
+		type{array{crime_id}{bitfield}}
+	}
+	property{
+		name{ activate_building }
+		type{array{factory_type_id}{bitfield}}
+	}
+	property{
+		name{ rgo_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}} 
+	}
+	property{
+		name{ factory_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}} 
+	}
+	property{
+		name{ factory_goods_throughput }
+		type{vector_pool{800}{sys::commodity_modifier}}
+	}
+	property{
+		name{ modified_units }
+		type{vector_pool{10000}{sys::unit_modifier}}
+	}
+	property{
+		name{ rebel_org }
+		type{vector_pool{800}{sys::rebel_org_modifier}} 
 	}
 }
 
