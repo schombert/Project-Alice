@@ -1595,3 +1595,73 @@ invention_contents
 	chance                extern     make_inv_chance        member_fn
 	news                  value      bool                   discard
 	effect                group      inv_effect             member_fn
+
+s_on_yearly_pulse
+	#any                  value      int                    member_fn
+
+s_on_quarterly_pulse
+	#any                  value      int                    member_fn
+
+s_on_battle_won
+	#any                  value      int                    member_fn
+
+s_on_battle_lost
+	#any                  value      int                    member_fn
+
+s_on_surrender
+	#any                  value      int                    member_fn
+
+s_on_new_great_nation
+	#any                  value      int                    member_fn
+
+s_on_lost_great_nation
+	#any                  value      int                    member_fn
+
+s_on_election_tick
+	#any                  value      int                    member_fn
+
+s_on_colony_to_state
+	#any                  value      int                    member_fn
+
+s_on_state_conquest
+	#any                  value      int                    member_fn
+
+s_on_colony_to_state_free_slaves
+	#any                  value      int                    member_fn
+
+s_on_debtor_default
+	#any                  value      int                    member_fn
+
+s_on_debtor_default_small
+	#any                  value      int                    member_fn
+
+s_on_debtor_default_second
+	#any                  value      int                    member_fn
+
+s_on_civilize
+	#any                  value      int                    member_fn
+
+s_on_my_factories_nationalized
+	#any                  value      int                    member_fn
+
+s_on_crisis_declare_interest
+	#any                  value      int                    member_fn
+
+on_action_file
+	on_yearly_pulse                 group      s_on_yearly_pulse                 member
+	on_quarterly_pulse              group      s_on_quarterly_pulse              member
+	on_battle_won                   group      s_on_battle_won                   member
+	on_battle_lost                  group      s_on_battle_lost                  member
+	on_surrender                    group      s_on_surrender                    member
+	on_new_great_nation             group      s_on_new_great_nation             member
+	on_lost_great_nation            group      s_on_lost_great_nation            member
+	on_election_tick                group      s_on_election_tick                member
+	on_colony_to_state              group      s_on_colony_to_state              member
+	on_state_conquest               group      s_on_state_conquest               member
+	on_colony_to_state_free_slaves  group      s_on_colony_to_state_free_slaves  member
+	on_debtor_default               group      s_on_debtor_default               member
+	on_debtor_default_small         group      s_on_debtor_default_small         member
+	on_debtor_default_second        group      s_on_debtor_default_second        member
+	on_civilize                     group      s_on_civilize                     member
+	on_my_factories_nationalized    group      s_on_my_factories_nationalized    member
+	on_crisis_declare_interest      group      s_on_crisis_declare_interest      member

@@ -929,6 +929,19 @@ namespace sys {
 				parsers::read_pending_invention(r.second.id, r.second.generator_state, err, context);
 			}
 		}
+		// parse on_actions.txt
+		{
+			auto on_action = open_file(common, NATIVE("on_actions.txt"));
+			if(on_action) {
+				auto content = view_contents(*on_action);
+				err.file_name = "on_actions.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_on_action_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/on_actions.txt could not be opened\n";
+			}
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
