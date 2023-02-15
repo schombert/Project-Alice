@@ -670,6 +670,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.technology_resize_activate_building(state->world.factory_type_size());
 	state->world.technology_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
 
+	state->world.invention_resize_activate_building(state->world.factory_type_size());
+	state->world.invention_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
+	state->world.invention_resize_activate_crime(uint32_t(state->culture_definitions.crimes.size()));
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -952,6 +955,28 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(fit.get_modifier().get_national_values().get_offet_at_index(0) == sys::national_mod_offsets::dig_in_cap);
 		REQUIRE(fit.get_modifier().get_national_values().values[0] == 1.0f);
 		REQUIRE(fit.get_increase_fort() == true);
+	}
+	// read pending inventions
+	{
+		err.file_name = "inventions file";
+		for(auto& r : context.map_of_inventions) {
+			parsers::read_pending_invention(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto it = context.map_of_inventions.find(std::string("the_talkies"));
+		auto fit = fatten(state->world, it->second.id);
+		
+		REQUIRE(bool(fit.get_limit()) == true);
+		REQUIRE(bool(fit.get_chance()) == true);
+		REQUIRE(fit.get_shared_prestige() == 20.0f);
+		REQUIRE(bool(fit.get_modifier()) == true);
+		REQUIRE(fit.get_modifier().get_national_values().get_offet_at_index(0) == sys::national_mod_offsets::suppression_points_modifier);
+		REQUIRE(fit.get_modifier().get_national_values().get_offet_at_index(1) == sys::national_mod_offsets::core_pop_consciousness_modifier);
+		REQUIRE(fit.get_modifier().get_national_values().values[0] == Approx(-0.05f));
+		REQUIRE(fit.get_modifier().get_national_values().values[1] == Approx(0.01f));
+		
 	}
 
 }

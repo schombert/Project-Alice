@@ -373,6 +373,15 @@ modifier_base
 	supply_range                              value      float            member_fn
 	regular_experience_level                  value      float            member_fn
 	increase_research                         value      float            member_fn
+	permanent_prestige                        value      float            member_fn
+	soldier_to_pop_loss                       value      float            member_fn
+	naval_attrition                           value      float            member_fn
+	land_attrition                            value      float            member_fn
+	pop_growth                                value      float            member_fn
+	colonial_life_rating                      value      float            member_fn
+	seperatism                                value      float            member_fn
+	plurality                                 value      float            member_fn
+	colonial_prestige                         value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn
@@ -1522,6 +1531,8 @@ unit_modifier_body
 	hull                  value      float            member  (defence_or_hull)
 	gun_power             value      float            member  (attack_or_gun_power)
 	torpedo_attack        value      float            member  (siege_or_torpedo_attack)
+	reconnaissance        value      float            member  (reconnaissance_or_fire_range)
+	fire_range            value      float            member  (reconnaissance_or_fire_range)
 
 tech_rgo_goods_output
 	#any                  value      float                  member_fn
@@ -1550,3 +1561,37 @@ technology_contents
 	rgo_goods_output      group      tech_rgo_goods_output  member
 	rgo_size              group      tech_rgo_size          member
 	factory_goods_output  group      tech_fac_goods_output  member
+
+inv_rgo_goods_output
+	#any                  value      float                  member_fn
+
+inv_fac_goods_output
+	#any                  value      float                  member_fn
+
+inv_fac_goods_throughput
+	#any                  value      float                  member_fn
+
+inv_rebel_org_gain
+	faction               value      text                   member_fn
+	value                 value      float                  member
+
+inv_effect
+	#base          modifier_base
+	#any                  group      unit_modifier_body     member_fn
+	rgo_goods_output      group      inv_rgo_goods_output   member
+	factory_goods_throughput group   inv_fac_goods_throughput  member
+	factory_goods_output  group      inv_fac_goods_output   member
+	shared_prestige       value      float                  member_fn
+	activate_unit         value      text                   member_fn
+	activate_building     value      text                   member_fn
+	enable_crime          value      text                   member_fn
+	rebel_org_gain        group      inv_rebel_org_gain     member_fn
+	gas_attack            value      bool                   member_fn
+	gas_defence           value      bool                   member_fn
+
+invention_contents
+	#base          modifier_base
+	limit                 extern     make_inv_limit         member_fn
+	chance                extern     make_inv_chance        member_fn
+	news                  value      bool                   discard
+	effect                group      inv_effect             member_fn

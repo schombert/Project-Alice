@@ -177,8 +177,17 @@ constexpr inline int32_t military_tactics = 115 + provincial_mod_offsets::count;
 constexpr inline int32_t supply_range = 116 + provincial_mod_offsets::count;
 constexpr inline int32_t regular_experience_level = 117 + provincial_mod_offsets::count;
 constexpr inline int32_t increase_research = 118 + provincial_mod_offsets::count;
+constexpr inline int32_t soldier_to_pop_loss = 119 + provincial_mod_offsets::count;
+constexpr inline int32_t naval_attrition = 120 + provincial_mod_offsets::count;
+constexpr inline int32_t land_attrition = 121 + provincial_mod_offsets::count;
+constexpr inline int32_t pop_growth = 122 + provincial_mod_offsets::count;
+constexpr inline int32_t colonial_life_rating = 123 + provincial_mod_offsets::count;
+constexpr inline int32_t seperatism = 124 + provincial_mod_offsets::count;
+constexpr inline int32_t plurality = 125 + provincial_mod_offsets::count;
+constexpr inline int32_t colonial_prestige = 126 + provincial_mod_offsets::count;
+constexpr inline int32_t permanent_prestige = 127 + provincial_mod_offsets::count;
 
-constexpr inline uint32_t count = 119 + provincial_mod_offsets::count;
+constexpr inline uint32_t count = 128 + provincial_mod_offsets::count;
 }
 
 constexpr inline uint32_t total_modifiers_count = national_mod_offsets::count;
@@ -198,21 +207,27 @@ struct modifier_definition {
 	}
 };
 
-struct rgo_modifier {
+struct commodity_modifier {
 	float amount = 0.0f;
 	dcon::commodity_id type;
 };
 
 struct unit_modifier {
-	float maximum_speed = 0.0f;
 	int32_t build_time = 0;
+	int32_t default_organisation = 0;
+	float maximum_speed = 0.0f;
 	float defence_or_hull = 0.0f;
 	float attack_or_gun_power = 0.0f;
 	float supply_consumption = 0.0f;
-	int32_t default_organisation = 0;
 	float support = 0.0f;
 	float siege_or_torpedo_attack = 0.0f;
+	float reconnaissance_or_fire_range = 0.0f;
 	dcon::unit_type_id type;
+};
+
+struct rebel_org_modifier {
+	float amount = 0.0f;
+	dcon::rebel_type_id type; // no type set = all rebels
 };
 
 }
