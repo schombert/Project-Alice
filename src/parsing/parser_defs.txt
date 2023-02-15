@@ -330,6 +330,7 @@ modifier_base
 	mobilisation_impact                       value      float            member_fn
 	suppression_points_modifier               value      float            member_fn
 	education_efficiency_modifier             value      float            member_fn
+	education_efficiency                      value      float            member_fn
 	civilization_progress_modifier            value      float            member_fn
 	administrative_efficiency_modifier        value      float            member_fn
 	land_unit_start_experience                value      float            member_fn
@@ -358,6 +359,20 @@ modifier_base
 	industry_tech_research_bonus              value      float            member_fn
 	navy_tech_research_bonus                  value      float            member_fn
 	culture_tech_research_bonus               value      float            member_fn
+	colonial_migration                        value      float            member_fn
+	max_national_focus                        value      float            member_fn
+	cb_creation_speed                         value      float            member_fn
+	diplomatic_points                         value      float            member_fn
+	reinforce_rate                            value      float            member_fn
+	tax_eff                                   value      float            member_fn
+	administrative_efficiency                 value      float            member_fn
+	influence                                 value      float            member_fn
+	dig_in_cap                                value      float            member_fn
+	morale                                    value      float            member_fn
+	military_tactics                          value      float            member_fn
+	supply_range                              value      float            member_fn
+	regular_experience_level                  value      float            member_fn
+	increase_research                         value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn
@@ -1494,3 +1509,44 @@ main_pop_type_file
 	emigration_chance         extern       make_poptype_pop_chance    member_fn
 	assimilation_chance       extern       make_poptype_pop_chance    member_fn
 	conversion_chance         extern       make_poptype_pop_chance    member_fn
+
+unit_modifier_body
+	default_organisation  value      int              member
+	maximum_speed         value      float            member
+	build_time            value      int              member
+	supply_consumption    value      float            member
+	attack                value      float            member  (attack_or_gun_power)
+	defence               value      float            member  (defence_or_hull)
+	support               value      float            member
+	siege                 value      float            member  (siege_or_torpedo_attack)
+	hull                  value      float            member  (defence_or_hull)
+	gun_power             value      float            member  (attack_or_gun_power)
+	torpedo_attack        value      float            member  (siege_or_torpedo_attack)
+
+tech_rgo_goods_output
+	#any                  value      float                  member_fn
+
+tech_fac_goods_output
+	#any                  value      float                  member_fn
+
+tech_rgo_size
+	#any                  value      float                  member_fn
+
+technology_contents
+	#base          modifier_base
+	#any                  group      unit_modifier_body     member_fn
+	unciv_military        value      bool                   discard
+	ai_chance             extern     make_ai_chance         member_fn
+	area                  value      text                   member_fn
+	year                  value      int                    member_fn
+	cost                  value      int                    member_fn
+	unit                  value      int                    discard
+	max_fort              value      int                    member_fn
+	max_railroad          value      int                    member_fn
+	max_naval_base        value      int                    member_fn
+	activate_unit         value      text                   member_fn
+	activate_building     value      text                   member_fn
+	colonial_points       value      int                    member_fn
+	rgo_goods_output      group      tech_rgo_goods_output  member
+	rgo_size              group      tech_rgo_size          member
+	factory_goods_output  group      tech_fac_goods_output  member

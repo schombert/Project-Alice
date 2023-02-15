@@ -60,7 +60,7 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read `on_actions.txt`
 - Read event files from directory `events`
 - Read decision files from directory `decisions`
-- Read prepared technologies
+- Read prepared technologies *Done*
 - Read prepared inventions
 
 ### Phase 4: fixups

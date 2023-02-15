@@ -733,6 +733,22 @@ namespace parsers {
 		MOD_NAT_FUNCTION(industry_tech_research_bonus)
 		MOD_NAT_FUNCTION(navy_tech_research_bonus)
 		MOD_NAT_FUNCTION(culture_tech_research_bonus)
+		MOD_NAT_FUNCTION(colonial_migration)
+		MOD_NAT_FUNCTION(max_national_focus)
+		MOD_NAT_FUNCTION(cb_creation_speed)
+		MOD_NAT_FUNCTION(education_efficiency)
+		MOD_NAT_FUNCTION(diplomatic_points)
+		MOD_NAT_FUNCTION(reinforce_rate)
+		MOD_NAT_FUNCTION(tax_eff)
+		MOD_NAT_FUNCTION(administrative_efficiency)
+		MOD_NAT_FUNCTION(influence)
+		MOD_NAT_FUNCTION(dig_in_cap)
+		MOD_NAT_FUNCTION(morale)
+		MOD_NAT_FUNCTION(military_tactics)
+		MOD_NAT_FUNCTION(supply_range)
+		MOD_NAT_FUNCTION(regular_experience_level)
+		MOD_NAT_FUNCTION(increase_research)
+
 		template<typename T>
 		void finish(T& context) { }
 
@@ -778,6 +794,10 @@ namespace parsers {
 					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_income_modifier);
 				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_income_modifier) {
 					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_income_modifier);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::supply_limit) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::supply_limit);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::combat_width) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::combat_width);
 				}
 				constructed_definition.offsets[i] += 1;
 			}
@@ -1326,6 +1346,7 @@ namespace parsers {
 		void finish(scenario_building_context&) { }
 	};
 
+	void make_base_units(scenario_building_context& context);
 	void make_unit(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 	struct country_file_context {
@@ -2263,6 +2284,125 @@ namespace parsers {
 	};
 
 	dcon::value_modifier_key make_poptype_pop_chance(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+
+	struct tech_context {
+		scenario_building_context& outer_context;
+		dcon::technology_id id;
+	};
+
+	struct unit_modifier_body : public sys::unit_modifier {
+		void finish(tech_context&) { }
+	};
+
+	struct tech_rgo_goods_output {
+		void finish(tech_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
+				context.outer_context.state.world.technology_get_rgo_goods_output(context.id).push_back(sys::rgo_modifier{value, it->second});
+			} else {
+				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct tech_fac_goods_output {
+		void finish(tech_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
+				context.outer_context.state.world.technology_get_factory_goods_output(context.id).push_back(sys::rgo_modifier{ value, it->second });
+			} else {
+				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct tech_rgo_size {
+		void finish(tech_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(label)); it != context.outer_context.map_of_commodity_names.end()) {
+				context.outer_context.state.world.technology_get_rgo_size(context.id).push_back(sys::rgo_modifier{ value, it->second });
+			} else {
+				err.accumulated_errors += "Invalid commodity " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+
+	struct technology_contents : public modifier_base {
+		void any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line, tech_context& context) {
+			if(auto it = context.outer_context.map_of_unit_types.find(std::string(label)); it != context.outer_context.map_of_unit_types.end()) {
+				sys::unit_modifier temp = value;
+				temp.type = it->second;
+				context.outer_context.state.world.technology_get_modified_units(context.id).push_back(temp);
+			} else {
+				err.accumulated_errors += "Invalid unit type " + std::string(label) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void ai_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, tech_context& context) {
+			context.outer_context.state.world.technology_set_ai_chance(context.id, value);
+		}
+		void year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
+			context.outer_context.state.world.technology_set_year(context.id, int16_t(value));
+		}
+		void cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
+			context.outer_context.state.world.technology_set_cost(context.id, value);
+		}
+		void area(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context) {
+			if(auto it = context.outer_context.map_of_tech_folders.find(std::string(value)); it != context.outer_context.map_of_tech_folders.end()) {
+				context.outer_context.state.world.technology_set_folder_index(context.id, uint8_t(it->second));
+			} else {
+				err.accumulated_errors += "Invalid technology folder name " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void max_fort(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
+			if(value == 1) {
+				context.outer_context.state.world.technology_set_increase_fort(context.id, true);
+			} else {
+				err.accumulated_errors += "max_fort may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void max_railroad(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
+			if(value == 1) {
+				context.outer_context.state.world.technology_set_increase_railroad(context.id, true);
+			} else {
+				err.accumulated_errors += "max_railroad may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
+			if(value == 1) {
+				context.outer_context.state.world.technology_set_increase_naval_base(context.id, true);
+			} else {
+				err.accumulated_errors += "max_naval_base may only be 1 (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context) {
+			context.outer_context.state.world.technology_set_colonial_points(context.id, int16_t(value));
+		}
+		void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context) {
+			if(auto it = context.outer_context.map_of_unit_types.find(std::string(value)); it != context.outer_context.map_of_unit_types.end()) {
+				context.outer_context.state.world.technology_set_activate_unit(context.id, it->second, true);
+			} else {
+				err.accumulated_errors += "Invalid unit type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fort")) {
+				context.outer_context.state.world.technology_set_increase_fort(context.id, true);
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "railroad")) {
+				context.outer_context.state.world.technology_set_increase_railroad(context.id, true);
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval_base")) {
+				context.outer_context.state.world.technology_set_increase_naval_base(context.id, true);
+			} else if(auto it = context.outer_context.map_of_factory_names.find(std::string(value)); it != context.outer_context.map_of_factory_names.end()) {
+				context.outer_context.state.world.technology_set_activate_building(context.id, it->second, true);
+			} else {
+				err.accumulated_errors += "Invalid factory type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		tech_rgo_goods_output rgo_goods_output;
+		tech_rgo_size rgo_size;
+		tech_fac_goods_output factory_goods_output;
+	};
+
+	dcon::value_modifier_key make_ai_chance(token_generator& gen, error_handler& err, tech_context& context);
+	void read_pending_technology(dcon::technology_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"
