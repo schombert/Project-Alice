@@ -160,8 +160,25 @@ constexpr inline int32_t army_tech_research_bonus = 98 + provincial_mod_offsets:
 constexpr inline int32_t industry_tech_research_bonus = 99 + provincial_mod_offsets::count;
 constexpr inline int32_t navy_tech_research_bonus = 100 + provincial_mod_offsets::count;
 constexpr inline int32_t culture_tech_research_bonus = 101 + provincial_mod_offsets::count;
+constexpr inline int32_t supply_limit = 102 + provincial_mod_offsets::count;
+constexpr inline int32_t colonial_migration = 103 + provincial_mod_offsets::count;
+constexpr inline int32_t max_national_focus = 104 + provincial_mod_offsets::count;
+constexpr inline int32_t cb_creation_speed = 105 + provincial_mod_offsets::count;
+constexpr inline int32_t education_efficiency = 106 + provincial_mod_offsets::count;
+constexpr inline int32_t diplomatic_points = 107 + provincial_mod_offsets::count;
+constexpr inline int32_t reinforce_rate = 108 + provincial_mod_offsets::count;
+constexpr inline int32_t tax_eff = 109 + provincial_mod_offsets::count;
+constexpr inline int32_t administrative_efficiency = 110 + provincial_mod_offsets::count;
+constexpr inline int32_t influence = 111 + provincial_mod_offsets::count;
+constexpr inline int32_t dig_in_cap = 112 + provincial_mod_offsets::count;
+constexpr inline int32_t combat_width = 113 + provincial_mod_offsets::count;
+constexpr inline int32_t morale = 114 + provincial_mod_offsets::count;
+constexpr inline int32_t military_tactics = 115 + provincial_mod_offsets::count;
+constexpr inline int32_t supply_range = 116 + provincial_mod_offsets::count;
+constexpr inline int32_t regular_experience_level = 117 + provincial_mod_offsets::count;
+constexpr inline int32_t increase_research = 118 + provincial_mod_offsets::count;
 
-constexpr inline uint32_t count = 102 + provincial_mod_offsets::count;
+constexpr inline uint32_t count = 119 + provincial_mod_offsets::count;
 }
 
 constexpr inline uint32_t total_modifiers_count = national_mod_offsets::count;
@@ -179,6 +196,23 @@ struct modifier_definition {
 	int32_t get_offet_at_index(int32_t i) {
 		return offsets[i] - 1;
 	}
+};
+
+struct rgo_modifier {
+	float amount = 0.0f;
+	dcon::commodity_id type;
+};
+
+struct unit_modifier {
+	float maximum_speed = 0.0f;
+	int32_t build_time = 0;
+	float defence_or_hull = 0.0f;
+	float attack_or_gun_power = 0.0f;
+	float supply_consumption = 0.0f;
+	int32_t default_organisation = 0;
+	float support = 0.0f;
+	float siege_or_torpedo_attack = 0.0f;
+	dcon::unit_type_id type;
 };
 
 }

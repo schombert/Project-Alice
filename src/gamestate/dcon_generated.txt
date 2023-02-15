@@ -857,8 +857,64 @@ object {
 		type{ text_sequence_id }
 	}
 	property{
+		name{ modifier }
+		type{ modifier_id }
+	}
+	property{
 		name{folder_index}
 		type{uint8_t}
+	}
+	property{
+		name{year}
+		type{int16_t}
+	}
+	property{
+		name{ ai_chance }
+		type{ value_modifier_key }
+	}
+	property{
+		name{cost}
+		type{int32_t}
+	}
+	property{
+		name{ colonial_points }
+		type{int16_t}
+	}
+	property {
+		name{ increase_railroad }
+		type{ bitfield }
+	}
+	property {
+		name{ increase_fort }
+		type{ bitfield }
+	}
+	property {
+		name{ increase_naval_base }
+		type{ bitfield }
+	}
+	property{
+		name{ activate_unit }
+		type{array{unit_type_id}{bitfield}}
+	}
+	property{
+		name{ activate_building }
+		type{array{factory_type_id}{bitfield}}
+	}
+	property{
+		name{ rgo_goods_output }
+		type{vector_pool{800}{sys::rgo_modifier}} 
+	}
+	property{
+		name{ factory_goods_output }
+		type{vector_pool{800}{sys::rgo_modifier}} 
+	}
+	property{
+		name{ rgo_size }
+		type{vector_pool{800}{sys::rgo_modifier}}
+	}
+	property{
+		name{ modified_units }
+		type{vector_pool{3200}{sys::unit_modifier}}
 	}
 }
 
@@ -872,8 +928,8 @@ object {
 		type{ text_sequence_id }
 	}
 	property{
-		name{technology_type}
-		type{uint8_t}
+		name{ technology_type }
+		type{ uint8_t }
 	}
 }
 

@@ -624,6 +624,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(culture::tech_category(state->world.invention_get_technology_type(tit->second.id)) == culture::tech_category::industry);
 	}
 	{
+		parsers::make_base_units(context);
 		auto units = open_directory(root, NATIVE("units"));
 		for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
 			auto opened_file = open_file(unit_file);
@@ -665,6 +666,10 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.pop_type_resize_promotion(state->world.pop_type_size());
 
 	state->world.national_focus_resize_production_focus(state->world.commodity_size());
+
+	state->world.technology_resize_activate_building(state->world.factory_type_size());
+	state->world.technology_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
+
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -925,5 +930,29 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(err.accumulated_errors == "");
 		REQUIRE(bool(state->culture_definitions.migration_chance) == true);
 	}
+
+	// read pending techs
+	{
+		err.file_name = "technology file";
+		for(auto& r : context.map_of_technologies) {
+			parsers::read_pending_technology(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto it = context.map_of_technologies.find(std::string("modern_army_doctrine"));
+		auto fit = fatten(state->world, it->second.id);
+		REQUIRE(fit.get_year() == 1919);
+		REQUIRE(fit.get_cost() == 21600);
+		auto unit_adj = fit.get_modified_units();
+		REQUIRE(unit_adj.size() == 1);
+		REQUIRE(unit_adj[0].type == state->military_definitions.base_army_unit);
+		REQUIRE(unit_adj[0].supply_consumption == Approx(0.20f));
+		REQUIRE(bool(fit.get_modifier()) == true);
+		REQUIRE(fit.get_modifier().get_national_values().get_offet_at_index(0) == sys::national_mod_offsets::dig_in_cap);
+		REQUIRE(fit.get_modifier().get_national_values().values[0] == 1.0f);
+		REQUIRE(fit.get_increase_fort() == true);
+	}
+
 }
 #endif

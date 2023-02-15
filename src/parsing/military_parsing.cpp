@@ -55,6 +55,30 @@ void background_traits_set(token_generator& gen, error_handler& err, scenario_bu
 	parse_traits_set(gen, err, context);
 }
 
+void make_base_units(scenario_building_context& context) {
+	{
+		dcon::unit_type_id army_base_id = dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
+		context.state.military_definitions.unit_base_definitions.emplace_back();
+
+		auto name_id = text::find_or_add_key(context.state, "army_base");
+		context.state.military_definitions.unit_base_definitions.back().name = name_id;
+		context.state.military_definitions.unit_base_definitions.back().is_land = true;
+		context.state.military_definitions.unit_base_definitions.back().active = false;
+		context.map_of_unit_types.insert_or_assign(std::string("army_base"), army_base_id);
+		context.state.military_definitions.base_army_unit = army_base_id;
+	}
+	{
+		dcon::unit_type_id navy_base_id = dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));
+		context.state.military_definitions.unit_base_definitions.emplace_back();
+
+		auto name_id = text::find_or_add_key(context.state, "navy_base");
+		context.state.military_definitions.unit_base_definitions.back().name = name_id;
+		context.state.military_definitions.unit_base_definitions.back().is_land = false;
+		context.state.military_definitions.unit_base_definitions.back().active = false;
+		context.map_of_unit_types.insert_or_assign(std::string("navy_base"), navy_base_id);
+		context.state.military_definitions.base_naval_unit = navy_base_id;
+	}
+}
 
 void make_unit(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	dcon::unit_type_id new_id = dcon::unit_type_id(dcon::unit_type_id::value_base_t(context.state.military_definitions.unit_base_definitions.size()));

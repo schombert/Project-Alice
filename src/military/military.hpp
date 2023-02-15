@@ -74,6 +74,9 @@ struct global_military_state {
 	dcon::leader_trait_id first_background_trait;
 	tagged_vector<unit_definition, dcon::unit_type_id> unit_base_definitions;
 
+	dcon::unit_type_id base_army_unit;
+	dcon::unit_type_id base_naval_unit;
+
 	dcon::cb_type_id standard_civil_war;
 	dcon::cb_type_id standard_great_war;
 };

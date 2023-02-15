@@ -731,6 +731,8 @@ namespace sys {
 		}
 		// load unit type definitions
 		{
+			parsers::make_base_units(context);
+
 			auto units = open_directory(root, NATIVE("units"));
 			for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
 				auto opened_file = open_file(unit_file);
@@ -759,6 +761,9 @@ namespace sys {
 		world.pop_type_resize_promotion(world.pop_type_size());
 
 		world.national_focus_resize_production_focus(world.commodity_size());
+
+		world.technology_resize_activate_building(world.factory_type_size());
+		world.technology_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
 
 		// load country files
 		world.for_each_national_identity([&](dcon::national_identity_id i) {
@@ -903,6 +908,14 @@ namespace sys {
 			} else {
 				err.fatal = true;
 				err.accumulated_errors += "File common/pop_types.txt could not be opened\n";
+			}
+		}
+
+		// read pending techs
+		{
+			err.file_name = "technology file";
+			for(auto& r : context.map_of_technologies) {
+				parsers::read_pending_technology(r.second.id, r.second.generator_state, err, context);
 			}
 		}
 		if(err.accumulated_errors.length() > 0)

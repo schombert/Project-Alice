@@ -355,4 +355,22 @@ dcon::value_modifier_key make_poptype_pop_chance(token_generator& gen, error_han
 	return make_value_modifier(gen, err, t_context);
 }
 
+dcon::value_modifier_key make_ai_chance(token_generator& gen, error_handler& err, tech_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_value_modifier(gen, err, t_context);
+}
+void read_pending_technology(dcon::technology_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	tech_context new_context{context, id};
+	auto modifier = parse_technology_contents(gen, err, new_context);
+
+	if(modifier.next_to_add != 0) {
+		auto new_modifier = context.state.world.create_modifier();
+		context.state.world.modifier_set_name(new_modifier, context.state.world.technology_get_name(id));
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(modifier.icon_index));
+		modifier.convert_to_national_mod();
+		context.state.world.modifier_set_national_values(new_modifier, modifier.constructed_definition);
+		context.state.world.technology_set_modifier(id, new_modifier);
+	}
+}
+
 }
