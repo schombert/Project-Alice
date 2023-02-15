@@ -12,6 +12,7 @@
 #include "modifiers.hpp"
 #include "culture.hpp"
 #include "date_interface.hpp"
+#include "script_constants.hpp"
 
 namespace parsers {
 
@@ -253,7 +254,18 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::invention_id id;
 	};
-
+	struct pending_nat_event {
+		dcon::national_event_id id;
+		trigger::slot_contents main_slot;
+		trigger::slot_contents this_slot;
+		trigger::slot_contents from_slot;
+	};
+	struct pending_prov_event {
+		dcon::provincial_event_id id;
+		trigger::slot_contents main_slot;
+		trigger::slot_contents this_slot;
+		trigger::slot_contents from_slot;
+	};
 	struct scenario_building_context {
 		sys::state& state;
 
@@ -287,8 +299,8 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::national_flag_id> map_of_national_flags;
 		ankerl::unordered_dense::map<std::string, dcon::global_flag_id> map_of_global_flags;
 		ankerl::unordered_dense::map<std::string, dcon::state_definition_id> map_of_state_names;
-		ankerl::unordered_dense::map<int32_t, dcon::national_event_id> map_of_national_events;
-		ankerl::unordered_dense::map<int32_t, dcon::provincial_event_id> map_of_provincial_events;
+		ankerl::unordered_dense::map<int32_t, pending_nat_event> map_of_national_events;
+		ankerl::unordered_dense::map<int32_t, pending_prov_event> map_of_provincial_events;
 
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -2535,6 +2547,264 @@ namespace parsers {
 	dcon::value_modifier_key make_inv_chance(token_generator& gen, error_handler& err, invention_context& context);
 	dcon::trigger_key make_inv_limit(token_generator& gen, error_handler& err, invention_context& context);
 	void read_pending_invention(dcon::invention_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct s_on_yearly_pulse {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_yearly_pulse.push_back(nations::fixed_event{int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_yearly_pulse.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_quarterly_pulse {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_quarterly_pulse.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_quarterly_pulse.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_battle_won {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_provincial_events.find(event); it != context.map_of_provincial_events.end()) {
+				context.state.national_definitions.on_battle_won.push_back(nations::fixed_province_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_provincial_event();
+				context.map_of_provincial_events.insert_or_assign(event, pending_prov_event{ id, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::nation });
+				context.state.national_definitions.on_battle_won.push_back(nations::fixed_province_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_battle_lost {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_provincial_events.find(event); it != context.map_of_provincial_events.end()) {
+				context.state.national_definitions.on_battle_lost.push_back(nations::fixed_province_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_provincial_event();
+				context.map_of_provincial_events.insert_or_assign(event, pending_prov_event{ id, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::nation });
+				context.state.national_definitions.on_battle_lost.push_back(nations::fixed_province_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_surrender {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_surrender.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation });
+				context.state.national_definitions.on_surrender.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_new_great_nation {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_new_great_nation.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_new_great_nation.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_lost_great_nation {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_lost_great_nation.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_lost_great_nation.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_election_tick {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_election_tick.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_election_tick.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_colony_to_state {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_colony_to_state.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_colony_to_state.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_state_conquest {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_state_conquest.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_state_conquest.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_colony_to_state_free_slaves {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_colony_to_state_free_slaves.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_colony_to_state_free_slaves.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_debtor_default {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_debtor_default.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation });
+				context.state.national_definitions.on_debtor_default.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_debtor_default_small {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_debtor_default_small.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation });
+				context.state.national_definitions.on_debtor_default_small.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_debtor_default_second {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_debtor_default_second.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation });
+				context.state.national_definitions.on_debtor_default_second.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_civilize {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_civilize.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_civilize.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_crisis_declare_interest {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_crisis_declare_interest.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty });
+				context.state.national_definitions.on_crisis_declare_interest.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+
+	struct s_on_my_factories_nationalized {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context) {
+			int32_t value = parse_int(chance, line, err);
+			if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+				context.state.national_definitions.on_my_factories_nationalized.push_back(nations::fixed_event{ int16_t(value), it->second.id });
+			} else {
+				auto id = context.state.world.create_national_event();
+				context.map_of_national_events.insert_or_assign(event, pending_nat_event{ id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation });
+				context.state.national_definitions.on_my_factories_nationalized.push_back(nations::fixed_event{ int16_t(value), id });
+			}
+		}
+	};
+	struct on_action_file {
+		void finish(scenario_building_context&) { }
+		s_on_yearly_pulse on_yearly_pulse;
+		s_on_quarterly_pulse on_quarterly_pulse;
+		s_on_battle_won on_battle_won;
+		s_on_battle_lost on_battle_lost;
+		s_on_surrender on_surrender;
+		s_on_new_great_nation on_new_great_nation;
+		s_on_lost_great_nation on_lost_great_nation;
+		s_on_election_tick on_election_tick;
+		s_on_colony_to_state on_colony_to_state;
+		s_on_state_conquest on_state_conquest;
+		s_on_colony_to_state_free_slaves on_colony_to_state_free_slaves;
+		s_on_debtor_default on_debtor_default;
+		s_on_debtor_default_small on_debtor_default_small;
+		s_on_debtor_default_second on_debtor_default_second;
+		s_on_civilize on_civilize;
+		s_on_my_factories_nationalized on_my_factories_nationalized;
+		s_on_crisis_declare_interest on_crisis_declare_interest;
+	};
 }
 
 #include "trigger_parsing.hpp"

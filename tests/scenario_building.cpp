@@ -978,6 +978,23 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(fit.get_modifier().get_national_values().values[1] == Approx(0.01f));
 		
 	}
+	// parse on_actions.txt
+	{
+		auto on_action = open_file(common, NATIVE("on_actions.txt"));
+		if(on_action) {
+			auto content = view_contents(*on_action);
+			err.file_name = "on_actions.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_on_action_file(gen, err, context);
+		} else {
+			err.fatal = true;
+			err.accumulated_errors += "File common/on_actions.txt could not be opened\n";
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(state->national_definitions.on_civilize.size() == size_t(3));
+		REQUIRE(state->national_definitions.on_civilize[0].chance == int16_t(100));
+	}
 
 }
 #endif

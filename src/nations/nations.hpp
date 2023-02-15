@@ -13,6 +13,15 @@ struct triggered_modifier {
 	dcon::trigger_key trigger_condition;
 };
 
+struct fixed_event {
+	int16_t chance;
+	dcon::national_event_id id;
+};
+struct fixed_province_event {
+	int16_t chance;
+	dcon::provincial_event_id id;
+};
+
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
 
@@ -66,6 +75,24 @@ struct global_national_state {
 
 	dcon::national_focus_id flashpoint_focus;
 	float flashpoint_amount = 0.15f;
+
+	std::vector<fixed_event> on_yearly_pulse;
+	std::vector<fixed_event> on_quarterly_pulse;
+	std::vector<fixed_province_event> on_battle_won;
+	std::vector<fixed_province_event> on_battle_lost;
+	std::vector<fixed_event> on_surrender;
+	std::vector<fixed_event> on_new_great_nation;
+	std::vector<fixed_event> on_lost_great_nation;
+	std::vector<fixed_event> on_election_tick;
+	std::vector<fixed_event> on_colony_to_state;
+	std::vector<fixed_event> on_state_conquest;
+	std::vector<fixed_event> on_colony_to_state_free_slaves;
+	std::vector<fixed_event> on_debtor_default;
+	std::vector<fixed_event> on_debtor_default_small;
+	std::vector<fixed_event> on_debtor_default_second;
+	std::vector<fixed_event> on_civilize;
+	std::vector<fixed_event> on_my_factories_nationalized;
+	std::vector<fixed_event> on_crisis_declare_interest;
 };
 
 }
