@@ -688,6 +688,78 @@ object {
 		name{ army_name }
 		type{ text_sequence_id }
 	}
+	property{
+		name{ icon }
+		type{ uint8_t }
+	}
+	property{
+		name{ break_alliance_on_win }
+		type{ bitfield }
+	}
+	property{
+		name{ area }
+		type{ uint8_t }
+	}
+	property{
+		name{ defection }
+		type{ uint8_t }
+	}
+	property{
+		name{ independence }
+		type{ uint8_t }
+	}
+	property{
+		name{ ideology }
+		type{ ideology_id }
+	}
+	property{
+		name{ occupation_multiplier }
+		type{ float }
+	}
+	property{
+		name{ defect_delay }
+		type{ uint8_t }
+	}
+	property{
+		name{ culture_restriction }
+		type{ bitfield }
+	}
+	property{
+		name{ culture_group_restriction }
+		type{ bitfield }
+	}
+	property{
+		name{ will_rise }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ spawn_chance }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ movement_evaluation }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ siege_won_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ siege_won_effect }
+		type{ effect_key }
+	}
+	property{
+		name{ demands_enforced_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ demands_enforced_effect }
+		type{ effect_key }
+	}
+	property{
+		name{ government_change }
+		type{array{government_type_id}{government_type_id}}
+	}
 }
 
 object {

@@ -770,6 +770,8 @@ namespace sys {
 		world.invention_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
 		world.invention_resize_activate_crime(uint32_t(culture_definitions.crimes.size()));
 
+		world.rebel_type_resize_government_change(uint32_t(culture_definitions.governments.size()));
+
 		// load country files
 		world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));
@@ -940,6 +942,13 @@ namespace sys {
 			} else {
 				err.fatal = true;
 				err.accumulated_errors += "File common/on_actions.txt could not be opened\n";
+			}
+		}
+		// read pending rebel types
+		{
+			err.file_name = "rebel_types.txt";
+			for(auto& r : context.map_of_rebeltypes) {
+				parsers::read_pending_rebel_type(r.second.id, r.second.generator_state, err, context);
 			}
 		}
 		if(err.accumulated_errors.length() > 0)

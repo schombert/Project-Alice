@@ -920,7 +920,7 @@ trigger_body
 	is_sphere_leader_of   value      text               member_fn
 	rich_tax_above_poor   value      bool               member_fn
 	constructing_cb_type  value      text               member_fn
-	controlled_by_rebels  value      int                member_fn
+	controlled_by_rebels  value      bool               member_fn
 	has_country_modifier  value      text               member_fn
 	is_liberation_crisis  value      bool               member_fn
 	is_releasable_vassal  value      text               member_fn
@@ -1665,3 +1665,33 @@ on_action_file
 	on_civilize                     group      s_on_civilize                     member
 	on_my_factories_nationalized    group      s_on_my_factories_nationalized    member
 	on_crisis_declare_interest      group      s_on_crisis_declare_interest      member
+
+rebel_gov_list
+	#any                            value      text                              member_fn
+
+rebel_body
+	icon                            value      int                               member_fn
+	break_alliance_on_win           value      bool                              member_fn
+	government                      group      rebel_gov_list                    member
+	area                            value      text                              member_fn
+	defection                       value      text                              member_fn
+	independence                    value      text                              member_fn
+	defect_delay                    value      int                               member_fn
+	ideology                        value      text                              member_fn
+	allow_all_cultures              value      bool                              member_fn
+	allow_all_culture_groups        value      bool                              member_fn
+	allow_all_religions             value      bool                              discard
+	allow_all_ideologies            value      bool                              discard
+	resilient                       value      bool                              discard
+	reinforcing                     value      bool                              discard
+	general                         value      bool                              discard
+	smart                           value      bool                              discard
+	unit_transfer                   value      bool                              discard
+	occupation_mult                 value      float                             member_fn
+	will_rise                       extern     make_reb_will_rise                member_fn
+	spawn_chance                    extern     make_reb_spawn_chance             member_fn
+	movement_evaluation             extern     make_reb_movement_eval            member_fn
+	siege_won_trigger               extern     make_reb_s_won_trigger            member_fn
+	siege_won_effect                extern     make_reb_s_won_effect             member_fn
+	demands_enforced_trigger        extern     make_reb_enforced_trigger         member_fn
+	demands_enforced_effect         extern     make_reb_enforce_effect           member_fn

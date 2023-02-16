@@ -316,6 +316,8 @@ struct trigger_body {
 	void social_movement(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_trigger.push_back(uint16_t(trigger::social_movement | trigger::no_payload | association_to_bool_code(a, value)));
+		} else if(context.from_slot == trigger::slot_contents::rebel) {
+			context.compiled_trigger.push_back(uint16_t(trigger::social_movement_from_reb | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "social_movement trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -324,6 +326,8 @@ struct trigger_body {
 	void political_movement(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_trigger.push_back(uint16_t(trigger::political_movement | trigger::no_payload | association_to_bool_code(a, value)));
+		} else if(context.from_slot == trigger::slot_contents::rebel) {
+				context.compiled_trigger.push_back(uint16_t(trigger::political_movement_from_reb | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "political_movement trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;

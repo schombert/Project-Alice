@@ -56,7 +56,7 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read `national_focus.txt` *Done*
 - Read main poptypes file (`pop_types.txt`) *Done*
 - Read files in directory `poptypes` *Done*
-- Read prepared rebel types
+- Read prepared rebel types *Done*
 - Read `on_actions.txt` *Done*
 - Read event files from directory `events`
 - Read decision files from directory `decisions`

@@ -673,6 +673,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.invention_resize_activate_building(state->world.factory_type_size());
 	state->world.invention_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
 	state->world.invention_resize_activate_crime(uint32_t(state->culture_definitions.crimes.size()));
+
+	state->world.rebel_type_resize_government_change(uint32_t(state->culture_definitions.governments.size()));
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -995,6 +997,31 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->national_definitions.on_civilize.size() == size_t(3));
 		REQUIRE(state->national_definitions.on_civilize[0].chance == int16_t(100));
 	}
+	// read pending rebel types
+	{
+		err.file_name = "rebel_types.txt";
+		for(auto& r : context.map_of_rebeltypes) {
+			parsers::read_pending_rebel_type(r.second.id, r.second.generator_state, err, context);
+		}
 
+		REQUIRE(err.accumulated_errors == "");
+
+		auto it = context.map_of_rebeltypes.find(std::string("boxer_rebels"));
+		auto fid = fatten(state->world, it->second.id);
+
+		REQUIRE(fid.get_icon() == uint8_t(1));
+		REQUIRE(fid.get_break_alliance_on_win() == true);
+		REQUIRE(fid.get_area() == uint8_t(culture::rebel_area::nation));
+
+		auto gid = context.map_of_governments.find("fascist_dictatorship")->second;
+		auto gidb = context.map_of_governments.find("absolute_monarchy")->second;
+		REQUIRE(fid.get_government_change(gid) == gidb);
+
+		REQUIRE(fid.get_defection() == uint8_t(0));
+		REQUIRE(fid.get_independence() == uint8_t(0));
+		REQUIRE(fid.get_culture_restriction() == false);
+		REQUIRE(fid.get_occupation_multiplier() == 1.0f);
+
+	}
 }
 #endif
