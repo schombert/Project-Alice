@@ -27,7 +27,7 @@ public:
 	// Input methods
 	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
 	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod);
-	void on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount);
+	void on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount);
 	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
@@ -86,6 +86,9 @@ private:
 	float offset_y = 0.f;
 	float zoom = 1.f;
 	float zoom_change = 1.f;
+	bool has_zoom_changed = false;
+	glm::vec2 scroll_pos_velocity = glm::vec2(0.f);
+	std::chrono::time_point<std::chrono::system_clock> last_zoom_time{};
 
 	void update();
 
