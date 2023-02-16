@@ -212,7 +212,15 @@ struct ef_country_event {
 	dcon::national_event_id id_;
 	void id(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_national_events.find(value); it != context.outer_context.map_of_national_events.end()) {
-			id_ = it->second.id;
+			if(it->second.id) {
+				id_ = it->second.id;
+			} else {
+				id_ = context.outer_context.state.world.create_national_event();
+				it->second.id = id_;
+				it->second.main_slot = trigger::slot_contents::nation;
+				it->second.this_slot = trigger::slot_contents::nation;
+				it->second.from_slot = context.this_slot;
+			}
 		} else {
 			id_ = context.outer_context.state.world.create_national_event();
 			context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ id_, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
@@ -225,10 +233,18 @@ struct ef_province_event {
 	dcon::provincial_event_id id_;
 	void id(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_provincial_events.find(value); it != context.outer_context.map_of_provincial_events.end()) {
-			id_ = it->second.id;
+			if(it->second.id) {
+				id_ = it->second.id;
+			} else {
+				id_ = context.outer_context.state.world.create_provincial_event();
+				it->second.id = id_;
+				it->second.main_slot = trigger::slot_contents::province;
+				it->second.this_slot = trigger::slot_contents::nation;
+				it->second.from_slot = context.this_slot;
+			}
 		} else {
 			id_ = context.outer_context.state.world.create_provincial_event();
-			context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ id_, trigger::slot_contents::province, trigger::slot_contents::province, context.this_slot });
+			context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ id_, trigger::slot_contents::province, trigger::slot_contents::nation, context.this_slot });
 		}
 	}
 	void finish(effect_building_context&) { }
@@ -904,7 +920,16 @@ struct effect_body {
 				return;
 			}
 			if(auto it = context.outer_context.map_of_national_events.find(value); it != context.outer_context.map_of_national_events.end()) {
-				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+				if(it->second.id) {
+					context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+				} else {
+					auto ev_id = context.outer_context.state.world.create_national_event();
+					it->second.id = ev_id;
+					it->second.main_slot = trigger::slot_contents::nation;
+					it->second.this_slot = trigger::slot_contents::nation;
+					it->second.from_slot = context.this_slot;
+					context.compiled_effect.push_back(trigger::payload(ev_id).value);
+				}
 			} else {
 				auto ev_id = context.outer_context.state.world.create_national_event();
 				context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ ev_id, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
@@ -924,7 +949,16 @@ struct effect_body {
 				return;
 			}
 			if(auto it = context.outer_context.map_of_national_events.find(value); it != context.outer_context.map_of_national_events.end()) {
-				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+				if(it->second.id) {
+					context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+				} else {
+					auto ev_id = context.outer_context.state.world.create_national_event();
+					it->second.id = ev_id;
+					it->second.main_slot = trigger::slot_contents::nation;
+					it->second.this_slot = trigger::slot_contents::nation;
+					it->second.from_slot = context.this_slot;
+					context.compiled_effect.push_back(trigger::payload(ev_id).value);
+				}
 			} else {
 				auto ev_id = context.outer_context.state.world.create_national_event();
 				context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ ev_id, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
@@ -950,10 +984,19 @@ struct effect_body {
 				return;
 			}
 			if(auto it = context.outer_context.map_of_provincial_events.find(value); it != context.outer_context.map_of_provincial_events.end()) {
-				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+				if(it->second.id) {
+					context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+				} else {
+					auto ev_id = context.outer_context.state.world.create_provincial_event();
+					it->second.id = ev_id;
+					it->second.main_slot = trigger::slot_contents::province;
+					it->second.this_slot = trigger::slot_contents::nation;
+					it->second.from_slot = context.this_slot;
+					context.compiled_effect.push_back(trigger::payload(ev_id).value);
+				}
 			} else {
 				auto ev_id = context.outer_context.state.world.create_provincial_event();
-				context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ ev_id, trigger::slot_contents::province, trigger::slot_contents::province, context.this_slot });
+				context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ ev_id, trigger::slot_contents::province, trigger::slot_contents::nation, context.this_slot });
 				context.compiled_effect.push_back(trigger::payload(ev_id).value);
 			}
 		} else {
@@ -1870,6 +1913,8 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::assimilate_province | effect::no_payload));
 		} else if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_effect.push_back(uint16_t(effect::assimilate_pop | effect::no_payload));
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			context.compiled_effect.push_back(uint16_t(effect::assimilate_state | effect::no_payload));
 		} else {
 			err.accumulated_errors += "assimilate effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;

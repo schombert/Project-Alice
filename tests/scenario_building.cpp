@@ -1056,7 +1056,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		parsers::commit_pending_events(err, context);
 
 		REQUIRE(err.accumulated_errors == "");
-		//REQUIRE(err.accumulated_warnings == "");
+		REQUIRE(err.accumulated_warnings == "");
 	}
 }
 #endif
