@@ -92,10 +92,10 @@ namespace sys {
 			auto r = ui_state.under_mouse->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
 			if(r != ui::message_result::consumed) {
 				// TODO Settings for making zooming the map faster
-				map_display.on_mouse_wheel(x, y, mod, amount);
+				map_display.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 			}
 		} else {
-			map_display.on_mouse_wheel(x, y, mod, amount);
+			map_display.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 		}
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
