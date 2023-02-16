@@ -357,9 +357,10 @@ constexpr inline uint16_t variable_invention_name_no = 0x0149;
 constexpr inline uint16_t add_core_tag_state = 0x014A;
 constexpr inline uint16_t remove_core_tag_state = 0x014B;
 constexpr inline uint16_t secede_province_state = 0x014C;
+constexpr inline uint16_t assimilate_state = 0x014D;
 
 //invalid
-constexpr inline uint16_t first_invalid_code = 0x014D;
+constexpr inline uint16_t first_invalid_code = 0x014E;
 
 //scopes
 constexpr inline uint16_t generic_scope = 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -756,6 +757,7 @@ inline constexpr int32_t data_sizes[] = {
 	1, //constexpr inline uint16_t add_core_tag_state = 0x0014A;
 	1, //constexpr inline uint16_t remove_core_tag_state = 0x0014B;
 	1, //constexpr inline uint16_t secede_province_state = 0x014C;
+	0, //constexpr inline uint16_t assimilate_state = 0x014D;
 };
 
 }

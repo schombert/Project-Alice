@@ -972,11 +972,8 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 					break;
 			}
 		}
-	} while(count > 0);
 
-	do {
-		count = 0;
-		auto fixed_size = context.map_of_provincial_events.size();
+		fixed_size = context.map_of_provincial_events.size();
 		for(auto& e : context.map_of_provincial_events) {
 			if(!e.second.processed && e.second.text_assigned && e.second.main_slot != trigger::slot_contents::empty) {
 				e.second.processed = true;
