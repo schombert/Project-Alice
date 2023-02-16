@@ -2,6 +2,7 @@ include{<array>}
 include{"constants.hpp"}
 include{"modifiers.hpp"}
 include{"date_interface.hpp"}
+include{"container_types.hpp"}
 
 make_index{text_key}{uint32_t}
 make_index{text_sequence_id}{uint16_t}
@@ -1186,13 +1187,135 @@ relationship{
 object {
 	name { national_event }
 	storage_type{ contiguous }
-	size{ 5000 }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ is_major }
+		type{ bitfield }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ immediate_effect }
+		type{ effect_key }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+	}
+	
 }
 
 object {
 	name { provincial_event }
 	storage_type{ contiguous }
-	size{ 5000 }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+	}
+}
+
+object {
+	name { free_national_event }
+	storage_type{ contiguous }
+	size{ 4000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ only_once }
+		type{ bitfield }
+	}
+	property{
+		name{ is_major }
+		type{ bitfield }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ mtth }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ immediate_effect }
+		type{ effect_key }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+	}
+	
+}
+
+object {
+	name { free_provincial_event }
+	storage_type{ contiguous }
+	size{ 4000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ only_once }
+		type{ bitfield }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ mtth }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+	}
 }
 
 object {

@@ -2,6 +2,7 @@
 #include "nations.hpp"
 #include "parsers_declarations.hpp"
 #include "trigger_parsing.hpp"
+#include "effect_parsing.hpp"
 
 namespace parsers {
 void national_identity_file::any_value(std::string_view tag, association_type, std::string_view txt, error_handler& err, int32_t line, scenario_building_context& context) {
@@ -824,6 +825,195 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 
 	decision_context new_context{ context, new_decision };
 	parse_decision(gen, err, new_context);
+}
+
+void scan_province_event(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	token_generator scan_copy = gen;
+	auto scan_result = parse_scan_event(scan_copy, err, context);
+
+	if(scan_result.is_triggered_only) {
+		if(auto it = context.map_of_provincial_events.find(scan_result.id); it != context.map_of_provincial_events.end()) {
+			if(it->second.text_assigned) {
+				err.accumulated_errors += "More than one event given id " + std::to_string(scan_result.id) + " (" + err.file_name + ")\n";
+			} else {
+				it->second.generator_state = gen;
+				it->second.text_assigned = true;
+			}
+		} else {
+			context.map_of_provincial_events.insert_or_assign(scan_result.id, pending_prov_event{ dcon::provincial_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty, gen });
+		}
+		gen = scan_copy;
+	} else {
+		if(auto it = context.map_of_provincial_events.find(scan_result.id); it != context.map_of_provincial_events.end()) {
+			if(it->second.text_assigned) {
+				err.accumulated_errors += "More than one event given id " + std::to_string(scan_result.id) + " (" + err.file_name + ")\n";
+			} else {
+				it->second.generator_state = gen;
+				it->second.text_assigned = true;
+			}
+		}
+
+		event_building_context e_context{ context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
+		auto event_result = parse_generic_event(gen, err, e_context);
+		auto new_id = context.state.world.create_free_provincial_event();
+		auto fid = fatten(context.state.world, new_id);
+		fid.set_description(event_result.desc_);
+		fid.set_name(event_result.title_);
+		fid.set_image_name(event_result.picture_);
+		fid.set_mtth(event_result.mean_time_to_happen);
+		fid.set_only_once(event_result.fire_only_once);
+		fid.set_trigger(event_result.trigger);
+		fid.get_options() = event_result.options;
+	}
+}
+void scan_country_event(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	token_generator scan_copy = gen;
+	auto scan_result = parse_scan_event(scan_copy, err, context);
+
+	if(scan_result.is_triggered_only) {
+		if(auto it = context.map_of_national_events.find(scan_result.id); it != context.map_of_national_events.end()) {
+			if(it->second.text_assigned) {
+				err.accumulated_errors += "More than one event given id " + std::to_string(scan_result.id) + " (" + err.file_name + ")\n";
+			} else {
+				it->second.generator_state = gen;
+				it->second.text_assigned = true;
+			}
+		} else {
+			context.map_of_national_events.insert_or_assign(scan_result.id, pending_nat_event{ dcon::national_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty, gen });
+		}
+		gen = scan_copy;
+	} else {
+		if(auto it = context.map_of_national_events.find(scan_result.id); it != context.map_of_national_events.end()) {
+			if(it->second.text_assigned) {
+				err.accumulated_errors += "More than one event given id " + std::to_string(scan_result.id) + " (" + err.file_name + ")\n";
+			} else {
+				it->second.generator_state = gen;
+				it->second.text_assigned = true;
+			}
+		}
+
+		event_building_context e_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+		auto event_result = parse_generic_event(gen, err, e_context);
+		auto new_id = context.state.world.create_free_national_event();
+		auto fid = fatten(context.state.world, new_id);
+		fid.set_description(event_result.desc_);
+		fid.set_name(event_result.title_);
+		fid.set_image_name(event_result.picture_);
+		fid.set_immediate_effect(event_result.immediate_);
+		fid.set_is_major(event_result.major);
+		fid.set_mtth(event_result.mean_time_to_happen);
+		fid.set_only_once(event_result.fire_only_once);
+		fid.set_trigger(event_result.trigger);
+		fid.get_options() = event_result.options;
+	}
+}
+
+dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, event_building_context& context) {
+	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	return make_trigger(gen, err, t_context);
+}
+dcon::effect_key make_immediate_effect(token_generator& gen, error_handler& err, event_building_context& context) {
+	effect_building_context e_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	return make_effect(gen, err, e_context);
+}
+dcon::value_modifier_key make_event_mtth(token_generator& gen, error_handler& err, event_building_context& context) {
+	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handler& err, effect_building_context& context) {
+	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	return make_value_modifier(gen, err, t_context);
+}
+sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context) {
+	effect_building_context e_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+
+	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::is_scope | effect::scope_has_limit));
+	e_context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = e_context.compiled_effect.size() - 1;
+	e_context.limit_position = e_context.compiled_effect.size();
+	e_context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	auto opt_result = parse_event_option(gen, err, e_context);
+
+	e_context.compiled_effect[payload_size_offset] = uint16_t(e_context.compiled_effect.size() - payload_size_offset);
+
+	const auto new_size = simplify_effect(e_context.compiled_effect.data());
+	e_context.compiled_effect.resize(static_cast<size_t>(new_size));
+
+	auto effect_id = context.outer_context.state.commit_effect_data(e_context.compiled_effect);
+	
+	return sys::event_option{opt_result.name_, opt_result.ai_chance, effect_id };
+}
+void commit_pending_events(error_handler& err, scenario_building_context& context) {
+	int32_t count = 0;
+	do {
+		count = 0;
+		auto fixed_size = context.map_of_national_events.size();
+		for(auto& e : context.map_of_national_events) {
+			if(!e.second.processed && e.second.text_assigned && e.second.main_slot != trigger::slot_contents::empty) {
+				e.second.processed = true;
+				++count;
+
+				if(!bool(e.second.id))
+					e.second.id = context.state.world.create_national_event();
+
+				event_building_context e_context{ context, e.second.main_slot, e.second.this_slot, e.second.from_slot };
+				auto event_result = parse_generic_event(e.second.generator_state, err, e_context);
+
+				auto fid = fatten(context.state.world, e.second.id);
+				fid.set_description(event_result.desc_);
+				fid.set_name(event_result.title_);
+				fid.set_image_name(event_result.picture_);
+				fid.set_immediate_effect(event_result.immediate_);
+				fid.set_is_major(event_result.major);
+				fid.get_options() = event_result.options;
+
+				if(context.map_of_national_events.size() != fixed_size)
+					break;
+			}
+		}
+	} while(count > 0);
+
+	do {
+		count = 0;
+		auto fixed_size = context.map_of_provincial_events.size();
+		for(auto& e : context.map_of_provincial_events) {
+			if(!e.second.processed && e.second.text_assigned && e.second.main_slot != trigger::slot_contents::empty) {
+				e.second.processed = true;
+				++count;
+
+				if(!bool(e.second.id))
+					e.second.id = context.state.world.create_provincial_event();
+
+				event_building_context e_context{ context, e.second.main_slot, e.second.this_slot, e.second.from_slot };
+				auto event_result = parse_generic_event(e.second.generator_state, err, e_context);
+
+				auto fid = fatten(context.state.world, e.second.id);
+				fid.set_description(event_result.desc_);
+				fid.set_name(event_result.title_);
+				fid.set_image_name(event_result.picture_);
+				fid.get_options() = event_result.options;
+
+				if(context.map_of_provincial_events.size() != fixed_size)
+					break;
+			}
+		}
+	} while(count > 0);
+
+	for(auto& e : context.map_of_national_events) {
+		if(!e.second.text_assigned) {
+			err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " referenced but never defined. \n";
+		} else if(!e.second.processed) {
+			err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " defined but never triggered. \n";
+		}
+	}
+	for(auto& e : context.map_of_provincial_events) {
+		if(!e.second.text_assigned) {
+			err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " referenced but never defined. \n";
+		} else if(!e.second.processed) {
+			err.accumulated_warnings += "Event id: " + std::to_string(e.first) + " defined but never triggered. \n";
+		}
+	}
 }
 
 }

@@ -42,6 +42,14 @@ struct value_modifier_description {
 	uint16_t segments_count = 0;
 };
 
+struct event_option {
+	dcon::text_sequence_id name;
+	dcon::value_modifier_key ai_chance;
+	dcon::effect_key effect;
+};
+
+constexpr int32_t max_event_options = 6;
+
 }
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>

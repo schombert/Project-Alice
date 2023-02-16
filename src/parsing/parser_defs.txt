@@ -1031,6 +1031,7 @@ pop_history_file
 value_modifier_definition
 	factor             value         float                              member
 	base               value         float                              member (factor)
+	months             value         float                              member (factor)
 	group              group         value_modifier_definition          member_fn
 	modifier           extern        make_value_modifier_segment        discard
 
@@ -1713,3 +1714,40 @@ decision_list
 
 decision_file
 	political_decisions             group      decision_list                     member
+
+scan_event
+	is_triggered_only               value      bool                              member
+	id                              value      int                               member
+	#any                            value      none                              discard
+	#any                            group      none                              discard
+
+event_option
+	#base    effect_body
+	name                            value      text                              member_fn
+	ai_chance                       extern     make_option_ai_chance             member
+
+generic_event
+	id                              value      int                               discard
+	is_triggered_only               value      bool                              discard
+	title                           value      text                              member_fn
+	desc                            value      text                              member_fn
+	trigger                         extern     make_event_trigger                member
+	mean_time_to_happen             extern     make_event_mtth                   member
+	option                          extern     make_event_option                 member_fn
+	immediate                       extern     make_immediate_effect             member_fn
+	news                            value      bool                              discard
+	news_desc_long                  value      text                              discard
+	news_desc_medium                value      text                              discard
+	news_desc_short                 value      text                              discard
+	news_title                      value      text                              discard
+	major                           value      bool                              member
+	picture                         value      text                              member_fn
+	fire_only_once                  value      bool                              member
+	allow_multiple_instances        value      bool                              discard
+	election                        value      bool                              discard
+	issue_group                     value      text                              discard
+
+event_file
+	country_event                   extern     scan_country_event               discard
+	province_event                  extern     scan_province_event                discard
+
