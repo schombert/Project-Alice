@@ -354,11 +354,12 @@ constexpr inline uint16_t country_event_province_this_pop = 0x0146;
 constexpr inline uint16_t country_event_immediate_province_this_pop = 0x0147;
 constexpr inline uint16_t activate_invention = 0x0148;
 constexpr inline uint16_t variable_invention_name_no = 0x0149;
-constexpr inline uint16_t add_core_tag_state = 0x0014A;
-constexpr inline uint16_t remove_core_tag_state = 0x0014B;
+constexpr inline uint16_t add_core_tag_state = 0x014A;
+constexpr inline uint16_t remove_core_tag_state = 0x014B;
+constexpr inline uint16_t secede_province_state = 0x014C;
 
 //invalid
-constexpr inline uint16_t first_invalid_code = 0x014C;
+constexpr inline uint16_t first_invalid_code = 0x014D;
 
 //scopes
 constexpr inline uint16_t generic_scope = 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -754,6 +755,7 @@ inline constexpr int32_t data_sizes[] = {
 	1, //constexpr inline uint16_t variable_invention_name_no = 0x0149;
 	1, //constexpr inline uint16_t add_core_tag_state = 0x0014A;
 	1, //constexpr inline uint16_t remove_core_tag_state = 0x0014B;
+	1, //constexpr inline uint16_t secede_province_state = 0x014C;
 };
 
 }
@@ -1408,11 +1410,10 @@ constexpr inline uint16_t has_building_state_from_province = 0x026A;
 constexpr inline uint16_t has_building_factory_from_province = 0x026B;
 constexpr inline uint16_t party_loyalty_generic = 0x026C;
 constexpr inline uint16_t invention = 0x026D;
-constexpr inline uint16_t is_ideology_enabled_pop = 0x026E;
-constexpr inline uint16_t political_movement_from_reb = 0x026F;
-constexpr inline uint16_t social_movement_from_reb = 0x0270;
+constexpr inline uint16_t political_movement_from_reb = 0x026E;
+constexpr inline uint16_t social_movement_from_reb = 0x026F;
 
-constexpr inline uint16_t first_invalid_code = 0x0271;
+constexpr inline uint16_t first_invalid_code = 0x0270;
 
 //technology name -- payload 1
 //ideology name -- 4 variants payload 2
@@ -2106,9 +2107,8 @@ inline constexpr int32_t data_sizes[] = {
 	0, //constexpr uint16_t has_building_factory_from_province = 0x026B;
 	0, //constexpr uint16_t party_loyalty_generic = 0x026C;
 	1, //constexpr inline uint16_t invention = 0x026D;
-	1, //constexpr inline uint16_t is_ideology_enabled_pop = 0x026E;
-	0, //constexpr inline uint16_t political_movement_from_reb = 0x026F;
-	0, //constexpr inline uint16_t social_movement_from_reb = 0x0270;
+	0, //constexpr inline uint16_t political_movement_from_reb = 0x026E;
+	0, //constexpr inline uint16_t social_movement_from_reb = 0x026F;
 };
 
 enum class slot_contents {
@@ -2153,6 +2153,7 @@ union payload {
 	dcon::provincial_event_id pev_id;
 	dcon::unit_name_id unam_id;
 	dcon::trigger_key tr_id;
+	dcon::crime_id crm_id;
 
 
 	//variables::national_variable_tag nat_var;
@@ -2280,6 +2281,10 @@ union payload {
 	payload(dcon::trigger_key i) {
 		memset(this, 0, sizeof(payload));
 		tr_id = i;
+	}
+	payload(dcon::crime_id i) {
+		memset(this, 0, sizeof(payload));
+		crm_id = i;
 	}
 };
 

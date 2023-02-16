@@ -259,12 +259,26 @@ namespace parsers {
 		trigger::slot_contents main_slot;
 		trigger::slot_contents this_slot;
 		trigger::slot_contents from_slot;
+		token_generator generator_state;
+		bool text_assigned = false;
+		bool processed = false;
+
+		pending_nat_event() = default;
+		pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
+		pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
 	};
 	struct pending_prov_event {
 		dcon::provincial_event_id id;
 		trigger::slot_contents main_slot;
 		trigger::slot_contents this_slot;
 		trigger::slot_contents from_slot;
+		token_generator generator_state;
+		bool text_assigned = false;
+		bool processed = false;
+
+		pending_prov_event() = default;
+		pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
+		pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
 	};
 	struct scenario_building_context {
 		sys::state& state;
@@ -2980,6 +2994,69 @@ namespace parsers {
 	dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, decision_context& context);
 	dcon::value_modifier_key make_decision_ai_choice(token_generator& gen, error_handler& err, decision_context& context);
 	void make_decision(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct event_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void scan_province_event(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void scan_country_event(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct scan_event {
+		bool is_triggered_only = false;
+		int32_t id = 0;
+		void finish(scenario_building_context&) { }
+	};
+
+	struct event_building_context {
+		scenario_building_context& outer_context;
+	
+		trigger::slot_contents main_slot = trigger::slot_contents::empty;
+		trigger::slot_contents this_slot = trigger::slot_contents::empty;
+		trigger::slot_contents from_slot = trigger::slot_contents::empty;
+	};
+
+	struct generic_event {
+		void finish(event_building_context&) { }
+		dcon::trigger_key trigger;
+		dcon::value_modifier_key mean_time_to_happen;
+		std::array<sys::event_option, sys::max_event_options> options;
+		int32_t last_option_added = 0;
+		dcon::effect_key immediate_;
+		bool major = false;
+		bool fire_only_once = false;
+		dcon::text_key picture_;
+		dcon::text_sequence_id title_;
+		dcon::text_sequence_id desc_;
+
+		void title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
+			title_ = text::find_or_add_key(context.outer_context.state, value);
+		}
+		void desc(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
+			desc_ = text::find_or_add_key(context.outer_context.state, value);
+		}
+		void option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context) {
+			if(last_option_added < sys::max_event_options) {
+				options[last_option_added] = value;
+				++last_option_added;
+			} else {
+				err.accumulated_errors += "Event given too many options (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void immediate(dcon::effect_key value, error_handler& err, int32_t line, event_building_context& context) {
+			if(!bool(immediate_))
+				immediate_ = value;
+		}
+		void picture(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
+			picture_ = context.outer_context.state.add_unique_to_pool(std::string(value));
+		}
+	};
+
+	dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, event_building_context& context);
+	dcon::effect_key make_immediate_effect(token_generator& gen, error_handler& err, event_building_context& context);
+	dcon::value_modifier_key make_event_mtth(token_generator& gen, error_handler& err, event_building_context& context);
+	sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context);
+	void commit_pending_events(error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"

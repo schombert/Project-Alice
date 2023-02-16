@@ -964,6 +964,23 @@ namespace sys {
 				}
 			}
 		}
+		// load events
+		{
+			auto events = open_directory(root, NATIVE("events"));
+			std::vector<simple_fs::file> held_open_files;
+			for(auto event_file : list_files(events, NATIVE(".txt"))) {
+				auto opened_file = open_file(event_file);
+				if(opened_file) {
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+					auto content = view_contents(*opened_file);
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_event_file(gen, err, context);
+					held_open_files.emplace_back(std::move(*opened_file));
+				}
+			}
+			err.file_name = "pending events";
+			parsers::commit_pending_events(err, context);
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}

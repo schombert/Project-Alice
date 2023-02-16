@@ -1361,15 +1361,15 @@ struct trigger_body {
 		}
 	}
 	void has_crime(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(auto it = context.outer_context.map_of_modifiers.find(std::string(value)); it != context.outer_context.map_of_modifiers.end()) {
-			if(context.main_slot == trigger::slot_contents::nation) {
+		if(auto it = context.outer_context.map_of_crimes.find(std::string(value)); it != context.outer_context.map_of_crimes.end()) {
+			if(context.main_slot == trigger::slot_contents::province) {
 				context.compiled_trigger.push_back(uint16_t(trigger::has_crime | association_to_bool_code(a)));
 			} else {
 				err.accumulated_errors += "has_crime trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 
-			context.compiled_trigger.push_back(trigger::payload(it->second).value);
+			context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
 		} else {
 			err.accumulated_errors += "has_crime trigger supplied with an invalid crime (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
@@ -2728,14 +2728,7 @@ struct trigger_body {
 	}
 	void is_ideology_enabled(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
-			if(context.main_slot == trigger::slot_contents::nation) {
-				context.compiled_trigger.push_back(uint16_t(trigger::is_ideology_enabled | association_to_bool_code(a)));
-			} else if(context.main_slot == trigger::slot_contents::pop) {
-				context.compiled_trigger.push_back(uint16_t(trigger::is_ideology_enabled_pop | association_to_bool_code(a)));
-			} else {
-				err.accumulated_errors += "is_ideology_enabled trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-				return;
-			}
+			context.compiled_trigger.push_back(uint16_t(trigger::is_ideology_enabled | association_to_bool_code(a)));
 			context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
 		} else {
 			err.accumulated_errors += "is_ideology_enabled trigger supplied with an invalid ideology (" + err.file_name + ", line " + std::to_string(line) + ")\n";

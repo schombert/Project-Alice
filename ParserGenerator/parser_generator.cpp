@@ -531,6 +531,7 @@ std::string construct_match_tree_internal(V const& vector, F const& generator_ma
 		output += tabulate("default:\n");
 		tabulate_increment();
 		output += tabulate(std::string(no_match) + "\n");
+		output += tabulate("break;\n");
 		tabulate_decrement();
 		output += tabulate("}\n");
 	}
@@ -572,6 +573,7 @@ std::string construct_match_tree_outer(auto const& vector, auto const& generator
 	output += tabulate("default:\n");
 	tabulate_increment();
 	output += tabulate(std::string(no_match) + "\n");
+	output += tabulate("break;\n");
 	tabulate_decrement();
 	output += tabulate("}\n");
 	return output;

@@ -58,7 +58,7 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read files in directory `poptypes` *Done*
 - Read prepared rebel types *Done*
 - Read `on_actions.txt` *Done*
-- Read event files from directory `events`
+- Read event files from directory `events` *Done*
 - Read decision files from directory `decisions` *Done*
 - Read prepared technologies *Done*
 - Read prepared inventions *Done*

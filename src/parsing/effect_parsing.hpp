@@ -1051,7 +1051,19 @@ struct effect_body {
 				err.accumulated_errors += "secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-
+		} else if(context.main_slot == trigger::slot_contents::state) {
+			if(value.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2])); it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_effect.push_back(uint16_t(effect::secede_province_state));
+					context.compiled_effect.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors += "secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else {
+				err.accumulated_errors += "secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
 		} else {
 			err.accumulated_errors += "secede_province effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -1782,10 +1794,10 @@ struct effect_body {
 		}
 	}
 	void add_crime(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_modifiers.find(std::string(value)); it != context.outer_context.map_of_modifiers.end()) {
+		if(auto it = context.outer_context.map_of_crimes.find(std::string(value)); it != context.outer_context.map_of_crimes.end()) {
 			if(context.main_slot == trigger::slot_contents::province) {
 				context.compiled_effect.push_back(uint16_t(effect::add_crime));
-				context.compiled_effect.push_back(trigger::payload(it->second).value);
+				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors += "add_crime effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
@@ -2845,6 +2857,17 @@ struct effect_body {
 	}
 };
 
+struct event_option : public effect_body {
+	dcon::value_modifier_key ai_chance;
+	dcon::text_sequence_id name_;
+
+	void name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		name_ = text::find_or_add_key(context.outer_context.state, value);
+	}
+};
+
+dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handler& err, effect_building_context& context);
+
 dcon::trigger_key ef_limit(token_generator& gen, error_handler& err, effect_building_context& context);
 
 void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_building_context& context);
@@ -2886,5 +2909,6 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 int32_t add_to_random_list(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
 
 dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_building_context& context);
+int32_t simplify_effect(uint16_t* source);
 
 }
