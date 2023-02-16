@@ -2805,6 +2805,145 @@ namespace parsers {
 		s_on_my_factories_nationalized on_my_factories_nationalized;
 		s_on_crisis_declare_interest on_crisis_declare_interest;
 	};
+
+	struct rebel_context {
+		scenario_building_context& outer_context;
+		dcon::rebel_type_id id;
+	};
+
+	struct rebel_gov_list {
+		void finish(rebel_context&) { }
+		void any_value(std::string_view from_gov, association_type, std::string_view to_gov, error_handler& err, int32_t line, rebel_context& context) {
+			if(auto frit = context.outer_context.map_of_governments.find(std::string(from_gov)); frit != context.outer_context.map_of_governments.end()) {
+				if(auto toit = context.outer_context.map_of_governments.find(std::string(to_gov)); toit != context.outer_context.map_of_governments.end()) {
+					context.outer_context.state.world.rebel_type_set_government_change(context.id, frit->second, toit->second);
+				} else {
+					err.accumulated_errors += "Invalid government " + std::string(to_gov) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors += "Invalid government " + std::string(from_gov) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+
+	struct rebel_body {
+		void finish(rebel_context&) { }
+		void icon(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_icon(context.id, uint8_t(value));
+		}
+		void break_alliance_on_win(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_break_alliance_on_win(context.id, value);
+		}
+		rebel_gov_list government;
+		void area(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "none"))
+				context.outer_context.state.world.rebel_type_set_area(context.id, uint8_t(::culture::rebel_area::none));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "nation"))
+				context.outer_context.state.world.rebel_type_set_area(context.id, uint8_t(::culture::rebel_area::nation));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "culture"))
+				context.outer_context.state.world.rebel_type_set_area(context.id, uint8_t(::culture::rebel_area::culture));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "nation_culture"))
+				context.outer_context.state.world.rebel_type_set_area(context.id, uint8_t(::culture::rebel_area::nation_culture));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "nation_religion"))
+				context.outer_context.state.world.rebel_type_set_area(context.id, uint8_t(::culture::rebel_area::nation_religion));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "religion"))
+				context.outer_context.state.world.rebel_type_set_area(context.id, uint8_t(::culture::rebel_area::religion));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "culture_group"))
+				context.outer_context.state.world.rebel_type_set_area(context.id, uint8_t(::culture::rebel_area::culture_group));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "all"))
+				context.outer_context.state.world.rebel_type_set_area(context.id, uint8_t(::culture::rebel_area::all));
+			else {
+				err.accumulated_errors += "Invalid rebel area " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void defection(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "none"))
+				context.outer_context.state.world.rebel_type_set_defection(context.id, uint8_t(::culture::rebel_defection::none));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "ideology"))
+				context.outer_context.state.world.rebel_type_set_defection(context.id, uint8_t(::culture::rebel_defection::ideology));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "culture"))
+				context.outer_context.state.world.rebel_type_set_defection(context.id, uint8_t(::culture::rebel_defection::culture));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "any"))
+				context.outer_context.state.world.rebel_type_set_defection(context.id, uint8_t(::culture::rebel_defection::any));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "pan_nationalist"))
+				context.outer_context.state.world.rebel_type_set_defection(context.id, uint8_t(::culture::rebel_defection::pan_nationalist));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "religion"))
+				context.outer_context.state.world.rebel_type_set_defection(context.id, uint8_t(::culture::rebel_defection::religion));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "culture_group"))
+				context.outer_context.state.world.rebel_type_set_defection(context.id, uint8_t(::culture::rebel_defection::culture_group));
+			else {
+				err.accumulated_errors += "Invalid rebel defection " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void independence(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "none"))
+				context.outer_context.state.world.rebel_type_set_independence(context.id, uint8_t(::culture::rebel_independence::none));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "colonial"))
+				context.outer_context.state.world.rebel_type_set_independence(context.id, uint8_t(::culture::rebel_independence::colonial));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "culture"))
+				context.outer_context.state.world.rebel_type_set_independence(context.id, uint8_t(::culture::rebel_independence::culture));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "any"))
+				context.outer_context.state.world.rebel_type_set_independence(context.id, uint8_t(::culture::rebel_independence::any));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "pan_nationalist"))
+				context.outer_context.state.world.rebel_type_set_independence(context.id, uint8_t(::culture::rebel_independence::pan_nationalist));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "religion"))
+				context.outer_context.state.world.rebel_type_set_independence(context.id, uint8_t(::culture::rebel_independence::religion));
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "culture_group"))
+				context.outer_context.state.world.rebel_type_set_independence(context.id, uint8_t(::culture::rebel_independence::culture_group));
+			else {
+				err.accumulated_errors += "Invalid rebel independence " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void defect_delay(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_defect_delay(context.id, uint8_t(value));
+		}
+		void ideology(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context) {
+			if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
+				context.outer_context.state.world.rebel_type_set_ideology(context.id, it->second.id);
+			} else {
+				err.accumulated_errors += "Invalid ideology " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void allow_all_cultures(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_culture_restriction(context.id, !value);
+		}
+		void allow_all_culture_groups(association_type, bool value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_culture_group_restriction(context.id, !value);
+		}
+		void occupation_mult(association_type, float value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_occupation_multiplier(context.id, uint8_t(value));
+		}
+		void will_rise(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_will_rise(context.id, value);
+		}
+		void spawn_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_spawn_chance(context.id, value);
+		}
+		void movement_evaluation(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_movement_evaluation(context.id, value);
+		}
+		void siege_won_trigger(dcon::trigger_key value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_siege_won_trigger(context.id, value);
+		}
+		void demands_enforced_trigger(dcon::trigger_key value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_demands_enforced_trigger(context.id, value);
+		}
+		void siege_won_effect(dcon::effect_key value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_siege_won_effect(context.id, value);
+		}
+		void demands_enforced_effect(dcon::effect_key value, error_handler& err, int32_t line, rebel_context& context) {
+			context.outer_context.state.world.rebel_type_set_demands_enforced_effect(context.id, value);
+		}
+	};
+
+	dcon::value_modifier_key make_reb_will_rise(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::value_modifier_key make_reb_spawn_chance(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::value_modifier_key make_reb_movement_eval(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::trigger_key make_reb_s_won_trigger(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::trigger_key make_reb_enforced_trigger(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::effect_key make_reb_s_won_effect(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::effect_key make_reb_enforce_effect(token_generator& gen, error_handler& err, rebel_context& context);
+	void read_pending_rebel_type(dcon::rebel_type_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"

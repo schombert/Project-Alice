@@ -396,4 +396,37 @@ void read_pending_invention(dcon::invention_id id, token_generator& gen, error_h
 	}
 }
 
+dcon::value_modifier_key make_reb_will_rise(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::value_modifier_key make_reb_spawn_chance(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::value_modifier_key make_reb_movement_eval(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::trigger_key make_reb_s_won_trigger(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_trigger(gen, err, t_context);
+}
+dcon::trigger_key make_reb_enforced_trigger(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_trigger(gen, err, t_context);
+}
+dcon::effect_key make_reb_s_won_effect(token_generator& gen, error_handler& err, rebel_context& context) {
+	effect_building_context e_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_effect(gen, err, e_context);
+}
+dcon::effect_key make_reb_enforce_effect(token_generator& gen, error_handler& err, rebel_context& context) {
+	effect_building_context e_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_effect(gen, err, e_context);
+}
+void read_pending_rebel_type(dcon::rebel_type_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	rebel_context new_context{ context, id };
+	parse_rebel_body(gen, err, new_context);
+}
+
 }

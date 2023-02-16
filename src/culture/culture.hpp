@@ -125,8 +125,18 @@ struct global_cultural_state {
 	dcon::value_modifier_key conversion_chance;
 };
 
-enum class issue_category {
+enum class issue_category : uint8_t {
 	party, political, social, military, economic
+};
+
+enum class rebel_area : uint8_t {
+	none = 0, nation, culture, nation_culture, nation_religion, religion, culture_group, all
+};
+enum class rebel_defection : uint8_t {
+	none = 0, culture, culture_group, religion, ideology, any, pan_nationalist
+};
+enum class rebel_independence : uint8_t {
+	none = 0, culture, culture_group, religion, colonial, any, pan_nationalist
 };
 
 }

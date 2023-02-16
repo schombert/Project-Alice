@@ -1405,8 +1405,10 @@ constexpr inline uint16_t has_building_factory_from_province = 0x026B;
 constexpr inline uint16_t party_loyalty_generic = 0x026C;
 constexpr inline uint16_t invention = 0x026D;
 constexpr inline uint16_t is_ideology_enabled_pop = 0x026E;
+constexpr inline uint16_t political_movement_from_reb = 0x026F;
+constexpr inline uint16_t social_movement_from_reb = 0x0270;
 
-constexpr inline uint16_t first_invalid_code = 0x026F;
+constexpr inline uint16_t first_invalid_code = 0x0271;
 
 //technology name -- payload 1
 //ideology name -- 4 variants payload 2
@@ -2101,6 +2103,8 @@ inline constexpr int32_t data_sizes[] = {
 	0, //constexpr uint16_t party_loyalty_generic = 0x026C;
 	1, //constexpr inline uint16_t invention = 0x026D;
 	1, //constexpr inline uint16_t is_ideology_enabled_pop = 0x026E;
+	0, //constexpr inline uint16_t political_movement_from_reb = 0x026F;
+	0, //constexpr inline uint16_t social_movement_from_reb = 0x0270;
 };
 
 enum class slot_contents {
