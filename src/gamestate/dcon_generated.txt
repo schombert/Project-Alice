@@ -1241,3 +1241,38 @@ object {
 		type{array{commodity_id}{float}}
 	}
 }
+
+object {
+	name{ decision }
+	storage_type{ contiguous }
+	size{ 1000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ potential }
+		type{ trigger_key }
+	}
+	property{
+		name{ allow }
+		type{ trigger_key }
+	}
+	property{
+		name{ effect }
+		type{ effect_key }
+	}
+	property{
+		name{ ai_will_do }
+		type{ value_modifier_key }
+	}
+}

@@ -59,7 +59,7 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read prepared rebel types *Done*
 - Read `on_actions.txt` *Done*
 - Read event files from directory `events`
-- Read decision files from directory `decisions`
+- Read decision files from directory `decisions` *Done*
 - Read prepared technologies *Done*
 - Read prepared inventions *Done*
 
