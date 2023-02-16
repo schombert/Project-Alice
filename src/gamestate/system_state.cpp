@@ -951,6 +951,19 @@ namespace sys {
 				parsers::read_pending_rebel_type(r.second.id, r.second.generator_state, err, context);
 			}
 		}
+		// load decisions
+		{
+			auto decisions = open_directory(root, NATIVE("decisions"));
+			for(auto decision_file : list_files(decisions, NATIVE(".txt"))) {
+				auto opened_file = open_file(decision_file);
+				if(opened_file) {
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+					auto content = view_contents(*opened_file);
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_decision_file(gen, err, context);
+				}
+			}
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}

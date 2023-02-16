@@ -314,7 +314,9 @@ namespace parsers {
 		std::optional<simple_fs::file> triggered_modifiers_file;
 		std::optional<simple_fs::file> rebel_types_file;
 		std::vector<simple_fs::file> tech_and_invention_files;
-		
+
+		dcon::text_key noimage;
+
 		scenario_building_context(sys::state& state) : state(state) { }
 
 		dcon::national_variable_id get_national_variable(std::string const& name);
@@ -2944,6 +2946,40 @@ namespace parsers {
 	dcon::effect_key make_reb_s_won_effect(token_generator& gen, error_handler& err, rebel_context& context);
 	dcon::effect_key make_reb_enforce_effect(token_generator& gen, error_handler& err, rebel_context& context);
 	void read_pending_rebel_type(dcon::rebel_type_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct decision_context {
+		scenario_building_context& outer_context;
+		dcon::decision_id id;
+	};
+
+
+	struct decision {
+		void finish(decision_context&) { }
+		void potential(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
+			context.outer_context.state.world.decision_set_potential(context.id, value);
+		}
+		void allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
+			context.outer_context.state.world.decision_set_allow(context.id, value);
+		}
+		void effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context) {
+			context.outer_context.state.world.decision_set_effect(context.id, value);
+		}
+		void ai_will_do(dcon::value_modifier_key value, error_handler& err, int32_t line, decision_context& context) {
+			context.outer_context.state.world.decision_set_ai_will_do(context.id, value);
+		}
+	};
+	struct decision_list {
+		void finish(scenario_building_context&) { }
+	};
+	struct decision_file {
+		void finish(scenario_building_context&) { }
+		decision_list political_decisions;
+	};
+
+	dcon::trigger_key make_decision_trigger(token_generator& gen, error_handler& err, decision_context& context);
+	dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, decision_context& context);
+	dcon::value_modifier_key make_decision_ai_choice(token_generator& gen, error_handler& err, decision_context& context);
+	void make_decision(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"

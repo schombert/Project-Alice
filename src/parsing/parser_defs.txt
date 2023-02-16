@@ -1695,3 +1695,21 @@ rebel_body
 	siege_won_effect                extern     make_reb_s_won_effect             member_fn
 	demands_enforced_trigger        extern     make_reb_enforced_trigger         member_fn
 	demands_enforced_effect         extern     make_reb_enforce_effect           member_fn
+
+decision
+	potential                       extern     make_decision_trigger             member_fn
+	allow                           extern     make_decision_trigger             member_fn
+	effect                          extern     make_decision_effect              member_fn
+	ai_will_do                      extern     make_decision_ai_choice           member_fn
+	news                            value      bool                              discard
+	news_desc_long                  value      text                              discard
+	news_desc_medium                value      text                              discard
+	news_desc_short                 value      text                              discard
+	alert                           value      bool                              discard
+	picture                         value      text                              discard
+
+decision_list
+	#any                            extern     make_decision                     discard
+
+decision_file
+	political_decisions             group      decision_list                     member

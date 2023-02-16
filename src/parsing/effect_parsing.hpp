@@ -524,6 +524,19 @@ struct effect_body {
 					err.accumulated_errors += "add_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
+			} else if(context.main_slot == trigger::slot_contents::state) {
+				if(value.length() == 3) {
+					if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2])); it != context.outer_context.map_of_ident_names.end()) {
+						context.compiled_effect.push_back(uint16_t(effect::add_core_tag_state));
+						context.compiled_effect.push_back(trigger::payload(it->second).value);
+					} else {
+						err.accumulated_errors += "add_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						return;
+					}
+				} else {
+					err.accumulated_errors += "add_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
 			} else {
 				err.accumulated_errors += "add_core effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
@@ -579,6 +592,19 @@ struct effect_body {
 				} else if(value.length() == 3) {
 					if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2])); it != context.outer_context.map_of_ident_names.end()) {
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_tag));
+						context.compiled_effect.push_back(trigger::payload(it->second).value);
+					} else {
+						err.accumulated_errors += "remove_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						return;
+					}
+				} else {
+					err.accumulated_errors += "remove_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(context.main_slot == trigger::slot_contents::state) {
+				if(value.length() == 3) {
+					if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2])); it != context.outer_context.map_of_ident_names.end()) {
+						context.compiled_effect.push_back(uint16_t(effect::remove_core_tag_state));
 						context.compiled_effect.push_back(trigger::payload(it->second).value);
 					} else {
 						err.accumulated_errors += "remove_core effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";

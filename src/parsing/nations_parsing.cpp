@@ -774,7 +774,6 @@ dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_
 	return make_trigger(gen, err, t_context);
 }
 
-
 dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, national_focus_context& context) {
 	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
 	return make_trigger(gen, err, t_context);
@@ -785,6 +784,46 @@ void make_focus(std::string_view name, token_generator& gen, error_handler& err,
 	context.state.world.national_focus_set_name(new_focus, name_id);
 	national_focus_context new_context{context, new_focus};
 	parse_national_focus(gen, err, new_context);
+}
+
+dcon::value_modifier_key make_decision_ai_choice(token_generator& gen, error_handler& err, decision_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::trigger_key make_decision_trigger(token_generator& gen, error_handler& err, decision_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, decision_context& context) {
+	effect_building_context e_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_effect(gen, err, e_context);
+}
+
+void make_decision(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto new_decision = context.state.world.create_decision();
+
+	auto name_id = text::find_or_add_key(context.state, std::string(name) + "_title");
+	auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc");
+
+	auto root = get_root(context.state.common_fs);
+	auto gfx = open_directory(root, NATIVE("gfx"));
+	auto pictures = open_directory(gfx, NATIVE("pictures"));
+	auto decisions = open_directory(pictures, NATIVE("decisions"));
+	if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
+		dcon::text_key base_name = context.state.add_to_pool(name);
+		context.state.world.decision_set_image_name(new_decision, base_name);
+	} else {
+		if(!bool(context.noimage)) {
+			context.noimage = context.state.add_to_pool(std::string_view("noimage"));
+		}
+		context.state.world.decision_set_image_name(new_decision, context.noimage);
+	}
+
+	context.state.world.decision_set_name(new_decision, name_id);
+	context.state.world.decision_set_description(new_decision, desc_id);
+
+	decision_context new_context{ context, new_decision };
+	parse_decision(gen, err, new_context);
 }
 
 }

@@ -354,9 +354,11 @@ constexpr inline uint16_t country_event_province_this_pop = 0x0146;
 constexpr inline uint16_t country_event_immediate_province_this_pop = 0x0147;
 constexpr inline uint16_t activate_invention = 0x0148;
 constexpr inline uint16_t variable_invention_name_no = 0x0149;
+constexpr inline uint16_t add_core_tag_state = 0x0014A;
+constexpr inline uint16_t remove_core_tag_state = 0x0014B;
 
 //invalid
-constexpr inline uint16_t first_invalid_code = 0x0150;
+constexpr inline uint16_t first_invalid_code = 0x014C;
 
 //scopes
 constexpr inline uint16_t generic_scope = 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -750,6 +752,8 @@ inline constexpr int32_t data_sizes[] = {
 	1, //constexpr uint16_t country_event_immediate_province_this_pop = 0x0147;
 	1, //constexpr inline uint16_t activate_invention = 0x0148;
 	1, //constexpr inline uint16_t variable_invention_name_no = 0x0149;
+	1, //constexpr inline uint16_t add_core_tag_state = 0x0014A;
+	1, //constexpr inline uint16_t remove_core_tag_state = 0x0014B;
 };
 
 }
