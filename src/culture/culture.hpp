@@ -107,6 +107,9 @@ struct global_cultural_state {
 	dcon::pop_type_id slaves;
 	dcon::pop_type_id bureaucrat;
 
+	dcon::pop_type_id primary_factory_worker;
+	dcon::pop_type_id secondary_factory_worker;
+
 	int32_t officer_leadership_points = 0;
 	float bureaucrat_tax_efficiency = 0.0f;
 
