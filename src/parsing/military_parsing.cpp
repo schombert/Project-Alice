@@ -121,5 +121,36 @@ dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, ind
 	return make_effect(gen, err, t_context);
 }
 
+void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& context) {
+	auto id = context.outer_context.state.world.create_army();
+	context.outer_context.state.world.force_create_army_control(id, context.nation_for);
+	oob_file_army_context new_context{ context.outer_context, id, context.nation_for };
+	parse_oob_army(gen, err, new_context);
+}
+void make_oob_navy(token_generator& gen, error_handler& err, oob_file_context& context) {
+	auto id = context.outer_context.state.world.create_navy();
+	context.outer_context.state.world.force_create_navy_control(id, context.nation_for);
+	oob_file_navy_context new_context{ context.outer_context, id, context.nation_for };
+	parse_oob_navy(gen, err, new_context);
+}
+void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_context& context) {
+	auto id = context.outer_context.state.world.create_regiment();
+	context.outer_context.state.world.regiment_set_strength(id, 1.0f);
+	context.outer_context.state.world.force_create_army_membership(id, context.id);
+	oob_file_regiment_context new_context{ context.outer_context, id };
+	parse_oob_regiment(gen, err, new_context);
+}
+void make_oob_ship(token_generator& gen, error_handler& err, oob_file_navy_context& context) {
+	auto id = context.outer_context.state.world.create_ship();
+	context.outer_context.state.world.ship_set_strength(id, 1.0f);
+	context.outer_context.state.world.force_create_navy_membership(id, context.id);
+	oob_file_ship_context new_context{ context.outer_context, id };
+	parse_oob_ship(gen, err, new_context);
+}
+oob_leader make_army_leader(token_generator& gen, error_handler& err, oob_file_army_context& context) {
+	oob_file_context new_context{ context.outer_context, context.nation_for };
+	return parse_oob_leader(gen, err, new_context);
+}
+
 }
 

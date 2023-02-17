@@ -1013,4 +1013,25 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 	}
 }
 
+
+void make_oob_relationship(std::string_view tag, token_generator& gen, error_handler& err, oob_file_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto holder = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			if(holder) {
+				oob_file_relation_context new_context{ context.outer_context, context.nation_for, holder };
+				parse_oob_relationship(gen, err, new_context);
+			} else {
+				gen.discard_group();
+			}
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + ")\n";
+			gen.discard_group();
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + ")\n";
+		gen.discard_group();
+	}
+}
+
 }

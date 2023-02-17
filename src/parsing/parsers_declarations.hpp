@@ -3057,6 +3057,227 @@ namespace parsers {
 	dcon::value_modifier_key make_event_mtth(token_generator& gen, error_handler& err, event_building_context& context);
 	sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context);
 	void commit_pending_events(error_handler& err, scenario_building_context& context);
+
+	struct oob_file_context {
+		scenario_building_context& outer_context;
+		dcon::nation_id nation_for;
+	};
+	struct oob_file_relation_context {
+		scenario_building_context& outer_context;
+		dcon::nation_id nation_for;
+		dcon::nation_id nation_with;
+	};
+	struct oob_file_regiment_context {
+		scenario_building_context& outer_context;
+		dcon::regiment_id id;
+	};
+	struct oob_file_ship_context {
+		scenario_building_context& outer_context;
+		dcon::ship_id id;
+	};
+	struct oob_file_army_context {
+		scenario_building_context& outer_context;
+		dcon::army_id id;
+		dcon::nation_id nation_for;
+	};
+	struct oob_file_navy_context {
+		scenario_building_context& outer_context;
+		dcon::navy_id id;
+		dcon::nation_id nation_for;
+	};
+	struct oob_leader {
+		void finish(oob_file_context&) { }
+		dcon::unit_name_id name_;
+		sys::date date_;
+		bool is_general = true;
+		dcon::leader_trait_id personality_;
+		dcon::leader_trait_id background_;
+		float prestige = 0.0f;
+
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
+			name_ = context.outer_context.state.add_unit_name(value);
+		}
+		void date(association_type, sys::year_month_day value, error_handler& err, int32_t line, oob_file_context& context) {
+			date_ = sys::date(value, context.outer_context.state.start_date);
+		}
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "sea"))
+				is_general = false;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "land"))
+				is_general = true;
+			else
+				err.accumulated_errors += "Leader of type neither land nor sea (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+		void personality(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
+			if(auto it = context.outer_context.map_of_leader_traits.find(std::string(value)); it != context.outer_context.map_of_leader_traits.end()) {
+				personality_ = it->second;
+			} else {
+				err.accumulated_errors += "Invalid leader trait " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void background(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
+			if(auto it = context.outer_context.map_of_leader_traits.find(std::string(value)); it != context.outer_context.map_of_leader_traits.end()) {
+				background_ = it->second;
+			} else {
+				err.accumulated_errors += "Invalid leader trait " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct oob_army {
+		void finish(oob_file_army_context&) { }
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_army_context& context) {
+			context.outer_context.state.world.army_set_name(context.id, context.outer_context.state.add_unit_name(value));
+		}
+		void location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_army_context& context) {
+			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			} else {
+				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+				context.outer_context.state.world.force_create_army_location(context.id, province_id);
+			}
+		}
+		void leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_army_context& context) {
+			if(value.is_general) {
+				auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_general());
+				l_id.set_background(value.background_);
+				l_id.set_personality(value.personality_);
+				l_id.set_prestige(value.prestige);
+				l_id.set_since(value.date_);
+				l_id.set_name(value.name_);
+				context.outer_context.state.world.force_create_general_loyalty(context.nation_for, l_id);
+				context.outer_context.state.world.force_create_army_leadership(context.id, l_id);
+			} else {
+				err.accumulated_errors += "Cannot attach an admiral to an army (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct oob_navy {
+		void finish(oob_file_navy_context&) { }
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_navy_context& context) {
+			context.outer_context.state.world.navy_set_name(context.id, context.outer_context.state.add_unit_name(value));
+		}
+		void location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_navy_context& context) {
+			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			} else {
+				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+				context.outer_context.state.world.force_create_navy_location(context.id, province_id);
+			}
+		}
+	};
+	struct oob_ship {
+		void finish(oob_file_ship_context&) { }
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_ship_context& context) {
+			context.outer_context.state.world.ship_set_name(context.id, context.outer_context.state.add_unit_name(value));
+		}
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_ship_context& context) {
+			if(auto it = context.outer_context.map_of_unit_types.find(std::string(value)); it != context.outer_context.map_of_unit_types.end()) {
+				context.outer_context.state.world.ship_set_type(context.id, it->second);
+			} else {
+				err.accumulated_errors += "Invalid unit type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+
+	struct oob_regiment {
+		void finish(oob_file_regiment_context&) { }
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_regiment_context& context) {
+			context.outer_context.state.world.regiment_set_name(context.id, context.outer_context.state.add_unit_name(value));
+		}
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_regiment_context& context) {
+			if(auto it = context.outer_context.map_of_unit_types.find(std::string(value)); it != context.outer_context.map_of_unit_types.end()) {
+				context.outer_context.state.world.regiment_set_type(context.id, it->second);
+			} else {
+				err.accumulated_errors += "Invalid unit type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void home(association_type, int32_t value, error_handler& err, int32_t line, oob_file_regiment_context& context) {
+			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			} else {
+				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+				for(auto pl : context.outer_context.state.world.province_get_pop_location(province_id)) {
+					auto p = pl.get_pop();
+					if(p.get_poptype() == context.outer_context.state.culture_definitions.soldiers) {
+						context.outer_context.state.world.force_create_regiment_source(context.id, p);
+						return;
+					}
+				}
+				err.accumulated_errors += "No soldiers in province regiment comes from (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+
+	struct oob_relationship {
+		void finish(oob_file_relation_context&) { }
+		void value(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context) {
+			auto rel = context.outer_context.state.world.get_diplomatic_relation_by_diplomatic_pair(context.nation_for, context.nation_with);
+			if(rel) {
+				context.outer_context.state.world.diplomatic_relation_set_value(rel, v);
+			} else {
+				auto new_rel = context.outer_context.state.world.force_create_diplomatic_relation(context.nation_for, context.nation_with);
+				context.outer_context.state.world.diplomatic_relation_set_value(new_rel, v);
+			}
+		}
+		void level(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context) {
+			auto rel = context.outer_context.state.world.get_gp_relationship_by_gp_influence_pair(context.nation_with, context.nation_for);
+			auto status_level = [&]() {
+				switch(v) {
+					case 0: return nations::influence::level_hostile;
+					case 1: return nations::influence::level_opposed;
+					case 2: return nations::influence::level_neutral;
+					case 3: return nations::influence::level_cordial;
+					case 4: return nations::influence::level_friendly;
+					case 5: return nations::influence::level_in_sphere;
+					default: return nations::influence::level_neutral;
+				}
+			}();
+			if(rel) {
+				context.outer_context.state.world.gp_relationship_set_status(rel, status_level);
+			} else {
+				auto new_rel = context.outer_context.state.world.force_create_gp_relationship(context.nation_with, context.nation_for);
+				context.outer_context.state.world.gp_relationship_set_status(new_rel, status_level);
+			}
+		}
+		void influence_value(association_type, float v, error_handler& err, int32_t line, oob_file_relation_context& context) {
+			auto rel = context.outer_context.state.world.get_gp_relationship_by_gp_influence_pair(context.nation_with, context.nation_for);
+			if(rel) {
+				context.outer_context.state.world.gp_relationship_set_influence(rel, v);
+			} else {
+				auto new_rel = context.outer_context.state.world.force_create_gp_relationship(context.nation_with, context.nation_for);
+				context.outer_context.state.world.gp_relationship_set_influence(new_rel, v);
+			}
+		}
+	};
+	struct oob_file {
+		void finish(oob_file_context&) { }
+		void leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_context& context) {
+			if(value.is_general) {
+				auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_general());
+				l_id.set_background(value.background_);
+				l_id.set_personality(value.personality_);
+				l_id.set_prestige(value.prestige);
+				l_id.set_since(value.date_);
+				l_id.set_name(value.name_);
+				context.outer_context.state.world.force_create_general_loyalty(context.nation_for, l_id);
+			} else {
+				auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_admiral());
+				l_id.set_background(value.background_);
+				l_id.set_personality(value.personality_);
+				l_id.set_prestige(value.prestige);
+				l_id.set_since(value.date_);
+				l_id.set_name(value.name_);
+				context.outer_context.state.world.force_create_admiral_loyalty(context.nation_for, l_id);
+			}
+		}
+	};
+
+	oob_leader make_army_leader(token_generator& gen, error_handler& err, oob_file_army_context& context);
+	void make_oob_relationship(std::string_view tag, token_generator& gen, error_handler& err, oob_file_context& context);
+	void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& context);
+	void make_oob_navy(token_generator& gen, error_handler& err, oob_file_context& context);
+	void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_context& context);
+	void make_oob_ship(token_generator& gen, error_handler& err, oob_file_navy_context& context);
 }
 
 #include "trigger_parsing.hpp"

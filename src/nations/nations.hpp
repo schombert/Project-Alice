@@ -95,5 +95,78 @@ struct global_national_state {
 	std::vector<fixed_event> on_crisis_declare_interest;
 };
 
+namespace influence {
+
+constexpr inline uint8_t level_mask = uint8_t(0x07);
+constexpr inline uint8_t level_neutral = uint8_t(0x00);
+constexpr inline uint8_t level_opposed = uint8_t(0x01);
+constexpr inline uint8_t level_hostile = uint8_t(0x02);
+constexpr inline uint8_t level_cordial = uint8_t(0x03);
+constexpr inline uint8_t level_friendly = uint8_t(0x04);
+constexpr inline uint8_t level_in_sphere = uint8_t(0x05);
+
+constexpr inline uint8_t priority_mask = uint8_t(0x18);
+constexpr inline uint8_t priority_zero = uint8_t(0x00);
+constexpr inline uint8_t priority_one = uint8_t(0x08);
+constexpr inline uint8_t priority_two = uint8_t(0x10);
+constexpr inline uint8_t priority_three = uint8_t(0x18);
+
+constexpr inline uint8_t is_expelled = uint8_t(0x20);
+constexpr inline uint8_t is_discredited = uint8_t(0x40);
+constexpr inline uint8_t is_banned = uint8_t(0x80);
+
+inline uint8_t increase_level(uint8_t v) {
+	switch(v & level_mask) {
+		case level_neutral:
+			return uint8_t((v & ~level_mask) | level_cordial);
+		case level_opposed:
+			return uint8_t((v & ~level_mask) | level_neutral);
+		case level_hostile:
+			return uint8_t((v & ~level_mask) | level_opposed);
+		case level_cordial:
+			return uint8_t((v & ~level_mask) | level_friendly);
+		case level_friendly:
+			return uint8_t((v & ~level_mask) | level_in_sphere);
+		case level_in_sphere:
+			return uint8_t((v & ~level_mask) | level_in_sphere);
+		default:
+			return v;
+	}
+}
+inline uint8_t decrease_level(uint8_t v) {
+	switch(v & level_mask) {
+		case level_neutral:
+			return uint8_t((v & ~level_mask) | level_opposed);
+		case level_opposed:
+			return uint8_t((v & ~level_mask) | level_hostile);
+		case level_hostile:
+			return uint8_t((v & ~level_mask) | level_hostile);
+		case level_cordial:
+			return uint8_t((v & ~level_mask) | level_neutral);
+		case level_friendly:
+			return uint8_t((v & ~level_mask) | level_cordial);
+		case level_in_sphere:
+			return uint8_t((v & ~level_mask) | level_friendly);
+		default:
+			return v;
+	}
+}
+inline uint8_t increase_priority(uint8_t v) {
+	if((v & priority_mask) != priority_three) {
+		return uint8_t(v + priority_one);
+	} else {
+		return v;
+	}
+}
+inline uint8_t decrease_priority(uint8_t v) {
+	if((v & priority_mask) != priority_zero) {
+		return uint8_t(v - priority_one);
+	} else {
+		return v;
+	}
+}
+
+}
+
 }
 

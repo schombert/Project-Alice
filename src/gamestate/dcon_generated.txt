@@ -1046,6 +1046,10 @@ object {
 		name{ since }
 		type{ sys::date }
 	}
+	property{
+		name{ prestige }
+		type{ float }
+	}
 }
 
 object {
@@ -1068,6 +1072,10 @@ object {
 	property{
 		name{ since }
 		type{ sys::date }
+	}
+	property{
+		name{ prestige }
+		type{ float }
 	}
 }
 
@@ -1092,6 +1100,37 @@ relationship{
 		object{navy}
 		name{navy}
 		type{unique}
+	}
+	link{
+		object{admiral}
+		name{leader}
+		type{unique}
+	}
+}
+
+relationship{
+	name{ general_loyalty }
+	
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{general}
+		name{leader}
+		type{unique}
+	}
+}
+relationship{
+	name{ admiral_loyalty }
+	
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
 	}
 	link{
 		object{admiral}
@@ -1366,13 +1405,16 @@ relationship{
 		type{many}
 		index_storage{array}
 	}
+
+	composite_key{
+		name{gp_influence_pair}
+		index{influence_target}
+		index{great_power}
+	}
+
 	property{
 		name{ influence }
 		type{ float }
-	}
-	property{
-		name{ level }
-		type{ uint8_t }
 	}
 	property{
 		name{ status }

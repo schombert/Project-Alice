@@ -1748,6 +1748,45 @@ generic_event
 	issue_group                     value      text                              discard
 
 event_file
-	country_event                   extern     scan_country_event               discard
-	province_event                  extern     scan_province_event                discard
+	country_event                   extern     scan_country_event                discard
+	province_event                  extern     scan_province_event               discard
 
+oob_relationship
+	value                           value      int                               member_fn
+	level                           value      int                               member_fn
+	influence_value                 value      float                             member_fn
+	military_access                 value      bool                              discard
+
+oob_leader
+	name                            value      text                              member_fn
+	date                            value      date                              member_fn
+	type                            value      text                              member_fn
+	personality                     value      text                              member_fn
+	background                      value      text                              member_fn
+	prestige                        value      float                             member
+
+oob_regiment
+	name                            value      text                              member_fn
+	type                            value      text                              member_fn
+	home                            value      int                               member_fn
+
+oob_ship
+	name                            value      text                              member_fn
+	type                            value      text                              member_fn
+
+oob_army
+	name                            value      text                              member_fn
+	location                        value      int                               member_fn
+	regiment                        extern     make_oob_regiment                 discard
+	leader                          extern     make_army_leader                  member_fn
+
+oob_navy
+	name                            value      text                              member_fn
+	location                        value      int                               member_fn
+	ship                            extern     make_oob_ship                     discard
+
+oob_file
+	#any                            extern     make_oob_relationship             discard
+	leader                          group      oob_leader                        member_fn
+	army                            extern     make_oob_army                     discard
+	navy                            extern     make_oob_navy                     discard
