@@ -1790,3 +1790,34 @@ oob_file
 	leader                          group      oob_leader                        member_fn
 	army                            extern     make_oob_army                     discard
 	navy                            extern     make_oob_navy                     discard
+
+production_employee
+	poptype                         value      text                              member_fn
+	effect                          value      text                              discard
+	effect_multiplier               value      float                             discard
+	amount                          value      float                             member
+
+production_employee_set
+	#free                           group      production_employee               member_fn
+
+production_bonus
+	trigger                         extern     make_production_bonus_trigger     member
+	value                           value      float                             member
+
+production_type
+	template                        value      text                              member_fn (as_template)
+	owner                           group      production_employee               member
+	efficiency                      extern     make_prod_commodity_array         member
+	employees                       group      production_employee_set           member
+	input_goods                     extern     make_prod_commodity_array         member
+	bonus                           group      production_bonus                  member_fn
+	type                            value      text                              member_fn
+	workforce                       value      int                               member
+	farm                            value      bool                              member
+	mine                            value      bool                              member
+	is_coastal                      value      bool                              member
+	output_goods                    value      text                              member_fn
+	value                           value      float                             member
+
+production_types_file
+	#any                            extern     make_production_type              discard

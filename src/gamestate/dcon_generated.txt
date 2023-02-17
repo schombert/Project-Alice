@@ -213,6 +213,26 @@ object {
 		name{ is_available_from_start }
 		type{ bitfield }
 	}
+	property{
+		name{ is_mine }
+		type{ bitfield }
+	}
+	property{
+		name{ rgo_amount }
+		type{ float }
+	}
+	property{
+		name{ rgo_workforce }
+		type{ int32_t }
+	}
+	property{
+		name{ artisan_inputs }
+		type{ economy::commodity_set }
+	}
+	property{
+		name{ artisan_output_amount }
+		type{ float }
+	}
 }
 
 object {
@@ -258,6 +278,54 @@ object {
 	property{
 		name{ is_available_from_start }
 		type{ bitfield }
+	}
+	property{
+		name{ is_coastal }
+		type{ bitfield }
+	}
+	property{
+		name{ inputs }
+		type{ economy::commodity_set }
+	}
+	property{
+		name{ efficiency_inputs }
+		type{ economy::small_commodity_set }
+	}
+	property{
+		name{ base_workforce }
+		type{ int32_t }
+	}
+	property{
+		name{ output }
+		type{ commodity_id }
+	}
+	property{
+		name{ output_amount }
+		type{ float }
+	}
+	property{
+		name{ bonus_1_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ bonus_1_amount }
+		type{ float }
+	}
+	property{
+		name{ bonus_2_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ bonus_2_amount }
+		type{ float }
+	}
+	property{
+		name{ bonus_3_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ bonus_3_amount }
+		type{ float }
 	}
 }
 

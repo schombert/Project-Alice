@@ -152,5 +152,12 @@ struct commodity_set {
 	float commodity_amounts[set_size] = { 0.0f };
 	dcon::commodity_id commodity_type[set_size] = { dcon::commodity_id{} };
 };
+struct small_commodity_set {
+	static constexpr uint32_t set_size = 2;
+
+	float commodity_amounts[set_size] = { 0.0f };
+	dcon::commodity_id commodity_type[set_size] = { dcon::commodity_id{} };
+};
+
 
 }

@@ -47,7 +47,7 @@ With all the names figured out, we can get back to the business of dumping all t
 - Read province history files *Done*
 - Read flag graphics from the `gfx\flags` to determine which flags are available
 - Populate the country names
-- Read production types from `production_types.txt`
+- Read production types from `production_types.txt` *Done*
 - Read prepared ideologies *Done*
 - Read prepared issue options *Done*
 - Read prepared CB types *Done*

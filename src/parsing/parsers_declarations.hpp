@@ -3278,6 +3278,104 @@ namespace parsers {
 	void make_oob_navy(token_generator& gen, error_handler& err, oob_file_context& context);
 	void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_context& context);
 	void make_oob_ship(token_generator& gen, error_handler& err, oob_file_navy_context& context);
+
+	struct production_type;
+
+	struct production_context {
+		scenario_building_context& outer_context;
+		ankerl::unordered_dense::map<std::string, production_type> templates;
+		bool found_worker_types = false;
+
+		production_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
+	};
+
+	struct production_types_file {
+		void finish(production_context&) { }
+	};
+	struct production_employee {
+		void finish(production_context&) { }
+		float amount = 0.0f;
+		dcon::pop_type_id type;
+
+		void poptype(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
+			if(is_fixed_token_ci(v.data(), v.data() + v.length(), "artisan")) {
+				type = context.outer_context.state.culture_definitions.artisans;
+			} else if(auto it = context.outer_context.map_of_poptypes.find(std::string(v)); it != context.outer_context.map_of_poptypes.end()) {
+				type = it->second;
+			} else {
+				err.accumulated_errors += "Invalid pop type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+
+	struct production_employee_set {
+		std::vector<production_employee> employees;
+		void finish(production_context&) { }
+		void free_group(production_employee const& value, error_handler& err, int32_t line, production_context& context) {
+			employees.push_back(value);
+		}
+	};
+
+	struct production_bonus {
+		dcon::trigger_key trigger;
+		float value = 0.0f;
+
+		void finish(production_context&) { }
+	};
+
+	enum class production_type_enum {
+		none = 0, factory, rgo, artisan
+	};
+	struct production_type {
+		commodity_array efficiency;
+		commodity_array input_goods;
+		production_employee owner;
+		production_employee_set employees;
+		int32_t workforce = 0;
+		bool farm = false;
+		bool mine = false;
+		bool is_coastal = false;
+		float value = 0.0f;
+
+		std::vector<production_bonus> bonuses;
+		dcon::commodity_id output_goods_;
+		production_type_enum type_ = production_type_enum::none;
+
+		void output_goods(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(v)); it != context.outer_context.map_of_commodity_names.end()) {
+				output_goods_ = it->second;
+			} else {
+				err.accumulated_errors += "Invalid commodity name " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void bonus(production_bonus const& v, error_handler& err, int32_t line, production_context& context) {
+			bonuses.push_back(v);
+		}
+		void type(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
+			if(is_fixed_token_ci(v.data(), v.data() + v.length(), "factory"))
+				type_ = production_type_enum::factory;
+			else if(is_fixed_token_ci(v.data(), v.data() + v.length(), "rgo"))
+				type_ = production_type_enum::rgo;
+			else if(is_fixed_token_ci(v.data(), v.data() + v.length(), "artisan"))
+				type_ = production_type_enum::artisan;
+			else
+				err.accumulated_errors += "Invalid production type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+		void as_template(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
+			if(auto it = context.templates.find(std::string(v)); it != context.templates.end()) {
+				*this = it->second;
+			} else {
+				err.accumulated_errors += "Invalid production template " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(production_context&) { }
+	};
+
+	commodity_array make_prod_commodity_array(token_generator& gen, error_handler& err, production_context& context);
+
+	dcon::trigger_key make_production_bonus_trigger(token_generator& gen, error_handler& err, production_context& context);
+	void make_production_type(std::string_view name, token_generator& gen, error_handler& err, production_context& context);
+
 }
 
 #include "trigger_parsing.hpp"

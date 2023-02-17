@@ -944,6 +944,26 @@ namespace sys {
 				err.accumulated_errors += "File common/on_actions.txt could not be opened\n";
 			}
 		}
+		// parse production_types.txt
+		{
+			auto prod_types = open_file(common, NATIVE("production_types.txt"));
+			if(prod_types) {
+				auto content = view_contents(*prod_types);
+				err.file_name = "production_types.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+
+				parsers::production_context new_context{ context };
+				parsers::parse_production_types_file(gen, err, new_context);
+
+				if(!new_context.found_worker_types) {
+					err.fatal = true;
+					err.accumulated_errors += "Unable to identify factory worker types from production_types.txt\n";
+				}
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/production_types.txt could not be opened\n";
+			}
+		}
 		// read pending rebel types
 		{
 			err.file_name = "rebel_types.txt";

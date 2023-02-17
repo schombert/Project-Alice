@@ -997,6 +997,37 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->national_definitions.on_civilize.size() == size_t(3));
 		REQUIRE(state->national_definitions.on_civilize[0].chance == int16_t(100));
 	}
+	// parse production_types.txt
+	{
+		auto prod_types = open_file(common, NATIVE("production_types.txt"));
+		if(prod_types) {
+			auto content = view_contents(*prod_types);
+			err.file_name = "production_types.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+
+			parsers::production_context new_context{ context };
+			parsers::parse_production_types_file(gen, err, new_context);
+
+			if(!new_context.found_worker_types) {
+				err.fatal = true;
+				err.accumulated_errors += "Unable to identify factory worker types from production_types.txt\n";
+			}
+		} else {
+			err.fatal = true;
+			err.accumulated_errors += "File common/production_types.txt could not be opened\n";
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(err.accumulated_warnings == "");
+
+		auto it = context.map_of_factory_names.find(std::string("aeroplane_factory"));
+		auto fac = fatten(state->world, it->second);
+		REQUIRE(fac.get_base_workforce() == 10000);
+		REQUIRE(fac.get_output_amount() == Approx(0.91f));
+		REQUIRE(fac.get_bonus_2_amount() == Approx(0.25f));
+		REQUIRE(fac.get_bonus_3_amount() == 0.0f);
+		REQUIRE(state->economy_definitions.craftsmen_fraction == Approx(0.8f));
+	}
 	// read pending rebel types
 	{
 		err.file_name = "rebel_types.txt";
