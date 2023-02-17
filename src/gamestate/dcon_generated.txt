@@ -854,6 +854,253 @@ relationship{
 }
 
 object {
+	name{ regiment }
+	storage_type{ erasable }
+	size{ 4000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+	property{
+		name{ type }
+		type{ unit_type_id }
+	}
+	property{	
+		name{ strength }
+		type{ float }
+	}
+}
+
+object {
+	name{ ship }
+	storage_type{ erasable }
+	size{ 4000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+	property{
+		name{ type }
+		type{ unit_type_id }
+	}
+	property{	
+		name{ strength }
+		type{ float }
+	}
+}
+
+object {
+	name{ army }
+	storage_type{ erasable }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+}
+
+object {
+	name{ navy }
+	storage_type{ erasable }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+}
+
+relationship{
+	name{ army_control }
+	
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{controller}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ army_location }
+	
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{location}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ army_membership }
+	
+	link{
+		object{regiment}
+		name{regiment}
+		type{unique}
+	}
+	link{
+		object{army}
+		name{army}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ regiment_source }
+	
+	link{
+		object{regiment}
+		name{regiment}
+		type{unique}
+	}
+	link{
+		object{pop}
+		name{pop}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_control }
+	
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{controller}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_location }
+	
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{location}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_membership }
+	
+	link{
+		object{ship}
+		name{ship}
+		type{unique}
+	}
+	link{
+		object{navy}
+		name{navy}
+		type{many}
+		index_storage{array}
+	}
+}
+
+object {
+	name{ general }
+	storage_type{ erasable }
+	size{ 3000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+	property{
+		name{ personality }
+		type{ leader_trait_id }
+	}
+	property{
+		name{ background }
+		type{ leader_trait_id }
+	}
+	property{
+		name{ since }
+		type{ sys::date }
+	}
+}
+
+object {
+	name{ admiral }
+	storage_type{ erasable }
+	size{ 3000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+	property{
+		name{ personality }
+		type{ leader_trait_id }
+	}
+	property{
+		name{ background }
+		type{ leader_trait_id }
+	}
+	property{
+		name{ since }
+		type{ sys::date }
+	}
+}
+
+relationship{
+	name{ army_leadership }
+	
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{general}
+		name{leader}
+		type{unique}
+	}
+}
+relationship{
+	name{ navy_leadership }
+	
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{admiral}
+		name{leader}
+		type{unique}
+	}
+}
+
+object {
 	name{ state_definition }
 	storage_type{ contiguous }
 	size{ 2000 }
@@ -1064,10 +1311,74 @@ object {
 
 object {
 	name{ nation }
-	storage_type{ contiguous }
+	storage_type{ erasable }
 	size{ 1000 }
 }
 
+
+relationship{
+	name{ diplomatic_relation }
+	storage_type{ compactable }
+	size{ 50000 }
+
+	link{
+		object{nation}
+		name{related_nations}
+		type{many}
+		index_storage{array}
+		multiple{2}
+	}
+	
+	composite_key{
+		name{diplomatic_pair}
+		index{related_nations}
+	}
+
+	property{
+		name{ value }
+		type{ int32_t }
+	}
+	property{
+		name{ are_allied }
+		type{ bitfield }
+	}
+	property{
+		name{ truce_until }
+		type{ sys::date }
+	}
+}
+
+
+relationship{
+	name{ gp_relationship }
+	storage_type{ compactable }
+	size{ 8000 }
+
+	link{
+		object{nation}
+		name{influence_target}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{great_power}
+		type{many}
+		index_storage{array}
+	}
+	property{
+		name{ influence }
+		type{ float }
+	}
+	property{
+		name{ level }
+		type{ uint8_t }
+	}
+	property{
+		name{ status }
+		type{ uint8_t }
+	}
+}
 
 object {
 	name { factory }
