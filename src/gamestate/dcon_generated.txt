@@ -2,6 +2,7 @@ include{<array>}
 include{"constants.hpp"}
 include{"modifiers.hpp"}
 include{"date_interface.hpp"}
+include{"container_types.hpp"}
 
 make_index{text_key}{uint32_t}
 make_index{text_sequence_id}{uint16_t}
@@ -13,8 +14,10 @@ make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
 make_index{unit_name_id}{uint16_t}
 make_index{national_variable_id}{uint16_t}
-make_index{global_variable_id}{uint16_t}
+make_index{national_flag_id}{uint16_t}
+make_index{global_flag_id}{uint16_t}
 make_index{trigger_key}{uint16_t}
+make_index{effect_key}{uint16_t}
 make_index{value_modifier_key}{uint16_t}
 
 object{
@@ -210,6 +213,26 @@ object {
 		name{ is_available_from_start }
 		type{ bitfield }
 	}
+	property{
+		name{ is_mine }
+		type{ bitfield }
+	}
+	property{
+		name{ rgo_amount }
+		type{ float }
+	}
+	property{
+		name{ rgo_workforce }
+		type{ int32_t }
+	}
+	property{
+		name{ artisan_inputs }
+		type{ economy::commodity_set }
+	}
+	property{
+		name{ artisan_output_amount }
+		type{ float }
+	}
 }
 
 object {
@@ -255,6 +278,54 @@ object {
 	property{
 		name{ is_available_from_start }
 		type{ bitfield }
+	}
+	property{
+		name{ is_coastal }
+		type{ bitfield }
+	}
+	property{
+		name{ inputs }
+		type{ economy::commodity_set }
+	}
+	property{
+		name{ efficiency_inputs }
+		type{ economy::small_commodity_set }
+	}
+	property{
+		name{ base_workforce }
+		type{ int32_t }
+	}
+	property{
+		name{ output }
+		type{ commodity_id }
+	}
+	property{
+		name{ output_amount }
+		type{ float }
+	}
+	property{
+		name{ bonus_1_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ bonus_1_amount }
+		type{ float }
+	}
+	property{
+		name{ bonus_2_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ bonus_2_amount }
+		type{ float }
+	}
+	property{
+		name{ bonus_3_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ bonus_3_amount }
+		type{ float }
 	}
 }
 
@@ -366,6 +437,46 @@ object {
 		name{ name }
 		type{ text_sequence_id }
 	}
+
+	property{
+		name{ rules }
+		type{ uint32_t }
+	}
+
+	property{
+		name{ modifier }
+		type{ modifier_id }
+	}
+
+	property{
+		name{ technology_cost }
+		type{ int32_t }
+	}
+
+	property{
+		name{ war_exhaustion_effect }
+		type{ float }
+	}
+
+	property{
+		name{ administrative_multiplier }
+		type{ float }
+	}
+
+	property{
+		name{ allow }
+		type{ trigger_key }
+	}
+
+	property{
+		name{ on_execute_trigger }
+		type{ trigger_key }
+	}
+
+	property{
+		name{ on_execute_effect }
+		type{ effect_key }
+	}
 }
 
 object {
@@ -386,8 +497,100 @@ object {
 		type{ text_sequence_id }
 	}
 	property{
+		name{ war_name }
+		type{ text_sequence_id }
+	}
+	property{
 		name{ type_bits }
 		type{ uint32_t }
+	}
+	property{
+		name{ months }
+		type{ uint8_t }
+	}
+	property{
+		name{ truce_months }
+		type{ uint8_t }
+	}
+	property{
+		name{ sprite_index }
+		type{ uint8_t }
+	}
+	property{
+		name{ allowed_states }
+		type{ trigger_key }
+	}
+	property{
+		name{ allowed_states_in_crisis }
+		type{ trigger_key }
+	}
+	property{
+		name{ allowed_substate_regions }
+		type{ trigger_key }
+	}
+	property{
+		name{ allowed_countries }
+		type{ trigger_key }
+	}
+	property{
+		name{ can_use }
+		type{ trigger_key }
+	}
+	property{
+		name{ on_add }
+		type{ effect_key }
+	}
+	property{
+		name{ on_po_accepted }
+		type{ effect_key }
+	}
+	property{
+		name{ badboy_factor }
+		type{ float }
+	}
+	property{
+		name{ prestige_factor }
+		type{ float }
+	}
+	property{
+		name{ peace_cost_factor }
+		type{ float }
+	}
+	property{
+		name{ penalty_factor }
+		type{ float }
+	}
+	property{
+		name{ break_truce_prestige_factor }
+		type{ float }
+	}
+	property{
+		name{ break_truce_infamy_factor }
+		type{ float }
+	}
+	property{
+		name{ break_truce_militancy_factor }
+		type{ float }
+	}
+	property{
+		name{ good_relation_prestige_factor }
+		type{ float }
+	}
+	property{
+		name{ good_relation_infamy_factor }
+		type{ float }
+	}
+	property{
+		name{ good_relation_militancy_factor }
+		type{ float }
+	}
+	property{
+		name{ construction_speed }
+		type{ float }
+	}
+	property{
+		name{ tws_battle_factor }
+		type{ float }
 	}
 }
 
@@ -554,6 +757,78 @@ object {
 		name{ army_name }
 		type{ text_sequence_id }
 	}
+	property{
+		name{ icon }
+		type{ uint8_t }
+	}
+	property{
+		name{ break_alliance_on_win }
+		type{ bitfield }
+	}
+	property{
+		name{ area }
+		type{ uint8_t }
+	}
+	property{
+		name{ defection }
+		type{ uint8_t }
+	}
+	property{
+		name{ independence }
+		type{ uint8_t }
+	}
+	property{
+		name{ ideology }
+		type{ ideology_id }
+	}
+	property{
+		name{ occupation_multiplier }
+		type{ float }
+	}
+	property{
+		name{ defect_delay }
+		type{ uint8_t }
+	}
+	property{
+		name{ culture_restriction }
+		type{ bitfield }
+	}
+	property{
+		name{ culture_group_restriction }
+		type{ bitfield }
+	}
+	property{
+		name{ will_rise }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ spawn_chance }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ movement_evaluation }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ siege_won_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ siege_won_effect }
+		type{ effect_key }
+	}
+	property{
+		name{ demands_enforced_trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ demands_enforced_effect }
+		type{ effect_key }
+	}
+	property{
+		name{ government_change }
+		type{array{government_type_id}{government_type_id}}
+	}
 }
 
 object {
@@ -647,6 +922,292 @@ relationship{
 }
 
 object {
+	name{ regiment }
+	storage_type{ erasable }
+	size{ 4000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+	property{
+		name{ type }
+		type{ unit_type_id }
+	}
+	property{	
+		name{ strength }
+		type{ float }
+	}
+}
+
+object {
+	name{ ship }
+	storage_type{ erasable }
+	size{ 4000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+	property{
+		name{ type }
+		type{ unit_type_id }
+	}
+	property{	
+		name{ strength }
+		type{ float }
+	}
+}
+
+object {
+	name{ army }
+	storage_type{ erasable }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+}
+
+object {
+	name{ navy }
+	storage_type{ erasable }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+}
+
+relationship{
+	name{ army_control }
+	
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{controller}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ army_location }
+	
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{location}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ army_membership }
+	
+	link{
+		object{regiment}
+		name{regiment}
+		type{unique}
+	}
+	link{
+		object{army}
+		name{army}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ regiment_source }
+	
+	link{
+		object{regiment}
+		name{regiment}
+		type{unique}
+	}
+	link{
+		object{pop}
+		name{pop}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_control }
+	
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{controller}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_location }
+	
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{location}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_membership }
+	
+	link{
+		object{ship}
+		name{ship}
+		type{unique}
+	}
+	link{
+		object{navy}
+		name{navy}
+		type{many}
+		index_storage{array}
+	}
+}
+
+object {
+	name{ general }
+	storage_type{ erasable }
+	size{ 3000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+	property{
+		name{ personality }
+		type{ leader_trait_id }
+	}
+	property{
+		name{ background }
+		type{ leader_trait_id }
+	}
+	property{
+		name{ since }
+		type{ sys::date }
+	}
+	property{
+		name{ prestige }
+		type{ float }
+	}
+}
+
+object {
+	name{ admiral }
+	storage_type{ erasable }
+	size{ 3000 }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+	}
+	property{
+		name{ personality }
+		type{ leader_trait_id }
+	}
+	property{
+		name{ background }
+		type{ leader_trait_id }
+	}
+	property{
+		name{ since }
+		type{ sys::date }
+	}
+	property{
+		name{ prestige }
+		type{ float }
+	}
+}
+
+relationship{
+	name{ army_leadership }
+	
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{general}
+		name{leader}
+		type{unique}
+	}
+}
+relationship{
+	name{ navy_leadership }
+	
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{admiral}
+		name{leader}
+		type{unique}
+	}
+}
+
+relationship{
+	name{ general_loyalty }
+	
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{general}
+		name{leader}
+		type{unique}
+	}
+}
+relationship{
+	name{ admiral_loyalty }
+	
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{admiral}
+		name{leader}
+		type{unique}
+	}
+}
+
+object {
 	name{ state_definition }
 	storage_type{ contiguous }
 	size{ 2000 }
@@ -723,8 +1284,64 @@ object {
 		type{ text_sequence_id }
 	}
 	property{
+		name{ modifier }
+		type{ modifier_id }
+	}
+	property{
 		name{folder_index}
 		type{uint8_t}
+	}
+	property{
+		name{year}
+		type{int16_t}
+	}
+	property{
+		name{ ai_chance }
+		type{ value_modifier_key }
+	}
+	property{
+		name{cost}
+		type{int32_t}
+	}
+	property{
+		name{ colonial_points }
+		type{int16_t}
+	}
+	property {
+		name{ increase_railroad }
+		type{ bitfield }
+	}
+	property {
+		name{ increase_fort }
+		type{ bitfield }
+	}
+	property {
+		name{ increase_naval_base }
+		type{ bitfield }
+	}
+	property{
+		name{ activate_unit }
+		type{array{unit_type_id}{bitfield}}
+	}
+	property{
+		name{ activate_building }
+		type{array{factory_type_id}{bitfield}}
+	}
+	property{
+		name{ rgo_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}} 
+	}
+	property{
+		name{ factory_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}} 
+	}
+	property{
+		name{ rgo_size }
+		type{vector_pool{800}{sys::commodity_modifier}}
+	}
+	property{
+		name{ modified_units }
+		type{vector_pool{3200}{sys::unit_modifier}}
 	}
 }
 
@@ -738,17 +1355,140 @@ object {
 		type{ text_sequence_id }
 	}
 	property{
-		name{technology_type}
-		type{uint8_t}
+		name{ technology_type }
+		type{ uint8_t }
+	}
+	property{
+		name{ modifier }
+		type{ modifier_id }
+	}
+	property{
+		name{ chance }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ limit }
+		type{ trigger_key }
+	}
+	property{
+		name{ enable_gas_attack }
+		type{ bitfield }
+	}
+	property{
+		name{ enable_gas_defence }
+		type{ bitfield }
+	}
+	property{
+		name{ shared_prestige }
+		type{ float }
+	}
+	property{
+		name{ activate_unit }
+		type{array{unit_type_id}{bitfield}}
+	}
+	property{
+		name{ activate_crime }
+		type{array{crime_id}{bitfield}}
+	}
+	property{
+		name{ activate_building }
+		type{array{factory_type_id}{bitfield}}
+	}
+	property{
+		name{ rgo_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}} 
+	}
+	property{
+		name{ factory_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}} 
+	}
+	property{
+		name{ factory_goods_throughput }
+		type{vector_pool{800}{sys::commodity_modifier}}
+	}
+	property{
+		name{ modified_units }
+		type{vector_pool{10000}{sys::unit_modifier}}
+	}
+	property{
+		name{ rebel_org }
+		type{vector_pool{800}{sys::rebel_org_modifier}} 
 	}
 }
 
 object {
 	name{ nation }
-	storage_type{ contiguous }
+	storage_type{ erasable }
 	size{ 1000 }
 }
 
+
+relationship{
+	name{ diplomatic_relation }
+	storage_type{ compactable }
+	size{ 50000 }
+
+	link{
+		object{nation}
+		name{related_nations}
+		type{many}
+		index_storage{array}
+		multiple{2}
+	}
+	
+	composite_key{
+		name{diplomatic_pair}
+		index{related_nations}
+	}
+
+	property{
+		name{ value }
+		type{ int32_t }
+	}
+	property{
+		name{ are_allied }
+		type{ bitfield }
+	}
+	property{
+		name{ truce_until }
+		type{ sys::date }
+	}
+}
+
+
+relationship{
+	name{ gp_relationship }
+	storage_type{ compactable }
+	size{ 8000 }
+
+	link{
+		object{nation}
+		name{influence_target}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{great_power}
+		type{many}
+		index_storage{array}
+	}
+
+	composite_key{
+		name{gp_influence_pair}
+		index{influence_target}
+		index{great_power}
+	}
+
+	property{
+		name{ influence }
+		type{ float }
+	}
+	property{
+		name{ status }
+		type{ uint8_t }
+	}
+}
 
 object {
 	name { factory }
@@ -862,5 +1602,221 @@ relationship{
 		name{province}
 		type{many}
 		index_storage{array}
+	}
+}
+
+object {
+	name { national_event }
+	storage_type{ contiguous }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ is_major }
+		type{ bitfield }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ immediate_effect }
+		type{ effect_key }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+	}
+	
+}
+
+object {
+	name { provincial_event }
+	storage_type{ contiguous }
+	size{ 2000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+	}
+}
+
+object {
+	name { free_national_event }
+	storage_type{ contiguous }
+	size{ 4000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ only_once }
+		type{ bitfield }
+	}
+	property{
+		name{ is_major }
+		type{ bitfield }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ mtth }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ immediate_effect }
+		type{ effect_key }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+	}
+	
+}
+
+object {
+	name { free_provincial_event }
+	storage_type{ contiguous }
+	size{ 4000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ only_once }
+		type{ bitfield }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ trigger }
+		type{ trigger_key }
+	}
+	property{
+		name{ mtth }
+		type{ value_modifier_key }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+	}
+}
+
+object {
+	name{ national_focus }
+	storage_type{ contiguous }
+	size{ 64 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ icon }
+		type{ uint8_t }
+	}
+	property{
+		name{ loyalty_value }
+		type{ float }
+	}
+	property{
+		name{ ideology }
+		type{ ideology_id }
+	}
+	property{
+		name{ limit }
+		type{ trigger_key }
+	}
+	property{
+		name{ promotion_type }
+		type{ pop_type_id }
+	}
+	property{
+		name{ promotion_amount }
+		type{ float }
+	}
+	property{
+		name{ immigrant_attract }
+		type{ float }
+	}
+	property{
+		name{ railroads }
+		type{ float }
+	}
+	property{
+		name{ production_focus }
+		type{array{commodity_id}{float}}
+	}
+}
+
+object {
+	name{ decision }
+	storage_type{ contiguous }
+	size{ 1000 }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+	}
+	property{
+		name{ potential }
+		type{ trigger_key }
+	}
+	property{
+		name{ allow }
+		type{ trigger_key }
+	}
+	property{
+		name{ effect }
+		type{ effect_key }
+	}
+	property{
+		name{ ai_will_do }
+		type{ value_modifier_key }
 	}
 }

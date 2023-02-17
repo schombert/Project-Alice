@@ -1,8 +1,11 @@
 #pragma once
 
+#include "dcon_generated.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
 #include "sound.hpp"
+#include "text.hpp"
+#include <variant>
 
 namespace ui {
 
@@ -139,6 +142,56 @@ public:
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
 	void on_text(sys::state& state, char ch) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+struct multiline_text_section {
+	std::string_view stored_text;
+	float x_offset = 0.f;
+	float y_offset = 0.f;
+	text::text_color color = text::text_color::black;
+};
+
+using text_substitution = std::variant<std::string_view, dcon::text_key, dcon::nation_id, dcon::province_id, dcon::state_definition_id>;
+
+struct hyperlink {
+	text_substitution link_type;
+	int32_t x = 0;
+	int32_t y = 0;
+	int32_t width = 0;
+	int32_t height = 0;
+};
+
+class multiline_text_element_base : public element_base {
+private:
+	std::vector<multiline_text_section> sections = {};
+	std::vector<hyperlink> hyperlinks = {};
+	std::vector<text_substitution> substitutions = {};
+	int32_t font_id = 1;
+	int32_t font_size = 14;
+	float vertical_spacing = 0.f;
+	float line_height = 0.f;
+	int32_t line_count = 0;
+	int32_t current_line = 0;
+	int32_t visible_lines = 0;
+
+	void generate_sections(sys::state& state) noexcept;
+	void add_text_section(sys::state& state, std::string_view text, float& current_x, float& current_y,  text::text_color color) noexcept;
+	std::string_view get_substitute(sys::state& state, text::variable_type var_type) noexcept;
+public:
+	void on_create(sys::state& state) noexcept override;
+	void update_substitutions(sys::state& state, std::vector<text_substitution> subs);
+	void update_text(sys::state& state, dcon::text_sequence_id seq_id);
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+	int32_t get_scroll_width() {
+		return line_count - visible_lines;
+	}
+	void set_scroll_pos(int32_t pos) {
+		current_line = std::min(pos, get_scroll_width());
+	}
 };
 
 class draggable_target : public opaque_element_base {

@@ -624,6 +624,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(culture::tech_category(state->world.invention_get_technology_type(tit->second.id)) == culture::tech_category::industry);
 	}
 	{
+		parsers::make_base_units(context);
 		auto units = open_directory(root, NATIVE("units"));
 		for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
 			auto opened_file = open_file(unit_file);
@@ -664,6 +665,16 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.pop_type_resize_issues(state->world.issue_option_size());
 	state->world.pop_type_resize_promotion(state->world.pop_type_size());
 
+	state->world.national_focus_resize_production_focus(state->world.commodity_size());
+
+	state->world.technology_resize_activate_building(state->world.factory_type_size());
+	state->world.technology_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
+
+	state->world.invention_resize_activate_building(state->world.factory_type_size());
+	state->world.invention_resize_activate_unit(uint32_t(state->military_definitions.unit_base_definitions.size()));
+	state->world.invention_resize_activate_crime(uint32_t(state->culture_definitions.crimes.size()));
+
+	state->world.rebel_type_resize_government_change(uint32_t(state->culture_definitions.governments.size()));
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -824,6 +835,318 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.ideology_get_color(state->culture_definitions.conservative) == sys::pack_color(10, 10, 250));
 		auto mkey = state->world.ideology_get_add_economic_reform(state->culture_definitions.conservative);
 		REQUIRE(state->value_modifiers[mkey].base_factor == -0.5f);
+	}
+	// triggered modifier contents
+	{
+		for(auto& r : context.set_of_triggered_modifiers) {
+			state->national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+		}
+		REQUIRE(err.accumulated_errors == "");
+	}
+	// cb contents
+	{
+		err.file_name = "cb_types.txt";
+		for(auto& r : context.map_of_cb_types) {
+			parsers::individual_cb_context new_context{ context, r.second.id };
+			parsers::parse_cb_body(r.second.generator_state, err, new_context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(bool(state->military_definitions.standard_civil_war) == true);
+		REQUIRE(state->world.cb_type_get_sprite_index(state->military_definitions.standard_civil_war) == uint8_t(2));
+		REQUIRE(state->world.cb_type_get_months(state->military_definitions.standard_civil_war) == uint8_t(1));
+		REQUIRE(state->world.cb_type_get_peace_cost_factor(state->military_definitions.standard_civil_war) == 1.0f);
+		REQUIRE(state->world.cb_type_get_break_truce_militancy_factor(state->military_definitions.standard_civil_war) == 2.0f);
+		REQUIRE(state->world.cb_type_get_truce_months(state->military_definitions.standard_civil_war) == uint8_t(0));
+		REQUIRE(state->world.cb_type_get_type_bits(state->military_definitions.standard_civil_war) ==
+			uint32_t(military::cb_flag::is_civil_war | military::cb_flag::po_annex | military::cb_flag::is_triggered_only | military::cb_flag::is_not_constructing_cb | military::cb_flag::not_in_crisis));
+		REQUIRE(bool(state->world.cb_type_get_can_use(state->military_definitions.standard_civil_war))== true);
+		REQUIRE(bool(state->world.cb_type_get_on_add(state->military_definitions.standard_civil_war)) == true);
+		REQUIRE(bool(state->world.cb_type_get_allowed_states(state->military_definitions.standard_civil_war)) == false);
+	}
+	// pending crimes
+	{
+		err.file_name = "crime.txt";
+		for(auto& r : context.map_of_crimes) {
+			parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto ita = context.map_of_crimes.find(std::string("machine_politics"));
+		REQUIRE(state->culture_definitions.crimes[ita->second.id].available_by_default == true);
+		auto mod_id = state->culture_definitions.crimes[ita->second.id].modifier;
+		REQUIRE(bool(mod_id) == true);
+		REQUIRE(state->world.modifier_get_icon(mod_id) == uint8_t(4));
+		REQUIRE(state->world.modifier_get_province_values(mod_id).get_offet_at_index(0) == sys::provincial_mod_offsets::boost_strongest_party);
+		REQUIRE(state->world.modifier_get_province_values(mod_id).values[0] == 5.0f);
+	}
+	// pending issue options
+	{
+		err.file_name = "issues.txt";
+		for(auto& r : context.map_of_options) {
+			parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		REQUIRE(bool(state->culture_definitions.jingoism) == true);
+
+		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
+		auto fatb = fatten(state->world, itb->second.id);
+		REQUIRE(fatb.get_administrative_multiplier() == 2.0f);
+		auto mid = fatb.get_modifier();
+		REQUIRE(bool(mid) == true);
+		REQUIRE(state->world.modifier_get_national_values(mid).get_offet_at_index(0) == sys::national_mod_offsets::education_efficiency_modifier);
+
+	}
+	// parse national_focus.txt
+	{
+		auto nat_focus = open_file(common, NATIVE("national_focus.txt"));
+		if(nat_focus) {
+			auto content = view_contents(*nat_focus);
+			err.file_name = "national_focus.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_national_focus_file(gen, err, context);
+		} else {
+			err.fatal = true;
+			err.accumulated_errors += "File common/national_focus.txt could not be opened\n";
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		REQUIRE(bool(state->national_definitions.flashpoint_focus) == true);
+		REQUIRE(state->world.national_focus_get_icon(state->national_definitions.flashpoint_focus) == uint8_t(4));
+		REQUIRE(bool(state->world.national_focus_get_limit(state->national_definitions.flashpoint_focus)) == true);
+	}
+	// load pop_types.txt
+	{
+		auto pop_types_file = open_file(common, NATIVE("pop_types.txt"));
+		if(pop_types_file) {
+			auto content = view_contents(*pop_types_file);
+			err.file_name = "pop_types.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_main_pop_type_file(gen, err, context);
+		} else {
+			err.fatal = true;
+			err.accumulated_errors += "File common/pop_types.txt could not be opened\n";
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(bool(state->culture_definitions.migration_chance) == true);
+	}
+
+	// read pending techs
+	{
+		err.file_name = "technology file";
+		for(auto& r : context.map_of_technologies) {
+			parsers::read_pending_technology(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto it = context.map_of_technologies.find(std::string("modern_army_doctrine"));
+		auto fit = fatten(state->world, it->second.id);
+		REQUIRE(fit.get_year() == 1919);
+		REQUIRE(fit.get_cost() == 21600);
+		auto unit_adj = fit.get_modified_units();
+		REQUIRE(unit_adj.size() == 1);
+		REQUIRE(unit_adj[0].type == state->military_definitions.base_army_unit);
+		REQUIRE(unit_adj[0].supply_consumption == Approx(0.20f));
+		REQUIRE(bool(fit.get_modifier()) == true);
+		REQUIRE(fit.get_modifier().get_national_values().get_offet_at_index(0) == sys::national_mod_offsets::dig_in_cap);
+		REQUIRE(fit.get_modifier().get_national_values().values[0] == 1.0f);
+		REQUIRE(fit.get_increase_fort() == true);
+	}
+	// read pending inventions
+	{
+		err.file_name = "inventions file";
+		for(auto& r : context.map_of_inventions) {
+			parsers::read_pending_invention(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto it = context.map_of_inventions.find(std::string("the_talkies"));
+		auto fit = fatten(state->world, it->second.id);
+		
+		REQUIRE(bool(fit.get_limit()) == true);
+		REQUIRE(bool(fit.get_chance()) == true);
+		REQUIRE(fit.get_shared_prestige() == 20.0f);
+		REQUIRE(bool(fit.get_modifier()) == true);
+		REQUIRE(fit.get_modifier().get_national_values().get_offet_at_index(0) == sys::national_mod_offsets::suppression_points_modifier);
+		REQUIRE(fit.get_modifier().get_national_values().get_offet_at_index(1) == sys::national_mod_offsets::core_pop_consciousness_modifier);
+		REQUIRE(fit.get_modifier().get_national_values().values[0] == Approx(-0.05f));
+		REQUIRE(fit.get_modifier().get_national_values().values[1] == Approx(0.01f));
+		
+	}
+	// parse on_actions.txt
+	{
+		auto on_action = open_file(common, NATIVE("on_actions.txt"));
+		if(on_action) {
+			auto content = view_contents(*on_action);
+			err.file_name = "on_actions.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_on_action_file(gen, err, context);
+		} else {
+			err.fatal = true;
+			err.accumulated_errors += "File common/on_actions.txt could not be opened\n";
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(state->national_definitions.on_civilize.size() == size_t(3));
+		REQUIRE(state->national_definitions.on_civilize[0].chance == int16_t(100));
+	}
+	// parse production_types.txt
+	{
+		auto prod_types = open_file(common, NATIVE("production_types.txt"));
+		if(prod_types) {
+			auto content = view_contents(*prod_types);
+			err.file_name = "production_types.txt";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+
+			parsers::production_context new_context{ context };
+			parsers::parse_production_types_file(gen, err, new_context);
+
+			if(!new_context.found_worker_types) {
+				err.fatal = true;
+				err.accumulated_errors += "Unable to identify factory worker types from production_types.txt\n";
+			}
+		} else {
+			err.fatal = true;
+			err.accumulated_errors += "File common/production_types.txt could not be opened\n";
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(err.accumulated_warnings == "");
+
+		auto it = context.map_of_factory_names.find(std::string("aeroplane_factory"));
+		auto fac = fatten(state->world, it->second);
+		REQUIRE(fac.get_base_workforce() == 10000);
+		REQUIRE(fac.get_output_amount() == Approx(0.91f));
+		REQUIRE(fac.get_bonus_2_amount() == Approx(0.25f));
+		REQUIRE(fac.get_bonus_3_amount() == 0.0f);
+		REQUIRE(state->economy_definitions.craftsmen_fraction == Approx(0.8f));
+	}
+	// read pending rebel types
+	{
+		err.file_name = "rebel_types.txt";
+		for(auto& r : context.map_of_rebeltypes) {
+			parsers::read_pending_rebel_type(r.second.id, r.second.generator_state, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto it = context.map_of_rebeltypes.find(std::string("boxer_rebels"));
+		auto fid = fatten(state->world, it->second.id);
+
+		REQUIRE(fid.get_icon() == uint8_t(1));
+		REQUIRE(fid.get_break_alliance_on_win() == true);
+		REQUIRE(fid.get_area() == uint8_t(culture::rebel_area::nation));
+
+		auto gid = context.map_of_governments.find("fascist_dictatorship")->second;
+		auto gidb = context.map_of_governments.find("absolute_monarchy")->second;
+		REQUIRE(fid.get_government_change(gid) == gidb);
+
+		REQUIRE(fid.get_defection() == uint8_t(0));
+		REQUIRE(fid.get_independence() == uint8_t(0));
+		REQUIRE(fid.get_culture_restriction() == false);
+		REQUIRE(fid.get_occupation_multiplier() == 1.0f);
+
+	}
+	// load decisions
+	{
+		auto decisions = open_directory(root, NATIVE("decisions"));
+		for(auto decision_file : list_files(decisions, NATIVE(".txt"))) {
+			auto opened_file = open_file(decision_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_decision_file(gen, err, context);
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+	}
+	// load events
+	{
+		std::vector<simple_fs::file> held_open_files;
+		auto events = open_directory(root, NATIVE("events"));
+		for(auto event_file : list_files(events, NATIVE(".txt"))) {
+			auto opened_file = open_file(event_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_event_file(gen, err, context);
+				held_open_files.emplace_back(std::move(*opened_file));
+			}
+		}
+		err.file_name = "pending events";
+		parsers::commit_pending_events(err, context);
+
+		REQUIRE(err.accumulated_errors == "");
+		//REQUIRE(err.accumulated_warnings == "");
+	}
+	// load oob
+	{
+		auto oob_dir = open_directory(history, NATIVE("units"));
+		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
+			auto file_name = get_full_name(oob_file);
+
+			auto last = file_name.c_str() + file_name.length();
+			auto first = file_name.c_str();
+			auto start_of_name = last;
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+					++start_of_name;
+					break;
+				}
+			}
+			if(last - start_of_name >= 6) {
+				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
+
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+					if(holder) {
+						parsers::oob_file_context new_context{ context, holder };
+
+						auto opened_file = open_file(oob_file);
+						if(opened_file) {
+							err.file_name = utf8name;
+							auto content = view_contents(*opened_file);
+							parsers::token_generator gen(content.data, content.data + content.file_size);
+							parsers::parse_oob_file(gen, err, new_context);
+						}
+					} else {
+						// dead tag
+					}
+				} else {
+					err.accumulated_errors += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+				}
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		dcon::army_id frst;
+		int32_t army_count = 0;
+		for(auto aloc : state->world.province_get_army_location(context.original_id_to_prov_id_map[300])) {
+			frst = aloc.get_army();
+			++army_count;
+		}
+		REQUIRE(army_count == 1);
+		REQUIRE(bool(frst) == true);
+		int32_t reg_count = 0;
+		bool from_294 = false;
+		for(auto rmem : state->world.army_get_army_membership(frst)) {
+			++reg_count;
+			from_294 = from_294 ||
+				rmem.get_regiment().get_pop_from_regiment_source().get_province_from_pop_location() == context.original_id_to_prov_id_map[294];
+		}
+		REQUIRE(reg_count == 6);
+		REQUIRE(from_294 == true);
 	}
 }
 #endif
