@@ -62,10 +62,9 @@ std::vector<uint32_t> get_global_population_color(sys::state& state) {
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		float population = 0;
-		fat_id.for_each_pop_from_pop_location([&](dcon::pop_id pop_id) {
-			auto fat_pop = dcon::fatten(state.world, pop_id);
-			population += fat_pop.get_size();
-		});
+		for(auto pop_location : fat_id.get_pop_location_as_province()) {
+			population += pop_location.get_pop().get_size();
+		}
 		auto cid = fat_id.get_continent().id.index();
 		continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 		auto i = province::to_map_id(prov_id);
@@ -100,10 +99,9 @@ std::vector<uint32_t> get_national_population_color(sys::state& state) {
 		auto i = province::to_map_id(prov_id);
 		if(fat_id.get_nation_from_province_ownership().id == nat_id.id) {
 			float population = 0;
-			fat_id.for_each_pop_from_pop_location([&](dcon::pop_id pop_id) {
-				auto fat_pop = dcon::fatten(state.world, pop_id);
-				population += fat_pop.get_size();
-			});
+			for(auto pop_location : fat_id.get_pop_location_as_province()) {
+				population += pop_location.get_pop().get_size();
+			}
 			max_population = std::max(max_population, population);
 			prov_population[i] = population;
 		} else {

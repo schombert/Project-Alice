@@ -34,14 +34,14 @@ Note that identities and cores exist in a many-to-many relationship: each nation
 
 ### Population
 
-Most provinces have more than one pop (although some may have none at all). There are two ways to iterator over the pops in a province. First, you can use `fat_pop_id.for_each_pop_from_pop_location([&](dcon::pop_id pop_id) { ... })`. This will call the function you provide once on each pop in the province. The downside is that you have to refatten the id you get.  Alternatively you can write a loop such as the following:
+Most provinces have more than one pop (although some may have none at all). To iterate over the pops in a province you can write a loop such as the following:
 ```
 for(auto pops_by_location : state.world.province_get_pop_location(province_id)) {
 	auto pop_id = pops_by_location.get_pop();
 	...
 }
 ```
-This loop iterates over all of the pop-to-province location relationships involving the specified province. In the body of the loop, `pops_by_location` will fat handle to one of the instances of that relationship. And then you can pull the pop out of the relationship with `get_pop`, which will also produce a fat handle to the pop. The downside of writing the loop this way is that it involves a little more typing to get the pop out of the relationship. However, it both allows you to avoid having to refatten the pop handle, and it is possible to exit out of the loop early (if you use the lambada versions described first, you will always have to iterate over all the pops present in the province).
+This loop iterates over all of the pop-to-province location relationships involving the specified province. In the body of the loop, `pops_by_location` will fat handle to one of the instances of that relationship. And then you can pull the pop out of the relationship with `get_pop()`, which will also produce a fat handle to the pop.
 
 #### Storing pop ids
 
