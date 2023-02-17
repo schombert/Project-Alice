@@ -35,6 +35,12 @@ struct global_economy_state {
 	fort_information fort_definition;
 	railroad_information railroad_definition;
 	naval_base_information naval_base_definition;
+
+	float craftsmen_fraction = 0.8f;
+};
+
+enum class worker_effect : uint8_t {
+	none = 0, input, output, throughput
 };
 
 }

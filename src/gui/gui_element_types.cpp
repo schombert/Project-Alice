@@ -1,5 +1,11 @@
 #include <algorithm>
+#include <string_view>
+#include <variant>
+#include "dcon_generated.hpp"
 #include "gui_element_types.hpp"
+#include "fonts.hpp"
+#include "gui_graphics.hpp"
+#include "text.hpp"
 
 namespace ui {
 
@@ -394,6 +400,216 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 				state.font_collection.fonts[font_id - 1]);
 		}
 	}
+}
+
+ogl::color3f get_text_color(text::text_color text_color) {
+	switch(text_color) {
+	case text::text_color::black:
+	case text::text_color::unspecified:
+		return ogl::color3f{ 0.f, 0.f, 0.f };
+	case text::text_color::white:
+		return ogl::color3f{ 1.f, 1.f, 1.f };
+	case text::text_color::red:
+		return ogl::color3f{ 1.f, 0.f, 0.f };
+	case text::text_color::green:
+		return ogl::color3f{ 0.f, 1.f, 0.f };
+	case text::text_color::yellow:
+		return ogl::color3f{ 1.f, 1.f, 0.f };
+	case text::text_color::light_blue:
+		return ogl::color3f{ 0.f, 0.f, 1.f };
+	case text::text_color::dark_blue:
+		return ogl::color3f{ 0.f, 0.f, .5f };
+	default:
+		return ogl::color3f{ 0.f, 0.f, 0.f };
+	}
+}
+
+bool is_hyperlink_substitution(text_substitution sub) {
+        return std::holds_alternative<dcon::nation_id>(sub) ||
+               std::holds_alternative<dcon::state_definition_id>(sub) ||
+               std::holds_alternative<dcon::province_id>(sub);
+}
+
+void multiline_text_element_base::add_text_section(sys::state& state, std::string_view text, float& current_x, float& current_y, text::text_color color) noexcept {
+	auto& font = state.font_collection.fonts[font_id - 1];
+	size_t str_i = 0;
+	size_t current_len = 0;
+	while(str_i < text.size()) {
+		// FIXME: this approach of finding word breaks does not apply to all languages
+		auto next_wb = text.find_first_of(" \n\t", str_i + current_len);
+		if(next_wb == std::string_view::npos) {
+			next_wb = text.size();
+		}
+		next_wb = std::min(next_wb, text.size()) - str_i;
+		if(next_wb == current_len) {
+			current_len++;
+		} else {
+			auto seg_start = std::next(text.begin(), str_i);
+			std::string_view segment{ seg_start, std::next(seg_start, next_wb) };
+			if(current_len == 0 && current_x + font.text_extent(segment.data(), uint32_t(segment.size()), font_size) >= base_data.size.x) {
+				// the current word is too long for the text box, just let it overflow
+				sections.push_back(multiline_text_section{ segment, current_x, current_y, color });
+				current_x = 0.f;
+				current_y += line_height + vertical_spacing;
+				str_i += next_wb;
+				current_len = 0;
+				line_count++;
+			} else if(current_x + font.text_extent(segment.data(), uint32_t(segment.size()), font_size) >= base_data.size.x) {
+				std::string_view section{ seg_start, std::next(seg_start, current_len) };
+				sections.push_back(multiline_text_section{ section, current_x, current_y, color });
+				current_x = 0.f;
+				current_y += line_height + vertical_spacing;
+				str_i += current_len;
+				current_len = 0;
+				line_count++;
+			} else if(next_wb == text.size() - str_i) {
+				// we've reached the end of the text
+				std::string_view remaining{ seg_start, text.end() };
+				sections.push_back(multiline_text_section{ remaining, current_x, current_y, color });
+				current_x += font.text_extent(remaining.data(), uint32_t(remaining.size()), font_size);
+				if(current_x >= base_data.size.x) {
+					current_x = 0.f;
+					current_y += line_height + vertical_spacing;
+					line_count++;
+				}
+				break;
+			} else {
+				current_len = next_wb;
+			}
+		}
+	}
+}
+
+std::string_view multiline_text_element_base::get_substitute(sys::state& state, text::variable_type var_type) noexcept {
+	if(std::holds_alternative<std::string_view>(substitutions[size_t(var_type)])) {
+		return std::get<std::string_view>(substitutions[size_t(var_type)]);
+	} else if(std::holds_alternative<dcon::text_key>(substitutions[size_t(var_type)])) {
+		auto tkey = std::get<dcon::text_key>(substitutions[size_t(var_type)]);
+		return state.to_string_view(tkey);
+	} else if(std::holds_alternative<dcon::nation_id>(substitutions[size_t(var_type)])) {
+		dcon::nation_id nation_id = std::get<dcon::nation_id>(substitutions[size_t(var_type)]);
+		dcon::nation_fat_id fat_id = dcon::fatten(state.world, nation_id);
+		auto name_id = fat_id.get_identity_from_identity_holder().get_name();
+		std::string_view name{ text::produce_simple_string(state, name_id) };
+		return name; 
+	} else if(std::holds_alternative<dcon::state_definition_id>(substitutions[size_t(var_type)])) {
+		dcon::state_definition_id state_id = std::get<dcon::state_definition_id>(substitutions[size_t(var_type)]);
+		dcon::state_definition_fat_id fat_id = dcon::fatten(state.world, state_id);
+		auto name_id = fat_id.get_name();
+		std::string_view name{ text::produce_simple_string(state, name_id) };
+		return name;
+	} else if(std::holds_alternative<dcon::province_id>(substitutions[size_t(var_type)])) {
+		auto province_id = std::get<dcon::province_id>(substitutions[size_t(var_type)]);
+		dcon::province_fat_id fat_id = dcon::fatten(state.world, province_id);
+		auto name_id = fat_id.get_name();
+		std::string_view name{ text::produce_simple_string(state, name_id) };
+		return name;
+	} else {
+		std::string_view unknown{ "?" };
+		return unknown;
+	}
+}
+
+void multiline_text_element_base::generate_sections(sys::state& state) noexcept {
+	auto& seq = state.text_sequences[base_data.data.text.txt];
+	font_id = text::font_index_from_font_id(base_data.data.text.font_handle);
+	font_size = text::size_from_font_id(base_data.data.text.font_handle);
+	auto& font = state.font_collection.fonts[font_id - 1];
+	line_height = font.line_height(font_size);
+	text::text_color current_color = text::text_color::black;
+	float current_x = 0.f;
+	float current_y = 0.f;
+
+	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); i++) {
+		if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
+			auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+			std::string_view text = state.to_string_view(tkey);
+			add_text_section(state, text, current_x, current_y, current_color);
+		} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
+			current_x = 0.f;
+			current_y += line_height + vertical_spacing;
+			line_count++;
+		} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
+			current_color = std::get<text::text_color>(state.text_components[i]);
+		} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
+			auto var_type = std::get<text::variable_type>(state.text_components[i]);
+			if(size_t(var_type) < substitutions.size()) {
+				if(is_hyperlink_substitution(substitutions[size_t(var_type)])) {
+					int32_t last_x = int32_t(current_x);
+					int32_t last_y = int32_t(current_y);
+					auto substitute = get_substitute(state, var_type);
+					add_text_section(state, substitute, current_x, current_y, current_color);
+					for(int32_t line = last_y; line <= int32_t(current_y); line += int32_t(line_height + vertical_spacing)) {
+						int32_t x = line == last_y ? last_x : 0;
+						int32_t width = line == int32_t(current_y) ? int32_t(current_x) : base_data.size.x;
+						if(x < width) {
+							hyperlinks.push_back(hyperlink{
+								substitutions[size_t(var_type)], 
+								x, 
+								line, 
+								width, 
+								line + int32_t(line_height + vertical_spacing)
+							});
+						}
+					}
+				} else {
+					auto substitute = get_substitute(state, var_type);
+					add_text_section(state, substitute, current_x, current_y, current_color);
+				}
+			}
+		}
+	}
+	if(current_x) {
+		line_count++;
+	}
+	visible_lines = std::min(line_count, base_data.size.y / int32_t(line_height));
+}
+
+void multiline_text_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::text) {
+		generate_sections(state);
+	}
+}
+
+void multiline_text_element_base::update_text(sys::state& state, dcon::text_sequence_id seq_id) {
+	if(base_data.get_element_type() == element_type::text) {
+		base_data.data.text.txt = seq_id;
+		generate_sections(state);
+		set_scroll_pos(0);
+	}
+}
+
+void multiline_text_element_base::update_substitutions(sys::state& state, std::vector<text_substitution> subs) {
+	substitutions = subs;
+	if(base_data.get_element_type() == element_type::text) {
+		generate_sections(state);
+		set_scroll_pos(current_line);
+	}
+}
+
+void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	for(auto& section : sections) {
+		float line_offset = section.y_offset - line_height * float(current_line);
+		if(section.stored_text.size() && 0 <= line_offset && line_offset < base_data.size.y) {
+			ogl::render_text(
+				state, section.stored_text.data(), uint32_t(section.stored_text.size()),
+				ogl::color_modification::none,
+				float(x + section.x_offset), float(y + base_data.size.y + line_offset), float(font_size),
+				get_text_color(section.color),
+				state.font_collection.fonts[font_id - 1]
+			);
+		}
+	}
+}
+
+message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	for(auto& link : hyperlinks) {
+		if(link.x <= x && x < link.width && link.y <= y && y < link.height) {
+			// TODO implement hyperlink actions
+			return message_result::consumed;
+		}
+	}
+	return message_result::unseen;
 }
 
 void make_size_from_graphics(sys::state& state, ui::element_data& dat) {

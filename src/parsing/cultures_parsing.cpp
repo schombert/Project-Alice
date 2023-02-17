@@ -257,7 +257,7 @@ void register_invention(std::string_view name, token_generator& gen, error_handl
 
 void read_promotion_target(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
 	if(auto it = context.outer_context.map_of_poptypes.find(std::string(name)); it != context.outer_context.map_of_poptypes.end()) {
-		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop, trigger::slot_contents::empty };
+		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation, trigger::slot_contents::empty };
 		auto result = make_value_modifier(gen, err, t_context);
 		context.outer_context.state.world.pop_type_set_promotion(context.id, it->second, result);
 	} else {
@@ -266,7 +266,7 @@ void read_promotion_target(std::string_view name, token_generator& gen, error_ha
 }
 void read_pop_ideology(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
 	if(auto it = context.outer_context.map_of_ideologies.find(std::string(name)); it != context.outer_context.map_of_ideologies.end()) {
-		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop, trigger::slot_contents::empty };
+		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation, trigger::slot_contents::empty };
 		auto result = make_value_modifier(gen, err, t_context);
 		context.outer_context.state.world.pop_type_set_ideology(context.id, it->second.id, result);
 	} else {
@@ -275,7 +275,7 @@ void read_pop_ideology(std::string_view name, token_generator& gen, error_handle
 }
 void read_pop_issue(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
 	if(auto it = context.outer_context.map_of_options.find(std::string(name)); it != context.outer_context.map_of_options.end()) {
-		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::pop, trigger::slot_contents::empty };
+		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation, trigger::slot_contents::empty };
 		auto result = make_value_modifier(gen, err, t_context);
 		context.outer_context.state.world.pop_type_set_issues(context.id, it->second.id, result);
 	} else {
@@ -300,6 +300,133 @@ commodity_array stub_commodity_array(token_generator& gen, error_handler& err, p
 dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler& err, individual_ideology_context& context) {
 	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
 	return make_value_modifier(gen, err, t_context);
+}
+
+dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+
+
+void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	crime_modifier crime_body = parse_crime_modifier(gen, err, context);
+	context.state.culture_definitions.crimes[id].available_by_default = crime_body.active;
+	context.state.culture_definitions.crimes[id].trigger = crime_body.trigger;
+
+	if(crime_body.next_to_add != 0) {
+		auto new_modifier = context.state.world.create_modifier();
+		context.state.world.modifier_set_name(new_modifier, context.state.culture_definitions.crimes[id].name);
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(crime_body.icon_index));
+
+		crime_body.convert_to_province_mod();
+		context.state.world.modifier_set_province_values(new_modifier, crime_body.constructed_definition);
+		context.state.culture_definitions.crimes[id].modifier = new_modifier;
+	}
+}
+
+void make_opt_allow(token_generator& gen, error_handler& err, individual_option_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	context.outer_context.state.world.issue_option_set_allow(context.id, make_trigger(gen, err, t_context));
+}
+dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_option_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_option_context& context) {
+	effect_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_effect(gen, err, t_context);
+}
+void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	individual_option_context new_context{context, id};
+	issue_option_body opt = parse_issue_option_body(gen, err, new_context);
+
+	if(opt.next_to_add != 0) {
+		auto new_modifier = context.state.world.create_modifier();
+		context.state.world.modifier_set_name(new_modifier, context.state.world.issue_option_get_name(id));
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(opt.icon_index));
+		opt.convert_to_national_mod();
+		context.state.world.modifier_set_national_values(new_modifier, opt.constructed_definition);
+		context.state.world.issue_option_set_modifier(id, new_modifier);
+	}
+}
+
+dcon::value_modifier_key make_poptype_pop_chance(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	trigger_building_context t_context{ context, trigger::slot_contents::pop, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_value_modifier(gen, err, t_context);
+}
+
+dcon::value_modifier_key make_ai_chance(token_generator& gen, error_handler& err, tech_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_value_modifier(gen, err, t_context);
+}
+void read_pending_technology(dcon::technology_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	tech_context new_context{context, id};
+	auto modifier = parse_technology_contents(gen, err, new_context);
+
+	if(modifier.next_to_add != 0) {
+		auto new_modifier = context.state.world.create_modifier();
+		context.state.world.modifier_set_name(new_modifier, context.state.world.technology_get_name(id));
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(modifier.icon_index));
+		modifier.convert_to_national_mod();
+		context.state.world.modifier_set_national_values(new_modifier, modifier.constructed_definition);
+		context.state.world.technology_set_modifier(id, new_modifier);
+	}
+}
+
+dcon::value_modifier_key make_inv_chance(token_generator& gen, error_handler& err, invention_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::trigger_key make_inv_limit(token_generator& gen, error_handler& err, invention_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+
+void read_pending_invention(dcon::invention_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	invention_context new_context{ context, id };
+	auto modifier = parse_invention_contents(gen, err, new_context);
+
+	if(modifier.next_to_add != 0) {
+		auto new_modifier = context.state.world.create_modifier();
+		context.state.world.modifier_set_name(new_modifier, context.state.world.invention_get_name(id));
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(modifier.icon_index));
+		modifier.convert_to_national_mod();
+		context.state.world.modifier_set_national_values(new_modifier, modifier.constructed_definition);
+		context.state.world.invention_set_modifier(id, new_modifier);
+	}
+}
+
+dcon::value_modifier_key make_reb_will_rise(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::value_modifier_key make_reb_spawn_chance(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::value_modifier_key make_reb_movement_eval(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_value_modifier(gen, err, t_context);
+}
+dcon::trigger_key make_reb_s_won_trigger(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_trigger(gen, err, t_context);
+}
+dcon::trigger_key make_reb_enforced_trigger(token_generator& gen, error_handler& err, rebel_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_trigger(gen, err, t_context);
+}
+dcon::effect_key make_reb_s_won_effect(token_generator& gen, error_handler& err, rebel_context& context) {
+	effect_building_context e_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_effect(gen, err, e_context);
+}
+dcon::effect_key make_reb_enforce_effect(token_generator& gen, error_handler& err, rebel_context& context) {
+	effect_building_context e_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::rebel };
+	return make_effect(gen, err, e_context);
+}
+void read_pending_rebel_type(dcon::rebel_type_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	rebel_context new_context{ context, id };
+	parse_rebel_body(gen, err, new_context);
 }
 
 }

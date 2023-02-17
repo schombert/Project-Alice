@@ -8,6 +8,7 @@
 #include "gui_minimap.hpp"
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
+#include <algorithm>
 
 namespace sys {
 	//
@@ -91,10 +92,10 @@ namespace sys {
 			auto r = ui_state.under_mouse->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
 			if(r != ui::message_result::consumed) {
 				// TODO Settings for making zooming the map faster
-				map_display.on_mouse_wheel(x, y, mod, amount);
+				map_display.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 			}
 		} else {
-			map_display.on_mouse_wheel(x, y, mod, amount);
+			map_display.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 		}
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
@@ -170,52 +171,60 @@ namespace sys {
 		return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
 	}
 
-	dcon::text_key state::add_to_pool_lowercase(std::string const& text) {
-		auto res = add_to_pool(text);
-		for(auto i = 0; i < int32_t(text.length()); ++i) {
+	dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
+		auto res = add_to_pool(new_text);
+		for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 			text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
 		}
 		return res;
 	}
-	dcon::text_key state::add_to_pool_lowercase(std::string_view text) {
-		auto res = add_to_pool(text);
-		for(auto i = 0; i < int32_t(text.length()); ++i) {
+	dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
+		auto res = add_to_pool(new_text);
+		for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 			text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
 		}
 		return res;
 	}
-	dcon::text_key state::add_to_pool(std::string const& text) {
+	dcon::text_key state::add_to_pool(std::string const& new_text) {
 		auto start = text_data.size();
-		auto size = text.size();
+		auto size = new_text.length();
 		if(size == 0)
 			return dcon::text_key();
 		text_data.resize(start + size + 1, char(0));
-		std::memcpy(text_data.data() + start, text.c_str(), size + 1);
+		std::copy_n(new_text.c_str(), size + 1, text_data.data() + start);
 		return dcon::text_key(uint32_t(start));
 	}
-	dcon::text_key state::add_to_pool(std::string_view text) {
+	dcon::text_key state::add_to_pool(std::string_view new_text) {
 		auto start = text_data.size();
-		auto length = text.length();
+		auto length = new_text.length();
+		if(length == 0)
+			return dcon::text_key();
 		text_data.resize(start + length + 1, char(0));
-		std::memcpy(text_data.data() + start, text.data(), length);
+		std::copy_n(new_text.data(), length, text_data.data() + start);
 		text_data.back() = 0;
 		return dcon::text_key(uint32_t(start));
 	}
 
-	dcon::text_key state::add_unique_to_pool(std::string const& text) {
-		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(text.c_str(), text.c_str() + text.length() + 1));
-		if(search_result != text_data.data() + text_data.size()) {
-			return dcon::text_key(uint32_t(search_result - text_data.data()));
+	dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
+		if(new_text.length() > 0) {
+			auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
+			if(search_result != text_data.data() + text_data.size()) {
+				return dcon::text_key(uint32_t(search_result - text_data.data()));
+			} else {
+				return add_to_pool(new_text);
+			}
 		} else {
-			return add_to_pool(text);
+			return dcon::text_key();
 		}
 	}
 
 	dcon::unit_name_id state::add_unit_name(std::string_view text) {
 		auto start = unit_names.size();
 		auto length = text.length();
+		if(length == 0)
+			return dcon::unit_name_id();
 		unit_names.resize(start + length + 1, char(0));
-		std::memcpy(unit_names.data() + start, text.data(), length);
+		std::copy_n(text.data(), length, unit_names.data() + start);
 		unit_names.back() = 0;
 		return dcon::unit_name_id(uint16_t(start));
 	}
@@ -244,9 +253,21 @@ namespace sys {
 			auto size = data.size();
 
 			trigger_data.resize(start + size, uint16_t(0));
-			std::memcpy(text_data.data() + start, data.data(), size);
+			std::copy_n(data.data(), size, trigger_data.data() + start);
 			return dcon::trigger_key(uint16_t(start));
 		}
+	}
+
+	dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
+		if(data.size() == 0)
+			return dcon::effect_key();
+
+		auto start = effect_data.size();
+		auto size = data.size();
+
+		effect_data.resize(start + size, uint16_t(0));
+		std::copy_n(data.data(), size, effect_data.data() + start);
+		return dcon::effect_key(uint16_t(start));
 	}
 
 	void state::save_user_settings() const {
@@ -710,6 +731,8 @@ namespace sys {
 		}
 		// load unit type definitions
 		{
+			parsers::make_base_units(context);
+
 			auto units = open_directory(root, NATIVE("units"));
 			for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
 				auto opened_file = open_file(unit_file);
@@ -736,6 +759,18 @@ namespace sys {
 		world.pop_type_resize_ideology(world.ideology_size());
 		world.pop_type_resize_issues(world.issue_option_size());
 		world.pop_type_resize_promotion(world.pop_type_size());
+
+		world.national_focus_resize_production_focus(world.commodity_size());
+
+		world.technology_resize_activate_building(world.factory_type_size());
+		world.technology_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
+
+
+		world.invention_resize_activate_building(world.factory_type_size());
+		world.invention_resize_activate_unit(uint32_t(military_definitions.unit_base_definitions.size()));
+		world.invention_resize_activate_crime(uint32_t(culture_definitions.crimes.size()));
+
+		world.rebel_type_resize_government_change(uint32_t(culture_definitions.governments.size()));
 
 		// load country files
 		world.for_each_national_identity([&](dcon::national_identity_id i) {
@@ -821,9 +856,190 @@ namespace sys {
 
 		// load ideology contents
 		{
+			err.file_name = "ideologies.txt";
 			for(auto& pr : context.map_of_ideologies) {
 				parsers::individual_ideology_context new_context{ context, pr.second.id };
 				parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
+			}
+		}
+		// triggered modifier contents
+		{
+			err.file_name = "triggered_modifiers.txt";
+			for(auto& r : context.set_of_triggered_modifiers) {
+				national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+			}
+		}
+		// cb contents
+		{
+			err.file_name = "cb_types.txt";
+			for(auto& r : context.map_of_cb_types) {
+				parsers::individual_cb_context new_context{ context, r.second.id };
+				parsers::parse_cb_body(r.second.generator_state, err, new_context);
+			}
+		}
+		// pending crimes
+		{
+			err.file_name = "crime.txt";
+			for(auto& r : context.map_of_crimes) {
+				parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
+			}
+		}
+		// pending issue options
+		{
+			err.file_name = "issues.txt";
+			for(auto& r : context.map_of_options) {
+				parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
+			}
+		}
+		// parse national_focus.txt
+		{
+			auto nat_focus = open_file(common, NATIVE("national_focus.txt"));
+			if(nat_focus) {
+				auto content = view_contents(*nat_focus);
+				err.file_name = "national_focus.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_national_focus_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/national_focus.txt could not be opened\n";
+			}
+		}
+		// load pop_types.txt
+		{
+			auto pop_types_file = open_file(common, NATIVE("pop_types.txt"));
+			if(pop_types_file) {
+				auto content = view_contents(*pop_types_file);
+				err.file_name = "pop_types.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_main_pop_type_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/pop_types.txt could not be opened\n";
+			}
+		}
+		// read pending techs
+		{
+			err.file_name = "technology file";
+			for(auto& r : context.map_of_technologies) {
+				parsers::read_pending_technology(r.second.id, r.second.generator_state, err, context);
+			}
+		}
+		// read pending inventions
+		{
+			err.file_name = "inventions file";
+			for(auto& r : context.map_of_inventions) {
+				parsers::read_pending_invention(r.second.id, r.second.generator_state, err, context);
+			}
+		}
+		// parse on_actions.txt
+		{
+			auto on_action = open_file(common, NATIVE("on_actions.txt"));
+			if(on_action) {
+				auto content = view_contents(*on_action);
+				err.file_name = "on_actions.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_on_action_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/on_actions.txt could not be opened\n";
+			}
+		}
+		// parse production_types.txt
+		{
+			auto prod_types = open_file(common, NATIVE("production_types.txt"));
+			if(prod_types) {
+				auto content = view_contents(*prod_types);
+				err.file_name = "production_types.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+
+				parsers::production_context new_context{ context };
+				parsers::parse_production_types_file(gen, err, new_context);
+
+				if(!new_context.found_worker_types) {
+					err.fatal = true;
+					err.accumulated_errors += "Unable to identify factory worker types from production_types.txt\n";
+				}
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File common/production_types.txt could not be opened\n";
+			}
+		}
+		// read pending rebel types
+		{
+			err.file_name = "rebel_types.txt";
+			for(auto& r : context.map_of_rebeltypes) {
+				parsers::read_pending_rebel_type(r.second.id, r.second.generator_state, err, context);
+			}
+		}
+		// load decisions
+		{
+			auto decisions = open_directory(root, NATIVE("decisions"));
+			for(auto decision_file : list_files(decisions, NATIVE(".txt"))) {
+				auto opened_file = open_file(decision_file);
+				if(opened_file) {
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+					auto content = view_contents(*opened_file);
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_decision_file(gen, err, context);
+				}
+			}
+		}
+		// load events
+		{
+			auto events = open_directory(root, NATIVE("events"));
+			std::vector<simple_fs::file> held_open_files;
+			for(auto event_file : list_files(events, NATIVE(".txt"))) {
+				auto opened_file = open_file(event_file);
+				if(opened_file) {
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+					auto content = view_contents(*opened_file);
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_event_file(gen, err, context);
+					held_open_files.emplace_back(std::move(*opened_file));
+				}
+			}
+			err.file_name = "pending events";
+			parsers::commit_pending_events(err, context);
+		}
+		// load oob
+		{
+			auto oob_dir = open_directory(history, NATIVE("units"));
+			for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
+				auto file_name = get_full_name(oob_file);
+
+				auto last = file_name.c_str() + file_name.length();
+				auto first = file_name.c_str();
+				auto start_of_name = last;
+				for(; start_of_name >= first; --start_of_name) {
+					if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+						++start_of_name;
+						break;
+					}
+				}
+				if(last - start_of_name >= 6) {
+					auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
+
+					if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+						auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+						if(holder) {
+							parsers::oob_file_context new_context{ context, holder };
+
+							auto opened_file = open_file(oob_file);
+							if(opened_file) {
+								err.file_name = utf8name;
+								auto content = view_contents(*opened_file);
+								parsers::token_generator gen(content.data, content.data + content.file_size);
+								parsers::parse_oob_file(gen, err, new_context);
+							}
+						} else {
+							// dead tag
+						}
+					} else {
+						err.accumulated_errors += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+					}
+
+					
+				}
 			}
 		}
 		if(err.accumulated_errors.length() > 0)

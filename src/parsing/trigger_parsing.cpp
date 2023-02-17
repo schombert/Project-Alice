@@ -438,14 +438,15 @@ void tr_scope_sphere_owner(token_generator& gen, error_handler& err, trigger_bui
 	}
 }
 void tr_scope_independence(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	if(context.main_slot == trigger::slot_contents::rebel) {
+	if(context.from_slot == trigger::slot_contents::rebel) {
 		context.compiled_trigger.push_back(uint16_t(trigger::independence_scope | trigger::is_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
+		auto old_main = context.main_slot;
 		context.main_slot = trigger::slot_contents::nation;
 		parse_trigger_body(gen, err, context);
-		context.main_slot = trigger::slot_contents::rebel;
+		context.main_slot = old_main;
 
 		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 	} else {
@@ -628,6 +629,9 @@ bool scope_has_single_member(const uint16_t* source) {
 
 //yields new source size
 int32_t simplify_trigger(uint16_t* source) {
+	assert(
+		(0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code)
+		|| (*source & (trigger::code_mask | trigger::is_scope)) == (trigger::placeholder_not_scope | trigger::is_scope));
 	if((source[0] & trigger::is_scope) != 0) {
 		if(scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
