@@ -8,6 +8,7 @@
 #include "gui_minimap.hpp"
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
+#include "gui_province_window.hpp"
 #include <algorithm>
 
 namespace sys {
@@ -38,9 +39,15 @@ namespace sys {
 			auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 			if(r != ui::message_result::consumed) {
 				map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+				if(ui_state.province_window) {
+					static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_display.selected_province);
+				}
 			}
 		} else {
 			map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			if(ui_state.province_window) {
+				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_display.selected_province);
+			}
 		}
 	}
 	void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) {
@@ -147,6 +154,10 @@ namespace sys {
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_picture_window>(*this, "minimap_pic");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::province_view_window>(*this, "province_view");
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 		{
