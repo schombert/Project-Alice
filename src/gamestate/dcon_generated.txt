@@ -1553,6 +1553,26 @@ relationship{
 	}
 }
 
+relationship{
+	name{ overlord }
+	
+	link{
+		object{nation}
+		name{subject}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{ruler}
+		type{many}
+		index_storage{array}
+	}
+	property{
+		name{ is_substate }
+		type{ bitfield }
+	}
+}
+
 object {
 	name { pop }
 	storage_type{ compactable }

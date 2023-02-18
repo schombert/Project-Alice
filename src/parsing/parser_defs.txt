@@ -1821,3 +1821,25 @@ production_type
 
 production_types_file
 	#any                            extern     make_production_type              discard
+
+alliance
+	first                           value      text                              member_fn
+	second                          value      text                              member_fn
+	end_date                        value      date                              discard
+	start_date                      value      date                              discard
+
+vassal_description
+	first                           value      text                              member_fn
+	second                          value      text                              member_fn
+	end_date                        value      date                              discard
+	start_date                      value      date                              member_fn
+
+alliance_file
+	alliance                        extern     make_alliance                     discard
+
+union_file
+	union                           extern     make_vassal                       discard
+
+puppets_file
+	substate                        extern     make_substate                     discard
+	vassal                          extern     make_vassal                       discard
