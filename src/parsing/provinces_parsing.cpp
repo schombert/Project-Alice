@@ -4,8 +4,16 @@
 #include "container_types.hpp"
 
 namespace parsers {
+	void default_map_file::max_provinces(association_type, int32_t value, error_handler& err, int32_t line, scenario_building_context& context) {
+		context.state.world.province_resize(int32_t(value - 1));
+		context.original_id_to_prov_id_map.resize(value);
+		context.prov_id_to_original_id_map.resize(value - 1);
 
-void default_map_file::finish(scenario_building_context& context) {
+		for (int32_t i = 1; i < value; ++i) {
+			context.prov_id_to_original_id_map[dcon::province_id(dcon::province_id::value_base_t(i - 1))].id = i;
+		}
+	}
+	void default_map_file::finish(scenario_building_context& context) {
 	auto first_sea = std::stable_partition(context.prov_id_to_original_id_map.begin(), context.prov_id_to_original_id_map.end(),
 		[](province_data const& a) { return !(a.is_sea); });
 
@@ -170,6 +178,39 @@ dcon::nation_id prov_parse_force_tag_owner(dcon::national_identity_id tag, dcon:
 	return tag_holder;
 }
 
+void province_history_file::life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	context.outer_context.state.world.province_set_life_rating(context.id, uint8_t(value));
+}
+
+void province_history_file::fort(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	context.outer_context.state.world.province_set_fort_naval_base_level(context.id,
+		province::set_fort_level(value, context.outer_context.state.world.province_get_fort_naval_base_level(context.id))
+	);
+}
+
+void province_history_file::naval_base(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	context.outer_context.state.world.province_set_fort_naval_base_level(context.id,
+		province::set_naval_base_level(value, context.outer_context.state.world.province_get_fort_naval_base_level(context.id))
+	);
+}
+
+void province_history_file::railroad(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	context.outer_context.state.world.province_set_railroad_level(context.id, uint8_t(value));
+}
+
+void province_history_file::colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	context.outer_context.state.world.province_set_is_colonial(context.id, value != 0);
+}
+
+void province_history_file::trade_goods(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+	if (auto it = context.outer_context.map_of_commodity_names.find(std::string(text)); it != context.outer_context.map_of_commodity_names.end()) {
+		context.outer_context.state.world.province_set_rgo(context.id, it->second);
+	}
+	else {
+		err.accumulated_errors += std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
 void province_history_file::owner(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
@@ -185,6 +226,53 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 	} else {
 		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
+}
+
+void province_history_file::terrain(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+	if (auto it = context.outer_context.map_of_terrain_types.find(std::string(text)); it != context.outer_context.map_of_terrain_types.end()) {
+		context.outer_context.state.world.province_set_terrain(context.id, it->second.id);
+	}
+	else {
+		err.accumulated_errors += std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void province_history_file::add_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	if (auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
+		context.outer_context.state.world.try_create_core(context.id, it->second);
+	}
+	else {
+		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void province_history_file::remove_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	if (auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
+		auto core = context.outer_context.state.world.get_core_by_prov_tag_key(context.id, it->second);
+		context.outer_context.state.world.delete_core(core);
+	}
+	else {
+		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void province_history_file::party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line, province_file_context& context) {
+	if (value.id) {
+		context.outer_context.state.world.province_set_party_loyalty(context.id, value.id, uint8_t(value.loyalty_value));
+	}
+}
+
+void province_history_file::state_building(pv_state_building const& value, error_handler& err, int32_t line, province_file_context& context) {
+	if (value.id) {
+		auto new_fac = context.outer_context.state.world.create_factory();
+		context.outer_context.state.world.factory_set_building_type(new_fac, value.id);
+		context.outer_context.state.world.factory_set_level(new_fac, uint8_t(value.level));
+		context.outer_context.state.world.force_create_factory_location(new_fac, context.id);
+	}
+}
+
+void province_history_file::is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context) {
+	context.outer_context.state.world.province_set_is_slave(context.id, value);
 }
 
 void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {

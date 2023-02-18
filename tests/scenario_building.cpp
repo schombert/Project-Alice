@@ -1155,6 +1155,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(reg_count == 6);
 		REQUIRE(from_294 == true);
 	}
+
 	// parse diplomacy history
 	{
 		auto diplomacy = open_directory(history, NATIVE("diplomacy"));
@@ -1246,6 +1247,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 				}
 			}
 		}
+
 
 		REQUIRE(err.accumulated_errors == "");
 
