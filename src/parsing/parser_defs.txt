@@ -1843,3 +1843,40 @@ union_file
 puppets_file
 	substate                        extern     make_substate                     discard
 	vassal                          extern     make_vassal                       discard
+
+govt_flag_block
+	government                      value      text                              member_fn
+	flag                            value      text                              member_fn
+
+upper_house_block
+	#any                            value      float                             member_fn
+
+foreign_investment_block
+	#any                            value      float                             member_fn
+
+country_history_file
+	#any                            extern     enter_country_file_dated_block    discard
+	#any                            value      text                              member_fn
+	primary_culture                 value      text                              member_fn
+	culture                         value      text                              member_fn
+	religion                        value      text                              member_fn
+	government                      value      text                              member_fn
+	plurality                       value      float                             member_fn
+	prestige                        value      float                             member_fn
+	nationalvalue                   value      text                              member_fn
+	literacy                        value      float                             member_fn
+	non_state_culture_literacy      value      float                             member_fn
+	civilized                       value      bool                              member_fn
+	is_releasable_vassal            value      bool                              member_fn
+	govt_flag                       group      govt_flag_block                   member_fn
+	foreign_investment              group      foreign_investment_block          member
+	upper_house                     group      upper_house_block                 member
+	ruling_party                    value      text                              member_fn
+	schools                         value      text                              member_fn
+	consciousness                   value      float                             member_fn
+	nonstate_consciousness          value      float                             member_fn
+	last_election                   value      date                              discard
+	oob                             value      text                              discard
+	capital                         value      int                               member_fn
+	colonial_points                 value      int                               discard
+	set_country_flag                value      text                              member_fn

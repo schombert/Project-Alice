@@ -42,7 +42,7 @@ constexpr inline uint32_t build_railway              = 0x40000000;
 namespace culture {
 
 enum class flag_type : uint8_t {
-	republic, communist, fascist, monarchy
+	default_flag = 0, republic, communist, fascist, monarchy
 };
 
 struct government_type {
@@ -51,7 +51,7 @@ struct government_type {
 	bool has_elections = false;
 	bool can_appoint_ruling_party = false;
 	int8_t duration = 0;
-	flag_type flag = flag_type::republic;
+	flag_type flag = flag_type::default_flag;
 };
 
 constexpr inline uint32_t to_bits(dcon::ideology_id id) {

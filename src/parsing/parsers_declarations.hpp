@@ -19,6 +19,7 @@ namespace parsers {
 	//
 	// structures and functions for parsing .gfx files
 	//
+	std::string lowercase_str(std::string_view sv);
 
 	struct building_gfx_context {
 		sys::state& full_state;
@@ -1425,18 +1426,7 @@ namespace parsers {
 			if(auto it = context.outer_context.map_of_issues.find(std::string(issue)); it != context.outer_context.map_of_issues.end()) {
 				if(it->second.index() < int32_t(context.outer_context.state.culture_definitions.party_issues.size())) {
 					if(auto oit = context.outer_context.map_of_options.find(std::string(option)); oit != context.outer_context.map_of_options.end()) {
-						int32_t found = -1;
-						for(int32_t i = 0; i < ::culture::max_issue_options; ++i) {
-							if(context.outer_context.state.world.issue_get_options(it->second)[i] == oit->second.id) {
-								found = i;
-								break;
-							}
-						}
-						if(found == -1) {
-							err.accumulated_errors += std::string(option) + " is not an option for " + std::string(issue) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
-							return;
-						}
-						context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, uint8_t(found));
+						context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, oit->second.id);
 					} else {
 						err.accumulated_errors += std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
 					}
@@ -3451,6 +3441,272 @@ namespace parsers {
 	void make_alliance(token_generator& gen, error_handler& err, scenario_building_context& context);
 	void make_vassal(token_generator& gen, error_handler& err, scenario_building_context& context);
 	void make_substate(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct country_history_context {
+		scenario_building_context& outer_context;
+		dcon::national_identity_id nat_ident;
+		dcon::nation_id holder_id;
+	};
+
+	struct govt_flag_block {
+		void finish(country_history_context&) { }
+
+		::culture::flag_type flag_ = ::culture::flag_type::default_flag;
+		dcon::government_type_id government_;
+
+		void flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(auto it = context.outer_context.map_of_governments.find(std::string(value)); it != context.outer_context.map_of_governments.end()) {
+				flag_ = context.outer_context.state.culture_definitions.governments[it->second].flag;
+			} else {
+				err.accumulated_errors += "invalid government type " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void government(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(auto it = context.outer_context.map_of_governments.find(std::string(value)); it != context.outer_context.map_of_governments.end()) {
+				government_ = it->second;
+			} else {
+				err.accumulated_errors += "invalid government type " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct upper_house_block {
+		void finish(country_history_context&) { }
+		void any_value(std::string_view value, association_type, float v, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+
+			if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
+				context.outer_context.state.world.nation_set_upper_house(context.holder_id, it->second.id, v);
+			} else {
+				err.accumulated_errors += "invalid ideology " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct foreign_investment_block {
+		void finish(country_history_context&) { }
+		void any_value(std::string_view tag, association_type, float v, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+
+			if(tag.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+					auto other = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+					auto rel_id = context.outer_context.state.world.force_create_unilateral_relationship(other, context.holder_id);
+					context.outer_context.state.world.unilateral_relationship_set_foreign_investment(rel_id, v);
+				} else {
+					err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+
+	struct country_history_file {
+		void finish(country_history_context&) { }
+		void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(auto it = context.outer_context.map_of_national_flags.find(std::string(value)); it != context.outer_context.map_of_national_flags.end()) {
+				if(context.holder_id)
+					context.outer_context.state.world.nation_set_flag_variables(context.holder_id, it->second, true);
+			} else {
+				// unused flag variable: ignore
+			}
+		}
+		void capital(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context) {
+			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			} else {
+				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+				context.outer_context.state.world.national_identity_set_capital(context.nat_ident, province_id);
+				if(context.holder_id)
+					context.outer_context.state.world.nation_set_capital(context.holder_id, province_id);
+			}
+		}
+		void any_value(std::string_view label, association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+
+			std::string str_label(label);
+			if(auto it = context.outer_context.map_of_technologies.find(str_label); it != context.outer_context.map_of_technologies.end()) {
+				auto v = parse_bool(value, line, err);
+				context.outer_context.state.world.nation_set_active_technologies(context.holder_id, it->second.id, v);
+			} else if(auto itb = context.outer_context.map_of_inventions.find(str_label); itb != context.outer_context.map_of_inventions.end()) {
+				auto v = parse_bool(value, line, err);
+				context.outer_context.state.world.nation_set_active_inventions(context.holder_id, itb->second.id, v);
+			} else if(auto itc = context.outer_context.map_of_issues.find(str_label); itc != context.outer_context.map_of_issues.end()) {
+				if(auto itd = context.outer_context.map_of_options.find(std::string(value)); itd != context.outer_context.map_of_options.end()) {
+					context.outer_context.state.world.nation_set_reforms_and_issues(context.holder_id, itc->second, itd->second.id);
+				} else {
+					err.accumulated_errors += "invalid issue option name " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors += "invalid key " + str_label + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void primary_culture(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
+				context.outer_context.state.world.national_identity_set_primary_culture(context.nat_ident, it->second);
+				if(context.holder_id)
+					context.outer_context.state.world.nation_set_primary_culture(context.holder_id, it->second);
+			} else {
+				err.accumulated_errors += "invalid culture " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void culture(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+
+			if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
+				context.outer_context.state.world.nation_get_accepted_cultures(context.holder_id).push_back(it->second);
+			} else {
+				err.accumulated_errors += "invalid culture " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void religion(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(auto it = context.outer_context.map_of_religion_names.find(std::string(value)); it != context.outer_context.map_of_religion_names.end()) {
+				context.outer_context.state.world.national_identity_set_religion(context.nat_ident, it->second);
+				if(context.holder_id)
+					context.outer_context.state.world.nation_set_religion(context.holder_id, it->second);
+			} else {
+				err.accumulated_errors += "invalid religion " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void government(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+
+			if(auto it = context.outer_context.map_of_governments.find(std::string(value)); it != context.outer_context.map_of_governments.end()) {
+				context.outer_context.state.world.nation_set_government_type(context.holder_id, it->second);
+			} else {
+				err.accumulated_errors += "invalid government type " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void plurality(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+			context.outer_context.state.world.nation_set_plurality(context.holder_id, value);
+		}
+		void prestige(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+			context.outer_context.state.world.nation_set_prestige(context.holder_id, value);
+		}
+		void nationalvalue(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+
+			if(auto it = context.outer_context.map_of_modifiers.find(std::string(value)); it != context.outer_context.map_of_modifiers.end()) {
+				context.outer_context.state.world.nation_set_national_value(context.holder_id, it->second);
+			} else {
+				err.accumulated_errors += "invalid modifier " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void schools(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+
+			if(auto it = context.outer_context.map_of_modifiers.find(std::string(value)); it != context.outer_context.map_of_modifiers.end()) {
+				context.outer_context.state.world.nation_set_tech_school(context.holder_id, it->second);
+			} else {
+				err.accumulated_errors += "invalid modifier " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+
+		foreign_investment_block foreign_investment;
+		upper_house_block upper_house;
+
+		void civilized(association_type, bool value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+			context.outer_context.state.world.nation_set_is_civilized(context.holder_id, value);
+		}
+		void is_releasable_vassal(association_type, bool value, error_handler& err, int32_t line, country_history_context& context) {
+			context.outer_context.state.world.national_identity_set_is_releasable(context.nat_ident, value);
+		}
+		void literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+			for(auto owned_prov : context.outer_context.state.world.nation_get_province_ownership(context.holder_id)) {
+				for(auto prov_pop : owned_prov.get_province().get_pop_location()) {
+					prov_pop.get_pop().set_literacy(value);
+				}
+			}
+		}
+		void non_state_culture_literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+			auto fh = fatten(context.outer_context.state.world, context.holder_id);
+			for(auto owned_prov : context.outer_context.state.world.nation_get_province_ownership(context.holder_id)) {
+				for(auto prov_pop : owned_prov.get_province().get_pop_location()) {
+					bool non_accepted = [&]() {
+						if(prov_pop.get_pop().get_culture() == fh.get_primary_culture())
+							return false;
+						for(auto c : fh.get_accepted_cultures()) {
+							if(prov_pop.get_pop().get_culture() == c)
+								return false;
+						}
+						return true;
+					}();
+					if(non_accepted)
+						prov_pop.get_pop().set_literacy(value);
+				}
+			}
+		}
+		void consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+			for(auto owned_prov : context.outer_context.state.world.nation_get_province_ownership(context.holder_id)) {
+				for(auto prov_pop : owned_prov.get_province().get_pop_location()) {
+					prov_pop.get_pop().set_consciousness(value);
+				}
+			}
+		}
+		void nonstate_consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+			for(auto owned_prov : context.outer_context.state.world.nation_get_province_ownership(context.holder_id)) {
+				if(owned_prov.get_province().get_is_colonial()) {
+					for(auto prov_pop : owned_prov.get_province().get_pop_location()) {
+						prov_pop.get_pop().set_consciousness(value);
+					}
+				}
+			}
+		}
+		void govt_flag(const govt_flag_block& value, error_handler& err, int32_t line, country_history_context& context) {
+			context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_, uint8_t(value.flag_) + uint8_t(1));
+		}
+		void ruling_party(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(!context.holder_id)
+				return;
+
+			auto value_key = [&]() {
+				auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(value));
+				if(it != context.outer_context.state.key_to_text_sequence.end()) {
+					return it->second;
+				}
+				return dcon::text_sequence_id();
+			}();
+
+			auto first_party = context.outer_context.state.world.national_identity_get_political_party_first(context.nat_ident);
+			auto party_count = context.outer_context.state.world.national_identity_get_political_party_count(context.nat_ident);
+			for(uint32_t i = 0; i < party_count; ++i) {
+				dcon::political_party_id pid{ dcon::political_party_id ::value_base_t( first_party.id.index() + i ) };
+				auto name = context.outer_context.state.world.political_party_get_name(pid);
+				if(name == value_key) {
+					context.outer_context.state.world.nation_set_ruling_party(context.holder_id, pid);
+					for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
+						context.outer_context.state.world.nation_set_reforms_and_issues(context.holder_id, p_issue,
+							context.outer_context.state.world.political_party_get_party_issues(pid, p_issue)
+							);
+					}
+					return;
+				}
+			}
+			err.accumulated_errors += "invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	};
+
+	void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err, country_history_context& context);
 }
 
 #include "trigger_parsing.hpp"
