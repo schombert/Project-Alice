@@ -1034,4 +1034,29 @@ void make_oob_relationship(std::string_view tag, token_generator& gen, error_han
 	}
 }
 
+void make_alliance(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto a = parse_alliance(gen, err, context);
+
+	auto rel = context.state.world.get_diplomatic_relation_by_diplomatic_pair(a.first_, a.second_);
+	if(rel) {
+		context.state.world.diplomatic_relation_set_are_allied(rel, true);
+	} else {
+		auto new_rel = context.state.world.force_create_diplomatic_relation(a.first_, a.second_);
+		context.state.world.diplomatic_relation_set_are_allied(rel, true);
+	}
+}
+void make_vassal(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto a = parse_vassal_description(gen, err, context);
+	if(!a.invalid) {
+		context.state.world.force_create_overlord(a.second_, a.first_);
+	}
+}
+void make_substate(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto a = parse_vassal_description(gen, err, context);
+	if(!a.invalid) {
+		auto rel_id = context.state.world.force_create_overlord(a.second_, a.first_);
+		context.state.world.overlord_set_is_substate(rel_id, true);
+	}
+}
+
 }

@@ -1042,6 +1042,43 @@ namespace sys {
 				}
 			}
 		}
+		// parse diplomacy history
+		{
+			auto diplomacy = open_directory(history, NATIVE("diplomacy"));
+			{
+				auto dip_file = open_file(diplomacy, NATIVE("Alliances.txt"));
+				if(dip_file) {
+					auto content = view_contents(*dip_file);
+					err.file_name = "Alliances.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_alliance_file(gen, err, context);
+				} else {
+					err.accumulated_errors += "File history/diplomacy/Alliances.txt could not be opened\n";
+				}
+			}
+			{
+				auto dip_file = open_file(diplomacy, NATIVE("PuppetStates.txt"));
+				if(dip_file) {
+					auto content = view_contents(*dip_file);
+					err.file_name = "PuppetStates.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_puppets_file(gen, err, context);
+				} else {
+					err.accumulated_errors += "File history/diplomacy/PuppetStates.txt could not be opened\n";
+				}
+			}
+			{
+				auto dip_file = open_file(diplomacy, NATIVE("Unions.txt"));
+				if(dip_file) {
+					auto content = view_contents(*dip_file);
+					err.file_name = "Unions.txt";
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_union_file(gen, err, context);
+				} else {
+					err.accumulated_errors += "File history/diplomacy/Unions.txt could not be opened\n";
+				}
+			}
+		}
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
