@@ -1156,6 +1156,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(from_294 == true);
 	}
 
+
 	// parse diplomacy history
 	{
 		auto diplomacy = open_directory(history, NATIVE("diplomacy"));

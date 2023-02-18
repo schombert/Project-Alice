@@ -1016,6 +1016,7 @@ int32_t effect_scope_data_payload(uint16_t code) {
 }
 
 
+
 bool effect_scope_has_single_member(const uint16_t* source) { //precondition: scope known to not be empty
 	const auto data_offset = 2 + effect_scope_data_payload(source[0]);
 	return get_effect_scope_payload_size(source) == data_offset + get_generic_effect_payload_size(source + data_offset);
