@@ -3376,6 +3376,81 @@ namespace parsers {
 	dcon::trigger_key make_production_bonus_trigger(token_generator& gen, error_handler& err, production_context& context);
 	void make_production_type(std::string_view name, token_generator& gen, error_handler& err, production_context& context);
 
+
+	struct alliance {
+		dcon::nation_id first_;
+		dcon::nation_id second_;
+
+		void finish(scenario_building_context&) { }
+		void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(tag.length() == 3) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.map_of_ident_names.end()) {
+					first_ = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+				} else {
+					err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(tag.length() == 3) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.map_of_ident_names.end()) {
+					second_ = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+				} else {
+					err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct vassal_description {
+		dcon::nation_id first_;
+		dcon::nation_id second_;
+		bool invalid = false;
+		void finish(scenario_building_context&) { }
+		void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(tag.length() == 3) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.map_of_ident_names.end()) {
+					first_ = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+				} else {
+					err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(tag.length() == 3) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.map_of_ident_names.end()) {
+					second_ = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+				} else {
+					err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
+			} else {
+				err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context) {
+			if(context.state.start_date < sys::absolute_time_point(ymd))
+				invalid = true;
+		}
+	};
+
+	struct alliance_file {
+		void finish(scenario_building_context&) { }
+	};
+	struct union_file {
+		void finish(scenario_building_context&) { }
+	};
+	struct puppets_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_alliance(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void make_vassal(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void make_substate(token_generator& gen, error_handler& err, scenario_building_context& context);
 }
 
 #include "trigger_parsing.hpp"
