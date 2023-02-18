@@ -1148,5 +1148,58 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(reg_count == 6);
 		REQUIRE(from_294 == true);
 	}
+	// parse diplomacy history
+	{
+		auto diplomacy = open_directory(history, NATIVE("diplomacy"));
+		{
+			auto dip_file = open_file(diplomacy, NATIVE("Alliances.txt"));
+			if(dip_file) {
+				auto content = view_contents(*dip_file);
+				err.file_name = "Alliances.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_alliance_file(gen, err, context);
+			} else {
+				err.accumulated_errors += "File history/diplomacy/Alliances.txt could not be opened\n";
+			}
+		}
+		{
+			auto dip_file = open_file(diplomacy, NATIVE("PuppetStates.txt"));
+			if(dip_file) {
+				auto content = view_contents(*dip_file);
+				err.file_name = "PuppetStates.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_puppets_file(gen, err, context);
+			} else {
+				err.accumulated_errors += "File history/diplomacy/PuppetStates.txt could not be opened\n";
+			}
+		}
+		{
+			auto dip_file = open_file(diplomacy, NATIVE("Unions.txt"));
+			if(dip_file) {
+				auto content = view_contents(*dip_file);
+				err.file_name = "Unions.txt";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_union_file(gen, err, context);
+			} else {
+				err.accumulated_errors += "File history/diplomacy/Unions.txt could not be opened\n";
+			}
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto china_tag = context.map_of_ident_names.find(nations::tag_to_int('C', 'H', 'I'))->second;
+		auto cident_rel = state->world.national_identity_get_identity_holder(china_tag);
+		auto china = state->world.identity_holder_get_nation(cident_rel);
+
+		//second = GXI
+		auto gxi_tag = context.map_of_ident_names.find(nations::tag_to_int('G', 'X', 'I'))->second;
+		auto gident_rel = state->world.national_identity_get_identity_holder(gxi_tag);
+		auto gxi = fatten(state->world, state->world.identity_holder_get_nation(gident_rel));
+
+		REQUIRE(bool(gxi.get_overlord_as_subject()) == true);
+		REQUIRE(gxi.get_overlord_as_subject().get_ruler() == china);
+		REQUIRE(gxi.get_overlord_as_subject().get_is_substate() == true);
+
+	}
 }
 #endif
