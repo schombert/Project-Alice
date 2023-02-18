@@ -3,6 +3,7 @@
 #include "province.hpp"
 #include <cmath>
 #include <glm/glm.hpp>
+#include <fstream>
 
 namespace map {
 void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
@@ -512,7 +513,14 @@ void display_data::update() {
 	time_counter += seconds_since_last_update;
 	time_counter = (float)std::fmod(time_counter, 600.f); // Reset it after every 10 minutes
 
-	auto velocity = (pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom);
+	glm::vec2 velocity;
+
+	if(zoom_change > 0) {
+		velocity = ((pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom)) / 3.f;
+	}
+	else {
+		velocity = ((pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom)) / 6.f;
+	}
 	velocity.x *= size.y / size.x;
 	pos += velocity;
 
@@ -523,7 +531,7 @@ void display_data::update() {
 	auto microseconds_since_last_zoom = std::chrono::duration_cast<std::chrono::microseconds>(now - last_zoom_time);
 	float seconds_since_last_zoom = (float)(microseconds_since_last_zoom.count() / 1e6);
 
-	zoom += zoom_change * seconds_since_last_update;
+	zoom += (zoom_change * seconds_since_last_update)/(1/zoom);
 	zoom_change *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
 	scroll_pos_velocity *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
 
@@ -578,9 +586,8 @@ void display_data::set_pos(glm::vec2 new_pos) {
 }
 
 void display_data::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount) {
-	amount = std::clamp(amount, -6.f, 6.f);
-	constexpr auto zoom_speed_factor = 5.f;
-	zoom_change = std::copysign(zoom * ((1.f - amount / 5.f) * zoom_speed_factor), amount);
+	constexpr auto zoom_speed_factor = 15.f;
+	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
 	has_zoom_changed = true;
 
     auto mouse_pos = glm::vec2(x, y);
