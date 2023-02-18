@@ -16,6 +16,7 @@ public:
 
 	int nr_of_provinces = 0;
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
+	int16_t selected_province = 0;
 
 	void render(uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
@@ -47,7 +48,6 @@ private:
 
 	// interaction
 	bool unhandled_province_selection = false;
-	int16_t selected_province = 0;
 
 	// Meshes
 	GLuint water_vbo = 0;
