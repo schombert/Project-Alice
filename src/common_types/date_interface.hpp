@@ -12,6 +12,7 @@ struct year_month_day {
 
 class absolute_time_point {
 	int64_t days = 0;
+	absolute_time_point(int64_t days) : days(days) { }
 public:
 	absolute_time_point() noexcept = default;
 	absolute_time_point(year_month_day const& date);
@@ -21,6 +22,32 @@ public:
 	absolute_time_point& operator=(absolute_time_point&&) noexcept = default;
 	constexpr int64_t to_days() const noexcept {
 		return days;
+	}
+
+	constexpr bool operator==(absolute_time_point v) const noexcept {
+		return days == v.days;
+	}
+	constexpr bool operator!=(absolute_time_point v) const noexcept {
+		return days != v.days;
+	}
+	constexpr bool operator<(absolute_time_point v) const noexcept {
+		return days < v.days;
+	}
+	constexpr bool operator<=(absolute_time_point v) const noexcept {
+		return days <= v.days;
+	}
+	constexpr bool operator>(absolute_time_point v) const noexcept {
+		return days > v.days;
+	}
+	constexpr bool operator>=(absolute_time_point v) const noexcept {
+		return days >= v.days;
+	}
+	absolute_time_point operator+(int32_t v) const noexcept {
+		return absolute_time_point(days + v);
+	}
+	absolute_time_point& operator+=(int32_t v) noexcept {
+		days += v;
+		return *this;
 	}
 };
 
