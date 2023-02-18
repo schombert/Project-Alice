@@ -3,7 +3,6 @@
 #include "province.hpp"
 #include <cmath>
 #include <glm/glm.hpp>
-#include <fstream>
 
 namespace map {
 void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
