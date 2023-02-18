@@ -55,6 +55,26 @@ object{
 		name{ political_party_count }
 		type{ uint8_t }
 	}
+	property{
+		name{ government_flag_type }
+		type{ array{government_type_id}{uint8_t} }
+	}
+	property{
+		name{ primary_culture }
+		type{ culture_id }
+	}
+	property{
+		name{ religion }
+		type{ religion_id }
+	}
+	property{
+		name{ capital }
+		type{ province_id }
+	}
+	property{
+		name{ is_releasable }
+		type{ bitfield }
+	}
 }
 
 object {
@@ -80,7 +100,7 @@ object {
 	}
 	property{
 		name{ party_issues }
-		type{array{issue_id}{uint8_t}}
+		type{array{issue_id}{issue_option_id}}
 	}
 }
 
@@ -1420,6 +1440,83 @@ object {
 	name{ nation }
 	storage_type{ erasable }
 	size{ 1000 }
+
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ adjective }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ primary_culture }
+		type{ culture_id }
+	}
+	property{
+		name{ accepted_cultures }
+		type{vector_pool{10000}{culture_id}} 
+	}
+	property{
+		name{ religion }
+		type{ religion_id }
+	}
+	property{
+		name{ capital }
+		type{ province_id }
+	}
+	property{
+		name{ is_civilized }
+		type{ bitfield }
+	}
+	property{
+		name{ national_value }
+		type{ modifier_id }
+	}
+	property{
+		name{ tech_school }
+		type{ modifier_id }
+	}
+	property{
+		name{ government_type }
+		type{ government_type_id }
+	}
+	property{
+		name{ plurality }
+		type{ float }
+	}
+	property{
+		name{ prestige }
+		type{ float }
+	}
+	property{
+		name{ active_technologies }
+		type{array{technology_id}{bitfield}}
+	}
+	property{
+		name{ active_inventions }
+		type{array{invention_id}{bitfield}}
+	}
+	property{
+		name{ ruling_party }
+		type{ political_party_id }
+	}
+	property{
+		name{ reforms_and_issues }
+		type{array{issue_id}{issue_option_id}}
+	}
+	property{
+		name{ upper_house }
+		type{array{ideology_id}{float}}
+	}
+	property{
+		name{ flag_variables }
+		type{array{national_flag_id}{bitfield}}
+	}
 }
 
 
@@ -1455,6 +1552,35 @@ relationship{
 	}
 }
 
+relationship{
+	name{ unilateral_relationship }
+	storage_type{ compactable }
+	size{ 50000 }
+
+	link{
+		object{nation}
+		name{target}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{source}
+		type{many}
+		index_storage{array}
+	}
+	
+	composite_key{
+		name{unilateral_pair}
+		index{target}
+		index{source}
+	}
+
+	property{
+		name{ foreign_investment }
+		type{ float }
+	}
+}
 
 relationship{
 	name{ gp_relationship }
@@ -1601,6 +1727,10 @@ object {
 	}
 	property{
 		name{ militancy }
+		type{ float }
+	}
+	property{
+		name{ literacy }
 		type{ float }
 	}
 	property{

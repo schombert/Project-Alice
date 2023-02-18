@@ -1059,4 +1059,13 @@ void make_substate(token_generator& gen, error_handler& err, scenario_building_c
 	}
 }
 
+void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err, country_history_context& context) {
+	auto ymd = parse_date(label, 0, err);
+	if(sys::absolute_time_point(ymd) <= context.outer_context.state.start_date) {
+		parse_country_history_file(gen, err, context);
+	} else {
+		gen.discard_group();
+	}
+}
+
 }
