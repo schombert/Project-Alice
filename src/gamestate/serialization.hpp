@@ -103,22 +103,6 @@ size_t sizeof_save_header(save_header const& header_in);
 
 uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size);
 
-template<typename T>
-uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& function) {
-	uint32_t section_length = 0;
-	uint32_t decompressed_length = 0;
-	memcpy(&section_length, ptr_in, sizeof(uint32_t));
-	memcpy(&decompressed_length, ptr_in + sizeof(uint32_t), sizeof(uint32_t));
-
-	//TODO: allocate memory for decompression and decompress into it
-
-	function(ptr_in + sizeof(uint32_t)*2, decompressed_length);
-
-	//TODO: free memory allocated for decompression
-
-	return ptr_in + sizeof(uint32_t) * 2 + section_length;
-}
-
 // Note: these functions are for read / writing the *uncompressed* data
 uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
