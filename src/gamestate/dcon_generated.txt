@@ -2,6 +2,7 @@ include{<array>}
 include{"constants.hpp"}
 include{"modifiers.hpp"}
 include{"date_interface.hpp"}
+include{"container_types.hpp"}
 
 make_index{text_key}{uint32_t}
 make_index{text_sequence_id}{uint16_t}
@@ -13,44 +14,79 @@ make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
 make_index{unit_name_id}{uint16_t}
 make_index{national_variable_id}{uint16_t}
-make_index{global_variable_id}{uint16_t}
+make_index{national_flag_id}{uint16_t}
+make_index{global_flag_id}{uint16_t}
 make_index{trigger_key}{uint16_t}
+make_index{effect_key}{uint16_t}
 make_index{value_modifier_key}{uint16_t}
 
 object{
 	name{ national_identity }
 	storage_type{contiguous}
 	size{ 1000 }
+	tag{ scenario }
 
 	property{
 		name{ color }
 		type{ uint32_t }
+		tag{ scenario }
 	}
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ adjective }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 
 	property{
 		name{ unit_names_first }
 		type{array{unit_type_id}{unit_name_id}}
+		tag{ scenario }
 	}
 	property{
 		name{ unit_names_count }
 		type{array{unit_type_id}{uint8_t}}
+		tag{ scenario }
 	}
 
 	property{
 		name{ political_party_first }
 		type{ political_party_id }
+		tag{ scenario }
 	}
 	property{
 		name{ political_party_count }
 		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ government_flag_type }
+		type{ array{government_type_id}{uint8_t} }
+		tag{ scenario }
+	}
+	property{
+		name{ primary_culture }
+		type{ culture_id }
+		tag{ scenario }
+	}
+	property{
+		name{ religion }
+		type{ religion_id }
+		tag{ scenario }
+	}
+	property{
+		name{ capital }
+		type{ province_id }
+		tag{ scenario }
+	}
+	property{
+		name{ is_releasable }
+		type{ bitfield }
+		tag{ scenario }
 	}
 }
 
@@ -58,26 +94,32 @@ object {
 	name{ political_party }
 	storage_type{contiguous}
 	size{ 10000 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ start_date }
 		type{ sys::date }
+		tag{ scenario }
 	}
 	property{
 		name{ end_date }
 		type{ sys::date }
+		tag{ scenario }
 	}
 	property{
 		name{ ideology }
 		type{ ideology_id }
+		tag{ scenario }
 	}
 	property{
 		name{ party_issues }
-		type{array{issue_id}{uint8_t}}
+		type{array{issue_id}{issue_option_id}}
+		tag{ scenario }
 	}
 }
 
@@ -85,21 +127,27 @@ object{
 	name{ religion }
 	storage_type{ contiguous }
 	size{ 126 }
+	tag{ scenario }
+
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ color }
 		type{ uint32_t }
+		tag{ scenario }
 	}
 	property{
 		name{ icon }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 	property{
 		name{ is_pagan }
 		type{ bitfield }
+		tag{ scenario }
 	}
 }
 
@@ -107,20 +155,24 @@ object {
 	name{ culture_group }
 	storage_type{ contiguous }
 	size{ 126 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 
 	property{
 		name{ is_overseas }
 		type{ bitfield }
+		tag{ scenario }
 	}
 
 	property{
 		name{ leader }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 }
 
@@ -128,34 +180,41 @@ object {
 	name{ culture }
 	storage_type{ contiguous }
 	size{ 500 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 
 	property{
 		name{ color }
 		type{ uint32_t }
+		tag{ scenario }
 	}
 	property{
 		name{ radicalism }
 		type{ int8_t }
+		tag{ scenario }
 	}
 
 	property{
 		name{ first_names }
 		type{vector_pool{10000}{text_key}}
+		tag{ scenario }
 	}
 	property{
 		name{ last_names }
 		type{vector_pool{10000}{text_key}}
+		tag{ scenario }
 	}
 }
 
 relationship{
 	name{culture_group_membership}
-	
+	tag{ scenario }
+
 	link{
 		object{culture}
 		name{member}
@@ -169,9 +228,11 @@ relationship{
 	}
 }
 
+
 relationship{
 	name{ cultural_union_of }
-	
+	tag{ scenario }
+
 	link{
 		object{national_identity}
 		name{identity}
@@ -188,27 +249,58 @@ object {
 	name{ commodity }
 	storage_type{ contiguous }
 	size{ 126 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 
 	property{
 		name{ color }
 		type{ uint32_t }
+		tag{ scenario }
 	}
 	property{
 		name{ cost }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ commodity_group }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 	property{
 		name{ is_available_from_start }
 		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ is_mine }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ rgo_amount }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ rgo_workforce }
+		type{ int32_t }
+		tag{ scenario }
+	}
+	property{
+		name{ artisan_inputs }
+		type{ economy::commodity_set }
+		tag{ scenario }
+	}
+	property{
+		name{ artisan_output_amount }
+		type{ float }
+		tag{ scenario }
 	}
 }
 
@@ -216,22 +308,27 @@ object {
 	name{ modifier }
 	storage_type{ contiguous }
 	size{ 2500 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ province_values }
 		type{ sys::modifier_definition }
+		tag{ scenario }
 	}
 	property{
 		name{ national_values }
 		type{ sys::modifier_definition }
+		tag{ scenario }
 	}
 	property{
 		name{ icon }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 }
 
@@ -239,22 +336,87 @@ object {
 	name{ factory_type }
 	storage_type{ contiguous }
 	size{ 64 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ construction_costs }
 		type{array{commodity_id}{float}}
+		tag{ scenario }
 	}
 	property{
 		name{ construction_time }
 		type{int16_t}
+		tag{ scenario }
 	}
 	property{
 		name{ is_available_from_start }
 		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ is_coastal }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ inputs }
+		type{ economy::commodity_set }
+		tag{ scenario }
+	}
+	property{
+		name{ efficiency_inputs }
+		type{ economy::small_commodity_set }
+		tag{ scenario }
+	}
+	property{
+		name{ base_workforce }
+		type{ int32_t }
+		tag{ scenario }
+	}
+	property{
+		name{ output }
+		type{ commodity_id }
+		tag{ scenario }
+	}
+	property{
+		name{ output_amount }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ bonus_1_trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ bonus_1_amount }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ bonus_2_trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ bonus_2_amount }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ bonus_3_trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ bonus_3_amount }
+		type{ float }
+		tag{ scenario }
 	}
 }
 
@@ -263,10 +425,12 @@ object {
 	name{ ideology_group }
 	storage_type{ contiguous }
 	size{ 32 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 }
 
@@ -274,53 +438,65 @@ object {
 	name{ ideology }
 	storage_type{ contiguous }
 	size{ 32 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 
 	property{
 		name{ color }
 		type{ uint32_t }
+		tag{ scenario }
 	}
 	property{
 		name{ is_civilized_only }
 		type{ bitfield }
+		tag{ scenario }
 	}
 	property{
 		name{ activation_date }
 		type{ sys::date }
+		tag{ scenario }
 	}
 	property{
 		name{ add_political_reform }
 		type{ value_modifier_key }
+		tag{ scenario }
 	}
 	property{
 		name{ remove_political_reform }
 		type{ value_modifier_key }
+		tag{ scenario }
 	}
 	property{
 		name{ add_social_reform }
 		type{ value_modifier_key }
+		tag{ scenario }
 	}
 	property{
 		name{ remove_social_reform }
 		type{ value_modifier_key }
+		tag{ scenario }
 	}
 	property{
 		name{ add_military_reform }
 		type{ value_modifier_key }
+		tag{ scenario }
 	}
 	property{
 		name{ add_economic_reform }
 		type{ value_modifier_key }
+		tag{ scenario }
 	}
 }
 
 relationship{
 	name{ ideology_group_membership }
-	
+	tag{ scenario }
+
 	link{
 		object{ideology}
 		name{ideology}
@@ -338,22 +514,27 @@ object {
 	name{ issue }
 	storage_type{ contiguous }
 	size{ 120 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ options }
 		type{ std::array<issue_option_id,culture::max_issue_options> }
+		tag{ scenario }
 	}
 	property{
 		name{ is_next_step_only }
 		type{ bitfield }
+		tag{ scenario }
 	}
 	property{
 		name{ is_administrative }
 		type{ bitfield }
+		tag{ scenario }
 	}
 }
 
@@ -361,10 +542,60 @@ object {
 	name{ issue_option }
 	storage_type{ contiguous }
 	size{ 720 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
+	}
+
+	property{
+		name{ rules }
+		type{ uint32_t }
+		tag{ scenario }
+	}
+
+	property{
+		name{ modifier }
+		type{ modifier_id }
+		tag{ scenario }
+	}
+
+	property{
+		name{ technology_cost }
+		type{ int32_t }
+		tag{ scenario }
+	}
+
+	property{
+		name{ war_exhaustion_effect }
+		type{ float }
+		tag{ scenario }
+	}
+
+	property{
+		name{ administrative_multiplier }
+		type{ float }
+		tag{ scenario }
+	}
+
+	property{
+		name{ allow }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+
+	property{
+		name{ on_execute_trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+
+	property{
+		name{ on_execute_effect }
+		type{ effect_key }
+		tag{ scenario }
 	}
 }
 
@@ -372,22 +603,142 @@ object {
 	name{cb_type}
 	storage_type{ contiguous }
 	size{ 120 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ short_desc }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ long_desc }
 		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ war_name }
+		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ type_bits }
 		type{ uint32_t }
+		tag{ scenario }
+	}
+	property{
+		name{ months }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ truce_months }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ sprite_index }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ allowed_states }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ allowed_states_in_crisis }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ allowed_substate_regions }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ allowed_countries }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ can_use }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ on_add }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
+		name{ on_po_accepted }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
+		name{ badboy_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ prestige_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ peace_cost_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ penalty_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ break_truce_prestige_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ break_truce_infamy_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ break_truce_militancy_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ good_relation_prestige_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ good_relation_infamy_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ good_relation_militancy_factor }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ construction_speed }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ tws_battle_factor }
+		type{ float }
+		tag{ scenario }
 	}
 }
 
@@ -395,42 +746,52 @@ object {
 	name{leader_trait}
 	storage_type{ contiguous }
 	size{ 1400 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ organisation }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ morale }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ attack }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ defence }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ reconnaissance }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ speed }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ experience }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ reliability }
 		type{ float }
+		tag{ scenario }
 	}
 }
 
@@ -438,101 +799,125 @@ object {
 	name{ pop_type }
 	storage_type{ contiguous }
 	size{ 20 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 
 	property{
 		name{ sprite }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 	property{
 		name{ color }
 		type{ uint32_t }
+		tag{ scenario }
 	}
 	property{
 		name{ strata }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 
 	property{
 		name{ everyday_needs_income_type }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 	property{
 		name{ luxury_needs_income_type }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 	property{
 		name{ life_needs_income_type }
 		type{ uint8_t }
+		tag{ scenario }
 	}
 	property{
 		name{ everyday_needs_income_weight }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ luxury_needs_income_weight }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ life_needs_income_weight }
 		type{ float }
+		tag{ scenario }
 	}
 
 	property{
 		name{ research_optimum }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ research_points }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ workplace_input }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ workplace_output }
 		type{ float }
+		tag{ scenario }
 	}
 	property{
 		name{ has_unemployment }
 		type{ bitfield }
+		tag{ scenario }
 	}
 	property{
 		name{ migration_target }
 		type{ value_modifier_key }
+		tag{ scenario }
 	}
 	property{
 		name{ country_migration_target }
 		type{ value_modifier_key }
+		tag{ scenario }
 	}
 	property{
 		name{ issues }
 		type{array{issue_option_id}{value_modifier_key}}
+		tag{ scenario }
 	}
 	property{
 		name{ ideology }
 		type{array{ideology_id}{value_modifier_key}}
+		tag{ scenario }
 	}
 	property{
 		name{ promotion }
 		type{array{pop_type_id}{value_modifier_key}}
+		tag{ scenario }
 	}
 	property{
 		name{ life_needs }
 		type{array{commodity_id}{float}}
+		tag{ scenario }
 	}
 	property{
 		name{ everyday_needs }
 		type{array{commodity_id}{float}}
+		tag{ scenario }
 	}
 	property{
 		name{ luxury_needs }
 		type{array{commodity_id}{float}}
+		tag{ scenario }
 	}
 
 }
@@ -541,18 +926,112 @@ object {
 	name{ rebel_type }
 	storage_type{ contiguous }
 	size{ 60 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ description }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
 		name{ army_name }
 		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ icon }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ break_alliance_on_win }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ area }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ defection }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ independence }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ ideology }
+		type{ ideology_id }
+		tag{ scenario }
+	}
+	property{
+		name{ occupation_multiplier }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ defect_delay }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ culture_restriction }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ culture_group_restriction }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ will_rise }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+	property{
+		name{ spawn_chance }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+	property{
+		name{ movement_evaluation }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+	property{
+		name{ siege_won_trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ siege_won_effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
+		name{ demands_enforced_trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ demands_enforced_effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
+		name{ government_change }
+		type{array{government_type_id}{government_type_id}}
+		tag{ scenario }
 	}
 }
 
@@ -560,60 +1039,73 @@ object {
 	name{ province }
 	storage_type{ contiguous }
 	size{ 8000 }
+	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ save }
 	}
 
 	property{
 		name{ continent }
 		type{ modifier_id }
+		tag{ scenario }
 	}
 
 	property{
 		name{ climate }
 		type{ modifier_id }
+		tag{ scenario }
 	}
 
 	property{
 		name{ terrain }
 		type{ modifier_id }
+		tag{ save }
 	}
 
 	property{
 		name{ life_rating }
 		type{ uint8_t }
+		tag{ save }
 	}
 
 	property{
 		name{ rgo }
 		type{ commodity_id }
+		tag{ save }
 	}
 
 	property{
 		name{ fort_naval_base_level }
 		type{ uint8_t }
+		tag{ save }
 	}
 
 	property{
 		name{ railroad_level }
 		type{ uint8_t }
+		tag{ save }
 	}
 
 	property{
 		name{ is_slave }
 		type{ bitfield }
+		tag{ save }
 	}
 
 	property{
 		name{ is_colonial }
 		type{ bitfield }
+		tag{ save }
 	}
 
 	property{
 		name{ party_loyalty }
 		type{array{ideology_id}{uint8_t}}
+		tag{ save }
 	}
 }
 
@@ -621,6 +1113,8 @@ relationship{
 	name{ province_adjacency }
 	storage_type{ compactable }
 	size{ 24000 }
+	tag{ scenario }
+	tag{ save }
 
 	link{
 		object{province}
@@ -638,11 +1132,334 @@ relationship{
 	property{
 		name{ distance }
 		type{ float }
+		tag{ scenario }
 	}
 
 	property{
 		name{ type }
 		type{ uint8_t }
+		tag{ save }
+	}
+}
+
+object {
+	name{ regiment }
+	storage_type{ erasable }
+	size{ 4000 }
+	tag{ save }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+		tag{ save }
+	}
+	property{
+		name{ type }
+		type{ unit_type_id }
+		tag{ save }
+	}
+	property{	
+		name{ strength }
+		type{ float }
+		tag{ save }
+	}
+}
+
+object {
+	name{ ship }
+	storage_type{ erasable }
+	size{ 4000 }
+	tag{ save }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+		tag{ save }
+	}
+	property{
+		name{ type }
+		type{ unit_type_id }
+		tag{ save }
+	}
+	property{	
+		name{ strength }
+		type{ float }
+		tag{ save }
+	}
+}
+
+object {
+	name{ army }
+	storage_type{ erasable }
+	size{ 2000 }
+	tag{ save }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+		tag{ save }
+	}
+}
+
+object {
+	name{ navy }
+	storage_type{ erasable }
+	size{ 2000 }
+	tag{ save }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ army_control }
+	tag{ save }
+
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{controller}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ army_location }
+	tag{ save }
+
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{location}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ army_membership }
+	tag{ save }
+
+	link{
+		object{regiment}
+		name{regiment}
+		type{unique}
+	}
+	link{
+		object{army}
+		name{army}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ regiment_source }
+	tag{ save }
+
+	link{
+		object{regiment}
+		name{regiment}
+		type{unique}
+	}
+	link{
+		object{pop}
+		name{pop}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_control }
+	tag{ save }
+
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{controller}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_location }
+	tag{ save }
+
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{province}
+		name{location}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ navy_membership }
+	tag{ save }
+
+	link{
+		object{ship}
+		name{ship}
+		type{unique}
+	}
+	link{
+		object{navy}
+		name{navy}
+		type{many}
+		index_storage{array}
+	}
+}
+
+object {
+	name{ general }
+	storage_type{ erasable }
+	size{ 3000 }
+	tag{ save }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+		tag{ save }
+	}
+	property{
+		name{ personality }
+		type{ leader_trait_id }
+		tag{ save }
+	}
+	property{
+		name{ background }
+		type{ leader_trait_id }
+		tag{ save }
+	}
+	property{
+		name{ since }
+		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ prestige }
+		type{ float }
+		tag{ save }
+	}
+}
+
+object {
+	name{ admiral }
+	storage_type{ erasable }
+	size{ 3000 }
+	tag{ save }
+
+	property{
+		name{ name }
+		type{ unit_name_id }
+		tag{ save }
+	}
+	property{
+		name{ personality }
+		type{ leader_trait_id }
+		tag{ save }
+	}
+	property{
+		name{ background }
+		type{ leader_trait_id }
+		tag{ save }
+	}
+	property{
+		name{ since }
+		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ prestige }
+		type{ float }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ army_leadership }
+	tag{ save }
+
+	link{
+		object{army}
+		name{army}
+		type{unique}
+	}
+	link{
+		object{general}
+		name{leader}
+		type{unique}
+	}
+}
+relationship{
+	name{ navy_leadership }
+	tag{ save }
+
+	link{
+		object{navy}
+		name{navy}
+		type{unique}
+	}
+	link{
+		object{admiral}
+		name{leader}
+		type{unique}
+	}
+}
+
+relationship{
+	name{ general_loyalty }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{general}
+		name{leader}
+		type{unique}
+	}
+}
+relationship{
+	name{ admiral_loyalty }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{admiral}
+		name{leader}
+		type{unique}
 	}
 }
 
@@ -650,16 +1467,20 @@ object {
 	name{ state_definition }
 	storage_type{ contiguous }
 	size{ 2000 }
+	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ save }
 	}
 }
 
 relationship{
 	name{ abstract_state_membership }
-	
+	tag{ scenario }
+
 	link{
 		object{province}
 		name{province}
@@ -677,6 +1498,7 @@ relationship{
 	name{ core }
 	storage_type{ compactable }
 	size{ 16000 }
+	tag{ save }
 
 	link{
 		object{province}
@@ -700,6 +1522,7 @@ relationship{
 
 relationship{
 	name{ identity_holder }
+	tag{ save }
 
 	link{
 		object{nation}
@@ -717,14 +1540,87 @@ object {
 	name{ technology }
 	storage_type{ contiguous }
 	size{ 400 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ modifier }
+		type{ modifier_id }
+		tag{ scenario }
 	}
 	property{
 		name{folder_index}
 		type{uint8_t}
+		tag{ scenario }
+	}
+	property{
+		name{year}
+		type{int16_t}
+		tag{ scenario }
+	}
+	property{
+		name{ ai_chance }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+	property{
+		name{cost}
+		type{int32_t}
+		tag{ scenario }
+	}
+	property{
+		name{ colonial_points }
+		type{int16_t}
+		tag{ scenario }
+	}
+	property {
+		name{ increase_railroad }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property {
+		name{ increase_fort }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property {
+		name{ increase_naval_base }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ activate_unit }
+		type{array{unit_type_id}{bitfield}}
+		tag{ scenario }
+	}
+	property{
+		name{ activate_building }
+		type{array{factory_type_id}{bitfield}}
+		tag{ scenario }
+	}
+	property{
+		name{ rgo_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}}
+		tag{ scenario }
+	}
+	property{
+		name{ factory_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}}
+		tag{ scenario }
+	}
+	property{
+		name{ rgo_size }
+		type{vector_pool{800}{sys::commodity_modifier}}
+		tag{ scenario }
+	}
+	property{
+		name{ modified_units }
+		type{vector_pool{3200}{sys::unit_modifier}}
+		tag{ scenario }
 	}
 }
 
@@ -732,42 +1628,318 @@ object {
 	name{ invention }
 	storage_type{ contiguous }
 	size{ 900 }
+	tag{ scenario }
 
 	property{
 		name{ name }
 		type{ text_sequence_id }
+		tag{ scenario }
 	}
 	property{
-		name{technology_type}
-		type{uint8_t}
+		name{ technology_type }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ modifier }
+		type{ modifier_id }
+		tag{ scenario }
+	}
+	property{
+		name{ chance }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+	property{
+		name{ limit }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ enable_gas_attack }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ enable_gas_defence }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ shared_prestige }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ activate_unit }
+		type{array{unit_type_id}{bitfield}}
+		tag{ scenario }
+	}
+	property{
+		name{ activate_crime }
+		type{array{crime_id}{bitfield}}
+		tag{ scenario }
+	}
+	property{
+		name{ activate_building }
+		type{array{factory_type_id}{bitfield}}
+		tag{ scenario }
+	}
+	property{
+		name{ rgo_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}}
+		tag{ scenario }
+	}
+	property{
+		name{ factory_goods_output }
+		type{vector_pool{800}{sys::commodity_modifier}}
+		tag{ scenario }
+	}
+	property{
+		name{ factory_goods_throughput }
+		type{vector_pool{800}{sys::commodity_modifier}}
+		tag{ scenario }
+	}
+	property{
+		name{ modified_units }
+		type{vector_pool{10000}{sys::unit_modifier}}
+		tag{ scenario }
+	}
+	property{
+		name{ rebel_org }
+		type{vector_pool{800}{sys::rebel_org_modifier}}
+		tag{ scenario }
 	}
 }
 
 object {
 	name{ nation }
-	storage_type{ contiguous }
+	storage_type{ erasable }
 	size{ 1000 }
+	tag{ save }
+
+	property{
+		name{ color }
+		type{ uint32_t }
+	}
+	property{
+		name{ name }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ adjective }
+		type{ text_sequence_id }
+	}
+	property{
+		name{ primary_culture }
+		type{ culture_id }
+		tag{ save }
+	}
+	property{
+		name{ accepted_cultures }
+		type{vector_pool{10000}{culture_id}}
+		tag{ save }
+	}
+	property{
+		name{ religion }
+		type{ religion_id }
+		tag{ save }
+	}
+	property{
+		name{ capital }
+		type{ province_id }
+		tag{ save }
+	}
+	property{
+		name{ is_civilized }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ national_value }
+		type{ modifier_id }
+		tag{ save }
+	}
+	property{
+		name{ tech_school }
+		type{ modifier_id }
+		tag{ save }
+	}
+	property{
+		name{ government_type }
+		type{ government_type_id }
+		tag{ save }
+	}
+	property{
+		name{ plurality }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ prestige }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ active_technologies }
+		type{array{technology_id}{bitfield}}
+		tag{ save }
+	}
+	property{
+		name{ active_inventions }
+		type{array{invention_id}{bitfield}}
+		tag{ save }
+	}
+	property{
+		name{ ruling_party }
+		type{ political_party_id }
+		tag{ save }
+	}
+	property{
+		name{ reforms_and_issues }
+		type{array{issue_id}{issue_option_id}}
+		tag{ save }
+	}
+	property{
+		name{ upper_house }
+		type{array{ideology_id}{float}}
+		tag{ save }
+	}
+	property{
+		name{ flag_variables }
+		type{array{national_flag_id}{bitfield}}
+		tag{ save }
+	}
 }
 
+
+relationship{
+	name{ diplomatic_relation }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{related_nations}
+		type{many}
+		index_storage{array}
+		multiple{2}
+	}
+	
+	composite_key{
+		name{diplomatic_pair}
+		index{related_nations}
+	}
+
+	property{
+		name{ value }
+		type{ int32_t }
+		tag{ save }
+	}
+	property{
+		name{ are_allied }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ truce_until }
+		type{ sys::date }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ unilateral_relationship }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{target}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{source}
+		type{many}
+		index_storage{array}
+	}
+	
+	composite_key{
+		name{unilateral_pair}
+		index{target}
+		index{source}
+	}
+
+	property{
+		name{ foreign_investment }
+		type{ float }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ gp_relationship }
+	storage_type{ compactable }
+	size{ 8000 }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{influence_target}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{great_power}
+		type{many}
+		index_storage{array}
+	}
+
+	composite_key{
+		name{gp_influence_pair}
+		index{influence_target}
+		index{great_power}
+	}
+
+	property{
+		name{ influence }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ status }
+		type{ uint8_t }
+		tag{ save }
+	}
+}
 
 object {
 	name { factory }
 	storage_type{ contiguous }
 	size{ 10000 }
+	tag{ save }
 
 	property{
 		name{ building_type }
 		type{ factory_type_id }
+		tag{ save }
 	}
 	property{
 		name{ level }
 		type{ uint8_t }
+		tag{ save }
 	}
 }
 
 relationship{
 	name{ factory_location }
-	
+	tag{ save }
+
 	link{
 		object{factory}
 		name{factory}
@@ -783,7 +1955,8 @@ relationship{
 
 relationship{
 	name{ province_ownership }
-	
+	tag{ save }
+
 	link{
 		object{province}
 		name{province}
@@ -799,7 +1972,8 @@ relationship{
 
 relationship{
 	name{ province_control }
-	
+	tag{ save }
+
 	link{
 		object{province}
 		name{province}
@@ -813,45 +1987,81 @@ relationship{
 	}
 }
 
+relationship{
+	name{ overlord }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{subject}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{ruler}
+		type{many}
+		index_storage{array}
+	}
+	property{
+		name{ is_substate }
+		type{ bitfield }
+		tag{ save }
+	}
+}
+
 object {
 	name { pop }
 	storage_type{ compactable }
 	size{ 30000 }
+	tag{ save }
 
 	property{
 		name{ poptype }
 		type{ pop_type_id }
+		tag{ save }
 	}
 	property{
 		name{ religion }
 		type{ religion_id }
+		tag{ save }
 	}
 	property{
 		name{ culture }
 		type{ culture_id }
+		tag{ save }
 	}
 	property{
 		name{ size }
 		type{ float }
+		tag{ save }
 	}
 
 	property{
 		name{ consciousness }
 		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ militancy }
 		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ literacy }
+		type{ float }
+		tag{ save }
 	}
 	property{
 		name{ rebel_group }
 		type{ rebel_type_id }
+		tag{ save }
 	}
 }
 
 relationship{
 	name{ pop_location }
-	
+	tag{ save }
+
 	link{
 		object{pop}
 		name{pop}
@@ -863,4 +2073,282 @@ relationship{
 		type{many}
 		index_storage{array}
 	}
+}
+
+object {
+	name { national_event }
+	storage_type{ contiguous }
+	size{ 2000 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ is_major }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ immediate_effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+		tag{ scenario }
+	}
+	
+}
+
+object {
+	name { provincial_event }
+	storage_type{ contiguous }
+	size{ 2000 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+		tag{ scenario }
+	}
+}
+
+object {
+	name { free_national_event }
+	storage_type{ contiguous }
+	size{ 4000 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ only_once }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ is_major }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ mtth }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+	property{
+		name{ immediate_effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+		tag{ scenario }
+	}
+	
+}
+
+object {
+	name { free_provincial_event }
+	storage_type{ contiguous }
+	size{ 4000 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ only_once }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ mtth }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::event_option,sys::max_event_options> }
+		tag{ scenario }
+	}
+}
+
+object {
+	name{ national_focus }
+	storage_type{ contiguous }
+	size{ 64 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ icon }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ loyalty_value }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ ideology }
+		type{ ideology_id }
+		tag{ scenario }
+	}
+	property{
+		name{ limit }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ promotion_type }
+		type{ pop_type_id }
+		tag{ scenario }
+	}
+	property{
+		name{ promotion_amount }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ immigrant_attract }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ railroads }
+		type{ float }
+		tag{ scenario }
+	}
+	property{
+		name{ production_focus }
+		type{array{commodity_id}{float}}
+		tag{ scenario }
+	}
+}
+
+object {
+	name{ decision }
+	storage_type{ contiguous }
+	size{ 1000 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ description }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ image_name }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ potential }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ allow }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+	property{
+		name{ effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
+		name{ ai_will_do }
+		type{ value_modifier_key }
+		tag{ scenario }
+	}
+}
+
+
+load_save{
+	name{store_scenario}
+	only_objects{scenario}
+	only_properties{scenario}
+}
+
+load_save{
+	name{store_save}
+	only_objects{save}
+	only_properties{save}
 }

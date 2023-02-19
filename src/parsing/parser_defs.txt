@@ -330,6 +330,7 @@ modifier_base
 	mobilisation_impact                       value      float            member_fn
 	suppression_points_modifier               value      float            member_fn
 	education_efficiency_modifier             value      float            member_fn
+	education_efficiency                      value      float            member_fn
 	civilization_progress_modifier            value      float            member_fn
 	administrative_efficiency_modifier        value      float            member_fn
 	land_unit_start_experience                value      float            member_fn
@@ -358,6 +359,29 @@ modifier_base
 	industry_tech_research_bonus              value      float            member_fn
 	navy_tech_research_bonus                  value      float            member_fn
 	culture_tech_research_bonus               value      float            member_fn
+	colonial_migration                        value      float            member_fn
+	max_national_focus                        value      float            member_fn
+	cb_creation_speed                         value      float            member_fn
+	diplomatic_points                         value      float            member_fn
+	reinforce_rate                            value      float            member_fn
+	tax_eff                                   value      float            member_fn
+	administrative_efficiency                 value      float            member_fn
+	influence                                 value      float            member_fn
+	dig_in_cap                                value      float            member_fn
+	morale                                    value      float            member_fn
+	military_tactics                          value      float            member_fn
+	supply_range                              value      float            member_fn
+	regular_experience_level                  value      float            member_fn
+	increase_research                         value      float            member_fn
+	permanent_prestige                        value      float            member_fn
+	soldier_to_pop_loss                       value      float            member_fn
+	naval_attrition                           value      float            member_fn
+	land_attrition                            value      float            member_fn
+	pop_growth                                value      float            member_fn
+	colonial_life_rating                      value      float            member_fn
+	seperatism                                value      float            member_fn
+	plurality                                 value      float            member_fn
+	colonial_prestige                         value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn
@@ -896,7 +920,7 @@ trigger_body
 	is_sphere_leader_of   value      text               member_fn
 	rich_tax_above_poor   value      bool               member_fn
 	constructing_cb_type  value      text               member_fn
-	controlled_by_rebels  value      int                member_fn
+	controlled_by_rebels  value      bool               member_fn
 	has_country_modifier  value      text               member_fn
 	is_liberation_crisis  value      bool               member_fn
 	is_releasable_vassal  value      text               member_fn
@@ -1007,6 +1031,7 @@ pop_history_file
 value_modifier_definition
 	factor             value         float                              member
 	base               value         float                              member (factor)
+	months             value         float                              member (factor)
 	group              group         value_modifier_definition          member_fn
 	modifier           extern        make_value_modifier_segment        discard
 
@@ -1073,3 +1098,785 @@ individual_ideology
 	remove_social_reform       extern    ideology_condition             member_fn
 	add_military_reform        extern    ideology_condition             member_fn
 	add_economic_reform        extern    ideology_condition             member_fn
+
+ef_trigger_revolt
+	culture                    value     text                           member_fn
+	religion                   value     text                           member_fn
+	ideology                   value     text                           member_fn
+	type                       value     text                           member_fn
+
+ef_diplomatic_influence
+	who                        value     text                           member
+	value                      value     int                            member
+
+ef_relation
+	who                        value     text                           member
+	tag                        value     text                           member (who)
+	with                       value     text                           member (who)
+	value                      value     int                            member
+	relation                   value     int                            member (value)
+
+ef_add_province_modifier
+	name                       value     text                           member_fn
+	duration                   value     int                            member
+
+ef_add_country_modifier
+	name                       value     text                           member_fn
+	duration                   value     int                            member
+
+ef_casus_belli
+	type                       value     text                           member_fn
+	target                     value     text                           member
+	months                     value     int                            member
+
+ef_add_casus_belli
+	type                       value     text                           member_fn
+	target                     value     text                           member
+	months                     value     int                            member
+
+ef_remove_casus_belli
+	type                       value     text                           member_fn
+	target                     value     text                           member
+
+ef_this_remove_casus_belli
+	type                       value     text                           member_fn
+	target                     value     text                           member
+
+ef_wargoal
+	country                    value     text                           member_fn
+	casus_belli                value     text                           member_fn
+	state_province_id          value     int                            member_fn
+
+ef_war
+	target                     value     text                           member
+	defender_goal              group     ef_wargoal                     member
+	attacker_goal              group     ef_wargoal                     member
+	call_ally                  value     bool                           member
+
+ef_country_event
+	days                       value     int                            member
+	id                         value     int                            member_fn
+
+ef_province_event
+	days                       value     int                            member
+	id                         value     int                            member_fn
+
+ef_sub_unit
+	type                       value     text                           member_fn
+	value                      value     text                           member
+
+ef_set_variable
+	which                      value     text                           member_fn
+	value                      value     float                          member
+
+ef_change_variable
+	which                      value     text                           member_fn
+	value                      value     float                          member
+
+ef_ideology
+	value                      value     text                           member_fn
+	factor                     value     float                          member
+
+ef_dominant_issue
+	value                      value     text                           member_fn
+	factor                     value     float                          member
+
+ef_upper_house
+	ideology                   value     text                           member_fn
+	value                      value     float                          member
+
+ef_scaled_militancy
+	ideology                   value     text                           member_fn
+	issue                      value     text                           member_fn
+	factor                     value     float                          member
+	value                      value     float                          member (factor)
+	unemployment               value     float                          member
+
+ef_scaled_consciousness
+	ideology                   value     text                           member_fn
+	issue                      value     text                           member_fn
+	factor                     value     float                          member
+	value                      value     float                          member (factor)
+	unemployment               value     float                          member
+
+ef_define_general
+	name                       value     text                           member
+	background                 value     text                           member_fn
+	personality                value     text                           member_fn
+
+ef_define_admiral
+	name                       value     text                           member
+	background                 value     text                           member_fn
+	personality                value     text                           member_fn
+
+ef_add_war_goal
+	casus_belli                value     text                           member_fn
+
+ef_move_issue_percentage
+	from                       value     text                           member_fn
+	to                         value     text                           member_fn
+	value                      value     float                          member
+
+ef_party_loyalty
+	ideology                   value     text                           member_fn
+	province_id                value     int                            member_fn
+	loyalty_value              value     float                          member
+
+ef_build_railway_in_capital
+	in_whole_capital_state         value     bool                       member
+	limit_to_world_greatest_level  value     bool                       member
+
+ef_build_fort_in_capital
+	in_whole_capital_state         value     bool                       member
+	limit_to_world_greatest_level  value     bool                       member
+
+ef_random_list
+	#any                            extern      add_to_random_list  member_fn
+
+effect_body
+	capital                         value       int                 member_fn
+	add_core                        value       text                member_fn
+	remove_core                     value       text                member_fn
+	change_region_name              value       text                member_fn
+	trade_goods                     value       text                member_fn
+	add_accepted_culture            value       text                member_fn
+	primary_culture                 value       text                member_fn
+	remove_accepted_culture         value       text                member_fn
+	life_rating                     value       int                 member_fn
+	religion                        value       text                member_fn
+	is_slave                        value       bool                member_fn
+	research_points                 value       int                 member_fn
+	tech_school                     value       text                member_fn
+	government                      value       text                member_fn
+	treasury                        value       float               member_fn
+	war_exhaustion                  value       float               member_fn
+	prestige                        value       float               member_fn
+	change_tag                      value       text                member_fn
+	change_tag_no_core_switch       value       text                member_fn
+	add_province_modifier           value       text                member_fn
+	add_country_modifier            value       text                member_fn
+	set_country_flag                value       text                member_fn
+	clr_country_flag                value       text                member_fn
+	country_event                   value       int                 member_fn
+	province_event                  value       int                 member_fn
+	military_access                 value       text                member_fn
+	badboy                          value       float               member_fn
+	secede_province                 value       text                member_fn
+	inherit                         value       text                member_fn
+	annex_to                        value       text                member_fn
+	release                         value       text                member_fn
+	change_controller               value       text                member_fn
+	infrastructure                  value       int                 member_fn
+	money                           value       float               member_fn
+	prestige_factor                 value       float               member_fn
+	leadership                      value       int                 member_fn
+	create_vassal                   value       text                member_fn
+	end_military_access             value       text                member_fn
+	leave_alliance                  value       text                member_fn
+	end_war                         value       text                member_fn
+	enable_ideology                 value       text                member_fn
+	ruling_party_ideology           value       text                member_fn
+	plurality                       value       float               member_fn
+	remove_province_modifier        value       text                member_fn
+	remove_country_modifier         value       text                member_fn
+	create_alliance                 value       text                member_fn
+	release_vassal                  value       text                member_fn
+	change_province_name            value       text                member_fn
+	enable_canal                    value       int                 member_fn
+	set_global_flag                 value       text                member_fn
+	clr_global_flag                 value       text                member_fn
+	nationalvalue                   value       text                member_fn
+	civilized                       value       bool                member_fn
+	election                        value       text                member_fn
+	social_reform                   value       text                member_fn
+	political_reform                value       text                member_fn
+	add_tax_relative_income         value       float               member_fn
+	neutrality                      value       text                member_fn
+	reduce_pop                      value       float               member_fn
+	move_pop                        value       int                 member_fn
+	pop_type                        value       text                member_fn
+	years_of_research               value       float               member_fn
+	military_reform                 value       text                member_fn
+	economic_reform                 value       text                member_fn
+	remove_random_military_reforms  value       int                 member_fn
+	remove_random_economic_reforms  value       int                 member_fn
+	add_crime                       value       text                member_fn
+	nationalize                     value       text                member_fn
+	build_factory_in_capital_state  value       text                member_fn
+	activate_technology             value       text                member_fn
+	great_wars_enabled              value       bool                member_fn
+	world_wars_enabled              value       bool                member_fn
+	assimilate                      value       text                member_fn
+	literacy                        value       float               member_fn
+	add_crisis_interest             value       text                member_fn
+	flashpoint_tension              value       float               member_fn
+	add_crisis_temperature          value       float               member_fn
+	consciousness                   value       float               member_fn
+	militancy                       value       float               member_fn
+	rgo_size                        value       int                 member_fn
+	fort                            value       int                 member_fn
+	naval_base                      value       int                 member_fn
+	railroad                        value       int                 member_fn  (infrastructure)
+	set_province_flag               value       none                discard
+	clr_province_flag               value       none                discard
+	chance                          value       int                 member
+	#any                            value       text                member_fn
+	limit                           extern      ef_limit                    member_fn
+	trigger_revolt                  group       ef_trigger_revolt           member_fn
+	diplomatic_influence            group       ef_diplomatic_influence     member_fn
+	relation                        group       ef_relation                 member_fn
+	modify_relation                 group       ef_relation                 member_fn  (relation)
+	add_province_modifier           group       ef_add_province_modifier    member_fn
+	add_country_modifier            group       ef_add_country_modifier     member_fn
+	casus_belli                     group       ef_casus_belli              member_fn
+	add_casus_belli                 group       ef_add_casus_belli          member_fn
+	remove_casus_belli              group       ef_remove_casus_belli       member_fn
+	this_remove_casus_belli         group       ef_this_remove_casus_belli  member_fn
+	war                             group       ef_war                      member_fn
+	country_event                   group       ef_country_event            member_fn
+	province_event                  group       ef_province_event           member_fn
+	sub_unit                        group       ef_sub_unit                 member_fn
+	set_variable                    group       ef_set_variable             member_fn
+	change_variable                 group       ef_change_variable          member_fn
+	ideology                        group       ef_ideology                 member_fn
+	dominant_issue                  group       ef_dominant_issue           member_fn
+	upper_house                     group       ef_upper_house              member_fn
+	scaled_militancy                group       ef_scaled_militancy         member_fn
+	scaled_consciousness            group       ef_scaled_consciousness     member_fn
+	define_general                  group       ef_define_general           member_fn
+	define_admiral                  group       ef_define_admiral           member_fn
+	add_war_goal                    group       ef_add_war_goal             member_fn
+	move_issue_percentage           group       ef_move_issue_percentage    member_fn
+	party_loyalty                   group       ef_party_loyalty            member_fn
+	build_railway_in_capital        group       ef_build_railway_in_capital member_fn
+	build_fort_in_capital           group       ef_build_fort_in_capital    member_fn
+	hidden_tooltip                  extern      ef_scope_hidden_tooltip     discard
+	any_neighbor_province           extern      ef_scope_any_neighbor_province   discard
+	any_neighbor_country            extern      ef_scope_any_neighbor_country    discard
+	any_country                     extern      ef_scope_any_country        discard
+	random_country                  extern      ef_scope_random_country     discard
+	random_neighbor_province        extern      ef_scope_random_neighbor_province        discard
+	random_empty_neighbor_province  extern      ef_scope_random_empty_neighbor_province  discard
+	any_greater_power               extern      ef_scope_any_greater_power  discard
+	poor_strata                     extern      ef_scope_poor_strata        discard
+	middle_strata                   extern      ef_scope_middle_strata      discard
+	rich_strata                     extern      ef_scope_rich_strata        discard
+	random_pop                      extern      ef_scope_random_pop         discard
+	random_owned                    extern      ef_scope_random_owned       discard
+	random_province                 extern      ef_scope_random_owned       discard
+	any_owned                       extern      ef_scope_any_owned          discard
+	all_core                        extern      ef_scope_all_core           discard
+	any_state                       extern      ef_scope_any_state          discard
+	random_state                    extern      ef_scope_random_state       discard
+	any_pop                         extern      ef_scope_any_pop            discard
+	owner                           extern      ef_scope_owner              discard
+	controller                      extern      ef_scope_controller         discard
+	location                        extern      ef_scope_location           discard
+	country                         extern      ef_scope_country            discard
+	capital_scope                   extern      ef_capital_scope            discard
+	this                            extern      ef_scope_this               discard
+	from                            extern      ef_scope_from               discard
+	sea_zone                        extern      ef_scope_sea_zone           discard
+	cultural_union                  extern      ef_scope_cultural_union     discard
+	overlord                        extern      ef_scope_overlord           discard
+	sphere_owner                    extern      ef_scope_sphere_owner       discard
+	independence                    extern      ef_scope_independence       discard
+	flashpoint_tag_scope            extern      ef_flashpoint_tag_scope     discard
+	crisis_state_scope              extern      ef_crisis_state_scope       discard
+	state_scope                     extern      ef_state_scope              discard
+	random                          extern      ef_scope_random             discard
+	random_list                     extern      ef_scope_random_list        discard
+	#any                            extern      ef_scope_variable           discard
+
+cb_body
+	is_civil_war                    value       bool                        member_fn
+	months                          value       int                         member_fn
+	truce_months                    value       int                         member_fn
+	sprite_index                    value       int                         member_fn
+	always                          value       bool                        member_fn
+	is_triggered_only               value       bool                        member_fn
+	constructing_cb                 value       bool                        member_fn
+	allowed_states                  extern      cb_allowed_states           member_fn
+	allowed_states_in_crisis        extern      cb_allowed_crisis_states    member_fn
+	allowed_substate_regions        extern      cb_allowed_substates        member_fn
+	allowed_countries               extern      cb_allowed_countries        member_fn
+	can_use                         extern      cb_can_use                  member_fn
+	on_add                          extern      cb_on_add                   member_fn
+	on_po_accepted                  extern      cb_on_po_accepted           member_fn
+	badboy_factor                   value       float                       member_fn
+	prestige_factor                 value       float                       member_fn
+	peace_cost_factor               value       float                       member_fn
+	penalty_factor                  value       float                       member_fn
+	break_truce_prestige_factor     value       float                       member_fn
+	break_truce_infamy_factor       value       float                       member_fn
+	break_truce_militancy_factor    value       float                       member_fn
+	good_relation_prestige_factor   value       float                       member_fn
+	good_relation_infamy_factor     value       float                       member_fn
+	good_relation_militancy_factor  value       float                       member_fn
+	war_name                        value       text                        member_fn
+	construction_speed              value       float                       member_fn
+	tws_battle_factor               value       float                       member_fn
+	great_war_obligatory            value       bool                        member_fn
+	all_allowed_states              value       bool                        member_fn
+	crisis                          value       bool                        member_fn
+	po_clear_union_sphere           value       bool                        member_fn
+	po_gunboat                      value       bool                        member_fn
+	po_annex                        value       bool                        member_fn
+	po_demand_state                 value       bool                        member_fn
+	po_add_to_sphere                value       bool                        member_fn
+	po_disarmament                  value       bool                        member_fn
+	po_reparations                  value       bool                        member_fn
+	po_transfer_provinces           value       bool                        member_fn
+	po_remove_prestige              value       bool                        member_fn
+	po_make_puppet                  value       bool                        member_fn
+	po_release_puppet               value       bool                        member_fn
+	po_status_quo                   value       bool                        member_fn
+	po_install_communist_gov_type   value       bool                        member_fn
+	po_uninstall_communist_gov_type value       bool                        member_fn
+	po_remove_cores                 value       bool                        member_fn
+	po_colony                       value       bool                        member_fn
+	po_destroy_forts                value       bool                        member_fn
+	po_destroy_naval_bases          value       bool                        member_fn
+	mutual                          value       none                        discard
+	is_valid                        group       none                        discard
+
+crime_modifier
+	#base          modifier_base
+	active         value      bool                      member
+	trigger        extern     make_crime_trigger        member
+
+option_rules
+	build_factory               value      bool        member_fn
+	expand_factory              value      bool        member_fn
+	open_factory                value      bool        member_fn
+	destroy_factory             value      bool        member_fn
+	factory_priority            value      bool        member_fn
+	can_subsidise               value      bool        member_fn
+	pop_build_factory           value      bool        member_fn
+	pop_expand_factory          value      bool        member_fn
+	pop_open_factory            value      bool        member_fn
+	delete_factory_if_no_input  value      bool        member_fn
+	build_factory_invest        value      bool        member_fn
+	expand_factory_invest       value      bool        member_fn
+	open_factory_invest         value      bool        member_fn
+	build_railway_invest        value      bool        member_fn
+	can_invest_in_pop_projects  value      bool        member_fn
+	pop_build_factory_invest    value      bool        member_fn
+	pop_expand_factory_invest   value      bool        member_fn
+	pop_open_factory_invest     value      bool        member_fn
+	allow_foreign_investment    value      bool        member_fn
+	slavery_allowed             value      bool        member_fn
+	primary_culture_voting      value      bool        member_fn
+	culture_voting              value      bool        member_fn
+	all_voting                  value      bool        member_fn
+	largest_share               value      bool        member_fn
+	dhont                       value      bool        member_fn
+	sainte_laque                value      bool        member_fn
+	same_as_ruling_party        value      bool        member_fn
+	rich_only                   value      bool        member_fn
+	state_vote                  value      bool        member_fn
+	population_vote             value      bool        member_fn
+	build_railway               value      bool        member_fn
+
+on_execute_body
+	trigger                extern    make_execute_trigger   member
+	effect                 extern    make_execute_effect    member
+
+issue_option_body
+	#base          modifier_base
+	technology_cost           value        int              member_fn
+	war_exhaustion_effect     value        float            member_fn
+	administrative_multiplier value        float            member_fn
+	is_jingoism               value        bool             member_fn
+	rules                     group        option_rules     member
+	allow                     extern       make_opt_allow   discard
+	on_execute                group        on_execute_body  member_fn
+
+national_focus
+	railroads                 value        float            member_fn
+	icon                      value        int              member_fn
+	limit                     extern       make_focus_limit member_fn
+	own_provinces             value        bool             discard
+	has_flashpoint            value        bool             member_fn
+	flashpoint_tension        value        float            member_fn
+	outliner_show_as_percent  value        bool             discard
+	ideology                  value        text             member_fn
+	loyalty_value             value        float            member_fn
+	immigrant_attract         value        float            member_fn
+	#any                      value        float            member_fn
+
+focus_group
+	#any                      extern       make_focus       discard
+
+national_focus_file
+	#any                      group        focus_group      member
+
+main_pop_type_file
+	promotion_chance          extern       make_poptype_pop_chance    member_fn
+	demotion_chance           extern       make_poptype_pop_chance    member_fn
+	migration_chance          extern       make_poptype_pop_chance    member_fn
+	colonialmigration_chance  extern       make_poptype_pop_chance    member_fn
+	emigration_chance         extern       make_poptype_pop_chance    member_fn
+	assimilation_chance       extern       make_poptype_pop_chance    member_fn
+	conversion_chance         extern       make_poptype_pop_chance    member_fn
+
+unit_modifier_body
+	default_organisation  value      int              member
+	maximum_speed         value      float            member
+	build_time            value      int              member
+	supply_consumption    value      float            member
+	attack                value      float            member  (attack_or_gun_power)
+	defence               value      float            member  (defence_or_hull)
+	support               value      float            member
+	siege                 value      float            member  (siege_or_torpedo_attack)
+	hull                  value      float            member  (defence_or_hull)
+	gun_power             value      float            member  (attack_or_gun_power)
+	torpedo_attack        value      float            member  (siege_or_torpedo_attack)
+	reconnaissance        value      float            member  (reconnaissance_or_fire_range)
+	fire_range            value      float            member  (reconnaissance_or_fire_range)
+
+tech_rgo_goods_output
+	#any                  value      float                  member_fn
+
+tech_fac_goods_output
+	#any                  value      float                  member_fn
+
+tech_rgo_size
+	#any                  value      float                  member_fn
+
+technology_contents
+	#base          modifier_base
+	#any                  group      unit_modifier_body     member_fn
+	unciv_military        value      bool                   discard
+	ai_chance             extern     make_ai_chance         member_fn
+	area                  value      text                   member_fn
+	year                  value      int                    member_fn
+	cost                  value      int                    member_fn
+	unit                  value      int                    discard
+	max_fort              value      int                    member_fn
+	max_railroad          value      int                    member_fn
+	max_naval_base        value      int                    member_fn
+	activate_unit         value      text                   member_fn
+	activate_building     value      text                   member_fn
+	colonial_points       value      int                    member_fn
+	rgo_goods_output      group      tech_rgo_goods_output  member
+	rgo_size              group      tech_rgo_size          member
+	factory_goods_output  group      tech_fac_goods_output  member
+
+inv_rgo_goods_output
+	#any                  value      float                  member_fn
+
+inv_fac_goods_output
+	#any                  value      float                  member_fn
+
+inv_fac_goods_throughput
+	#any                  value      float                  member_fn
+
+inv_rebel_org_gain
+	faction               value      text                   member_fn
+	value                 value      float                  member
+
+inv_effect
+	#base          modifier_base
+	#any                  group      unit_modifier_body     member_fn
+	rgo_goods_output      group      inv_rgo_goods_output   member
+	factory_goods_throughput group   inv_fac_goods_throughput  member
+	factory_goods_output  group      inv_fac_goods_output   member
+	shared_prestige       value      float                  member_fn
+	activate_unit         value      text                   member_fn
+	activate_building     value      text                   member_fn
+	enable_crime          value      text                   member_fn
+	rebel_org_gain        group      inv_rebel_org_gain     member_fn
+	gas_attack            value      bool                   member_fn
+	gas_defence           value      bool                   member_fn
+
+invention_contents
+	#base          modifier_base
+	limit                 extern     make_inv_limit         member_fn
+	chance                extern     make_inv_chance        member_fn
+	news                  value      bool                   discard
+	effect                group      inv_effect             member_fn
+
+s_on_yearly_pulse
+	#any                  value      int                    member_fn
+
+s_on_quarterly_pulse
+	#any                  value      int                    member_fn
+
+s_on_battle_won
+	#any                  value      int                    member_fn
+
+s_on_battle_lost
+	#any                  value      int                    member_fn
+
+s_on_surrender
+	#any                  value      int                    member_fn
+
+s_on_new_great_nation
+	#any                  value      int                    member_fn
+
+s_on_lost_great_nation
+	#any                  value      int                    member_fn
+
+s_on_election_tick
+	#any                  value      int                    member_fn
+
+s_on_colony_to_state
+	#any                  value      int                    member_fn
+
+s_on_state_conquest
+	#any                  value      int                    member_fn
+
+s_on_colony_to_state_free_slaves
+	#any                  value      int                    member_fn
+
+s_on_debtor_default
+	#any                  value      int                    member_fn
+
+s_on_debtor_default_small
+	#any                  value      int                    member_fn
+
+s_on_debtor_default_second
+	#any                  value      int                    member_fn
+
+s_on_civilize
+	#any                  value      int                    member_fn
+
+s_on_my_factories_nationalized
+	#any                  value      int                    member_fn
+
+s_on_crisis_declare_interest
+	#any                  value      int                    member_fn
+
+on_action_file
+	on_yearly_pulse                 group      s_on_yearly_pulse                 member
+	on_quarterly_pulse              group      s_on_quarterly_pulse              member
+	on_battle_won                   group      s_on_battle_won                   member
+	on_battle_lost                  group      s_on_battle_lost                  member
+	on_surrender                    group      s_on_surrender                    member
+	on_new_great_nation             group      s_on_new_great_nation             member
+	on_lost_great_nation            group      s_on_lost_great_nation            member
+	on_election_tick                group      s_on_election_tick                member
+	on_colony_to_state              group      s_on_colony_to_state              member
+	on_state_conquest               group      s_on_state_conquest               member
+	on_colony_to_state_free_slaves  group      s_on_colony_to_state_free_slaves  member
+	on_debtor_default               group      s_on_debtor_default               member
+	on_debtor_default_small         group      s_on_debtor_default_small         member
+	on_debtor_default_second        group      s_on_debtor_default_second        member
+	on_civilize                     group      s_on_civilize                     member
+	on_my_factories_nationalized    group      s_on_my_factories_nationalized    member
+	on_crisis_declare_interest      group      s_on_crisis_declare_interest      member
+
+rebel_gov_list
+	#any                            value      text                              member_fn
+
+rebel_body
+	icon                            value      int                               member_fn
+	break_alliance_on_win           value      bool                              member_fn
+	government                      group      rebel_gov_list                    member
+	area                            value      text                              member_fn
+	defection                       value      text                              member_fn
+	independence                    value      text                              member_fn
+	defect_delay                    value      int                               member_fn
+	ideology                        value      text                              member_fn
+	allow_all_cultures              value      bool                              member_fn
+	allow_all_culture_groups        value      bool                              member_fn
+	allow_all_religions             value      bool                              discard
+	allow_all_ideologies            value      bool                              discard
+	resilient                       value      bool                              discard
+	reinforcing                     value      bool                              discard
+	general                         value      bool                              discard
+	smart                           value      bool                              discard
+	unit_transfer                   value      bool                              discard
+	occupation_mult                 value      float                             member_fn
+	will_rise                       extern     make_reb_will_rise                member_fn
+	spawn_chance                    extern     make_reb_spawn_chance             member_fn
+	movement_evaluation             extern     make_reb_movement_eval            member_fn
+	siege_won_trigger               extern     make_reb_s_won_trigger            member_fn
+	siege_won_effect                extern     make_reb_s_won_effect             member_fn
+	demands_enforced_trigger        extern     make_reb_enforced_trigger         member_fn
+	demands_enforced_effect         extern     make_reb_enforce_effect           member_fn
+
+decision
+	potential                       extern     make_decision_trigger             member_fn
+	allow                           extern     make_decision_trigger             member_fn
+	effect                          extern     make_decision_effect              member_fn
+	ai_will_do                      extern     make_decision_ai_choice           member_fn
+	news                            value      bool                              discard
+	news_desc_long                  value      text                              discard
+	news_desc_medium                value      text                              discard
+	news_desc_short                 value      text                              discard
+	alert                           value      bool                              discard
+	picture                         value      text                              discard
+
+decision_list
+	#any                            extern     make_decision                     discard
+
+decision_file
+	political_decisions             group      decision_list                     member
+
+scan_event
+	is_triggered_only               value      bool                              member
+	id                              value      int                               member
+	#any                            value      none                              discard
+	#any                            group      none                              discard
+
+event_option
+	#base    effect_body
+	name                            value      text                              member_fn
+	ai_chance                       extern     make_option_ai_chance             member
+
+generic_event
+	id                              value      int                               discard
+	is_triggered_only               value      bool                              discard
+	title                           value      text                              member_fn
+	desc                            value      text                              member_fn
+	trigger                         extern     make_event_trigger                member
+	mean_time_to_happen             extern     make_event_mtth                   member
+	option                          extern     make_event_option                 member_fn
+	immediate                       extern     make_immediate_effect             member_fn
+	news                            value      bool                              discard
+	news_desc_long                  value      text                              discard
+	news_desc_medium                value      text                              discard
+	news_desc_short                 value      text                              discard
+	news_title                      value      text                              discard
+	major                           value      bool                              member
+	picture                         value      text                              member_fn
+	fire_only_once                  value      bool                              member
+	allow_multiple_instances        value      bool                              discard
+	election                        value      bool                              discard
+	issue_group                     value      text                              discard
+
+event_file
+	country_event                   extern     scan_country_event                discard
+	province_event                  extern     scan_province_event               discard
+
+oob_relationship
+	value                           value      int                               member_fn
+	level                           value      int                               member_fn
+	influence_value                 value      float                             member_fn
+	military_access                 value      bool                              discard
+
+oob_leader
+	name                            value      text                              member_fn
+	date                            value      date                              member_fn
+	type                            value      text                              member_fn
+	personality                     value      text                              member_fn
+	background                      value      text                              member_fn
+	prestige                        value      float                             member
+
+oob_regiment
+	name                            value      text                              member_fn
+	type                            value      text                              member_fn
+	home                            value      int                               member_fn
+
+oob_ship
+	name                            value      text                              member_fn
+	type                            value      text                              member_fn
+
+oob_army
+	name                            value      text                              member_fn
+	location                        value      int                               member_fn
+	regiment                        extern     make_oob_regiment                 discard
+	leader                          extern     make_army_leader                  member_fn
+
+oob_navy
+	name                            value      text                              member_fn
+	location                        value      int                               member_fn
+	ship                            extern     make_oob_ship                     discard
+
+oob_file
+	#any                            extern     make_oob_relationship             discard
+	leader                          group      oob_leader                        member_fn
+	army                            extern     make_oob_army                     discard
+	navy                            extern     make_oob_navy                     discard
+
+production_employee
+	poptype                         value      text                              member_fn
+	effect                          value      text                              discard
+	effect_multiplier               value      float                             discard
+	amount                          value      float                             member
+
+production_employee_set
+	#free                           group      production_employee               member_fn
+
+production_bonus
+	trigger                         extern     make_production_bonus_trigger     member
+	value                           value      float                             member
+
+production_type
+	template                        value      text                              member_fn (as_template)
+	owner                           group      production_employee               member
+	efficiency                      extern     make_prod_commodity_array         member
+	employees                       group      production_employee_set           member
+	input_goods                     extern     make_prod_commodity_array         member
+	bonus                           group      production_bonus                  member_fn
+	type                            value      text                              member_fn
+	workforce                       value      int                               member
+	farm                            value      bool                              member
+	mine                            value      bool                              member
+	is_coastal                      value      bool                              member
+	output_goods                    value      text                              member_fn
+	value                           value      float                             member
+
+production_types_file
+	#any                            extern     make_production_type              discard
+
+alliance
+	first                           value      text                              member_fn
+	second                          value      text                              member_fn
+	end_date                        value      date                              discard
+	start_date                      value      date                              discard
+
+vassal_description
+	first                           value      text                              member_fn
+	second                          value      text                              member_fn
+	end_date                        value      date                              discard
+	start_date                      value      date                              member_fn
+
+alliance_file
+	alliance                        extern     make_alliance                     discard
+
+union_file
+	union                           extern     make_vassal                       discard
+
+puppets_file
+	substate                        extern     make_substate                     discard
+	vassal                          extern     make_vassal                       discard
+
+govt_flag_block
+	government                      value      text                              member_fn
+	flag                            value      text                              member_fn
+
+upper_house_block
+	#any                            value      float                             member_fn
+
+foreign_investment_block
+	#any                            value      float                             member_fn
+
+country_history_file
+	#any                            extern     enter_country_file_dated_block    discard
+	#any                            value      text                              member_fn
+	primary_culture                 value      text                              member_fn
+	culture                         value      text                              member_fn
+	religion                        value      text                              member_fn
+	government                      value      text                              member_fn
+	plurality                       value      float                             member_fn
+	prestige                        value      float                             member_fn
+	nationalvalue                   value      text                              member_fn
+	literacy                        value      float                             member_fn
+	non_state_culture_literacy      value      float                             member_fn
+	civilized                       value      bool                              member_fn
+	is_releasable_vassal            value      bool                              member_fn
+	govt_flag                       group      govt_flag_block                   member_fn
+	foreign_investment              group      foreign_investment_block          member
+	upper_house                     group      upper_house_block                 member
+	ruling_party                    value      text                              member_fn
+	schools                         value      text                              member_fn
+	consciousness                   value      float                             member_fn
+	nonstate_consciousness          value      float                             member_fn
+	last_election                   value      date                              discard
+	oob                             value      text                              discard
+	capital                         value      int                               member_fn
+	colonial_points                 value      int                               discard
+	set_country_flag                value      text                              member_fn

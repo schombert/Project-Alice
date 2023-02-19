@@ -12,12 +12,16 @@
 #include "modifiers.hpp"
 #include "culture.hpp"
 #include "date_interface.hpp"
+#include "script_constants.hpp"
+#include "container_types.hpp"
+#include "military.hpp"
 
 namespace parsers {
 
 	//
 	// structures and functions for parsing .gfx files
 	//
+	std::string lowercase_str(std::string_view sv);
 
 	struct building_gfx_context {
 		sys::state& full_state;
@@ -253,7 +257,32 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::invention_id id;
 	};
+	struct pending_nat_event {
+		dcon::national_event_id id;
+		trigger::slot_contents main_slot;
+		trigger::slot_contents this_slot;
+		trigger::slot_contents from_slot;
+		token_generator generator_state;
+		bool text_assigned = false;
+		bool processed = false;
 
+		pending_nat_event() = default;
+		pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
+		pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
+	};
+	struct pending_prov_event {
+		dcon::provincial_event_id id;
+		trigger::slot_contents main_slot;
+		trigger::slot_contents this_slot;
+		trigger::slot_contents from_slot;
+		token_generator generator_state;
+		bool text_assigned = false;
+		bool processed = false;
+
+		pending_prov_event() = default;
+		pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
+		pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
+	};
 	struct scenario_building_context {
 		sys::state& state;
 
@@ -284,8 +313,11 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, pending_invention_content> map_of_inventions;
 		ankerl::unordered_dense::map<std::string, dcon::unit_type_id> map_of_unit_types;
 		ankerl::unordered_dense::map<std::string, dcon::national_variable_id> map_of_national_variables;
-		ankerl::unordered_dense::map<std::string, dcon::global_variable_id> map_of_global_variables;
+		ankerl::unordered_dense::map<std::string, dcon::national_flag_id> map_of_national_flags;
+		ankerl::unordered_dense::map<std::string, dcon::global_flag_id> map_of_global_flags;
 		ankerl::unordered_dense::map<std::string, dcon::state_definition_id> map_of_state_names;
+		ankerl::unordered_dense::map<int32_t, pending_nat_event> map_of_national_events;
+		ankerl::unordered_dense::map<int32_t, pending_prov_event> map_of_provincial_events;
 
 		tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 		std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -299,11 +331,14 @@ namespace parsers {
 		std::optional<simple_fs::file> triggered_modifiers_file;
 		std::optional<simple_fs::file> rebel_types_file;
 		std::vector<simple_fs::file> tech_and_invention_files;
-		
+
+		dcon::text_key noimage;
+
 		scenario_building_context(sys::state& state) : state(state) { }
 
 		dcon::national_variable_id get_national_variable(std::string const& name);
-		dcon::global_variable_id get_global_variable(std::string const& name);
+		dcon::national_flag_id get_national_flag(std::string const& name);
+		dcon::global_flag_id get_global_flag(std::string const& name);
 	};
 
 	struct national_identity_file {
@@ -326,15 +361,9 @@ namespace parsers {
 		scenario_building_context& outer_context;
 	};
 	struct religion_def {
-		void icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.religion_set_icon(context.id, uint8_t(v));
-		}
-		void color(color_from_3f v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.religion_set_color(context.id, v.value);
-		}
-		void pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context) {
-			context.outer_context.state.world.religion_set_is_pagan(context.id, v);
-		}
+		void icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context);
+		void color(color_from_3f v, error_handler& err, int32_t line, religion_context& context);
+		void pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context);
 		void finish(religion_context& context) { }
 	};
 
@@ -383,62 +412,20 @@ namespace parsers {
 	void make_ln_list(token_generator& gen, error_handler& err, culture_context& context);
 
 	struct names_list {
-		void free_value(std::string_view text, error_handler& err, int32_t line, names_context& context) {
-			auto new_id = context.outer_context.state.add_to_pool(text);
-			if(context.first_names) {
-				context.outer_context.state.world.culture_get_first_names(context.id).push_back(new_id);
-			} else {
-				context.outer_context.state.world.culture_get_last_names(context.id).push_back(new_id);
-			}
-		}
+		void free_value(std::string_view text, error_handler& err, int32_t line, names_context& context);
 		void finish(names_context& context) { }
 	};
 
 	struct culture {
-		void color(color_from_3i v, error_handler& err, int32_t line, culture_context& context) {
-			context.outer_context.state.world.culture_set_color(context.id, v.value);
-		}
-		void radicalism(association_type, int32_t v, error_handler& err, int32_t line, culture_context& context) {
-			context.outer_context.state.world.culture_set_radicalism(context.id, int8_t(v));
-		}
+		void color(color_from_3i v, error_handler& err, int32_t line, culture_context& context);
+		void radicalism(association_type, int32_t v, error_handler& err, int32_t line, culture_context& context);
 		void finish(culture_context& context) { }
 	};
 
 	struct culture_group {
-		void leader(association_type, std::string_view name, error_handler& err, int32_t line, culture_group_context& context) {
-			if(name == "european")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::european));
-			else if(name == "southamerican")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::southamerican));
-			else if(name == "russian")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::russian));
-			else if(name == "arab")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::arab));
-			else if(name == "asian")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::asian));
-			else if(name == "indian")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::indian));
-			else if(name == "nativeamerican")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::nativeamerican));
-			else if(name == "african")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::african));
-			else if(name == "polar_bear")
-				context.outer_context.state.world.culture_group_set_leader(context.id, uint8_t(sys::leader_type::polar_bear));
-			else {
-				err.accumulated_errors += "Unknown leader type " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
-			}
-		}
-		void is_overseas(association_type, bool v, error_handler& err, int32_t line, culture_group_context& context) {
-
-			context.outer_context.state.world.culture_group_set_is_overseas(context.id, v);
-		}
-		void union_tag(association_type, uint32_t v, error_handler& err, int32_t line, culture_group_context& context) {
-			auto nat_tag = context.outer_context.map_of_ident_names.find(v);
-			if(nat_tag != context.outer_context.map_of_ident_names.end())
-				context.outer_context.state.world.force_create_cultural_union_of(nat_tag->second, context.id);
-			else
-				err.accumulated_errors += "Unknown national tag in file " + err.file_name + " line " + std::to_string(line) + "\n";
-		}
+		void leader(association_type, std::string_view name, error_handler& err, int32_t line, culture_group_context& context);
+		void is_overseas(association_type, bool v, error_handler& err, int32_t line, culture_group_context& context);
+		void union_tag(association_type, uint32_t v, error_handler& err, int32_t line, culture_group_context& context);
 		void finish(culture_group_context& context) { }
 	};
 
@@ -457,31 +444,10 @@ namespace parsers {
 	};
 
 	struct good {
-		void money(association_type, bool v, error_handler& err, int32_t line, good_context& context) {
-			if(v) {
-				auto money_id = dcon::commodity_id(0);
-				context.outer_context.state.world.commodity_set_color(money_id, context.outer_context.state.world.commodity_get_color(context.id));
-				context.outer_context.state.world.commodity_set_cost(money_id, context.outer_context.state.world.commodity_get_cost(context.id));
-
-				for(auto& pr : context.outer_context.map_of_commodity_names) {
-					if(pr.second == context.id) {
-						pr.second = money_id;
-						break;
-					}
-				}
-				context.id = money_id;
-				context.outer_context.state.world.pop_back_commodity();
-			}
-		}
-		void color(color_from_3i v, error_handler& err, int32_t line, good_context& context) {
-			context.outer_context.state.world.commodity_set_color(context.id, v.value);
-		}
-		void cost(association_type, float v, error_handler& err, int32_t line, good_context& context) {
-			context.outer_context.state.world.commodity_set_cost(context.id, v);
-		}
-		void available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
-			context.outer_context.state.world.commodity_set_is_available_from_start(context.id, b);
-		}
+		void money(association_type, bool v, error_handler& err, int32_t line, good_context& context);
+		void color(color_from_3i v, error_handler& err, int32_t line, good_context& context);
+		void cost(association_type, float v, error_handler& err, int32_t line, good_context& context);
+		void available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 
 		void finish(good_context& context) { }
 	};
@@ -729,6 +695,31 @@ namespace parsers {
 		MOD_NAT_FUNCTION(industry_tech_research_bonus)
 		MOD_NAT_FUNCTION(navy_tech_research_bonus)
 		MOD_NAT_FUNCTION(culture_tech_research_bonus)
+		MOD_NAT_FUNCTION(colonial_migration)
+		MOD_NAT_FUNCTION(max_national_focus)
+		MOD_NAT_FUNCTION(cb_creation_speed)
+		MOD_NAT_FUNCTION(education_efficiency)
+		MOD_NAT_FUNCTION(diplomatic_points)
+		MOD_NAT_FUNCTION(reinforce_rate)
+		MOD_NAT_FUNCTION(tax_eff)
+		MOD_NAT_FUNCTION(administrative_efficiency)
+		MOD_NAT_FUNCTION(influence)
+		MOD_NAT_FUNCTION(dig_in_cap)
+		MOD_NAT_FUNCTION(morale)
+		MOD_NAT_FUNCTION(military_tactics)
+		MOD_NAT_FUNCTION(supply_range)
+		MOD_NAT_FUNCTION(regular_experience_level)
+		MOD_NAT_FUNCTION(increase_research)
+		MOD_NAT_FUNCTION(permanent_prestige)
+		MOD_NAT_FUNCTION(soldier_to_pop_loss)
+		MOD_NAT_FUNCTION(naval_attrition)
+		MOD_NAT_FUNCTION(land_attrition)
+		MOD_NAT_FUNCTION(pop_growth)
+		MOD_NAT_FUNCTION(colonial_life_rating)
+		MOD_NAT_FUNCTION(seperatism)
+		MOD_NAT_FUNCTION(plurality)
+		MOD_NAT_FUNCTION(colonial_prestige)
+
 		template<typename T>
 		void finish(T& context) { }
 
@@ -774,6 +765,10 @@ namespace parsers {
 					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_income_modifier);
 				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_income_modifier) {
 					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_income_modifier);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::supply_limit) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::supply_limit);
+				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::combat_width) {
+					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::combat_width);
 				}
 				constructed_definition.offsets[i] += 1;
 			}
@@ -815,9 +810,7 @@ namespace parsers {
 			}
 		}
 
-		void finish(scenario_building_context& context) {
-			data.resize(context.state.world.commodity_size());
-		}
+		void finish(scenario_building_context& context);
 	};
 
 	enum class building_type {
@@ -885,12 +878,8 @@ namespace parsers {
 		issue_group_context(scenario_building_context& outer_context, ::culture::issue_category issue_cat) : outer_context(outer_context), issue_cat(issue_cat) { }
 	};
 	struct issue {
-		void next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
-			context.outer_context.state.world.issue_set_is_next_step_only(context.id, value);
-		}
-		void administrative(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
-			context.outer_context.state.world.issue_set_is_administrative(context.id, value);
-		}
+		void next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context);
+		void administrative(association_type, bool value, error_handler& err, int32_t line, issue_context& context);
 		void finish(issue_context&) { }
 	};
 	struct issues_group {
@@ -909,39 +898,11 @@ namespace parsers {
 		dcon::government_type_id id;
 	};
 	struct government_type {
-		void election(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
-			context.outer_context.state.culture_definitions.governments[context.id].has_elections = value;
-		}
-		void appoint_ruling_party(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
-			context.outer_context.state.culture_definitions.governments[context.id].can_appoint_ruling_party = value;
-		}
-		void duration(association_type, int32_t value, error_handler& err, int32_t line, government_type_context& context) {
-			context.outer_context.state.culture_definitions.governments[context.id].duration = int8_t(value);
-		}
-		void flagtype(association_type, std::string_view value, error_handler& err, int32_t line, government_type_context& context) {
-			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist"))
-				context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::communist;
-			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist"))
-				context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::fascist;
-			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy"))
-				context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy;
-			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic"))
-				context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic;
-			else {
-				err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
-			}
-		}
-		void any_value(std::string_view text, association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
-			if(value) {
-				auto found_ideology = context.outer_context.map_of_ideologies.find(std::string(text));
-				if(found_ideology != context.outer_context.map_of_ideologies.end()) {
-					context.outer_context.state.culture_definitions.governments[context.id].ideologies_allowed |= ::culture::to_bits(found_ideology->second.id);
-				} else {
-					err.accumulated_errors += "Unknown ideology " + std::string(text) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
-				}
-			}
-
-		}
+		void election(association_type, bool value, error_handler& err, int32_t line, government_type_context& context);
+		void appoint_ruling_party(association_type, bool value, error_handler& err, int32_t line, government_type_context& context);
+		void duration(association_type, int32_t value, error_handler& err, int32_t line, government_type_context& context);
+		void flagtype(association_type, std::string_view value, error_handler& err, int32_t line, government_type_context& context);
+		void any_value(std::string_view text, association_type, bool value, error_handler& err, int32_t line, government_type_context& context);
 
 		void finish(government_type_context&) { }
 	};
@@ -953,10 +914,7 @@ namespace parsers {
 	void make_government(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 	struct cb_list {
-		void free_value(std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
-			dcon::cb_type_id new_id = context.state.world.create_cb_type();
-			context.map_of_cb_types.insert_or_assign(std::string(text), pending_cb_content{ token_generator{}, new_id });
-		}
+		void free_value(std::string_view text, error_handler& err, int32_t line, scenario_building_context& context);
 		void finish(scenario_building_context&) { }
 	};
 
@@ -974,30 +932,14 @@ namespace parsers {
 
 
 	struct trait {
-		void organisation(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-			context.outer_context.state.world.leader_trait_set_organisation(context.id, value);
-		}
-		void morale(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-			context.outer_context.state.world.leader_trait_set_morale(context.id, value);
-		}
-		void attack(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-			context.outer_context.state.world.leader_trait_set_attack(context.id, value);
-		}
-		void defence(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-			context.outer_context.state.world.leader_trait_set_defence(context.id, value);
-		}
-		void reconnaissance(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-			context.outer_context.state.world.leader_trait_set_reconnaissance(context.id, value);
-		}
-		void speed(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-			context.outer_context.state.world.leader_trait_set_speed(context.id, value);
-		}
-		void experience(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-			context.outer_context.state.world.leader_trait_set_experience(context.id, value);
-		}
-		void reliability(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-			context.outer_context.state.world.leader_trait_set_reliability(context.id, value);
-		}
+		void organisation(association_type, float value, error_handler& err, int32_t line, trait_context& context);
+		void morale(association_type, float value, error_handler& err, int32_t line, trait_context& context);
+		void attack(association_type, float value, error_handler& err, int32_t line, trait_context& context);
+		void defence(association_type, float value, error_handler& err, int32_t line, trait_context& context);
+		void reconnaissance(association_type, float value, error_handler& err, int32_t line, trait_context& context);
+		void speed(association_type, float value, error_handler& err, int32_t line, trait_context& context);
+		void experience(association_type, float value, error_handler& err, int32_t line, trait_context& context);
+		void reliability(association_type, float value, error_handler& err, int32_t line, trait_context& context);
 		void finish(trait_context&) { }
 	};
 
@@ -1099,29 +1041,14 @@ namespace parsers {
 	};
 
 	struct sea_list {
-		void free_value(int32_t value, error_handler& err, int32_t line, scenario_building_context& context) {
-			if(size_t(value - 1) > context.prov_id_to_original_id_map.size()) {
-				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			} else {
-				context.prov_id_to_original_id_map[dcon::province_id(dcon::province_id::value_base_t(value - 1))].is_sea = true;
-			}
-		}
+		void free_value(int32_t value, error_handler& err, int32_t line, scenario_building_context& context);
 		void finish(scenario_building_context&) { }
 	};
 
 	struct default_map_file {
 		sea_list sea_starts;
 
-		void max_provinces(association_type, int32_t value, error_handler& err, int32_t line, scenario_building_context& context) {
-			context.state.world.province_resize(int32_t(value - 1));
-			context.original_id_to_prov_id_map.resize(value);
-			context.prov_id_to_original_id_map.resize(value - 1);
-
-			for(int32_t i = 1; i < value; ++i) {
-				context.prov_id_to_original_id_map[dcon::province_id(dcon::province_id::value_base_t(i - 1))].id = i;
-			}
-		}
-
+		void max_provinces(association_type, int32_t value, error_handler& err, int32_t line, scenario_building_context& context);
 		void finish(scenario_building_context&);
 	};
 
@@ -1162,14 +1089,7 @@ namespace parsers {
 	};
 
 	struct state_definition {
-		void free_value(int32_t value, error_handler& err, int32_t line, state_def_building_context& context) {
-			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			} else {
-				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-				context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
-			}
-		}
+		void free_value(int32_t value, error_handler& err, int32_t line, state_def_building_context& context);
 		void finish(state_def_building_context&) { }
 	};
 
@@ -1185,14 +1105,7 @@ namespace parsers {
 	};
 
 	struct continent_provinces {
-		void free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context) {
-			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			} else {
-				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-				context.outer_context.state.world.province_set_continent(province_id, context.id);
-			}
-		}
+		void free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context);
 		void finish(continent_building_context&) { }
 	};
 
@@ -1213,14 +1126,7 @@ namespace parsers {
 	};
 
 	struct climate_definition : public modifier_base {
-		void free_value(int32_t value, error_handler& err, int32_t line, climate_building_context& context) {
-			if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-				err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			} else {
-				auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-				context.outer_context.state.world.province_set_climate(province_id, context.id);
-			}
-		}
+		void free_value(int32_t value, error_handler& err, int32_t line, climate_building_context& context);
 		void finish(climate_building_context&) { }
 	};
 
@@ -1236,12 +1142,7 @@ namespace parsers {
 		tech_group_context(scenario_building_context& outer_context, ::culture::tech_category category) : outer_context(outer_context), category(category) { }
 	};
 	struct tech_folder_list {
-		void free_value(std::string_view name, error_handler& err, int32_t line, tech_group_context& context) {
-			auto name_id = text::find_or_add_key(context.outer_context.state, name);
-			auto cindex = context.outer_context.state.culture_definitions.tech_folders.size();
-			context.outer_context.state.culture_definitions.tech_folders.push_back(::culture::folder_info{ name_id , context.category });
-			context.outer_context.map_of_tech_folders.insert_or_assign(std::string(name), int32_t(cindex));
-		}
+		void free_value(std::string_view name, error_handler& err, int32_t line, tech_group_context& context);
 		void finish(tech_group_context&) { }
 	};
 	struct tech_groups_list {
@@ -1271,20 +1172,7 @@ namespace parsers {
 
 	struct commodity_set : public economy::commodity_set {
 		int32_t num_added = 0;
-		void any_value(std::string_view name, association_type, float value, error_handler& err, int32_t line, scenario_building_context& context) {
-			auto found_commodity = context.map_of_commodity_names.find(std::string(name));
-			if(found_commodity != context.map_of_commodity_names.end()) {
-				if(num_added < int32_t(economy::commodity_set::set_size)) {
-					commodity_amounts[num_added] = value;
-					commodity_type[num_added] = found_commodity->second;
-					++num_added;
-				} else {
-					err.accumulated_errors += "Too many items in a commodity set, in file " + err.file_name + " line " + std::to_string(line) + "\n";
-				}
-			} else {
-				err.accumulated_errors += "Unknown commodity " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
-			}
-		}
+		void any_value(std::string_view name, association_type, float value, error_handler& err, int32_t line, scenario_building_context& context);
 
 		void finish(scenario_building_context&) { }
 	};
@@ -1322,6 +1210,7 @@ namespace parsers {
 		void finish(scenario_building_context&) { }
 	};
 
+	void make_base_units(scenario_building_context& context);
 	void make_unit(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 	struct country_file_context {
@@ -1340,78 +1229,22 @@ namespace parsers {
 	};
 
 	struct party {
-		void ideology(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context) {
-			if(auto it = context.outer_context.map_of_ideologies.find(std::string(text)); it != context.outer_context.map_of_ideologies.end()) {
-				context.outer_context.state.world.political_party_set_ideology(context.id, it->second.id);
-			} else {
-				err.accumulated_errors += std::string(text) + " is not a valid ideology (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
-		void name(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context) {
-			auto name_id = text::find_or_add_key(context.outer_context.state, text);
-			context.outer_context.state.world.political_party_set_name(context.id, name_id);
-		}
-		void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context) {
-			auto date_tag = sys::date(ymd, context.outer_context.state.start_date);
-			context.outer_context.state.world.political_party_set_start_date(context.id, date_tag);
-		}
-		void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context) {
-			auto date_tag = sys::date(ymd, context.outer_context.state.start_date);
-			context.outer_context.state.world.political_party_set_end_date(context.id, date_tag);
-		}
-		void any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line, party_context& context) {
-			if(auto it = context.outer_context.map_of_issues.find(std::string(issue)); it != context.outer_context.map_of_issues.end()) {
-				if(it->second.index() < int32_t(context.outer_context.state.culture_definitions.party_issues.size())) {
-					if(auto oit = context.outer_context.map_of_options.find(std::string(option)); oit != context.outer_context.map_of_options.end()) {
-						int32_t found = -1;
-						for(int32_t i = 0; i < ::culture::max_issue_options; ++i) {
-							if(context.outer_context.state.world.issue_get_options(it->second)[i] == oit->second.id) {
-								found = i;
-								break;
-							}
-						}
-						if(found == -1) {
-							err.accumulated_errors += std::string(option) + " is not an option for " + std::string(issue) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
-							return;
-						}
-						context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, uint8_t(found));
-					} else {
-						err.accumulated_errors += std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
-					}
-				} else {
-					err.accumulated_errors += std::string(issue) + " is not a proper party issue (" + err.file_name + " line " + std::to_string(line) + ")\n";
-				}
-				//context.outer_context.state.world.political_party_set_ideology(context.id, it->second.id);
-			} else {
-				err.accumulated_errors += std::string(issue) + " is not a valid issue name (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
+		void ideology(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context);
+		void name(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context);
+		void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context);
+		void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context);
+		void any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line, party_context& context);
 		void finish(party_context&) { }
 	};
 	struct unit_names_list {
-		void free_value(std::string_view text, error_handler& err, int32_t line, unit_names_context& context) {
-			if(text.length() <= 2)
-				return;
-
-			auto existing_count = context.outer_context.state.world.national_identity_get_unit_names_count(context.id, context.u_id);
-			if(existing_count == 0) {
-				auto first_id = context.outer_context.state.add_unit_name(text);
-				context.outer_context.state.world.national_identity_set_unit_names_first(context.id, context.u_id, first_id);
-				context.outer_context.state.world.national_identity_set_unit_names_count(context.id, context.u_id, uint8_t(1));
-			} else {
-				context.outer_context.state.add_unit_name(text);
-				context.outer_context.state.world.national_identity_set_unit_names_count(context.id, context.u_id, uint8_t(existing_count + 1));
-			}
-		}
+		void free_value(std::string_view text, error_handler& err, int32_t line, unit_names_context& context);
 		void finish(unit_names_context&) { }
 	};
 	struct unit_names_collection {
 		void finish(country_file_context&) { }
 	};
 	struct country_file {
-		void color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {
-			context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);
-		}
+		void color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context);
 		unit_names_collection unit_names;
 		void finish(country_file_context&) { }
 	};
@@ -1450,72 +1283,20 @@ namespace parsers {
 	};
 
 	struct province_history_file {
-		void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-			context.outer_context.state.world.province_set_life_rating(context.id, uint8_t(value));
-		}
-		void fort(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-			context.outer_context.state.world.province_set_fort_naval_base_level(context.id,
-				province::set_fort_level(value, context.outer_context.state.world.province_get_fort_naval_base_level(context.id))
-				);
-		}
-		void naval_base(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-			context.outer_context.state.world.province_set_fort_naval_base_level(context.id,
-				province::set_naval_base_level(value, context.outer_context.state.world.province_get_fort_naval_base_level(context.id))
-			);
-		}
-		void railroad(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-			context.outer_context.state.world.province_set_railroad_level(context.id, uint8_t(value));
-		}
-		void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-			context.outer_context.state.world.province_set_is_colonial(context.id, value != 0);
-		}
-		void trade_goods(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
-			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(text)); it != context.outer_context.map_of_commodity_names.end()) {
-				context.outer_context.state.world.province_set_rgo(context.id, it->second);
-			} else {
-				err.accumulated_errors += std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
+		void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void fort(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void naval_base(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void railroad(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void trade_goods(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
 		void owner(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 		void controller(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
-		void terrain(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
-			if(auto it = context.outer_context.map_of_terrain_types.find(std::string(text)); it != context.outer_context.map_of_terrain_types.end()) {
-				context.outer_context.state.world.province_set_terrain(context.id, it->second.id);
-			} else {
-				err.accumulated_errors += std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
-		void add_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-			if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
-				context.outer_context.state.world.try_create_core(context.id, it->second);
-			} else {
-				err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
-		void remove_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-			if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
-				auto core = context.outer_context.state.world.get_core_by_prov_tag_key(context.id, it->second);
-				context.outer_context.state.world.delete_core(core);
-			} else {
-				err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
-		void party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line, province_file_context& context) {
-			if(value.id) {
-				context.outer_context.state.world.province_set_party_loyalty(context.id, value.id, uint8_t(value.loyalty_value));
-			}
-		}
-		void state_building(pv_state_building const& value, error_handler& err, int32_t line, province_file_context& context) {
-			if(value.id) {
-				auto new_fac = context.outer_context.state.world.create_factory();
-				context.outer_context.state.world.factory_set_building_type(new_fac, value.id);
-				context.outer_context.state.world.factory_set_level(new_fac, uint8_t(value.level));
-				context.outer_context.state.world.force_create_factory_location(new_fac, context.id);
-			}
-		}
-		void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context) {
-			context.outer_context.state.world.province_set_is_slave(context.id, value);
-		}
+		void terrain(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
+		void add_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void remove_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+		void party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line, province_file_context& context);
+		void state_building(pv_state_building const& value, error_handler& err, int32_t line, province_file_context& context);
+		void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context);
 		void finish(province_file_context&) { }
 	};
 
@@ -1532,55 +1313,14 @@ namespace parsers {
 		dcon::rebel_type_id reb_id;
 		int32_t size = 0;
 		float militancy = 0;
-		void culture(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
-			if(auto it = context.outer_context.map_of_culture_names.find(std::string(value)); it != context.outer_context.map_of_culture_names.end()) {
-				cul_id = it->second;
-			} else {
-				err.accumulated_errors += "Invalid culture " + std::string(value)  + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
-		void religion(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
-			if(auto it = context.outer_context.map_of_religion_names.find(std::string(value)); it != context.outer_context.map_of_religion_names.end()) {
-				rel_id = it->second;
-			} else {
-				err.accumulated_errors += "Invalid religion " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
-		void rebel_type(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context) {
-			if(auto it = context.outer_context.map_of_rebeltypes.find(std::string(value)); it != context.outer_context.map_of_rebeltypes.end()) {
-				reb_id = it->second.id;
-			} else {
-				err.accumulated_errors += "Invalid rebel type " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
+		void culture(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context);
+		void religion(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context);
+		void rebel_type(association_type, std::string_view value, error_handler& err, int32_t line, pop_history_province_context& context);
 		void finish(pop_history_province_context&) { }
 	};
 
 	struct pop_province_list {
-		void any_group(std::string_view type, pop_history_definition const& def, error_handler& err, int32_t line, pop_history_province_context& context) {
-			dcon::pop_type_id ptype;
-			if(auto it = context.outer_context.map_of_poptypes.find(std::string(type)); it != context.outer_context.map_of_poptypes.end()) {
-				ptype = it->second;
-			} else {
-				err.accumulated_errors += "Invalid pop type " + std::string(type) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-			for(auto pops_by_location : context.outer_context.state.world.province_get_pop_location(context.id)) {
-				auto pop_id = pops_by_location.get_pop();
-				if(pop_id.get_culture() == def.cul_id && pop_id.get_poptype() == ptype && pop_id.get_religion() == def.rel_id) {
-					pop_id.get_size() += float(def.size);
-					return; // done with this pop
-				}
-			}
-			// no existing pop matched -- make a new pop
-			auto new_pop = fatten(context.outer_context.state.world, context.outer_context.state.world.create_pop());
-			new_pop.set_culture(def.cul_id);
-			new_pop.set_religion(def.rel_id);
-			new_pop.set_size(float(def.size));
-			new_pop.set_poptype(ptype);
-			new_pop.set_militancy(def.militancy);
-			new_pop.set_rebel_group(def.reb_id);
-			context.outer_context.state.world.force_create_pop_location(new_pop, context.id);
-		}
+		void any_group(std::string_view type, pop_history_definition const& def, error_handler& err, int32_t line, pop_history_province_context& context);
 		void finish(pop_history_province_context&) { }
 	};
 
@@ -1629,110 +1369,33 @@ namespace parsers {
 
 	struct poptype_file {
 		void finish(poptype_context&) { }
-		void sprite(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_sprite(context.id, uint8_t(value));
-		}
-		void color(color_from_3i cvalue, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_color(context.id, cvalue.value);
-		}
-		void is_artisan(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-			if(value)
-				context.outer_context.state.culture_definitions.artisans = context.id;
-		}
-		void strata(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
-			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "rich"))
-				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::rich));
-			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "middle"))
-				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::middle));
-			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "poor"))
-				context.outer_context.state.world.pop_type_set_strata(context.id, uint8_t(::culture::pop_strata::poor));
-			else {
-				err.accumulated_errors += "Invalid pop strata " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-		}
-		void unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_has_unemployment(context.id, value);
-		}
-		void is_slave(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-			if(value)
-				context.outer_context.state.culture_definitions.slaves = context.id;
-		}
-		void can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-			if(value)
-				context.outer_context.state.culture_definitions.soldiers = context.id;
-		}
-		void leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.culture_definitions.officer_leadership_points = value;
-			context.outer_context.state.culture_definitions.officers = context.id;
-		}
-		void research_optimum(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_research_optimum(context.id, value);
-		}
-		void administrative_efficiency(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-			if(value)
-				context.outer_context.state.culture_definitions.bureaucrat = context.id;
-		}
-		void tax_eff(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.culture_definitions.bureaucrat_tax_efficiency = value;
-		}
-		void can_build(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-			if(value)
-				context.outer_context.state.culture_definitions.capitalists = context.id;
-		}
-		void research_points(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_research_points(context.id, value);
-		}
-		void can_reduce_consciousness(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
-			if(value)
-				context.outer_context.state.culture_definitions.clergy = context.id;
-		}
-		void workplace_input(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_workplace_input(context.id, value);
-		}
-		void workplace_output(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_workplace_output(context.id, value);
-		}
-		void equivalent(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
-			if(value.length() > 0 && value[0] == 'f') {
-				context.outer_context.state.culture_definitions.laborers = context.id;
-			} else if(value.length() > 0 && value[0] == 'l') {
-				context.outer_context.state.culture_definitions.farmers = context.id;
-			}
-		}
-		void life_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
-				if(cid.index() < value.data.ssize())
-					context.outer_context.state.world.pop_type_set_life_needs(context.id, cid, value.data[cid]);
-			});
-		}
-		void everyday_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
-				if(cid.index() < value.data.ssize())
-					context.outer_context.state.world.pop_type_set_everyday_needs(context.id, cid, value.data[cid]);
-			});
-		}
-		void luxury_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
-				if(cid.index() < value.data.ssize())
-					context.outer_context.state.world.pop_type_set_luxury_needs(context.id, cid, value.data[cid]);
-			});
-		}
+		void sprite(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context);
+		void color(color_from_3i cvalue, error_handler& err, int32_t line, poptype_context& context);
+		void is_artisan(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void strata(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context);
+		void unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void is_slave(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context);
+		void research_optimum(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
+		void administrative_efficiency(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void tax_eff(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
+		void can_build(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void research_points(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
+		void can_reduce_consciousness(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void workplace_input(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
+		void workplace_output(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
+		void equivalent(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context);
+		void life_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context);
+		void everyday_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context);
+		void luxury_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context);
 		promotion_targets promote_to;
 		pop_ideologies ideologies;
 		pop_issues issues;
 
-		void life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
-			context.outer_context.state.world.pop_type_set_life_needs_income_type(context.id, uint8_t(value.itype));
-		}
-		void everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
-			context.outer_context.state.world.pop_type_set_everyday_needs_income_type(context.id, uint8_t(value.itype));
-		}
-		void luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-			context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
-			context.outer_context.state.world.pop_type_set_luxury_needs_income_type(context.id, uint8_t(value.itype));
-		}
+		void life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context);
+		void everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context);
+		void luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context);
 	};
 
 	commodity_array stub_commodity_array(token_generator& gen, error_handler& err, poptype_context& context);
@@ -1749,44 +1412,797 @@ namespace parsers {
 
 	struct individual_ideology {
 		void finish(individual_ideology_context&) { }
-		void can_reduce_militancy(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
-			if(value)
-				context.outer_context.state.culture_definitions.conservative = context.id;
-		}
-		void uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context) {
-			context.outer_context.state.world.ideology_set_is_civilized_only(context.id, !value);
-		}
-		void color(color_from_3i cvalue, error_handler& err, int32_t line, individual_ideology_context& context) {
-			context.outer_context.state.world.ideology_set_color(context.id, cvalue.value);
-		}
-		void date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, individual_ideology_context& context) {
-			auto date_tag = sys::date(ymd, context.outer_context.state.start_date);
-			context.outer_context.state.world.ideology_set_activation_date(context.id, date_tag);
-		}
-		void add_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-			context.outer_context.state.world.ideology_set_add_political_reform(context.id, value);
-		}
-		void remove_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-			context.outer_context.state.world.ideology_set_remove_political_reform(context.id, value);
-		}
-		void add_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-			context.outer_context.state.world.ideology_set_add_social_reform(context.id, value);
-		}
-		void remove_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-			context.outer_context.state.world.ideology_set_remove_social_reform(context.id, value);
-		}
-		void add_military_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-			context.outer_context.state.world.ideology_set_add_military_reform(context.id, value);
-		}
-		void add_economic_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context) {
-			context.outer_context.state.world.ideology_set_add_economic_reform(context.id, value);
-		}
+		void can_reduce_militancy(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
+		void uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
+		void color(color_from_3i cvalue, error_handler& err, int32_t line, individual_ideology_context& context);
+		void date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, individual_ideology_context& context);
+		void add_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context);
+		void remove_political_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context);
+		void add_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context);
+		void remove_social_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context);
+		void add_military_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context);
+		void add_economic_reform(dcon::value_modifier_key value, error_handler& err, int32_t line, individual_ideology_context& context);
 	};
 
 	dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler& err, individual_ideology_context& context);
 	dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct individual_cb_context {
+		scenario_building_context& outer_context;
+		dcon::cb_type_id id;
+	};
+
+
+	struct cb_body {
+		void finish(individual_cb_context&) { }
+		void is_civil_war(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context);
+		void truce_months(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context);
+		void sprite_index(association_type, int32_t value, error_handler& err, int32_t line, individual_cb_context& context);
+		void always(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void is_triggered_only(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void constructing_cb(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void great_war_obligatory(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void all_allowed_states(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void crisis(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_clear_union_sphere(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_gunboat(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_annex(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_demand_state(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_add_to_sphere(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_disarmament(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_reparations(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_transfer_provinces(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_remove_prestige(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_make_puppet(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_release_puppet(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_status_quo(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_install_communist_gov_type(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_uninstall_communist_gov_type(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_remove_cores(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_colony(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_destroy_forts(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void po_destroy_naval_bases(association_type, bool value, error_handler& err, int32_t line, individual_cb_context& context);
+		void war_name(association_type, std::string_view value, error_handler& err, int32_t line, individual_cb_context& context);
+		void badboy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void peace_cost_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void penalty_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void break_truce_prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void break_truce_infamy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void break_truce_militancy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void good_relation_prestige_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void good_relation_infamy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void good_relation_militancy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void construction_speed(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void tws_battle_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context);
+		void allowed_states(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context);
+		void allowed_states_in_crisis(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context);
+		void allowed_substate_regions(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context);
+		void allowed_countries(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context);
+		void can_use(dcon::trigger_key value, error_handler& err, int32_t line, individual_cb_context& context);
+		void on_add(dcon::effect_key value, error_handler& err, int32_t line, individual_cb_context& context);
+		void on_po_accepted(dcon::effect_key value, error_handler& err, int32_t line, individual_cb_context& context);
+	};
+
+	dcon::trigger_key cb_allowed_states(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::trigger_key cb_allowed_crisis_states(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::trigger_key cb_allowed_substates(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::trigger_key cb_allowed_countries(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::trigger_key cb_can_use(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::effect_key cb_on_add(token_generator& gen, error_handler& err, individual_cb_context& context);
+	dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, individual_cb_context& context);
+
+	struct crime_modifier : public modifier_base {
+		bool active = false;
+		dcon::trigger_key trigger;
+	};
+
+	dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct individual_option_context {
+		scenario_building_context& outer_context;
+		dcon::issue_option_id id;
+	};
+
+	struct option_rules {
+		void finish(individual_option_context&) { }
+		void build_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void open_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void destroy_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void factory_priority(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void can_subsidise(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void pop_build_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void pop_expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void pop_open_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void delete_factory_if_no_input(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void build_railway_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void can_invest_in_pop_projects(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void pop_build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void pop_expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void pop_open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void allow_foreign_investment(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void slavery_allowed(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void primary_culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void all_voting(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void largest_share(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void dhont(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void sainte_laque(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void same_as_ruling_party(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void rich_only(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void state_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void population_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void build_railway(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+	};
+
+	struct on_execute_body {
+		dcon::trigger_key trigger;
+		dcon::effect_key effect;
+		void finish(individual_option_context&) { }
+	};
+
+	struct issue_option_body : public modifier_base {
+		void technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_option_context& context);
+		void war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_option_context& context);
+		void administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_option_context& context);
+		void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+		void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context);
+		option_rules rules;
+	};
+
+	void make_opt_allow(token_generator& gen, error_handler& err, individual_option_context& context);
+	dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_option_context& context);
+	dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_option_context& context);
+	void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct national_focus_context {
+		scenario_building_context& outer_context;
+		dcon::national_focus_id id;
+	};
+
+	struct national_focus {
+		void finish(national_focus_context&) { }
+		void railroads(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
+		void icon(association_type, int32_t value, error_handler& err, int32_t line, national_focus_context& context);
+		void limit(dcon::trigger_key value, error_handler& err, int32_t line, national_focus_context& context);
+		void has_flashpoint(association_type, bool value, error_handler& err, int32_t line, national_focus_context& context);
+		void flashpoint_tension(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
+		void ideology(association_type, std::string_view value, error_handler& err, int32_t line, national_focus_context& context);
+		void loyalty_value(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
+		void immigrant_attract(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
+	};
+
+	struct focus_group {
+		void finish(scenario_building_context&) { }
+	};
+	struct national_focus_file {
+		focus_group any_group;
+		void finish(scenario_building_context&) { }
+	};
+
+	dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, national_focus_context& context);
+	void make_focus(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct main_pop_type_file {
+		void finish(scenario_building_context&) { }
+		void promotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context);
+		void demotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context);
+		void migration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context);
+		void colonialmigration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context);
+		void emigration_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context);
+		void assimilation_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context);
+		void conversion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	dcon::value_modifier_key make_poptype_pop_chance(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+
+	struct tech_context {
+		scenario_building_context& outer_context;
+		dcon::technology_id id;
+	};
+
+	struct unit_modifier_body : public sys::unit_modifier {
+		template<typename T>
+		void finish(T&) { }
+	};
+
+	struct tech_rgo_goods_output {
+		void finish(tech_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context);
+	};
+	struct tech_fac_goods_output {
+		void finish(tech_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context);
+	};
+	struct tech_rgo_size {
+		void finish(tech_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, tech_context& context);
+	};
+
+	struct technology_contents : public modifier_base {
+		void any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line, tech_context& context);
+		void ai_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, tech_context& context);
+		void year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+		void cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+		void area(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
+		void max_fort(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+		void max_railroad(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+		void max_naval_base(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+		void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
+		void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
+		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
+		tech_rgo_goods_output rgo_goods_output;
+		tech_rgo_size rgo_size;
+		tech_fac_goods_output factory_goods_output;
+	};
+
+	dcon::value_modifier_key make_ai_chance(token_generator& gen, error_handler& err, tech_context& context);
+	void read_pending_technology(dcon::technology_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct invention_context {
+		scenario_building_context& outer_context;
+		dcon::invention_id id;
+	};
+
+	struct inv_rgo_goods_output {
+		void finish(invention_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, invention_context& context);
+	};
+	struct inv_fac_goods_output {
+		void finish(invention_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, invention_context& context);
+	};
+	struct inv_fac_goods_throughput {
+		void finish(invention_context&) { }
+		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, invention_context& context);
+	};
+	struct inv_rebel_org_gain {
+		void finish(invention_context&) { }
+		dcon::rebel_type_id faction_;
+		float value = 0.0f;
+		void faction(association_type, std::string_view v, error_handler& err, int32_t line, invention_context& context);
+	};
+	struct inv_effect : public modifier_base {
+		void any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line, invention_context& context);
+		void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
+		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
+		inv_rgo_goods_output rgo_goods_output;
+		inv_fac_goods_throughput factory_goods_throughput;
+		inv_fac_goods_output factory_goods_output;
+
+		void shared_prestige(association_type, float value, error_handler& err, int32_t line, invention_context& context);
+		void enable_crime(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
+		void gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
+		void gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
+		void rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context);
+	};
+
+	struct invention_contents : public modifier_base {
+		void limit(dcon::trigger_key value, error_handler& err, int32_t line, invention_context& context);
+		void chance(dcon::value_modifier_key value, error_handler& err, int32_t line, invention_context& context);
+		void effect(inv_effect const& value, error_handler& err, int32_t line, invention_context& context);
+	};
+
+	dcon::value_modifier_key make_inv_chance(token_generator& gen, error_handler& err, invention_context& context);
+	dcon::trigger_key make_inv_limit(token_generator& gen, error_handler& err, invention_context& context);
+	void read_pending_invention(dcon::invention_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct s_on_yearly_pulse {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_quarterly_pulse {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_battle_won {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_battle_lost {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_surrender {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_new_great_nation {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_lost_great_nation {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_election_tick {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_colony_to_state {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_state_conquest {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_colony_to_state_free_slaves {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_debtor_default {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_debtor_default_small {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_debtor_default_second {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_civilize {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_crisis_declare_interest {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct s_on_my_factories_nationalized {
+		void finish(scenario_building_context&) { }
+		void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+	struct on_action_file {
+		void finish(scenario_building_context&) { }
+		s_on_yearly_pulse on_yearly_pulse;
+		s_on_quarterly_pulse on_quarterly_pulse;
+		s_on_battle_won on_battle_won;
+		s_on_battle_lost on_battle_lost;
+		s_on_surrender on_surrender;
+		s_on_new_great_nation on_new_great_nation;
+		s_on_lost_great_nation on_lost_great_nation;
+		s_on_election_tick on_election_tick;
+		s_on_colony_to_state on_colony_to_state;
+		s_on_state_conquest on_state_conquest;
+		s_on_colony_to_state_free_slaves on_colony_to_state_free_slaves;
+		s_on_debtor_default on_debtor_default;
+		s_on_debtor_default_small on_debtor_default_small;
+		s_on_debtor_default_second on_debtor_default_second;
+		s_on_civilize on_civilize;
+		s_on_my_factories_nationalized on_my_factories_nationalized;
+		s_on_crisis_declare_interest on_crisis_declare_interest;
+	};
+
+	struct rebel_context {
+		scenario_building_context& outer_context;
+		dcon::rebel_type_id id;
+	};
+
+	struct rebel_gov_list {
+		void finish(rebel_context&) { }
+		void any_value(std::string_view from_gov, association_type, std::string_view to_gov, error_handler& err, int32_t line, rebel_context& context);
+	};
+
+	struct rebel_body {
+		void finish(rebel_context&) { }
+		void icon(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context);
+		void break_alliance_on_win(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
+		rebel_gov_list government;
+		void area(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context);
+		void defection(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context);
+		void independence(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context);
+		void defect_delay(association_type, int32_t value, error_handler& err, int32_t line, rebel_context& context);
+		void ideology(association_type, std::string_view value, error_handler& err, int32_t line, rebel_context& context);
+		void allow_all_cultures(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
+		void allow_all_culture_groups(association_type, bool value, error_handler& err, int32_t line, rebel_context& context);
+		void occupation_mult(association_type, float value, error_handler& err, int32_t line, rebel_context& context);
+		void will_rise(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context);
+		void spawn_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context);
+		void movement_evaluation(dcon::value_modifier_key value, error_handler& err, int32_t line, rebel_context& context);
+		void siege_won_trigger(dcon::trigger_key value, error_handler& err, int32_t line, rebel_context& context);
+		void demands_enforced_trigger(dcon::trigger_key value, error_handler& err, int32_t line, rebel_context& context);
+		void siege_won_effect(dcon::effect_key value, error_handler& err, int32_t line, rebel_context& context);
+		void demands_enforced_effect(dcon::effect_key value, error_handler& err, int32_t line, rebel_context& context);
+	};
+
+	dcon::value_modifier_key make_reb_will_rise(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::value_modifier_key make_reb_spawn_chance(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::value_modifier_key make_reb_movement_eval(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::trigger_key make_reb_s_won_trigger(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::trigger_key make_reb_enforced_trigger(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::effect_key make_reb_s_won_effect(token_generator& gen, error_handler& err, rebel_context& context);
+	dcon::effect_key make_reb_enforce_effect(token_generator& gen, error_handler& err, rebel_context& context);
+	void read_pending_rebel_type(dcon::rebel_type_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct decision_context {
+		scenario_building_context& outer_context;
+		dcon::decision_id id;
+	};
+
+
+	struct decision {
+		void finish(decision_context&) { }
+		void potential(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context);
+		void allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context);
+		void effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context);
+		void ai_will_do(dcon::value_modifier_key value, error_handler& err, int32_t line, decision_context& context);
+	};
+	struct decision_list {
+		void finish(scenario_building_context&) { }
+	};
+	struct decision_file {
+		void finish(scenario_building_context&) { }
+		decision_list political_decisions;
+	};
+
+	dcon::trigger_key make_decision_trigger(token_generator& gen, error_handler& err, decision_context& context);
+	dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, decision_context& context);
+	dcon::value_modifier_key make_decision_ai_choice(token_generator& gen, error_handler& err, decision_context& context);
+	void make_decision(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct event_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void scan_province_event(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void scan_country_event(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct scan_event {
+		bool is_triggered_only = false;
+		int32_t id = 0;
+		void finish(scenario_building_context&) { }
+	};
+
+	struct event_building_context {
+		scenario_building_context& outer_context;
+	
+		trigger::slot_contents main_slot = trigger::slot_contents::empty;
+		trigger::slot_contents this_slot = trigger::slot_contents::empty;
+		trigger::slot_contents from_slot = trigger::slot_contents::empty;
+	};
+
+	struct generic_event {
+		void finish(event_building_context&) { }
+		dcon::trigger_key trigger;
+		dcon::value_modifier_key mean_time_to_happen;
+		std::array<sys::event_option, sys::max_event_options> options;
+		int32_t last_option_added = 0;
+		dcon::effect_key immediate_;
+		bool major = false;
+		bool fire_only_once = false;
+		dcon::text_key picture_;
+		dcon::text_sequence_id title_;
+		dcon::text_sequence_id desc_;
+
+		void title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+		void desc(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+		void option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context);
+		void immediate(dcon::effect_key value, error_handler& err, int32_t line, event_building_context& context) {
+			if(!bool(immediate_))
+				immediate_ = value;
+		}
+		void picture(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+	};
+
+	dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, event_building_context& context);
+	dcon::effect_key make_immediate_effect(token_generator& gen, error_handler& err, event_building_context& context);
+	dcon::value_modifier_key make_event_mtth(token_generator& gen, error_handler& err, event_building_context& context);
+	sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context);
+	void commit_pending_events(error_handler& err, scenario_building_context& context);
+
+	struct oob_file_context {
+		scenario_building_context& outer_context;
+		dcon::nation_id nation_for;
+	};
+	struct oob_file_relation_context {
+		scenario_building_context& outer_context;
+		dcon::nation_id nation_for;
+		dcon::nation_id nation_with;
+	};
+	struct oob_file_regiment_context {
+		scenario_building_context& outer_context;
+		dcon::regiment_id id;
+	};
+	struct oob_file_ship_context {
+		scenario_building_context& outer_context;
+		dcon::ship_id id;
+	};
+	struct oob_file_army_context {
+		scenario_building_context& outer_context;
+		dcon::army_id id;
+		dcon::nation_id nation_for;
+	};
+	struct oob_file_navy_context {
+		scenario_building_context& outer_context;
+		dcon::navy_id id;
+		dcon::nation_id nation_for;
+	};
+	struct oob_leader {
+		void finish(oob_file_context&) { }
+		dcon::unit_name_id name_;
+		sys::date date_;
+		bool is_general = true;
+		dcon::leader_trait_id personality_;
+		dcon::leader_trait_id background_;
+		float prestige = 0.0f;
+
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context);
+		void date(association_type, sys::year_month_day value, error_handler& err, int32_t line, oob_file_context& context);
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "sea"))
+				is_general = false;
+			else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "land"))
+				is_general = true;
+			else
+				err.accumulated_errors += "Leader of type neither land nor sea (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+		void personality(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
+			if(auto it = context.outer_context.map_of_leader_traits.find(std::string(value)); it != context.outer_context.map_of_leader_traits.end()) {
+				personality_ = it->second;
+			} else {
+				err.accumulated_errors += "Invalid leader trait " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void background(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
+			if(auto it = context.outer_context.map_of_leader_traits.find(std::string(value)); it != context.outer_context.map_of_leader_traits.end()) {
+				background_ = it->second;
+			} else {
+				err.accumulated_errors += "Invalid leader trait " + std::string(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct oob_army {
+		void finish(oob_file_army_context&) { }
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_army_context& context);
+		void location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_army_context& context);
+		void leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_army_context& context);
+	};
+	struct oob_navy {
+		void finish(oob_file_navy_context&) { }
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_navy_context& context);
+		void location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_navy_context& context);
+	};
+	struct oob_ship {
+		void finish(oob_file_ship_context&) { }
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_ship_context& context);
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_ship_context& context);
+	};
+
+	struct oob_regiment {
+		void finish(oob_file_regiment_context&) { }
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_regiment_context& context);
+		void type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_regiment_context& context);
+		void home(association_type, int32_t value, error_handler& err, int32_t line, oob_file_regiment_context& context);
+	};
+
+	struct oob_relationship {
+		void finish(oob_file_relation_context&) { }
+		void value(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context);
+		void level(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context);
+		void influence_value(association_type, float v, error_handler& err, int32_t line, oob_file_relation_context& context);
+	};
+	struct oob_file {
+		void finish(oob_file_context&) { }
+		void leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_context& context);
+	};
+
+	oob_leader make_army_leader(token_generator& gen, error_handler& err, oob_file_army_context& context);
+	void make_oob_relationship(std::string_view tag, token_generator& gen, error_handler& err, oob_file_context& context);
+	void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& context);
+	void make_oob_navy(token_generator& gen, error_handler& err, oob_file_context& context);
+	void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_context& context);
+	void make_oob_ship(token_generator& gen, error_handler& err, oob_file_navy_context& context);
+
+	struct production_type;
+
+	struct production_context {
+		scenario_building_context& outer_context;
+		ankerl::unordered_dense::map<std::string, production_type> templates;
+		bool found_worker_types = false;
+
+		production_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
+	};
+
+	struct production_types_file {
+		void finish(production_context&) { }
+	};
+	struct production_employee {
+		void finish(production_context&) { }
+		float amount = 0.0f;
+		dcon::pop_type_id type;
+
+		void poptype(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context);
+	};
+
+	struct production_employee_set {
+		std::vector<production_employee> employees;
+		void finish(production_context&) { }
+		void free_group(production_employee const& value, error_handler& err, int32_t line, production_context& context) {
+			employees.push_back(value);
+		}
+	};
+
+	struct production_bonus {
+		dcon::trigger_key trigger;
+		float value = 0.0f;
+
+		void finish(production_context&) { }
+	};
+
+	enum class production_type_enum {
+		none = 0, factory, rgo, artisan
+	};
+	struct production_type {
+		commodity_array efficiency;
+		commodity_array input_goods;
+		production_employee owner;
+		production_employee_set employees;
+		int32_t workforce = 0;
+		bool farm = false;
+		bool mine = false;
+		bool is_coastal = false;
+		float value = 0.0f;
+
+		std::vector<production_bonus> bonuses;
+		dcon::commodity_id output_goods_;
+		production_type_enum type_ = production_type_enum::none;
+
+		void output_goods(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
+			if(auto it = context.outer_context.map_of_commodity_names.find(std::string(v)); it != context.outer_context.map_of_commodity_names.end()) {
+				output_goods_ = it->second;
+			} else {
+				err.accumulated_errors += "Invalid commodity name " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void bonus(production_bonus const& v, error_handler& err, int32_t line, production_context& context) {
+			bonuses.push_back(v);
+		}
+		void type(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
+			if(is_fixed_token_ci(v.data(), v.data() + v.length(), "factory"))
+				type_ = production_type_enum::factory;
+			else if(is_fixed_token_ci(v.data(), v.data() + v.length(), "rgo"))
+				type_ = production_type_enum::rgo;
+			else if(is_fixed_token_ci(v.data(), v.data() + v.length(), "artisan"))
+				type_ = production_type_enum::artisan;
+			else
+				err.accumulated_errors += "Invalid production type " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+		void as_template(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
+			if(auto it = context.templates.find(std::string(v)); it != context.templates.end()) {
+				*this = it->second;
+			} else {
+				err.accumulated_errors += "Invalid production template " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+		void finish(production_context&) { }
+	};
+
+	commodity_array make_prod_commodity_array(token_generator& gen, error_handler& err, production_context& context);
+
+	dcon::trigger_key make_production_bonus_trigger(token_generator& gen, error_handler& err, production_context& context);
+	void make_production_type(std::string_view name, token_generator& gen, error_handler& err, production_context& context);
+
+
+	struct alliance {
+		dcon::nation_id first_;
+		dcon::nation_id second_;
+
+		void finish(scenario_building_context&) { }
+		void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
+		void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+	struct vassal_description {
+		dcon::nation_id first_;
+		dcon::nation_id second_;
+		bool invalid = false;
+		void finish(scenario_building_context&) { }
+		void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
+		void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
+		void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
+	};
+
+	struct alliance_file {
+		void finish(scenario_building_context&) { }
+	};
+	struct union_file {
+		void finish(scenario_building_context&) { }
+	};
+	struct puppets_file {
+		void finish(scenario_building_context&) { }
+	};
+
+	void make_alliance(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void make_vassal(token_generator& gen, error_handler& err, scenario_building_context& context);
+	void make_substate(token_generator& gen, error_handler& err, scenario_building_context& context);
+
+	struct country_history_context {
+		scenario_building_context& outer_context;
+		dcon::national_identity_id nat_ident;
+		dcon::nation_id holder_id;
+	};
+
+	struct govt_flag_block {
+		void finish(country_history_context&) { }
+
+		::culture::flag_type flag_ = ::culture::flag_type::default_flag;
+		dcon::government_type_id government_;
+
+		void flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+		void government(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+			if(auto it = context.outer_context.map_of_governments.find(std::string(value)); it != context.outer_context.map_of_governments.end()) {
+				government_ = it->second;
+			} else {
+				err.accumulated_errors += "invalid government type " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+		}
+	};
+	struct upper_house_block {
+		void finish(country_history_context&) { }
+		void any_value(std::string_view value, association_type, float v, error_handler& err, int32_t line, country_history_context& context);
+	};
+	struct foreign_investment_block {
+		void finish(country_history_context&) { }
+		void any_value(std::string_view tag, association_type, float v, error_handler& err, int32_t line, country_history_context& context);
+	};
+
+	struct country_history_file {
+		void finish(country_history_context&) { }
+		void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+		void capital(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);
+		void any_value(std::string_view label, association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+		void primary_culture(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+		void culture(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+		void religion(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+		void government(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+		void plurality(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
+		void prestige(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
+		void nationalvalue(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+		void schools(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+
+		foreign_investment_block foreign_investment;
+		upper_house_block upper_house;
+
+		void civilized(association_type, bool value, error_handler& err, int32_t line, country_history_context& context);
+		void is_releasable_vassal(association_type, bool value, error_handler& err, int32_t line, country_history_context& context);
+		void literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
+		void non_state_culture_literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
+		void consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
+		void nonstate_consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
+		void govt_flag(const govt_flag_block& value, error_handler& err, int32_t line, country_history_context& context);
+		void ruling_party(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+	};
+
+	void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err, country_history_context& context);
 }
 
 #include "trigger_parsing.hpp"
+#include "effect_parsing.hpp"
 #include "parser_defs_generated.hpp"
 

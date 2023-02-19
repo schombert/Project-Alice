@@ -1,3 +1,5 @@
+#pragma once
+
 //
 // This file is derived from https://github.com/kocienda/Any
 // With *very* minor tweaks

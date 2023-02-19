@@ -55,6 +55,7 @@ add_dependencies(tests_project GENERATE_TEST_PARSERS)
 add_dependencies(tests_project GENERATE_PARSERS)
 add_dependencies(tests_project GENERATE_CONTAINER ParserGenerator)
 
+target_precompile_headers(tests_project REUSE_FROM Alice)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
 	target_compile_definitions(tests_project PRIVATE LOCAL_USER_SETTINGS)
@@ -66,6 +67,7 @@ endif()
 target_compile_definitions(tests_project PRIVATE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
+
 
 target_include_directories(tests_project PUBLIC
 	${PROJECT_SOURCE_DIR}/src
@@ -88,14 +90,18 @@ target_include_directories(tests_project PUBLIC
 	${PROJECT_SOURCE_DIR}/src/culture
 	${PROJECT_SOURCE_DIR}/src/military
 	${PROJECT_SOURCE_DIR}/src/scripting
+	${PROJECT_SOURCE_DIR}/src/zstd
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
+
+message("ZSTD_INCLUDE_DIR: \"${ZSTD_INCLUDE_DIR}\"")
 
 target_link_libraries(tests_project PRIVATE libglew_static)
 target_link_libraries(tests_project PRIVATE dependency_DataContainer)
 target_link_libraries(tests_project PRIVATE stb_image)
 target_link_libraries(tests_project PRIVATE freetype)
 target_link_libraries(tests_project PRIVATE glm)
+
 if (NOT WIN32)
 	target_link_libraries(tests_project PRIVATE glfw)
 	target_link_libraries(tests_project PRIVATE miniaudio)

@@ -80,6 +80,33 @@ message("leftover CMAKE_CXX_FLAGS: \"${CMAKE_CXX_FLAGS}\"")
 message("leftover CMAKE_CXX_FLAGS_DEBUG: \"${CMAKE_CXX_FLAGS_DEBUG}\"")
 message("leftover CMAKE_CXX_FLAGS_RELEASE: \"${CMAKE_CXX_FLAGS_RELEASE}\"")
 
+target_precompile_headers(Alice
+	PRIVATE <stdint.h>
+	PRIVATE <vector>
+	PRIVATE <array>
+	PRIVATE <optional>
+	PRIVATE <memory>
+	PRIVATE <variant>
+	PRIVATE <string>
+	PRIVATE <string_view>
+	PRIVATE <charconv>
+	PRIVATE <algorithm>
+	PRIVATE <iterator>
+	PRIVATE <stdlib.h>
+	PRIVATE <ctype.h>
+	PRIVATE <cmath>
+	PRIVATE <functional>
+	PRIVATE <cstdlib>
+	PRIVATE [["simple_fs.hpp"]]
+	PRIVATE [["constants.hpp"]]
+	PRIVATE [["unordered_dense.h"]]
+	PRIVATE [["dcon_generated.hpp"]]
+	PRIVATE [["container_types.hpp"]]
+	PRIVATE [["parsers_declarations.hpp"]]
+	PRIVATE [["cyto_any.hpp"]]
+	PRIVATE [["date_interface.hpp"]]
+)
+
 add_compile_definitions(VE_NO_TBB)
 
 target_link_libraries(Alice PRIVATE dependency_DataContainer)
@@ -114,6 +141,7 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/culture
 	${PROJECT_SOURCE_DIR}/src/military
 	${PROJECT_SOURCE_DIR}/src/scripting
+	${PROJECT_SOURCE_DIR}/src/zstd
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 

@@ -71,6 +71,7 @@ namespace parsers {
 	public:
 		std::string file_name;
 		std::string accumulated_errors;
+		std::string accumulated_warnings;
 		bool fatal = false;
 
 		error_handler(std::string file_name) : file_name(std::move(file_name)) { }
@@ -79,7 +80,7 @@ namespace parsers {
 			accumulated_errors += "unexpected group key " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n";
 		}
 		void unhandled_association_key(token_and_type const& t) {
-			accumulated_errors += "unexpected group key " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n";
+			accumulated_errors += "unexpected value key " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n";
 		}
 		void unhandled_free_value(token_and_type const& t) {
 			accumulated_errors += "unexpected free value " + std::string(t.content) + " found on line " + std::to_string(t.line) + " of file " + file_name + "\n";

@@ -882,6 +882,8 @@ void display_data::update() {
 	// Set the last_update_time if it hasn't been set yet
 	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
 		last_update_time = now;
+	if(last_zoom_time == std::chrono::time_point<std::chrono::system_clock>{})
+		last_zoom_time = now;
 
 	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
 	float seconds_since_last_update = (float)(microseconds_since_last_update.count() / 1e6);
@@ -890,12 +892,27 @@ void display_data::update() {
 	time_counter += seconds_since_last_update;
 	time_counter = (float)std::fmod(time_counter, 600.f); // Reset it after every 10 minutes
 
-	auto velocity = pos_velocity * (seconds_since_last_update / zoom);
+	glm::vec2 velocity;
+
+	if(zoom_change > 0) {
+		velocity = ((pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom)) / 3.f;
+	}
+	else {
+		velocity = ((pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom)) / 6.f;
+	}
 	velocity.x *= size.y / size.x;
 	pos += velocity;
 
-	zoom += zoom_change * seconds_since_last_update;
-	zoom_change *= 0.9f;
+	if(has_zoom_changed) {
+		last_zoom_time = now;
+		has_zoom_changed = false;
+	}
+	auto microseconds_since_last_zoom = std::chrono::duration_cast<std::chrono::microseconds>(now - last_zoom_time);
+	float seconds_since_last_zoom = (float)(microseconds_since_last_zoom.count() / 1e6);
+
+	zoom += (zoom_change * seconds_since_last_update)/(1/zoom);
+	zoom_change *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
+	scroll_pos_velocity *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
 
 	pos.x = glm::mod(pos.x, 1.f);
 	pos.y = glm::clamp(pos.y, 0.f, 1.f);
@@ -947,14 +964,16 @@ void display_data::set_pos(glm::vec2 new_pos) {
 	offset_y = pos.y - 0.5f;
 }
 
-void display_data::on_mouse_wheel(int32_t x, int32_t y, sys::key_modifiers mod, float amount) {
-	amount = std::clamp(amount, -4.f, 4.f);
-	constexpr auto zoom_speed_factor = 2.5f;
-	if(amount >= 0) {
-		zoom_change = zoom * ((1.f + amount / 5.f) * zoom_speed_factor);
-	} else if(amount < 0) {
-		zoom_change = -(zoom * ((1.f - amount / 5.f) * zoom_speed_factor));
-	}
+void display_data::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount) {
+	constexpr auto zoom_speed_factor = 15.f;
+	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
+	has_zoom_changed = true;
+
+    auto mouse_pos = glm::vec2(x, y);
+    auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+    scroll_pos_velocity = mouse_pos - screen_size * .5f;
+    scroll_pos_velocity /= screen_size;
+    scroll_pos_velocity *= zoom_speed_factor;
 }
 
 void display_data::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {

@@ -45,29 +45,26 @@ With all the names figured out, we can get back to the business of dumping all t
 
 - Read country files from `common\countries` *Done*
 - Read province history files *Done*
-- Read flag graphics from the `gfx\flags` to determine which flags are available
-- Populate the country names
-- Read production types from `production_types.txt`
+- Read production types from `production_types.txt` *Done*
 - Read prepared ideologies *Done*
-- Read prepared issue options
-- Read prepared CB types
-- Read prepared crimes (from modifiers)
+- Read prepared issue options *Done*
+- Read prepared CB types *Done*
+- Read prepared crimes (from modifiers) *Done*
 - Read prepared triggered modifiers *Done*
-- Read `national_focus.txt`
-- Read main poptypes file (`pop_types.txt`)
+- Read `national_focus.txt` *Done*
+- Read main poptypes file (`pop_types.txt`) *Done*
 - Read files in directory `poptypes` *Done*
-- Read prepared rebel types
-- Read `on_actions.txt`
-- Read event files from directory `events`
-- Read decision files from directory `decisions`
-- Read prepared technologies
-- Read prepared inventions
+- Read prepared rebel types *Done*
+- Read `on_actions.txt` *Done*
+- Read event files from directory `events` *Done*
+- Read decision files from directory `decisions` *Done*
+- Read prepared technologies *Done*
+- Read prepared inventions *Done*
+- Read other history files *Done*
 
 ### Phase 4: fixups
 
 Now that all of the data has been read, we can do any final touchups or additions required to put the scenario in a savable state
 
-- Setup the rules for each party
-- Determine the farmer and laborer poptypes
-- Commit pending triggered events
+- Populate derived values
 - Optional: store any fixed ui text handles that we want to cache for better performance

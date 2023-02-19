@@ -438,14 +438,15 @@ void tr_scope_sphere_owner(token_generator& gen, error_handler& err, trigger_bui
 	}
 }
 void tr_scope_independence(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	if(context.main_slot == trigger::slot_contents::rebel) {
+	if(context.from_slot == trigger::slot_contents::rebel) {
 		context.compiled_trigger.push_back(uint16_t(trigger::independence_scope | trigger::is_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
+		auto old_main = context.main_slot;
 		context.main_slot = trigger::slot_contents::nation;
 		parse_trigger_body(gen, err, context);
-		context.main_slot = trigger::slot_contents::rebel;
+		context.main_slot = old_main;
 
 		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 	} else {
@@ -628,6 +629,9 @@ bool scope_has_single_member(const uint16_t* source) {
 
 //yields new source size
 int32_t simplify_trigger(uint16_t* source) {
+	assert(
+		(0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code)
+		|| (*source & (trigger::code_mask | trigger::is_scope)) == (trigger::placeholder_not_scope | trigger::is_scope));
 	if((source[0] & trigger::is_scope) != 0) {
 		if(scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
@@ -714,6 +718,38 @@ dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler
 	auto new_count = context.outer_context.state.value_modifier_segments.size();
 
 	return context.outer_context.state.value_modifiers.push_back(sys::value_modifier_description{ overall_factor, uint16_t(old_count), uint16_t(new_count - old_count) });
+}
+
+void trigger_body::badboy(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_trigger.push_back(uint16_t(trigger::badboy | association_to_trigger_code(a)));
+	} else {
+		err.accumulated_errors += "badboy trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	context.add_float_to_payload(value * context.outer_context.state.defines.badboy_limit);
+}
+
+void trigger_body::ruling_party(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_trigger.push_back(uint16_t(trigger::ruling_party | association_to_bool_code(a)));
+	} else {
+		err.accumulated_errors += "ruling_party trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	auto name_id = text::find_or_add_key(context.outer_context.state, value);
+	context.compiled_trigger.push_back(trigger::payload(name_id).value);
+}
+
+void trigger_body::has_leader(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_trigger.push_back(uint16_t(trigger::has_leader | association_to_bool_code(a)));
+	} else {
+		err.accumulated_errors += "has_leader trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	auto name_id = text::find_or_add_key(context.outer_context.state, value);
+	context.compiled_trigger.push_back(trigger::payload(name_id).value);
 }
 
 }
