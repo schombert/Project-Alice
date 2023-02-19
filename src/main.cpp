@@ -63,6 +63,7 @@ namespace sys {
 // zstd
 
 #define XXH_NAMESPACE ZSTD_
+#define ZSTD_DISABLE_ASM
 
 #include "zstd/xxhash.c"
 #include "zstd/zstd_decompress_block.c"
@@ -85,4 +86,3 @@ namespace sys {
 #include "zstd/error_private.c"
 #include "zstd/zstd_decompress.c"
 #include "zstd/zstd_compress.c"
-#include "zstd/huf_decompress_amd64.S"
