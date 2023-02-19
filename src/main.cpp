@@ -22,6 +22,7 @@
 #include "trigger_parsing.cpp"
 #include "effect_parsing.cpp"
 #include "parsers_declarations.cpp"
+#include "serialization.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

@@ -57,7 +57,21 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			for(uint32_t i = 0; i < 8 && i < res.colonial_points.data.size(); ++i)
 				context.state.economy_definitions.naval_base_definition.colonial_points[i] = res.colonial_points.data[i];
 			context.state.economy_definitions.naval_base_definition.colonial_range = res.colonial_range;
-			context.state.economy_definitions.naval_base_definition.cost = std::move(res.goods_cost.data);
+			{
+				uint32_t added = 0;
+				context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+					auto amount = res.goods_cost.data.safe_get(id);
+					if(amount > 0) {
+						if(added >= economy::commodity_set::set_size) {
+							err.accumulated_errors += "Too many naval_base cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+						} else {
+							context.state.economy_definitions.naval_base_definition.cost.commodity_type[added] = id;
+							context.state.economy_definitions.naval_base_definition.cost.commodity_amounts[added] = amount;
+							++added;
+						}
+					}
+				});
+			}
 			context.state.economy_definitions.naval_base_definition.max_level = res.max_level;
 			context.state.economy_definitions.naval_base_definition.naval_capacity = res.naval_capacity;
 			context.state.economy_definitions.naval_base_definition.time = res.time;
@@ -71,7 +85,22 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			}
 			break;
 		case building_type::fort:
-			context.state.economy_definitions.fort_definition.cost = std::move(res.goods_cost.data);
+			{
+				uint32_t added = 0;
+				context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+					auto amount = res.goods_cost.data.safe_get(id);
+					if(amount > 0) {
+						if(added >= economy::commodity_set::set_size) {
+							err.accumulated_errors += "Too many fort cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+						} else {
+							context.state.economy_definitions.fort_definition.cost.commodity_type[added] = id;
+							context.state.economy_definitions.fort_definition.cost.commodity_amounts[added] = amount;
+							++added;
+						}
+					}
+				});
+
+			}
 			context.state.economy_definitions.fort_definition.max_level = res.max_level;
 			context.state.economy_definitions.fort_definition.time = res.time;
 			context.state.economy_definitions.fort_definition.name = text::find_or_add_key(context.state, name);
@@ -84,7 +113,22 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			}
 			break;
 		case building_type::railroad:
-			context.state.economy_definitions.railroad_definition.cost = std::move(res.goods_cost.data);
+			{
+				uint32_t added = 0;
+				context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+					auto amount = res.goods_cost.data.safe_get(id);
+					if(amount > 0) {
+						if(added >= economy::commodity_set::set_size) {
+							err.accumulated_errors += "Too many railroad cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+						} else {
+							context.state.economy_definitions.railroad_definition.cost.commodity_type[added] = id;
+							context.state.economy_definitions.railroad_definition.cost.commodity_amounts[added] = amount;
+							++added;
+						}
+					}
+				});
+
+			}
 			context.state.economy_definitions.railroad_definition.infrastructure = res.infrastructure;
 			context.state.economy_definitions.railroad_definition.max_level = res.max_level;
 			context.state.economy_definitions.railroad_definition.time = res.time;

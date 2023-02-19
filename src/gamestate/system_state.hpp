@@ -99,6 +99,8 @@ namespace sys {
 
 		// current program / ui state
 
+		dcon::nation_id local_player_nation;
+
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information
 		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platform-dependent sound information
