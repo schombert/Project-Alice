@@ -720,4 +720,36 @@ dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler
 	return context.outer_context.state.value_modifiers.push_back(sys::value_modifier_description{ overall_factor, uint16_t(old_count), uint16_t(new_count - old_count) });
 }
 
+void trigger_body::badboy(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_trigger.push_back(uint16_t(trigger::badboy | association_to_trigger_code(a)));
+	} else {
+		err.accumulated_errors += "badboy trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	context.add_float_to_payload(value * context.outer_context.state.defines.badboy_limit);
+}
+
+void trigger_body::ruling_party(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_trigger.push_back(uint16_t(trigger::ruling_party | association_to_bool_code(a)));
+	} else {
+		err.accumulated_errors += "ruling_party trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	auto name_id = text::find_or_add_key(context.outer_context.state, value);
+	context.compiled_trigger.push_back(trigger::payload(name_id).value);
+}
+
+void trigger_body::has_leader(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_trigger.push_back(uint16_t(trigger::has_leader | association_to_bool_code(a)));
+	} else {
+		err.accumulated_errors += "has_leader trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	auto name_id = text::find_or_add_key(context.outer_context.state, value);
+	context.compiled_trigger.push_back(trigger::payload(name_id).value);
+}
+
 }

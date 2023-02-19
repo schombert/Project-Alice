@@ -55,6 +55,7 @@ add_dependencies(tests_project GENERATE_TEST_PARSERS)
 add_dependencies(tests_project GENERATE_PARSERS)
 add_dependencies(tests_project GENERATE_CONTAINER ParserGenerator)
 
+target_precompile_headers(tests_project REUSE_FROM Alice)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/src/local_user_settings.hpp)
 	target_compile_definitions(tests_project PRIVATE LOCAL_USER_SETTINGS)

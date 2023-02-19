@@ -8,6 +8,7 @@
 #include "gui_minimap.hpp"
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
+#include "gui_province_window.hpp"
 #include <algorithm>
 
 namespace sys {
@@ -38,9 +39,15 @@ namespace sys {
 			auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 			if(r != ui::message_result::consumed) {
 				map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+				if(ui_state.province_window) {
+					static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_display.selected_province);
+				}
 			}
 		} else {
 			map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			if(ui_state.province_window) {
+				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_display.selected_province);
+			}
 		}
 	}
 	void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) {
@@ -147,6 +154,10 @@ namespace sys {
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_picture_window>(*this, "minimap_pic");
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::province_view_window>(*this, "province_view");
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 		{
@@ -772,6 +783,13 @@ namespace sys {
 
 		world.rebel_type_resize_government_change(uint32_t(culture_definitions.governments.size()));
 
+		world.nation_resize_active_inventions(world.invention_size());
+		world.nation_resize_active_technologies(world.technology_size());
+		world.nation_resize_reforms_and_issues(world.issue_size());
+		world.nation_resize_upper_house(world.ideology_size());
+
+		world.national_identity_resize_government_flag_type(uint32_t(culture_definitions.governments.size()));
+
 		// load country files
 		world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));
@@ -1076,6 +1094,47 @@ namespace sys {
 					parsers::parse_union_file(gen, err, context);
 				} else {
 					err.accumulated_errors += "File history/diplomacy/Unions.txt could not be opened\n";
+				}
+			}
+		}
+
+		// !!!! yes, I know
+		world.nation_resize_flag_variables(uint32_t(national_definitions.num_allocated_national_flags));
+
+		// load country history
+		{
+			auto country_dir = open_directory(history, NATIVE("countries"));
+			for(auto country_file : list_files(country_dir, NATIVE(".txt"))) {
+				auto file_name = get_full_name(country_file);
+
+				auto last = file_name.c_str() + file_name.length();
+				auto first = file_name.c_str();
+				auto start_of_name = last;
+				for(; start_of_name >= first; --start_of_name) {
+					if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+						++start_of_name;
+						break;
+					}
+				}
+				if(last - start_of_name >= 6) {
+					auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
+
+					if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+						auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+						
+						parsers::country_history_context new_context{ context, it->second, holder };
+
+						auto opened_file = open_file(country_file);
+						if(opened_file) {
+							err.file_name = utf8name;
+							auto content = view_contents(*opened_file);
+							parsers::token_generator gen(content.data, content.data + content.file_size);
+							parsers::parse_country_history_file(gen, err, new_context);
+						}
+						
+					} else {
+						err.accumulated_errors += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
+					}
 				}
 			}
 		}

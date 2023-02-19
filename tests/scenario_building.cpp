@@ -675,6 +675,13 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.invention_resize_activate_crime(uint32_t(state->culture_definitions.crimes.size()));
 
 	state->world.rebel_type_resize_government_change(uint32_t(state->culture_definitions.governments.size()));
+
+	state->world.nation_resize_active_inventions(state->world.invention_size());
+	state->world.nation_resize_active_technologies(state->world.technology_size());
+	state->world.nation_resize_reforms_and_issues(state->world.issue_size());
+	state->world.nation_resize_upper_house(state->world.ideology_size());
+
+	state->world.national_identity_resize_government_flag_type(uint32_t(state->culture_definitions.governments.size()));
 	{
 		state->world.for_each_national_identity([&](dcon::national_identity_id i) {
 			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[i]);
@@ -1148,6 +1155,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(reg_count == 6);
 		REQUIRE(from_294 == true);
 	}
+
+
 	// parse diplomacy history
 	{
 		auto diplomacy = open_directory(history, NATIVE("diplomacy"));
@@ -1200,6 +1209,58 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(gxi.get_overlord_as_subject().get_ruler() == china);
 		REQUIRE(gxi.get_overlord_as_subject().get_is_substate() == true);
 
+	}
+
+	state->world.nation_resize_flag_variables(uint32_t(state->national_definitions.num_allocated_national_flags));
+	// load country history
+	{
+		auto country_dir = open_directory(history, NATIVE("countries"));
+		for(auto country_file : list_files(country_dir, NATIVE(".txt"))) {
+			auto file_name = get_full_name(country_file);
+
+			auto last = file_name.c_str() + file_name.length();
+			auto first = file_name.c_str();
+			auto start_of_name = last;
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+					++start_of_name;
+					break;
+				}
+			}
+			if(last - start_of_name >= 6) {
+				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
+
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+
+					parsers::country_history_context new_context{ context, it->second, holder };
+
+					auto opened_file = open_file(country_file);
+					if(opened_file) {
+						err.file_name = utf8name;
+						auto content = view_contents(*opened_file);
+						parsers::token_generator gen(content.data, content.data + content.file_size);
+						parsers::parse_country_history_file(gen, err, new_context);
+					}
+
+				} else {
+					err.accumulated_errors += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
+				}
+			}
+		}
+
+
+		REQUIRE(err.accumulated_errors == "");
+
+		auto tag = fatten(state->world, context.map_of_ident_names.find(nations::tag_to_int('P', 'O', 'R'))->second);
+		auto nation = tag.get_nation_from_identity_holder();
+
+		REQUIRE(nation.get_plurality() == 25.0f);
+		REQUIRE(nation.get_prestige() == 10.0f);
+		REQUIRE(nation.get_is_civilized() == true);
+
+		REQUIRE(nation.get_reforms_and_issues(context.map_of_issues.find("voting_system")->second) == context.map_of_options.find("jefferson_method")->second.id);
+		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
 }
 #endif
