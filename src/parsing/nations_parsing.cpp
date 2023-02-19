@@ -13,8 +13,8 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
 
-	auto name_id = text::find_or_add_key(context.state, txt);
-	auto adj_id = text::find_or_add_key(context.state, std::string(txt) + "_ADJ");
+	auto name_id = text::find_or_add_key(context.state, tag);
+	auto adj_id = text::find_or_add_key(context.state, std::string(tag) + "_ADJ");
 	context.state.world.national_identity_set_name(new_ident, name_id);
 	context.state.world.national_identity_set_adjective(new_ident, adj_id);
 
@@ -1056,6 +1056,15 @@ void make_substate(token_generator& gen, error_handler& err, scenario_building_c
 	if(!a.invalid) {
 		auto rel_id = context.state.world.force_create_overlord(a.second_, a.first_);
 		context.state.world.overlord_set_is_substate(rel_id, true);
+	}
+}
+
+void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err, country_history_context& context) {
+	auto ymd = parse_date(label, 0, err);
+	if(sys::absolute_time_point(ymd) <= context.outer_context.state.start_date) {
+		parse_country_history_file(gen, err, context);
+	} else {
+		gen.discard_group();
 	}
 }
 

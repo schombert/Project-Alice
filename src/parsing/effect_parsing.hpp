@@ -210,43 +210,13 @@ struct ef_war {
 struct ef_country_event {
 	int32_t days = -1;
 	dcon::national_event_id id_;
-	void id(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_national_events.find(value); it != context.outer_context.map_of_national_events.end()) {
-			if(it->second.id) {
-				id_ = it->second.id;
-			} else {
-				id_ = context.outer_context.state.world.create_national_event();
-				it->second.id = id_;
-				it->second.main_slot = trigger::slot_contents::nation;
-				it->second.this_slot = trigger::slot_contents::nation;
-				it->second.from_slot = context.this_slot;
-			}
-		} else {
-			id_ = context.outer_context.state.world.create_national_event();
-			context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ id_, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
-		}
-	}
+	void id(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context);
 	void finish(effect_building_context&) { }
 };
 struct ef_province_event {
 	int32_t days = -1;
 	dcon::provincial_event_id id_;
-	void id(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_provincial_events.find(value); it != context.outer_context.map_of_provincial_events.end()) {
-			if(it->second.id) {
-				id_ = it->second.id;
-			} else {
-				id_ = context.outer_context.state.world.create_provincial_event();
-				it->second.id = id_;
-				it->second.main_slot = trigger::slot_contents::province;
-				it->second.this_slot = trigger::slot_contents::nation;
-				it->second.from_slot = context.this_slot;
-			}
-		} else {
-			id_ = context.outer_context.state.world.create_provincial_event();
-			context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ id_, trigger::slot_contents::province, trigger::slot_contents::nation, context.this_slot });
-		}
-	}
+	void id(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context);
 	void finish(effect_building_context&) { }
 };
 struct ef_sub_unit {
@@ -905,105 +875,8 @@ struct effect_body {
 			return;
 		}
 	}
-	void country_event(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::nation) {
-			if(context.this_slot == trigger::slot_contents::nation)
-				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_nation));
-			else if(context.this_slot == trigger::slot_contents::province)
-				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_province));
-			else if(context.this_slot == trigger::slot_contents::state)
-				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_state));
-			else if(context.this_slot == trigger::slot_contents::pop)
-				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_pop));
-			else {
-				err.accumulated_errors += "country_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-				return;
-			}
-			if(auto it = context.outer_context.map_of_national_events.find(value); it != context.outer_context.map_of_national_events.end()) {
-				if(it->second.id) {
-					context.compiled_effect.push_back(trigger::payload(it->second.id).value);
-				} else {
-					auto ev_id = context.outer_context.state.world.create_national_event();
-					it->second.id = ev_id;
-					it->second.main_slot = trigger::slot_contents::nation;
-					it->second.this_slot = trigger::slot_contents::nation;
-					it->second.from_slot = context.this_slot;
-					context.compiled_effect.push_back(trigger::payload(ev_id).value);
-				}
-			} else {
-				auto ev_id = context.outer_context.state.world.create_national_event();
-				context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ ev_id, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
-				context.compiled_effect.push_back(trigger::payload(ev_id).value);
-			}
-		} else if(context.main_slot == trigger::slot_contents::province) {
-			if(context.this_slot == trigger::slot_contents::nation)
-				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_nation));
-			else if(context.this_slot == trigger::slot_contents::province)
-				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_province));
-			else if(context.this_slot == trigger::slot_contents::state)
-				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_state));
-			else if(context.this_slot == trigger::slot_contents::pop)
-				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_pop));
-			else {
-				err.accumulated_errors += "country_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-				return;
-			}
-			if(auto it = context.outer_context.map_of_national_events.find(value); it != context.outer_context.map_of_national_events.end()) {
-				if(it->second.id) {
-					context.compiled_effect.push_back(trigger::payload(it->second.id).value);
-				} else {
-					auto ev_id = context.outer_context.state.world.create_national_event();
-					it->second.id = ev_id;
-					it->second.main_slot = trigger::slot_contents::nation;
-					it->second.this_slot = trigger::slot_contents::nation;
-					it->second.from_slot = context.this_slot;
-					context.compiled_effect.push_back(trigger::payload(ev_id).value);
-				}
-			} else {
-				auto ev_id = context.outer_context.state.world.create_national_event();
-				context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ ev_id, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
-				context.compiled_effect.push_back(trigger::payload(ev_id).value);
-			}
-		} else {
-			err.accumulated_errors += "country_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-	}
-	void province_event(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::nation) {
-			if(context.this_slot == trigger::slot_contents::nation)
-				context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_nation));
-			else if(context.this_slot == trigger::slot_contents::province)
-				context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_province));
-			else if(context.this_slot == trigger::slot_contents::state)
-				context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_state));
-			else if(context.this_slot == trigger::slot_contents::pop)
-				context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_pop));
-			else {
-				err.accumulated_errors += "province_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-				return;
-			}
-			if(auto it = context.outer_context.map_of_provincial_events.find(value); it != context.outer_context.map_of_provincial_events.end()) {
-				if(it->second.id) {
-					context.compiled_effect.push_back(trigger::payload(it->second.id).value);
-				} else {
-					auto ev_id = context.outer_context.state.world.create_provincial_event();
-					it->second.id = ev_id;
-					it->second.main_slot = trigger::slot_contents::province;
-					it->second.this_slot = trigger::slot_contents::nation;
-					it->second.from_slot = context.this_slot;
-					context.compiled_effect.push_back(trigger::payload(ev_id).value);
-				}
-			} else {
-				auto ev_id = context.outer_context.state.world.create_provincial_event();
-				context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ ev_id, trigger::slot_contents::province, trigger::slot_contents::nation, context.this_slot });
-				context.compiled_effect.push_back(trigger::payload(ev_id).value);
-			}
-		} else {
-			err.accumulated_errors += "province_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-	}
+	void country_event(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context);
+	void province_event(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context);
 	void military_access(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			if(is_this(value)) {
@@ -2765,26 +2638,8 @@ struct effect_body {
 			return;
 		}
 	}
-	void define_general(ef_define_general const& value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "define_general effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-		context.compiled_effect.push_back(effect::define_general);
-		context.compiled_effect.push_back(trigger::payload(context.outer_context.state.add_unit_name(value.name)).value);
-		context.compiled_effect.push_back(trigger::payload(value.personality_).value);
-		context.compiled_effect.push_back(trigger::payload(value.background_).value);
-	}
-	void define_admiral(ef_define_admiral const& value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "define_admiral effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-		context.compiled_effect.push_back(effect::define_admiral);
-		context.compiled_effect.push_back(trigger::payload(context.outer_context.state.add_unit_name(value.name)).value);
-		context.compiled_effect.push_back(trigger::payload(value.personality_).value);
-		context.compiled_effect.push_back(trigger::payload(value.background_).value);
-	}
+	void define_general(ef_define_general const& value, error_handler& err, int32_t line, effect_building_context& context);
+	void define_admiral(ef_define_admiral const& value, error_handler& err, int32_t line, effect_building_context& context);
 	void add_war_goal(ef_add_war_goal const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation || context.from_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "add_war_goal effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";

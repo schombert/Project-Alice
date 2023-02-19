@@ -2382,15 +2382,7 @@ struct trigger_body {
 			return;
 		}
 	}
-	void badboy(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::nation) {
-			context.compiled_trigger.push_back(uint16_t(trigger::badboy | association_to_trigger_code(a)));
-		} else {
-			err.accumulated_errors += "badboy trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-		context.add_float_to_payload(value * context.outer_context.state.defines.badboy_limit);
-	}
+	void badboy(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context);
 	void has_building(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::state) {
 			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "factory"))
@@ -2706,26 +2698,8 @@ struct trigger_body {
 			err.accumulated_errors += "ruling_party_ideology trigger supplied with an invalid ideology (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
-	void ruling_party(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::nation) {
-			context.compiled_trigger.push_back(uint16_t(trigger::ruling_party | association_to_bool_code(a)));
-		} else {
-			err.accumulated_errors += "ruling_party trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-		auto name_id = text::find_or_add_key(context.outer_context.state, value);
-		context.compiled_trigger.push_back(trigger::payload(name_id).value);
-	}
-	void has_leader(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::nation) {
-			context.compiled_trigger.push_back(uint16_t(trigger::has_leader | association_to_bool_code(a)));
-		} else {
-			err.accumulated_errors += "has_leader trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-		auto name_id = text::find_or_add_key(context.outer_context.state, value);
-		context.compiled_trigger.push_back(trigger::payload(name_id).value);
-	}
+	void ruling_party(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context);
+	void has_leader(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context);
 	void is_ideology_enabled(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_ideologies.find(std::string(value)); it != context.outer_context.map_of_ideologies.end()) {
 			context.compiled_trigger.push_back(uint16_t(trigger::is_ideology_enabled | association_to_bool_code(a)));
