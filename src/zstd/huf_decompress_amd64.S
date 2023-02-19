@@ -8,7 +8,7 @@
  * You may select, at your option, one of the above-listed licenses.
  */
 
-#include "../common/portability_macros.h"
+#include "portability_macros.h"
 
 /* Stack marking
  * ref: https://wiki.gentoo.org/wiki/Hardened/GNU_stack_quickstart

@@ -85,3 +85,4 @@ namespace sys {
 #include "zstd/error_private.c"
 #include "zstd/zstd_decompress.c"
 #include "zstd/zstd_compress.c"
+#include "zstd/huf_decompress_amd64.S"
