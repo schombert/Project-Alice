@@ -68,6 +68,7 @@ target_compile_definitions(tests_project PRIVATE "PROJECT_ROOT=\"${PROJECT_SOURC
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 
+
 target_include_directories(tests_project PUBLIC
 	${PROJECT_SOURCE_DIR}/src
 	${PROJECT_SOURCE_DIR}/src/common_types
@@ -89,14 +90,18 @@ target_include_directories(tests_project PUBLIC
 	${PROJECT_SOURCE_DIR}/src/culture
 	${PROJECT_SOURCE_DIR}/src/military
 	${PROJECT_SOURCE_DIR}/src/scripting
+	${PROJECT_SOURCE_DIR}/src/zstd
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
+
+message("ZSTD_INCLUDE_DIR: \"${ZSTD_INCLUDE_DIR}\"")
 
 target_link_libraries(tests_project PRIVATE libglew_static)
 target_link_libraries(tests_project PRIVATE dependency_DataContainer)
 target_link_libraries(tests_project PRIVATE stb_image)
 target_link_libraries(tests_project PRIVATE freetype)
 target_link_libraries(tests_project PRIVATE glm)
+
 if (NOT WIN32)
 	target_link_libraries(tests_project PRIVATE glfw)
 	target_link_libraries(tests_project PRIVATE miniaudio)
