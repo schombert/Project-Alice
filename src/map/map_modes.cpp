@@ -8,7 +8,7 @@
 namespace map_mode {
 
 void set_political(sys::state& state) {
-	std::vector<uint32_t> prov_color(state.map_display.nr_of_provinces);
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
 
 	state.world.for_each_province([&](dcon::province_id prov_id){
 		auto fat_id = dcon::fatten(state.world, prov_id);
@@ -29,20 +29,20 @@ void set_political(sys::state& state) {
 inline constexpr uint32_t scramble(uint32_t color) {
 	uint32_t m1 = 0x1337CAFE;
 	uint32_t m2 = 0xDEADBEEF;
-	m1 -= m2; m1 -= color; m1 ^= (color>>13); 
-	m2 -= color; m2 -= m1; m2 ^= (m1<<8); 
-	color -= m1; color -= m2; color ^= (m2>>13); 
-	m1 -= m2; m1 -= color; m1 ^= (color>>12);  
-	m2 -= color; m2 -= m1; m2 ^= (m1<<16); 
-	color -= m1; color -= m2; color ^= (m2>>5); 
-	m1 -= m2; m1 -= color; m1 ^= (color>>3);  
-	m2 -= color; m2 -= m1; m2 ^= (m1<<10); 
+	m1 -= m2; m1 -= color; m1 ^= (color>>13);
+	m2 -= color; m2 -= m1; m2 ^= (m1<<8);
+	color -= m1; color -= m2; color ^= (m2>>13);
+	m1 -= m2; m1 -= color; m1 ^= (color>>12);
+	m2 -= color; m2 -= m1; m2 ^= (m1<<16);
+	color -= m1; color -= m2; color ^= (m2>>5);
+	m1 -= m2; m1 -= color; m1 ^= (color>>3);
+	m2 -= color; m2 -= m1; m2 ^= (m1<<10);
 	color -= m1; color -= m2; color ^= (m2>>15);
 	return color;
 }
 
 void set_region(sys::state& state) {
-	std::vector<uint32_t> prov_color(state.map_display.nr_of_provinces);
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
@@ -56,7 +56,7 @@ void set_region(sys::state& state) {
 }
 
 std::vector<uint32_t> get_global_population_color(sys::state& state) {
-	std::vector<float> prov_population(state.map_display.nr_of_provinces);
+	std::vector<float> prov_population(state.world.province_size() + 1);
 	std::unordered_map<int32_t, float> continent_max_pop = {};
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
@@ -70,8 +70,8 @@ std::vector<uint32_t> get_global_population_color(sys::state& state) {
 		auto i = province::to_map_id(prov_id);
 		prov_population[i] = population;
 	});
-	
-	std::vector<uint32_t> prov_color(state.map_display.nr_of_provinces);
+
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto cid = fat_id.get_continent().id.index();
@@ -92,8 +92,8 @@ std::vector<uint32_t> get_national_population_color(sys::state& state) {
 		return get_global_population_color(state);
 	}
 	float max_population = 0.f;
-	std::vector<float> prov_population(state.map_display.nr_of_provinces);
-	
+	std::vector<float> prov_population(state.world.province_size() + 1);
+
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto i = province::to_map_id(prov_id);
@@ -109,7 +109,7 @@ std::vector<uint32_t> get_national_population_color(sys::state& state) {
 		}
 	});
 
-	std::vector<uint32_t> prov_color(state.map_display.nr_of_provinces);
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
 	for(size_t i = 0; i < prov_population.size(); i++) {
 		if(prov_population[i] > -1.f) {
 			float gradient_index = prov_population[i] / max_population;

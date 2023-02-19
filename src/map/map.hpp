@@ -11,10 +11,11 @@ public:
 	display_data() {};
 	~display_data();
 
+	// Called to load the terrain and province map data
+	void load_map_data(sys::state& state, ankerl::unordered_dense::map<uint32_t, dcon::province_id> const& color_map);
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	int nr_of_provinces = 0;
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
 	int16_t selected_province = 0;
 
@@ -44,7 +45,7 @@ private:
 	float time_counter = 0;
 
 	// map pixel -> province id
-	std::vector<int16_t> province_id_map = {};
+	std::vector<uint16_t> province_id_map = {};
 
 	// interaction
 	bool unhandled_province_selection = false;
@@ -52,9 +53,12 @@ private:
 	// Meshes
 	GLuint water_vbo = 0;
 	GLuint land_vbo = 0;
+	GLuint border_vbo = 0;
 	GLuint vao = 0;
+	GLuint border_vao = 0;
 	uint32_t water_indicies = 0;
 	uint32_t land_indicies = 0;
+	uint32_t border_indicies = 0;
 
 	// Textures
 	GLuint provinces_texture_handle = 0;
@@ -67,6 +71,7 @@ private:
 	GLuint colormap_political = 0;
 	GLuint overlay = 0;
 	GLuint province_color = 0;
+	GLuint border_texture = 0;
 	GLuint province_highlight = 0;
 
 	// Shaders
@@ -75,6 +80,12 @@ private:
 	GLuint terrain_political_close_shader = 0;
 	GLuint water_shader = 0;
 	GLuint water_political_shader = 0;
+	GLuint vic2_border_shader = 0;
+	GLuint line_border_shader = 0;
+
+	std::vector<uint8_t> terrain_id_map;
+	std::vector<glm::vec2> province_mid_point;
+	std::vector<uint8_t> median_terrain_type;
 
 	// Position and movement
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
@@ -95,8 +106,9 @@ private:
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
 
 	void load_shaders(simple_fs::directory& root);
-	void create_meshes(simple_fs::file& file);
+	void create_meshes();
+	void create_borders1();
+	void create_borders2();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color);
-	GLuint load_province_map(simple_fs::directory& map_dir, int& nr_of_province);
 };
 }
