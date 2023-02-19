@@ -23,11 +23,6 @@ public:
 		generic_tabbed_window::on_create(state);
 		set_visible(state, false);
 	}
-	movements_window* movewin = nullptr;
-	decision_window* deciswin = nullptr;
-	reforms_window* reformswin = nullptr;
-	release_nation_window* releasewin = nullptr;
-	unciv_reforms_window* uncivwin = nullptr;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
@@ -49,28 +44,26 @@ public:
 			return ptr;
 		} else if(name == "reforms_window") {
 			auto ptr = make_element_by_type<reforms_window>(state, id);
-			reformswin = ptr.get();
+			reform_elements.push_back(ptr.get());
 			ptr->set_visible(state, true);
-			this->add_child_to_front(std::move(ptr));
 			return ptr;
 		} else if(name == "movements_window") {
 			auto ptr = make_element_by_type<movements_window>(state, id);
-			movewin = ptr.get();
+			movement_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "decision_window") {
 			auto ptr = make_element_by_type<decision_window>(state, id);
-			deciswin = ptr.get();
+			decision_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "release_nation") {
 			auto ptr = make_element_by_type<release_nation_window>(state, id);
-			releasewin = ptr.get();
+			release_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "unciv_reforms_window") {
 			auto ptr = make_element_by_type<unciv_reforms_window>(state, id);
-			uncivwin = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else {
@@ -90,13 +83,9 @@ public:
 	}
 	void hide_sub_windows(sys::state& state) {
 		hide_vector_elements(state, reform_elements);
-		reformswin->set_visible(state, false);
 		hide_vector_elements(state, movement_elements);
-		movewin->set_visible(state, false);
 		hide_vector_elements(state, decision_elements);
-		deciswin->set_visible(state, false);
 		hide_vector_elements(state, release_elements);
-		releasewin->set_visible(state, false);
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<politics_window_tab>()) {
@@ -105,23 +94,15 @@ public:
 			switch(enum_val) {
 				case politics_window_tab::reforms:
 					show_vector_elements(state, reform_elements);
-					reformswin->set_visible(state, true);
-					this->move_child_to_front(reformswin);
 					break;
 				case politics_window_tab::movements:
 					show_vector_elements(state, movement_elements);
-					movewin->set_visible(state, true);
-					this->move_child_to_front(movewin);
 					break;
 				case politics_window_tab::decisions:
 					show_vector_elements(state, decision_elements);
-					deciswin->set_visible(state, true);
-					this->move_child_to_front(deciswin);
 					break;
 				case politics_window_tab::releasables:
 					show_vector_elements(state, release_elements);
-					releasewin->set_visible(state, true);
-					this->move_child_to_front(releasewin);
 					break;
 			}
 			active_tab = enum_val;
