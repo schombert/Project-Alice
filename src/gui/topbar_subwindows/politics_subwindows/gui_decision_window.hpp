@@ -13,8 +13,9 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "decision_listbox") {
-			auto ptr = make_element_by_type<listbox_element_base>(state, id);
-			return ptr;
+			// auto ptr = make_element_by_type<listbox_element_base>(state, id);
+			// return ptr;
+			return nullptr;
 		} else {
 			return nullptr;
 		}
