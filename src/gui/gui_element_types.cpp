@@ -699,7 +699,75 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 	}
 }
 
-void listbox_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+template<class RowConT>
+class wrapped_row_content {
+public:
+	RowConT content;
+	wrapped_row_content() {
+		content = RowConT{};
+	}
+	wrapped_row_content(RowConT con) {
+		content = con;
+	}
+};
+
+template<class RowConT>
+message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<wrapped_row_content<RowConT>>()) {
+		content = any_cast<wrapped_row_content<RowConT>>(payload).content;
+		update(state);
+	}
+	return message_result::unseen;
+}
+
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
+	if(is_reversed()) {
+		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
+		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
+			auto content = i >= 0 ? row_contents[i--] : RowConT{};
+			Cyto::Any payload = wrapped_row_content<RowConT>{ content };
+			row_windows[rw_i]->impl_get(state, payload);
+		}
+	} else {
+		auto i = size_t(scroll_pos);
+		for(RowWinT* row_window : row_windows) {
+			auto content = i < row_contents.size() ? row_contents[i++] : RowConT{};
+			Cyto::Any payload = wrapped_row_content<RowConT>{ content };
+			row_window->impl_get(state, payload);
+		}
+	}
+}
+
+template<class RowWinT, class RowConT>
+message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	if(amount < 0) {
+		scroll_pos = std::max(scroll_pos - 1, 0);
+	} else {
+		scroll_pos = std::min(scroll_pos + 1, int32_t(row_contents.size() - row_windows.size()));
+	}
+	update(state);
+	return message_result::consumed;
+}
+
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::on_create(sys::state& state) noexcept {
+	int16_t current_y = 0;
+	int16_t subwindow_y_size = 0;
+	while(current_y + subwindow_y_size < base_data.size.y) {
+		auto ptr = make_element_by_type<RowWinT>(state, get_row_element_name());
+		row_windows.push_back(static_cast<RowWinT*>(ptr.get()));
+		int16_t offset = ptr->base_data.position.y;
+		ptr->base_data.position.y += current_y;
+		subwindow_y_size = ptr->base_data.size.y;
+		current_y += ptr->base_data.size.y + offset;
+		add_child_to_front(std::move(ptr));
+	}
+	update(state);
+}
+
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid = base_data.data.list_box.background_image;
 	if(gid) {
 		auto& gfx_def = state.ui_defs.gfx[gid];
