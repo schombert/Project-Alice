@@ -8,8 +8,11 @@ int main() {
 	add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
 
 
-	// scenario making functions
-	game_state->load_scenario_data();
+	if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("development_test_file.bin"))) {
+		// scenario making functions
+		game_state->load_scenario_data();
+		sys::write_scenario_file(*game_state, NATIVE("development_test_file.bin"));
+	}
 
 	// scenario loading functions (would have to run these even when scenario is pre-built
 	game_state->load_user_settings();
