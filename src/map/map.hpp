@@ -37,6 +37,19 @@ public:
 
 	int16_t get_selected_province();
 	void set_selected_province(int16_t prov_id);
+
+	void create_border_data();
+	void create_border_ogl_objects();
+
+	uint32_t size_x;
+	uint32_t size_y;
+
+	std::vector<float> border_vertices;
+	std::vector<uint8_t> terrain_id_map;
+	std::vector<uint8_t> median_terrain_type;
+
+	// map pixel -> province id
+	std::vector<uint16_t> province_id_map;
 private:
 	// Last update time, used for smooth map movement
 	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
@@ -44,8 +57,7 @@ private:
 	// Time in seconds, send to the map shader for animations
 	float time_counter = 0;
 
-	// map pixel -> province id
-	std::vector<uint16_t> province_id_map = {};
+	
 
 	// interaction
 	bool unhandled_province_selection = false;
@@ -83,16 +95,12 @@ private:
 	GLuint vic2_border_shader = 0;
 	GLuint line_border_shader = 0;
 
-	std::vector<uint8_t> terrain_id_map;
-	std::vector<glm::vec2> province_mid_point;
-	std::vector<uint8_t> median_terrain_type;
-
 	// Position and movement
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
 	glm::vec2 pos_velocity = glm::vec2(0.f);
 	glm::vec2 last_camera_drag_pos;
 	bool is_dragging = false;
-	glm::vec2 size; // Map size
+	//glm::vec2 size; // Map size
 	float offset_x = 0.f;
 	float offset_y = 0.f;
 	float zoom = 1.f;
@@ -107,8 +115,6 @@ private:
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
-	void create_borders1();
-	void create_borders2();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color);
 };
 }

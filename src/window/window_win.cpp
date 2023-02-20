@@ -133,9 +133,7 @@ namespace window {
 
 			// setup opengl here
 			ogl::initialize_opengl(*create_state);
-			create_state->map_display.load_map_data(*create_state, {});
-			create_state->map_display.load_map(*create_state);
-
+			
 			RECT crect{};
 			GetClientRect(hwnd, &crect);
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR)create_state);
