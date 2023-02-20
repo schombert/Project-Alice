@@ -19,7 +19,7 @@ public:
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
 	int16_t selected_province = 0;
 
-	void render(uint32_t screen_x, uint32_t screen_y);
+	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
 	void set_terrain_map_mode();
 
@@ -56,8 +56,6 @@ private:
 
 	// Time in seconds, send to the map shader for animations
 	float time_counter = 0;
-
-	
 
 	// interaction
 	bool unhandled_province_selection = false;
@@ -109,7 +107,7 @@ private:
 	glm::vec2 scroll_pos_velocity = glm::vec2(0.f);
 	std::chrono::time_point<std::chrono::system_clock> last_zoom_time{};
 
-	void update();
+	void update(sys::state& state);
 
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
 

@@ -580,8 +580,8 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		get_content(*vic2_border_vshader), get_content(*vic2_border_fshader));
 }
 
-void display_data::render(uint32_t screen_x, uint32_t screen_y) {
-	update();
+void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
+	update(state);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, provinces_texture_handle);
 	glActiveTexture(GL_TEXTURE1);
@@ -731,7 +731,6 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 	auto root = simple_fs::get_root(state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 
-
 	// Load the province map
 	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
 	auto bmp_content = simple_fs::view_contents(*provinces_bmp);
@@ -862,7 +861,7 @@ void display_data::load_map(sys::state& state) {
 	set_province_color(test, map_mode::mode::terrain);
 }
 
-void display_data::update() {
+void display_data::update(sys::state& state) {
 	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 	// Set the last_update_time if it hasn't been set yet
 	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
@@ -905,7 +904,7 @@ void display_data::update() {
 	offset_y = pos.y - 0.5f;
 
 	if(unhandled_province_selection) {
-		std::vector<uint32_t> province_highlights(province_id_map.size());
+		std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
 		if(selected_province)
 			province_highlights[selected_province] = 0x2B2B2B2B;
 		gen_prov_color_texture(province_highlight, province_highlights);
