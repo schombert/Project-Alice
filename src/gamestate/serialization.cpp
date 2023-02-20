@@ -49,7 +49,7 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 
 	uint32_t section_length = uint32_t(
 		ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size),
-			ptr_in, uncompressed_size, 10)); // write compressed data
+			ptr_in, uncompressed_size, 0)); // write compressed data
 
 	memcpy(ptr_out, &section_length, sizeof(uint32_t));
 	memcpy(ptr_out + sizeof(uint32_t), &decompressed_length, sizeof(uint32_t));
@@ -78,6 +78,13 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 
 uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
+	{ // map
+		ptr_in = memcpy_deserialize(ptr_in, state.map_display.size_x);
+		ptr_in = memcpy_deserialize(ptr_in, state.map_display.size_y);
+		ptr_in = deserialize(ptr_in, state.map_display.border_vertices);
+		ptr_in = deserialize(ptr_in, state.map_display.terrain_id_map);
+		ptr_in = deserialize(ptr_in, state.map_display.province_id_map);
+	}
 	{
 		uint32_t length = 0;
 		memcpy(&length, ptr_in, sizeof(uint32_t));
@@ -237,6 +244,13 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 }
 uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
+	{ // map
+		ptr_in = memcpy_serialize(ptr_in, state.map_display.size_x);
+		ptr_in = memcpy_serialize(ptr_in, state.map_display.size_y);
+		ptr_in = serialize(ptr_in, state.map_display.border_vertices);
+		ptr_in = serialize(ptr_in, state.map_display.terrain_id_map);
+		ptr_in = serialize(ptr_in, state.map_display.province_id_map);
+	}
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);
 		uint32_t length = uint32_t(fs_str.length());
@@ -396,6 +410,13 @@ size_t sizeof_scenario_section(sys::state& state) {
 	size_t sz = 0;
 
 	// hand-written contribution
+	{ // map
+		sz += sizeof(state.map_display.size_x);
+		sz += sizeof(state.map_display.size_y);
+		sz += serialize_size(state.map_display.border_vertices);
+		sz += serialize_size(state.map_display.terrain_id_map);
+		sz += serialize_size(state.map_display.province_id_map);
+	}
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);
 		uint32_t length = uint32_t(fs_str.length());

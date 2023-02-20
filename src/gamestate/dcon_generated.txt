@@ -3,6 +3,7 @@ include{"constants.hpp"}
 include{"modifiers.hpp"}
 include{"date_interface.hpp"}
 include{"container_types.hpp"}
+include{<glm/glm.hpp>}
 
 make_index{text_key}{uint32_t}
 make_index{text_sequence_id}{uint16_t}
@@ -1100,6 +1101,12 @@ object {
 		name{ is_colonial }
 		type{ bitfield }
 		tag{ save }
+	}
+
+	property{
+		name{ mid_point }
+		type{ glm::vec2 }
+		tag{ scenario }
 	}
 
 	property{

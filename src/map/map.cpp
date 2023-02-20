@@ -43,7 +43,9 @@ GLuint load_texture_from_file(simple_fs::file& file, GLuint filter) {
 
 GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
 	auto content = simple_fs::view_contents(file);
-	int32_t file_channels, size_x, size_y;
+	int32_t file_channels = 3;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
 
 	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
 		&size_x, &size_y, &file_channels, 4);
@@ -83,9 +85,7 @@ GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, in
 
 // Load the terrain texture, will read the BMP file directly
 // The image is flipped for some reason
-GLuint load_terrain_texture(std::vector<uint8_t>& terrain_index, glm::vec2 size) {
-	uint32_t size_x = uint32_t(size.x);
-	uint32_t size_y = uint32_t(size.y);
+GLuint load_terrain_texture(std::vector<uint8_t>& terrain_index, uint32_t size_x, uint32_t size_y) {
 
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
@@ -109,10 +109,10 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 
-void display_data::create_borders1() {
-	uint32_t size_x = uint32_t(size.x);
-	uint32_t size_y = uint32_t(size.y);
-	auto add_line = [&map_size = this->size](std::vector<float>& vertices, uint32_t x0, uint32_t y0, glm::vec2 pos1, glm::vec2 pos2) {
+void display_data::create_border_data() {
+	border_vertices.clear();
+
+	auto add_line = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<float>& vertices, uint32_t x0, uint32_t y0, glm::vec2 pos1, glm::vec2 pos2) {
 		glm::vec2 dir = normalize(pos2 - pos1);
 		glm::vec2 dir2 = dir;
 		dir = glm::vec2(-dir.y, dir.x);
@@ -170,8 +170,7 @@ void display_data::create_borders1() {
 		LEFT = 1 << 1,
 		RIGHT = 1 << 0,
 	};
-	std::vector<bool> is_border(size_x * size_y, false);
-	std::vector<float> border_vertices;
+	
 	auto add_border = [&](uint32_t x0, uint32_t y0, uint16_t id_ul, uint16_t id_ur, uint16_t id_dl, uint16_t id_dr) {
 		// Yes this can be done better and more optimized. But for its good for now
 		uint8_t diff_u = id_ul != id_ur;
@@ -240,7 +239,8 @@ void display_data::create_borders1() {
 			}
 		}
 	}
-
+}
+void display_data::create_border_ogl_objects() {
 	border_indicies = ((uint32_t)border_vertices.size()) / 3;
 
 	glGenVertexArrays(1, &border_vao);
@@ -260,6 +260,7 @@ void display_data::create_borders1() {
 	glBindVertexArray(0);
 }
 
+/*
 void display_data::create_borders2() {
 	uint32_t size_x = uint32_t(size.x);
 	uint32_t size_y = uint32_t(size.y);
@@ -407,16 +408,14 @@ void display_data::create_borders2() {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(4 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
-}
+}*/
 
 void display_data::create_meshes() {
-	uint32_t size_x = uint32_t(size.x);
-	uint32_t size_y = uint32_t(size.y);
 
 	std::vector<float> water_vertices;
 	std::vector<float> land_vertices;
 
-	auto add_quad = [&map_size = this->size](std::vector<float>& vertices, uint32_t ix0, uint32_t iy0, uint32_t ix1, uint32_t iy1) {
+	auto add_quad = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<float>& vertices, uint32_t ix0, uint32_t iy0, uint32_t ix1, uint32_t iy1) {
 		float x0 = float(ix0);
 		float y0 = float(iy0);
 		float x1 = float(ix1);
@@ -481,7 +480,7 @@ void display_data::create_meshes() {
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 
-	create_borders1();
+	create_border_ogl_objects();
 }
 
 display_data::~display_data() {
@@ -622,7 +621,7 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	// uniform float zoom
 	glUniform1f(2, zoom);
 	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
+	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 
 	glBindVertexBuffer(0, land_vbo, 0, sizeof(GLfloat) * 2);
 
@@ -646,7 +645,7 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	// uniform float zoom
 	glUniform1f(2, zoom);
 	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
+	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 
 	glBindVertexBuffer(0, water_vbo, 0, sizeof(GLfloat) * 2);
 
@@ -669,7 +668,7 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	// uniform float zoom
 	glUniform1f(2, zoom);
 	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
+	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 
 	glBindVertexBuffer(0, border_vbo, 0, sizeof(GLfloat) * 6);
 
@@ -681,10 +680,7 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
 }
 
-GLuint load_province_map(std::vector<uint16_t>& province_index, glm::vec2 size) {
-	uint32_t size_x = uint32_t(size.x);
-	uint32_t size_y = uint32_t(size.y);
-
+GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x, uint32_t size_y) {
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
 	if(texture_handle) {
@@ -734,65 +730,39 @@ void display_data::set_terrain_map_mode() {
 void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map<uint32_t, dcon::province_id> const& color_map) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
-	// Replace this with the color_map once that is implemented
-	// --------------------------------------------------------
-	auto defs = simple_fs::open_file(map_dir, NATIVE("definition.csv"));
 
-	auto defs_content = simple_fs::view_contents(*defs);
-	char const* cpos = defs_content.data;
-	char const* end_of_file = defs_content.data + defs_content.file_size;
-
-	cpos = parsers::csv_advance_to_next_line(cpos, end_of_file);
-
-	ankerl::unordered_dense::map<uint32_t, uint16_t> color_to_id;
-
-	uint16_t index = 0;
-	parsers::error_handler err("no_file");
-	while(cpos < end_of_file) {
-		cpos = parsers::parse_fixed_amount_csv_values<6>(cpos, end_of_file, ';',
-			[&](std::string_view const* values) {
-				uint32_t color = 0;
-				uint32_t color_part;
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
-				color += color_part << 16; 	// Red
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
-				color += color_part << 8; 	// Green
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
-				color += color_part; 		// Blue
-				color_to_id.insert_or_assign(color, index++);
-			});
-	}
-	int nr_of_provinces = index;
-	// --------------------------------------------------------
 
 	// Load the province map
 	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
 	auto bmp_content = simple_fs::view_contents(*provinces_bmp);
-	int32_t file_channels, size_x, size_y;
+	int32_t file_channels = 4;
+	int32_t temp_size_x = 0;
+	int32_t temp_size_y = 0;
 
 	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(bmp_content.data), int32_t(bmp_content.file_size),
-		&size_x, &size_y, &file_channels, 4);
+		&temp_size_x, &temp_size_y, &file_channels, 4);
+	size_x = uint32_t(temp_size_x);
+	size_y = uint32_t(temp_size_y);
 
-	province_id_map = std::vector<uint16_t>(size_x * size_y);
-	for(int i = 0; i < size_x * size_y; i++) {
+	province_id_map.resize(size_x * size_y);
+	for(uint32_t i = 0; i < size_x * size_y; ++i) {
 		uint8_t* ptr = data + i * 4;
-		int b = ptr[2];
-		int g = ptr[1];
-		int r = ptr[0];
-		int32_t color = (r << 16) | (g << 8) | b;
-
-		province_id_map[i] = color_to_id[color] + 1;
+		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
+		if(auto it = color_map.find(color); it != color_map.end()) {
+			province_id_map[i] = province::to_map_id(it->second);
+		} else {
+			province_id_map[i] = 0;
+		}
 	}
-	STBI_FREE(data);
 
-	size = glm::vec2(size_x, size_y);
+	STBI_FREE(data);
 
 	// Load the terrain map
 	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t* start = (uint8_t*)(content.data);
 
-	// TODO make a check for when the bmp format is unsupporeted
+	// TODO make a check for when the bmp format is unsupported
 
 	// Data offset is where the pixel data starts
 	uint8_t* ptr = start + 10;
@@ -800,34 +770,33 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 
 	// The width & height of the image
 	ptr = start + 18;
-	size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+	uint32_t terrain_size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 	ptr = start + 22;
-	size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+	uint32_t terrain_size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
 	uint8_t* terrain_data = start + data_offset;
 
-	// terrain_id_map.insert(terrain_id_map.begin(), terrain_data, terrain_data + size_x * size_y);
-	terrain_id_map = std::vector<uint8_t>(size_x * size_y);
-	for(int y = 0; y < size_y; y++) {
-		auto inner_start = terrain_data + (size_y - y - 1) * size_x;
-		auto end = terrain_data + (size_y - y) * size_x;
-		terrain_id_map.insert(terrain_id_map.begin() + y * size_x, inner_start, end);
+	terrain_id_map.resize(terrain_size_x * terrain_size_y);
+	for(uint32_t y = 0; y < terrain_size_y; ++y) {
+		auto inner_start = terrain_data + (terrain_size_y - y - 1) * terrain_size_x;
+		auto end = terrain_data + (terrain_size_y - y) * terrain_size_x;
+		terrain_id_map.insert(terrain_id_map.begin() + y * terrain_size_x, inner_start, end);
 	}
 
-	median_terrain_type = std::vector<uint8_t>(nr_of_provinces);
-	std::vector<std::array<int, 16>> terrain_histogram(nr_of_provinces, std::array<int, 16>{});
-	std::vector<glm::ivec3> province_acc_tile_pos(nr_of_provinces, glm::ivec3(0));
-	for(int i = size_x * size_y; i-- > 0;) {
+	median_terrain_type.resize(state.world.province_size() + 1);
+	std::vector<std::array<int, 16>> terrain_histogram(state.world.province_size() + 1, std::array<int, 16>{});
+	std::vector<glm::ivec3> province_acc_tile_pos(state.world.province_size() + 1, glm::ivec3(0));
+	for(int i = terrain_size_x * terrain_size_y; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
 		if(terrain_id < 16)
-			terrain_histogram[prov_id][terrain_id]++;
-		int x = i % size_x;
-		int y = i / size_x;
+			terrain_histogram[prov_id][terrain_id] += 1;
+		int x = i % terrain_size_x;
+		int y = i / terrain_size_x;
 		province_acc_tile_pos[prov_id] += glm::ivec3(x, y, 1);
 	}
-	province_mid_point = std::vector<glm::vec2>(nr_of_provinces);
-	for(int i = nr_of_provinces; i-- > 0;) {
+
+	for(int i = state.world.province_size(); i-- > 1;) {
 		int max_index = 15;
 		int max = 0;
 		for(int j = max_index; j-- > 0;) {
@@ -838,8 +807,10 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 		}
 		median_terrain_type[i] = uint8_t(max_index);
 		auto acc_tile_pos = glm::vec2(province_acc_tile_pos[i].x, province_acc_tile_pos[i].y);
-		province_mid_point[i] = acc_tile_pos / (float)province_acc_tile_pos[i].z;
+		state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), acc_tile_pos / (float)province_acc_tile_pos[i].z);
 	}
+
+	create_border_data();
 }
 
 void display_data::load_map(sys::state& state) {
@@ -851,11 +822,11 @@ void display_data::load_map(sys::state& state) {
 	load_shaders(root);
 
 	// auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
-	terrain_texture_handle = load_terrain_texture(terrain_id_map, size);
+	terrain_texture_handle = load_terrain_texture(terrain_id_map, size_x, size_y);
 	create_meshes();
 
 	// TODO Better error handling and reporting ^^
-	provinces_texture_handle = load_province_map(province_id_map, size);
+	provinces_texture_handle = load_province_map(province_id_map, size_x, size_y);
 
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
 	rivers_texture_handle = load_texture_from_file(*rivers_bmp, GL_NEAREST);
@@ -914,7 +885,7 @@ void display_data::update() {
 	else {
 		velocity = ((pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom)) / 6.f;
 	}
-	velocity.x *= size.y / size.x;
+	velocity.x *= float(size_y) / float(size_x);
 	pos += velocity;
 
 	if(has_zoom_changed) {
@@ -1004,7 +975,7 @@ glm::vec2 display_data::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_siz
 	screen_pos -= screen_size * 0.5f;
 	screen_pos /= screen_size;
 	screen_pos.x *= screen_size.x / screen_size.y;
-	screen_pos.x /= size.x / size.y;
+	screen_pos.x *= float(size_y) / float(size_x);
 
 	screen_pos /= zoom;
 	screen_pos += pos;
@@ -1030,8 +1001,8 @@ void display_data::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int3
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	auto map_pos = screen_to_map(mouse_pos, screen_size);
-	map_pos *= size;
-	auto idx = int32_t(size.y - map_pos.y) * int32_t(size.x) + int32_t(map_pos.x);
+	map_pos *= glm::vec2(float(size_x), float(size_y));
+	auto idx = int32_t(size_y - map_pos.y) * int32_t(size_x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < province_id_map.size()) {
 		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 		auto fat_id = dcon::fatten(state.world, province::from_map_id(province_id_map[idx]));

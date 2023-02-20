@@ -10,6 +10,7 @@
 #include "gui_console.hpp"
 #include "gui_province_window.hpp"
 #include <algorithm>
+#include <thread>
 
 namespace sys {
 	//
@@ -345,6 +346,38 @@ namespace sys {
 		auto common = open_directory(root, NATIVE("common"));
 
 		parsers::scenario_building_context context(*this);
+
+		auto map = open_directory(root, NATIVE("map"));
+		// parse default.map
+		{
+			auto def_map_file = open_file(map, NATIVE("default.map"));
+			if(def_map_file) {
+				auto content = view_contents(*def_map_file);
+				err.file_name = "default.map";
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_default_map_file(gen, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/default.map could not be opened\n";
+			}
+		}
+		// parse definition.csv
+		{
+			auto def_csv_file = open_file(map, NATIVE("definition.csv"));
+			if(def_csv_file) {
+				auto content = view_contents(*def_csv_file);
+				err.file_name = "definition.csv";
+				parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
+			} else {
+				err.fatal = true;
+				err.accumulated_errors += "File map/definition.csv could not be opened\n";
+			}
+		}
+
+		std::thread map_loader([&]() {
+			map_display.load_map_data(*this, context.map_color_to_province_id);
+		});
+
 		// Read national tags from countries.txt
 		{
 			auto countries = open_file(common, NATIVE("countries.txt"));
@@ -575,32 +608,7 @@ namespace sys {
 			}
 		}
 
-		auto map = open_directory(root, NATIVE("map"));
-		// parse default.map
-		{
-			auto def_map_file = open_file(map, NATIVE("default.map"));
-			if(def_map_file) {
-				auto content = view_contents(*def_map_file);
-				err.file_name = "default.map";
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_default_map_file(gen, err, context);
-			} else {
-				err.fatal = true;
-				err.accumulated_errors += "File map/default.map could not be opened\n";
-			}
-		}
-		// parse definition.csv
-		{
-			auto def_csv_file = open_file(map, NATIVE("definition.csv"));
-			if(def_csv_file) {
-				auto content = view_contents(*def_csv_file);
-				err.file_name = "definition.csv";
-				parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
-			} else {
-				err.fatal = true;
-				err.accumulated_errors += "File map/definition.csv could not be opened\n";
-			}
-		}
+		
 		// parse terrain.txt
 		{
 			auto terrain_file = open_file(map, NATIVE("terrain.txt"));
@@ -1138,6 +1146,9 @@ namespace sys {
 				}
 			}
 		}
+
+		map_loader.join();
+
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}

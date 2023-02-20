@@ -22,9 +22,7 @@ void initialize_opengl(sys::state& state) {
 	load_global_squares(state); // create various squares to drive the shaders with
 
 
-
-	//glEnable(GL_SCISSOR_TEST);
-
+	state.map_display.load_map(state);
 }
 
 GLint compile_shader(std::string_view source, GLenum type) {
