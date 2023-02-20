@@ -131,7 +131,7 @@ namespace sys {
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		map_display.render(x_size, y_size);
+		map_display.render(*this, x_size, y_size);
 
 		// UI rendering
 		glUseProgram(open_gl.ui_shader_program);
