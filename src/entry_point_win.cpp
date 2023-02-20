@@ -42,6 +42,7 @@ int WINAPI wWinMain(
 		}
 
 		// scenario loading functions (would have to run these even when scenario is pre-built
+		game_state->fill_unsaved_data();
 		game_state->load_user_settings();
 		text::load_standard_fonts(*game_state);
 		ui::populate_definitions_map(*game_state);

@@ -1152,4 +1152,13 @@ namespace sys {
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
+
+	void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
+		world.for_each_nation([&](dcon::nation_id id) {
+			auto ident = world.nation_get_identity_from_identity_holder(id);
+			world.nation_set_name(id, world.national_identity_get_name(ident));
+			world.nation_set_adjective(id, world.national_identity_get_adjective(ident));
+			world.nation_set_color(id, world.national_identity_get_color(ident));
+		});
+	}
 }

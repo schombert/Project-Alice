@@ -15,7 +15,7 @@ void set_political(sys::state& state) {
 		auto id = fat_id.get_nation_from_province_ownership();
 		uint32_t color;
 		if(bool(id))
-			color = id.get_identity_from_identity_holder().get_color();
+			color = id.get_color();
 		else // If no owner use default color
 			color = 255 << 16 | 255 << 8 | 255;
 		auto i = province::to_map_id(prov_id);
