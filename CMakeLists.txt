@@ -35,7 +35,8 @@ else()
 	target_compile_definitions(Alice PRIVATE "IGNORE_REAL_FILES_TESTS=1")
 endif()
 
-add_compile_definitions(VE_NO_TBB)
+add_compile_definitions(PREFER_ONE_TBB)
+
 if(WIN32)
 	# string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	# string(REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
@@ -107,8 +108,7 @@ target_precompile_headers(Alice
 	PRIVATE [["date_interface.hpp"]]
 )
 
-add_compile_definitions(VE_NO_TBB)
-
+target_link_libraries(Alice PRIVATE dependency_tbb)
 target_link_libraries(Alice PRIVATE dependency_DataContainer)
 target_link_libraries(Alice PRIVATE libglew_static)
 target_link_libraries(Alice PRIVATE dependency_unordered_dense)

@@ -101,6 +101,7 @@ target_link_libraries(tests_project PRIVATE dependency_DataContainer)
 target_link_libraries(tests_project PRIVATE stb_image)
 target_link_libraries(tests_project PRIVATE freetype)
 target_link_libraries(tests_project PRIVATE glm)
+target_link_libraries(tests_project PRIVATE dependency_tbb)
 
 if (NOT WIN32)
 	target_link_libraries(tests_project PRIVATE glfw)
