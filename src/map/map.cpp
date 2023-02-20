@@ -84,8 +84,8 @@ GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, in
 // Load the terrain texture, will read the BMP file directly
 // The image is flipped for some reason
 GLuint load_terrain_texture(std::vector<uint8_t>& terrain_index, glm::vec2 size) {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
+	uint32_t size_x = uint32_t(size.x);
+	uint32_t size_y = uint32_t(size.y);
 
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
@@ -110,8 +110,8 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 }
 
 void display_data::create_borders1() {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
+	uint32_t size_x = uint32_t(size.x);
+	uint32_t size_y = uint32_t(size.y);
 	auto add_line = [&map_size = this->size](std::vector<float>& vertices, uint32_t x0, uint32_t y0, glm::vec2 pos1, glm::vec2 pos2) {
 		glm::vec2 dir = normalize(pos2 - pos1);
 		glm::vec2 dir2 = dir;
@@ -261,16 +261,16 @@ void display_data::create_borders1() {
 }
 
 void display_data::create_borders2() {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
+	uint32_t size_x = uint32_t(size.x);
+	uint32_t size_y = uint32_t(size.y);
 
 	std::vector<bool> is_border(size_x * size_y, false);
 	std::vector<float> border_vertices;
 	auto add_border = [&, &map_size = this->size](uint32_t x0, uint32_t y0, int type1, int type2) {
 		// Yes this can be done better and more optimized. But for its good for now
-		if(is_border[x0 + y0 * size.x])
+		if(is_border[x0 + uint32_t(y0 * size.x)])
 			return;
-		is_border[x0 + y0 * size_x] = true;
+		is_border[x0 + uint32_t(y0 * size_x)] = true;
 
 		glm::vec2 pos0 = glm::vec2(x0 + 0, y0 + 0) / size;
 		glm::vec2 pos1 = glm::vec2(x0 + 1, y0 + 1) / size;
@@ -410,13 +410,17 @@ void display_data::create_borders2() {
 }
 
 void display_data::create_meshes() {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
+	uint32_t size_x = uint32_t(size.x);
+	uint32_t size_y = uint32_t(size.y);
 
 	std::vector<float> water_vertices;
 	std::vector<float> land_vertices;
 
-	auto add_quad = [&map_size = this->size](std::vector<float>& vertices, float x0, float y0, float x1, float y1) {
+	auto add_quad = [&map_size = this->size](std::vector<float>& vertices, uint32_t ix0, uint32_t iy0, uint32_t ix1, uint32_t iy1) {
+		float x0 = float(ix0);
+		float y0 = float(iy0);
+		float x1 = float(ix1);
+		float y1 = float(iy1);
 		vertices.push_back(x0 / map_size.x);
 		vertices.push_back(y0 / map_size.y);
 
@@ -678,8 +682,8 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 }
 
 GLuint load_province_map(std::vector<uint16_t>& province_index, glm::vec2 size) {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
+	uint32_t size_x = uint32_t(size.x);
+	uint32_t size_y = uint32_t(size.y);
 
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
@@ -700,12 +704,21 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 	uint32_t rows = ((uint32_t)prov_color.size()) / 256;
 	uint32_t left_on_last_row = ((uint32_t)prov_color.size()) % 256;
 
-	uint32_t x = 0, y = 0;
-	uint32_t width = 256, height = rows;
+	uint32_t x = 0;
+	uint32_t y = 0;
+	uint32_t width = 256;
+	uint32_t height = rows;
 	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[0]);
-	x = 0, y = rows;
-	width = left_on_last_row, height = 1;
-	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[rows * 256]);
+	x = 0;
+	y = rows;
+	width = left_on_last_row;
+	height = 1;
+
+	// SCHOMBERT: added a conditional to block reading from after the end in the case it is evenly divisible by 256
+	// SCHOMBERT: that looks right to me, but I don't fully understand the intent
+	if(left_on_last_row > 0)
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[rows * 256]);
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -796,9 +809,9 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 	// terrain_id_map.insert(terrain_id_map.begin(), terrain_data, terrain_data + size_x * size_y);
 	terrain_id_map = std::vector<uint8_t>(size_x * size_y);
 	for(int y = 0; y < size_y; y++) {
-		auto start = terrain_data + (size_y - y - 1) * size_x;
+		auto inner_start = terrain_data + (size_y - y - 1) * size_x;
 		auto end = terrain_data + (size_y - y) * size_x;
-		terrain_id_map.insert(terrain_id_map.begin() + y * size_x, start, end);
+		terrain_id_map.insert(terrain_id_map.begin() + y * size_x, inner_start, end);
 	}
 
 	median_terrain_type = std::vector<uint8_t>(nr_of_provinces);
@@ -807,7 +820,8 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 	for(int i = size_x * size_y; i-- > 0;) {
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
-		terrain_histogram[prov_id][terrain_id]++;
+		if(terrain_id < 16)
+			terrain_histogram[prov_id][terrain_id]++;
 		int x = i % size_x;
 		int y = i / size_x;
 		province_acc_tile_pos[prov_id] += glm::ivec3(x, y, 1);
@@ -822,7 +836,7 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 				max = terrain_histogram[i][j];
 			}
 		}
-		median_terrain_type[i] = max_index;
+		median_terrain_type[i] = uint8_t(max_index);
 		auto acc_tile_pos = glm::vec2(province_acc_tile_pos[i].x, province_acc_tile_pos[i].y);
 		province_mid_point[i] = acc_tile_pos / (float)province_acc_tile_pos[i].z;
 	}
@@ -871,7 +885,7 @@ void display_data::load_map(sys::state& state) {
 
 	std::vector<uint32_t> test(province_id_map.size());
 	gen_prov_color_texture(province_highlight, test);
-	for(int i = 0; i < test.size(); i++) {
+	for(uint32_t i = 0; i < test.size(); ++i) {
 		test[i] = 255;
 	}
 	set_province_color(test, map_mode::mode::terrain);
