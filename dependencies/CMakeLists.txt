@@ -8,6 +8,7 @@ add_subdirectory(glew)
 add_subdirectory(stb)
 add_subdirectory(freetype)
 add_subdirectory(glm)
+add_subdirectory(tbb)
 
 if (NOT WIN32)
 	add_subdirectory(glfw)
