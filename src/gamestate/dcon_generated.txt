@@ -1719,6 +1719,7 @@ object {
 	}
 }
 
+
 object {
 	name{ nation }
 	storage_type{ erasable }

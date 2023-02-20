@@ -63,7 +63,7 @@ public:
 		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 		auto nation_id = fat_id.get_nation_from_province_ownership();
 		if(bool(nation_id)) {
-			auto country_name_seq = nation_id.get_identity_from_identity_holder().get_name();
+			auto country_name_seq = nation_id.get_name();
 			auto country_name = text::produce_simple_string(state, country_name_seq);
 			country_name_box->set_text(state, country_name);
 			set_visible(state, true);
