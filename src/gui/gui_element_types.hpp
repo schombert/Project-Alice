@@ -208,14 +208,35 @@ public:
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
-class listbox_element_base : public container_base {
+template<class RowConT>
+class listbox_row_element_base : public window_element_base {
+protected:
+	RowConT content{};
+
 public:
-	virtual std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
-		return nullptr;
+	virtual void update(sys::state& state) noexcept { }
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+};
+
+template<class RowWinT, class RowConT>
+class listbox_element_base : public container_base {
+protected:
+	std::vector<RowWinT*> row_windows{};
+	int32_t scroll_pos = 0;
+
+	virtual std::string_view get_row_element_name() {
+		return std::string_view{};
 	}
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
+	virtual bool is_reversed() {
+		return false;
 	}
+
+public:
+	std::vector<RowConT> row_contents{};
+
+	void update(sys::state& state);
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
