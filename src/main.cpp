@@ -23,6 +23,8 @@
 #include "effect_parsing.cpp"
 #include "parsers_declarations.cpp"
 #include "serialization.cpp"
+#include "culture.cpp"
+#include "military.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

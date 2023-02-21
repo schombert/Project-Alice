@@ -1114,6 +1114,11 @@ object {
 		type{array{ideology_id}{uint8_t}}
 		tag{ save }
 	}
+
+	property{
+		name{ modifier_values }
+		type{ array{int32_t}{float} }
+	}
 }
 
 relationship{
@@ -1817,6 +1822,70 @@ object {
 		name{ flag_variables }
 		type{array{national_flag_id}{bitfield}}
 		tag{ save }
+	}
+	property{
+		name{ static_modifier_values }
+		type{ array{int32_t}{float} }
+	}
+	property{
+		name{ fluctuating_modifier_values }
+		type{ array{int32_t}{float} }
+	}
+	property{
+		name{ rgo_goods_output }
+		type{ array{commodity_id}{float} }
+	}
+	property{
+		name{ factory_goods_output }
+		type{ array{commodity_id}{float} }
+	}
+	property{
+		name{ rgo_size }
+		type{ array{commodity_id}{float} }
+	}
+	property{
+		name{ factory_goods_throughput }
+		type{ array{commodity_id}{float} }
+	}
+	property{
+		name{ rebel_org_modifier }
+		type{ array{rebel_type_id}{float} }
+	}
+	property{
+		name{ unit_stats }
+		type{array{unit_type_id}{sys::unit_variable_stats}}
+	}
+	property{
+		name{ active_unit }
+		type{array{unit_type_id}{bitfield}}
+	}
+	property{
+		name{ active_crime }
+		type{array{crime_id}{bitfield}}
+	}
+	property{
+		name{ active_building }
+		type{array{factory_type_id}{bitfield}}
+	}
+	property{
+		name{ has_gas_attack }
+		type{ bitfield }
+	}
+	property{
+		name{ has_gas_defence }
+		type{ bitfield }
+	}
+	property {
+		name{ max_railroad_level }
+		type{ uint8_t }
+	}
+	property {
+		name{ max_fort_level }
+		type{ uint8_t }
+	}
+	property {
+		name{ max_naval_base_level }
+		type{ uint8_t }
 	}
 }
 

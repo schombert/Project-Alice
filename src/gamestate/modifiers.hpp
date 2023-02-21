@@ -212,7 +212,7 @@ struct commodity_modifier {
 	dcon::commodity_id type;
 };
 
-struct unit_modifier {
+struct unit_variable_stats {
 	int32_t build_time = 0;
 	int32_t default_organisation = 0;
 	float maximum_speed = 0.0f;
@@ -222,6 +222,21 @@ struct unit_modifier {
 	float support = 0.0f;
 	float siege_or_torpedo_attack = 0.0f;
 	float reconnaissance_or_fire_range = 0.0f;
+
+	void operator+=(unit_variable_stats const& other) {
+		build_time += other.build_time;
+		default_organisation += other.default_organisation;
+		maximum_speed += other.maximum_speed;
+		defence_or_hull += other.defence_or_hull;
+		attack_or_gun_power += other.attack_or_gun_power;
+		supply_consumption += other.supply_consumption;
+		support += other.support;
+		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
+		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
+	}
+};
+
+struct unit_modifier : public unit_variable_stats {
 	dcon::unit_type_id type;
 };
 
