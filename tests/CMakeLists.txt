@@ -27,8 +27,8 @@ if(WIN32)
 else() # GCC or CLANG
 	target_compile_options(tests_project PRIVATE
 									# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter
-		$<$<CONFIG:Debug>:			-g>
-		$<$<NOT:$<CONFIG:Debug>>: 	-O3>)
+		$<$<CONFIG:Debug>:			-msse4.1 -g>
+		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3>)
 endif()
 
 FetchContent_MakeAvailable(Catch2)
