@@ -1119,6 +1119,12 @@ object {
 		name{ modifier_values }
 		type{ array{int32_t}{float} }
 	}
+
+	property {
+		name{ current_modifiers }
+		type{vector_pool{32000}{sys::dated_modifier}}
+		tag{ save }
+	}
 }
 
 relationship{
@@ -1886,6 +1892,11 @@ object {
 	property {
 		name{ max_naval_base_level }
 		type{ uint8_t }
+	}
+	property {
+		name{ current_modifiers }
+		type{vector_pool{16000}{sys::dated_modifier}}
+		tag{ save }
 	}
 }
 

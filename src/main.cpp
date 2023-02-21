@@ -25,6 +25,7 @@
 #include "serialization.cpp"
 #include "culture.cpp"
 #include "military.cpp"
+#include "modifiers.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

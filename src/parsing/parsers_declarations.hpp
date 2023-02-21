@@ -769,6 +769,12 @@ namespace parsers {
 					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::supply_limit);
 				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::combat_width) {
 					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::combat_width);
+				} else if(constructed_definition.offsets[i] < sys::provincial_mod_offsets::count) {
+					--this->next_to_add;
+					constructed_definition.offsets[i] = constructed_definition.offsets[this->next_to_add];
+					constructed_definition.values[i] = constructed_definition.values[this->next_to_add];
+					--i;
+					continue;
 				}
 				constructed_definition.offsets[i] += 1;
 			}

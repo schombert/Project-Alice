@@ -292,6 +292,8 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id i_id) { //  TODO: shared prestige effect
 	auto inv_id = fatten(state.world, i_id);
 
+	state.world.nation_set_active_inventions(target_nation, i_id, true);
+
 	// apply modifiers from active inventions
 	auto inv_mod = inv_id.get_modifier();
 	if(inv_mod) {
