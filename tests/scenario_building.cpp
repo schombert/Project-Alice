@@ -1828,5 +1828,22 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_reforms_and_issues(context.map_of_issues.find("voting_system")->second) == context.map_of_options.find("jefferson_method")->second.id);
 		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
+
+	state->fill_unsaved_data();
+
+	{
+		auto tag = fatten(state->world, context.map_of_ident_names.find(nations::tag_to_int('R', 'U', 'S'))->second);
+		auto nation = tag.get_nation_from_identity_holder();
+		REQUIRE(nation.get_static_modifier_values(sys::national_mod_offsets::combat_width - sys::provincial_mod_offsets::count) == -1.0f);
+		auto art_id = context.map_of_unit_types.find("artillery")->second;
+		REQUIRE(nation.get_active_unit(art_id) == true);
+		REQUIRE(nation.get_unit_stats(state->military_definitions.base_army_unit).default_organisation == 10);
+		auto b_id = context.map_of_factory_names.find("fabric_factory")->second;
+		REQUIRE(nation.get_active_building(b_id) == true);
+		auto c_id = context.map_of_commodity_names.find("sulphur")->second;
+		REQUIRE(nation.get_rgo_goods_output(c_id) == 0.25f);
+		REQUIRE(nation.get_max_fort_level() == 1);
+	}
+
 }
 #endif

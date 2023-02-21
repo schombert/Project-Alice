@@ -1,6 +1,7 @@
 #pragma once
 #include "dcon_generated.hpp"
 #include "container_types.hpp"
+#include "modifiers.hpp"
 
 namespace military {
 namespace cb_flag {
@@ -39,35 +40,32 @@ enum class unit_type : uint8_t {
 	support, big_ship, cavalry, transport, light_ship, special, infantry
 };
 
-struct unit_definition {
-	dcon::text_sequence_id name;
-	int32_t icon = 0;
-	int32_t naval_icon = 0;
-	unit_type type = unit_type::infantry;
 
-	bool active = true;
-	float maximum_speed = 1.0f;
-	int32_t build_time = 30;
-	float supply_consumption = 1.0f;
+struct unit_definition : public sys::unit_variable_stats {
 	economy::commodity_set build_cost;
 	economy::commodity_set supply_cost;
 
+	float discipline = 0.0f;
+	float maneuver_or_evasion = 0.0f;
+	int32_t colonial_points = 0;
+	int32_t min_port_level = 0;
+	int32_t supply_consumption_score = 0;
+
+	int32_t icon = 0;
+	int32_t naval_icon = 0;
+
+	dcon::text_sequence_id name;
+	
 	bool is_land = true;
 	bool capital = false;
 	bool can_build_overseas = true;
 	bool primary_culture = false;
+	bool active = true;
 
-	float reconnaissance_or_fire_range = 0.0f;
-	float attack_or_gun_power = 0.0f;
-	float defence_or_hull = 0.0f;
-	float discipline = 0.0f;
-	float support = 0.0f;
-	float maneuver_or_evasion = 0.0f;
-	float siege_or_torpedo_attack = 0.0f;
-	int32_t colonial_points = 0;
-	int32_t min_port_level = 0;
-	int32_t supply_consumption_score = 0;
-	int32_t default_organisation = 30;
+	unit_type type = unit_type::infantry;
+
+	unit_definition() {
+	}
 };
 
 struct global_military_state {
@@ -80,5 +78,8 @@ struct global_military_state {
 	dcon::cb_type_id standard_civil_war;
 	dcon::cb_type_id standard_great_war;
 };
+
+void reset_unit_stats(sys::state& state);
+void apply_base_unit_stat_modifiers(sys::state& state);
 
 }

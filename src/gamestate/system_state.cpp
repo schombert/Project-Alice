@@ -1154,11 +1154,30 @@ namespace sys {
 	}
 
 	void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
+		world.nation_resize_fluctuating_modifier_values(sys::national_mod_offsets::count - provincial_mod_offsets::count);
+		world.nation_resize_static_modifier_values(sys::national_mod_offsets::count - provincial_mod_offsets::count);
+		world.nation_resize_rgo_goods_output(world.commodity_size());
+		world.nation_resize_factory_goods_output(world.commodity_size());
+		world.nation_resize_factory_goods_throughput(world.commodity_size());
+		world.nation_resize_rgo_size(world.commodity_size());
+		world.nation_resize_rebel_org_modifier(world.rebel_type_size());
+		world.nation_resize_active_unit(uint32_t(military_definitions.unit_base_definitions.size()));
+		world.nation_resize_active_crime(uint32_t(culture_definitions.crimes.size()));
+		world.nation_resize_active_building(world.factory_type_size());
+		world.nation_resize_unit_stats(uint32_t(military_definitions.unit_base_definitions.size()));
+
+		world.province_resize_modifier_values(provincial_mod_offsets::count);
+
 		world.for_each_nation([&](dcon::nation_id id) {
 			auto ident = world.nation_get_identity_from_identity_holder(id);
 			world.nation_set_name(id, world.national_identity_get_name(ident));
 			world.nation_set_adjective(id, world.national_identity_get_adjective(ident));
 			world.nation_set_color(id, world.national_identity_get_color(ident));
 		});
+
+		military::reset_unit_stats(*this);
+		culture::repopulate_technology_effects(*this);
+		culture::repopulate_invention_effects(*this);
+		military::apply_base_unit_stat_modifiers(*this);
 	}
 }
