@@ -1179,5 +1179,7 @@ namespace sys {
 		culture::repopulate_technology_effects(*this);
 		culture::repopulate_invention_effects(*this);
 		military::apply_base_unit_stat_modifiers(*this);
+
+		sys::repopulate_modifier_effects(*this);
 	}
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "date_interface.hpp"
 
 
 namespace sys {
@@ -244,6 +245,22 @@ struct rebel_org_modifier {
 	float amount = 0.0f;
 	dcon::rebel_type_id type; // no type set = all rebels
 };
+
+struct dated_modifier {
+	sys::date expiration;
+	dcon::modifier_id mod_id;
+};
+
+// NOTE: these functions do not add or remove a modifier from the list of modifiers for an entity
+void apply_modifier_values_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void apply_modifier_values_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id);
+void remove_modifier_values_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void remove_modifier_values_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id); // also removes national values form owner
+void apply_modifier_values_to_province_owner(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void remove_modifier_values_from_province_owner(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+
+// restores values after a save
+void repopulate_modifier_effects(sys::state& state);
 
 }
 
