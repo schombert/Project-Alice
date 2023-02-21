@@ -351,6 +351,7 @@ namespace ui {
 
 		// elements we are keeping track of
 		element_base* main_menu = nullptr;
+		element_base* fps_counter = nullptr;
 		element_base* console_window = nullptr; // console window
 		element_base* topbar_window = nullptr;
 		element_base* topbar_subwindow = nullptr; // current tab window

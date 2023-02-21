@@ -5,6 +5,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
         state.map_display.load_map(state);
     } else if(s == "abort") {
         std::abort();
+    } else if(s == "fps") {
+        state.ui_state.fps_counter->set_visible(state, !state.ui_state.fps_counter->is_visible());
     }
     Cyto::Any output = std::string(s);
     parent->impl_get(state, output);
