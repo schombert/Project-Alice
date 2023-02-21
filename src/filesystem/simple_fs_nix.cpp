@@ -294,7 +294,7 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
     native_string full_path = dir.relative_path + NATIVE('/') + native_string(file_name);
 
     mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-    int file_handle = open(full_path.c_str(), O_RDWR | O_DIRECTORY | O_CREAT, mode);
+    int file_handle = open(full_path.c_str(), O_RDWR | O_CREAT, mode);
     if (file_handle != -1) {
         if (write(file_handle, file_data, file_size) != -1) {
             // error
