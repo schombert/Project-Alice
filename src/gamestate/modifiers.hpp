@@ -259,7 +259,7 @@ void remove_modifier_values_from_province(sys::state& state, dcon::province_id t
 void apply_modifier_values_to_province_owner(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
 void remove_modifier_values_from_province_owner(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
 
-// restores values after a save
+// restores values after loading a save
 void repopulate_modifier_effects(sys::state& state);
 
 }

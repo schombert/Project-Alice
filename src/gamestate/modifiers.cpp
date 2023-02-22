@@ -85,12 +85,16 @@ void remove_modifier_values_from_province_owner(sys::state& state, dcon::nation_
 	}
 }
 
-// restores values after a save
+// restores values after loading a save
 void repopulate_modifier_effects(sys::state& state) {
 	state.world.for_each_province([&](dcon::province_id p) {
 		apply_modifier_values_to_province(state, p, state.world.province_get_terrain(p));
 		apply_modifier_values_to_province(state, p, state.world.province_get_climate(p));
 		apply_modifier_values_to_province(state, p, state.world.province_get_continent(p));
+
+		auto c = state.world.province_get_crime(p);
+		if(c)
+			apply_modifier_values_to_province(state, p, state.culture_definitions.crimes[c].modifier);
 
 		for(auto mpr : state.world.province_get_current_modifiers(p)) {
 			apply_modifier_values_to_province(state, p, mpr.mod_id);

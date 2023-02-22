@@ -98,6 +98,8 @@ target_precompile_headers(Alice
 	PRIVATE <cmath>
 	PRIVATE <functional>
 	PRIVATE <cstdlib>
+	PRIVATE <atomic>
+	PRIVATE <chrono>
 	PRIVATE [["simple_fs.hpp"]]
 	PRIVATE [["constants.hpp"]]
 	PRIVATE [["unordered_dense.h"]]

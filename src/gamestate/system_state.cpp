@@ -128,6 +128,12 @@ namespace sys {
 			ui_state.edit_target->on_text(*this, c);
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
+		auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
+		if(game_state_was_updated) {
+			ui_state.root->impl_on_update(*this);
+			// TODO map needs to refresh itself with data
+			// TODO also need to update any tooltips (which probably exist outside the root container)
+		}
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -1181,5 +1187,36 @@ namespace sys {
 		military::apply_base_unit_stat_modifiers(*this);
 
 		sys::repopulate_modifier_effects(*this);
+	}
+
+	constexpr inline int32_t game_speed[] = {
+		0, //speed 0
+		2000, // speed 1 -- 2 seconds
+		1000, // speed 2 -- 1 second
+		500, // speed 3 -- 0.5 seconds
+		250, // speed 4 -- 0.25 seconds
+	};
+
+	void state::game_loop() {
+		while(quit_signaled.load(std::memory_order::acquire) == false) {
+			auto speed = actual_game_speed.load(std::memory_order::acquire);
+			if(speed <= 0 || internally_paused == true) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(15));
+			} else {
+				auto entry_time = std::chrono::steady_clock::now();
+				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
+
+				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
+					last_update = entry_time;
+
+					// do update logic
+					current_date += 1;
+
+					game_state_updated.store(true, std::memory_order::release);
+				} else {
+					std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				}
+			}
+		}
 	}
 }
