@@ -262,5 +262,12 @@ void remove_modifier_values_from_province_owner(sys::state& state, dcon::nation_
 // restores values after loading a save
 void repopulate_modifier_effects(sys::state& state);
 
+void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration
+void add_modifier_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration
+void remove_modifier_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void remove_modifier_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id);
+void remove_expired_modifiers_from_nation(sys::state& state, dcon::nation_id target_nation);
+void remove_expired_modifiers_from_province(sys::state& state, dcon::province_id target_prov);
+
 }
 
