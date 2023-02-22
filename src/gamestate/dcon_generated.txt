@@ -1104,6 +1104,12 @@ object {
 	}
 
 	property{
+		name{ crime }
+		type{ crime_id }
+		tag{ save }
+	}
+
+	property{
 		name{ mid_point }
 		type{ glm::vec2 }
 		tag{ scenario }

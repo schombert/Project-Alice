@@ -575,6 +575,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	// hand-written contribution
 	ptr_in = deserialize(ptr_in, state.unit_names);
 	ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
+	ptr_in = memcpy_deserialize(ptr_in, state.current_date);
 
 	// data container contribution
 
@@ -589,6 +590,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
 	ptr_in = serialize(ptr_in, state.unit_names);
 	ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
+	ptr_in = memcpy_serialize(ptr_in, state.current_date);
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
@@ -604,6 +606,7 @@ size_t sizeof_save_section(sys::state& state) {
 
 	sz += serialize_size(state.unit_names);
 	sz += sizeof(state.local_player_nation);
+	sz += sizeof(state.current_date);
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
