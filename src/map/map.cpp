@@ -234,13 +234,16 @@ void display_data::create_border_data(parsers::scenario_building_context& contex
 			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
 			if(prov_id_ul != prov_id_ur) {
 				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+				if(prov_id_ur != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 			} else if(prov_id_ul != prov_id_dl) {
 				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+				if(prov_id_dl != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
 			} else if(prov_id_ul != prov_id_dr) {
 				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
+				if(prov_id_dr != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 			}
 		}
 	}
