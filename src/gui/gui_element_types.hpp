@@ -218,6 +218,17 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
+template<class RowConT>
+class listbox_row_button_base : public button_element_base {
+protected:
+	RowConT content{};
+
+public:
+	virtual void update(sys::state& state) noexcept { }
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+};
+
 template<class RowWinT, class RowConT>
 class listbox_element_base : public container_base {
 protected:
@@ -238,6 +249,9 @@ public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
 };
 
 template<class TabT>
