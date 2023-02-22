@@ -2,6 +2,8 @@
 
 #include <memory>
 #include <stdint.h>
+#include <atomic>
+#include <chrono>
 
 #include "constants.hpp"
 #include "dcon_generated.hpp"
@@ -100,12 +102,22 @@ namespace sys {
 		// current program / ui state
 
 		dcon::nation_id local_player_nation;
+		sys::date current_date = sys::date{0};
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information
 		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platform-dependent sound information
 		ui::state ui_state; // transient information for the state of the ui
 		text::font_manager font_collection;
+
+		// synchronization data (between main update logic and ui thread)
+		std::atomic<bool> game_state_updated = false; // game state -> ui signal
+		std::atomic<bool> quit_signaled = false; // ui -> game state signal
+		std::atomic<int32_t> actual_game_speed = 0; // ui -> game state message
+
+		// internal game timer / update logic
+		std::chrono::time_point<std::chrono::steady_clock> last_update = std::chrono::steady_clock::now();
+		bool internally_paused = false; // should NOT be set from the ui context (but may be read)
 
 		// common data for the window
 		int32_t x_size = 0;
@@ -139,6 +151,10 @@ namespace sys {
 		void on_key_up(virtual_key keycode, key_modifiers mod);
 		void on_text(char c); // c is win1250 codepage value
 		void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
+
+		// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
+
+		void game_loop();
 
 		// the following function are for interacting with the string pool
 

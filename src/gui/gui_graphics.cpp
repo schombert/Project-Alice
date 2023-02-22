@@ -29,8 +29,17 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 	auto interfc = open_directory(rt, NATIVE("interface"));
 
 	{
-		auto all_files = list_files(interfc, NATIVE(".gfx"));
+		// first, load in special mod gfx
+		// TODO put this in a better location
+		auto alice_gfx = open_file(rt, NATIVE("assets/alice.gfx"));
+		if(alice_gfx) {
+			auto content = view_contents(*alice_gfx);
+			err.file_name = "assets/alice.gfx";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_gfx_files(gen, err, context);
+		}
 
+		auto all_files = list_files(interfc, NATIVE(".gfx"));
 
 		for(auto& file : all_files) {
 			auto ofile = open_file(file);
@@ -101,7 +110,10 @@ uint8_t element_base::get_pixel_opacity(sys::state& state, int32_t x, int32_t y,
 	uint8_t* pixels = state.open_gl.asset_textures[tid].data;
 	int32_t width = state.open_gl.asset_textures[tid].size_x;
 	int32_t stride = state.open_gl.asset_textures[tid].channels;
-	return pixels[(y * width * stride) + (x * stride) + stride - 1];
+	if(pixels && 0 <= x && x < width && 0 <= y && y < state.open_gl.asset_textures[tid].size_y)
+		return pixels[(y * width * stride) + (x * stride) + stride - 1];
+	else
+		return 0;
 }
 
 mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {

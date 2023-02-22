@@ -48,8 +48,15 @@ int WINAPI wWinMain(
 		ui::populate_definitions_map(*game_state);
 		game_state->open_gl.asset_textures.resize(game_state->ui_defs.textures.size());
 
+		std::thread update_thread([&]() {
+			game_state->game_loop();
+		});
+
+		// entire game runs during this line
 		window::create_window(*game_state, window::creation_parameters{ 1024, 780, sys::window_state::maximized, game_state->user_settings.prefer_fullscreen });
 
+		game_state->quit_signaled.store(true, std::memory_order_release);
+		update_thread.join();
 		CoUninitialize();
 	}
 	return 0;

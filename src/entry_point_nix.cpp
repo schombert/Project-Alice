@@ -21,6 +21,14 @@ int main() {
 	ui::populate_definitions_map(*game_state);
 	game_state->open_gl.asset_textures.resize(game_state->ui_defs.textures.size());
 
+	std::thread update_thread([&]() {
+		game_state->game_loop();
+	});
+
 	window::create_window(*game_state, window::creation_parameters());
+
+	game_state->quit_signaled.store(true, std::memory_order_release);
+	update_thread.join();
+
 	return EXIT_SUCCESS;
 }

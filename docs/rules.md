@@ -6,16 +6,45 @@
 - either bring blockades into a valid state (this has knock on effects on the percentage blockaded and the modifier derived from that) or recalculate what is blockaded from scratch
 - bring combats into a valid state (if the units wouldn't start fighting given the current set of wars, kick them from combat)
 
-- update the dynamic modifier (things like literacy where the size of the modifier is multiplied by the value) -- maybe (schombert notes: not that anyone would be able to tell if we updated them once every X days and split the updates for all the nations over the X days in the cycle, just something to think about.)
+- update the dynamic modifiers (things like literacy where the size of the modifier is multiplied by the value) -- maybe (schombert notes: not that anyone would be able to tell if we updated them once every X days and split the updates for all the nations over the X days in the cycle, just something to think about.)
 - removed expired province and national modifiers
 
+- update cached economics values: Since there is a single global price for all commodities, a number of things can probably be cached at the beginning of each tick, assuming that we want to update the prices late in the tick
+
 - update wars -- increase ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
+
+## Tracking changes
+
+There are some triggers, game rules, and ui elements that need to know the change of certain things, such as pop growth, migration amount, changes in pop wealth perhaps, etc. We will need to decide if these things are tracked by either resetting some value to zero at the beginning of the day and then increasing it over the day or by ensuring that all changes happen in a single place, so that the new delta can be written once (versus writing zero and then adding updates as we go). The second option is better for ui stability, since otherwise reading such a value over the course of a tick runs the risk of not just giving you an out-of-date value, but an incorrect one. We will also need to decide if we are storing these delta values in the save file. If we don't there are two consequences: (a) there will be no information about them in the ui on the first day after a load, and (b) we will need to make sure that they are always generated prior to being needed by any rule; we can't fall back on using the change value from the previous day as there may be no previous day.
+
+### Paths and connectivity
+
+It may be expedient to create some structures tracking properties of pathing / connectivity. Some properties, such as being "overseas" require in part the ability to check whether one province is connected to another. One way to do this would be by "flood filling" connected provinces with increasing ids until there are no more land provinces. Then, same ID => connected.
+
+### Other values to track (typically we need these stored to evaluate one or more trigger conditions)
+
+- number of ports
+- number of ports connected to the capital
+- number of overseas provinces
+- number of rebel occupied provinces
+- fraction of provinces with a crime
+- whether any two nations are adjacent (i.e. a province owned by one is adjacent to a province owned by the other)
+- whether any two nations each have a colonial province adjacent to a colonial province of the other
+- how many regiments total could possibly be recruited, and what number actually have been recruited
+- total number of allies, vassals, substates, etc
 
 ## Modifiers
 
 Both nations and provinces have a set of properties (a bag of float values) that may be affected by modifiers. Some modifiers attached to a province may also affect the bag of values associated with the owning nation. In general, as properties are added or removed, we add or remove their affect on the bag of values (we try not to recalculate the whole set as much as possible). This also means when a province changes ownership that we need to remember to update its affect on the national set of modifiers.
 
 Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since these need to be updated daily, there is a second bag of values attached to nations just for these
+
+## Economy
+
+### Share factor
+
+If the nation is a civ and is a secondary power start with define:SECOND_RANK_BASE_SHARE_FACTOR, and otherwise start with define:CIV_BASE_SHARE_FACTOR. Also calculate the sphere owner's foreign investment in the nation as a fraction of the total foreign investment in the nation (I believe that this is treated as zero if there is no foreign investment at all). The share factor is (1 - base share factor) * sphere owner investment fraction + base share factor. For uncivs, the share factor is simply equal to define:UNCIV_BASE_SHARE_FACTOR (so 1, by default). If a nation isn't in a sphere, we let the share factor be 0 if it needs to be used in any other calculation.
+
 
 ## Military
 
@@ -46,3 +75,22 @@ Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since
 - Crisis war goals may not be removed -- this may override other validity checks
 - There must be at least one wargoal (other than status quo) in the war
 - idle for too long -- if the war goes too long without some event happening within it (battle or occupation) it may be terminated. If something is occupied, I believe the war is safe from termination in this way
+
+## Rebels
+
+### Calculating how many regiments are "ready to join" a rebel faction
+
+Loop over all the pops associated with the faction. For each pop with militancy >= define:MIL_TO_JOIN_RISING, the faction is credited one regiment per define:POP_SIZE_PER_REGIMENT the pop has in size.
+
+## Other concepts
+
+- overseas province: not on same continent as the nation's capital AND not connected by land to the capital
+- province value type A: 1 (if unowned or colonial), otherwise: (1 + fort level + naval base level + number of factories in state (if capital province of the state state)) x 2 (if non-overseas core) x 3 (if it is the national capital) -- these values are used to determine the relative worth of provinces (I believe) as a proportion of the total type A valuation of all provinces owned by the country.
+- a port: I believe that any coastal province is considered to have a port, regardless of whether it has a naval base
+- revanchism: you get one point per unowned core if your primary culture is the dominant culture (culture with the most population) in the province, 0.25 points if it is not the dominant culture, and then that total is divided by the total number of your cores to get your revanchism percentage
+- naval base supply score: you get one point per level of naval base that is either in a core province or connected by land to the capital. You get define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE per level of other naval bases
+- ships consume naval base supply at their supply_consumption_score
+- colonial points: (for nations with rank at least define:COLONIAL_RANK)
+- from naval bases: (1) determined by level and the building defintion, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- plus points from technologies/inventions

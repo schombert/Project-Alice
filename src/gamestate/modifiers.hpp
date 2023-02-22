@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "date_interface.hpp"
 
 
 namespace sys {
@@ -212,7 +213,7 @@ struct commodity_modifier {
 	dcon::commodity_id type;
 };
 
-struct unit_modifier {
+struct unit_variable_stats {
 	int32_t build_time = 0;
 	int32_t default_organisation = 0;
 	float maximum_speed = 0.0f;
@@ -222,6 +223,21 @@ struct unit_modifier {
 	float support = 0.0f;
 	float siege_or_torpedo_attack = 0.0f;
 	float reconnaissance_or_fire_range = 0.0f;
+
+	void operator+=(unit_variable_stats const& other) {
+		build_time += other.build_time;
+		default_organisation += other.default_organisation;
+		maximum_speed += other.maximum_speed;
+		defence_or_hull += other.defence_or_hull;
+		attack_or_gun_power += other.attack_or_gun_power;
+		supply_consumption += other.supply_consumption;
+		support += other.support;
+		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
+		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
+	}
+};
+
+struct unit_modifier : public unit_variable_stats {
 	dcon::unit_type_id type;
 };
 
@@ -229,6 +245,29 @@ struct rebel_org_modifier {
 	float amount = 0.0f;
 	dcon::rebel_type_id type; // no type set = all rebels
 };
+
+struct dated_modifier {
+	sys::date expiration;
+	dcon::modifier_id mod_id;
+};
+
+// NOTE: these functions do not add or remove a modifier from the list of modifiers for an entity
+void apply_modifier_values_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void apply_modifier_values_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id);
+void remove_modifier_values_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void remove_modifier_values_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id); // also removes national values form owner
+void apply_modifier_values_to_province_owner(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void remove_modifier_values_from_province_owner(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+
+// restores values after loading a save
+void repopulate_modifier_effects(sys::state& state);
+
+void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration
+void add_modifier_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration
+void remove_modifier_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void remove_modifier_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id);
+void remove_expired_modifiers_from_nation(sys::state& state, dcon::nation_id target_nation);
+void remove_expired_modifiers_from_province(sys::state& state, dcon::province_id target_prov);
 
 }
 
