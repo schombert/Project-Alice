@@ -1131,6 +1131,11 @@ object {
 		type{vector_pool{32000}{sys::dated_modifier}}
 		tag{ save }
 	}
+
+	property {
+		name{ connected_region_id }
+		type{ uint16_t }
+	}
 }
 
 relationship{

@@ -3,6 +3,7 @@
 #include "system_state.hpp"
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
+#include "parsers_declarations.hpp"
 
 namespace map {
 
@@ -12,7 +13,7 @@ public:
 	~display_data();
 
 	// Called to load the terrain and province map data
-	void load_map_data(sys::state& state, ankerl::unordered_dense::map<uint32_t, dcon::province_id> const& color_map);
+	void load_map_data(parsers::scenario_building_context& context);
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
@@ -38,7 +39,7 @@ public:
 	int16_t get_selected_province();
 	void set_selected_province(int16_t prov_id);
 
-	void create_border_data();
+	void create_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();
 
 	uint32_t size_x;

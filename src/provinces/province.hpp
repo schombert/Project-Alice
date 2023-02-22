@@ -40,5 +40,6 @@ inline int32_t get_fort_level(uint8_t value) {
 inline int32_t get_naval_base_level(uint8_t value) {
 	return int32_t((value >> 4) & 0x0F);
 }
+void update_connected_regions(sys::state& state);
 }
 

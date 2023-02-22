@@ -26,6 +26,7 @@
 #include "culture.cpp"
 #include "military.cpp"
 #include "modifiers.cpp"
+#include "province.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
