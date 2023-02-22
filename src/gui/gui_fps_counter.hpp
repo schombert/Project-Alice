@@ -1,3 +1,5 @@
+#pragma once
+
 #include "gui_element_types.hpp"
 namespace ui {
 
@@ -9,9 +11,7 @@ private:
 public:
     void on_create(sys::state& state) noexcept override {
         simple_text_element_base::on_create(state);
-        state.ui_state.fps_counter = this;
         set_text(state, "0");
-        set_visible(state, false);
     }
 
     void render(sys::state& state, int32_t x, int32_t y) noexcept override {

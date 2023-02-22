@@ -9,7 +9,6 @@
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
 #include "gui_province_window.hpp"
-#include "gui_fps_counter.hpp"
 #include <algorithm>
 #include <thread>
 
@@ -170,10 +169,6 @@ namespace sys {
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
-			ui_state.root->add_child_to_front(std::move(new_elm));
-		}
-		{
-			auto new_elm = ui::make_element_by_type<ui::fps_counter_text_box>(*this, "fps_counter");
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 	}

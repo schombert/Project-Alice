@@ -1,3 +1,5 @@
+#pragma once
+
 #include "dcon_generated.hpp"
 #include "gui_element_types.hpp"
 #include "province.hpp"

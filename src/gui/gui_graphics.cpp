@@ -29,8 +29,17 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 	auto interfc = open_directory(rt, NATIVE("interface"));
 
 	{
-		auto all_files = list_files(interfc, NATIVE(".gfx"));
+		// first, load in special mod gfx
+		// TODO put this in a better location
+		auto alice_gfx = open_file(rt, NATIVE("assets/alice.gfx"));
+		if(alice_gfx) {
+			auto content = view_contents(*alice_gfx);
+			err.file_name = "assets/alice.gfx";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_gfx_files(gen, err, context);
+		}
 
+		auto all_files = list_files(interfc, NATIVE(".gfx"));
 
 		for(auto& file : all_files) {
 			auto ofile = open_file(file);

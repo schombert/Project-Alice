@@ -356,6 +356,7 @@ namespace ui {
 		element_base* topbar_window = nullptr;
 		element_base* topbar_subwindow = nullptr; // current tab window
 		element_base* province_window = nullptr;
+		element_base* search_window = nullptr;
 
 		state();
 	};
