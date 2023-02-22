@@ -471,4 +471,14 @@ guiTypes = {
 			}
 		}
 	}
+
+	guiButtonType = {
+		name = "goto_location_button"
+		quadTextureSprite = "GFX_goto_location_button"
+		position = { x=0 y=0 }
+		size = { x=240, y=24 }
+		orientation = "UPPER_LEFT"
+		buttonText = "GOTO_GOTO"
+		buttonFont = "vic_18_black"
+	}
 }
