@@ -109,7 +109,7 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 
-void display_data::create_border_data() {
+void display_data::create_border_data(parsers::scenario_building_context& context) {
 	border_vertices.clear();
 
 	auto add_line = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<float>& vertices, uint32_t x0, uint32_t y0, glm::vec2 pos1, glm::vec2 pos2) {
@@ -232,10 +232,18 @@ void display_data::create_border_data() {
 			auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
 			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
-			if((prov_id_ul != prov_id_ur) ||
-				(prov_id_ul != prov_id_dl) ||
-				(prov_id_ul != prov_id_dr)) {
+			if(prov_id_ul != prov_id_ur) {
 				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_ur != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+			} else if(prov_id_ul != prov_id_dl) {
+				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_dl != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+			} else if(prov_id_ul != prov_id_dr) {
+				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_dr != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 			}
 		}
 	}
@@ -727,8 +735,8 @@ void display_data::set_terrain_map_mode() {
 	active_map_mode = map_mode::mode::terrain;
 }
 
-void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map<uint32_t, dcon::province_id> const& color_map) {
-	auto root = simple_fs::get_root(state.common_fs);
+void display_data::load_map_data(parsers::scenario_building_context& context) {
+	auto root = simple_fs::get_root(context.state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 
 	// Load the province map
@@ -747,7 +755,7 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 	for(uint32_t i = 0; i < size_x * size_y; ++i) {
 		uint8_t* ptr = data + i * 4;
 		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
-		if(auto it = color_map.find(color); it != color_map.end()) {
+		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
 			province_id_map[i] = province::to_map_id(it->second);
 		} else {
 			province_id_map[i] = 0;
@@ -782,9 +790,9 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 		terrain_id_map.insert(terrain_id_map.begin() + y * terrain_size_x, inner_start, end);
 	}
 
-	median_terrain_type.resize(state.world.province_size() + 1);
-	std::vector<std::array<int, 16>> terrain_histogram(state.world.province_size() + 1, std::array<int, 16>{});
-	std::vector<glm::ivec3> province_acc_tile_pos(state.world.province_size() + 1, glm::ivec3(0));
+	median_terrain_type.resize(context.state.world.province_size() + 1);
+	std::vector<std::array<int, 16>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 16>{});
+	std::vector<glm::ivec3> province_acc_tile_pos(context.state.world.province_size() + 1, glm::ivec3(0));
 	for(int i = terrain_size_x * terrain_size_y; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
@@ -795,7 +803,7 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 		province_acc_tile_pos[prov_id] += glm::ivec3(x, y, 1);
 	}
 
-	for(int i = state.world.province_size(); i-- > 1;) {
+	for(int i = context.state.world.province_size(); i-- > 1;) {
 		int max_index = 15;
 		int max = 0;
 		for(int j = max_index; j-- > 0;) {
@@ -806,10 +814,16 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 		}
 		median_terrain_type[i] = uint8_t(max_index);
 		auto acc_tile_pos = glm::vec2(province_acc_tile_pos[i].x, province_acc_tile_pos[i].y);
-		state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), acc_tile_pos / (float)province_acc_tile_pos[i].z);
+		context.state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), acc_tile_pos / (float)province_acc_tile_pos[i].z);
 	}
 
-	create_border_data();
+	create_border_data(context);
+	parsers::error_handler err("adjacencies.csv");
+	auto adj_csv_file = open_file(map_dir, NATIVE("adjacencies.csv"));
+	if(adj_csv_file) {
+		auto adj_content = view_contents(*adj_csv_file);
+		parsers::read_map_adjacency(adj_content.data, adj_content.data + adj_content.file_size, err, context);
+	}
 }
 
 void display_data::load_map(sys::state& state) {

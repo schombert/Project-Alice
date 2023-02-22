@@ -27,7 +27,7 @@ Since this is an open-source project, you don't have to be an official member of
 
 ### Building the project
 
-The build uses CMake and should "just work", with one important exception. Because the project in its current state needs to use the existing game files (as a source of graphics, for starters), everyone needs to tell the compiler where their copy of the game is installed. You do this by creating a file named `local_user_settings.hpp` in the directory `src`. That file should contain the following four lines (the last one is an empty line):
+The build uses CMake and should "just work", with some annoying exceptions. First, windows users will need a full copy of git installed (https://git-scm.com/downloads), as the one that ships with Visual Studio is not sufficient for CMake, for some reason. Secondly, windows users will need to make sure that they have a relatively up-to-date version of the windows SDK installed (you can update your local version of the windows SDK through the Visual Studio installer). Thirdly, the version of Intel's TBB library we use seems to fail to compile if you have any spaces in the path, so you need to make sure that wherever you put the project has no spaces anywhere in its path (yes, this seems dumb to me too). Finally, because the project in its current state needs to use the existing game files (as a source of graphics, for starters), everyone needs to tell the compiler where their copy of the game is installed. You do this by creating a file named `local_user_settings.hpp` in the directory `src`. That file should contain the following four lines (the last one is an empty line):
 ```
 #ifndef GAME_DIR
 #define GAME_DIR "D:\\programs\\V2"

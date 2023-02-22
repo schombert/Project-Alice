@@ -222,10 +222,12 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 }
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
-	auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
-	edit_index++;
-	set_text(state, s);
-	edit_box_update(state, s);
+	if(ch >= 32) {
+		auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
+		edit_index++;
+		set_text(state, s);
+		edit_box_update(state, s);
+	}
 }
 
 message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
@@ -720,33 +722,58 @@ message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::A
 	return message_result::unseen;
 }
 
+template<class RowConT>
+message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<wrapped_row_content<RowConT>>()) {
+		content = any_cast<wrapped_row_content<RowConT>>(payload).content;
+		update(state);
+	}
+	return message_result::unseen;
+}
+
+template<class RowConT>
+message_result listbox_row_button_base<RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	return parent->impl_on_scroll(state, x, y, amount, mods);
+}
+
 template<class RowWinT, class RowConT>
 void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 	if(is_reversed()) {
 		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
 		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
-			auto content = i >= 0 ? row_contents[i--] : RowConT{};
-			Cyto::Any payload = wrapped_row_content<RowConT>{ content };
-			row_windows[rw_i]->impl_get(state, payload);
+			if(i >= 0) {
+				Cyto::Any payload = wrapped_row_content<RowConT>{ row_contents[i--] };
+				row_windows[rw_i]->impl_get(state, payload);
+				row_windows[rw_i]->set_visible(state, true);
+			} else {
+				row_windows[rw_i]->set_visible(state, false);
+			}
 		}
 	} else {
 		auto i = size_t(scroll_pos);
 		for(RowWinT* row_window : row_windows) {
-			auto content = i < row_contents.size() ? row_contents[i++] : RowConT{};
-			Cyto::Any payload = wrapped_row_content<RowConT>{ content };
-			row_window->impl_get(state, payload);
+			if(i < row_contents.size()) {
+				Cyto::Any payload = wrapped_row_content<RowConT>{ row_contents[i++] };
+				row_window->impl_get(state, payload);
+				row_window->set_visible(state, true);
+			} else {
+				row_window->set_visible(state, false);
+			}
 		}
 	}
 }
 
 template<class RowWinT, class RowConT>
 message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	if(amount < 0) {
+	auto old_scroll_pos = scroll_pos;
+	if(amount > 0) {
 		scroll_pos = std::max(scroll_pos - 1, 0);
-	} else {
+	} else if(row_contents.size() > row_windows.size()) {
 		scroll_pos = std::min(scroll_pos + 1, int32_t(row_contents.size() - row_windows.size()));
 	}
-	update(state);
+	if(scroll_pos != old_scroll_pos) {
+		update(state);
+	}
 	return message_result::consumed;
 }
 
