@@ -1648,7 +1648,7 @@ object {
 	}
 	property{
 		name{ modified_units }
-		type{vector_pool{3200}{sys::unit_modifier}}
+		type{vector_pool{6200}{sys::unit_modifier}}
 		tag{ scenario }
 	}
 }
