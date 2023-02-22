@@ -381,7 +381,7 @@ namespace sys {
 		}
 
 		std::thread map_loader([&]() {
-			map_display.load_map_data(*this, context.map_color_to_province_id);
+			map_display.load_map_data(context);
 		});
 
 		// Read national tags from countries.txt
@@ -1155,6 +1155,26 @@ namespace sys {
 
 		map_loader.join();
 
+		// touch up adjacencies
+		world.for_each_province_adjacency([&](dcon::province_adjacency_id id) {
+			auto frel = fatten(world, id);
+			auto prov_a = frel.get_connected_provinces(0);
+			auto prov_b = frel.get_connected_provinces(1);
+			if(prov_a.id.index() < province_definitions.first_sea_province.index() &&
+				prov_b.id.index() >= province_definitions.first_sea_province.index()) {
+				frel.get_type() |= province::border::coastal_bit;
+			} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() &&
+				prov_b.id.index() < province_definitions.first_sea_province.index()) {
+				frel.get_type() |= province::border::coastal_bit;
+			}
+			if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
+				frel.get_type() |= province::border::state_bit;
+			}
+			if(prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
+				frel.get_type() |= province::border::national_bit;
+			}
+		});
+
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
@@ -1187,6 +1207,7 @@ namespace sys {
 		military::apply_base_unit_stat_modifiers(*this);
 
 		sys::repopulate_modifier_effects(*this);
+		province::update_connected_regions(*this);
 	}
 
 	constexpr inline int32_t game_speed[] = {

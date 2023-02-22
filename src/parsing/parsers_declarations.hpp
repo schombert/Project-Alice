@@ -1059,7 +1059,7 @@ namespace parsers {
 	};
 
 	void read_map_colors(char const* start, char const* end, error_handler& err, scenario_building_context& context);
-
+	void read_map_adjacency(char const* start, char const* end, error_handler& err, scenario_building_context& context);
 
 	struct terrain_modifier : public modifier_base {
 		color_from_3i color;
