@@ -47,13 +47,13 @@ private:
     std::vector<dcon::province_id> search_provinces(sys::state& state, std::string_view search_term) noexcept {
         std::vector<dcon::province_id> results{};
         std::string search_term_lower = std::string(search_term);
-        std::transform(search_term_lower.begin(), search_term_lower.end(), search_term_lower.begin(), ::tolower);
+        std::transform(search_term_lower.begin(), search_term_lower.end(), search_term_lower.begin(), [](unsigned char c){ return std::tolower(c); });
 
         if(!search_term.empty()) {
             state.world.for_each_province([&](dcon::province_id prov_id){
                 dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
                 auto name = text::produce_simple_string(state, fat_id.get_name());
-                std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+                std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c){ return std::tolower(c); });
                 if(name.starts_with(search_term_lower)) {
                     results.push_back(prov_id);
                 }

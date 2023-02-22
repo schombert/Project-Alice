@@ -5,8 +5,8 @@ namespace ui {
 
 class fps_counter_text_box : public simple_text_element_base {
 private:
-    std::chrono::time_point<std::chrono::system_clock> last_render_time{};
-    std::chrono::time_point<std::chrono::system_clock> last_compute_time{};
+    std::chrono::time_point<std::chrono::steady_clock> last_render_time{};
+    std::chrono::time_point<std::chrono::steady_clock> last_compute_time{};
 
 public:
     void on_create(sys::state& state) noexcept override {
@@ -15,8 +15,8 @@ public:
     }
 
     void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-        if(last_render_time == std::chrono::time_point<std::chrono::system_clock>{}) {
+        std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+        if(last_render_time == std::chrono::time_point<std::chrono::steady_clock>{}) {
             last_render_time = now;
         }
         auto microseconds_since_last_render = std::chrono::duration_cast<std::chrono::microseconds>(now - last_render_time);
