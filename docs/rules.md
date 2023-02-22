@@ -88,3 +88,9 @@ Loop over all the pops associated with the faction. For each pop with militancy 
 - province value type A: 1 (if unowned or colonial), otherwise: (1 + fort level + naval base level + number of factories in state (if capital province of the state state)) x 2 (if non-overseas core) x 3 (if it is the national capital) -- these values are used to determine the relative worth of provinces (I believe) as a proportion of the total type A valuation of all provinces owned by the country.
 - a port: I believe that any coastal province is considered to have a port, regardless of whether it has a naval base
 - revanchism: you get one point per unowned core if your primary culture is the dominant culture (culture with the most population) in the province, 0.25 points if it is not the dominant culture, and then that total is divided by the total number of your cores to get your revanchism percentage
+- naval base supply score: you get one point per level of naval base that is either in a core province or connected by land to the capital. You get define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE per level of other naval bases
+- ships consume naval base supply at their supply_consumption_score
+- colonial points: (for nations with rank at least define:COLONIAL_RANK)
+- from naval bases: (1) determined by level and the building defintion, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- plus points from technologies/inventions

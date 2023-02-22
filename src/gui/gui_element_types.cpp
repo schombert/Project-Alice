@@ -222,10 +222,12 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 }
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
-	auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
-	edit_index++;
-	set_text(state, s);
-	edit_box_update(state, s);
+	if(ch >= 32) {
+		auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
+		edit_index++;
+		set_text(state, s);
+		edit_box_update(state, s);
+	}
 }
 
 message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {

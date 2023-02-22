@@ -110,7 +110,10 @@ uint8_t element_base::get_pixel_opacity(sys::state& state, int32_t x, int32_t y,
 	uint8_t* pixels = state.open_gl.asset_textures[tid].data;
 	int32_t width = state.open_gl.asset_textures[tid].size_x;
 	int32_t stride = state.open_gl.asset_textures[tid].channels;
-	return pixels[(y * width * stride) + (x * stride) + stride - 1];
+	if(pixels && 0 <= x && x < width && 0 <= y && y < state.open_gl.asset_textures[tid].size_y)
+		return pixels[(y * width * stride) + (x * stride) + stride - 1];
+	else
+		return 0;
 }
 
 mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {

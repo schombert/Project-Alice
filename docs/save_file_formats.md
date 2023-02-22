@@ -14,7 +14,7 @@ If you add information to the game state that needs to persist for more than jus
 In the case of (2), you need to do the following instead:
 - add `sz += serialize_size(state.my_new_vector);` to the function that calculates the size (in bytes) required to store all of the data
 - add `ptr_in = serialize(ptr_in, state.my_new_vector);` at some point into the function that writes the bytes we want to serialize out, and
-- add `ptptr_in = deserialize(ptr_in, state.my_new_vector);` into the function that reads data from the raw bytes in the same relative position at which you placed the previous line in its function. 
+- add `ptr_in = deserialize(ptr_in, state.my_new_vector);` into the function that reads data from the raw bytes in the same relative position at which you placed the previous line in its function. 
 
 ### Scenario file
 
