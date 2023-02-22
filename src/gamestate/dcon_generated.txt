@@ -2020,7 +2020,7 @@ relationship{
 object {
 	name { pop }
 	storage_type{ compactable }
-	size{ 30000 }
+	size{ 80000 }
 	tag{ save }
 
 	property{
