@@ -2177,7 +2177,7 @@ relationship{
 object {
 	name { national_event }
 	storage_type{ contiguous }
-	size{ 2000 }
+	size{ 4000 }
 	tag{ scenario }
 
 	property{
@@ -2399,7 +2399,7 @@ object {
 object {
 	name{ decision }
 	storage_type{ contiguous }
-	size{ 1000 }
+	size{ 2000 }
 	tag{ scenario }
 
 	property{

@@ -853,7 +853,19 @@ void ef_scope_random(token_generator& gen, error_handler& err, effect_building_c
 int32_t add_to_random_list(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto ivalue = parse_int(label, 0, err);
 	context.compiled_effect.push_back(uint16_t(ivalue));
+
+	auto old_limit_offset = context.limit_position;
+	context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::is_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
 	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+
 	return ivalue;
 }
 
@@ -864,7 +876,6 @@ void ef_scope_random_list(token_generator& gen, error_handler& err, effect_build
 
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
-	context.compiled_effect.push_back(uint16_t(0));
 
 	context.limit_position = context.compiled_effect.size();
 	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
@@ -1033,12 +1044,16 @@ int32_t simplify_effect(uint16_t* source) {
 			while(sub_units_start < source + source_size) {
 				const auto old_size = 1 + get_generic_effect_payload_size(sub_units_start);
 				const auto new_size = simplify_effect(sub_units_start);
-
-				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
-					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
-					source_size -= (old_size - new_size);
+				if(new_size > 0) {
+					if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
+						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
+						source_size -= (old_size - new_size);
+					}
+					sub_units_start += new_size + 1;
+				} else {
+					std::copy(sub_units_start + old_size, source + source_size, sub_units_start - 1);
+					source_size -= (1 + old_size);
 				}
-				sub_units_start += new_size + 1;
 			}
 		} else {
 			auto sub_units_start = source + 2 + effect_scope_data_payload(source[0]);
