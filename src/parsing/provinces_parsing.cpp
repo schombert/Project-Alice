@@ -99,13 +99,20 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 
 
 void palette_definition::finish(scenario_building_context& context) {
+	if(color.free_value == 254) {
+		auto it = context.map_of_terrain_types.find(std::string(type));
+		if(it != context.map_of_terrain_types.end()) {
+			context.ocean_terrain = it->second.id;
+		}
+	}
+
 	if(color.free_value < 0 || color.free_value >= 64)
 		return;
 
 	auto it = context.map_of_terrain_types.find(std::string(type));
 	if(it != context.map_of_terrain_types.end()) {
-		context.state.province_definitions.color_by_terrain_index[color.free_value] = it->second.color;
-		context.state.province_definitions.modifier_by_terrain_index[color.free_value] = it->second.id;
+		context.color_by_terrain_index[color.free_value] = it->second.color;
+		context.modifier_by_terrain_index[color.free_value] = it->second.id;
 	}
 }
 

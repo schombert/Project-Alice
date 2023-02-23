@@ -1071,7 +1071,7 @@ struct trigger_body {
 			err.accumulated_errors += "rich_tax trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.add_float_to_payload(value * 100.0f);
+		context.compiled_trigger.push_back(uint32_t(value * 100.0f));
 	}
 	void middle_tax(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -1080,7 +1080,7 @@ struct trigger_body {
 			err.accumulated_errors += "middle_tax trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.add_float_to_payload(value * 100.0f);
+		context.compiled_trigger.push_back(uint32_t(value * 100.0f));
 	}
 	void poor_tax(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -1089,7 +1089,7 @@ struct trigger_body {
 			err.accumulated_errors += "poor_tax trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.add_float_to_payload(value * 100.0f);
+		context.compiled_trigger.push_back(uint32_t(value * 100.0f));
 	}
 	void mobilisation_size(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {

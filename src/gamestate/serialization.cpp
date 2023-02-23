@@ -207,10 +207,6 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	}
 	{ // provincial definitions
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.first_sea_province);
-		memcpy(state.province_definitions.modifier_by_terrain_index, ptr_in, sizeof(dcon::modifier_id) * 64);
-		ptr_in += sizeof(dcon::modifier_id) * 64;
-		memcpy(state.province_definitions.color_by_terrain_index, ptr_in, sizeof(uint32_t) * 64);
-		ptr_in += sizeof(uint32_t) * 64;
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.asia);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.africa);
@@ -373,10 +369,6 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	}
 	{ // provincial definitions
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
-		memcpy(ptr_in, state.province_definitions.modifier_by_terrain_index, sizeof(dcon::modifier_id) * 64);
-		ptr_in += sizeof(dcon::modifier_id) * 64;
-		memcpy(ptr_in, state.province_definitions.color_by_terrain_index, sizeof(uint32_t) * 64);
-		ptr_in += sizeof(uint32_t) * 64;
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.asia);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.africa);
@@ -537,8 +529,6 @@ size_t sizeof_scenario_section(sys::state& state) {
 	}
 	{ // provincial definitions
 		sz += sizeof(state.province_definitions.first_sea_province);
-		sz += sizeof(dcon::modifier_id) * 64;
-		sz += sizeof(uint32_t) * 64;
 		sz += sizeof(state.province_definitions.europe);
 		sz += sizeof(state.province_definitions.asia);
 		sz += sizeof(state.province_definitions.africa);
