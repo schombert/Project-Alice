@@ -175,6 +175,7 @@ namespace text {
 	void load_text_data(sys::state& state, uint32_t language);
 	char16_t win1250toUTF16(char in);
 	std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
+	std::string produce_simple_string(sys::state const& state, std::string_view key);
 	dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
 }
 
