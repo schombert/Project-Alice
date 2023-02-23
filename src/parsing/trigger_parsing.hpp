@@ -249,12 +249,11 @@ struct trigger_body {
 
 	void ai(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
-			context.compiled_trigger.push_back(uint16_t(trigger::ai | association_to_bool_code(a, value)));
+			context.compiled_trigger.push_back(uint16_t(trigger::ai | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "ai trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
-		context.compiled_trigger.push_back(trigger::payload(value).value);
 	}
 
 	void year(association_type a, int32_t value, error_handler& err, int32_t line, trigger_building_context& context) {
@@ -1531,7 +1530,6 @@ struct trigger_body {
 				err.accumulated_errors += "culture trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-			context.compiled_trigger.push_back(uint16_t(1 + 1)); // data size; if no payload add code | trigger::no_payload
 			context.compiled_trigger.push_back(trigger::payload(it->second).value);
 		} else {
 			err.accumulated_errors += "culture trigger supplied with an invalid culture (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -2469,7 +2467,7 @@ struct trigger_body {
 			} else if(context.main_slot == trigger::slot_contents::pop) {
 				context.compiled_trigger.push_back(uint16_t(trigger::nationalvalue_pop | association_to_bool_code(a)));
 			} else {
-				err.accumulated_errors += "has_country_modifier trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				err.accumulated_errors += "nationalvalue trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 			context.compiled_trigger.push_back(trigger::payload(it->second).value);
