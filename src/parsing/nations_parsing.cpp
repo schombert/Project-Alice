@@ -17,6 +17,7 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	auto adj_id = text::find_or_add_key(context.state, std::string(tag) + "_ADJ");
 	context.state.world.national_identity_set_name(new_ident, name_id);
 	context.state.world.national_identity_set_adjective(new_ident, adj_id);
+	context.state.world.national_identity_set_identifying_int(new_ident, as_int);
 
 	context.file_names_for_idents.resize(context.state.world.national_identity_size());
 	context.file_names_for_idents[new_ident] = txt;

@@ -42,6 +42,11 @@ object{
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
+	property{
+		name{ identifying_int }
+		type{ uint32_t }
+		tag{ scenario }
+	}
 
 	property{
 		name{ unit_names_first }
@@ -1506,6 +1511,36 @@ object {
 	}
 }
 
+object {
+	name{ state_instance }
+	storage_type{ contiguous }
+	size{ 3000 }
+	tag{ save }
+
+	property{
+		name{ definition }
+		type{ state_definition_id }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ state_ownership }
+	tag{ save }
+
+	link{
+		object{state_instance}
+		name{state}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+}
+
 relationship{
 	name{ abstract_state_membership }
 	tag{ scenario }
@@ -1522,6 +1557,7 @@ relationship{
 		index_storage{array}
 	}
 }
+
 
 relationship{
 	name{ core }

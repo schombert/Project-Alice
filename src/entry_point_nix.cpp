@@ -19,7 +19,6 @@ int main() {
 	game_state->load_user_settings();
 	text::load_standard_fonts(*game_state);
 	ui::populate_definitions_map(*game_state);
-	game_state->open_gl.asset_textures.resize(game_state->ui_defs.textures.size());
 
 	std::thread update_thread([&]() {
 		game_state->game_loop();

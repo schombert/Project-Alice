@@ -8,3 +8,4 @@ using native_char = wchar_t;
 
 #define NATIVE(X) L ## X
 #define NATIVE_M(X) NATIVE(X)
+#define NATIVE_DIR_SEPARATOR L'\\'

@@ -27,6 +27,7 @@
 #include "military.cpp"
 #include "modifiers.cpp"
 #include "province.cpp"
+#include "triggers.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

@@ -42,8 +42,10 @@ constexpr inline uint32_t build_railway              = 0x40000000;
 namespace culture {
 
 enum class flag_type : uint8_t {
-	default_flag = 0, republic, communist, fascist, monarchy
+	default_flag = 0, republic = 1, communist = 2, fascist = 3, monarchy = 4
 };
+
+inline constexpr int32_t flag_count = 5;
 
 struct government_type {
 	uint32_t ideologies_allowed = 0;
