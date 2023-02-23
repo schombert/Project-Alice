@@ -935,12 +935,16 @@ void display_data::update(sys::state& state) {
 void display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(keycode == sys::virtual_key::LEFT) {
 		pos_velocity.x = -1.f;
+		left_arrow_key_down = true;
 	} else if(keycode == sys::virtual_key::RIGHT) {
 		pos_velocity.x = +1.f;
+		right_arrow_key_down = true;
 	} else if(keycode == sys::virtual_key::UP) {
 		pos_velocity.y = -1.f;
+		up_arrow_key_down = true;
 	} else if(keycode == sys::virtual_key::DOWN) {
 		pos_velocity.y = +1.f;
+		down_arrow_key_down = true;
 	} else if(keycode == sys::virtual_key::Q) {
 		zoom_change = zoom * 1.1f;
 	} else if(keycode == sys::virtual_key::E) {
@@ -950,13 +954,42 @@ void display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod)
 
 void display_data::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(keycode == sys::virtual_key::LEFT) {
-		pos_velocity.x = 0;
+		if(pos_velocity.x < 0) {
+			if(right_arrow_key_down == false) {
+				pos_velocity.x = 0;
+			}
+			else {
+				pos_velocity.x *= -1;
+			}
+		}
+		left_arrow_key_down = false;
 	} else if(keycode == sys::virtual_key::RIGHT) {
-		pos_velocity.x = 0;
+		if(pos_velocity.x > 0) {
+			if(left_arrow_key_down == false) {
+				pos_velocity.x = 0;
+			} else {
+				pos_velocity.x *= -1;
+			}
+		}
+		right_arrow_key_down = false;
 	} else if(keycode == sys::virtual_key::UP) {
-		pos_velocity.y = 0;
+		if(pos_velocity.y < 0) {
+			if(down_arrow_key_down == false) {
+				pos_velocity.y = 0;
+			} else {
+				pos_velocity.y *= -1;
+			}
+		}
+		up_arrow_key_down = false;
 	} else if(keycode == sys::virtual_key::DOWN) {
-		pos_velocity.y = 0;
+		if(pos_velocity.y > 0) {
+			if(up_arrow_key_down == false) {
+				pos_velocity.y = 0;
+			} else {
+				pos_velocity.y *= -1;
+			}
+		}
+		down_arrow_key_down = false;
 	}
 }
 
