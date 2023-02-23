@@ -471,8 +471,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(1.4f));
 		REQUIRE(state->world.modifier_get_province_values(id).values[1] == Approx(2.0f));
 
-		REQUIRE(state->province_definitions.modifier_by_terrain_index[24] == id);
-		REQUIRE(state->province_definitions.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
+		REQUIRE(context.modifier_by_terrain_index[24] == id);
+		REQUIRE(context.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
 	}
 	{
 		auto region_file = open_file(map, NATIVE("region.txt"));
@@ -1112,7 +1112,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 					break;
 				}
 			}
-			if(last - start_of_name >= 6) {
+			if(last - start_of_name >= 6 && file_name.ends_with(NATIVE("_oob.txt"))) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
 				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
@@ -1506,8 +1506,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(1.4f));
 		REQUIRE(state->world.modifier_get_province_values(id).values[1] == Approx(2.0f));
 
-		REQUIRE(state->province_definitions.modifier_by_terrain_index[24] == id);
-		REQUIRE(state->province_definitions.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
+		REQUIRE(context.modifier_by_terrain_index[24] == id);
+		REQUIRE(context.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
 	}
 	{
 		auto id721 = fatten(state->world, context.original_id_to_prov_id_map[721]);
