@@ -105,6 +105,10 @@ private:
 	float zoom = 1.f;
 	float zoom_change = 1.f;
 	bool has_zoom_changed = false;
+	bool left_arrow_key_down = false;
+	bool right_arrow_key_down = false;
+	bool up_arrow_key_down = false;
+	bool down_arrow_key_down = false;
 	glm::vec2 scroll_pos_velocity = glm::vec2(0.f);
 	std::chrono::time_point<std::chrono::system_clock> last_zoom_time{};
 
