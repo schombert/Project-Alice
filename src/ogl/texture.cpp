@@ -430,11 +430,8 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
 	} else { // load from file
-
-		native_string file_str;
-		file_str += NATIVE("gfx") + NATIVE_DIR_SEPARATOR;
-		file_str += NATIVE("flags") + NATIVE_DIR_SEPARATOR;
-		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
+		// compose name of file to search for
+		native_string file_str = simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
 		switch(type) {
 			case culture::flag_type::communist:
 				file_str += NATIVE("_communist"); break;
@@ -449,7 +446,11 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		}
 		file_str += NATIVE(".tga");
 
-		return load_file_and_return_handle(file_str, state.common_fs, state.open_gl.asset_textures[id], false);
+		auto root = get_root(state.common_fs);
+		auto gfx = open_directory(root, NATIVE("gfx"));
+		auto flags = open_directory(gfx, NATIVE("flags"));
+		auto opened_file = open_file(flags, file_str);
+		return load_file_and_return_handle(get_full_name(*opened_file), state.common_fs, state.open_gl.asset_textures[id], false);
 	}
 }
 
