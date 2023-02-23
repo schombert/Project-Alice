@@ -334,6 +334,11 @@ namespace parsers {
 
 		dcon::text_key noimage;
 
+
+		dcon::modifier_id modifier_by_terrain_index[64] = {}; // these are the given mappings from the raw palette index to terrain type
+		uint32_t color_by_terrain_index[64] = { 0 }; // these are the (packed) colors given for the terrain type modifier at the given palette index
+		dcon::modifier_id ocean_terrain;
+
 		scenario_building_context(sys::state& state) : state(state) { }
 
 		dcon::national_variable_id get_national_variable(std::string const& name);
