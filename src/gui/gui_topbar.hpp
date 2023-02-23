@@ -61,31 +61,31 @@ private:
 	std::string localize_month(sys::state& state, uint16_t month) {
 		switch (month) {
 		case 1:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "January"));
+			return text::produce_simple_string(state, "January");
 		case 2:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "February"));
+			return text::produce_simple_string(state, "February");
 		case 3:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "March"));
+			return text::produce_simple_string(state, "March");
 		case 4:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "April"));
+			return text::produce_simple_string(state, "April");
 		case 5:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "May"));
+			return text::produce_simple_string(state, "May");
 		case 6:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "June"));
+			return text::produce_simple_string(state, "June");
 		case 7:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "July"));
+			return text::produce_simple_string(state, "July");
 		case 8:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "August"));
+			return text::produce_simple_string(state, "August");
 		case 9:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "September"));
+			return text::produce_simple_string(state, "September");
 		case 10:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "October"));
+			return text::produce_simple_string(state, "October");
 		case 11:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "November"));
+			return text::produce_simple_string(state, "November");
 		case 12:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "December"));
+			return text::produce_simple_string(state, "December");
 		default:
-			return text::produce_simple_string(state, text::find_or_add_key(state, "January"));
+			return text::produce_simple_string(state, "January");
 		}
 	}
 
