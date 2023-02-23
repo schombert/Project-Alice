@@ -1,11 +1,16 @@
 #pragma once
 #include <stdint.h>
 #include <vector>
+#include <string>
 #include "dcon_generated.hpp"
 
 namespace nations {
 inline uint32_t tag_to_int(char first, char second, char third) {
 	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
+}
+inline std::string int_to_tag(uint32_t v) {
+	char values[] = { char((v >> 16) & 0xFF), char((v >> 8) & 0xFF), char((v >> 0) & 0xFF) };
+	return std::string(values, values + 3);
 }
 
 struct triggered_modifier {

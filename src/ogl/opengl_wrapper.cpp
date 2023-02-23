@@ -21,6 +21,7 @@ void initialize_opengl(sys::state& state) {
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
+	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + state.world.national_identity_size() * culture::flag_count);
 
 	state.map_display.load_map(state);
 }

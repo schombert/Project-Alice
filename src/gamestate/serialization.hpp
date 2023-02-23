@@ -84,7 +84,7 @@ uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<d
 }
 
 constexpr inline uint32_t save_file_version = 4;
-constexpr inline uint32_t scenario_file_version = 0 + save_file_version;
+constexpr inline uint32_t scenario_file_version = 1 + save_file_version;
 
 
 struct scenario_header {

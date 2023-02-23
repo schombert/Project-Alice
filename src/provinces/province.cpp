@@ -10,7 +10,7 @@ void update_connected_regions(sys::state& state) {
 		state.world.province_set_connected_region_id(id, 0);
 	});
 	// TODO get a better allocator
-	std::vector<dcon::province_id> to_fill_list;
+	static std::vector<dcon::province_id> to_fill_list;
 	uint16_t current_fill_id = 0;
 
 	to_fill_list.reserve(state.world.province_size());

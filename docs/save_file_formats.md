@@ -6,7 +6,7 @@ In terms of compatibility, the data produced by the Data Container library is fa
 
 ### How to manually serialize information found outside the data container
 
-If you add information to the game state that needs to persist for more than just a single session, and that information is *not* stored in the data container (and given the appropriate `save` or `scenario` tag), then you need to add it to either the data we store for the scenario or the data we store for save games. In either case, the functions for saving and loading the data are implemented in `serialization.cpp`. We only support trivial serialization of two kinds of objects: (1) those that can be trivally moved with `memcpy` (so without requiring work to be done in the constructor or destructor, and which do not contain any pointers), or (2) `vector`s of such objects. In the case of (1) you need to add the following three items:
+If you add information to the game state that needs to persist for more than just a single session, and that information is *not* stored in the data container (and given the appropriate `save` or `scenario` tag), then you need to add it to either the data we store for the scenario or the data we store for save games. In either case, the functions for saving and loading the data are implemented in `serialization.cpp`. We only support trivial serialization of two kinds of objects: (1) those that can be trivially moved with `memcpy` (so without requiring work to be done in the constructor or destructor, and which do not contain any pointers), or (2) `vector`s of such objects. In the case of (1) you need to add the following three items:
 - add `sz += sizeof(state.my_new_variable);` to the function that calculates the size (in bytes) required to store all of the data
 - add `ptr_in = memcpy_serialize(ptr_in, state.my_new_variable);` at some point into the function that writes the bytes we want to serialize out, and
 - add `ptr_in = memcpy_deserialize(ptr_in, state.my_new_variable);` into the function that reads data from the raw bytes in the same relative position at which you placed the previous line in its function. (Make life easy for yourself: just add your new items at the end of the function in both cases, trivially insuring that they will be stored and read at the same relative position.)
@@ -14,7 +14,14 @@ If you add information to the game state that needs to persist for more than jus
 In the case of (2), you need to do the following instead:
 - add `sz += serialize_size(state.my_new_vector);` to the function that calculates the size (in bytes) required to store all of the data
 - add `ptr_in = serialize(ptr_in, state.my_new_vector);` at some point into the function that writes the bytes we want to serialize out, and
-- add `ptr_in = deserialize(ptr_in, state.my_new_vector);` into the function that reads data from the raw bytes in the same relative position at which you placed the previous line in its function. 
+- add `ptr_in = deserialize(ptr_in, state.my_new_vector);` into the function that reads data from the raw bytes in the same relative position at which you placed the previous line in its function.
+
+Once you have changed any of the manual data, you should probably increase the format version number, so that we won't accidentally attempt to load any old files that may still be kicking around. Do this by increasing either the `M` or `N` values found in `serialization.hpp`:
+```
+constexpr inline uint32_t save_file_version = M;
+constexpr inline uint32_t scenario_file_version = N + save_file_version;
+```
+(In the actual file M and N are both integers.) If you have changed something that goes into a save file, increase M, while if you have changed something that only affects the scenario, increase N. 
 
 ### Scenario file
 
