@@ -783,20 +783,31 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 
 	uint8_t* terrain_data = start + data_offset;
 
-	terrain_id_map.resize(terrain_size_x * terrain_size_y);
-	for(uint32_t y = 0; y < terrain_size_y; ++y) {
+	terrain_id_map.resize(size_x * size_y, uint8_t(255));
+	for(uint32_t y = 0; y < terrain_size_y && y < size_y; ++y) {
 		auto inner_start = terrain_data + (terrain_size_y - y - 1) * terrain_size_x;
 		auto end = terrain_data + (terrain_size_y - y) * terrain_size_x;
-		terrain_id_map.insert(terrain_id_map.begin() + y * terrain_size_x, inner_start, end);
+		//terrain_id_map.insert(terrain_id_map.begin() + y * terrain_size_x, inner_start, end);
+		for(uint32_t x = 0; x < terrain_size_x && x < size_x; ++x) {
+			if(province_id_map[y * size_x + x] == 0 || province_id_map[y * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province)) {
+				terrain_id_map[y * size_x + x] = uint8_t(255);
+			} else {
+				auto value = *(terrain_data + x + (terrain_size_y - y - 1) * terrain_size_x);
+				if(value < 64)
+					terrain_id_map[y * size_x + x] = value;
+				else
+					terrain_id_map[y * size_x + x] = uint8_t(6);
+			}
+		}
 	}
 
 	median_terrain_type.resize(context.state.world.province_size() + 1);
-	std::vector<std::array<int, 16>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 16>{});
+	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
 	std::vector<glm::ivec3> province_acc_tile_pos(context.state.world.province_size() + 1, glm::ivec3(0));
 	for(int i = terrain_size_x * terrain_size_y; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
-		if(terrain_id < 16)
+		if(terrain_id < 64)
 			terrain_histogram[prov_id][terrain_id] += 1;
 		int x = i % terrain_size_x;
 		int y = i / terrain_size_x;
@@ -804,7 +815,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	}
 
 	for(int i = context.state.world.province_size(); i-- > 1;) {
-		int max_index = 15;
+		int max_index = 64;
 		int max = 0;
 		for(int j = max_index; j-- > 0;) {
 			if(terrain_histogram[i][j] > max) {
