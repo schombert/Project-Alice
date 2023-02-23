@@ -1039,7 +1039,7 @@ object {
 object {
 	name{ province }
 	storage_type{ contiguous }
-	size{ 8000 }
+	size{ 14000 }
 	tag{ scenario }
 	tag{ save }
 
@@ -1648,7 +1648,7 @@ object {
 	}
 	property{
 		name{ modified_units }
-		type{vector_pool{3200}{sys::unit_modifier}}
+		type{vector_pool{8200}{sys::unit_modifier}}
 		tag{ scenario }
 	}
 }
@@ -1731,7 +1731,7 @@ object {
 	}
 	property{
 		name{ modified_units }
-		type{vector_pool{10000}{sys::unit_modifier}}
+		type{vector_pool{25000}{sys::unit_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2111,7 +2111,7 @@ relationship{
 object {
 	name { pop }
 	storage_type{ compactable }
-	size{ 30000 }
+	size{ 80000 }
 	tag{ save }
 
 	property{
