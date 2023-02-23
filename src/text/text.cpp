@@ -598,6 +598,15 @@ namespace text {
 
 	}
 
+	std::string produce_simple_string(sys::state const& state, std::string_view txt) {
+		auto it = state.key_to_text_sequence.find(lowercase_str(txt));
+		if(it != state.key_to_text_sequence.end()) {
+			return produce_simple_string(state, it->second);
+		} else {
+			return std::string(txt);
+		}
+	}
+
 	dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) {
 		auto it = state.key_to_text_sequence.find(lowercase_str(txt));
 		if(it != state.key_to_text_sequence.end()) {
