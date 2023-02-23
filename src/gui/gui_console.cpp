@@ -2,14 +2,7 @@
 #include "gui_fps_counter.hpp"
 
 void set_active_tag(sys::state& state, std::string_view tag) noexcept {
-    auto name_id = text::find_or_add_key(state, tag);
-
-    state.world.for_each_nation([&](dcon::nation_id nat_id) {
-        dcon::nation_fat_id fat_id = dcon::fatten(state.world, nat_id);
-        if(fat_id.get_name() == name_id) {
-            state.local_player_nation = nat_id;
-        }
-    });
+    // TODO: Once national_identities map to TAGs easily, implement this
 }
 
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
