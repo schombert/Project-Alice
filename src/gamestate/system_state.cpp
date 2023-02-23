@@ -1209,6 +1209,20 @@ namespace sys {
 			}
 		});
 
+		// fill in the terrain type
+
+		for(int32_t i = 0; i < province_definitions.first_sea_province.index(); ++i) {
+			dcon::province_id id{ dcon::province_id::value_base_t(i) };
+			if(!world.province_get_terrain(id)) { // don't overwrite if set by the history file
+				auto modifier = context.modifier_by_terrain_index[map_display.median_terrain_type[province::to_map_id(id)]];
+				world.province_set_terrain(id, modifier);
+			}
+		}
+		for(int32_t i = province_definitions.first_sea_province.index(); i < int32_t(world.province_size()); ++i) {
+			dcon::province_id id{ dcon::province_id ::value_base_t(i) };
+			world.province_set_terrain(id, context.ocean_terrain);
+		}
+
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
