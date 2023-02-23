@@ -471,8 +471,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(1.4f));
 		REQUIRE(state->world.modifier_get_province_values(id).values[1] == Approx(2.0f));
 
-		REQUIRE(state->province_definitions.modifier_by_terrain_index[24] == id);
-		REQUIRE(state->province_definitions.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
+		REQUIRE(context.modifier_by_terrain_index[24] == id);
+		REQUIRE(context.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
 	}
 	{
 		auto region_file = open_file(map, NATIVE("region.txt"));
@@ -1506,8 +1506,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(1.4f));
 		REQUIRE(state->world.modifier_get_province_values(id).values[1] == Approx(2.0f));
 
-		REQUIRE(state->province_definitions.modifier_by_terrain_index[24] == id);
-		REQUIRE(state->province_definitions.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
+		REQUIRE(context.modifier_by_terrain_index[24] == id);
+		REQUIRE(context.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
 	}
 	{
 		auto id721 = fatten(state->world, context.original_id_to_prov_id_map[721]);
