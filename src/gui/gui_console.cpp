@@ -1,8 +1,16 @@
 #include "gui_console.hpp"
 #include "gui_fps_counter.hpp"
+#include "nations.hpp"
 
 void set_active_tag(sys::state& state, std::string_view tag) noexcept {
-    // TODO: Once national_identities map to TAGs easily, implement this
+    state.world.for_each_national_identity([&](dcon::national_identity_id id) {
+        std::string curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+        if(curr == tag) {
+            dcon::national_identity_fat_id fat_id = dcon::fatten(state.world, id);
+            auto nat_id = fat_id.get_nation_from_identity_holder().id;
+            state.local_player_nation = nat_id;
+        }
+    });
 }
 
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {

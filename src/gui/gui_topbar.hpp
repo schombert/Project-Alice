@@ -105,6 +105,13 @@ public:
 	}
 };
 
+class topbar_player_flag : public flag_button {
+public:
+	dcon::nation_id get_current_nation(sys::state& state) noexcept override {
+		return state.local_player_nation;
+	}
+};
+
 class topbar_pause_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -272,6 +279,8 @@ public:
 			return make_element_by_type<topbar_date_text>(state, id);
 		} else if(name == "countryname") {
 			return make_element_by_type<topbar_country_name>(state, id);
+		} else if(name == "player_flag") {
+			return make_element_by_type<topbar_player_flag>(state, id);
 		} else {
 			return nullptr;
 		}
