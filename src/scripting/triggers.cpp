@@ -371,7 +371,7 @@ public:
 
 			if(index == ve::vector_size) {
 				result = (ve::compress_mask(F::operator()(value)).v & accumulated_mask) != 0;
-				value = _mm256_setzero_si256();
+				value = ve::tagged_vector<int32_t>();
 				index = 0;
 				accumulated_mask = 0;
 			}
@@ -403,7 +403,7 @@ public:
 
 			if(index == ve::vector_size) {
 				result = (ve::compress_mask(F::operator()(value)).v & accumulated_mask) ==  accumulated_mask;
-				value = _mm256_setzero_si256();
+				value = ve::tagged_vector<int32_t>();
 				index = 0;
 				accumulated_mask = 0;
 			}

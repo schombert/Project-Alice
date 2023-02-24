@@ -432,8 +432,10 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 	} else { // load from file
 
 		native_string file_str;
-		file_str += NATIVE("gfx") + NATIVE_DIR_SEPARATOR;
-		file_str += NATIVE("flags") + NATIVE_DIR_SEPARATOR;
+		file_str += NATIVE("gfx");
+		file_str += NATIVE_DIR_SEPARATOR;
+		file_str += NATIVE("flags");
+		file_str += NATIVE_DIR_SEPARATOR;
 		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
 		switch(type) {
 			case culture::flag_type::communist:
