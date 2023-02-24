@@ -1279,6 +1279,9 @@ namespace sys {
 					last_update = entry_time;
 
 					// do update logic
+					province::update_connected_regions(*this);
+					nations::update_national_rankings(*this);
+
 					current_date += 1;
 
 					game_state_updated.store(true, std::memory_order::release);

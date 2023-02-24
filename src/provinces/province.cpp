@@ -5,7 +5,19 @@
 
 namespace province {
 
+bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
+	return bool(it);
+}
+
 void update_connected_regions(sys::state& state) {
+	if(!state.adjacency_data_out_of_date)
+		return;
+
+	state.adjacency_data_out_of_date = false;
+
+	state.world.nation_adjacency_resize(0);
+
 	state.world.for_each_province([&](dcon::province_id id) {
 		state.world.province_set_connected_region_id(id, 0);
 	});
@@ -29,11 +41,15 @@ void update_connected_regions(sys::state& state) {
 				state.world.province_set_connected_region_id(current_id, current_fill_id);
 				for(auto rel : state.world.province_get_province_adjacency(current_id)) {
 					if((rel.get_type() & (province::border::coastal_bit | province::border::impassible_bit)) == 0) { // not entering sea, not impassible
-						if(rel.get_connected_provinces(0).get_nation_from_province_ownership() == rel.get_connected_provinces(1).get_nation_from_province_ownership()) { // both have the same owner
+						auto owner_a = rel.get_connected_provinces(0).get_nation_from_province_ownership();
+						auto owner_b = rel.get_connected_provinces(1).get_nation_from_province_ownership();
+						if(owner_a == owner_b) { // both have the same owner
 							if(rel.get_connected_provinces(0).get_connected_region_id() == 0)
 								to_fill_list.push_back(rel.get_connected_provinces(0));
 							if(rel.get_connected_provinces(1).get_connected_region_id() == 0)
 								to_fill_list.push_back(rel.get_connected_provinces(1));
+						} else {
+							state.world.try_create_nation_adjacency(owner_a, owner_b);
 						}
 					}
 				}

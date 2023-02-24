@@ -88,6 +88,11 @@ namespace sys {
 		tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
 		ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
+		bool adjacency_data_out_of_date = true;
+		bool national_rankings_out_of_date = true;
+		std::vector<dcon::nation_id> nations_by_rank;
+		dcon::state_instance_id crisis_state;
+
 		std::vector<char> unit_names; // a second text buffer, this time for just the unit names
 		                              // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
 									  // ordinary game text, partly because I envision the possibility that we may stick dynamic names into this

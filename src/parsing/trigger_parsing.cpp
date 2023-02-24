@@ -562,44 +562,6 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 	}
 }
 
-int32_t get_trigger_non_scope_payload_size(const uint16_t* data) {
-	return trigger::data_sizes[data[0] & trigger::code_mask];
-}
-int32_t get_trigger_scope_payload_size(const uint16_t* data) {
-	return data[1];
-}
-int32_t get_trigger_payload_size(const uint16_t* data) {
-	if((data[0] & trigger::is_scope) != 0)
-		return get_trigger_scope_payload_size(data);
-	else
-		return get_trigger_non_scope_payload_size(data);
-}
-int32_t trigger_scope_data_payload(uint16_t code) {
-	const auto masked_code = code & trigger::code_mask;
-	if((masked_code == trigger::x_provinces_in_variable_region) ||
-		(masked_code == trigger::tag_scope) ||
-		(masked_code == trigger::integer_scope))
-		return 1;
-	return 0;
-}
-
-template<typename T>
-uint16_t* recurse_over_triggers(uint16_t* source, const T& f) {
-	f(source);
-
-	if((source[0] & trigger::is_scope) != 0) {
-		const auto source_size = 1 + get_trigger_scope_payload_size(source);
-
-		auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
-		while(sub_units_start < source + source_size) {
-			sub_units_start = recurse_over_triggers(sub_units_start, f);
-		}
-		return source + source_size;
-	} else {
-		return source + 1 + get_trigger_non_scope_payload_size(source);
-	}
-}
-
 
 inline void invert_trigger_internal(uint16_t* source) {
 	if((source[0] & trigger::is_scope) != 0) {
@@ -615,16 +577,16 @@ inline void invert_trigger_internal(uint16_t* source) {
 }
 
 void invert_trigger(uint16_t* source) {
-	recurse_over_triggers(source, invert_trigger_internal);
+	trigger::recurse_over_triggers(source, invert_trigger_internal);
 }
 
 bool scope_is_empty(const uint16_t* source) {
-	return get_trigger_scope_payload_size(source) <= 1 + trigger_scope_data_payload(source[0]);
+	return trigger::get_trigger_scope_payload_size(source) <= 1 + trigger::trigger_scope_data_payload(source[0]);
 }
 //precondition: scope known to not be empty
 bool scope_has_single_member(const uint16_t* source) {
-	const auto data_offset = 2 + trigger_scope_data_payload(source[0]);
-	return get_trigger_scope_payload_size(source) == data_offset + get_trigger_payload_size(source + data_offset);
+	const auto data_offset = 2 + trigger::trigger_scope_data_payload(source[0]);
+	return trigger::get_trigger_scope_payload_size(source) == data_offset + trigger::get_trigger_payload_size(source + data_offset);
 }
 
 //yields new source size
@@ -638,13 +600,13 @@ int32_t simplify_trigger(uint16_t* source) {
 		}
 
 		//simplify each member
-		auto source_size = 1 + get_trigger_scope_payload_size(source);
+		auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
 
-		const auto first_member = source + 2 + trigger_scope_data_payload(source[0]);
+		const auto first_member = source + 2 + trigger::trigger_scope_data_payload(source[0]);
 		auto sub_units_start = first_member;
 
 		while(sub_units_start < source + source_size) {
-			const auto old_size = 1 + get_trigger_payload_size(sub_units_start);
+			const auto old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
 			const auto new_size = simplify_trigger(sub_units_start);
 
 			if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
@@ -668,7 +630,7 @@ int32_t simplify_trigger(uint16_t* source) {
 			} else if((first_member[0] & (trigger::code_mask | trigger::is_scope)) == (trigger::generic_scope | trigger::is_scope)) {
 				// scope contains single generic scope
 
-				source[1] = uint16_t(first_member[1] + trigger_scope_data_payload(source[0]));
+				source[1] = uint16_t(first_member[1] + trigger::trigger_scope_data_payload(source[0]));
 				source[0] = uint16_t((source[0] & ~trigger::is_disjunctive_scope) | (first_member[0] & trigger::is_disjunctive_scope));
 
 				std::copy(first_member + 2, source + source_size, first_member);
@@ -681,7 +643,7 @@ int32_t simplify_trigger(uint16_t* source) {
 
 		return source_size;
 	} else {
-		return 1 + get_trigger_non_scope_payload_size(source); // non scopes cannot be simplified
+		return 1 + trigger::get_trigger_non_scope_payload_size(source); // non scopes cannot be simplified
 	}
 }
 

@@ -2291,4 +2291,43 @@ union payload {
 };
 
 static_assert(sizeof(payload) == 2);
+
+inline int32_t get_trigger_non_scope_payload_size(const uint16_t* data) {
+	return trigger::data_sizes[data[0] & trigger::code_mask];
+}
+inline int32_t get_trigger_scope_payload_size(const uint16_t* data) {
+	return data[1];
+}
+inline int32_t get_trigger_payload_size(const uint16_t* data) {
+	if((data[0] & trigger::is_scope) != 0)
+		return get_trigger_scope_payload_size(data);
+	else
+		return get_trigger_non_scope_payload_size(data);
+}
+inline int32_t trigger_scope_data_payload(uint16_t code) {
+	const auto masked_code = code & trigger::code_mask;
+	if((masked_code == trigger::x_provinces_in_variable_region) ||
+		(masked_code == trigger::tag_scope) ||
+		(masked_code == trigger::integer_scope))
+		return 1;
+	return 0;
+}
+
+template<typename T>
+uint16_t* recurse_over_triggers(uint16_t* source, const T& f) {
+	f(source);
+
+	if((source[0] & trigger::is_scope) != 0) {
+		const auto source_size = 1 + get_trigger_scope_payload_size(source);
+
+		auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
+		while(sub_units_start < source + source_size) {
+			sub_units_start = recurse_over_triggers(sub_units_start, f);
+		}
+		return source + source_size;
+	} else {
+		return source + 1 + get_trigger_non_scope_payload_size(source);
+	}
+}
+
 }

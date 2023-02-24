@@ -1141,6 +1141,11 @@ object {
 		name{ connected_region_id }
 		type{ uint16_t }
 	}
+
+	property {
+		name{ state_membership }
+		type{ state_instance_id }
+	}
 }
 
 relationship{
@@ -1173,6 +1178,25 @@ relationship{
 		name{ type }
 		type{ uint8_t }
 		tag{ save }
+	}
+}
+
+relationship{
+	name{ nation_adjacency }
+	storage_type{ compactable }
+	size{ 4000 }
+
+	link{
+		object{nation}
+		name{connected_nations}
+		type{many}
+		index_storage{array}
+		multiple{2}
+	}
+	
+	composite_key{
+		name{nation_adjacency_pair}
+		index{connected_nations}
 	}
 }
 
@@ -1496,7 +1520,66 @@ relationship{
 		type{unique}
 	}
 }
+object {
+	name{ war }
+	storage_type{ erasable }
+	size{ 100 }
+	tag{ save }
 
+	property{
+		name{ primary_attacker }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
+		name{ primary_defender }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
+		name{ start_date }
+		type{ sys::date }
+		tag{ save }
+	}
+}
+relationship{
+	name{ war_defender }
+	storage_type{ compactable }
+	size{ 2000 }
+	tag{ save }
+
+	link{
+		object{war}
+		name{war}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+}
+relationship{
+	name{ war_attacker }
+	storage_type{ compactable }
+	size{ 2000 }
+	tag{ save }
+
+	link{
+		object{war}
+		name{war}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+}
 object {
 	name{ state_definition }
 	storage_type{ contiguous }
@@ -1513,13 +1596,18 @@ object {
 
 object {
 	name{ state_instance }
-	storage_type{ contiguous }
+	storage_type{ erasable }
 	size{ 3000 }
 	tag{ save }
 
 	property{
 		name{ definition }
 		type{ state_definition_id }
+		tag{ save }
+	}
+	property{
+		name{ flashpoint_tag }
+		type{ national_identity_id }
 		tag{ save }
 	}
 }
@@ -1945,6 +2033,10 @@ object {
 		type{vector_pool{16000}{sys::dated_modifier}}
 		tag{ save }
 	}
+	property {
+		name{ in_sphere_of }
+		type{ nation_id }
+	}
 }
 
 
@@ -2140,6 +2232,25 @@ relationship{
 	property{
 		name{ is_substate }
 		type{ bitfield }
+		tag{ save }
+	}
+}
+
+object {
+	name { rebel_faction }
+	storage_type{ compactable }
+	size{ 8000 }
+	tag{ save }
+
+	property{
+		name{ type }
+		type{ rebel_type_id }
+		tag{ save }
+	}
+
+	property{
+		name{ defection_target }
+		type{ national_identity_id }
 		tag{ save }
 	}
 }

@@ -173,5 +173,7 @@ inline uint8_t decrease_priority(uint8_t v) {
 
 }
 
+void update_national_rankings(sys::state& state);
+
 }
 
