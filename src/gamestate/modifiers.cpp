@@ -24,7 +24,7 @@ void apply_modifier_values_to_province(sys::state& state, dcon::province_id targ
 
 		auto fixed_offset = prov_values.get_offet_at_index(i);
 		auto modifier_amount = prov_values.values[i];
-		if(fixed_offset < sys::provincial_mod_offsets::count) {
+		if(fixed_offset < int32_t(sys::provincial_mod_offsets::count)) {
 			state.world.province_get_modifier_values(target_prov, fixed_offset) += modifier_amount;
 		} else if(owner) {
 			state.world.nation_get_static_modifier_values(owner, fixed_offset - sys::provincial_mod_offsets::count) += modifier_amount;
@@ -51,7 +51,7 @@ void remove_modifier_values_from_province(sys::state& state, dcon::province_id t
 
 		auto fixed_offset = prov_values.get_offet_at_index(i);
 		auto modifier_amount = prov_values.values[i];
-		if(fixed_offset < sys::provincial_mod_offsets::count) {
+		if(fixed_offset < int32_t(sys::provincial_mod_offsets::count)) {
 			state.world.province_get_modifier_values(target_prov, fixed_offset) -= modifier_amount;
 		} else if(owner) {
 			state.world.nation_get_static_modifier_values(owner, fixed_offset - sys::provincial_mod_offsets::count) -= modifier_amount;
@@ -66,7 +66,7 @@ void apply_modifier_values_to_province_owner(sys::state& state, dcon::nation_id 
 
 		auto fixed_offset = prov_values.get_offet_at_index(i);
 		auto modifier_amount = prov_values.values[i];
-		if(fixed_offset >= sys::provincial_mod_offsets::count) {
+		if(fixed_offset >= int32_t(sys::provincial_mod_offsets::count)) {
 			state.world.nation_get_static_modifier_values(owner, fixed_offset - sys::provincial_mod_offsets::count) += modifier_amount;
 		}
 	}
@@ -79,7 +79,7 @@ void remove_modifier_values_from_province_owner(sys::state& state, dcon::nation_
 
 		auto fixed_offset = prov_values.get_offet_at_index(i);
 		auto modifier_amount = prov_values.values[i];
-		if(fixed_offset >= sys::provincial_mod_offsets::count) {
+		if(fixed_offset >= int32_t(sys::provincial_mod_offsets::count)) {
 			state.world.nation_get_static_modifier_values(owner, fixed_offset - sys::provincial_mod_offsets::count) -= modifier_amount;
 		}
 	}

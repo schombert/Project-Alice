@@ -447,7 +447,7 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 			case culture::flag_type::monarchy:
 				file_str += NATIVE("_monarchy"); break;
 			case culture::flag_type::republic:
-				file_str += NATIVE("_monarchy"); break;
+				file_str += NATIVE("_republic"); break;
 		}
 		file_str += NATIVE(".tga");
 
