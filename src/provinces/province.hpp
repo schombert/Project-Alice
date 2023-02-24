@@ -40,5 +40,7 @@ inline int32_t get_naval_base_level(uint8_t value) {
 }
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void update_connected_regions(sys::state& state);
+void restore_unsaved_values(sys::state& state);
+
 }
 
