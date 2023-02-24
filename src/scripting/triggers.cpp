@@ -1110,7 +1110,7 @@ TRIGGER_FUNCTION(tf_cultural_union_scope_pop) {
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct scope_container {
-	constexpr static typename return_type(CALLTYPE* scope_functions[])(uint16_t const*, sys::state&,
+	constexpr static return_type(CALLTYPE* scope_functions[])(uint16_t const*, sys::state&,
 		primary_type, this_type, from_type) = {
 		tf_generic_scope<return_type, primary_type, this_type, from_type>, //constexpr uint16_t generic_scope = 0x0000; // or & and
 		tf_x_neighbor_province_scope<return_type, primary_type, this_type, from_type>, //constexpr uint16_t x_neighbor_province_scope = 0x0001;
