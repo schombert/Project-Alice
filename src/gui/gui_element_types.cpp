@@ -830,8 +830,7 @@ void flag_button::on_update(sys::state& state) noexcept {
 		stored_nation = current_nation;
 		dcon::nation_fat_id fat_id = dcon::fatten(state.world, current_nation);
 		auto identity = fat_id.get_identity_holder_as_nation().get_identity();
-		auto gov_type = fat_id.get_government_type();
-		auto flag_type = culture::flag_type(identity.get_government_flag_type(gov_type));
+		auto flag_type = culture::get_current_flag_type(state, current_nation);
 		flag_texture_handle = ogl::get_flag_handle(state, identity.id, flag_type);
 	}
 }

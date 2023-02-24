@@ -367,4 +367,14 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	}
 }
 
+flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation) {
+	auto gov_type = state.world.nation_get_government_type(target_nation);
+	auto id = state.world.national_identity_get_government_flag_type(
+		state.world.nation_get_identity_from_identity_holder(target_nation),
+		gov_type);
+	if(id != 0)
+		return flag_type(id - 1);
+	return state.culture_definitions.governments[gov_type].flag;
+}
+
 }

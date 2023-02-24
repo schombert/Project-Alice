@@ -1030,7 +1030,7 @@ TRIGGER_FUNCTION(tf_from_scope) {
 	return apply_subtriggers<return_type, from_type, this_type, from_type>(tval, ws, from_slot, this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_sea_zone_scope) {
-	auto sea_zones = ve::apply([&ws, tval](int32_t p_slot, int32_t, int32_t) {
+	auto sea_zones = ve::apply([&ws](int32_t p_slot, int32_t, int32_t) {
 		auto pid = fatten(ws.world, to_prov(p_slot));
 		dcon::province_id sea_zone;
 		for(auto adj : pid.get_province_adjacency()) {
@@ -1168,6 +1168,7 @@ return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, 
 		return scope_container<return_type, primary_type, this_type, from_type>::scope_functions[*tval & trigger::code_mask](tval, ws, primary_slot, this_slot, from_slot);
 	} else {
 		//return trigger_container<return_type, primary_type, this_type, from_type>::trigger_functions[*tval & trigger::code_mask](tval, ws, primary_slot, this_slot, from_slot);
+		return false;
 	}
 }
 
