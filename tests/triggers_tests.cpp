@@ -19,11 +19,11 @@ TEST_CASE("trigger scope recursion", "[trigger_tests]") {
 		t.push_back(uint16_t(0));
 
 		int32_t total = 0;
-		parsers::recurse_over_triggers(t.data(), [&total](uint16_t*) { ++total; });
+		trigger::recurse_over_triggers(t.data(), [&total](uint16_t*) { ++total; });
 		REQUIRE(5 == total);
 
 		int32_t blockade_count = 0;
-		parsers::recurse_over_triggers(t.data(), [&blockade_count](uint16_t* v) { if((*v & trigger::code_mask) == trigger::blockade) ++blockade_count; });
+		trigger::recurse_over_triggers(t.data(), [&blockade_count](uint16_t* v) { if((*v & trigger::code_mask) == trigger::blockade) ++blockade_count; });
 		REQUIRE(2 == blockade_count);
 
 	}
