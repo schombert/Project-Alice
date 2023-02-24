@@ -1146,6 +1146,10 @@ object {
 		name{ state_membership }
 		type{ state_instance_id }
 	}
+	property {
+		name{ is_coast }
+		type{ bitfield }
+	}
 }
 
 relationship{
@@ -1889,6 +1893,7 @@ object {
 		type{ culture_id }
 		tag{ save }
 	}
+
 	property{
 		name{ accepted_cultures }
 		type{vector_pool{10000}{culture_id}}
@@ -2036,6 +2041,10 @@ object {
 	property {
 		name{ in_sphere_of }
 		type{ nation_id }
+	}
+	property {
+		name{ rank }
+		type{ uint16_t }
 	}
 }
 

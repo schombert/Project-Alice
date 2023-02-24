@@ -174,6 +174,8 @@ inline uint8_t decrease_priority(uint8_t v) {
 }
 
 void update_national_rankings(sys::state& state);
+void restore_unsaved_values(sys::state& state);
+void generate_initial_state_instances(sys::state& state);
 
 }
 

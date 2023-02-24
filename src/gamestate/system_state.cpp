@@ -1187,6 +1187,9 @@ namespace sys {
 			}
 		}
 
+		// misc touch ups
+		nations::generate_initial_state_instances(*this);
+
 		map_loader.join();
 
 		// touch up adjacencies
@@ -1256,6 +1259,10 @@ namespace sys {
 
 		sys::repopulate_modifier_effects(*this);
 		province::update_connected_regions(*this);
+		nations::update_national_rankings(*this);
+
+		province::restore_unsaved_values(*this);
+		nations::restore_unsaved_values(*this);
 	}
 
 	constexpr inline int32_t game_speed[] = {
