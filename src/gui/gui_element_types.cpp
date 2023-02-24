@@ -824,6 +824,57 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 	container_base::render(state, x, y);
 }
 
+void flag_button::on_update(sys::state& state) noexcept {
+	auto current_nation = get_current_nation(state);
+	if(stored_nation != current_nation) {
+		stored_nation = current_nation;
+		dcon::nation_fat_id fat_id = dcon::fatten(state.world, current_nation);
+		auto identity = fat_id.get_identity_holder_as_nation().get_identity();
+		auto gov_type = fat_id.get_government_type();
+		auto flag_type = culture::flag_type(identity.get_government_flag_type(gov_type));
+		flag_texture_handle = ogl::get_flag_handle(state, identity.id, flag_type);
+	}
+}
+
+void flag_button::on_create(sys::state& state) noexcept {
+	button_element_base::on_create(state);
+	on_update(state);
+}
+
+void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	dcon::gfx_object_id gid;
+	if(base_data.get_element_type() == element_type::image) {
+		gid = base_data.data.image.gfx_object;
+	} else if(base_data.get_element_type() == element_type::button) {
+		gid = base_data.data.button.button_image;
+	}
+	if(gid && flag_texture_handle > 0) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.type_dependant) {
+			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependant - 1), true);
+			ogl::render_masked_rect(
+				state,
+				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				flag_texture_handle,
+				mask_handle,
+				base_data.get_rotation(),
+				gfx_def.is_vertically_flipped()
+			);
+		} else {
+			ogl::render_textured_rect(
+				state,
+				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				flag_texture_handle,
+				base_data.get_rotation(),
+				gfx_def.is_vertically_flipped()
+			);
+		}
+	}
+	button_element_base::render(state, x, y);
+}
+
 message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	for(auto tmp = parent; tmp != nullptr; tmp = tmp->parent) {
 		if(tmp->base_data.get_element_type() == element_type::window && tmp->base_data.data.window.is_moveable()) {

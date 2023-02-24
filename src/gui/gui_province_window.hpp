@@ -46,15 +46,39 @@ public:
 	}
 };
 
+class province_view_foreign_flag : public flag_button {
+public:
+	dcon::nation_id current_nation{};
+
+	dcon::nation_id get_current_nation(sys::state& state) noexcept override {
+		return current_nation;
+	}
+};
+
 class province_view_foreign_details : public window_element_base {
 private:
+	province_view_foreign_flag* country_flag = nullptr;
 	simple_text_element_base* country_name_box = nullptr;
+	simple_text_element_base* country_gov_box = nullptr;
+	simple_text_element_base* country_party_box = nullptr;
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			country_name_box = ptr.get();
+			return ptr;
+		} else if(name == "country_flag") {
+			auto ptr = make_element_by_type<province_view_foreign_flag>(state, id);
+			country_flag = ptr.get();
+			return ptr;
+		} else if(name == "country_gov") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			country_gov_box = ptr.get();
+			return ptr;
+		} else if(name == "country_party") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			country_party_box = ptr.get();
 			return ptr;
 		} else {
 			return nullptr;
@@ -68,6 +92,18 @@ public:
 			auto country_name_seq = nation_id.get_name();
 			auto country_name = text::produce_simple_string(state, country_name_seq);
 			country_name_box->set_text(state, country_name);
+
+			country_flag->current_nation = nation_id.id;
+			country_flag->on_update(state);
+
+			auto gov_type_id = nation_id.get_government_type();
+			auto gov_name_seq = state.culture_definitions.governments[gov_type_id].name;
+			auto gov_name = text::produce_simple_string(state, gov_name_seq);
+			country_gov_box->set_text(state, gov_name);
+
+			auto party_name_seq = nation_id.get_ruling_party().get_name();
+			auto party_name = text::produce_simple_string(state, party_name_seq);
+			country_party_box->set_text(state, party_name);
 			set_visible(state, true);
 		} else {
 			set_visible(state, false);

@@ -279,6 +279,20 @@ public:
 	}
 };
 
+class flag_button : public button_element_base {
+private:
+	dcon::nation_id stored_nation{};
+	GLuint flag_texture_handle = 0;
+
+public:
+	virtual dcon::nation_id get_current_nation(sys::state& state) noexcept {
+		return dcon::nation_id{};
+	}
+	void on_update(sys::state& state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
 template<class TabT>
 class generic_tab_button : public checkbox_button {
 public:
