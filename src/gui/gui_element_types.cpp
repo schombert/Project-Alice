@@ -789,7 +789,7 @@ template<class RowWinT, class RowConT>
 void listbox_element_base<RowWinT, RowConT>::on_create(sys::state& state) noexcept {
 	int16_t current_y = 0;
 	int16_t subwindow_y_size = 0;
-	while(current_y + subwindow_y_size < base_data.size.y) {
+	while(current_y + subwindow_y_size <= base_data.size.y) {
 		auto ptr = make_element_by_type<RowWinT>(state, get_row_element_name());
 		row_windows.push_back(static_cast<RowWinT*>(ptr.get()));
 		int16_t offset = ptr->base_data.position.y;
