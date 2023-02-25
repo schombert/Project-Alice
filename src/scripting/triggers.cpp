@@ -1180,8 +1180,8 @@ TRIGGER_FUNCTION(tf_rank) {
 	return compare_values(tval[0], int32_t(tval[2]), ws.world.nation_get_rank(to_nation(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_technology) {
-	auto technology = trigger::payload(tval[2]).tech_id;
-	return compare_to_true(tval[0], ws.world.nation_get_active_technologies(to_nation(primary_slot), technology));
+	auto tid = trigger::payload(tval[2]).tech_id;
+	return compare_to_true(tval[0], ws.world.nation_get_active_technologies(to_nation(primary_slot), tid));
 }
 TRIGGER_FUNCTION(tf_strata_rich) {
 	auto type = ws.world.pop_get_poptype(to_pop(primary_slot));
@@ -1198,6 +1198,92 @@ TRIGGER_FUNCTION(tf_strata_poor) {
 	auto strata = ws.world.pop_type_get_strata(type);
 	return compare_to_true(tval[0], strata == decltype(strata)(int32_t(culture::pop_strata::poor)));
 }
+TRIGGER_FUNCTION(tf_life_rating_province) {
+	return compare_values(tval[0], ws.world.province_get_life_rating(to_prov(primary_slot)), trigger::payload(tval[2]).signed_value);
+}
+TRIGGER_FUNCTION(tf_life_rating_state) {
+	auto state_caps = ws.world.state_instance_get_capital(to_state(primary_slot));
+	return compare_values(tval[0], ws.world.province_get_life_rating(state_caps), trigger::payload(tval[2]).signed_value);
+}
+
+auto empty_province_accumulator(sys::state const& ws) {
+	return make_true_accumulator([&ws, sea_index = ws.province_definitions.first_sea_province.index()](ve::tagged_vector<int32_t> v) {
+		auto owners = ws.world.province_get_nation_from_province_ownership(to_prov(v));
+		return (owners != ve::tagged_vector<dcon::nation_id>()) & (ve::int_vector(v) < sea_index);
+	});
+}
+
+TRIGGER_FUNCTION(tf_has_empty_adjacent_state_province) {
+	auto results = ve::apply([&ws](int32_t p_slot, int32_t, int32_t) {
+		auto pid = to_prov(p_slot);
+		auto acc = empty_province_accumulator(ws);
+
+		for(auto p : ws.world.province_get_province_adjacency(pid)) {
+			auto other = p.get_connected_provinces(0) == pid ? p.get_connected_provinces(1) : p.get_connected_provinces(0);
+			acc.add_value(to_generic(other));
+			if(acc.result)
+				return true;
+		}
+
+		acc.flush();
+		return acc.result;
+	}, primary_slot, this_slot, from_slot);
+
+	return compare_to_true(tval[0], results);
+}
+auto empty_province_from_state_accumulator(sys::state const& ws, dcon::state_instance_id sid) {
+	return make_true_accumulator([&ws,
+		vector_sid = ve::tagged_vector<dcon::state_instance_id>(sid),
+		sea_index = ws.province_definitions.first_sea_province.index()](ve::tagged_vector<int32_t> v) {
+
+		auto owners = ws.world.province_get_nation_from_province_ownership(to_prov(v));
+		return (owners != ve::tagged_vector<dcon::nation_id>()) & (ve::int_vector(v) < sea_index) & (ws.world.province_get_state_membership(to_prov(v)) != vector_sid);
+	});
+}
+
+TRIGGER_FUNCTION(tf_has_empty_adjacent_state_state) {
+	auto results = ve::apply([&ws](int32_t p_slot, int32_t, int32_t) {
+		auto state_id = to_state(p_slot);
+		auto region_owner = ws.world.state_instance_get_nation_from_state_ownership(state_id);
+
+		auto acc = empty_province_from_state_accumulator(ws, state_id);
+		auto region_id = ws.world.state_instance_get_definition(state_id);
+		
+		for(auto sp : ws.world.state_definition_get_abstract_state_membership(region_id)) {
+			if(sp.get_province().get_nation_from_province_ownership() == region_owner) {
+				for(auto p : ws.world.province_get_province_adjacency(sp.get_province())) {
+					auto other = p.get_connected_provinces(0) == sp.get_province() ? p.get_connected_provinces(1) : p.get_connected_provinces(0);
+					acc.add_value(to_generic(other));
+					if(acc.result)
+						return true;
+				}
+			}
+		}
+
+		acc.flush();
+		return acc.result;
+	}, primary_slot, this_slot, from_slot);
+
+	return compare_to_true(tval[0], results);
+}
+TRIGGER_FUNCTION(tf_state_id_province) {
+	auto pid = trigger::payload(tval[2]).prov_id;
+	return compare_values_eq(tval[0], 
+		ws.world.abstract_state_membership_get_state(ws.world.province_get_abstract_state_membership(to_prov(primary_slot))),
+		ws.world.abstract_state_membership_get_state(ws.world.province_get_abstract_state_membership(pid)));
+}
+TRIGGER_FUNCTION(tf_state_id_state) {
+	auto pid = trigger::payload(tval[2]).prov_id;
+	return compare_values_eq(tval[0],
+		ws.world.state_instance_get_definition(to_state(primary_slot)),
+		ws.world.abstract_state_membership_get_state(ws.world.province_get_abstract_state_membership(pid)));
+}
+TRIGGER_FUNCTION(tf_cash_reserves) {
+	auto ratio = read_float_from_payload(tval + 2);
+	auto target = economy::desired_needs_spending(ws, to_pop(primary_slot));
+	auto savings_qnty = ws.world.pop_get_savings(to_pop(primary_slot));
+	return compare_values(tval[0], ve::select(target != 0.0f, savings_qnty * 100.0f / target, 100.0f), ratio);
+}
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
@@ -1213,11 +1299,11 @@ struct trigger_container {
 		tf_strata_rich<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t strata_rich = 0x0006;
 		tf_strata_middle<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t life_rating_province = 0x0007;
 		tf_strata_poor<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t life_rating_state = 0x0008;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_empty_adjacent_state_province = 0x0009;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_empty_adjacent_state_state = 0x000A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t state_id_province = 0x000B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t state_id_state = 0x000C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t cash_reserves = 0x000D;
+		tf_has_empty_adjacent_state_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_empty_adjacent_state_province = 0x0009;
+		tf_has_empty_adjacent_state_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_empty_adjacent_state_state = 0x000A;
+		tf_state_id_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t state_id_province = 0x000B;
+		tf_state_id_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t state_id_state = 0x000C;
+		tf_cash_reserves<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t cash_reserves = 0x000D;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_nation = 0x000E;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_state = 0x000F;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_province = 0x0010;

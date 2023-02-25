@@ -1614,6 +1614,11 @@ object {
 		type{ national_identity_id }
 		tag{ save }
 	}
+	property{
+		name{ capital }
+		type{ province_id }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -2290,7 +2295,11 @@ object {
 		type{ float }
 		tag{ save }
 	}
-
+	property{
+		name{ savings }
+		type{ float }
+		tag{ save }
+	}
 	property{
 		name{ consciousness }
 		type{ float }

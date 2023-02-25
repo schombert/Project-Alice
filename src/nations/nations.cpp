@@ -40,6 +40,7 @@ void generate_initial_state_instances(sys::state& state) {
 			auto abstract_state = state.world.province_get_state_from_abstract_state_membership(pid);
 
 			state_instance.set_definition(abstract_state);
+			state_instance.set_capital(pid);
 			state.world.force_create_state_ownership(state_instance, owner);
 
 			for(auto mprov : state.world.state_definition_get_abstract_state_membership(abstract_state)) {
