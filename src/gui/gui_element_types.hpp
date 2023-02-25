@@ -216,6 +216,7 @@ protected:
 public:
 	virtual void update(sys::state& state) noexcept { }
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 };
 
 template<class RowConT>

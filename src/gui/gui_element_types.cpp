@@ -718,8 +718,14 @@ message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::A
 	if(payload.holds_type<wrapped_row_content<RowConT>>()) {
 		content = any_cast<wrapped_row_content<RowConT>>(payload).content;
 		update(state);
+		return message_result::consumed;
 	}
 	return message_result::unseen;
+}
+
+template<class RowConT>
+message_result listbox_row_element_base<RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	return parent->impl_on_scroll(state, x, y, amount, mods);
 }
 
 template<class RowConT>
@@ -727,6 +733,7 @@ message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::An
 	if(payload.holds_type<wrapped_row_content<RowConT>>()) {
 		content = any_cast<wrapped_row_content<RowConT>>(payload).content;
 		update(state);
+		return message_result::consumed;
 	}
 	return message_result::unseen;
 }
@@ -738,6 +745,7 @@ message_result listbox_row_button_base<RowConT>::on_scroll(sys::state& state, in
 
 template<class RowWinT, class RowConT>
 void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
+	scroll_pos = std::min(scroll_pos, std::max(0, int32_t(row_contents.size() - row_windows.size())));
 	if(is_reversed()) {
 		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
 		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
