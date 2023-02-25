@@ -391,5 +391,12 @@ void load_standard_fonts(sys::state& state) {
 	}
 }
 
+void font_manager::load_all_glyphs() {
+	for(uint32_t j = 0; j < 2; ++j) {
+		for(uint32_t i = 0; i < 256; ++i)
+			fonts[j].make_glyph(char(i));
+	}
+}
+
 }
 

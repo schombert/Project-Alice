@@ -9,6 +9,7 @@
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
 #include "gui_province_window.hpp"
+#include "demographics.hpp"
 #include <algorithm>
 #include <thread>
 
@@ -1226,6 +1227,9 @@ namespace sys {
 			world.province_set_terrain(id, context.ocean_terrain);
 		}
 
+		world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
+		world.pop_resize_demographics(pop_demographics::size(*this));
+
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
@@ -1245,6 +1249,10 @@ namespace sys {
 
 		world.province_resize_modifier_values(provincial_mod_offsets::count);
 
+		world.nation_resize_demographics(demographics::size(*this));
+		world.state_instance_resize_demographics(demographics::size(*this));
+		world.province_resize_demographics(demographics::size(*this));
+
 		world.for_each_nation([&](dcon::nation_id id) {
 			auto ident = world.nation_get_identity_from_identity_holder(id);
 			world.nation_set_name(id, world.national_identity_get_name(ident));
@@ -1263,6 +1271,8 @@ namespace sys {
 
 		province::restore_unsaved_values(*this);
 		nations::restore_unsaved_values(*this);
+
+		demographics::regenerate_from_pop_data(*this);
 	}
 
 	constexpr inline int32_t game_speed[] = {

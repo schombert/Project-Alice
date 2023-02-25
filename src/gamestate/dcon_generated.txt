@@ -20,6 +20,8 @@ make_index{global_flag_id}{uint16_t}
 make_index{trigger_key}{uint16_t}
 make_index{effect_key}{uint16_t}
 make_index{value_modifier_key}{uint16_t}
+make_index{pop_demographics_key}{uint16_t}
+make_index{demographics_key}{uint16_t}
 
 object{
 	name{ national_identity }
@@ -1150,6 +1152,10 @@ object {
 		name{ is_coast }
 		type{ bitfield }
 	}
+	property {
+		name{ demographics }
+		type{ array{demographics_key}{float} }
+	}
 }
 
 relationship{
@@ -1619,6 +1625,10 @@ object {
 		type{ province_id }
 		tag{ save }
 	}
+	property {
+		name{ demographics }
+		type{ array{demographics_key}{float} }
+	}
 }
 
 relationship{
@@ -1975,6 +1985,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ variables }
+		type{array{national_variable_id}{float}}
+		tag{ save }
+	}
+	property{
 		name{ static_modifier_values }
 		type{ array{int32_t}{float} }
 	}
@@ -2051,8 +2066,11 @@ object {
 		name{ rank }
 		type{ uint16_t }
 	}
+	property {
+		name{ demographics }
+		type{ array{demographics_key}{float} }
+	}
 }
-
 
 relationship{
 	name{ diplomatic_relation }
@@ -2316,8 +2334,18 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ employment }
+		type{ float }
+		tag{ save }
+	}
+	property{
 		name{ rebel_group }
 		type{ rebel_type_id }
+		tag{ save }
+	}
+	property {
+		name{ demographics }
+		type{ array{pop_demographics_key}{float} }
 		tag{ save }
 	}
 }

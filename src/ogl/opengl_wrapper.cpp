@@ -24,6 +24,8 @@ void initialize_opengl(sys::state& state) {
 	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + state.world.national_identity_size() * culture::flag_count);
 
 	state.map_display.load_map(state);
+
+	state.font_collection.load_all_glyphs();
 }
 
 GLint compile_shader(std::string_view source, GLenum type) {
@@ -415,7 +417,7 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 
 void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, text::font& f) {
 	if(text::win1250toUTF16(codepoint) != ' ') {
-		f.make_glyph(codepoint);
+		//f.make_glyph(codepoint);
 
 		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
@@ -435,7 +437,7 @@ void render_character(sys::state const& state, char codepoint, color_modificatio
 void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f) {
 	for(uint32_t i = 0; i < count; ++i) {
 		if(text::win1250toUTF16(codepoints[i]) != ' ') {
-			f.make_glyph(codepoints[i]);
+			//f.make_glyph(codepoints[i]);
 
 			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE0);

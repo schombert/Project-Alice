@@ -49,4 +49,5 @@ auto desired_needs_spending(sys::state const& state, T pop_indices) {
 	return 0.0f;
 }
 
+
 }

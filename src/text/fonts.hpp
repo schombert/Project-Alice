@@ -17,8 +17,18 @@ struct glyph_sub_offset {
 	float y = 0.0f;
 };
 
+class font_manager;
+
 class font {
+private:
+	font(const font&) = delete;
+	font(font&&) = default;
+	font& operator=(font const&) = delete;
+	font& operator=(font&&) noexcept = default;
+	font() = default;
 public:
+	
+
 	FT_Face font_face;
 	float internal_line_height = 0.0f;
 	float internal_ascender = 0.0f;
@@ -43,6 +53,8 @@ public:
 	float top_adjustment(int32_t size) const;
 	float kerning(char codepoint_first, char codepoint_second) const;
 	float text_extent(const char* codepoints, uint32_t count, int32_t size) const;
+
+	friend class font_manager;
 };
 
 class font_manager {
@@ -55,6 +67,7 @@ public:
 	FT_Library ft_library;
 
 	void load_font(font& fnt, char const* file_data, uint32_t file_size);
+	void load_all_glyphs();
 };
 
 void load_standard_fonts(sys::state& state);
