@@ -112,7 +112,7 @@ target_precompile_headers(Alice
 	PRIVATE [["date_interface.hpp"]]
 )
 
-target_link_libraries(Alice PRIVATE dependency_tbb)
+
 target_link_libraries(Alice PRIVATE dependency_DataContainer)
 target_link_libraries(Alice PRIVATE libglew_static)
 target_link_libraries(Alice PRIVATE dependency_unordered_dense)
@@ -120,6 +120,7 @@ target_link_libraries(Alice PRIVATE stb_image)
 target_link_libraries(Alice PRIVATE freetype)
 target_link_libraries(Alice PRIVATE glm)
 if (NOT WIN32)
+	target_link_libraries(Alice PRIVATE dependency_tbb)
 	target_link_libraries(Alice PRIVATE glfw)
 	target_link_libraries(Alice PRIVATE miniaudio)
 endif()
