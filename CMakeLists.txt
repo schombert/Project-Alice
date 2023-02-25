@@ -35,7 +35,9 @@ else()
 	target_compile_definitions(Alice PRIVATE "IGNORE_REAL_FILES_TESTS=1")
 endif()
 
-add_compile_definitions(PREFER_ONE_TBB)
+if(NOT WIN32)
+	add_compile_definitions(PREFER_ONE_TBB)
+endif()
 
 if(WIN32)
 	# string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})

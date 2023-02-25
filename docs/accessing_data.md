@@ -31,6 +31,21 @@ The name, flags, political parties, and map color of a tag are considered to be 
 
 Note that identities and cores exist in a many-to-many relationship: each national identity can have cores in many provinces, and each province can have many national identity cores. Thus, you can't get a singular national identity from the `core` relationship when you start from a province. Instead the function `fat_id.get_core()` returns a range of the `core` relationships involving that province, which you could iterate over with `for(auto relationship : fat_id.get_core())`, and then extract the national identities with `relationship.get_identity()`.
 
+### Great power relationships
+
+Although most diplomatic relationships can exists between any two countries, there are a few properties that only make sense in the context of a great power's relationships with other nations. These properties are stored in the `gp_relationship` relationship.
+
+There are three ways of accessing these relationships.
+
+First, you can use a loop such as `for(auto gp_rel : state.world.nation_get_gp_relationship_as_great_power(some_nation_id)) { .. }`. This will iterate over all the great power relationships where `some_nation_id` is the great power. If the nation is not a great power, then this loop won't run at all.
+
+Secondly, you can use a loop such as `for(auto gp_rel : state.world.nation_get_gp_relationship_as_influence_target(some_nation_id)) { .. }`. This works essentially in the same way as before, except that this loop will iterate over all of the relationships in which a great power is influencing this nation. Such a loop will not iterate over more than 8 relationships, as there at most 8 great powers. However, it may find fewer than 8 relationships, as if a great power is not interacting with a particular country no relationship will be generated.
+
+Finally, you can use `state.world.get_gp_relationship_by_gp_influence_pair(target_id, great_power_id)` to get a handle to the `gp_relationship` between any nation and any great power. Note that this function will return the invalid handle value if no relationship exists between the two nations in question. (Which you can test for by casting it to bool).
+
+The `influence` property of the relationship stores the current influence value as a `float`, which should be pretty self-explanatory. The `status` property, however, is more complex, as it contains a number of values packed together. You can get the individual properties out of the `uint8_t` by masking it with one of the constants found in the `nations::influence` namespace. With `(status & nations::influence::level_mask)` (don't forget the parentheses or `&` will be evaluated after `==`) you can extract the level of the influence relationship, which ranges from `nations::influence::level_hostile` to `nations::influence::level_in_sphere`. With `(status & nations::influence::level_mask)` you can extract the priority that the nation has been given with respect to influence point distribution. Priority levels range from `nations::influence::priority_zero` to `nations::influence::priority_three`. Finally there are three bits you can test with `nations::influence::is_expelled`, `nations::influence::is_discredited`, and `nations::influence::is_banned` to see if any of those status effects are active.
+
+Because finding out which sphere a nation is in by iterating over the great power relationships would be quite inefficient, each nation also stores a handle to the nation that it is in the sphere of in its `in_sphere_of` property. If the nation is not in any sphere, this property will contain the invalid handle value.
 
 ### Population
 

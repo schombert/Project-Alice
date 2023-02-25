@@ -1264,6 +1264,10 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
 
+
+	state->world.nation_resize_variables(uint32_t(state->national_definitions.num_allocated_national_variables));
+	state->world.pop_resize_demographics(pop_demographics::size(*state));
+
 	// serialize and reload
 
 	sys::write_scenario_file(*state, NATIVE("sb_test_file.bin"));

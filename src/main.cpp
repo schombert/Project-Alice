@@ -29,6 +29,7 @@
 #include "province.cpp"
 #include "triggers.cpp"
 #include "nations.cpp"
+#include "demographics.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
