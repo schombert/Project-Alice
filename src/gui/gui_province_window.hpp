@@ -46,21 +46,13 @@ public:
 	}
 };
 
-class province_view_foreign_flag : public flag_button {
-public:
-	dcon::nation_id current_nation{};
-
-	dcon::nation_id get_current_nation(sys::state& state) noexcept override {
-		return current_nation;
-	}
-};
-
 class province_view_foreign_details : public window_element_base {
 private:
-	province_view_foreign_flag* country_flag = nullptr;
+	flag_button* country_flag_button = nullptr;
 	simple_text_element_base* country_name_box = nullptr;
 	simple_text_element_base* country_gov_box = nullptr;
 	simple_text_element_base* country_party_box = nullptr;
+	dcon::nation_id stored_nation{};
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -69,8 +61,8 @@ public:
 			country_name_box = ptr.get();
 			return ptr;
 		} else if(name == "country_flag") {
-			auto ptr = make_element_by_type<province_view_foreign_flag>(state, id);
-			country_flag = ptr.get();
+			auto ptr = make_element_by_type<flag_button>(state, id);
+			country_flag_button = ptr.get();
 			return ptr;
 		} else if(name == "country_gov") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -88,13 +80,13 @@ public:
     void update_province_info(sys::state& state, dcon::province_id prov_id) {
 		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 		auto nation_id = fat_id.get_nation_from_province_ownership();
+		stored_nation = nation_id;
 		if(bool(nation_id)) {
 			auto country_name_seq = nation_id.get_name();
 			auto country_name = text::produce_simple_string(state, country_name_seq);
 			country_name_box->set_text(state, country_name);
 
-			country_flag->current_nation = nation_id.id;
-			country_flag->on_update(state);
+			country_flag_button->on_update(state);
 
 			auto gov_type_id = nation_id.get_government_type();
 			auto gov_name_seq = state.culture_definitions.governments[gov_type_id].name;
@@ -107,6 +99,15 @@ public:
 			set_visible(state, true);
 		} else {
 			set_visible(state, false);
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(stored_nation);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
 		}
 	}
 };
