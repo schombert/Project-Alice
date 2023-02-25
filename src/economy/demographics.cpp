@@ -92,17 +92,17 @@ void regenerate_from_pop_data(sys::state& state) {
 					break;
 				case 3: //constexpr inline dcon::demographics_key consciousness(3);
 					sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
-						return state.world.pop_get_consciousness(p);
+						return state.world.pop_get_consciousness(p) * state.world.pop_get_size(p);
 					});
 					break;
 				case 4: //constexpr inline dcon::demographics_key militancy(4);
 					sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
-						return state.world.pop_get_militancy(p);
+						return state.world.pop_get_militancy(p) * state.world.pop_get_size(p);
 					});
 					break;
 				case 5: //constexpr inline dcon::demographics_key literacy(5);
 					sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
-						return state.world.pop_get_literacy(p);
+						return state.world.pop_get_literacy(p) * state.world.pop_get_size(p);
 					});
 					break;
 			}

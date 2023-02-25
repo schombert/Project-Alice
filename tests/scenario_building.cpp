@@ -1848,6 +1848,6 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_rgo_goods_output(c_id) == 0.25f);
 		REQUIRE(nation.get_max_fort_level() == 1);
 	}
-
+	
 }
 #endif
