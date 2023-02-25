@@ -41,11 +41,9 @@ constexpr inline uint32_t build_railway              = 0x40000000;
 
 namespace culture {
 
-enum class flag_type : uint8_t {
-	default_flag = 0, republic = 1, communist = 2, fascist = 3, monarchy = 4
-};
-
-inline constexpr int32_t flag_count = 5;
+// TODO: Would be better if we determined the number of flags at runtime for better
+// space efficiency, however this will keep GFM from screaming - for now
+inline constexpr int32_t max_flag_count = 16;
 
 struct government_type {
 	uint32_t ideologies_allowed = 0;
@@ -53,7 +51,7 @@ struct government_type {
 	bool has_elections = false;
 	bool can_appoint_ruling_party = false;
 	int8_t duration = 0;
-	flag_type flag = flag_type::default_flag;
+	dcon::text_sequence_id flag;
 };
 
 constexpr inline uint32_t to_bits(dcon::ideology_id id) {
@@ -149,6 +147,6 @@ void repopulate_technology_effects(sys::state& state);
 void repopulate_invention_effects(sys::state& state);
 void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
 void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id inv_id); //  TODO: shared prestige effect
-flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation);
+dcon::text_sequence_id get_current_flag_type(sys::state const& state, dcon::nation_id target_nation);
 
 }

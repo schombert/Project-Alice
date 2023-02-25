@@ -120,17 +120,8 @@ void government_type::duration(association_type, int32_t value, error_handler& e
 }
 
 void government_type::flagtype(association_type, std::string_view value, error_handler& err, int32_t line, government_type_context& context) {
-	if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::communist;
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::fascist;
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy;
-	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic"))
-		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic;
-	else {
-		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
-	}
+	auto name_id = text::find_or_add_key(context.outer_context.state, value);
+	context.outer_context.state.culture_definitions.governments[context.id].flag = name_id;
 }
 
 void government_type::any_value(std::string_view text, association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
@@ -1982,7 +1973,7 @@ void country_history_file::nonstate_consciousness(association_type, float value,
 }
 
 void country_history_file::govt_flag(const govt_flag_block& value, error_handler& err, int32_t line, country_history_context& context) {
-	context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_, uint8_t(value.flag_) + uint8_t(1));
+	context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_, value.flag_);
 }
 
 void country_history_file::ruling_party(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {

@@ -424,8 +424,8 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 	return 0;
 }
 
-GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
-	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + nat_id.index() * culture::flag_count + uint32_t(culture::flag_count)) };
+GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, dcon::text_sequence_id type) {
+	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + nat_id.index() * culture::max_flag_count + uint32_t(culture::max_flag_count)) };
 
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
@@ -437,17 +437,9 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		file_str += NATIVE("flags");
 		file_str += NATIVE_DIR_SEPARATOR;
 		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
-		switch(type) {
-			case culture::flag_type::communist:
-				file_str += NATIVE("_communist"); break;
-			case culture::flag_type::default_flag:
-				break;
-			case culture::flag_type::fascist:
-				file_str += NATIVE("_fascist"); break;
-			case culture::flag_type::monarchy:
-				file_str += NATIVE("_monarchy"); break;
-			case culture::flag_type::republic:
-				file_str += NATIVE("_republic"); break;
+		if(const auto type_name = text::produce_simple_string(state, type); !type_name.empty()) {
+			file_str += NATIVE_DIR_SEPARATOR;
+			file_str += simple_fs::win1250_to_native(type_name);
 		}
 		file_str += NATIVE(".tga");
 

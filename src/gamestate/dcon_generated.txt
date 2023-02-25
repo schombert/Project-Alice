@@ -71,7 +71,7 @@ object{
 	}
 	property{
 		name{ government_flag_type }
-		type{ array{government_type_id}{uint8_t} }
+		type{ array{government_type_id}{text_sequence_id} }
 		tag{ scenario }
 	}
 	property{
