@@ -824,10 +824,19 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 	container_base::render(state, x, y);
 }
 
+dcon::nation_id flag_button::get_current_nation(sys::state& state) noexcept {
+	Cyto::Any output = dcon::nation_id{};
+	if(parent != nullptr) {
+		parent->impl_get(state, output);
+		return any_cast<dcon::nation_id>(output);
+	} else {
+		return dcon::nation_id{};
+	}
+}
+
 void flag_button::on_update(sys::state& state) noexcept {
 	auto current_nation = get_current_nation(state);
-	if(stored_nation != current_nation) {
-		stored_nation = current_nation;
+	if(bool(current_nation)) {
 		dcon::nation_fat_id fat_id = dcon::fatten(state.world, current_nation);
 		auto identity = fat_id.get_identity_holder_as_nation().get_identity();
 		auto flag_type = culture::get_current_flag_type(state, current_nation);
