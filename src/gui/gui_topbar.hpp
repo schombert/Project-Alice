@@ -105,13 +105,6 @@ public:
 	}
 };
 
-class topbar_player_flag : public flag_button {
-public:
-	dcon::nation_id get_current_nation(sys::state& state) noexcept override {
-		return state.local_player_nation;
-	}
-};
-
 class topbar_pause_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -280,7 +273,7 @@ public:
 		} else if(name == "countryname") {
 			return make_element_by_type<topbar_country_name>(state, id);
 		} else if(name == "player_flag") {
-			return make_element_by_type<topbar_player_flag>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -293,6 +286,15 @@ public:
 			background_pic->set_visible(state, false);
 		}
 		window_element_base::render(state, x, y);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(state.local_player_nation);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
 	}
 
 private:
