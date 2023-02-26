@@ -463,6 +463,10 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 				file_str += NATIVE("_monarchy2"); break;
 			case culture::flag_type::republic2:
 				file_str += NATIVE("_republic2"); break;
+			case culture::flag_type::cosmetic_1:
+				file_str += NATIVE("_cosmetic_1") break;
+			case culture::flag_type::cosmetic_2:
+				file_str += NATIVE("_cosmetic_2") break;
 		}
 		file_str += NATIVE(".tga");
 
