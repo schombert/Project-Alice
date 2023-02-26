@@ -128,6 +128,17 @@ void government_type::flagtype(association_type, std::string_view value, error_h
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic;
+	// Non-vanilla flags
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::theocracy;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "special"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::special;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "spare"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::spare;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "populist"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::populist;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "realm"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::realm;
 	else {
 		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
