@@ -177,6 +177,11 @@ inline uint8_t decrease_priority(uint8_t v) {
 template<typename T, typename U>
 auto nation_accepts_culture(sys::state const& state, T ids, U c);
 
+template<typename T>
+auto primary_culture_group(sys::state const& state, T ids);
+template<typename T>
+auto owner_of_pop(sys::state const& state, T pop_ids);
+
 void update_national_rankings(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void generate_initial_state_instances(sys::state& state);

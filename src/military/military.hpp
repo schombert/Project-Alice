@@ -81,5 +81,6 @@ struct global_military_state {
 
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
+void restore_unsaved_values(sys::state& state);
 
 }
