@@ -3,7 +3,7 @@ message(STATUS "Fetching DataContainer...")
 FetchContent_Declare(
         DataContainer
         GIT_REPOSITORY https://github.com/schombert/DataContainer
-		GIT_TAG 8decae6
+		GIT_TAG d2d75fa
         # GIT_TAG v0.2.2
 )
 

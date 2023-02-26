@@ -1156,6 +1156,10 @@ object {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
 	}
+	property {
+		name{ dominant_culture }
+		type{ culture_id }
+	}
 }
 
 relationship{
@@ -1628,6 +1632,10 @@ object {
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
+	}
+	property {
+		name{ dominant_culture }
+		type{ culture_id }
 	}
 }
 
@@ -2287,6 +2295,12 @@ object {
 	property{
 		name{ defection_target }
 		type{ national_identity_id }
+		tag{ save }
+	}
+
+	property{
+		name{ primary_culture }
+		type{ culture_id }
 		tag{ save }
 	}
 }

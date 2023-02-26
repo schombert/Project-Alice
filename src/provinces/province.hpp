@@ -26,6 +26,12 @@ struct global_provincial_state {
 	dcon::modifier_id oceania;
 };
 
+template<typename F>
+void for_each_land_province(sys::state& state, F const& func);
+
+template<typename F>
+void for_each_sea_province(sys::state& state, F const& func);
+
 inline uint8_t set_fort_level(uint32_t new_level, uint8_t old_value) {
 	return uint8_t((new_level & 0x0F) | (old_value & 0xF0));
 }
