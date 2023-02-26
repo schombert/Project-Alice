@@ -5,6 +5,24 @@
 
 namespace province {
 
+template<typename F>
+void for_each_land_province(sys::state& state, F const& func) {
+	int32_t last = state.province_definitions.first_sea_province.index();
+	for(int32_t i = 0; i < last; ++i) {
+		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
+		func(pid);
+	}
+}
+
+template<typename F>
+void for_each_sea_province(sys::state& state, F const& func) {
+	int32_t first = state.province_definitions.first_sea_province.index();
+	for(int32_t i = first; i < int32_t(state.world.province_size()); ++i) {
+		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
+		func(pid);
+	}
+}
+
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
 	return bool(it);

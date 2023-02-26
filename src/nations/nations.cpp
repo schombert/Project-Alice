@@ -1,6 +1,19 @@
 #include "nations.hpp"
+#include "system_state.hpp"
 
 namespace nations {
+
+// returns whether a culture is on the accepted list OR is the primary culture
+template<typename T, typename U>
+auto nation_accepts_culture(sys::state const& state, T ids, U cul_ids) {
+	auto is_accepted = ve::apply([&state](dcon::nation_id n, dcon::culture_id c) {
+		if(n)
+			return state.world.nation_get_accepted_cultures(n).contains(c);
+		else
+			return false;
+	}, ids, cul_ids);
+	return (state.world.nation_get_primary_culture(ids) == cul_ids) || is_accepted;
+}
 
 void update_national_rankings(sys::state& state) {
 	if(!state.national_rankings_out_of_date)

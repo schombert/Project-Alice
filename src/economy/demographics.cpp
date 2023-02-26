@@ -43,7 +43,7 @@ uint32_t size(sys::state const& state) {
 template<typename F>
 void sum_over_demographics(sys::state& state, dcon::demographics_key key, F const& source) {
 	//clear province
-	state.world.for_each_province([&](dcon::province_id pi) {
+	province::for_each_land_province(state, [&](dcon::province_id pi) {
 		state.world.province_set_demographics(pi, key, 0.0f); // TODO: perform clears as a vector op.
 	});
 	//sum in province
@@ -56,7 +56,7 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 		state.world.state_instance_set_demographics(si, key, 0.0f); // TODO: perform clears as a vector op.
 	});
 	//sum in state
-	state.world.for_each_province([&](dcon::province_id p) {
+	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto location = state.world.province_get_state_membership(p);
 		state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(p, key);
 	});
@@ -135,6 +135,38 @@ void regenerate_from_pop_data(sys::state& state) {
 			});
 		}
 	});
+
+	//
+	// calculate values derived from demographics
+	//
+	concurrency::parallel_invoke(
+		[&]() {
+			province::for_each_land_province(state, [&](dcon::province_id p) {
+				dcon::culture_id max_id;
+				float max_value = 0.0f;
+				state.world.for_each_culture([&](dcon::culture_id c) {
+					if(auto v = state.world.province_get_demographics(p, to_key(state, c)); v > max_value) {
+						max_value = v;
+						max_id = c;
+					}
+				});
+				state.world.province_set_dominant_culture(p, max_id);
+			});
+		},
+		[&]() {
+			state.world.for_each_state_instance([&](dcon::state_instance_id p) {
+				dcon::culture_id max_id;
+				float max_value = 0.0f;
+				state.world.for_each_culture([&](dcon::culture_id c) {
+					if(auto v = state.world.state_instance_get_demographics(p, to_key(state, c)); v > max_value) {
+						max_value = v;
+						max_id = c;
+					}
+				});
+				state.world.state_instance_set_dominant_culture(p, max_id);
+			});
+		}
+	);
 }
 
 
