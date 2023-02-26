@@ -467,6 +467,12 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 				file_str += NATIVE("_cosmetic_1") break;
 			case culture::flag_type::cosmetic_2:
 				file_str += NATIVE("_cosmetic_2") break;
+			case culture::flag_type::colonial:
+				file_str += NATIVE("_colonial") break;
+			case culture::flag_type::nationalist:
+				file_str += NATIVE("_nationalist") break;
+			case culture::flag_type::sectarian:
+				file_str += NATIVE("_sectarian") break;
 		}
 		file_str += NATIVE(".tga");
 
