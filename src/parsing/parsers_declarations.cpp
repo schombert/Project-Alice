@@ -139,6 +139,8 @@ void government_type::flagtype(association_type, std::string_view value, error_h
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::populist;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "realm"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::realm;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "other"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::other;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy2"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy2;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic2"))
