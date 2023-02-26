@@ -45,10 +45,11 @@ enum class flag_type : uint8_t {
 	default_flag = 0, republic = 1, communist = 2, fascist = 3, monarchy = 4,
 	// Non-vanilla flags
 	theocracy = 5, special = 6, spare = 7, populist = 8, realm = 9, other = 10,
-	monarchy2 = 11, republic2 = 12, cosmetic_1 = 13, cosmetic_2 = 14
+	monarchy2 = 11, republic2 = 12, cosmetic_1 = 13, cosmetic_2 = 14,
+	colonial = 15, nationalist = 16, sectarian = 17
 };
 
-inline constexpr int32_t flag_count = 15;
+inline constexpr int32_t flag_count = 18;
 
 struct government_type {
 	uint32_t ideologies_allowed = 0;
