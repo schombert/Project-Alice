@@ -1272,6 +1272,7 @@ namespace sys {
 		province::restore_unsaved_values(*this);
 		nations::restore_unsaved_values(*this);
 
+		culture::update_all_nations_issue_rules(*this);
 		demographics::regenerate_from_pop_data(*this);
 	}
 

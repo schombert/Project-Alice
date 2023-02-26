@@ -1284,7 +1284,49 @@ TRIGGER_FUNCTION(tf_cash_reserves) {
 	auto savings_qnty = ws.world.pop_get_savings(to_pop(primary_slot));
 	return compare_values(tval[0], ve::select(target != 0.0f, savings_qnty * 100.0f / target, 100.0f), ratio);
 }
-
+TRIGGER_FUNCTION(tf_unemployment_nation) {
+	auto total_employable = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::employable);
+	auto total_employed = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::employed);
+	return compare_values(tval[0],
+		ve::select(total_employable > 0.0f, 1.0f - (total_employed / total_employable), 0.0f),
+		read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_unemployment_state) {
+	auto total_employable = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::employable);
+	auto total_employed = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::employed);
+	return compare_values(tval[0],
+		ve::select(total_employable > 0.0f, 1.0f - (total_employed / total_employable), 0.0f),
+		read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_unemployment_province) {
+	auto total_employable = ws.world.province_get_demographics(to_prov(primary_slot), demographics::employable);
+	auto total_employed = ws.world.province_get_demographics(to_prov(primary_slot), demographics::employed);
+	return compare_values(tval[0],
+		ve::select(total_employable > 0.0f, 1.0f - (total_employed / total_employable), 0.0f),
+		read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_unemployment_pop) {
+	auto employed = ws.world.pop_get_employment(to_pop(primary_slot));
+	auto total_pop = ws.world.pop_get_size(to_pop(primary_slot));
+	auto ptype = ws.world.pop_get_poptype(to_pop(primary_slot));
+	return compare_values(tval[0],
+		ve::select(ws.world.pop_type_get_has_unemployment(ptype), 1.0f - (employed / total_pop), 0.0f),
+		read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_is_slave_nation) {
+	return compare_to_true(tval[0],
+		(ws.world.nation_get_combined_issue_rules(to_nation(primary_slot)) & issue_rule::slavery_allowed) == issue_rule::slavery_allowed
+	);
+}
+TRIGGER_FUNCTION(tf_is_slave_state) {
+	return compare_to_true(tval[0], ws.world.province_get_is_slave(ws.world.state_instance_get_capital(to_state(primary_slot))));
+}
+TRIGGER_FUNCTION(tf_is_slave_province) {
+	return compare_to_true(tval[0], ws.world.province_get_is_slave(to_prov(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_is_slave_pop) {
+	return compare_values_eq(tval[0], ws.world.pop_get_poptype(to_pop(primary_slot)), ws.culture_definitions.slaves);
+}
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(CALLTYPE* trigger_functions[])(uint16_t const*, sys::state&,
@@ -1304,14 +1346,14 @@ struct trigger_container {
 		tf_state_id_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t state_id_province = 0x000B;
 		tf_state_id_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t state_id_state = 0x000C;
 		tf_cash_reserves<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t cash_reserves = 0x000D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_nation = 0x000E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_state = 0x000F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_province = 0x0010;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_pop = 0x0011;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_slave_nation = 0x0012;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_slave_state = 0x0013;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_slave_province = 0x0014;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_slave_pop = 0x0015;
+		tf_unemployment_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_nation = 0x000E;
+		tf_unemployment_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_state = 0x000F;
+		tf_unemployment_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_province = 0x0010;
+		tf_unemployment_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_pop = 0x0011;
+		tf_is_slave_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_slave_nation = 0x0012;
+		tf_is_slave_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_slave_state = 0x0013;
+		tf_is_slave_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_slave_province = 0x0014;
+		tf_is_slave_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_slave_pop = 0x0015;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_independant = 0x0016;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_national_minority_province = 0x0017;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_national_minority_state = 0x0018;
