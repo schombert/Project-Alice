@@ -1,5 +1,6 @@
 #include "map_modes.hpp"
 
+#include "demographics.hpp"
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
 #include "province.hpp"
@@ -55,16 +56,22 @@ void set_region(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::region);
 }
 
+uint32_t color_gradient(float percent, uint32_t top_color, uint32_t bot_color) {
+	uint32_t color = 0;
+	for(uint32_t i = 0; i <= 16; i += 8) {
+		auto diff = int32_t(top_color >> i & 0xFF) - int32_t(bot_color >> i & 0xFF);
+		color |= uint32_t(int32_t(bot_color >> i & 0xFF) + diff * percent) << i;
+	}
+	return color;
+}
+
 std::vector<uint32_t> get_global_population_color(sys::state& state) {
 	std::vector<float> prov_population(state.world.province_size() + 1);
 	std::unordered_map<int32_t, float> continent_max_pop = {};
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
-		float population = 0;
-		for(auto pop_location : fat_id.get_pop_location_as_province()) {
-			population += pop_location.get_pop().get_size();
-		}
+		float population = state.world.province_get_demographics(prov_id, demographics::total);
 		auto cid = fat_id.get_continent().id.index();
 		continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 		auto i = province::to_map_id(prov_id);
@@ -77,9 +84,7 @@ std::vector<uint32_t> get_global_population_color(sys::state& state) {
 		auto cid = fat_id.get_continent().id.index();
 		auto i = province::to_map_id(prov_id);
 		float gradient_index = prov_population[i] / continent_max_pop[cid];
-		uint32_t color = uint32_t(100.f * (1.f - gradient_index)) << 8;
-		color |= uint32_t(210.f * gradient_index);
-		prov_color[i] = color;
+		prov_color[i] = color_gradient(gradient_index, 210, 100 << 8);
 	});
 
 	return prov_color;
@@ -98,10 +103,7 @@ std::vector<uint32_t> get_national_population_color(sys::state& state) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto i = province::to_map_id(prov_id);
 		if(fat_id.get_nation_from_province_ownership().id == nat_id.id) {
-			float population = 0;
-			for(auto pop_location : fat_id.get_pop_location_as_province()) {
-				population += pop_location.get_pop().get_size();
-			}
+			float population = state.world.province_get_demographics(prov_id, demographics::total);
 			max_population = std::max(max_population, population);
 			prov_population[i] = population;
 		} else {
@@ -113,9 +115,7 @@ std::vector<uint32_t> get_national_population_color(sys::state& state) {
 	for(size_t i = 0; i < prov_population.size(); i++) {
 		if(prov_population[i] > -1.f) {
 			float gradient_index = prov_population[i] / max_population;
-			uint32_t color = uint32_t(135.f * (1.f - gradient_index)) << 8;
-			color |= uint32_t(210.f * gradient_index);
-			prov_color[i] = color;
+			prov_color[i] = color_gradient(gradient_index, 210, 100 << 8);
 		} else {
 			prov_color[i] = 0xFFAAAAAA;
 		}
@@ -135,6 +135,62 @@ void set_population(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::population);
 }
 
+std::vector<uint32_t> get_nationality_global_color(sys::state& state) {
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		auto culture_id = fat_id.get_dominant_culture();
+		
+		auto i = province::to_map_id(prov_id);
+		if(bool(culture_id)) {
+			prov_color[i] = culture_id.get_color();
+		} else {
+			prov_color[i] = 0xFFAAAAAA;
+		}
+	});
+	
+	return prov_color;
+}
+
+std::vector<uint32_t> get_nationality_diaspora_color(sys::state& state) {
+	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto culture_id = fat_selected_id.get_dominant_culture();
+	auto culture_key = demographics::to_key(state, culture_id.id);
+
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	if(bool(culture_id)) {
+		uint32_t full_color = culture_id.get_color();
+		uint32_t empty_color = 0xDDDDDD;
+		// Make the other end of the gradient dark if the color is bright and vice versa.
+		// This should make it easier to see cultures that would otherwise be problematic.
+		if((full_color & 0xFF) > 128 || (full_color >> 8 & 0xFF) > 128 || (full_color >> 16 & 0xFF) > 128) {
+			empty_color = 0x222222;
+		}
+
+		state.world.for_each_province([&](dcon::province_id prov_id) {
+			auto i = province::to_map_id(prov_id);
+			auto fat_id = dcon::fatten(state.world, prov_id);
+			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
+			auto culture_pop = state.world.province_get_demographics(prov_id, culture_key);
+			auto ratio = culture_pop / total_pop;
+
+			prov_color[i] = color_gradient(ratio, full_color, empty_color);
+		});
+	}
+	return prov_color;
+}
+
+void set_nationality(sys::state& state) {
+	std::vector<uint32_t> prov_color;
+	if(state.map_display.get_selected_province()) {
+		prov_color = get_nationality_diaspora_color(state);
+	} else {
+		prov_color = get_nationality_global_color(state);
+	}
+	
+	state.map_display.set_province_color(prov_color, mode::nationality);
+}
+
 void set_map_mode(sys::state& state, mode mode) {
 	switch (mode)
 	{
@@ -149,6 +205,9 @@ void set_map_mode(sys::state& state, mode mode) {
 		break;
 	case mode::population:
 		set_population(state);
+		break;
+	case mode::nationality:
+		set_nationality(state);
 		break;
 	default:
 		break;
