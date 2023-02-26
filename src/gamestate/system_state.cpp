@@ -1260,6 +1260,8 @@ namespace sys {
 			world.nation_set_color(id, world.national_identity_get_color(ident));
 		});
 
+		nations_by_rank.resize(world.nation_size());
+
 		military::reset_unit_stats(*this);
 		culture::repopulate_technology_effects(*this);
 		culture::repopulate_invention_effects(*this);
@@ -1269,6 +1271,7 @@ namespace sys {
 		province::update_connected_regions(*this);
 		nations::update_national_rankings(*this);
 
+		military::restore_unsaved_values(*this);
 		province::restore_unsaved_values(*this);
 		nations::restore_unsaved_values(*this);
 

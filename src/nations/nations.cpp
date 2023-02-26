@@ -15,6 +15,18 @@ auto nation_accepts_culture(sys::state const& state, T ids, U cul_ids) {
 	return (state.world.nation_get_primary_culture(ids) == cul_ids) || is_accepted;
 }
 
+template<typename T>
+auto primary_culture_group(sys::state const& state, T ids) {
+	auto cultures = state.world.nation_get_primary_culture(ids);
+	return state.world.culture_get_group_from_culture_group_membership(cultures);
+}
+
+template<typename T>
+auto owner_of_pop(sys::state const& state, T pop_ids) {
+	auto location = state.world.pop_get_province_from_pop_location(pop_ids);
+	return state.world.province_get_nation_from_province_ownership(location);
+}
+
 void update_national_rankings(sys::state& state) {
 	if(!state.national_rankings_out_of_date)
 		return;

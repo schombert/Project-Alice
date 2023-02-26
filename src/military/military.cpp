@@ -22,4 +22,17 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 	}
 }
 
+void restore_unsaved_values(sys::state& state) {
+	state.world.for_each_nation([&](dcon::nation_id n) {
+		for(auto w : state.world.nation_get_war_attacker(n)) {
+			state.world.nation_set_is_at_war(n, true);
+			//return; // if I uncomment out these returns I get warnings about unreachable code. ... why?
+		}
+		for(auto w : state.world.nation_get_war_defender(n)) {
+			state.world.nation_set_is_at_war(n, true);
+			//return;
+		}
+	});
+}
+
 }

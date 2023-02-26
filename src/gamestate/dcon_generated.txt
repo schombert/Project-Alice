@@ -2082,6 +2082,15 @@ object {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
 	}
+	property {
+		name{ war_exhaustion }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ is_at_war }
+		type{ bitfield }
+	}
 }
 
 relationship{
@@ -2302,6 +2311,28 @@ object {
 		name{ primary_culture }
 		type{ culture_id }
 		tag{ save }
+	}
+	property{
+		name{ religion }
+		type{ religion_id }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ rebellion_within }
+	tag{ save }
+
+	link{
+		object{rebel_faction}
+		name{rebels}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{ruler}
+		type{many}
+		index_storage{array}
 	}
 }
 
