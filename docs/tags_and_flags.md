@@ -8,6 +8,14 @@ Remember that a nation in the game is not, for us, the same thing as a tag. To g
 
 ### Flags
 
+All the flag types will be added to the vector `state::flag_types` which is the size of the number of unique flags that have been loaded. And the `state::flag_type_map` will contain a remapping of the flag_types into a texture offset id.
+
+To obtain the dynamically-assigned Id for an specific type of flag, use the following function:
+```
+`uint32_t culture::get_remapped_flag_type(sys::state const& state, culture::flag_type type)`
+```
+The flag type must be already registered by the scenario, otherwise the function will fail an assertion (that assumes that the application will only ever use flag-types which have been registered - and not arbitrary ones).
+
 The flag to display for a nation is determined by two factors: the national identity associated with the nation and its current government type. The current type of government for a nation is found in a nation's `government_type` property. Once you have the national identity and the type of government you can then look up the type of flag we are supposed to display using the following function:
 ```
 `culture::flag_type culture::get_current_flag_type(sys::state const& state, dcon::nation_id target_nation);`
