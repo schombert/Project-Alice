@@ -8,7 +8,7 @@ Remember that a nation in the game is not, for us, the same thing as a tag. To g
 
 ### Flags
 
-First, the parser will add all the flag types that are referenced - this will result in `state::flag_type_map` having all of the possible flag_types that were loaded on this scenario. After that it will allocate the proper number of flags to accomodate all of the flag types.
+All the flag types will be added to the vector `state::flag_types` which is the size of the number of unique flags that have been loaded. And the `state::flag_type_map` will contain a remapping of the flag_types into a texture offset id.
 
 To obtain the dynamically-assigned Id for an specific type of flag, use the following function:
 ```
