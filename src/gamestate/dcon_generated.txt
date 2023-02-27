@@ -2641,7 +2641,7 @@ object {
 object {
 	name{ decision }
 	storage_type{ contiguous }
-	size{ 2000 }
+	size{ 8000 }
 	tag{ scenario }
 
 	property{
