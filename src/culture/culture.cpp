@@ -367,10 +367,6 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	}
 }
 
-uint32_t get_remapped_flag_type(sys::state const& state, flag_type type) {
-	return state.flag_type_map[static_cast<size_t>(type)];
-}
-
 flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation) {
 	auto gov_type = state.world.nation_get_government_type(target_nation);
 	auto id = state.world.national_identity_get_government_flag_type(

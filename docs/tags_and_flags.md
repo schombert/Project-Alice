@@ -10,9 +10,9 @@ Remember that a nation in the game is not, for us, the same thing as a tag. To g
 
 All the flag types will be added to the vector `state::flag_types` which is the size of the number of unique flags that have been loaded. And the `state::flag_type_map` will contain a remapping of the flag_types into a texture offset id.
 
-To obtain the dynamically-assigned Id for an specific type of flag, use the following function:
+To obtain the dynamically-assigned Id for an specific type of flag, use the following:
 ```
-`uint32_t culture::get_remapped_flag_type(sys::state const& state, culture::flag_type type)`
+`state.flag_type_map[static_cast<size_t>(type)];`
 ```
 The flag type must be already registered by the scenario, otherwise the function will fail an assertion (that assumes that the application will only ever use flag-types which have been registered - and not arbitrary ones).
 

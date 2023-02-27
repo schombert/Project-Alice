@@ -38,8 +38,9 @@ void initialize_opengl(sys::state& state) {
 	// Automatically assign texture offsets to the flag_types
 	auto id = 0;
 	for(const auto& type : state.flag_types)
-		state.flag_type_map[static_cast<size_t>(type)] = id++;
-	assert(state.flag_type_map[0] == 0); // default_flag
+		if(type != culture::flag_type::default_flag)
+			state.flag_type_map[static_cast<size_t>(type)] = ++id;
+	state.flag_type_map[0] = 0; // default_flag
 
 	// Allocate textures for the flags
 	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + state.world.national_identity_size() * state.flag_types.size());
