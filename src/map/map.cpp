@@ -924,6 +924,7 @@ void display_data::update(sys::state& state) {
 	offset_y = pos.y - 0.5f;
 
 	if(unhandled_province_selection) {
+		map_mode::update_map_mode(state);
 		std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
 		if(selected_province)
 			province_highlights[selected_province] = 0x2B2B2B2B;
