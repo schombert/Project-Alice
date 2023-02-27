@@ -1,4 +1,5 @@
 #include "system_state.hpp"
+#include "map_modes.hpp"
 #include "opengl_wrapper.hpp"
 #include "window.hpp"
 #include "gui_element_base.hpp"
@@ -132,7 +133,7 @@ namespace sys {
 		auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 		if(game_state_was_updated) {
 			ui_state.root->impl_on_update(*this);
-			// TODO map needs to refresh itself with data
+			map_mode::update_map_mode(*this);
 			// TODO also need to update any tooltips (which probably exist outside the root container)
 		}
 		glClearColor(0.5, 0.5, 0.5, 1.0);

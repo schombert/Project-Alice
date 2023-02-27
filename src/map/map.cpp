@@ -878,7 +878,7 @@ void display_data::load_map(sys::state& state) {
 	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	std::vector<uint32_t> test(province_id_map.size());
+	std::vector<uint32_t> test(state.world.province_size() + 1);
 	gen_prov_color_texture(province_highlight, test);
 	for(uint32_t i = 0; i < test.size(); ++i) {
 		test[i] = 255;
@@ -924,6 +924,7 @@ void display_data::update(sys::state& state) {
 	offset_y = pos.y - 0.5f;
 
 	if(unhandled_province_selection) {
+		map_mode::update_map_mode(state);
 		std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
 		if(selected_province)
 			province_highlights[selected_province] = 0x2B2B2B2B;

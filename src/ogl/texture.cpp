@@ -425,7 +425,8 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 }
 
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
-	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + nat_id.index() * culture::flag_count + uint32_t(culture::flag_count)) };
+	const auto offset = culture::get_remapped_flag_type(state, type);
+	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + nat_id.index() * state.flag_type_map.size() + state.flag_type_map.size() + offset) };
 
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
@@ -448,6 +449,35 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 				file_str += NATIVE("_monarchy"); break;
 			case culture::flag_type::republic:
 				file_str += NATIVE("_republic"); break;
+			// Non-vanilla
+			case culture::flag_type::theocracy:
+				file_str += NATIVE("_theocracy"); break;
+			case culture::flag_type::special:
+				file_str += NATIVE("_special"); break;
+			case culture::flag_type::spare:
+				file_str += NATIVE("_spare"); break;
+			case culture::flag_type::populist:
+				file_str += NATIVE("_populist"); break;
+			case culture::flag_type::realm:
+				file_str += NATIVE("_realm"); break;
+			case culture::flag_type::other:
+				file_str += NATIVE("_other"); break;
+			case culture::flag_type::monarchy2:
+				file_str += NATIVE("_monarchy2"); break;
+			case culture::flag_type::republic2:
+				file_str += NATIVE("_republic2"); break;
+			case culture::flag_type::cosmetic_1:
+				file_str += NATIVE("_cosmetic_1"); break;
+			case culture::flag_type::cosmetic_2:
+				file_str += NATIVE("_cosmetic_2"); break;
+			case culture::flag_type::colonial:
+				file_str += NATIVE("_colonial"); break;
+			case culture::flag_type::nationalist:
+				file_str += NATIVE("_nationalist"); break;
+			case culture::flag_type::sectarian:
+				file_str += NATIVE("_sectarian"); break;
+			case culture::flag_type::socialist:
+				file_str += NATIVE("_socialist"); break;
 		}
 		file_str += NATIVE(".tga");
 
