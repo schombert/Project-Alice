@@ -21,25 +21,28 @@ void initialize_opengl(sys::state& state) {
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
+	state.flag_type_map.resize(culture::flag_count, 0);
 	// Create the remapping for flags
 	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
 		auto fat_id = dcon::fatten(state.world, ident_id);
 		auto nat_id = fat_id.get_nation_from_identity_holder().id;
 		for(auto i = 0; i < state.culture_definitions.governments.size(); i++) {
 			const auto gov_id = dcon::government_type_id(i);
-			const auto id = state.world.national_identity_get_government_flag_type(
-				state.world.nation_get_identity_from_identity_holder(nat_id),
-				gov_id);
-			if(id != 0)
-				state.flag_type_map.push_back(culture::flag_type(id));
-			else
-				state.flag_type_map.push_back(state.culture_definitions.governments[gov_id].flag);
+			state.flag_types.push_back(state.culture_definitions.governments[gov_id].flag);
 		}
 	});
 	// Eliminate duplicates
-    state.flag_type_map.erase(std::unique(state.flag_type_map.begin(), state.flag_type_map.end()), state.flag_type_map.end());
+	std::sort(state.flag_types.begin(), state.flag_types.end());
+    state.flag_types.erase(std::unique(state.flag_types.begin(), state.flag_types.end()), state.flag_types.end());
+
+	// Automatically assign texture offsets to the flag_types
+	auto id = 0;
+	for(const auto& type : state.flag_types)
+		state.flag_type_map[static_cast<size_t>(type)] = id++;
+	assert(state.flag_type_map[0] == 0); // default_flag
+
 	// Allocate textures for the flags
-	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + state.world.national_identity_size() * state.flag_type_map.size());
+	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + state.world.national_identity_size() * state.flag_types.size());
 
 	state.map_display.load_map(state);
 
