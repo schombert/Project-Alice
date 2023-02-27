@@ -878,7 +878,7 @@ void display_data::load_map(sys::state& state) {
 	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	std::vector<uint32_t> test(province_id_map.size());
+	std::vector<uint32_t> test(state.world.province_size() + 1);
 	gen_prov_color_texture(province_highlight, test);
 	for(uint32_t i = 0; i < test.size(); ++i) {
 		test[i] = 255;
