@@ -701,6 +701,29 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 	}
 }
 
+template<class RowWinT, class RowConT>
+void standard_listbox_scrollbar<RowWinT, RowConT>::scale_to_parent() {
+	base_data.size.y = parent->base_data.size.y;
+	base_data.data.scrollbar.border_size = base_data.size;
+	base_data.position.x = parent->base_data.size.x - base_data.size.x;
+
+	left->base_data.position.y = parent->base_data.size.y - left->base_data.size.y;
+	right->base_data.position.y = 0;
+	track->base_data.size.y = parent->base_data.size.y - left->base_data.size.y / 2 - right->base_data.size.y / 2;
+	track->base_data.position.y = right->base_data.size.y / 2;
+	track->base_data.position.x = base_data.size.x / 2 + 1;
+	slider->base_data.position.x = 0;
+	settings.track_size = track->base_data.size.y;
+
+	left->step_size = -settings.scaling_factor;
+	right->step_size = -settings.scaling_factor;
+}
+
+template<class RowWinT, class RowConT>
+void standard_listbox_scrollbar<RowWinT, RowConT>::on_value_change(sys::state& state, int32_t v) noexcept {
+	static_cast<listbox_element_base<RowWinT, RowConT>*>(parent)->update(state);
+}
+
 template<class RowConT>
 class wrapped_row_content {
 public:
@@ -745,7 +768,18 @@ message_result listbox_row_button_base<RowConT>::on_scroll(sys::state& state, in
 
 template<class RowWinT, class RowConT>
 void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
-	scroll_pos = std::min(scroll_pos, std::max(0, int32_t(row_contents.size() - row_windows.size())));
+	auto content_off_screen = int32_t(row_contents.size() - row_windows.size());
+	int32_t scroll_pos = int32_t(list_scrollbar->scaled_value());
+	if(content_off_screen <= 0) {
+		list_scrollbar->set_visible(state, false);
+		scroll_pos = 0;
+	} else {
+		list_scrollbar->change_settings(state, mutable_scrollbar_settings{
+			0, content_off_screen, 0, 0, false
+		});
+		list_scrollbar->set_visible(state, true);
+	}
+
 	if(is_reversed()) {
 		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
 		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
@@ -773,13 +807,8 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 
 template<class RowWinT, class RowConT>
 message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	auto old_scroll_pos = scroll_pos;
-	if(amount > 0) {
-		scroll_pos = std::max(scroll_pos - 1, 0);
-	} else if(row_contents.size() > row_windows.size()) {
-		scroll_pos = std::min(scroll_pos + 1, int32_t(row_contents.size() - row_windows.size()));
-	}
-	if(scroll_pos != old_scroll_pos) {
+	if(row_contents.size() > row_windows.size()) {
+		list_scrollbar->update_scaled_value(state, list_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
 		update(state);
 	}
 	return message_result::consumed;
@@ -798,6 +827,11 @@ void listbox_element_base<RowWinT, RowConT>::on_create(sys::state& state) noexce
 		current_y += ptr->base_data.size.y + offset;
 		add_child_to_front(std::move(ptr));
 	}
+	auto ptr = make_element_by_type<standard_listbox_scrollbar<RowWinT, RowConT>>(state, "standardlistbox_slider");
+	list_scrollbar = static_cast<standard_listbox_scrollbar<RowWinT, RowConT>*>(ptr.get());
+	add_child_to_front(std::move(ptr));
+	list_scrollbar->scale_to_parent();
+
 	update(state);
 }
 
@@ -1044,7 +1078,7 @@ void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings co
 	settings.upper_value = settings_s.upper_value * settings.scaling_factor;
 	settings.using_limits = settings_s.using_limits;
 
-	settings.upper_value = std::min(settings.upper_value, settings.lower_value + 1); // ensure the scrollbar is never of range zero
+	settings.upper_value = std::max(settings.upper_value, settings.lower_value + 1); // ensure the scrollbar is never of range zero
 
 	// TODO: adjust to limits if using limits
 	if(stored_value < settings.lower_value || stored_value > settings.upper_value) {
