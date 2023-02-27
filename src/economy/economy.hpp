@@ -49,5 +49,7 @@ auto desired_needs_spending(sys::state const& state, T pop_indices) {
 	return 0.0f;
 }
 
+bool has_factory(sys::state const& state, dcon::state_instance_id si);
+bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 
 }

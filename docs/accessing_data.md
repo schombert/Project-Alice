@@ -8,12 +8,7 @@ This document serves as a quick guide for getting information out of the data co
 
 ### Navigating provinces and their relationships
 
-Let us assume that you have a `province_id` called `id`. To start with, you want to write `auto fat_id = fatten(state.world, id);` Then to get any of the properties that are defined for a province (as given in `dcon_generated.txt`) you can write a line such as: `fat_id.get_life_rating()`, and just like that you will have the property you are interested in. There is only one confusing property for provinces (... so far): `fort_naval_base_level`. This is a single `uint8_t` that stores both the level of the current fort and naval base there (because why let 4 good bits go to waste). The following 4 functions are provided (in `province.hpp`) for easy access to the packed values:
-
-- `uint8_t set_fort_level(uint32_t new_level, uint8_t old_value)` : Will change just the stored fort level in the value to a new level
-- `uint8_t set_naval_base_level(uint32_t new_level, uint8_t old_value)` : As above, for the naval base level
-- `int32_t get_fort_level(uint8_t value)` : Yields the fort level stored in the value.
-- `int32_t get_naval_base_level(uint8_t value)` : Yields the naval base level stored in the value.
+Let us assume that you have a `province_id` called `id`. To start with, you want to write `auto fat_id = fatten(state.world, id);` Then to get any of the properties that are defined for a province (as given in `dcon_generated.txt`) you can write a line such as: `fat_id.get_life_rating()`, and just like that you will have the property you are interested in.
 
 In addition to its properties, a province can be related to other objects, and often this is where the more interesting data lives. At the moment, provinces can be related to nations by control and ownership (two different relationship), factories can be located in them, and a province can be related to a national identity (i.e. a tag) by the relationship of a core being there. You can get a handle to the relationship itself (each relationship can be worked with as a kind of pseudo-object) as if it were a property. For example, you could call `fat_id.get_province_ownership();`. This would give you a fat handle to the relationship itself, and from that you could call `ownership_handle.get_nation();` to retrieve the owning nation. However, for some of these common situations where you want to "reach across" a relationship to find the other things related to, data container provides a shortcut. In this case you can call `fat_id.get_nation_from_province_ownership();` to get a handle to the owning nation directly.
 

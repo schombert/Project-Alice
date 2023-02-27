@@ -1087,7 +1087,13 @@ object {
 	}
 
 	property{
-		name{ fort_naval_base_level }
+		name{ fort_level }
+		type{ uint8_t }
+		tag{ save }
+	}
+
+	property{
+		name{ naval_base_level }
 		type{ uint8_t }
 		tag{ save }
 	}
@@ -1963,6 +1969,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ infamy }
+		type{ float }
+		tag{ save }
+	}
+	property{
 		name{ active_technologies }
 		type{array{technology_id}{bitfield}}
 		tag{ save }
@@ -2189,6 +2200,11 @@ relationship{
 	property{
 		name{ foreign_investment }
 		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ military_access }
+		type{ bitfield }
 		tag{ save }
 	}
 }

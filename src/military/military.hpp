@@ -83,4 +83,12 @@ void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 
+bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
+bool can_use_cb_against(sys::state const& state, dcon::nation_id from, dcon::nation_id target);
+
+template<typename T>
+auto province_is_blockaded(sys::state const& state, T ids);
+template<typename T>
+auto battle_is_ongoing_in_province(sys::state const& state, T ids);
+
 }

@@ -131,7 +131,9 @@ void restore_unsaved_values(sys::state& state) {
 			if(!is_overseas(state, pid)) {
 				state.world.nation_get_central_province_count(owner) += uint16_t(1);
 
-				// TODO: test blockaded status
+				if(military::province_is_blockaded(state, pid)) {
+					state.world.nation_get_central_blockaded(owner) += uint16_t(1);
+				}
 				if(state.world.province_get_is_coast(pid)) {
 					state.world.nation_get_central_ports(owner) += uint16_t(1);
 				}
