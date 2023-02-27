@@ -367,6 +367,16 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	}
 }
 
+uint32_t get_remapped_flag_type(sys::state const& state, flag_type type) {
+	if(type == flag_type::default_flag)
+		return 0;
+
+	const auto it = std::find(state.flag_type_map.begin(), state.flag_type_map.end(), flag_type(type));
+	assert(it != state.flag_type_map.end());
+	const auto id = std::distance(state.flag_type_map.begin(), it);
+	return static_cast<uint32_t>(id + 1);
+}
+
 flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation) {
 	auto gov_type = state.world.nation_get_government_type(target_nation);
 	auto id = state.world.national_identity_get_government_flag_type(

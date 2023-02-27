@@ -100,6 +100,9 @@ namespace sys {
 
 		ui::definitions ui_defs; // definitions for graphics and ui
 
+		std::vector<culture::flag_type> flag_type_map; // flag_type remapper for saving space while also allowing
+		                                               // mods to add flags not present in vanilla
+
 		// persistent user settings
 
 		user_settings_s user_settings;

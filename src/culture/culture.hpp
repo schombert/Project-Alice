@@ -49,8 +49,6 @@ enum class flag_type : uint8_t {
 	colonial = 15, nationalist = 16, sectarian = 17, socialist = 18
 };
 
-inline constexpr int32_t flag_count = 19;
-
 struct government_type {
 	uint32_t ideologies_allowed = 0;
 	dcon::text_sequence_id name;
@@ -153,6 +151,7 @@ void repopulate_technology_effects(sys::state& state);
 void repopulate_invention_effects(sys::state& state);
 void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
 void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id inv_id); //  TODO: shared prestige effect
+uint32_t get_remapped_flag_type(sys::state const& state, flag_type type);
 flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation);
 void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id);
 void update_all_nations_issue_rules(sys::state& state);
