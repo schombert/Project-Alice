@@ -21,7 +21,25 @@ void initialize_opengl(sys::state& state) {
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
-	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + state.world.national_identity_size() * culture::flag_count);
+	// Create the remapping for flags
+	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
+		auto fat_id = dcon::fatten(state.world, ident_id);
+		auto nat_id = fat_id.get_nation_from_identity_holder().id;
+		for(auto i = 0; i < state.culture_definitions.governments.size(); i++) {
+			const auto gov_id = dcon::government_type_id(i);
+			const auto id = state.world.national_identity_get_government_flag_type(
+				state.world.nation_get_identity_from_identity_holder(nat_id),
+				gov_id);
+			if(id != 0)
+				state.flag_type_map.push_back(culture::flag_type(id));
+			else
+				state.flag_type_map.push_back(state.culture_definitions.governments[gov_id].flag);
+		}
+	});
+	// Eliminate duplicates
+    state.flag_type_map.erase(std::unique(state.flag_type_map.begin(), state.flag_type_map.end()), state.flag_type_map.end());
+	// Allocate textures for the flags
+	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + state.world.national_identity_size() * state.flag_type_map.size());
 
 	state.map_display.load_map(state);
 
