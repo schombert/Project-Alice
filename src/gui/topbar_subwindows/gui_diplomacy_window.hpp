@@ -23,6 +23,7 @@ enum class country_list_filter : uint8_t {
 	africa,
 	asia,
 	oceania,
+	mena, // <- Non-vanilla continent
 	neighbors,
 	sphere,
 	enemies,
@@ -134,6 +135,10 @@ private:
 			case country_list_filter::oceania:
 				target_cont = state.province_definitions.oceania;
 				break;
+			// Non-vanilla
+			case country_list_filter::mena:
+				target_cont = state.province_definitions.mena;
+				break;
 			default:
 				break;
 		}
@@ -198,6 +203,11 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
 			ptr->target = country_list_filter::oceania;
 			return ptr;
+		// Non-vanilla continent: mena
+		} else if(name == "filter_mena") {
+			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
+			ptr->target = country_list_filter::mena;
+			return ptr;
 		} else if(name == "cb_info_win") {
 			auto ptr = make_element_immediate(state, id);
 			casus_belli_window = ptr.get();
@@ -252,6 +262,7 @@ public:
 				case country_list_filter::africa:
 				case country_list_filter::asia:
 				case country_list_filter::oceania:
+				case country_list_filter::mena:
 					filter_by_continent(state, filter);
 					break;
 				default:

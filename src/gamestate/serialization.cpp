@@ -535,6 +535,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.province_definitions.north_america);
 		sz += sizeof(state.province_definitions.south_america);
 		sz += sizeof(state.province_definitions.oceania);
+		sz += sizeof(state.province_definitions.mena); // <- Non-vanilla continent
 	}
 	sz += sizeof(state.start_date);
 	sz += sizeof(state.end_date);

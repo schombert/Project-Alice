@@ -24,6 +24,7 @@ struct global_provincial_state {
 	dcon::modifier_id north_america;
 	dcon::modifier_id south_america;
 	dcon::modifier_id oceania;
+	dcon::modifier_id mena; // <- Non-vanilla
 };
 
 template<typename F>

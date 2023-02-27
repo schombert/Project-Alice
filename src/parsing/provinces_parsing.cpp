@@ -172,6 +172,9 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 		context.state.province_definitions.south_america = new_modifier;
 	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "oceania")) {
 		context.state.province_definitions.oceania = new_modifier;
+	// Non-vanilla continent
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "mena")) {
+		context.state.province_definitions.mena = new_modifier;
 	} else {
 		err.accumulated_errors += "Unknown continent " + std::string(name) + " in file " + err.file_name + "\n";
 	}
