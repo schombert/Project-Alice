@@ -30,4 +30,5 @@ enum class mode : uint8_t {
 };
 
 void set_map_mode(sys::state& state, mode mode);
+void update_map_mode(sys::state& state);
 }
