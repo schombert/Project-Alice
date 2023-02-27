@@ -181,6 +181,10 @@ template<typename T>
 auto primary_culture_group(sys::state const& state, T ids);
 template<typename T>
 auto owner_of_pop(sys::state const& state, T pop_ids);
+template<typename T>
+auto central_reb_controlled_fraction(sys::state const& state, T ids);
+template<typename T>
+auto central_blockaded_fraction(sys::state const& state, T ids);
 
 void update_national_rankings(sys::state& state);
 void restore_unsaved_values(sys::state& state);
