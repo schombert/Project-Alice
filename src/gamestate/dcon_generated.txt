@@ -801,6 +801,11 @@ object {
 		type{ float }
 		tag{ scenario }
 	}
+	property{
+		name{ attrition }
+		type{ float }
+		tag{ scenario }
+	}
 }
 
 object {

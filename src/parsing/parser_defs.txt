@@ -464,6 +464,7 @@ trait
 	speed           value    float       member_fn
 	experience      value    float       member_fn
 	reliability     value    float       member_fn
+	attrition       value    float       member_fn
 
 traits_set
 	#any           extern    make_trait              discard

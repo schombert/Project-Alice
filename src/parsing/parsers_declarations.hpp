@@ -951,6 +951,7 @@ namespace parsers {
 		void speed(association_type, float value, error_handler& err, int32_t line, trait_context& context);
 		void experience(association_type, float value, error_handler& err, int32_t line, trait_context& context);
 		void reliability(association_type, float value, error_handler& err, int32_t line, trait_context& context);
+		void attrition(association_type, float value, error_handler& err, int32_t line, trait_context& context);
 		void finish(trait_context&) { }
 	};
 

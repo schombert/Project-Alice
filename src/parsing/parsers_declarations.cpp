@@ -209,6 +209,10 @@ void trait::reliability(association_type, float value, error_handler& err, int32
 	context.outer_context.state.world.leader_trait_set_reliability(context.id, value);
 }
 
+void trait::attrition(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
+	context.outer_context.state.world.leader_trait_set_attrition(context.id, value);
+}
+
 void sea_list::free_value(int32_t value, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(size_t(value - 1) > context.prov_id_to_original_id_map.size()) {
 		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
