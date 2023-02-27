@@ -155,6 +155,8 @@ void government_type::flagtype(association_type, std::string_view value, error_h
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::nationalist;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "sectarian"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::sectarian;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "socialist"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::socialist;
 	else {
 		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}

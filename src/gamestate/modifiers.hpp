@@ -223,6 +223,9 @@ struct unit_variable_stats {
 	float support = 0.0f;
 	float siege_or_torpedo_attack = 0.0f;
 	float reconnaissance_or_fire_range = 0.0f;
+	float evasion = 0.0f;
+	float maneuver = 0.0f;
+	float discipline = 0.0f;
 
 	void operator+=(unit_variable_stats const& other) {
 		build_time += other.build_time;
@@ -234,6 +237,9 @@ struct unit_variable_stats {
 		support += other.support;
 		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
+		evasion += other.evasion;
+		maneuver += other.maneuver;
+		discipline += other.discipline;
 	}
 };
 

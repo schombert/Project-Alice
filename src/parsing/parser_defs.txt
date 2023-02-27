@@ -691,6 +691,16 @@ country_file
 	unit_names     group      unit_names_collection     member
 	proletarian_dictatorship  group      none           discard
 	fascist_dictatorship      group      none           discard
+	proletarian_dictatorship1 group      none           discard
+	socialist_democracy       group      none           discard
+	sectarian_dictatorship    group      none           discard
+	colonial_government       group      none           discard
+	hms_government            group      none           discard
+	absolute_monarchy         group      none           discard
+	sar_government            group      none           discard
+	mandate_government        group      none           discard
+	theocracy                 group      none           discard
+	democracy1                group      none           discard
 
 pv_party_loyalty
 	ideology          value          text               member_fn
@@ -1536,6 +1546,9 @@ unit_modifier_body
 	torpedo_attack        value      float            member  (siege_or_torpedo_attack)
 	reconnaissance        value      float            member  (reconnaissance_or_fire_range)
 	fire_range            value      float            member  (reconnaissance_or_fire_range)
+	evasion               value      float            member
+	maneuver              value      float            member
+	discipline            value      float            member
 
 tech_rgo_goods_output
 	#any                  value      float                  member_fn
