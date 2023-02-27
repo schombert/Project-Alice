@@ -724,6 +724,9 @@ namespace parsers {
 		MOD_NAT_FUNCTION(seperatism)
 		MOD_NAT_FUNCTION(plurality)
 		MOD_NAT_FUNCTION(colonial_prestige)
+		MOD_NAT_FUNCTION(random_party_votes)
+		MOD_NAT_FUNCTION(local_factory_owner_cost)
+		MOD_NAT_FUNCTION(low_income_modifier)
 
 		template<typename T>
 		void finish(T& context) { }

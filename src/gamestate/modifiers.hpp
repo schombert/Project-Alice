@@ -187,8 +187,11 @@ constexpr inline int32_t seperatism = 124 + provincial_mod_offsets::count;
 constexpr inline int32_t plurality = 125 + provincial_mod_offsets::count;
 constexpr inline int32_t colonial_prestige = 126 + provincial_mod_offsets::count;
 constexpr inline int32_t permanent_prestige = 127 + provincial_mod_offsets::count;
+constexpr inline int32_t random_party_votes = 128 + provincial_mod_offsets::count;
+constexpr inline int32_t local_factory_owner_cost = 129 + provincial_mod_offsets::count;
+constexpr inline int32_t low_income_modifier = 130 + provincial_mod_offsets::count;
 
-constexpr inline uint32_t count = 128 + provincial_mod_offsets::count;
+constexpr inline uint32_t count = 131 + provincial_mod_offsets::count;
 }
 
 constexpr inline uint32_t total_modifiers_count = national_mod_offsets::count;

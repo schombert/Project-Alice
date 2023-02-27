@@ -383,6 +383,9 @@ modifier_base
 	seperatism                                value      float            member_fn
 	plurality                                 value      float            member_fn
 	colonial_prestige                         value      float            member_fn
+	random_party_votes                        value      float            member_fn
+	local_factory_owner_cost                  value      float            member_fn
+	low_income_modifier                       value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn
@@ -696,11 +699,14 @@ country_file
 	sectarian_dictatorship    group      none           discard
 	colonial_government       group      none           discard
 	hms_government            group      none           discard
+	hms_government1           group      none           discard
 	absolute_monarchy         group      none           discard
 	sar_government            group      none           discard
 	mandate_government        group      none           discard
 	theocracy                 group      none           discard
 	democracy1                group      none           discard
+	nationalist_dictatorship  group      none           discard
+	democracy                 group      none           discard
 
 pv_party_loyalty
 	ideology          value          text               member_fn
@@ -1046,6 +1052,8 @@ value_modifier_definition
 	months             value         float                              member (factor)
 	group              group         value_modifier_definition          member_fn
 	modifier           extern        make_value_modifier_segment        discard
+	years              value         float                              member (factor)
+	days               value         float                              member (factor)
 
 promotion_targets
 	#any               extern        read_promotion_target              discard
