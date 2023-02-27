@@ -26,8 +26,8 @@ void initialize_opengl(sys::state& state) {
 	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
 		auto fat_id = dcon::fatten(state.world, ident_id);
 		auto nat_id = fat_id.get_nation_from_identity_holder().id;
-		for(auto i = 0; i < state.culture_definitions.governments.size(); i++) {
-			const auto gov_id = dcon::government_type_id(i);
+		for(uint32_t i = 0; i < state.culture_definitions.governments.size(); ++i) {
+			const auto gov_id = dcon::government_type_id(dcon::government_type_id::value_base_t(i));
 			state.flag_types.push_back(state.culture_definitions.governments[gov_id].flag);
 		}
 	});
@@ -39,11 +39,11 @@ void initialize_opengl(sys::state& state) {
 	auto id = 0;
 	for(const auto& type : state.flag_types)
 		if(type != culture::flag_type::default_flag)
-			state.flag_type_map[static_cast<size_t>(type)] = ++id;
+			state.flag_type_map[uint32_t(type)] = uint8_t(id++);
 	state.flag_type_map[0] = 0; // default_flag
 
 	// Allocate textures for the flags
-	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + state.world.national_identity_size() * state.flag_types.size());
+	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + (state.world.national_identity_size() + 1) * state.flag_types.size());
 
 	state.map_display.load_map(state);
 

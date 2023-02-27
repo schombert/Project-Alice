@@ -48,5 +48,8 @@ bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id 
 void update_connected_regions(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 
+template<typename T>
+auto is_overseas(sys::state const& state, T ids);
+
 }
 

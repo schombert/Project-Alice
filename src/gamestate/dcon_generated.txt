@@ -2091,6 +2091,38 @@ object {
 		name{ is_at_war }
 		type{ bitfield }
 	}
+	property {
+		name{ central_blockaded }
+		type{ uint16_t }
+	}
+	property {
+		name{ central_rebel_controlled }
+		type{ uint16_t }
+	}
+	property {
+		name{ owned_province_count }
+		type{ uint16_t }
+	}
+	property {
+		name{ central_province_count }
+		type{ uint16_t }
+	}
+	property {
+		name{ rebel_controlled_count }
+		type{ uint16_t }
+	}
+	property {
+		name{ central_ports }
+		type{ uint16_t }
+	}
+	property {
+		name{ allies_count }
+		type{ uint16_t }
+	}
+	property {
+		name{ vassals_count }
+		type{ uint16_t }
+	}
 }
 
 relationship{
@@ -2268,6 +2300,23 @@ relationship{
 }
 
 relationship{
+	name{ province_rebel_control }
+	tag{ save }
+
+	link{
+		object{province}
+		name{province}
+		type{unique}
+	}
+	link{
+		object{rebel_faction}
+		name{rebel_faction}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
 	name{ overlord }
 	tag{ save }
 
@@ -2315,6 +2364,11 @@ object {
 	property{
 		name{ religion }
 		type{ religion_id }
+		tag{ save }
+	}
+	property{
+		name{ is_active }
+		type{ bitfield }
 		tag{ save }
 	}
 }
