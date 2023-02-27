@@ -28,6 +28,7 @@
 #include "modifiers.cpp"
 #include "province.cpp"
 #include "triggers.cpp"
+#include "economy.cpp"
 #include "nations.cpp"
 #include "demographics.cpp"
 

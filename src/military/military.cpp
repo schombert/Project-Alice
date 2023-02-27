@@ -24,15 +24,53 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 
 void restore_unsaved_values(sys::state& state) {
 	state.world.for_each_nation([&](dcon::nation_id n) {
-		for(auto w : state.world.nation_get_war_attacker(n)) {
+		auto w = state.world.nation_get_war_attacker(n);
+		if(w.begin() != w.end()) {
 			state.world.nation_set_is_at_war(n, true);
-			//return; // if I uncomment out these returns I get warnings about unreachable code. ... why?
+			return;
 		}
-		for(auto w : state.world.nation_get_war_defender(n)) {
+		auto w2 = state.world.nation_get_war_defender(n);
+		if(w2.begin() != w2.end()) {
 			state.world.nation_set_is_at_war(n, true);
-			//return;
+			return;
 		}
 	});
+}
+
+bool can_use_cb_against(sys::state const& state, dcon::nation_id from, dcon::nation_id target) {
+	// TODO: implement function
+	// return true if nation from has any cb to use against target
+	return false;
+}
+
+template<typename T>
+auto province_is_blockaded(sys::state const& state, T ids) {
+	// TODO: implement function
+	return false;
+}
+
+template<typename T>
+auto battle_is_ongoing_in_province(sys::state const& state, T ids) {
+	// TODO: implement function
+	return false;
+}
+
+bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	for(auto wa : state.world.nation_get_war_attacker(a)) {
+		for(auto wd : wa.get_war().get_war_defender()) {
+			if(wd.get_nation() == b)
+				return true;
+		}
+	}
+
+	for(auto wd : state.world.nation_get_war_defender(a)) {
+		for(auto wa : wd.get_war().get_war_attacker()) {
+			if(wa.get_nation() == b)
+				return true;
+		}
+	}
+
+	return false;
 }
 
 }

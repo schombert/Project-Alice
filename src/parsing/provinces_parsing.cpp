@@ -228,15 +228,11 @@ void province_history_file::life_rating(association_type, uint32_t value, error_
 }
 
 void province_history_file::fort(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-	context.outer_context.state.world.province_set_fort_naval_base_level(context.id,
-		province::set_fort_level(value, context.outer_context.state.world.province_get_fort_naval_base_level(context.id))
-	);
+	context.outer_context.state.world.province_set_fort_level(context.id, uint8_t(value));
 }
 
 void province_history_file::naval_base(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
-	context.outer_context.state.world.province_set_fort_naval_base_level(context.id,
-		province::set_naval_base_level(value, context.outer_context.state.world.province_get_fort_naval_base_level(context.id))
-	);
+	context.outer_context.state.world.province_set_naval_base_level(context.id, uint8_t(value));
 }
 
 void province_history_file::railroad(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
