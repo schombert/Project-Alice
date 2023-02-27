@@ -349,6 +349,7 @@ modifier_base
 	defender                                  value      float            member_fn
 	attacker                                  value      float            member_fn
 	defence                                   value      float            member_fn
+	defense                                   value      float            member_fn (defence)
 	attack                                    value      float            member_fn
 	combat_width                              value      float            member_fn
 	min_build_naval_base                      value      float            member_fn
