@@ -213,4 +213,11 @@ void set_map_mode(sys::state& state, mode mode) {
 		break;
 	}
 }
+
+void update_map_mode(sys::state& state) {
+	if(state.map_display.active_map_mode == mode::terrain || state.map_display.active_map_mode == mode::region) {
+		return;
+	}
+	set_map_mode(state, state.map_display.active_map_mode);
+}
 }
