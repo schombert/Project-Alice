@@ -55,7 +55,7 @@ If the nation is a civ and is a secondary power start with define:SECOND_RANK_BA
 - Secondary belligerents may in non crisis wars negotiate independently with the primary belligerent on the opposite side
 - Wars must be kept in a valid state (see below), generally this is done by removing the cause of the invalid state. Any further problems caused by such a removal may not be caught until the next check of war validity
 - A war that ends up with no members on one (or both) sides will simply be ended as a whole
-- A province is blockaded if their is a hostile sea unit in an adjacent sea province and no ongoing naval combat there
+- A province is blockaded if there is a hostile sea unit in an adjacent sea province and no ongoing naval combat there. My notes say that only either not-overseas (or maybe only connected to capital) provinces count for calculating the blockade fraction
 
 #### Ticking war score
 
@@ -77,6 +77,8 @@ If the nation is a civ and is a secondary power start with define:SECOND_RANK_BA
 - idle for too long -- if the war goes too long without some event happening within it (battle or occupation) it may be terminated. If something is occupied, I believe the war is safe from termination in this way
 
 ## Rebels
+
+- Rebel fraction: There is a trigger that depends on the fraction of provinces that are controlled by rebels. My notes say that only either not-overseas (or maybe only connected to capital) provinces count for calculating this fraction
 
 ### Calculating how many regiments are "ready to join" a rebel faction
 
