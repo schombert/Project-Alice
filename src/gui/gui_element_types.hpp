@@ -208,53 +208,6 @@ public:
 	void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
-template<class RowConT>
-class listbox_row_element_base : public window_element_base {
-protected:
-	RowConT content{};
-
-public:
-	virtual void update(sys::state& state) noexcept { }
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
-};
-
-template<class RowConT>
-class listbox_row_button_base : public button_element_base {
-protected:
-	RowConT content{};
-
-public:
-	virtual void update(sys::state& state) noexcept { }
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
-};
-
-template<class RowWinT, class RowConT>
-class listbox_element_base : public container_base {
-protected:
-	std::vector<RowWinT*> row_windows{};
-	int32_t scroll_pos = 0;
-
-	virtual std::string_view get_row_element_name() {
-		return std::string_view{};
-	}
-	virtual bool is_reversed() {
-		return false;
-	}
-
-public:
-	std::vector<RowConT> row_contents{};
-
-	void update(sys::state& state);
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-};
-
 template<class TabT>
 class generic_tabbed_window : public window_element_base {
 public:
@@ -361,14 +314,15 @@ struct value_change {
 };
 
 class scrollbar : public container_base {
+	image_element_base* left_limit = nullptr;
+	image_element_base* right_limit = nullptr;
+	int32_t stored_value = 0;
+protected:
 	scrollbar_left* left = nullptr;
 	scrollbar_right* right = nullptr;
 	scrollbar_track* track = nullptr;
 	scrollbar_slider* slider = nullptr;
-	image_element_base* left_limit = nullptr;
-	image_element_base* right_limit = nullptr;
 	scrollbar_settings settings;
-	int32_t stored_value = 0;
 public:
 	virtual void on_value_change(sys::state& state, int32_t v) noexcept { }
 
@@ -381,6 +335,62 @@ public:
 
 	void on_create(sys::state& state) noexcept final;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept final;
+};
+
+template<class RowWinT, class RowConT>
+class standard_listbox_scrollbar : public scrollbar {
+public:
+	void scale_to_parent();
+	void on_value_change(sys::state& state, int32_t v) noexcept override;
+};
+
+template<class RowConT>
+class listbox_row_element_base : public window_element_base {
+protected:
+	RowConT content{};
+
+public:
+	virtual void update(sys::state& state) noexcept { }
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+};
+
+template<class RowConT>
+class listbox_row_button_base : public button_element_base {
+protected:
+	RowConT content{};
+
+public:
+	virtual void update(sys::state& state) noexcept { }
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+};
+
+template<class RowWinT, class RowConT>
+class listbox_element_base : public container_base {
+private:
+	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
+
+protected:
+	std::vector<RowWinT*> row_windows{};
+
+	virtual std::string_view get_row_element_name() {
+		return std::string_view{};
+	}
+	virtual bool is_reversed() {
+		return false;
+	}
+
+public:
+	std::vector<RowConT> row_contents{};
+
+	void update(sys::state& state);
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
 };
 
 }
