@@ -14,6 +14,7 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 		return dcon::province_id(id - 1);
 }
 struct global_provincial_state {
+	std::vector<dcon::province_adjacency_id> canals;
 	dcon::province_id first_sea_province;
 
 	// NOTE: these should not be referred to directly by the game mechanics

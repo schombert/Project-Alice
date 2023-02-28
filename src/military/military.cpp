@@ -55,6 +55,11 @@ auto battle_is_ongoing_in_province(sys::state const& state, T ids) {
 	return false;
 }
 
+float recruited_pop_fraction(sys::state const& state, dcon::nation_id n) {
+	// TODO: implement function
+	return 0.0f;
+}
+
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_attacker(a)) {
 		for(auto wd : wa.get_war().get_war_defender()) {

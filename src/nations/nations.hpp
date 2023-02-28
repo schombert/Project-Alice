@@ -188,6 +188,8 @@ auto central_blockaded_fraction(sys::state const& state, T ids);
 template<typename T>
 auto central_has_crime_fraction(sys::state const& state, T ids);
 
+bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
+
 void update_national_rankings(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void generate_initial_state_instances(sys::state& state);

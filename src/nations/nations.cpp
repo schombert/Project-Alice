@@ -120,5 +120,10 @@ void generate_initial_state_instances(sys::state& state) {
 	}
 }
 
+bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
+	// TODO: implement function
+	return false;
+}
+
 }
 

@@ -91,4 +91,6 @@ auto province_is_blockaded(sys::state const& state, T ids);
 template<typename T>
 auto battle_is_ongoing_in_province(sys::state const& state, T ids);
 
+float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);
+
 }
