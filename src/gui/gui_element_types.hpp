@@ -5,6 +5,7 @@
 #include "gui_element_base.hpp"
 #include "sound.hpp"
 #include "text.hpp"
+#include "texture.hpp"
 #include <variant>
 
 namespace ui {
@@ -259,6 +260,35 @@ public:
 	}
 
 	TabT target = TabT();
+};
+
+class piechart_element_base : public element_base {
+protected:
+	static constexpr size_t resolution = 200;
+	static constexpr size_t channels = 3;
+	virtual std::vector<uint8_t> get_colors(sys::state& state) noexcept {
+		std::vector<uint8_t> out(resolution * channels);
+		for(size_t i = 0; i < resolution * channels; i += channels) {
+			out[i] = 255;
+		}
+		return out;
+	}
+
+private:
+	ogl::data_texture data_texture{resolution, channels};
+	
+	void generate_data_texture(sys::state& state);
+
+public:
+	void on_create(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+template<class T>
+class culture_piechart : public piechart_element_base {
+protected:
+	std::vector<uint8_t> get_colors(sys::state& state) noexcept override;
 };
 
 class scrollbar_left : public button_element_base {

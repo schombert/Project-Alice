@@ -2,9 +2,11 @@
 #include <string_view>
 #include <variant>
 #include "dcon_generated.hpp"
+#include "demographics.hpp"
 #include "gui_element_types.hpp"
 #include "fonts.hpp"
 #include "gui_graphics.hpp"
+#include "opengl_wrapper.hpp"
 #include "text.hpp"
 
 namespace ui {
@@ -699,6 +701,66 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 		base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
 		base_data.position.y += int16_t(new_abs_pos.y - location_abs.y);
 	}
+}
+
+void piechart_element_base::generate_data_texture(sys::state& state) {
+	memcpy(data_texture.data, get_colors(state).data(), resolution * channels);
+	data_texture.data_updated = true;
+}
+
+void piechart_element_base::on_create(sys::state& state) noexcept {
+	generate_data_texture(state);
+}
+
+void piechart_element_base::on_update(sys::state& state) noexcept {
+	generate_data_texture(state);
+}
+
+void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	ogl::render_piechart(
+		state,
+		ogl::color_modification::none, 
+		float(x - base_data.size.x), float(y), float(base_data.size.x * 2),
+		data_texture
+	);
+}
+
+template<class T>
+std::vector<uint8_t> culture_piechart<T>::get_colors(sys::state& state) noexcept {
+	std::vector<uint8_t> colors(resolution * channels);
+	Cyto::Any obj_id = T{};
+	size_t i = 0;
+	if(parent) {
+		parent->impl_get(state, obj_id);
+		if(obj_id.holds_type<dcon::province_id>()) {
+			auto prov_id = any_cast<dcon::province_id>(obj_id);
+			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
+			auto total_pops = state.world.province_get_demographics(prov_id, demographics::total);
+			dcon::culture_id last_culture{};
+			state.world.for_each_culture([&](dcon::culture_id cult_id) {
+				last_culture = cult_id;
+				auto culture_fat_id = dcon::fatten(state.world, cult_id);
+				auto culture_key = demographics::to_key(state, culture_fat_id.id);
+				auto volume = state.world.province_get_demographics(prov_id, culture_key);
+				auto slice_count = size_t(volume / total_pops * resolution);
+				auto color = culture_fat_id.get_color();
+				for(size_t j = 0; j < slice_count * channels; j += channels) {
+					colors[j + i] = uint8_t(color & 0xFF);
+					colors[j + i + 1] = uint8_t(color >> 8 & 0xFF);
+					colors[j + i + 2] = uint8_t(color >> 16 & 0xFF);
+				}
+				i += slice_count * channels;
+			});
+			auto fat_last_culture = dcon::fatten(state.world, last_culture);
+			auto last_cult_color = fat_last_culture.get_color();
+			for(; i < colors.size(); i += channels) {
+				colors[i] = uint8_t(last_cult_color & 0xFF);
+				colors[i + 1] = uint8_t(last_cult_color >> 8 & 0xFF);
+				colors[i + 2] = uint8_t(last_cult_color >> 16 & 0xFF);
+			}
+		}
+	}
+	return colors;
 }
 
 template<class RowWinT, class RowConT>

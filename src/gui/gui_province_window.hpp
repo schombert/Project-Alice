@@ -52,7 +52,9 @@ private:
 	simple_text_element_base* country_name_box = nullptr;
 	simple_text_element_base* country_gov_box = nullptr;
 	simple_text_element_base* country_party_box = nullptr;
+	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 	dcon::nation_id stored_nation{};
+	dcon::province_id stored_province{};
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -72,12 +74,17 @@ public:
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			country_party_box = ptr.get();
 			return ptr;
+		} else if(name == "culture_chart") {
+			auto ptr = make_element_by_type<culture_piechart<dcon::province_id>>(state, id);
+			culture_chart = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
 		}
 	}
 
     void update_province_info(sys::state& state, dcon::province_id prov_id) {
+		stored_province = prov_id;
 		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 		auto nation_id = fat_id.get_nation_from_province_ownership();
 		stored_nation = nation_id;
@@ -96,6 +103,8 @@ public:
 			auto party_name_seq = nation_id.get_ruling_party().get_name();
 			auto party_name = text::produce_simple_string(state, party_name_seq);
 			country_party_box->set_text(state, party_name);
+
+			culture_chart->on_update(state);
 			set_visible(state, true);
 		} else {
 			set_visible(state, false);
@@ -105,6 +114,9 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(stored_nation);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::province_id>()) {
+			payload.emplace<dcon::province_id>(stored_province);
 			return message_result::consumed;
 		} else {
 			return message_result::unseen;
