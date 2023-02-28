@@ -705,15 +705,15 @@ template<class RowWinT, class RowConT>
 void standard_listbox_scrollbar<RowWinT, RowConT>::scale_to_parent() {
 	base_data.size.y = parent->base_data.size.y;
 	base_data.data.scrollbar.border_size = base_data.size;
-	base_data.position.x = parent->base_data.size.x - base_data.size.x;
+	base_data.position.x = parent->base_data.size.x - base_data.size.x / 3;
 
 	left->base_data.position.y = parent->base_data.size.y - left->base_data.size.y;
 	right->base_data.position.y = 0;
 	track->base_data.size.y = parent->base_data.size.y - left->base_data.size.y / 2 - right->base_data.size.y / 2;
 	track->base_data.position.y = right->base_data.size.y / 2;
-	track->base_data.position.x = base_data.size.x / 2 + 1;
+	track->base_data.position.x = int32_t(base_data.size.x * .9f);
 	slider->base_data.position.x = 0;
-	settings.track_size = track->base_data.size.y;
+	settings.track_size = track->base_data.size.y - left->base_data.size.y;
 
 	left->step_size = -settings.scaling_factor;
 	right->step_size = -settings.scaling_factor;
