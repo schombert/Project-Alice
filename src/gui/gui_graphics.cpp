@@ -134,7 +134,7 @@ mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t
 			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle
 					&& get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle)) {
 				probe_result.under_mouse = this;
-			} else if(mask_handle && gfx_def.primary_texture_handle) {
+			} else if(gfx_def.get_object_type() == ui::object_type::flag_mask && mask_handle && gfx_def.primary_texture_handle) {
 				ogl::get_texture_handle(state, dcon::texture_id(mask_handle - 1), true);
 				if(get_pixel_opacity(state, x, y, dcon::texture_id(mask_handle - 1))) {
 					probe_result.under_mouse = this;

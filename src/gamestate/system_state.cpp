@@ -60,7 +60,7 @@ namespace sys {
 		map_display.on_mbuttom_up(x, y, mod);
 	}
 	void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
-		if(is_dragging) {
+		if(ui_state.drag_target) {
 			is_dragging = false;
 			on_drag_finished(x, y, mod);
 		}
