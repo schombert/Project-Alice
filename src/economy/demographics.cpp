@@ -155,6 +155,10 @@ void regenerate_from_pop_data(sys::state& state) {
 	concurrency::parallel_invoke(
 		[&]() {
 			province::for_each_land_province(state, [&](dcon::province_id p) {
+				// schombert: there is a faster way to do this. Instead of figuring out the max province by province
+				// it would be better to go culture by culture, storing the temporary max share per province in a
+				// temporary buffer. Why? Because by going through things one culture at a time would be much easier
+				// on the prefetcher given the typical number of cultures
 				dcon::culture_id max_id;
 				float max_value = 0.0f;
 				state.world.for_each_culture([&](dcon::culture_id c) {
@@ -177,6 +181,32 @@ void regenerate_from_pop_data(sys::state& state) {
 					}
 				});
 				state.world.state_instance_set_dominant_culture(p, max_id);
+			});
+		},
+		[&]() {
+			province::for_each_land_province(state, [&](dcon::province_id p) {
+				dcon::religion_id max_id;
+				float max_value = 0.0f;
+				state.world.for_each_religion([&](dcon::religion_id c) {
+					if(auto v = state.world.province_get_demographics(p, to_key(state, c)); v > max_value) {
+						max_value = v;
+						max_id = c;
+					}
+				});
+				state.world.province_set_dominant_religion(p, max_id);
+			});
+		},
+		[&]() {
+			state.world.for_each_state_instance([&](dcon::state_instance_id p) {
+				dcon::religion_id max_id;
+				float max_value = 0.0f;
+				state.world.for_each_religion([&](dcon::religion_id c) {
+					if(auto v = state.world.state_instance_get_demographics(p, to_key(state, c)); v > max_value) {
+						max_value = v;
+						max_id = c;
+					}
+				});
+				state.world.state_instance_set_dominant_religion(p, max_id);
 			});
 		}
 	);
