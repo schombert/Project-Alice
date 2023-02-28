@@ -185,6 +185,8 @@ template<typename T>
 auto central_reb_controlled_fraction(sys::state const& state, T ids);
 template<typename T>
 auto central_blockaded_fraction(sys::state const& state, T ids);
+template<typename T>
+auto central_has_crime_fraction(sys::state const& state, T ids);
 
 void update_national_rankings(sys::state& state);
 void restore_unsaved_values(sys::state& state);

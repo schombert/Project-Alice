@@ -705,13 +705,13 @@ template<class RowWinT, class RowConT>
 void standard_listbox_scrollbar<RowWinT, RowConT>::scale_to_parent() {
 	base_data.size.y = parent->base_data.size.y;
 	base_data.data.scrollbar.border_size = base_data.size;
-	base_data.position.x = parent->base_data.size.x - base_data.size.x / 3;
+	base_data.position.x = parent->base_data.size.x; // base_data.size.x / 3;
 
 	left->base_data.position.y = parent->base_data.size.y - left->base_data.size.y;
 	right->base_data.position.y = 0;
-	track->base_data.size.y = parent->base_data.size.y - left->base_data.size.y / 2 - right->base_data.size.y / 2;
-	track->base_data.position.y = right->base_data.size.y / 2;
-	track->base_data.position.x = int32_t(base_data.size.x * .9f);
+	track->base_data.size.y = parent->base_data.size.y - 2 * right->base_data.size.y;
+	track->base_data.position.y = right->base_data.size.y;
+	track->base_data.position.x = 5;
 	slider->base_data.position.x = 0;
 	settings.track_size = track->base_data.size.y - left->base_data.size.y;
 
@@ -1164,14 +1164,14 @@ void scrollbar::on_create(sys::state& state) noexcept {
 				track->base_data.position.y = int16_t(settings.buttons_size);
 				slider->base_data.position.y = int16_t(settings.buttons_size);
 				right->base_data.position.y = int16_t(settings.track_size + settings.buttons_size);
-				track->base_data.position.x = 0;
+				//track->base_data.position.x = 0;
 				slider->base_data.position.x = 0;
 				right->base_data.position.x = 0;
 			} else {
 				track->base_data.position.x = int16_t(settings.buttons_size);
 				slider->base_data.position.x = int16_t(settings.buttons_size);
 				right->base_data.position.x = int16_t(settings.track_size + settings.buttons_size);
-				track->base_data.position.y = 0;
+				//track->base_data.position.y = 0;
 				slider->base_data.position.y = 0;
 				right->base_data.position.y = 0;
 			}
@@ -1180,6 +1180,7 @@ void scrollbar::on_create(sys::state& state) noexcept {
 }
 message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<scrollbar_settings>()) {
+		settings.track_size = track ? int32_t(settings.vertical ? track->base_data.size.y : track->base_data.size.x) : 1;
 		payload = settings;
 		return message_result::consumed;
 	} else if(payload.holds_type<value_change>()) {

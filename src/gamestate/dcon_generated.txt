@@ -1090,7 +1090,11 @@ object {
 		type{ commodity_id }
 		tag{ save }
 	}
-
+	property{
+		name{ artisan_production }
+		type{ commodity_id }
+		tag{ save }
+	}
 	property{
 		name{ fort_level }
 		type{ uint8_t }
@@ -1170,6 +1174,10 @@ object {
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
+	}
+	property {
+		name{ dominant_religion }
+		type{ religion_id }
 	}
 }
 
@@ -1647,6 +1655,15 @@ object {
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
+	}
+	property {
+		name{ dominant_religion }
+		type{ religion_id }
+	}
+	property {
+		name{ last_production }
+		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 }
 
@@ -2137,6 +2154,10 @@ object {
 		type{ uint16_t }
 	}
 	property {
+		name{ central_crime_count }
+		type{ uint16_t }
+	}
+	property {
 		name{ allies_count }
 		type{ uint16_t }
 	}
@@ -2146,6 +2167,11 @@ object {
 	}
 	property {
 		name{ stockpiles }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ last_production }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}

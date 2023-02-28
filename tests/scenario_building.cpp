@@ -1270,6 +1270,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	nations::generate_initial_state_instances(*state);
 	state->world.nation_resize_stockpiles(state->world.commodity_size());
+	state->world.nation_resize_last_production(state->world.commodity_size());
+	state->world.state_instance_resize_last_production(state->world.commodity_size());
 
 	state->world.for_each_ideology([&](dcon::ideology_id id) {
 		if(!bool(state->world.ideology_get_activation_date(id))) {

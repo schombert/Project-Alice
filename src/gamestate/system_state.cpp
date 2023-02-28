@@ -1194,6 +1194,8 @@ namespace sys {
 		world.nation_resize_stockpiles(world.commodity_size());
 		world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 		world.pop_resize_demographics(pop_demographics::size(*this));
+		world.nation_resize_last_production(world.commodity_size());
+		world.state_instance_resize_last_production(world.commodity_size());
 
 		world.for_each_ideology([&](dcon::ideology_id id) {
 			if(!bool(world.ideology_get_activation_date(id))) {
