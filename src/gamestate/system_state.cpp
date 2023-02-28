@@ -1191,6 +1191,15 @@ namespace sys {
 
 		// misc touch ups
 		nations::generate_initial_state_instances(*this);
+		world.nation_resize_stockpiles(world.commodity_size());
+		world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
+		world.pop_resize_demographics(pop_demographics::size(*this));
+
+		world.for_each_ideology([&](dcon::ideology_id id) {
+			if(!bool(world.ideology_get_activation_date(id))) {
+				world.ideology_set_enabled(id, true);
+			}
+		});
 
 		map_loader.join();
 
@@ -1228,8 +1237,7 @@ namespace sys {
 			world.province_set_terrain(id, context.ocean_terrain);
 		}
 
-		world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
-		world.pop_resize_demographics(pop_demographics::size(*this));
+		
 
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
@@ -1261,7 +1269,8 @@ namespace sys {
 			world.nation_set_color(id, world.national_identity_get_color(ident));
 		});
 
-		nations_by_rank.resize(world.nation_size());
+		nations_by_rank.resize(1000); // TODO: take this value directly from the data container: max number of nations
+
 
 		military::reset_unit_stats(*this);
 		culture::repopulate_technology_effects(*this);

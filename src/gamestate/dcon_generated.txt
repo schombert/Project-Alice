@@ -499,6 +499,11 @@ object {
 		type{ value_modifier_key }
 		tag{ scenario }
 	}
+	property{
+		name{ enabled }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -1973,6 +1978,11 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property {
+		name{ revanchism }
+		type{ float }
+		tag{ save }
+	}
 	property{
 		name{ active_technologies }
 		type{array{technology_id}{bitfield}}
@@ -2133,6 +2143,11 @@ object {
 	property {
 		name{ vassals_count }
 		type{ uint16_t }
+	}
+	property {
+		name{ stockpiles }
+		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 }
 
@@ -2461,6 +2476,14 @@ object {
 		name{ rebel_group }
 		type{ rebel_type_id }
 		tag{ save }
+	}
+	property {
+		name{ political_reform_desire }
+		type{ float }
+	}
+	property {
+		name{ social_reform_desire }
+		type{ float }
 	}
 	property {
 		name{ demographics }

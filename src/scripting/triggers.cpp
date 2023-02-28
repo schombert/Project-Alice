@@ -2392,6 +2392,75 @@ TRIGGER_FUNCTION(tf_war_with_this_pop) {
 TRIGGER_FUNCTION(tf_unit_in_battle) {
 	return compare_to_true(tval[0], military::battle_is_ongoing_in_province(ws, to_prov(primary_slot)));
 }
+TRIGGER_FUNCTION(tf_total_amount_of_divisions) {
+	auto result = ve::apply([&ws](dcon::nation_id n) {
+		int32_t total = 0;
+		for(auto a : ws.world.nation_get_army_control(n)) {
+			for(auto u : a.get_army().get_army_membership()) {
+				++total;
+			}
+		}
+		return total;
+	}, to_nation(primary_slot));
+	return compare_values(tval[0], result, int32_t(tval[1]));
+}
+TRIGGER_FUNCTION(tf_money) {
+	return compare_values(tval[0], ws.world.nation_get_stockpiles(to_nation(primary_slot), economy::money), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_lost_national) {
+	return compare_values(tval[0], 1.0f - ws.world.nation_get_revanchism(to_nation(primary_slot)), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_is_vassal) {
+	return compare_to_true(tval[0], ws.world.nation_get_overlord_as_subject(to_nation(primary_slot)) != dcon::overlord_id());
+}
+TRIGGER_FUNCTION(tf_ruling_party_ideology_nation) {
+	auto rp = ws.world.nation_get_ruling_party(to_nation(primary_slot));
+	return compare_values_eq(tval[0], ws.world.political_party_get_ideology(rp), trigger::payload(tval[1]).ideo_id);
+}
+TRIGGER_FUNCTION(tf_ruling_party_ideology_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	auto rp = ws.world.nation_get_ruling_party(owner);
+	return compare_values_eq(tval[0], ws.world.political_party_get_ideology(rp), trigger::payload(tval[1]).ideo_id);
+}
+TRIGGER_FUNCTION(tf_ruling_party) {
+	auto rp = ws.world.nation_get_ruling_party(to_nation(primary_slot));
+	return compare_values_eq(tval[0], ws.world.political_party_get_name(rp), trigger::payload(tval[1]).text_id);
+}
+TRIGGER_FUNCTION(tf_is_ideology_enabled) {
+	return compare_to_true(tval[0], ws.world.ideology_get_enabled(trigger::payload(tval[1]).ideo_id));
+}
+TRIGGER_FUNCTION(tf_political_reform_want_nation) {
+	return compare_values(tval[0],
+		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::political_reform_desire),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_political_reform_want_pop) {
+	return compare_values(tval[0],
+		ws.world.pop_get_political_reform_desire(to_pop(primary_slot)),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_social_reform_want_nation) {
+	return compare_values(tval[0],
+		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::social_reform_desire),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_social_reform_want_pop) {
+	return compare_values(tval[0],
+		ws.world.pop_get_social_reform_desire(to_pop(primary_slot)),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_total_amount_of_ships) {
+	auto result = ve::apply([&ws](dcon::nation_id n) {
+		int32_t total = 0;
+		for(auto a : ws.world.nation_get_navy_control(n)) {
+			for(auto u : a.get_navy().get_navy_membership()) {
+				++total;
+			}
+		}
+		return total;
+	}, to_nation(primary_slot));
+	return compare_values(tval[0], result, int32_t(tval[1]));
+}
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(CALLTYPE* trigger_functions[])(uint16_t const*, sys::state&,
@@ -2579,19 +2648,19 @@ struct trigger_container {
 		tf_war_with_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t war_with_this_state = 0x00B3;
 		tf_war_with_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t war_with_this_pop = 0x00B4;
 		tf_unit_in_battle<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unit_in_battle = 0x00B5;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t total_amount_of_divisions = 0x00B6;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t money = 0x00B7;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t lost_national = 0x00B8;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_vassal = 0x00B9;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t ruling_party_ideology_pop = 0x00BA;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t ruling_party_ideology_nation = 0x00BB;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t ruling_party = 0x00BC;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_ideology_enabled = 0x00BD;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t political_reform_want_nation = 0x00BE;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t political_reform_want_pop = 0x00BF;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_reform_want_nation = 0x00C0;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_reform_want_pop = 0x00C1;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t total_amount_of_ships = 0x00C2;
+		tf_total_amount_of_divisions<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t total_amount_of_divisions = 0x00B6;
+		tf_money<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t money = 0x00B7;
+		tf_lost_national<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t lost_national = 0x00B8;
+		tf_is_vassal<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_vassal = 0x00B9;
+		tf_ruling_party_ideology_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t ruling_party_ideology_pop = 0x00BA;
+		tf_ruling_party_ideology_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t ruling_party_ideology_nation = 0x00BB;
+		tf_ruling_party<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t ruling_party = 0x00BC;
+		tf_is_ideology_enabled<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_ideology_enabled = 0x00BD;
+		tf_political_reform_want_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t political_reform_want_nation = 0x00BE;
+		tf_political_reform_want_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t political_reform_want_pop = 0x00BF;
+		tf_social_reform_want_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_reform_want_nation = 0x00C0;
+		tf_social_reform_want_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_reform_want_pop = 0x00C1;
+		tf_total_amount_of_ships<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t total_amount_of_ships = 0x00C2;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t plurality = 0x00C3;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t corruption = 0x00C4;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_state_religion_pop = 0x00C5;

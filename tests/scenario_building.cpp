@@ -1268,6 +1268,15 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.nation_resize_variables(uint32_t(state->national_definitions.num_allocated_national_variables));
 	state->world.pop_resize_demographics(pop_demographics::size(*state));
 
+	nations::generate_initial_state_instances(*state);
+	state->world.nation_resize_stockpiles(state->world.commodity_size());
+
+	state->world.for_each_ideology([&](dcon::ideology_id id) {
+		if(!bool(state->world.ideology_get_activation_date(id))) {
+			state->world.ideology_set_enabled(id, true);
+		}
+	});
+
 	// serialize and reload
 
 	sys::write_scenario_file(*state, NATIVE("sb_test_file.bin"));
