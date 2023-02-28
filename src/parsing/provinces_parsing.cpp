@@ -62,7 +62,8 @@ void read_map_colors(char const* start, char const* end, error_handler& err, sce
 void read_map_adjacency(char const* start, char const* end, error_handler& err, scenario_building_context& context) {
 	char const* cpos = parsers::csv_advance_to_next_line(start, end); // first line is always useless
 	while(cpos < end) {
-		cpos = parsers::parse_fixed_amount_csv_values<3>(cpos, end, ';',
+		//2711;2721;canal;369;1
+		cpos = parsers::parse_fixed_amount_csv_values<5>(cpos, end, ';',
 			[&](std::string_view const* values) {
 				auto first_text = parsers::remove_surrounding_whitespace(values[0]);
 				auto second_text = parsers::remove_surrounding_whitespace(values[1]);
@@ -90,6 +91,13 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 						} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "canal")) {
 							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
 							context.state.world.province_adjacency_set_type(new_rel, province::border::non_adjacent_bit | province::border::impassible_bit);
+
+							auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), 0, err);
+
+							if(context.state.province_definitions.canals.size() < canal_id) {
+								context.state.province_definitions.canals.resize(canal_id);
+							}
+							context.state.province_definitions.canals[canal_id - 1] = new_rel;
 						}
 					}
 				}

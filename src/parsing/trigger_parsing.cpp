@@ -711,7 +711,7 @@ void trigger_body::has_leader(association_type a, std::string_view value, error_
 		err.accumulated_errors += "has_leader trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	auto name_id = text::find_or_add_key(context.outer_context.state, value);
+	auto name_id = context.outer_context.state.add_unit_name(value);
 	context.compiled_trigger.push_back(trigger::payload(name_id).value);
 }
 

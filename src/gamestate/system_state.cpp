@@ -1273,6 +1273,13 @@ namespace sys {
 
 		nations_by_rank.resize(1000); // TODO: take this value directly from the data container: max number of nations
 
+		world.for_each_issue([&](dcon::issue_id id) {
+			for(auto& opt : world.issue_get_options(id)) {
+				if(opt) {
+					world.issue_option_set_parent_issue(opt, id);
+				}
+			}
+		});
 
 		military::reset_unit_stats(*this);
 		culture::repopulate_technology_effects(*this);
@@ -1289,6 +1296,10 @@ namespace sys {
 
 		culture::update_all_nations_issue_rules(*this);
 		demographics::regenerate_from_pop_data(*this);
+
+		if(local_player_nation) {
+			world.nation_set_is_player_controlled(local_player_nation, true);
+		}
 	}
 
 	constexpr inline int32_t game_speed[] = {
