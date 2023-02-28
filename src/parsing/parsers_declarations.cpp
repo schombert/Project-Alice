@@ -72,17 +72,16 @@ void culture_group::union_tag(association_type, uint32_t v, error_handler& err, 
 
 void good::money(association_type, bool v, error_handler& err, int32_t line, good_context& context) {
 	if(v) {
-		auto money_id = dcon::commodity_id(0);
-		context.outer_context.state.world.commodity_set_color(money_id, context.outer_context.state.world.commodity_get_color(context.id));
-		context.outer_context.state.world.commodity_set_cost(money_id, context.outer_context.state.world.commodity_get_cost(context.id));
+		context.outer_context.state.world.commodity_set_color(economy::money, context.outer_context.state.world.commodity_get_color(context.id));
+		context.outer_context.state.world.commodity_set_cost(economy::money, context.outer_context.state.world.commodity_get_cost(context.id));
 
 		for(auto& pr : context.outer_context.map_of_commodity_names) {
 			if(pr.second == context.id) {
-				pr.second = money_id;
+				pr.second = economy::money;
 				break;
 			}
 		}
-		context.id = money_id;
+		context.id = economy::money;
 		context.outer_context.state.world.pop_back_commodity();
 	}
 }

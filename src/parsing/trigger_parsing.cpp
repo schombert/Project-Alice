@@ -694,6 +694,7 @@ void trigger_body::badboy(association_type a, float value, error_handler& err, i
 
 void trigger_body::ruling_party(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
+
 		context.compiled_trigger.push_back(uint16_t(trigger::ruling_party | association_to_bool_code(a)));
 	} else {
 		err.accumulated_errors += "ruling_party trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";

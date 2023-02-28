@@ -2156,6 +2156,7 @@ union payload {
 	dcon::unit_name_id unam_id;
 	dcon::trigger_key tr_id;
 	dcon::crime_id crm_id;
+	dcon::political_party_id par_id;
 
 
 	//variables::national_variable_tag nat_var;
@@ -2287,6 +2288,10 @@ union payload {
 	payload(dcon::crime_id i) {
 		memset(this, 0, sizeof(payload));
 		crm_id = i;
+	}
+	payload(dcon::political_party_id i) {
+		memset(this, 0, sizeof(payload));
+		par_id = i;
 	}
 };
 

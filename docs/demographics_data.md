@@ -18,6 +18,8 @@ The other sources of demographic data are more diverse. First, there are six fix
 - `consciousness` - Contains the sum of consciousness x pop size for the pops in the given entity. You must divide by `total` to find the average consciousness.
 - `militancy` - As above, but for pop militancy
 - `literacy` - As above, but for pop literacy
+- `political_reform_desire` - Measures support for enacting some political reform (as with other values, in most cases you will want to divide by `total` to normalize it).
+- `social_reform_desire` - As above, but for enacting some social reform
 
 Then, in addition to the fixed demographic indexes, there are indexes for the number of pops that support a particular ideology or position on an issue, as there are in the pop demographics, but in addition to that there are also demographics indexes for the number of pops of a particular pop type, culture, or religion. As with the pop demographics, the indexes for these values can be retrieved by using one of the following function from the `demographics` namespace:
 
