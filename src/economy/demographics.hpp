@@ -19,8 +19,11 @@ constexpr inline dcon::demographics_key militancy(4);
 constexpr inline dcon::demographics_key literacy(5);
 constexpr inline dcon::demographics_key political_reform_desire(6);
 constexpr inline dcon::demographics_key social_reform_desire(7);
+constexpr inline dcon::demographics_key poor_militancy(8);
+constexpr inline dcon::demographics_key middle_militancy(9);
+constexpr inline dcon::demographics_key rich_militancy(10);
 
-constexpr inline uint32_t count_special_keys = 8;
+constexpr inline uint32_t count_special_keys = 11;
 
 dcon::demographics_key to_key(sys::state const& state, dcon::ideology_id v);
 dcon::demographics_key to_key(sys::state const& state, dcon::issue_option_id v);

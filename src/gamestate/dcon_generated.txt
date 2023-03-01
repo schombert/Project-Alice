@@ -1188,6 +1188,14 @@ object {
 		name{ dominant_religion }
 		type{ religion_id }
 	}
+	property {
+		name{ dominant_ideology }
+		type{ ideology_id }
+	}
+	property {
+		name{ dominant_issue_option }
+		type{ issue_option_id }
+	}
 }
 
 relationship{
@@ -1668,6 +1676,14 @@ object {
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
+	}
+	property {
+		name{ dominant_ideology }
+		type{ ideology_id }
+	}
+	property {
+		name{ dominant_issue_option }
+		type{ issue_option_id }
 	}
 	property {
 		name{ last_production }
@@ -2179,6 +2195,26 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ social_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ poor_tax }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ middle_tax }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ rich_tax }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
 		name{ industrial_score }
 		type{ uint16_t }
 	}
@@ -2204,6 +2240,10 @@ object {
 	}
 	property {
 		name{ rebel_controlled_count }
+		type{ uint16_t }
+	}
+	property {
+		name{ occupied_count }
 		type{ uint16_t }
 	}
 	property {
@@ -2239,6 +2279,26 @@ object {
 	property{
 		name{ is_player_controlled }
 		type{ bitfield }
+	}
+	property{
+		name{ is_colonial_nation }
+		type{ bitfield }
+	}
+	property {
+		name{ dominant_culture }
+		type{ culture_id }
+	}
+	property {
+		name{ dominant_religion }
+		type{ religion_id }
+	}
+	property {
+		name{ dominant_ideology }
+		type{ ideology_id }
+	}
+	property {
+		name{ dominant_issue_option }
+		type{ issue_option_id }
 	}
 }
 
@@ -2580,6 +2640,14 @@ object {
 		name{ demographics }
 		type{ array{pop_demographics_key}{float} }
 		tag{ save }
+	}
+	property {
+		name{ dominant_ideology }
+		type{ ideology_id }
+	}
+	property {
+		name{ dominant_issue_option }
+		type{ issue_option_id }
 	}
 }
 
