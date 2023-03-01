@@ -49,6 +49,13 @@ auto central_has_crime_fraction(sys::state const& state, T ids) {
 	return ve::select(cpc != 0.0f, crim_count / cpc, decltype(cpc)());
 }
 
+template<typename T>
+auto occupied_provinces_fraction(sys::state const& state, T ids) {
+	auto cpc = ve::to_float(state.world.nation_get_owned_province_count(ids));
+	auto occ_count = ve::to_float(state.world.nation_get_occupied_count(ids));
+	return ve::select(cpc != 0.0f, occ_count / cpc, decltype(cpc)());
+}
+
 void update_national_rankings(sys::state& state) {
 	if(!state.national_rankings_out_of_date)
 		return;

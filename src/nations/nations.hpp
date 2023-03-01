@@ -191,6 +191,8 @@ template<typename T>
 auto central_blockaded_fraction(sys::state const& state, T ids);
 template<typename T>
 auto central_has_crime_fraction(sys::state const& state, T ids);
+template<typename T>
+auto occupied_provinces_fraction(sys::state const& state, T ids);
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
 

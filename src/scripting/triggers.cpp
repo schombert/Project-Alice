@@ -3284,6 +3284,394 @@ TRIGGER_FUNCTION(tf_military_score_this_province) {
 		ws.world.nation_get_military_score(to_nation(primary_slot)),
 		ws.world.nation_get_military_score(owner));
 }
+TRIGGER_FUNCTION(tf_civilized_nation) {
+	return compare_to_true(tval[0], ws.world.nation_get_is_civilized(to_nation(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_civilized_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	return compare_to_true(tval[0], ws.world.nation_get_is_civilized(owner));
+}
+TRIGGER_FUNCTION(tf_civilized_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	return compare_to_true(tval[0], ws.world.nation_get_is_civilized(owner));
+}
+TRIGGER_FUNCTION(tf_national_provinces_occupied) {
+	return compare_values(tval[0], nations::occupied_provinces_fraction(ws, to_nation(primary_slot)), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_is_greater_power_nation) {
+	return compare_to_true(tval[0], ws.world.nation_get_rank(to_nation(primary_slot)) <= uint16_t(ws.defines.great_nations_count));
+}
+TRIGGER_FUNCTION(tf_is_greater_power_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	return compare_to_true(tval[0], ws.world.nation_get_rank(owner) <= uint16_t(ws.defines.great_nations_count));
+}
+TRIGGER_FUNCTION(tf_is_greater_power_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	return compare_to_true(tval[0], ws.world.nation_get_rank(owner) <= uint16_t(ws.defines.great_nations_count));
+}
+TRIGGER_FUNCTION(tf_rich_tax) {
+	return compare_values(tval[0],
+		ws.world.nation_get_rich_tax(to_nation(primary_slot)),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_middle_tax) {
+	return compare_values(tval[0],
+		ws.world.nation_get_middle_tax(to_nation(primary_slot)),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_poor_tax) {
+	return compare_values(tval[0],
+		ws.world.nation_get_poor_tax(to_nation(primary_slot)),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_social_spending_nation) {
+	return compare_values(tval[0],
+		ws.world.nation_get_social_spending(to_nation(primary_slot)),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_social_spending_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_social_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_social_spending_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_social_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_military_spending_nation) {
+	return compare_values(tval[0],
+		ws.world.nation_get_military_spending(to_nation(primary_slot)),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_military_spending_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_military_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_military_spending_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_military_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_military_spending_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_military_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_administration_spending_nation) {
+	return compare_values(tval[0],
+		ws.world.nation_get_administrative_spending(to_nation(primary_slot)),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_administration_spending_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_administrative_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_administration_spending_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_administrative_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_administration_spending_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_administrative_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_education_spending_nation) {
+	return compare_values(tval[0],
+		ws.world.nation_get_education_spending(to_nation(primary_slot)),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_education_spending_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_education_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_education_spending_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_education_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_education_spending_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_education_spending(owner),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_colonial_nation) {
+	return compare_to_true(tval[0], ws.world.nation_get_is_colonial_nation(to_nation(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_pop_majority_religion_nation) {
+	return compare_values_eq(tval[0],
+		ws.world.nation_get_dominant_religion(to_nation(primary_slot)),
+		payload(tval[1]).rel_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_religion_state) {
+	return compare_values_eq(tval[0],
+		ws.world.state_instance_get_dominant_religion(to_state(primary_slot)),
+		payload(tval[1]).rel_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_religion_province) {
+	return compare_values_eq(tval[0],
+		ws.world.province_get_dominant_religion(to_prov(primary_slot)),
+		payload(tval[1]).rel_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_culture_nation) {
+	return compare_values_eq(tval[0],
+		ws.world.nation_get_dominant_culture(to_nation(primary_slot)),
+		payload(tval[1]).cul_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_culture_state) {
+	return compare_values_eq(tval[0],
+		ws.world.state_instance_get_dominant_culture(to_state(primary_slot)),
+		payload(tval[1]).cul_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_culture_province) {
+	return compare_values_eq(tval[0],
+		ws.world.province_get_dominant_culture(to_prov(primary_slot)),
+		payload(tval[1]).cul_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_issue_nation) {
+	return compare_values_eq(tval[0],
+		ws.world.nation_get_dominant_issue_option(to_nation(primary_slot)),
+		payload(tval[1]).opt_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_issue_state) {
+	return compare_values_eq(tval[0],
+		ws.world.state_instance_get_dominant_issue_option(to_state(primary_slot)),
+		payload(tval[1]).opt_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_issue_province) {
+	return compare_values_eq(tval[0],
+		ws.world.province_get_dominant_issue_option(to_prov(primary_slot)),
+		payload(tval[1]).opt_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_issue_pop) {
+	return compare_values_eq(tval[0],
+		ws.world.pop_get_dominant_issue_option(to_pop(primary_slot)),
+		payload(tval[1]).opt_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_ideology_nation) {
+	return compare_values_eq(tval[0],
+		ws.world.nation_get_dominant_ideology(to_nation(primary_slot)),
+		payload(tval[1]).ideo_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_ideology_state) {
+	return compare_values_eq(tval[0],
+		ws.world.state_instance_get_dominant_ideology(to_state(primary_slot)),
+		payload(tval[1]).ideo_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_ideology_province) {
+	return compare_values_eq(tval[0],
+		ws.world.province_get_dominant_ideology(to_prov(primary_slot)),
+		payload(tval[1]).ideo_id);
+}
+TRIGGER_FUNCTION(tf_pop_majority_ideology_pop) {
+	return compare_values_eq(tval[0],
+		ws.world.pop_get_dominant_ideology(to_pop(primary_slot)),
+		payload(tval[1]).ideo_id);
+}
+TRIGGER_FUNCTION(tf_poor_strata_militancy_nation) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::poor))
+			accumulator = accumulator + ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_militancy_state) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::poor))
+			accumulator = accumulator + ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_militancy_province) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.province_get_demographics(to_prov(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::poor))
+			accumulator = accumulator + ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_militancy_pop) {
+	auto type = ws.world.pop_get_poptype(to_pop(primary_slot));
+	auto is_poor = ws.world.pop_type_get_strata(type) == uint8_t(culture::pop_strata::poor);
+	return compare_values(tval[0],
+		ve::select(is_poor, ws.world.pop_get_militancy(to_pop(primary_slot)), 0.0f),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_militancy_nation) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::middle))
+			accumulator = accumulator + ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_militancy_state) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::middle))
+			accumulator = accumulator + ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_militancy_province) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.province_get_demographics(to_prov(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::middle))
+			accumulator = accumulator + ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_militancy_pop) {
+	auto type = ws.world.pop_get_poptype(to_pop(primary_slot));
+	auto is_middle = ws.world.pop_type_get_strata(type) == uint8_t(culture::pop_strata::middle);
+	return compare_values(tval[0],
+		ve::select(is_middle, ws.world.pop_get_militancy(to_pop(primary_slot)), 0.0f),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_militancy_nation) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
+			accumulator = accumulator + ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_militancy_state) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
+			accumulator = accumulator + ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_militancy_province) {
+	auto accumulator = std::remove_cvref_t<decltype(ws.world.province_get_demographics(to_prov(primary_slot), demographics::total))>();
+	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
+			accumulator = accumulator + ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, pt));
+	});
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_militancy_pop) {
+	auto type = ws.world.pop_get_poptype(to_pop(primary_slot));
+	auto is_rich = ws.world.pop_type_get_strata(type) == uint8_t(culture::pop_strata::rich);
+	return compare_values(tval[0],
+		ve::select(is_rich, ws.world.pop_get_militancy(to_pop(primary_slot)), 0.0f),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_tax_above_poor) {
+	return compare_to_true(tval[0],
+		ws.world.nation_get_rich_tax(to_nation(primary_slot)) > ws.world.nation_get_poor_tax(to_nation(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_culture_has_union_tag_pop) {
+	auto pop_culture = ws.world.pop_get_culture(to_pop(primary_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(pop_culture);
+	auto utag = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+	return compare_to_true(tval[0], utag != dcon::national_identity_id());
+}
+TRIGGER_FUNCTION(tf_culture_has_union_tag_nation) {
+	auto pc = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(pc);
+	auto utag = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+	return compare_to_true(tval[0], utag != dcon::national_identity_id());
+}
+TRIGGER_FUNCTION(tf_this_culture_union_tag) {
+	auto pc = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(pc);
+	auto utag = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+	return compare_values_eq(tval[0], utag, payload(tval[1]).tag_id);
+}
+TRIGGER_FUNCTION(tf_this_culture_union_from) {
+	auto pc = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(pc);
+	auto utag = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+	return compare_values_eq(tval[0],
+		utag,
+		ws.world.nation_get_identity_from_identity_holder(to_nation(from_slot)));
+}
+TRIGGER_FUNCTION(tf_this_culture_union_this_nation) {
+	auto pc = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(pc);
+	auto utag = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+	return compare_values_eq(tval[0],
+		utag,
+		ws.world.nation_get_identity_from_identity_holder(to_nation(this_slot)));
+}
+TRIGGER_FUNCTION(tf_this_culture_union_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	auto pc = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(pc);
+	auto utag = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+	return compare_values_eq(tval[0],
+		utag,
+		ws.world.nation_get_identity_from_identity_holder(owner));
+}
+TRIGGER_FUNCTION(tf_this_culture_union_this_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
+	auto pc = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(pc);
+	auto utag = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+	return compare_values_eq(tval[0],
+		utag,
+		ws.world.nation_get_identity_from_identity_holder(owner));
+}
+TRIGGER_FUNCTION(tf_this_culture_union_this_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
+	auto pc = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(pc);
+	auto utag = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
+	return compare_values_eq(tval[0],
+		utag,
+		ws.world.nation_get_identity_from_identity_holder(owner));
+}
+TRIGGER_FUNCTION(tf_this_culture_union_this_union_nation) {
+	auto prim_culture = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto this_culture = ws.world.nation_get_primary_culture(to_nation(this_slot));
+	auto pcg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
+	auto tcg = ws.world.culture_get_group_from_culture_group_membership(this_culture);
+	return compare_values_eq(tval[0], pcg, tcg);
+}
+TRIGGER_FUNCTION(tf_this_culture_union_this_union_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	auto prim_culture = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto this_culture = ws.world.nation_get_primary_culture(owner);
+	auto pcg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
+	auto tcg = ws.world.culture_get_group_from_culture_group_membership(this_culture);
+	return compare_values_eq(tval[0], pcg, tcg);
+}
+TRIGGER_FUNCTION(tf_this_culture_union_this_union_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
+	auto prim_culture = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto this_culture = ws.world.nation_get_primary_culture(owner);
+	auto pcg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
+	auto tcg = ws.world.culture_get_group_from_culture_group_membership(this_culture);
+	return compare_values_eq(tval[0], pcg, tcg);
+}
+TRIGGER_FUNCTION(tf_this_culture_union_this_union_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
+	auto prim_culture = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+	auto this_culture = ws.world.nation_get_primary_culture(owner);
+	auto pcg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
+	auto tcg = ws.world.culture_get_group_from_culture_group_membership(this_culture);
+	return compare_values_eq(tval[0], pcg, tcg);
+}
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(CALLTYPE* trigger_functions[])(uint16_t const*, sys::state&,
@@ -3614,58 +4002,58 @@ struct trigger_container {
 		tf_military_score_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_score_this_pop = 0x0142;
 		tf_military_score_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_score_this_state = 0x0143;
 		tf_military_score_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_score_this_province = 0x0144;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t civilized_nation = 0x0145;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t civilized_pop = 0x0146;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t civilized_province = 0x0147;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t national_provinces_occupied = 0x0148;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_greater_power_nation = 0x0149;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_greater_power_pop = 0x014A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_tax = 0x014B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_tax = 0x014C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_tax = 0x014D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_spending_nation = 0x014E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_spending_pop = 0x014F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_spending_province = 0x0150;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t colonial_nation = 0x0151;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_religion_nation = 0x0152;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_religion_state = 0x0153;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_religion_province = 0x0154;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_culture_nation = 0x0155;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_culture_state = 0x0156;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_culture_province = 0x0157;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_issue_nation = 0x0158;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_issue_state = 0x0159;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_issue_province = 0x015A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_issue_pop = 0x015B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_ideology_nation = 0x015C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_ideology_state = 0x015D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_ideology_province = 0x015E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_ideology_pop = 0x015F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_militancy_nation = 0x0160;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_militancy_state = 0x0161;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_militancy_province = 0x0162;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_militancy_pop = 0x0163;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_militancy_nation = 0x0164;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_militancy_state = 0x0165;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_militancy_province = 0x0166;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_militancy_pop = 0x0167;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_militancy_nation = 0x0168;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_militancy_state = 0x0169;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_militancy_province = 0x016A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_militancy_pop = 0x016B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_tax_above_poor = 0x016C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t culture_has_union_tag_pop = 0x016D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t culture_has_union_tag_nation = 0x016E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_tag = 0x016F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_from = 0x0170;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_nation = 0x0171;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_province = 0x0172;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_state = 0x0173;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_pop = 0x0174;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_nation = 0x0175;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_province = 0x0176;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_state = 0x0177;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_pop = 0x0178;
+		tf_civilized_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t civilized_nation = 0x0145;
+		tf_civilized_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t civilized_pop = 0x0146;
+		tf_civilized_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t civilized_province = 0x0147;
+		tf_national_provinces_occupied<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t national_provinces_occupied = 0x0148;
+		tf_is_greater_power_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_greater_power_nation = 0x0149;
+		tf_is_greater_power_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_greater_power_pop = 0x014A;
+		tf_rich_tax<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_tax = 0x014B;
+		tf_middle_tax<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_tax = 0x014C;
+		tf_poor_tax<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_tax = 0x014D;
+		tf_social_spending_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_spending_nation = 0x014E;
+		tf_social_spending_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_spending_pop = 0x014F;
+		tf_social_spending_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_spending_province = 0x0150;
+		tf_colonial_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t colonial_nation = 0x0151;
+		tf_pop_majority_religion_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_religion_nation = 0x0152;
+		tf_pop_majority_religion_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_religion_state = 0x0153;
+		tf_pop_majority_religion_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_religion_province = 0x0154;
+		tf_pop_majority_culture_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_culture_nation = 0x0155;
+		tf_pop_majority_culture_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_culture_state = 0x0156;
+		tf_pop_majority_culture_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_culture_province = 0x0157;
+		tf_pop_majority_issue_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_issue_nation = 0x0158;
+		tf_pop_majority_issue_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_issue_state = 0x0159;
+		tf_pop_majority_issue_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_issue_province = 0x015A;
+		tf_pop_majority_issue_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_issue_pop = 0x015B;
+		tf_pop_majority_ideology_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_ideology_nation = 0x015C;
+		tf_pop_majority_ideology_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_ideology_state = 0x015D;
+		tf_pop_majority_ideology_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_ideology_province = 0x015E;
+		tf_pop_majority_ideology_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_majority_ideology_pop = 0x015F;
+		tf_poor_strata_militancy_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_militancy_nation = 0x0160;
+		tf_poor_strata_militancy_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_militancy_state = 0x0161;
+		tf_poor_strata_militancy_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_militancy_province = 0x0162;
+		tf_poor_strata_militancy_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_militancy_pop = 0x0163;
+		tf_middle_strata_militancy_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_militancy_nation = 0x0164;
+		tf_middle_strata_militancy_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_militancy_state = 0x0165;
+		tf_middle_strata_militancy_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_militancy_province = 0x0166;
+		tf_middle_strata_militancy_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_militancy_pop = 0x0167;
+		tf_rich_strata_militancy_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_militancy_nation = 0x0168;
+		tf_rich_strata_militancy_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_militancy_state = 0x0169;
+		tf_rich_strata_militancy_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_militancy_province = 0x016A;
+		tf_rich_strata_militancy_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_militancy_pop = 0x016B;
+		tf_rich_tax_above_poor<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_tax_above_poor = 0x016C;
+		tf_culture_has_union_tag_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t culture_has_union_tag_pop = 0x016D;
+		tf_culture_has_union_tag_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t culture_has_union_tag_nation = 0x016E;
+		tf_this_culture_union_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_tag = 0x016F;
+		tf_this_culture_union_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_from = 0x0170;
+		tf_this_culture_union_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_nation = 0x0171;
+		tf_this_culture_union_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_province = 0x0172;
+		tf_this_culture_union_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_state = 0x0173;
+		tf_this_culture_union_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_pop = 0x0174;
+		tf_this_culture_union_this_union_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_nation = 0x0175;
+		tf_this_culture_union_this_union_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_province = 0x0176;
+		tf_this_culture_union_this_union_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_state = 0x0177;
+		tf_this_culture_union_this_union_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_pop = 0x0178;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_nation = 0x0179;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_state = 0x017A;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_province = 0x017B;
@@ -3756,18 +4144,18 @@ struct trigger_container {
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t militancy_province = 0x01D0;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t militancy_state = 0x01D1;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t militancy_nation = 0x01D2;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_spending_pop = 0x01D3;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_spending_province = 0x01D4;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_spending_state = 0x01D5;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_spending_nation = 0x01D6;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t administration_spending_pop = 0x01D7;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t administration_spending_province = 0x01D8;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t administration_spending_state = 0x01D9;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t administration_spending_nation = 0x01DA;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t education_spending_pop = 0x01DB;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t education_spending_province = 0x01DC;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t education_spending_state = 0x01DD;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t education_spending_nation = 0x01DE;
+		tf_military_spending_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_spending_pop = 0x01D3;
+		tf_military_spending_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_spending_province = 0x01D4;
+		tf_military_spending_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_spending_state = 0x01D5;
+		tf_military_spending_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t military_spending_nation = 0x01D6;
+		tf_administration_spending_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t administration_spending_pop = 0x01D7;
+		tf_administration_spending_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t administration_spending_province = 0x01D8;
+		tf_administration_spending_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t administration_spending_state = 0x01D9;
+		tf_administration_spending_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t administration_spending_nation = 0x01DA;
+		tf_education_spending_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t education_spending_pop = 0x01DB;
+		tf_education_spending_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t education_spending_province = 0x01DC;
+		tf_education_spending_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t education_spending_state = 0x01DD;
+		tf_education_spending_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t education_spending_nation = 0x01DE;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t trade_goods_in_state_state = 0x01DF;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t trade_goods_in_state_province = 0x01E0;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_flashpoint = 0x01E1;
