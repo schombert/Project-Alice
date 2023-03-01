@@ -2039,6 +2039,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ is_substate }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
 		name{ flag_variables }
 		type{array{national_flag_id}{bitfield}}
 		tag{ save }
@@ -2139,6 +2144,49 @@ object {
 		type{ bitfield }
 	}
 	property {
+		name{ is_mobilized }
+		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ is_bankrupt }
+		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ last_war_loss }
+		type{ sys::date }
+		tag{ save }
+	}
+	property {
+		name{ election_ends }
+		type{ sys::date }
+		tag{ save }
+	}
+	property {
+		name{ education_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ military_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ administrative_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ industrial_score }
+		type{ uint16_t }
+	}
+	property {
+		name{ military_score }
+		type{ uint16_t }
+	}
+	property {
 		name{ central_blockaded }
 		type{ uint16_t }
 	}
@@ -2160,6 +2208,10 @@ object {
 	}
 	property {
 		name{ central_ports }
+		type{ uint16_t }
+	}
+	property {
+		name{ total_ports }
 		type{ uint16_t }
 	}
 	property {
@@ -2253,6 +2305,11 @@ relationship{
 
 	property{
 		name{ foreign_investment }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ owns_debt_of }
 		type{ float }
 		tag{ save }
 	}
@@ -2400,11 +2457,6 @@ relationship{
 		name{ruler}
 		type{many}
 		index_storage{array}
-	}
-	property{
-		name{ is_substate }
-		type{ bitfield }
-		tag{ save }
 	}
 }
 

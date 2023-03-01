@@ -125,5 +125,15 @@ bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::nat
 	return false;
 }
 
+bool global_national_state::is_global_flag_variable_set(dcon::global_flag_id id) const {
+	if(id)
+		return dcon::bit_vector_test(global_flag_variables.data(), id.index());
+	return false;
+}
+void global_national_state::set_global_flag_variable(dcon::global_flag_id id, bool state) {
+	if(id)
+		dcon::bit_vector_set(global_flag_variables.data(), id.index(), state);
+}
+
 }
 

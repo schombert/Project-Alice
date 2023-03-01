@@ -53,5 +53,6 @@ constexpr inline dcon::commodity_id money(0);
 
 bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
+bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
 }

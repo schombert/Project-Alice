@@ -1208,7 +1208,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(bool(gxi.get_overlord_as_subject()) == true);
 		REQUIRE(gxi.get_overlord_as_subject().get_ruler() == china);
-		REQUIRE(gxi.get_overlord_as_subject().get_is_substate() == true);
+		REQUIRE(gxi.get_is_substate() == true);
 
 	}
 
@@ -1827,7 +1827,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(bool(gxi.get_overlord_as_subject()) == true);
 		REQUIRE(gxi.get_overlord_as_subject().get_ruler() == china);
-		REQUIRE(gxi.get_overlord_as_subject().get_is_substate() == true);
+		REQUIRE(gxi.get_is_substate() == true);
 
 	}
 
