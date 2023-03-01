@@ -143,6 +143,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	}
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.triggered_modifiers);
+		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.very_easy_player);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.easy_player);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.hard_player);
@@ -306,6 +307,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	}
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.triggered_modifiers);
+		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.very_easy_player);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.easy_player);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.hard_player);
@@ -467,6 +469,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 	}
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.triggered_modifiers);
+		sz += serialize_size(state.national_definitions.global_flag_variables);
 		sz += sizeof(state.national_definitions.very_easy_player);
 		sz += sizeof(state.national_definitions.easy_player);
 		sz += sizeof(state.national_definitions.hard_player);

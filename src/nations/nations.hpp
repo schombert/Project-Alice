@@ -29,6 +29,7 @@ struct fixed_province_event {
 
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
+	std::vector<dcon::bitfield_type> global_flag_variables;
 
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;
@@ -98,6 +99,9 @@ struct global_national_state {
 	std::vector<fixed_event> on_civilize;
 	std::vector<fixed_event> on_my_factories_nationalized;
 	std::vector<fixed_event> on_crisis_declare_interest;
+
+	bool is_global_flag_variable_set(dcon::global_flag_id id) const;
+	void set_global_flag_variable(dcon::global_flag_id id, bool state);
 };
 
 namespace influence {

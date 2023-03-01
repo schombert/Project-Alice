@@ -60,8 +60,8 @@ namespace sys {
 		map_display.on_mbuttom_up(x, y, mod);
 	}
 	void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
+		is_dragging = false;
 		if(ui_state.drag_target) {
-			is_dragging = false;
 			on_drag_finished(x, y, mod);
 		}
 	}
@@ -1196,6 +1196,7 @@ namespace sys {
 		world.pop_resize_demographics(pop_demographics::size(*this));
 		world.nation_resize_last_production(world.commodity_size());
 		world.state_instance_resize_last_production(world.commodity_size());
+		national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{0});
 
 		world.for_each_ideology([&](dcon::ideology_id id) {
 			if(!bool(world.ideology_get_activation_date(id))) {

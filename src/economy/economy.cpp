@@ -31,5 +31,10 @@ bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::fac
 	return false;
 }
 
+bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor) {
+	return state.world.nation_get_is_bankrupt(debt_holder) &&
+		state.world.unilateral_relationship_get_owns_debt_of(state.world.get_unilateral_relationship_by_unilateral_pair(debtor, debt_holder)) > 0.1f;
+}
+
 }
 

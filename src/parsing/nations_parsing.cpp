@@ -1055,8 +1055,8 @@ void make_vassal(token_generator& gen, error_handler& err, scenario_building_con
 void make_substate(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto a = parse_vassal_description(gen, err, context);
 	if(!a.invalid) {
-		auto rel_id = context.state.world.force_create_overlord(a.second_, a.first_);
-		context.state.world.overlord_set_is_substate(rel_id, true);
+		context.state.world.force_create_overlord(a.second_, a.first_);
+		context.state.world.nation_set_is_substate(a.second_, true);
 	}
 }
 
