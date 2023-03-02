@@ -71,6 +71,8 @@ struct unit_definition : public sys::unit_variable_stats {
 struct global_military_state {
 	dcon::leader_trait_id first_background_trait;
 	tagged_vector<unit_definition, dcon::unit_type_id> unit_base_definitions;
+	bool great_wars_enabled = false;
+	bool world_wars_enabled = false;
 
 	dcon::unit_type_id base_army_unit;
 	dcon::unit_type_id base_naval_unit;

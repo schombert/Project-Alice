@@ -3672,6 +3672,217 @@ TRIGGER_FUNCTION(tf_this_culture_union_this_union_pop) {
 	auto tcg = ws.world.culture_get_group_from_culture_group_membership(this_culture);
 	return compare_values_eq(tval[0], pcg, tcg);
 }
+TRIGGER_FUNCTION(tf_minorities_nation) {
+	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
+	auto pculture = ws.world.nation_get_primary_culture(to_nation(primary_slot));
+
+	auto accepted_pop = ve::apply([&ws](dcon::nation_id n, dcon::culture_id pc) {
+		auto accumulated = ws.world.nation_get_demographics(n, demographics::to_key(ws, pc));
+		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
+			accumulated += ws.world.nation_get_demographics(n, demographics::to_key(ws, ac));
+		} 
+		return accumulated;
+	}, to_nation(primary_slot), pculture);
+
+	return compare_to_true(tval[0], total_pop != accepted_pop);
+}
+TRIGGER_FUNCTION(tf_minorities_state) {
+	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
+	auto pculture = ws.world.nation_get_primary_culture(owner);
+
+	auto accepted_pop = ve::apply([&ws](dcon::state_instance_id i, dcon::nation_id n, dcon::culture_id pc) {
+		auto accumulated = ws.world.state_instance_get_demographics(i, demographics::to_key(ws, pc));
+		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
+			accumulated += ws.world.state_instance_get_demographics(i, demographics::to_key(ws, ac));
+		}
+		return accumulated;
+	}, to_state(primary_slot), owner, pculture);
+
+	return compare_to_true(tval[0], total_pop != accepted_pop);
+}
+TRIGGER_FUNCTION(tf_minorities_province) {
+	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	auto pculture = ws.world.nation_get_primary_culture(owner);
+
+	auto accepted_pop = ve::apply([&ws](dcon::province_id i, dcon::nation_id n, dcon::culture_id pc) {
+		auto accumulated = ws.world.province_get_demographics(i, demographics::to_key(ws, pc));
+		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
+			accumulated += ws.world.province_get_demographics(i, demographics::to_key(ws, ac));
+		}
+		return accumulated;
+	}, to_prov(primary_slot), owner, pculture);
+
+	return compare_to_true(tval[0], total_pop != accepted_pop);
+}
+TRIGGER_FUNCTION(tf_revanchism_nation) {
+	return compare_values(tval[0],
+		ws.world.nation_get_revanchism(to_nation(primary_slot)),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_revanchism_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	return compare_values(tval[0],
+		ws.world.nation_get_revanchism(owner),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_has_crime) {
+	return compare_to_true(tval[0], ws.world.province_get_crime(to_prov(primary_slot)) != dcon::crime_id());
+}
+TRIGGER_FUNCTION(tf_num_of_substates) {
+	return compare_values(tval[0], ws.world.nation_get_substates_count(to_nation(primary_slot)), tval[1]);
+}
+TRIGGER_FUNCTION(tf_num_of_vassals_no_substates) {
+	return compare_values(tval[0], ws.world.nation_get_vassals_count(to_nation(primary_slot)) - ws.world.nation_get_substates_count(to_nation(primary_slot)), tval[1]);
+}
+TRIGGER_FUNCTION(tf_brigades_compare_this) {
+	auto main_brigades = ve::apply([&ws](dcon::nation_id n) {
+		int32_t total = 0;
+		for(auto a : ws.world.nation_get_army_control(n)) {
+			for(auto u : a.get_army().get_army_membership()) {
+				++total;
+			}
+		}
+		return float(total);
+	}, to_nation(primary_slot));
+	auto this_brigades = ve::apply([&ws](dcon::nation_id n) {
+		int32_t total = 0;
+		for(auto a : ws.world.nation_get_army_control(n)) {
+			for(auto u : a.get_army().get_army_membership()) {
+				++total;
+			}
+		}
+		return float(total);
+	}, to_nation(this_slot));
+	return compare_values(tval[0],
+		ve::select(this_brigades != 0.0f, main_brigades / this_brigades, 1'000'000.0f),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_brigades_compare_from) {
+	auto main_brigades = ve::apply([&ws](dcon::nation_id n) {
+		int32_t total = 0;
+		for(auto a : ws.world.nation_get_army_control(n)) {
+			for(auto u : a.get_army().get_army_membership()) {
+				++total;
+			}
+		}
+		return float(total);
+	}, to_nation(primary_slot));
+	auto from_brigades = ve::apply([&ws](dcon::nation_id n) {
+		int32_t total = 0;
+		for(auto a : ws.world.nation_get_army_control(n)) {
+			for(auto u : a.get_army().get_army_membership()) {
+				++total;
+			}
+		}
+		return float(total);
+	}, to_nation(from_slot));
+	return compare_values(tval[0],
+		ve::select(from_brigades != 0.0f, main_brigades / from_brigades, 1'000'000.0f),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_constructing_cb_tag) {
+	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id);
+	return compare_to_true(tval[0], ws.world.nation_get_constructing_cb_target(to_nation(primary_slot)) == tag_holder);
+}
+TRIGGER_FUNCTION(tf_constructing_cb_from) {
+	return compare_values_eq(tval[0], ws.world.nation_get_constructing_cb_target(to_nation(primary_slot)), to_nation(from_slot));
+}
+TRIGGER_FUNCTION(tf_constructing_cb_this_nation) {
+	return compare_values_eq(tval[0], ws.world.nation_get_constructing_cb_target(to_nation(primary_slot)), to_nation(this_slot));
+}
+TRIGGER_FUNCTION(tf_constructing_cb_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	return compare_values_eq(tval[0], ws.world.nation_get_constructing_cb_target(to_nation(primary_slot)), owner);
+}
+TRIGGER_FUNCTION(tf_constructing_cb_this_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
+	return compare_values_eq(tval[0], ws.world.nation_get_constructing_cb_target(to_nation(primary_slot)), owner);
+}
+TRIGGER_FUNCTION(tf_constructing_cb_this_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
+	return compare_values_eq(tval[0], ws.world.nation_get_constructing_cb_target(to_nation(primary_slot)), owner);
+}
+TRIGGER_FUNCTION(tf_constructing_cb_discovered) {
+	return compare_to_true(tval[0], ws.world.nation_get_constructing_cb_is_discovered(to_nation(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_constructing_cb_progress) {
+	return compare_values(tval[0], ws.world.nation_get_constructing_cb_progress(to_nation(primary_slot)), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_civilization_progress) {
+	return compare_values(tval[0],
+		ws.world.nation_get_static_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::civilization_progress_modifier - sys::provincial_mod_offsets::count),
+		read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_constructing_cb_type) {
+	return compare_values_eq(tval[0],
+		ws.world.nation_get_constructing_cb_type(to_nation(primary_slot)),
+		payload(tval[1]).cb_id);
+}
+TRIGGER_FUNCTION(tf_is_our_vassal_tag) {
+	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id);
+	return compare_values_eq(tval[0], ws.world.overlord_get_ruler(ws.world.nation_get_overlord_as_subject(tag_holder)), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_our_vassal_from) {
+	return compare_values_eq(tval[0], ws.world.overlord_get_ruler(ws.world.nation_get_overlord_as_subject(to_nation(from_slot))), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_our_vassal_this_nation) {
+	return compare_values_eq(tval[0], ws.world.overlord_get_ruler(ws.world.nation_get_overlord_as_subject(to_nation(this_slot))), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_our_vassal_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	return compare_values_eq(tval[0], ws.world.overlord_get_ruler(ws.world.nation_get_overlord_as_subject(owner)), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_our_vassal_this_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
+	return compare_values_eq(tval[0], ws.world.overlord_get_ruler(ws.world.nation_get_overlord_as_subject(owner)), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_our_vassal_this_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
+	return compare_values_eq(tval[0], ws.world.overlord_get_ruler(ws.world.nation_get_overlord_as_subject(owner)), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_substate) {
+	return compare_to_true(tval[0], ws.world.nation_get_is_substate(to_nation(primary_slot)));
+}
+TRIGGER_FUNCTION(tf_great_wars_enabled) {
+	return compare_to_true(tval[0], ws.military_definitions.great_wars_enabled);
+}
+TRIGGER_FUNCTION(tf_can_nationalize) {
+	auto result = ve::apply([&ws](dcon::nation_id n) {
+		for(auto c : ws.world.nation_get_unilateral_relationship_as_target(n)) {
+			if(c.get_foreign_investment() > 0.0f)
+				return true;
+		}
+		return false;
+	}, to_nation(primary_slot));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_part_of_sphere) {
+	return compare_to_true(tval[0], ws.world.nation_get_in_sphere_of(to_nation(primary_slot)) != dcon::nation_id());
+}
+TRIGGER_FUNCTION(tf_is_sphere_leader_of_tag) {
+	auto holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[1]).tag_id);
+	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(holder), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_sphere_leader_of_from) {
+	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(to_nation(from_slot)), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_sphere_leader_of_this_nation) {
+	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(to_nation(this_slot)), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_sphere_leader_of_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(owner), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_sphere_leader_of_this_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
+	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(owner), to_nation(primary_slot));
+}
+TRIGGER_FUNCTION(tf_is_sphere_leader_of_this_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
+	return compare_values_eq(tval[0], ws.world.nation_get_in_sphere_of(owner), to_nation(primary_slot));
+}
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(CALLTYPE* trigger_functions[])(uint16_t const*, sys::state&,
@@ -4054,48 +4265,48 @@ struct trigger_container {
 		tf_this_culture_union_this_union_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_province = 0x0176;
 		tf_this_culture_union_this_union_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_state = 0x0177;
 		tf_this_culture_union_this_union_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t this_culture_union_this_union_pop = 0x0178;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_nation = 0x0179;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_state = 0x017A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_province = 0x017B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t revanchism_nation = 0x017C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t revanchism_pop = 0x017D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_crime = 0x017E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t num_of_substates = 0x017F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t num_of_vassals_no_substates = 0x0180;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t brigades_compare_this = 0x0181;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t brigades_compare_from = 0x0182;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_tag = 0x0183;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_from = 0x0184;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_this_nation = 0x0185;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_this_province = 0x0186;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_this_state = 0x0187;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_this_pop = 0x0188;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_discovered = 0x0189;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_progress = 0x018A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t civilization_progress = 0x018B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_type = 0x018C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_tag = 0x018D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_from = 0x018E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_this_nation = 0x018F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_this_province = 0x0190;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_this_state = 0x0191;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_this_pop = 0x0192;
+		tf_minorities_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_nation = 0x0179;
+		tf_minorities_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_state = 0x017A;
+		tf_minorities_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t minorities_province = 0x017B;
+		tf_revanchism_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t revanchism_nation = 0x017C;
+		tf_revanchism_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t revanchism_pop = 0x017D;
+		tf_has_crime<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t has_crime = 0x017E;
+		tf_num_of_substates<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t num_of_substates = 0x017F;
+		tf_num_of_vassals_no_substates<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t num_of_vassals_no_substates = 0x0180;
+		tf_brigades_compare_this<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t brigades_compare_this = 0x0181;
+		tf_brigades_compare_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t brigades_compare_from = 0x0182;
+		tf_constructing_cb_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_tag = 0x0183;
+		tf_constructing_cb_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_from = 0x0184;
+		tf_constructing_cb_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_this_nation = 0x0185;
+		tf_constructing_cb_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_this_province = 0x0186;
+		tf_constructing_cb_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_this_state = 0x0187;
+		tf_constructing_cb_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_this_pop = 0x0188;
+		tf_constructing_cb_discovered<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_discovered = 0x0189;
+		tf_constructing_cb_progress<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_progress = 0x018A;
+		tf_civilization_progress<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t civilization_progress = 0x018B;
+		tf_constructing_cb_type<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t constructing_cb_type = 0x018C;
+		tf_is_our_vassal_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_tag = 0x018D;
+		tf_is_our_vassal_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_from = 0x018E;
+		tf_is_our_vassal_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_this_nation = 0x018F;
+		tf_is_our_vassal_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_this_province = 0x0190;
+		tf_is_our_vassal_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_this_state = 0x0191;
+		tf_is_our_vassal_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_our_vassal_this_pop = 0x0192;
 		tf_substate_of_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t substate_of_tag = 0x0193;
 		tf_substate_of_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t substate_of_from = 0x0194;
 		tf_substate_of_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t substate_of_this_nation = 0x0195;
 		tf_substate_of_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t substate_of_this_province = 0x0196;
 		tf_substate_of_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t substate_of_this_state = 0x0197;
 		tf_substate_of_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t substate_of_this_pop = 0x0198;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_substate = 0x0199;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t great_wars_enabled = 0x019A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_nationalize = 0x019B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t part_of_sphere = 0x019C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_tag = 0x019D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_from = 0x019E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_this_nation = 0x019F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_this_province = 0x01A0;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_this_state = 0x01A1;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_this_pop = 0x01A2;
+		tf_is_substate<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_substate = 0x0199;
+		tf_great_wars_enabled<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t great_wars_enabled = 0x019A;
+		tf_can_nationalize<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_nationalize = 0x019B;
+		tf_part_of_sphere<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t part_of_sphere = 0x019C;
+		tf_is_sphere_leader_of_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_tag = 0x019D;
+		tf_is_sphere_leader_of_from<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_from = 0x019E;
+		tf_is_sphere_leader_of_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_this_nation = 0x019F;
+		tf_is_sphere_leader_of_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_this_province = 0x01A0;
+		tf_is_sphere_leader_of_this_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_this_state = 0x01A1;
+		tf_is_sphere_leader_of_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_sphere_leader_of_this_pop = 0x01A2;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t number_of_states = 0x01A3;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t war_score = 0x01A4;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_releasable_vassal_from = 0x01A5;
