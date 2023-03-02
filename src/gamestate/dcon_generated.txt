@@ -549,6 +549,10 @@ object {
 		type{ bitfield }
 		tag{ scenario }
 	}
+	property{
+		name{ issue_type }
+		type{ uint8_t }
+	}
 }
 
 object {
@@ -1167,7 +1171,6 @@ object {
 		name{ connected_region_id }
 		type{ uint16_t }
 	}
-
 	property {
 		name{ state_membership }
 		type{ state_instance_id }
@@ -1195,6 +1198,16 @@ object {
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+	}
+	property {
+		name{ last_control_change }
+		type{ sys::date }
+		tag{ save }
+	}
+	property {
+		name{ last_immigration }
+		type{ sys::date }
+		tag{ save }
 	}
 }
 
@@ -1658,6 +1671,11 @@ object {
 	property{
 		name{ flashpoint_tag }
 		type{ national_identity_id }
+		tag{ save }
+	}
+	property {
+		name{ flashpoint_tension }
+		type{ float }
 		tag{ save }
 	}
 	property{
@@ -2180,6 +2198,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ disarmed_until }
+		type{ sys::date }
+		tag{ save }
+	}
+	property {
 		name{ education_spending }
 		type{ int8_t }
 		tag{ save }
@@ -2232,6 +2255,10 @@ object {
 	}
 	property {
 		name{ owned_province_count }
+		type{ uint16_t }
+	}
+	property {
+		name{ owned_state_count }
 		type{ uint16_t }
 	}
 	property {
@@ -2597,6 +2624,65 @@ relationship{
 }
 
 object {
+	name { movement }
+	storage_type{ compactable }
+	size{ 8000 }
+	tag{ save }
+
+	property{
+		name{ associated_issue_option }
+		type{ issue_option_id }
+		tag{ save }
+	}
+
+	property{
+		name{ associated_independence }
+		type{ national_identity_id }
+		tag{ save }
+	}
+
+	property{
+		name{ strength }
+		type{ float }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ movement_within }
+	tag{ save }
+
+	link{
+		object{movement}
+		name{movement}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ pop_movement_membership }
+	tag{ save }
+
+	link{
+		object{pop}
+		name{pop}
+		type{unique}
+	}
+	link{
+		object{movement}
+		name{movement}
+		type{many}
+		index_storage{array}
+	}
+}
+
+object {
 	name { pop }
 	storage_type{ compactable }
 	size{ 80000 }
@@ -2650,6 +2736,21 @@ object {
 	property{
 		name{ rebel_group }
 		type{ rebel_type_id }
+		tag{ save }
+	}
+	property{
+		name{ life_needs_satisfaction }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ everyday_needs_satisfaction }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ luxury_needs_satisfaction }
+		type{ float }
 		tag{ save }
 	}
 	property {

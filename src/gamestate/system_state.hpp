@@ -51,6 +51,14 @@ namespace sys {
 
 	};
 
+	struct crisis_member_def {
+		dcon::nation_id id;
+		bool supports_attacker = false;
+	};
+	enum class crisis_type : uint32_t {
+		none = 0, claim = 1, liberation = 2, colonial = 3
+	};
+
 	struct alignas(64) state {
 		// the state struct will eventually include (at least pointers to)
 		// the state of the sound system, the state of the windowing system,
@@ -91,7 +99,13 @@ namespace sys {
 		bool adjacency_data_out_of_date = true;
 		bool national_rankings_out_of_date = true;
 		std::vector<dcon::nation_id> nations_by_rank;
+
 		dcon::state_instance_id crisis_state;
+		std::vector<crisis_member_def> crisis_participants;
+		crisis_type current_crisis;
+		float crisis_temperature = 0;
+		dcon::nation_id primary_crisis_attacker;
+		dcon::nation_id primary_crisis_defender;
 
 		std::vector<char> unit_names; // a second text buffer, this time for just the unit names
 		                              // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of

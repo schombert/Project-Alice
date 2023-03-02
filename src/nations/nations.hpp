@@ -30,6 +30,7 @@ struct fixed_province_event {
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
 	std::vector<dcon::bitfield_type> global_flag_variables;
+	std::vector<dcon::nation_id> nations_by_rank;
 
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;

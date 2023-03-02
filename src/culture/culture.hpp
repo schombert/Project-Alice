@@ -88,7 +88,9 @@ enum class pop_strata : uint8_t {
 enum class income_type : uint8_t {
 	none = 0, administration = 1, military = 2, education = 3, reforms = 4,
 };
-
+enum class issue_type : uint8_t {
+	party = 0, political = 1, social = 2, military = 3, economic = 4
+};
 struct global_cultural_state {
 	std::vector<dcon::issue_id> party_issues;
 	std::vector<dcon::issue_id> political_issues;
