@@ -2267,6 +2267,10 @@ object {
 		type{ uint16_t }
 	}
 	property {
+		name{ substates_count }
+		type{ uint16_t }
+	}
+	property {
 		name{ stockpiles }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -2299,6 +2303,26 @@ object {
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+	}
+	property {
+		name{ constructing_cb_target }
+		type{ nation_id }
+		tag{ save }
+	}
+	property {
+		name{ constructing_cb_progress }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ constructing_cb_type }
+		type{ cb_type_id }
+		tag{ save }
+	}
+	property {
+		name{ constructing_cb_is_discovered }
+		type{ bitfield }
+		tag{ save }
 	}
 }
 

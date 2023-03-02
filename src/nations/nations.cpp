@@ -99,10 +99,14 @@ void restore_unsaved_values(sys::state& state) {
 	});
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		int32_t total = 0;
+		int32_t substates_total = 0;
 		for(auto v : state.world.nation_get_overlord_as_ruler(n)) {
 			++total;
+			if(v.get_subject().get_is_substate())
+				++substates_total;
 		}
 		state.world.nation_set_vassals_count(n, uint16_t(total));
+		state.world.nation_set_substates_count(n, uint16_t(substates_total));
 	});
 }
 
