@@ -240,6 +240,7 @@ private:
 
 public:
 	dcon::nation_id get_current_nation(sys::state& state) noexcept;
+	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;

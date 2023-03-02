@@ -2,6 +2,7 @@
 
 #include "dcon_generated.hpp"
 #include "gui_element_types.hpp"
+#include "gui_graphics.hpp"
 #include "text.hpp"
 #include <algorithm>
 #include <functional>
@@ -29,10 +30,17 @@ enum class country_list_filter : uint8_t {
 	allies
 };
 
+class button_press_notification{};
+
 class diplomacy_country_select : public button_element_base {
 public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
 		return parent->impl_on_scroll(state, x, y, amount, mods);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = button_press_notification{};
+		parent->impl_get(state, payload);
 	}
 };
 
@@ -76,6 +84,9 @@ public:
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(content);
 			return message_result::consumed;
+		} else if(payload.holds_type<button_press_notification>()) {
+			Cyto::Any new_payload = content;
+			return parent->impl_get(state, new_payload);
 		} else {
 			return listbox_row_element_base<dcon::nation_id>::get(state, payload);
 		}
@@ -87,6 +98,59 @@ protected:
 	std::string_view get_row_element_name() override {
         return "diplomacy_country_info";
     }
+};
+
+class diplomacy_country_facts : public window_element_base {
+private:
+	dcon::nation_id active_nation{};
+	flag_button* country_flag = nullptr;
+	simple_text_element_base* country_name_box = nullptr;
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		if(bool(state.local_player_nation)) {
+			Cyto::Any payload = state.local_player_nation;
+			set(state, payload);
+		}
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "country_flag") {
+			auto ptr = make_element_by_type<flag_button>(state, id);
+			country_flag = ptr.get();
+			return ptr;
+		} else if(name == "country_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			country_name_box = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(active_nation);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			active_nation = any_cast<dcon::nation_id>(payload);
+			country_flag->on_update(state);
+
+			dcon::nation_fat_id fat_id = dcon::fatten(state.world, active_nation);
+			auto country_name = text::produce_simple_string(state, fat_id.get_name());
+			country_name_box->set_text(state, country_name);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
 };
 
 class diplomacy_window : public generic_tabbed_window<diplomacy_window_tab> {
@@ -149,6 +213,7 @@ public:
 		generic_tabbed_window::on_create(state);
 		set_visible(state, false);
 		filter_countries(state, [](dcon::nation_id) { return true; });
+		state.ui_state.diplomacy_subwindow = this;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -212,6 +277,8 @@ public:
 			auto ptr = make_element_by_type<diplomacy_country_listbox>(state, id);
 			country_listbox = ptr.get();
 			return ptr;
+		} else if(name == "diplomacy_country_facts") {
+			return make_element_by_type<diplomacy_country_facts>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -257,6 +324,8 @@ public:
 				default:
 					break;
 			}
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			return impl_set(state, payload);
 		}
 		return message_result::unseen;
 	}

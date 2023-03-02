@@ -938,6 +938,19 @@ dcon::nation_id flag_button::get_current_nation(sys::state& state) noexcept {
 	}
 }
 
+void flag_button::button_action(sys::state& state) noexcept {
+	Cyto::Any payload = get_current_nation(state);
+	if(state.ui_state.diplomacy_subwindow != nullptr) {
+		if(state.ui_state.topbar_subwindow != nullptr) {
+			state.ui_state.topbar_subwindow->set_visible(state, false);
+		}
+		state.ui_state.topbar_subwindow = state.ui_state.diplomacy_subwindow;
+		state.ui_state.diplomacy_subwindow->set_visible(state, true);
+		state.ui_state.root->move_child_to_front(state.ui_state.diplomacy_subwindow);
+		state.ui_state.diplomacy_subwindow->impl_get(state, payload);
+	}
+}
+
 void flag_button::on_update(sys::state& state) noexcept {
 	auto current_nation = get_current_nation(state);
 	if(bool(current_nation)) {
