@@ -117,6 +117,9 @@ void restore_unsaved_values(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) {
 		state.world.nation_set_occupied_count(ids, ve::int_vector());
 	});
+	state.world.execute_serial_over_nation([&](auto ids) {
+		state.world.nation_set_owned_state_count(ids, ve::int_vector());
+	});
 	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
 		[&]() {
@@ -163,6 +166,10 @@ void restore_unsaved_values(sys::state& state) {
 			}
 		}
 	}
+	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(s);
+		state.world.nation_get_owned_state_count(owner) += uint16_t(1);
+	});
 }
 
 }

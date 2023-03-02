@@ -1273,6 +1273,7 @@ namespace sys {
 		});
 
 		nations_by_rank.resize(1000); // TODO: take this value directly from the data container: max number of nations
+		crisis_participants.resize(1000);
 
 		world.for_each_issue([&](dcon::issue_id id) {
 			for(auto& opt : world.issue_get_options(id)) {
@@ -1281,6 +1282,21 @@ namespace sys {
 				}
 			}
 		});
+		for(auto i : culture_definitions.party_issues) {
+			world.issue_set_issue_type(i, uint8_t(culture::issue_type::party));
+		}
+		for(auto i : culture_definitions.military_issues) {
+			world.issue_set_issue_type(i, uint8_t(culture::issue_type::military));
+		}
+		for(auto i : culture_definitions.economic_issues) {
+			world.issue_set_issue_type(i, uint8_t(culture::issue_type::economic));
+		}
+		for(auto i : culture_definitions.social_issues) {
+			world.issue_set_issue_type(i, uint8_t(culture::issue_type::social));
+		}
+		for(auto i : culture_definitions.political_issues) {
+			world.issue_set_issue_type(i, uint8_t(culture::issue_type::political));
+		}
 
 		military::reset_unit_stats(*this);
 		culture::repopulate_technology_effects(*this);

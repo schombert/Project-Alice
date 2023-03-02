@@ -304,7 +304,7 @@ struct trigger_body {
 		}
 	}
 	void has_cultural_sphere(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::nation) {
+		if(context.main_slot == trigger::slot_contents::nation && context.this_slot == trigger::slot_contents::nation) {
 			context.compiled_trigger.push_back(uint16_t(trigger::has_cultural_sphere | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "has_cultural_sphere trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
