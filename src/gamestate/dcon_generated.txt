@@ -1148,7 +1148,7 @@ object {
 
 	property{
 		name{ party_loyalty }
-		type{array{ideology_id}{uint8_t}}
+		type{array{ideology_id}{int8_t}}
 		tag{ save }
 	}
 

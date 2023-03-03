@@ -60,6 +60,18 @@ float recruited_pop_fraction(sys::state const& state, dcon::nation_id n) {
 	return 0.0f;
 }
 
+bool state_has_naval_base(sys::state const& state, dcon::state_instance_id si) {
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+	auto def = state.world.state_instance_get_definition(si);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(def)) {
+		if(p.get_province().get_nation_from_province_ownership() == owner) {
+			if(p.get_province().get_naval_base_level() > 0)
+				return true;
+		}
+	}
+	return false;
+}
+
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_attacker(a)) {
 		for(auto wd : wa.get_war().get_war_defender()) {

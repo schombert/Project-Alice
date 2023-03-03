@@ -94,5 +94,6 @@ template<typename T>
 auto battle_is_ongoing_in_province(sys::state const& state, T ids);
 
 float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);
+bool state_has_naval_base(sys::state const& state, dcon::state_instance_id di);
 
 }
