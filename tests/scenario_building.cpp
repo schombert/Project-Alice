@@ -1859,6 +1859,86 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_rgo_goods_output(c_id) == 0.25f);
 		REQUIRE(nation.get_max_fort_level() == 1);
 	}
-	
+
+	/*************************************************
+	// where some benchmarks live
+
+	const auto trash_cache = []() {
+		volatile char* p[8192];
+		for(uint32_t i = 0; i < 8192; i++) {
+			p[i] = static_cast<volatile char*>(::new char[4096]);
+			p[i][0] = p[i][4095] = 1;
+		}
+		for(uint32_t i = 0; i < 8192; i++) {
+			delete[] p[i];
+		}
+	};
+
+	BENCHMARK_ADVANCED("basic maximum")(Catch::Benchmark::Chronometer meter) {
+		trash_cache();
+		meter.measure([&]() {
+			province::for_each_land_province(*state, [&](dcon::province_id p) {
+				// schombert: there is a faster way to do this. Instead of figuring out the max province by province
+				// it would be better to go culture by culture, storing the temporary max share per province in a
+				// temporary buffer. Why? Because by going through things one culture at a time would be much easier
+				// on the prefetcher given the typical number of cultures
+				dcon::culture_id max_id;
+				float max_value = 0.0f;
+				state->world.for_each_culture([&](dcon::culture_id c) {
+					if(auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c)); v > max_value) {
+						max_value = v;
+						max_id = c;
+					}
+				});
+				state->world.province_set_dominant_culture(p, max_id);
+			});
+		});
+	};
+	BENCHMARK_ADVANCED("vectorized maximum")(Catch::Benchmark::Chronometer meter) {
+		trash_cache();
+		meter.measure([&]() {
+			ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+				ve::tagged_vector<dcon::culture_id> max_id;
+				ve::fp_vector max_value = 0.0f;
+				state->world.for_each_culture([&](dcon::culture_id c) {
+					auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c));
+					auto mask = v > max_value;
+					max_id = ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), max_id);
+					max_value = ve::select(mask, v, max_value);
+				});
+				state->world.province_set_dominant_culture(p, max_id);
+			});
+		});
+	};
+
+	static ve::vectorizable_buffer<float, dcon::province_id> max_buffer(uint32_t(1));
+	static uint32_t old_count = 1;
+
+	// this isn't needed here but I will need it in some of the other places
+	auto new_count = uint32_t(state->province_definitions.first_sea_province.index());
+	if(new_count > old_count) {
+		max_buffer = state->world.province_make_vectorizable_float_buffer();
+		old_count = new_count;
+	}
+
+	BENCHMARK_ADVANCED("vectorized loop exchanged maximum")(Catch::Benchmark::Chronometer meter) {
+		trash_cache();
+		meter.measure([&]() {
+			
+			ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+				max_buffer.set(p, ve::fp_vector());
+			});
+			state->world.for_each_culture([&](dcon::culture_id c) {
+				ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+					auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c));
+					auto old_max = max_buffer.get(p);
+					auto mask = v > old_max;
+					state->world.province_set_dominant_culture(p, ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), state->world.province_get_dominant_culture(p)));
+					max_buffer.set(p, ve::select(mask, v, old_max));
+				});
+			});
+		});
+	};
+	// ***************************/
 }
 #endif

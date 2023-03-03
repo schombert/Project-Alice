@@ -35,6 +35,8 @@ else()
 	target_compile_definitions(Alice PRIVATE "IGNORE_REAL_FILES_TESTS=1")
 endif()
 
+target_compile_definitions(Alice PRIVATE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
+
 if(NOT WIN32)
 	add_compile_definitions(PREFER_ONE_TBB)
 endif()

@@ -3484,27 +3484,15 @@ TRIGGER_FUNCTION(tf_pop_majority_ideology_pop) {
 		payload(tval[1]).ideo_id);
 }
 TRIGGER_FUNCTION(tf_poor_strata_militancy_nation) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::poor))
-			accumulator = accumulator + ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_poor_strata_militancy_state) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::poor))
-			accumulator = accumulator + ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_poor_strata_militancy_province) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.province_get_demographics(to_prov(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::poor))
-			accumulator = accumulator + ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_poor_strata_militancy_pop) {
@@ -3515,27 +3503,15 @@ TRIGGER_FUNCTION(tf_poor_strata_militancy_pop) {
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_middle_strata_militancy_nation) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::middle))
-			accumulator = accumulator + ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_middle_strata_militancy_state) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::middle))
-			accumulator = accumulator + ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_middle_strata_militancy_province) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.province_get_demographics(to_prov(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::middle))
-			accumulator = accumulator + ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_middle_strata_militancy_pop) {
@@ -3546,27 +3522,15 @@ TRIGGER_FUNCTION(tf_middle_strata_militancy_pop) {
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_rich_strata_militancy_nation) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
-			accumulator = accumulator + ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_rich_strata_militancy_state) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
-			accumulator = accumulator + ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_rich_strata_militancy_province) {
-	auto accumulator = std::remove_cvref_t<decltype(ws.world.province_get_demographics(to_prov(primary_slot), demographics::total))>();
-	ws.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-		if(ws.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
-			accumulator = accumulator + ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, pt));
-	});
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_total);
 	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_militancy) / accumulator, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_rich_strata_militancy_pop) {
@@ -3900,7 +3864,7 @@ TRIGGER_FUNCTION(tf_is_releasable_vassal_other) {
 }
 TRIGGER_FUNCTION(tf_has_recent_imigration) {
 	return compare_values(tval[0],
-		int32_t(tval[2]) + ve::apply([&ws, days = tval[1]](dcon::province_id p) {
+		int32_t(tval[1]) + ve::apply([&ws](dcon::province_id p) {
 			return ws.world.province_get_last_immigration(p).to_raw_value();
 		}, to_prov(primary_slot)),
 		ws.current_date.to_raw_value()
@@ -3908,10 +3872,10 @@ TRIGGER_FUNCTION(tf_has_recent_imigration) {
 }
 TRIGGER_FUNCTION(tf_province_control_days) {
 	return compare_values(tval[0],
-		 ws.current_date.to_raw_value() - ve::apply([&ws, days = tval[1]](dcon::province_id p) {
+		 ws.current_date.to_raw_value() - ve::apply([&ws](dcon::province_id p) {
 			return ws.world.province_get_last_control_change(p).to_raw_value();
 			}, to_prov(primary_slot)),
-		int32_t(tval[2])
+		int32_t(tval[1])
 	);
 }
 TRIGGER_FUNCTION(tf_is_disarmed) {
@@ -4214,6 +4178,284 @@ TRIGGER_FUNCTION(tf_involved_in_crisis_pop) {
 		return false;
 	}, owner);
 	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_rich_strata_life_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_life_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_life_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_life_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_rich_strata_life_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_rich_strata_everyday_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_everyday_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_everyday_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_everyday_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_rich_strata_everyday_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_rich_strata_luxury_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::rich_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_luxury_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::rich_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_luxury_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::rich_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_rich_strata_luxury_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_rich_strata_luxury_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_middle_strata_life_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_life_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_life_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_life_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_middle_strata_life_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_middle_strata_everyday_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_everyday_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_everyday_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_everyday_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_middle_strata_everyday_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_middle_strata_luxury_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::middle_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_luxury_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::middle_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_luxury_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::middle_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_middle_strata_luxury_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_middle_strata_luxury_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_poor_strata_life_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_life_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_life_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_life_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_life_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_poor_strata_life_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_poor_strata_everyday_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_everyday_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_everyday_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_everyday_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_everyday_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_poor_strata_everyday_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_poor_strata_luxury_needs_nation) {
+	auto accumulator = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.nation_get_demographics(to_nation(primary_slot), demographics::poor_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_luxury_needs_state) {
+	auto accumulator = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::poor_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_luxury_needs_province) {
+	auto accumulator = ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_total);
+	return compare_values(tval[0], ve::select(accumulator > 0.0f, ws.world.province_get_demographics(to_prov(primary_slot), demographics::poor_luxury_needs) / accumulator, 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_poor_strata_luxury_needs_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_poor_strata_luxury_needs_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_diplomatic_influence_tag) {
+	auto holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[2]).tag_id);
+	auto result = ve::apply([&ws, holder](dcon::nation_id a) {
+		auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(holder, a);
+		return ws.world.gp_relationship_get_influence(gpr);
+	}, to_nation(primary_slot));
+	return compare_values(tval[0], result, float(tval[1]));
+}
+TRIGGER_FUNCTION(tf_diplomatic_influence_this_nation) {
+	auto result = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
+		auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(b, a);
+		return ws.world.gp_relationship_get_influence(gpr);
+	}, to_nation(primary_slot), to_nation(this_slot));
+	return compare_values(tval[0], result, float(tval[1]));
+}
+TRIGGER_FUNCTION(tf_diplomatic_influence_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	auto result = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
+		auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(b, a);
+		return ws.world.gp_relationship_get_influence(gpr);
+	}, to_nation(primary_slot), owner);
+	return compare_values(tval[0], result, float(tval[1]));
+}
+TRIGGER_FUNCTION(tf_diplomatic_influence_from_nation) {
+	auto result = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
+		auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(b, a);
+		return ws.world.gp_relationship_get_influence(gpr);
+	}, to_nation(primary_slot), to_nation(from_slot));
+	return compare_values(tval[0], result, float(tval[1]));
+}
+TRIGGER_FUNCTION(tf_diplomatic_influence_from_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(from_slot));
+	auto result = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
+		auto gpr = ws.world.get_gp_relationship_by_gp_influence_pair(b, a);
+		return ws.world.gp_relationship_get_influence(gpr);
+	}, to_nation(primary_slot), owner);
+	return compare_values(tval[0], result, float(tval[1]));
+}
+TRIGGER_FUNCTION(tf_pop_unemployment_nation) {
+	auto type = payload(tval[3]).popt_id;
+	auto pop_size = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, type));
+	auto employment = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_employment_key(ws, type));
+	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_pop_unemployment_state) {
+	auto type = payload(tval[3]).popt_id;
+	auto pop_size = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, type));
+	auto employment = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_employment_key(ws, type));
+	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_pop_unemployment_province) {
+	auto type = payload(tval[3]).popt_id;
+	auto pop_size = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, type));
+	auto employment = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_employment_key(ws, type));
+	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_pop_unemployment_pop) {
+	auto pop_size = ws.world.pop_get_size(to_pop(primary_slot));
+	auto employment = ws.world.pop_get_employment(to_pop(primary_slot));
+	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_pop_unemployment_nation_this_pop) {
+	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
+	auto pop_size = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, type));
+	auto employment = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_employment_key(ws, type));
+	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_pop_unemployment_state_this_pop) {
+	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
+	auto pop_size = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, type));
+	auto employment = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_employment_key(ws, type));
+	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_pop_unemployment_province_this_pop) {
+	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
+	auto pop_size = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, type));
+	auto employment = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_employment_key(ws, type));
+	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_relation_tag) {
+	auto holder = ws.world.national_identity_get_nation_from_identity_holder(payload(tval[2]).tag_id);
+	auto relation = ve::apply([&ws, holder](dcon::nation_id a) {
+		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, holder);
+		return ws.world.diplomatic_relation_get_value(rel);
+	}, to_nation(primary_slot));
+	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+}
+TRIGGER_FUNCTION(tf_relation_this_nation) {
+	auto relation = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
+		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+		return ws.world.diplomatic_relation_get_value(rel);
+	}, to_nation(primary_slot), to_nation(this_slot));
+	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+}
+TRIGGER_FUNCTION(tf_relation_this_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
+	auto relation = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
+		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+		return ws.world.diplomatic_relation_get_value(rel);
+	}, to_nation(primary_slot), owner);
+	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+}
+TRIGGER_FUNCTION(tf_relation_from_nation) {
+	auto relation = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
+		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+		return ws.world.diplomatic_relation_get_value(rel);
+	}, to_nation(primary_slot), to_nation(from_slot));
+	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+}
+TRIGGER_FUNCTION(tf_relation_from_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(from_slot));
+	auto relation = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
+		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+		return ws.world.diplomatic_relation_get_value(rel);
+	}, to_nation(primary_slot), owner);
+	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+}
+TRIGGER_FUNCTION(tf_check_variable) {
+	auto id = payload(tval[3]).natv_id;
+	return compare_values(tval[0], ws.world.nation_get_variables(to_nation(primary_slot), id), read_float_from_payload(tval + 1));
+}
+TRIGGER_FUNCTION(tf_upper_house) {
+	auto id = payload(tval[3]).ideo_id;
+	return compare_values(tval[0], ws.world.nation_get_upper_house(to_nation(primary_slot), id), read_float_from_payload(tval + 1));
 }
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
@@ -4709,61 +4951,61 @@ struct trigger_container {
 		tf_crisis_temperature<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t crisis_temperature = 0x01E6;
 		tf_involved_in_crisis_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t involved_in_crisis_pop = 0x01E7;
 		tf_involved_in_crisis_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t involved_in_crisis_nation = 0x01E8;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_life_needs_nation = 0x01E9;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_life_needs_state = 0x01EA;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_life_needs_province = 0x01EB;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_life_needs_pop = 0x01EC;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_everyday_needs_nation = 0x01ED;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_everyday_needs_state = 0x01EE;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_everyday_needs_province = 0x01EF;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_everyday_needs_pop = 0x01F0;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_luxury_needs_nation = 0x01F1;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_luxury_needs_state = 0x01F2;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_luxury_needs_province = 0x01F3;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_luxury_needs_pop = 0x01F4;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_life_needs_nation = 0x01F5;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_life_needs_state = 0x01F6;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_life_needs_province = 0x01F7;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_life_needs_pop = 0x01F8;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_everyday_needs_nation = 0x01F9;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_everyday_needs_state = 0x01FA;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_everyday_needs_province = 0x01FB;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_everyday_needs_pop = 0x01FC;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_luxury_needs_nation = 0x01FD;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_luxury_needs_state = 0x01FE;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_luxury_needs_province = 0x01FF;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_luxury_needs_pop = 0x0200;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_life_needs_nation = 0x0201;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_life_needs_state = 0x0202;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_life_needs_province = 0x0203;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_life_needs_pop = 0x0204;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_everyday_needs_nation = 0x0205;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_everyday_needs_state = 0x0206;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_everyday_needs_province = 0x0207;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_everyday_needs_pop = 0x0208;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_luxury_needs_nation = 0x0209;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_luxury_needs_state = 0x020A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_luxury_needs_province = 0x020B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_luxury_needs_pop = 0x020C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_tag = 0x020D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_this_nation = 0x020E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_this_province = 0x020F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_from_nation = 0x0210;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_from_province = 0x0211;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_nation = 0x0212;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_state = 0x0213;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_province = 0x0214;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_pop = 0x0215;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_nation_this_pop = 0x0216;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_state_this_pop = 0x0217;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_province_this_pop = 0x0218;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_tag = 0x0219;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_this_nation = 0x021A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_this_province = 0x021B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_from_nation = 0x021C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_from_province = 0x021D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t check_variable = 0x021E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t upper_house = 0x021F;
+		tf_rich_strata_life_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_life_needs_nation = 0x01E9;
+		tf_rich_strata_life_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_life_needs_state = 0x01EA;
+		tf_rich_strata_life_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_life_needs_province = 0x01EB;
+		tf_rich_strata_life_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_life_needs_pop = 0x01EC;
+		tf_rich_strata_everyday_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_everyday_needs_nation = 0x01ED;
+		tf_rich_strata_everyday_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_everyday_needs_state = 0x01EE;
+		tf_rich_strata_everyday_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_everyday_needs_province = 0x01EF;
+		tf_rich_strata_everyday_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_everyday_needs_pop = 0x01F0;
+		tf_rich_strata_luxury_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_luxury_needs_nation = 0x01F1;
+		tf_rich_strata_luxury_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_luxury_needs_state = 0x01F2;
+		tf_rich_strata_luxury_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_luxury_needs_province = 0x01F3;
+		tf_rich_strata_luxury_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t rich_strata_luxury_needs_pop = 0x01F4;
+		tf_middle_strata_life_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_life_needs_nation = 0x01F5;
+		tf_middle_strata_life_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_life_needs_state = 0x01F6;
+		tf_middle_strata_life_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_life_needs_province = 0x01F7;
+		tf_middle_strata_life_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_life_needs_pop = 0x01F8;
+		tf_middle_strata_everyday_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_everyday_needs_nation = 0x01F9;
+		tf_middle_strata_everyday_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_everyday_needs_state = 0x01FA;
+		tf_middle_strata_everyday_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_everyday_needs_province = 0x01FB;
+		tf_middle_strata_everyday_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_everyday_needs_pop = 0x01FC;
+		tf_middle_strata_luxury_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_luxury_needs_nation = 0x01FD;
+		tf_middle_strata_luxury_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_luxury_needs_state = 0x01FE;
+		tf_middle_strata_luxury_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_luxury_needs_province = 0x01FF;
+		tf_middle_strata_luxury_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t middle_strata_luxury_needs_pop = 0x0200;
+		tf_poor_strata_life_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_life_needs_nation = 0x0201;
+		tf_poor_strata_life_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_life_needs_state = 0x0202;
+		tf_poor_strata_life_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_life_needs_province = 0x0203;
+		tf_poor_strata_life_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_life_needs_pop = 0x0204;
+		tf_poor_strata_everyday_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_everyday_needs_nation = 0x0205;
+		tf_poor_strata_everyday_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_everyday_needs_state = 0x0206;
+		tf_poor_strata_everyday_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_everyday_needs_province = 0x0207;
+		tf_poor_strata_everyday_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_everyday_needs_pop = 0x0208;
+		tf_poor_strata_luxury_needs_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_luxury_needs_nation = 0x0209;
+		tf_poor_strata_luxury_needs_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_luxury_needs_state = 0x020A;
+		tf_poor_strata_luxury_needs_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_luxury_needs_province = 0x020B;
+		tf_poor_strata_luxury_needs_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t poor_strata_luxury_needs_pop = 0x020C;
+		tf_diplomatic_influence_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_tag = 0x020D;
+		tf_diplomatic_influence_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_this_nation = 0x020E;
+		tf_diplomatic_influence_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_this_province = 0x020F;
+		tf_diplomatic_influence_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_from_nation = 0x0210;
+		tf_diplomatic_influence_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t diplomatic_influence_from_province = 0x0211;
+		tf_pop_unemployment_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_nation = 0x0212;
+		tf_pop_unemployment_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_state = 0x0213;
+		tf_pop_unemployment_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_province = 0x0214;
+		tf_pop_unemployment_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_pop = 0x0215;
+		tf_pop_unemployment_nation_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_nation_this_pop = 0x0216;
+		tf_pop_unemployment_state_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_state_this_pop = 0x0217;
+		tf_pop_unemployment_province_this_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t pop_unemployment_province_this_pop = 0x0218;
+		tf_relation_tag<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_tag = 0x0219;
+		tf_relation_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_this_nation = 0x021A;
+		tf_relation_this_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_this_province = 0x021B;
+		tf_relation_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_from_nation = 0x021C;
+		tf_relation_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_from_province = 0x021D;
+		tf_check_variable<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t check_variable = 0x021E;
+		tf_upper_house<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t upper_house = 0x021F;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_nation = 0x0220;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_state = 0x0221;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_province = 0x0222;

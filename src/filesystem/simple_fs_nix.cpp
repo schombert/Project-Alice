@@ -48,7 +48,7 @@ file::file(native_string const& full_path) {
         struct stat sb;
         if (fstat(file_descriptor, &sb) != -1) {
             content.file_size = sb.st_size;
-            mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_SHARED, file_descriptor, 0);
+            mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
             if (mapping_handle == MAP_FAILED) {
                 // error
             }
@@ -61,7 +61,7 @@ file::file(int file_descriptor, native_string const& full_path) : file_descripto
     struct stat sb;
     if (fstat(file_descriptor, &sb) != -1) {
         content.file_size = sb.st_size;
-        mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_SHARED, file_descriptor, 0);
+        mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
         if (mapping_handle == MAP_FAILED) {
             // error
         }
