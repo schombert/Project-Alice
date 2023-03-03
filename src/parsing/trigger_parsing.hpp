@@ -3697,7 +3697,7 @@ struct trigger_body {
 						return;
 					}
 					context.compiled_trigger.push_back(trigger::payload(context.outer_context.original_id_to_prov_id_map[value.province_id]).value);
-					context.add_float_to_payload(value.value_);
+					context.compiled_trigger.push_back(trigger::payload(int16_t(value.value_)).value);
 					context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
 				} else {
 					err.accumulated_errors += "party_loyalty trigger supplied with an invalid province id (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3715,7 +3715,7 @@ struct trigger_body {
 					err.accumulated_errors += "party_loyalty trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
-				context.add_float_to_payload(value.value_);
+				context.compiled_trigger.push_back(trigger::payload(int16_t(value.value_)).value);
 				context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
 			}
 		} else {

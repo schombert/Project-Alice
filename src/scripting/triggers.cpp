@@ -4457,6 +4457,227 @@ TRIGGER_FUNCTION(tf_upper_house) {
 	auto id = payload(tval[3]).ideo_id;
 	return compare_values(tval[0], ws.world.nation_get_upper_house(to_nation(primary_slot), id), read_float_from_payload(tval + 1));
 }
+TRIGGER_FUNCTION(tf_unemployment_by_type_nation) {
+	return tf_pop_unemployment_nation<return_type>(tval, ws, primary_slot, int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_unemployment_by_type_state) {
+	return tf_pop_unemployment_state<return_type>(tval, ws, primary_slot, int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_unemployment_by_type_province) {
+	return tf_pop_unemployment_province<return_type>(tval, ws, primary_slot, int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_unemployment_by_type_pop) {
+	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
+	auto si = ws.world.province_get_state_membership(location);
+	return tf_unemployment_by_type_state<return_type>(tval, ws, to_generic(si), int32_t(), int32_t());
+}
+TRIGGER_FUNCTION(tf_party_loyalty_nation_province_id) {
+	return compare_values(tval[0],
+		ws.world.province_get_party_loyalty(payload(tval[1]).prov_id, payload(tval[3]).ideo_id),
+		payload(tval[2]).signed_value);
+}
+TRIGGER_FUNCTION(tf_party_loyalty_from_nation_province_id) {
+	return compare_values(tval[0],
+		ws.world.province_get_party_loyalty(payload(tval[1]).prov_id, payload(tval[3]).ideo_id),
+		payload(tval[2]).signed_value);
+}
+TRIGGER_FUNCTION(tf_party_loyalty_province_province_id) {
+	return compare_values(tval[0],
+		ws.world.province_get_party_loyalty(payload(tval[1]).prov_id, payload(tval[3]).ideo_id),
+		payload(tval[2]).signed_value);
+}
+TRIGGER_FUNCTION(tf_party_loyalty_from_province_province_id) {
+	return compare_values(tval[0],
+		ws.world.province_get_party_loyalty(payload(tval[1]).prov_id, payload(tval[3]).ideo_id),
+		payload(tval[2]).signed_value);
+}
+TRIGGER_FUNCTION(tf_party_loyalty_nation_from_province) {
+	return compare_values(tval[0],
+		ws.world.province_get_party_loyalty(to_prov(from_slot), payload(tval[2]).ideo_id),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_party_loyalty_generic) {
+	return compare_values(tval[0],
+		ws.world.province_get_party_loyalty(to_prov(primary_slot), payload(tval[2]).ideo_id),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_party_loyalty_from_nation_scope_province) {
+	return compare_values(tval[0],
+		ws.world.province_get_party_loyalty(to_prov(primary_slot), payload(tval[2]).ideo_id),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_party_loyalty_from_province_scope_province) {
+	return compare_values(tval[0],
+		ws.world.province_get_party_loyalty(to_prov(primary_slot), payload(tval[2]).ideo_id),
+		payload(tval[1]).signed_value);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_railroad_no_limit_from_nation) {
+	return compare_to_true(tval[0],
+		ve::to_float(ws.world.province_get_railroad_level(to_prov(primary_slot))) + ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) < ve::to_float(ws.world.nation_get_max_railroad_level(to_nation(from_slot)))
+	);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_railroad_yes_limit_from_nation) {
+	return compare_to_true(tval[0],
+		ve::to_float(ws.world.province_get_railroad_level(to_prov(primary_slot))) + ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) < ve::to_float(ws.world.nation_get_max_railroad_level(to_nation(from_slot)))
+	);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_railroad_no_limit_this_nation) {
+	return compare_to_true(tval[0],
+		ve::to_float(ws.world.province_get_railroad_level(to_prov(primary_slot))) + ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) < ve::to_float(ws.world.nation_get_max_railroad_level(to_nation(this_slot)))
+	);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_railroad_yes_limit_this_nation) {
+	return compare_to_true(tval[0],
+		ve::to_float(ws.world.province_get_railroad_level(to_prov(primary_slot))) + ws.world.province_get_modifier_values(to_prov(primary_slot), sys::provincial_mod_offsets::min_build_railroad) < ve::to_float(ws.world.nation_get_max_railroad_level(to_nation(this_slot)))
+	);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_fort_no_limit_from_nation) {
+	return compare_to_true(tval[0],
+		ws.world.province_get_fort_level(to_prov(primary_slot)) < ws.world.nation_get_max_fort_level(to_nation(from_slot))
+	);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_fort_yes_limit_from_nation) {
+	return compare_to_true(tval[0],
+		ws.world.province_get_fort_level(to_prov(primary_slot)) < ws.world.nation_get_max_fort_level(to_nation(from_slot))
+	);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_fort_no_limit_this_nation) {
+	return compare_to_true(tval[0],
+		ws.world.province_get_fort_level(to_prov(primary_slot)) < ws.world.nation_get_max_fort_level(to_nation(this_slot))
+	);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_fort_yes_limit_this_nation) {
+	return compare_to_true(tval[0],
+		ws.world.province_get_fort_level(to_prov(primary_slot)) < ws.world.nation_get_max_fort_level(to_nation(this_slot))
+	);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_no_limit_from_nation) {
+	auto result =
+		ws.world.province_get_is_coast(to_prov(primary_slot))
+		&& (ws.world.province_get_naval_base_level(to_prov(primary_slot)) < ws.world.nation_get_max_naval_base_level(to_nation(from_slot)))
+		&& (	ws.world.province_get_naval_base_level(to_prov(primary_slot)) != 0
+				|| ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); }, ws.world.province_get_state_membership(to_prov(primary_slot))));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_yes_limit_from_nation) {
+	auto result =
+		ws.world.province_get_is_coast(to_prov(primary_slot))
+		&& (ws.world.province_get_naval_base_level(to_prov(primary_slot)) < ws.world.nation_get_max_naval_base_level(to_nation(from_slot)))
+		&& (ws.world.province_get_naval_base_level(to_prov(primary_slot)) != 0
+				|| ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); }, ws.world.province_get_state_membership(to_prov(primary_slot))));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_no_limit_this_nation) {
+	auto result =
+		ws.world.province_get_is_coast(to_prov(primary_slot))
+		&& (ws.world.province_get_naval_base_level(to_prov(primary_slot)) < ws.world.nation_get_max_naval_base_level(to_nation(this_slot)))
+		&& (ws.world.province_get_naval_base_level(to_prov(primary_slot)) != 0
+				|| ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); }, ws.world.province_get_state_membership(to_prov(primary_slot))));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_yes_limit_this_nation) {
+	auto result =
+		ws.world.province_get_is_coast(to_prov(primary_slot))
+		&& (ws.world.province_get_naval_base_level(to_prov(primary_slot)) < ws.world.nation_get_max_naval_base_level(to_nation(this_slot)))
+		&& (ws.world.province_get_naval_base_level(to_prov(primary_slot)) != 0
+				|| ve::apply([&ws](dcon::state_instance_id i) { return !(military::state_has_naval_base(ws, i)); }, ws.world.province_get_state_membership(to_prov(primary_slot))));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_can_build_railway_in_capital_yes_whole_state_yes_limit) {
+	// stub: virtually unused
+	return compare_to_true(tval[0], true);
+}
+TRIGGER_FUNCTION(tf_can_build_railway_in_capital_yes_whole_state_no_limit) {
+	// stub: virtually unused
+	return compare_to_true(tval[0], true);
+}
+TRIGGER_FUNCTION(tf_can_build_railway_in_capital_no_whole_state_yes_limit) {
+	// stub: virtually unused
+	return compare_to_true(tval[0], true);
+}
+TRIGGER_FUNCTION(tf_can_build_railway_in_capital_no_whole_state_no_limit) {
+	// stub: virtually unused
+	return compare_to_true(tval[0], true);
+}
+TRIGGER_FUNCTION(tf_can_build_fort_in_capital_yes_whole_state_yes_limit) {
+	// stub: virtually unused
+	return compare_to_true(tval[0], true);
+}
+TRIGGER_FUNCTION(tf_can_build_fort_in_capital_yes_whole_state_no_limit) {
+	// stub: virtually unused
+	return compare_to_true(tval[0], true);
+}
+TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_yes_limit) {
+	// stub: virtually unused
+	return compare_to_true(tval[0], true);
+}
+TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_no_limit) {
+	// stub: virtually unused
+	return compare_to_true(tval[0], true);
+}
+TRIGGER_FUNCTION(tf_work_available_nation) {
+	auto type = payload(tval[1]).popt_id;
+	auto result = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_employment_key(ws, type)) >= ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, type));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_work_available_state) {
+	auto type = payload(tval[1]).popt_id;
+	auto result = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_employment_key(ws, type)) >= ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, type));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_work_available_province) {
+	auto type = payload(tval[1]).popt_id;
+	auto result = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_employment_key(ws, type)) >= ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, type));
+	return compare_to_true(tval[0], result);
+}
+TRIGGER_FUNCTION(tf_variable_ideology_name_nation) {
+	auto id = payload(tval[1]).ideo_id;
+	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
+	auto support_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, id));
+	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_variable_ideology_name_state) {
+	auto id = payload(tval[1]).ideo_id;
+	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
+	auto support_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, id));
+	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_variable_ideology_name_province) {
+	auto id = payload(tval[1]).ideo_id;
+	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
+	auto support_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, id));
+	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_variable_ideology_name_pop) {
+	auto id = payload(tval[1]).ideo_id;
+	auto total_pop = ws.world.pop_get_size(to_pop(primary_slot));
+	auto support_pop = ws.world.pop_get_demographics(to_pop(primary_slot), pop_demographics::to_key(ws, id));
+	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_variable_issue_name_nation) {
+	auto id = payload(tval[1]).opt_id;
+	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
+	auto support_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, id));
+	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_variable_issue_name_state) {
+	auto id = payload(tval[1]).opt_id;
+	auto total_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
+	auto support_pop = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, id));
+	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_variable_issue_name_province) {
+	auto id = payload(tval[1]).opt_id;
+	auto total_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
+	auto support_pop = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, id));
+	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+}
+TRIGGER_FUNCTION(tf_variable_issue_name_pop) {
+	auto id = payload(tval[1]).opt_id;
+	auto total_pop = ws.world.pop_get_size(to_pop(primary_slot));
+	auto support_pop = ws.world.pop_get_demographics(to_pop(primary_slot), pop_demographics::to_key(ws, id));
+	return compare_values(tval[0], ve::select(total_pop > 0.0f, support_pop / total_pop, 0.0f), read_float_from_payload(tval + 2));
+}
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(CALLTYPE* trigger_functions[])(uint16_t const*, sys::state&,
@@ -5006,47 +5227,47 @@ struct trigger_container {
 		tf_relation_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t relation_from_province = 0x021D;
 		tf_check_variable<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t check_variable = 0x021E;
 		tf_upper_house<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t upper_house = 0x021F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_nation = 0x0220;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_state = 0x0221;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_province = 0x0222;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_pop = 0x0223;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_nation_province_id = 0x0224;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_from_nation_province_id = 0x0225;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_province_province_id = 0x0226;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_from_province_province_id = 0x0227;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_nation_from_province = 0x0228;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_from_nation_scope_province = 0x0229;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_railroad_no_limit_from_nation = 0x022A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_railroad_yes_limit_from_nation = 0x022B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_railroad_no_limit_this_nation = 0x022C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_railroad_yes_limit_this_nation = 0x022D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_fort_no_limit_from_nation = 0x022E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_fort_yes_limit_from_nation = 0x022F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_fort_no_limit_this_nation = 0x0230;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_fort_yes_limit_this_nation = 0x0231;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_naval_base_no_limit_from_nation = 0x0232;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_naval_base_yes_limit_from_nation = 0x0233;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_naval_base_no_limit_this_nation = 0x0234;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_naval_base_yes_limit_this_nation = 0x0235;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_railway_in_capital_yes_whole_state_yes_limit = 0x0236;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_railway_in_capital_yes_whole_state_no_limit = 0x0237;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_railway_in_capital_no_whole_state_yes_limit = 0x0238;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_railway_in_capital_no_whole_state_no_limit = 0x0239;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_fort_in_capital_yes_whole_state_yes_limit = 0x023A;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_fort_in_capital_yes_whole_state_no_limit = 0x023B;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_fort_in_capital_no_whole_state_yes_limit = 0x023C;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_fort_in_capital_no_whole_state_no_limit = 0x023D;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t work_available_nation = 0x023E;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t work_available_state = 0x023F;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t work_available_province = 0x0240;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_ideology_name_nation = 0x0241;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_ideology_name_state = 0x0242;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_ideology_name_province = 0x0243;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_ideology_name_pop = 0x0244;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_name_nation = 0x0245;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_name_state = 0x0246;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_name_province = 0x0247;
-		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_name_pop = 0x0248;
+		tf_unemployment_by_type_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_nation = 0x0220;
+		tf_unemployment_by_type_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_state = 0x0221;
+		tf_unemployment_by_type_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_province = 0x0222;
+		tf_unemployment_by_type_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t unemployment_by_type_pop = 0x0223;
+		tf_party_loyalty_nation_province_id<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_nation_province_id = 0x0224;
+		tf_party_loyalty_from_nation_province_id<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_from_nation_province_id = 0x0225;
+		tf_party_loyalty_province_province_id<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_province_province_id = 0x0226;
+		tf_party_loyalty_from_province_province_id<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_from_province_province_id = 0x0227;
+		tf_party_loyalty_nation_from_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_nation_from_province = 0x0228;
+		tf_party_loyalty_from_nation_scope_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t party_loyalty_from_nation_scope_province = 0x0229;
+		tf_can_build_in_province_railroad_no_limit_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_railroad_no_limit_from_nation = 0x022A;
+		tf_can_build_in_province_railroad_yes_limit_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_railroad_yes_limit_from_nation = 0x022B;
+		tf_can_build_in_province_railroad_no_limit_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_railroad_no_limit_this_nation = 0x022C;
+		tf_can_build_in_province_railroad_yes_limit_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_railroad_yes_limit_this_nation = 0x022D;
+		tf_can_build_in_province_fort_no_limit_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_fort_no_limit_from_nation = 0x022E;
+		tf_can_build_in_province_fort_yes_limit_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_fort_yes_limit_from_nation = 0x022F;
+		tf_can_build_in_province_fort_no_limit_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_fort_no_limit_this_nation = 0x0230;
+		tf_can_build_in_province_fort_yes_limit_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_fort_yes_limit_this_nation = 0x0231;
+		tf_can_build_in_province_naval_base_no_limit_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_naval_base_no_limit_from_nation = 0x0232;
+		tf_can_build_in_province_naval_base_yes_limit_from_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_naval_base_yes_limit_from_nation = 0x0233;
+		tf_can_build_in_province_naval_base_no_limit_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_naval_base_no_limit_this_nation = 0x0234;
+		tf_can_build_in_province_naval_base_yes_limit_this_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_in_province_naval_base_yes_limit_this_nation = 0x0235;
+		tf_can_build_railway_in_capital_yes_whole_state_yes_limit<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_railway_in_capital_yes_whole_state_yes_limit = 0x0236;
+		tf_can_build_railway_in_capital_yes_whole_state_no_limit<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_railway_in_capital_yes_whole_state_no_limit = 0x0237;
+		tf_can_build_railway_in_capital_no_whole_state_yes_limit<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_railway_in_capital_no_whole_state_yes_limit = 0x0238;
+		tf_can_build_railway_in_capital_no_whole_state_no_limit<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_railway_in_capital_no_whole_state_no_limit = 0x0239;
+		tf_can_build_fort_in_capital_yes_whole_state_yes_limit<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_fort_in_capital_yes_whole_state_yes_limit = 0x023A;
+		tf_can_build_fort_in_capital_yes_whole_state_no_limit<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_fort_in_capital_yes_whole_state_no_limit = 0x023B;
+		tf_can_build_fort_in_capital_no_whole_state_yes_limit<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_fort_in_capital_no_whole_state_yes_limit = 0x023C;
+		tf_can_build_fort_in_capital_no_whole_state_no_limit<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t can_build_fort_in_capital_no_whole_state_no_limit = 0x023D;
+		tf_work_available_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t work_available_nation = 0x023E;
+		tf_work_available_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t work_available_state = 0x023F;
+		tf_work_available_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t work_available_province = 0x0240;
+		tf_variable_ideology_name_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_ideology_name_nation = 0x0241;
+		tf_variable_ideology_name_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_ideology_name_state = 0x0242;
+		tf_variable_ideology_name_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_ideology_name_province = 0x0243;
+		tf_variable_ideology_name_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_ideology_name_pop = 0x0244;
+		tf_variable_issue_name_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_name_nation = 0x0245;
+		tf_variable_issue_name_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_name_state = 0x0246;
+		tf_variable_issue_name_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_name_province = 0x0247;
+		tf_variable_issue_name_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_name_pop = 0x0248;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_group_name_nation = 0x0249;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_group_name_state = 0x024A;
 		tf_none<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_issue_group_name_province = 0x024B;

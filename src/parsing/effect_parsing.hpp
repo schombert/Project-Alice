@@ -2670,11 +2670,11 @@ struct effect_body {
 			context.compiled_effect.push_back(effect::party_loyalty);
 			context.compiled_effect.push_back(trigger::payload(value.province_id_).value);
 			context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
-			context.add_float_to_payload(value.loyalty_value);
+			context.compiled_effect.push_back(trigger::payload(int16_t(value.loyalty_value)).value);
 		} else if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(effect::party_loyalty_province);
 			context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
-			context.add_float_to_payload(value.loyalty_value);
+			context.compiled_effect.push_back(trigger::payload(int16_t(value.loyalty_value)).value);
 		} else {
 			err.accumulated_errors += "party_loyalty effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
