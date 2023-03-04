@@ -247,6 +247,26 @@ void display_data::create_border_data(parsers::scenario_building_context& contex
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 			}
 		}
+		{
+			// handle the international date line
+			auto prov_id_ul = province_id_map[((size_x - 1) + 0) + (y + 0) * size_x];
+			auto prov_id_ur = province_id_map[0 + (y + 0) * size_x];
+			auto prov_id_dl = province_id_map[((size_x - 1) + 0) + (y + 1) * size_x];
+			auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
+			if(prov_id_ul != prov_id_ur) {
+				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_ur != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+			} else if(prov_id_ul != prov_id_dl) {
+				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_dl != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+			} else if(prov_id_ul != prov_id_dr) {
+				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_dr != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
+			}
+		}
 	}
 }
 void display_data::create_border_ogl_objects() {
@@ -455,7 +475,7 @@ void display_data::create_meshes() {
 		bool last_is_water = terrain_id_map[index++] > 64;
 		for(uint32_t x = 1; x < size_x; x++) {
 			bool is_water = terrain_id_map[index++] > 64;
-			if(is_water != last_is_water) {
+			if(is_water != last_is_water || (x & (256 - 1)) == 0) {
 				if(last_is_water)
 					add_quad(water_vertices, last_x, y, x, y + 1);
 				else
@@ -591,6 +611,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 
 void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
 	update(state);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, provinces_texture_handle);
 	glActiveTexture(GL_TEXTURE1);
@@ -634,12 +658,12 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 
 	glBindVertexBuffer(0, land_vbo, 0, sizeof(GLfloat) * 2);
 
-	glUniform2f(0, offset_x - 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
+	//glUniform2f(0, offset_x - 1.f, offset_y);
+	//glDrawArrays(GL_TRIANGLES, 0, land_indicies);
 	glUniform2f(0, offset_x + 0.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
-	glUniform2f(0, offset_x + 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
+	//glUniform2f(0, offset_x + 1.f, offset_y);
+	//glDrawArrays(GL_TRIANGLES, 0, land_indicies);
 
 	if(active_map_mode == map_mode::mode::terrain || zoom > 5) {
 		glUseProgram(water_shader);
@@ -658,12 +682,12 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 
 	glBindVertexBuffer(0, water_vbo, 0, sizeof(GLfloat) * 2);
 
-	glUniform2f(0, offset_x - 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
+	//glUniform2f(0, offset_x - 1.f, offset_y);
+	//glDrawArrays(GL_TRIANGLES, 0, water_indicies);
 	glUniform2f(0, offset_x + 0.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
-	glUniform2f(0, offset_x + 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
+	//glUniform2f(0, offset_x + 1.f, offset_y);
+	//glDrawArrays(GL_TRIANGLES, 0, water_indicies);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, border_texture);
@@ -681,12 +705,14 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 
 	glBindVertexBuffer(0, border_vbo, 0, sizeof(GLfloat) * 6);
 
-	glUniform2f(0, offset_x - 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
+	//glUniform2f(0, offset_x - 1.f, offset_y);
+	//glDrawArrays(GL_TRIANGLES, 0, border_indicies);
 	glUniform2f(0, offset_x + 0.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
-	glUniform2f(0, offset_x + 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
+	//glUniform2f(0, offset_x + 1.f, offset_y);
+	//glDrawArrays(GL_TRIANGLES, 0, border_indicies);
+
+	glDisable(GL_CULL_FACE);
 }
 
 GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x, uint32_t size_y) {
