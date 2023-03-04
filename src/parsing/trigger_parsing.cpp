@@ -6,7 +6,7 @@
 namespace parsers {
 
 void tr_scope_and(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	context.compiled_trigger.push_back(uint16_t(trigger::generic_scope | trigger::is_scope));
+	context.compiled_trigger.push_back(uint16_t(trigger::generic_scope));
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -16,7 +16,7 @@ void tr_scope_and(token_generator& gen, error_handler& err, trigger_building_con
 }
 
 void tr_scope_or(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	context.compiled_trigger.push_back(uint16_t(trigger::generic_scope | trigger::is_disjunctive_scope | trigger::is_scope));
+	context.compiled_trigger.push_back(uint16_t(trigger::generic_scope | trigger::is_disjunctive_scope));
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -25,7 +25,7 @@ void tr_scope_or(token_generator& gen, error_handler& err, trigger_building_cont
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
 void tr_scope_not(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	context.compiled_trigger.push_back(uint16_t(trigger::placeholder_not_scope | trigger::is_scope));
+	context.compiled_trigger.push_back(uint16_t(trigger::placeholder_not_scope));
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -35,7 +35,7 @@ void tr_scope_not(token_generator& gen, error_handler& err, trigger_building_con
 }
 void tr_scope_any_neighbor_province(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_neighbor_province_scope | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_neighbor_province_scope | trigger::is_existence_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -50,9 +50,9 @@ void tr_scope_any_neighbor_province(token_generator& gen, error_handler& err, tr
 }
 void tr_scope_any_neighbor_country(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_neighbor_country_scope_nation | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_neighbor_country_scope_nation | trigger::is_existence_scope));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_neighbor_country_scope_pop | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_neighbor_country_scope_pop | trigger::is_existence_scope));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_neighbor_country trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -70,9 +70,9 @@ void tr_scope_any_neighbor_country(token_generator& gen, error_handler& err, tri
 }
 void tr_scope_war_countries(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_nation | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_nation));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_pop | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_pop));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "war_countries trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -89,7 +89,7 @@ void tr_scope_war_countries(token_generator& gen, error_handler& err, trigger_bu
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
 void tr_scope_any_greater_power(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	context.compiled_trigger.push_back(uint16_t(trigger::x_greater_power_scope | trigger::is_existence_scope | trigger::is_scope));
+	context.compiled_trigger.push_back(uint16_t(trigger::x_greater_power_scope | trigger::is_existence_scope));
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -102,9 +102,9 @@ void tr_scope_any_greater_power(token_generator& gen, error_handler& err, trigge
 }
 void tr_scope_any_owned_province(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_owned_province_scope_nation | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_owned_province_scope_nation | trigger::is_existence_scope));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_owned_province_scope_state | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_owned_province_scope_state | trigger::is_existence_scope));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_owned_province trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -122,9 +122,9 @@ void tr_scope_any_owned_province(token_generator& gen, error_handler& err, trigg
 }
 void tr_scope_any_core(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_core_scope_nation | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_core_scope_nation | trigger::is_existence_scope));
 	} else if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_core_scope_province | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_core_scope_province | trigger::is_existence_scope));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_core trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -142,9 +142,9 @@ void tr_scope_any_core(token_generator& gen, error_handler& err, trigger_buildin
 }
 void tr_scope_all_core(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_core_scope_nation | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_core_scope_nation));
 	} else if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_core_scope_province | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_core_scope_province));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "all_core trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -162,7 +162,7 @@ void tr_scope_all_core(token_generator& gen, error_handler& err, trigger_buildin
 }
 void tr_scope_any_state(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_state_scope | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_state_scope | trigger::is_existence_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -179,7 +179,7 @@ void tr_scope_any_state(token_generator& gen, error_handler& err, trigger_buildi
 }
 void tr_scope_any_substate(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_substate_scope | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_substate_scope | trigger::is_existence_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -194,7 +194,7 @@ void tr_scope_any_substate(token_generator& gen, error_handler& err, trigger_bui
 }
 void tr_scope_any_sphere_member(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_sphere_member_scope | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_sphere_member_scope | trigger::is_existence_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -209,11 +209,11 @@ void tr_scope_any_sphere_member(token_generator& gen, error_handler& err, trigge
 }
 void tr_scope_any_pop(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_pop_scope_nation | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_pop_scope_nation | trigger::is_existence_scope));
 	} else if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_pop_scope_province | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_pop_scope_province | trigger::is_existence_scope));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_pop_scope_state | trigger::is_existence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_pop_scope_state | trigger::is_existence_scope));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_pop trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -231,9 +231,9 @@ void tr_scope_any_pop(token_generator& gen, error_handler& err, trigger_building
 }
 void tr_scope_owner(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::owner_scope_province | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::owner_scope_province));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_trigger.push_back(uint16_t(trigger::owner_scope_state | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::owner_scope_state));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "owner trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -251,7 +251,7 @@ void tr_scope_owner(token_generator& gen, error_handler& err, trigger_building_c
 }
 void tr_scope_controller(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::controller_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::controller_scope));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "controller trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -268,7 +268,7 @@ void tr_scope_controller(token_generator& gen, error_handler& err, trigger_build
 }
 void tr_scope_location(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::location_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::location_scope));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "location trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -285,13 +285,13 @@ void tr_scope_location(token_generator& gen, error_handler& err, trigger_buildin
 }
 void tr_scope_country(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::country_scope_province | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::country_scope_province));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_trigger.push_back(uint16_t(trigger::country_scope_state | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::country_scope_state));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::country_scope_nation | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::country_scope_nation));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::country_scope_pop | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::country_scope_pop));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "country trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -309,7 +309,7 @@ void tr_scope_country(token_generator& gen, error_handler& err, trigger_building
 }
 void tr_capital_scope(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::capital_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::capital_scope));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "capital_scope trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -326,13 +326,13 @@ void tr_capital_scope(token_generator& gen, error_handler& err, trigger_building
 }
 void tr_scope_this(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::this_scope_province | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::this_scope_province));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_trigger.push_back(uint16_t(trigger::this_scope_state | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::this_scope_state));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::this_scope_nation | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::this_scope_nation));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::this_scope_pop | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::this_scope_pop));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "'this' trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -350,13 +350,13 @@ void tr_scope_this(token_generator& gen, error_handler& err, trigger_building_co
 }
 void tr_scope_from(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::from_scope_province | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::from_scope_province));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_trigger.push_back(uint16_t(trigger::from_scope_state | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::from_scope_state));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::from_scope_nation | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::from_scope_nation));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::from_scope_pop | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::from_scope_pop));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "'from' trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -374,7 +374,7 @@ void tr_scope_from(token_generator& gen, error_handler& err, trigger_building_co
 }
 void tr_scope_sea_zone(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::sea_zone_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::sea_zone_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -389,9 +389,9 @@ void tr_scope_sea_zone(token_generator& gen, error_handler& err, trigger_buildin
 }
 void tr_scope_cultural_union(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::cultural_union_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::cultural_union_scope));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::cultural_union_scope_pop | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::cultural_union_scope_pop));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "cultural_union trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -409,7 +409,7 @@ void tr_scope_cultural_union(token_generator& gen, error_handler& err, trigger_b
 }
 void tr_scope_overlord(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::overlord_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::overlord_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -424,7 +424,7 @@ void tr_scope_overlord(token_generator& gen, error_handler& err, trigger_buildin
 }
 void tr_scope_sphere_owner(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::sphere_owner_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::sphere_owner_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -439,7 +439,7 @@ void tr_scope_sphere_owner(token_generator& gen, error_handler& err, trigger_bui
 }
 void tr_scope_independence(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.from_slot == trigger::slot_contents::rebel) {
-		context.compiled_trigger.push_back(uint16_t(trigger::independence_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::independence_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -457,7 +457,7 @@ void tr_scope_independence(token_generator& gen, error_handler& err, trigger_bui
 }
 void tr_flashpoint_tag_scope(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_trigger.push_back(uint16_t(trigger::flashpoint_tag_scope | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::flashpoint_tag_scope));
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -473,7 +473,7 @@ void tr_flashpoint_tag_scope(token_generator& gen, error_handler& err, trigger_b
 	}
 }
 void tr_crisis_state_scope(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	context.compiled_trigger.push_back(uint16_t(trigger::crisis_state_scope | trigger::is_scope));
+	context.compiled_trigger.push_back(uint16_t(trigger::crisis_state_scope));
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
 
@@ -486,9 +486,9 @@ void tr_crisis_state_scope(token_generator& gen, error_handler& err, trigger_bui
 }
 void tr_state_scope(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_trigger.push_back(uint16_t(trigger::state_scope_province | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::state_scope_province));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::state_scope_pop | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::state_scope_pop));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "state_scope trigger scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -507,7 +507,7 @@ void tr_state_scope(token_generator& gen, error_handler& err, trigger_building_c
 void tr_scope_variable(std::string_view name, token_generator& gen, error_handler& err, trigger_building_context& context) {
 	std::string label_str{ name };
 	if(auto it = context.outer_context.map_of_state_names.find(label_str); it != context.outer_context.map_of_state_names.end()) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_provinces_in_variable_region | trigger::is_scope));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_provinces_in_variable_region));
 
 		context.compiled_trigger.push_back(uint16_t(1));
 		auto payload_size_offset = context.compiled_trigger.size() - 1;
@@ -523,7 +523,7 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 	} else if(is_integer(name.data(), name.data() + name.length())) {
 		auto int_value = parse_int(name, 0, err);
 		if(0 <= int_value && size_t(int_value) < context.outer_context.original_id_to_prov_id_map.size()) {
-			context.compiled_trigger.push_back(uint16_t(trigger::integer_scope | trigger::is_scope));
+			context.compiled_trigger.push_back(uint16_t(trigger::integer_scope));
 			context.compiled_trigger.push_back(uint16_t(1));
 			auto payload_size_offset = context.compiled_trigger.size() - 1;
 			context.compiled_trigger.push_back(trigger::payload(context.outer_context.original_id_to_prov_id_map[int_value]).value);
@@ -541,7 +541,7 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 		
 	} else if(name.length() == 3) {
 		if(auto itb = context.outer_context.map_of_ident_names.find(nations::tag_to_int(name[0], name[1], name[2])); itb != context.outer_context.map_of_ident_names.end()) {
-			context.compiled_trigger.push_back(uint16_t(trigger::tag_scope | trigger::is_scope));
+			context.compiled_trigger.push_back(uint16_t(trigger::tag_scope));
 			context.compiled_trigger.push_back(uint16_t(1));
 			auto payload_size_offset = context.compiled_trigger.size() - 1;
 			context.compiled_trigger.push_back(trigger::payload(itb->second).value);
@@ -564,7 +564,7 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 
 
 inline void invert_trigger_internal(uint16_t* source) {
-	if((source[0] & trigger::is_scope) != 0) {
+	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
 		const auto neg_disjunctive_bit = trigger::is_disjunctive_scope & ~source[0];
 		const auto neg_existence_bit = scope_has_any_all(source[0] & trigger::code_mask) ? (trigger::is_existence_scope & ~source[0]) : 0;
 		const auto masked_source = source[0] & ~(trigger::is_disjunctive_scope | trigger::is_existence_scope);
@@ -593,8 +593,8 @@ bool scope_has_single_member(const uint16_t* source) {
 int32_t simplify_trigger(uint16_t* source) {
 	assert(
 		(0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code)
-		|| (*source & (trigger::code_mask | trigger::is_scope)) == (trigger::placeholder_not_scope | trigger::is_scope));
-	if((source[0] & trigger::is_scope) != 0) {
+		|| (*source & trigger::code_mask) == trigger::placeholder_not_scope);
+	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
 		if(scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
 		}
@@ -620,14 +620,15 @@ int32_t simplify_trigger(uint16_t* source) {
 
 		if((source[0] & trigger::code_mask) == trigger::placeholder_not_scope) { // remove not scopes
 			invert_trigger(source);
-			source[0] &= ~trigger::placeholder_not_scope;
+			source[0] &= ~trigger::code_mask;
+			source[0] |= trigger::generic_scope;
 		}
 
 		if(scope_has_single_member(source)) {
 			if((source[0] & trigger::code_mask) == trigger::generic_scope) { // remove single-member generic scopes
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
-			} else if((first_member[0] & (trigger::code_mask | trigger::is_scope)) == (trigger::generic_scope | trigger::is_scope)) {
+			} else if((first_member[0] & trigger::code_mask) == trigger::generic_scope) {
 				// scope contains single generic scope
 
 				source[1] = uint16_t(first_member[1] + trigger::trigger_scope_data_payload(source[0]));
