@@ -24,15 +24,9 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 
 void restore_unsaved_values(sys::state& state) {
 	state.world.for_each_nation([&](dcon::nation_id n) {
-		auto w = state.world.nation_get_war_attacker(n);
+		auto w = state.world.nation_get_war_participant(n);
 		if(w.begin() != w.end()) {
 			state.world.nation_set_is_at_war(n, true);
-			return;
-		}
-		auto w2 = state.world.nation_get_war_defender(n);
-		if(w2.begin() != w2.end()) {
-			state.world.nation_set_is_at_war(n, true);
-			return;
 		}
 	});
 }
@@ -73,20 +67,13 @@ bool state_has_naval_base(sys::state const& state, dcon::state_instance_id si) {
 }
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
-	for(auto wa : state.world.nation_get_war_attacker(a)) {
-		for(auto wd : wa.get_war().get_war_defender()) {
-			if(wd.get_nation() == b)
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		auto is_attacker = wa.get_is_attacker();
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_nation() == b && o.get_is_attacker() != is_attacker)
 				return true;
 		}
 	}
-
-	for(auto wd : state.world.nation_get_war_defender(a)) {
-		for(auto wa : wd.get_war().get_war_attacker()) {
-			if(wa.get_nation() == b)
-				return true;
-		}
-	}
-
 	return false;
 }
 
