@@ -1606,7 +1606,7 @@ object {
 	}
 }
 relationship{
-	name{ war_defender }
+	name{ war_participant }
 	storage_type{ compactable }
 	size{ 2000 }
 	tag{ save }
@@ -1623,24 +1623,10 @@ relationship{
 		type{many}
 		index_storage{array}
 	}
-}
-relationship{
-	name{ war_attacker }
-	storage_type{ compactable }
-	size{ 2000 }
-	tag{ save }
-
-	link{
-		object{war}
-		name{war}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{nation}
-		name{nation}
-		type{many}
-		index_storage{array}
+	property{
+		name{ is_attacker }
+		type{ bitfield }
+		tag{ save }
 	}
 }
 object {

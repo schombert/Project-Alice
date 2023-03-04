@@ -554,18 +554,14 @@ TRIGGER_FUNCTION(tf_x_war_countries_scope_nation) {
 		if(*tval & trigger::is_existence_scope) {
 			auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
-			for(auto wars_in : ws.world.nation_get_war_defender(nid)) {
-				for(auto attackers : wars_in.get_war().get_war_attacker()) {
-					accumulator.add_value(to_generic(attackers.get_nation().id));
-					if(accumulator.result)
-						return true;
-				}
-			}
-			for(auto wars_in : ws.world.nation_get_war_attacker(nid)) {
-				for(auto defenders : wars_in.get_war().get_war_defender()) {
-					accumulator.add_value(to_generic(defenders.get_nation().id));
-					if(accumulator.result)
-						return true;
+			for(auto wars_in : ws.world.nation_get_war_participant(nid)) {
+				auto is_attacker = wars_in.get_is_attacker();
+				for(auto o : wars_in.get_war().get_war_participant()) {
+					if(o.get_is_attacker() != is_attacker && o.get_nation() != nid) {
+						accumulator.add_value(to_generic(o.get_nation().id));
+						if(accumulator.result)
+							return true;
+					}
 				}
 			}
 
@@ -574,18 +570,14 @@ TRIGGER_FUNCTION(tf_x_war_countries_scope_nation) {
 		} else {
 			auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
 
-			for(auto wars_in : ws.world.nation_get_war_defender(nid)) {
-				for(auto attackers : wars_in.get_war().get_war_attacker()) {
-					accumulator.add_value(to_generic(attackers.get_nation().id));
-					if(!accumulator.result)
-						return false;
-				}
-			}
-			for(auto wars_in : ws.world.nation_get_war_attacker(nid)) {
-				for(auto defenders : wars_in.get_war().get_war_defender()) {
-					accumulator.add_value(to_generic(defenders.get_nation().id));
-					if(!accumulator.result)
-						return false;
+			for(auto wars_in : ws.world.nation_get_war_participant(nid)) {
+				auto is_attacker = wars_in.get_is_attacker();
+				for(auto o : wars_in.get_war().get_war_participant()) {
+					if(o.get_is_attacker() != is_attacker && o.get_nation() != nid) {
+						accumulator.add_value(to_generic(o.get_nation().id));
+						if(!accumulator.result)
+							return false;
+					}
 				}
 			}
 

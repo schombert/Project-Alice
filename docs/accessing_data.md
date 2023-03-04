@@ -42,6 +42,49 @@ The `influence` property of the relationship stores the current influence value 
 
 Because finding out which sphere a nation is in by iterating over the great power relationships would be quite inefficient, each nation also stores a handle to the nation that it is in the sphere of in its `in_sphere_of` property. If the nation is not in any sphere, this property will contain the invalid handle value.
 
+### Symmetric diplomatic relationships
+
+Information about general symmetrical diplomatic relationships is stored in `diplomatic_relation` type relationships. These relationships store the current relationship value between two nations, whether they are allied, and the date at which the latest truce between them will run out, if any.
+
+As with the great power relationships, it is possible to find a diplomatic relationship either by directly looking it up using handles to both of the nations, or by iterating over the symmetric diplomatic relationships a particular nation is involved in. In the first case you use a function call such as the following:
+`state.world.get_diplomatic_relation_by_diplomatic_pair(id_a, id_b);`
+Note that the order of the ids don't matter, and you would find the same relationship if you called the function with `(id_b, id_a)`. Also note that, as with great power relationships, you cannot assume that there is an existing diplomatic relationship between any two nations. If there is no diplomatic relationship, you should treat them as unallied, as not having a truce, and having a relationship value of 0.
+
+You can also iterate over all of the diplomatic relationships that a particular nation is involved in. You do this by writing a loop such as the following:
+`for(auto rel : state->world.nation_get_diplomatic_relation(id_a)) { ... }`
+This will iterate over all of the diplomatic relationships involving a nation. Now, an important thing to know is what *other* nation is involved in this diplomatic relationship. There is a slight complication here, in that internally the relationship does not know which id you came from to find it. Thus, to find the other nation, you must write something like the following:
+`auto other = rel.get_related_nations(0) == id_a ? rel.get_related_nations(1) : rel.get_related_nations(0);`
+You can think of `related_nations` as an array inside the relationship that holds the identities of both nations involved in it. To find out who the other nation is, you simply have to find out if the nation that you came from is in the first slot of the array or not, which immediately tells you which slot holds the other nation.
+
+#### Note on truces
+
+Nations are considered to not have a truce if the stored truce date is the invalid handle (signifying that no truce has ever been stored) or if the truce's ending date is prior to the current day.
+
+### Wars
+
+Each currently ongoing war is represented by a `war` object. Each war has a primary attacker, a primary defender, and a start date. (And eventually other properties, such as the current war score, but that is still on the todo list). Each war is also associated with two or more nations as participants (with each participant being labeled as either an attacker or a defender). Note that the primary defender and attacker will also appear in this list, so it is not necessary to check for them separately if you are iterating over the list.
+
+A nation that is currently involved in any war, either as an attacker or as a defender, will have its `is_at_war` property set. (This is a cached value, since it would also be possible to recompute it as needed.)
+
+If you want to know whether any two given nations are at war, a convenience function is provided in the `military` namespace (declared in `military.hpp`): `bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);` which will return true if there are any active wars involving both nations on opposite sides.
+
+If you need to write your own functions of that sort, a look at how `are_at_war` is implemented may be instructive, since it is very simple function.
+
+```
+bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		bool is_attacker = wa.get_is_attacker();
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_nation() == b && o.get_is_attacker() != is_attacker)
+				return true;
+		}
+	}
+	return false;
+}
+```
+
+In the function we first iterate over all the wars that the nation is participating in. Then, for each of them we record whether our nation is the attacker or the defender. Knowing that, we then iterate over all the participants, looking to see if any of them is the other nation we are interested in and is participating in the other side.
+
 ### Population
 
 Most provinces have more than one pop (although some may have none at all). To iterate over the pops in a province you can write a loop such as the following:
