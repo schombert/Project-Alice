@@ -927,6 +927,76 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 	}
 	container_base::render(state, x, y);
 }
+template<class ItemWinT, class ItemConT>
+void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& state) {
+	auto spacing = int16_t(base_data.data.overlapping.spacing);
+	if(base_data.get_element_type() == element_type::overlapping) {
+		while(contents.size() > windows.size()) {
+			auto ptr = make_element_by_type<ItemWinT>(state, get_row_element_name());
+			if(subwindow_width <= 0) {
+				subwindow_width = ptr->base_data.size.x;
+			}
+			windows.push_back(static_cast<ItemWinT*>(ptr.get()));
+			add_child_to_front(std::move(ptr));
+		}
+
+		float size_ratio = float(contents.size() * (subwindow_width + spacing)) / float(base_data.size.x);
+		int16_t offset = spacing + subwindow_width;
+		if(size_ratio > 1.f) {
+			offset = int16_t(float(subwindow_width) / size_ratio);
+		}
+		int16_t current_x = 0;
+		if(base_data.data.overlapping.image_alignment == alignment::right) {
+			current_x = base_data.size.x - subwindow_width - offset * int16_t(contents.size() - 1);
+		}
+		for(size_t i = 0; i < windows.size(); i++) {
+			if(i < contents.size()) {
+				update_subwindow(state, windows[i], contents[i]);
+				windows[i]->base_data.position.x = current_x;
+				current_x += offset;
+				windows[i]->set_visible(state, true);
+			} else {
+				windows[i]->set_visible(state, false);
+			}
+		}
+	}
+}
+
+void overlapping_sphere_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		int32_t sphereling_count = 0;  // this is a hack that's only getting used because checking if a nation is a GP doesn't work yet.
+		state.world.for_each_nation([&](dcon::nation_id other) {
+			auto other_fat = dcon::fatten(state.world, other);
+			if(other_fat.get_in_sphere_of().id == current_nation) {
+				contents.push_back(other);
+				sphereling_count++;
+			}
+		});
+		if(sphereling_count <= 0) {
+			auto fat_id = dcon::fatten(state.world, current_nation);
+			auto sphere_lord_id = fat_id.get_in_sphere_of().id;
+			if(sphere_lord_id) {
+				contents.push_back(sphere_lord_id);
+			}
+		}
+		update(state);
+	}
+}
+
+void overlapping_sphere_flags::on_update(sys::state& state) noexcept {
+	populate_flags(state);
+}
+
+message_result overlapping_sphere_flags::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<dcon::nation_id>()) {
+		current_nation = any_cast<dcon::nation_id>(payload);
+		populate_flags(state);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
 
 dcon::nation_id flag_button::get_current_nation(sys::state& state) noexcept {
 	Cyto::Any output = dcon::nation_id{};
@@ -951,14 +1021,17 @@ void flag_button::button_action(sys::state& state) noexcept {
 	}
 }
 
-void flag_button::on_update(sys::state& state) noexcept {
-	auto current_nation = get_current_nation(state);
-	if(bool(current_nation)) {
-		dcon::nation_fat_id fat_id = dcon::fatten(state.world, current_nation);
+void flag_button::set_current_nation(sys::state& state, dcon::nation_id nat_id) noexcept {
+	if(bool(nat_id)) {
+		dcon::nation_fat_id fat_id = dcon::fatten(state.world, nat_id);
 		auto identity = fat_id.get_identity_holder_as_nation().get_identity();
-		auto flag_type = culture::get_current_flag_type(state, current_nation);
+		auto flag_type = culture::get_current_flag_type(state, nat_id);
 		flag_texture_handle = ogl::get_flag_handle(state, identity.id, flag_type);
 	}
+}
+
+void flag_button::on_update(sys::state& state) noexcept {
+	set_current_nation(state, get_current_nation(state));
 }
 
 void flag_button::on_create(sys::state& state) noexcept {
