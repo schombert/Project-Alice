@@ -481,4 +481,11 @@ guiTypes = {
 		buttonText = "GOTO_GOTO"
 		buttonFont = "vic_18_black"
 	}
+
+	iconType = {
+		name ="flag_list_flag"
+		spriteType = "GFX_flag_new"
+		position = { x=0 y=6 }
+		Orientation = "UPPER_LEFT"
+	}
 }
