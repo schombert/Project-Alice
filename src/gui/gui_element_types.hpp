@@ -234,16 +234,72 @@ public:
 	}
 };
 
+template<class ItemWinT, class ItemConT>
+class overlapping_listbox_element_base : public window_element_base {
+private:
+	int16_t subwindow_width = 0;
+
+protected:
+	std::vector<ItemWinT*> windows{};
+
+	virtual std::string_view get_row_element_name() {
+		return std::string_view{};
+	}
+	virtual void update_subwindow(sys::state& state, ItemWinT* subwindow, ItemConT content) { }
+
+public:
+	std::vector<ItemConT> contents{};
+
+	void update(sys::state& state);
+};
+
 class flag_button : public button_element_base {
 private:
 	GLuint flag_texture_handle = 0;
 
 public:
-	dcon::nation_id get_current_nation(sys::state& state) noexcept;
+	virtual dcon::nation_id get_current_nation(sys::state& state) noexcept;
+	virtual void set_current_nation(sys::state& state, dcon::nation_id nat_id) noexcept;
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+class overlapping_flags_flag_button : public flag_button {
+private:
+	dcon::nation_id stored_nation{};
+
+public:
+	dcon::nation_id get_current_nation(sys::state& state) noexcept override {
+		return stored_nation;
+	}
+	void set_current_nation(sys::state& state, dcon::nation_id nat_id) noexcept override {
+		stored_nation = nat_id;
+		flag_button::set_current_nation(state, nat_id);
+	}
+};
+
+class overlapping_flags_box : public overlapping_listbox_element_base<overlapping_flags_flag_button, dcon::nation_id> {
+public:
+	std::string_view get_row_element_name() override {
+		return "flag_list_flag";
+	}
+
+	void update_subwindow(sys::state& state, overlapping_flags_flag_button* subwindow, dcon::nation_id content) override {
+		subwindow->set_current_nation(state, content);
+	}
+};
+
+class overlapping_sphere_flags : public overlapping_flags_box {
+private:
+	dcon::nation_id current_nation{};
+
+	void populate_flags(sys::state& state);
+
+public:
+	void on_update(sys::state& state) noexcept override;
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
 template<class TabT>

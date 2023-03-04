@@ -78,6 +78,8 @@ public:
 			auto ptr = make_element_by_type<culture_piechart<dcon::province_id>>(state, id);
 			culture_chart = ptr.get();
 			return ptr;
+		} else if(name == "sphere_targets") {
+			return make_element_by_type<overlapping_sphere_flags>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -105,6 +107,9 @@ public:
 			country_party_box->set_text(state, party_name);
 
 			culture_chart->on_update(state);
+
+			Cyto::Any nat_id_payload = nation_id.id;
+			impl_set(state, nat_id_payload);
 			set_visible(state, true);
 		} else {
 			set_visible(state, false);
