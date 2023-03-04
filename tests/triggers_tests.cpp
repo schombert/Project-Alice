@@ -5,12 +5,12 @@ TEST_CASE("trigger scope recursion", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::generic_scope));
+		t.push_back(uint16_t( trigger::generic_scope));
 		t.push_back(uint16_t(11));
 		t.push_back(uint16_t(trigger::no_payload | trigger::association_eq | trigger::blockade));
 		t.push_back(uint16_t(0));
 		t.push_back(uint16_t(0));
-		t.push_back(uint16_t(trigger::is_scope | trigger::state_scope_pop));
+		t.push_back(uint16_t( trigger::state_scope_pop));
 		t.push_back(uint16_t(3));
 		t.push_back(uint16_t(trigger::association_eq | trigger::owns));
 		t.push_back(uint16_t(0));
@@ -96,7 +96,7 @@ TEST_CASE("trigger inversion", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::placeholder_not_scope));
+		t.push_back(uint16_t( trigger::placeholder_not_scope));
 		t.push_back(uint16_t(4));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
 		t.push_back(uint16_t(0));
@@ -104,7 +104,7 @@ TEST_CASE("trigger inversion", "[trigger_tests]") {
 
 		parsers::invert_trigger(t.data());
 
-		REQUIRE(t[0] == uint16_t(trigger::is_scope | trigger::is_disjunctive_scope | trigger::placeholder_not_scope));
+		REQUIRE(t[0] == uint16_t( trigger::is_disjunctive_scope | trigger::placeholder_not_scope));
 		REQUIRE(t[1] == uint16_t(4));
 		REQUIRE(t[2] == uint16_t(trigger::association_ne | trigger::blockade));
 		REQUIRE(t[3] == uint16_t(0));
@@ -114,7 +114,7 @@ TEST_CASE("trigger inversion", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::is_existence_scope | trigger::is_disjunctive_scope | trigger::x_core_scope_nation));
+		t.push_back(uint16_t( trigger::is_existence_scope | trigger::is_disjunctive_scope | trigger::x_core_scope_nation));
 		t.push_back(uint16_t(4));
 		t.push_back(uint16_t(trigger::association_ge | trigger::blockade));
 		t.push_back(uint16_t(2));
@@ -122,7 +122,7 @@ TEST_CASE("trigger inversion", "[trigger_tests]") {
 
 		parsers::invert_trigger(t.data());
 
-		REQUIRE(t[0] == uint16_t(trigger::is_scope | trigger::x_core_scope_nation));
+		REQUIRE(t[0] == uint16_t(trigger::x_core_scope_nation));
 		REQUIRE(t[1] == uint16_t(4));
 		REQUIRE(t[2] == uint16_t(trigger::association_lt | trigger::blockade));
 		REQUIRE(t[3] == uint16_t(2));
@@ -134,7 +134,7 @@ TEST_CASE("scope sizing", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::placeholder_not_scope));
+		t.push_back(uint16_t( trigger::placeholder_not_scope));
 		t.push_back(uint16_t(4));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
 		t.push_back(uint16_t(4));
@@ -147,7 +147,7 @@ TEST_CASE("scope sizing", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::placeholder_not_scope));
+		t.push_back(uint16_t( trigger::placeholder_not_scope));
 		t.push_back(uint16_t(6));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
 		t.push_back(uint16_t(1));
@@ -162,7 +162,7 @@ TEST_CASE("scope sizing", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::integer_scope));
+		t.push_back(uint16_t(trigger::integer_scope));
 		t.push_back(uint16_t(5));
 		t.push_back(uint16_t(0));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
@@ -176,7 +176,7 @@ TEST_CASE("scope sizing", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::integer_scope));
+		t.push_back(uint16_t( trigger::integer_scope));
 		t.push_back(uint16_t(8));
 		t.push_back(uint16_t(0));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
@@ -193,7 +193,7 @@ TEST_CASE("scope sizing", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::placeholder_not_scope));
+		t.push_back(uint16_t(trigger::placeholder_not_scope));
 		t.push_back(uint16_t(1));
 
 		REQUIRE(true == parsers::scope_is_empty(t.data()));
@@ -202,7 +202,7 @@ TEST_CASE("scope sizing", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::integer_scope));
+		t.push_back(uint16_t( trigger::integer_scope));
 		t.push_back(uint16_t(2));
 		t.push_back(uint16_t(1));
 
@@ -293,7 +293,7 @@ TEST_CASE("simple negation removal", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::placeholder_not_scope));
+		t.push_back(uint16_t(trigger::placeholder_not_scope));
 		t.push_back(uint16_t(4));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
 		t.push_back(uint16_t(2));
@@ -312,9 +312,9 @@ TEST_CASE("double negation removal", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::placeholder_not_scope));
+		t.push_back(uint16_t(trigger::placeholder_not_scope));
 		t.push_back(uint16_t(6));
-		t.push_back(uint16_t(trigger::is_scope | trigger::placeholder_not_scope));
+		t.push_back(uint16_t(trigger::placeholder_not_scope));
 		t.push_back(uint16_t(4));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
 		t.push_back(uint16_t(2));
@@ -334,13 +334,13 @@ TEST_CASE("complex inversion", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::placeholder_not_scope));
+		t.push_back(uint16_t( trigger::placeholder_not_scope));
 		t.push_back(uint16_t(10));
-		t.push_back(uint16_t(trigger::is_scope | trigger::generic_scope));
+		t.push_back(uint16_t( trigger::generic_scope));
 		t.push_back(uint16_t(3));
 		t.push_back(uint16_t(trigger::association_eq | trigger::no_payload | trigger::owns));
 		t.push_back(uint16_t(0));
-		t.push_back(uint16_t(trigger::is_scope | trigger::is_existence_scope | trigger::is_disjunctive_scope | trigger::x_core_scope_nation));
+		t.push_back(uint16_t( trigger::is_existence_scope | trigger::is_disjunctive_scope | trigger::x_core_scope_nation));
 		t.push_back(uint16_t(4));
 		t.push_back(uint16_t(trigger::association_ge | trigger::blockade));
 		t.push_back(uint16_t(2));
@@ -349,11 +349,11 @@ TEST_CASE("complex inversion", "[trigger_tests]") {
 		const auto new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(9 == new_size);
-		REQUIRE(t[0] == uint16_t(trigger::is_scope | trigger::is_disjunctive_scope | trigger::generic_scope));
+		REQUIRE(t[0] == uint16_t(trigger::is_disjunctive_scope | trigger::generic_scope));
 		REQUIRE(t[1] == uint16_t(8));
 		REQUIRE(t[2] == uint16_t(trigger::association_ne | trigger::no_payload | trigger::owns));
 		REQUIRE(t[3] == uint16_t(0));
-		REQUIRE(t[4] == uint16_t(trigger::is_scope | trigger::x_core_scope_nation));
+		REQUIRE(t[4] == uint16_t( trigger::x_core_scope_nation));
 		REQUIRE(t[5] == uint16_t(4));
 		REQUIRE(t[6] == uint16_t(trigger::association_lt | trigger::blockade));
 		REQUIRE(t[7] == uint16_t(2));
@@ -365,9 +365,9 @@ TEST_CASE("scope absorbsion", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::x_neighbor_province_scope | trigger::is_disjunctive_scope | trigger::is_existence_scope));
+		t.push_back(uint16_t( trigger::x_neighbor_province_scope | trigger::is_disjunctive_scope | trigger::is_existence_scope));
 		t.push_back(uint16_t(8));
-		t.push_back(uint16_t(trigger::is_scope | trigger::generic_scope));
+		t.push_back(uint16_t( trigger::generic_scope));
 		t.push_back(uint16_t(6));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
 		t.push_back(uint16_t(2));
@@ -378,7 +378,7 @@ TEST_CASE("scope absorbsion", "[trigger_tests]") {
 		const auto new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(7 == new_size);
-		REQUIRE(t[0] == uint16_t(trigger::is_scope | trigger::x_neighbor_province_scope | trigger::is_existence_scope));
+		REQUIRE(t[0] == uint16_t( trigger::x_neighbor_province_scope | trigger::is_existence_scope));
 		REQUIRE(t[1] == uint16_t(6));
 		REQUIRE(t[2] == uint16_t(trigger::association_eq | trigger::blockade));
 		REQUIRE(t[3] == uint16_t(2));
@@ -389,10 +389,10 @@ TEST_CASE("scope absorbsion", "[trigger_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(trigger::is_scope | trigger::integer_scope));
+		t.push_back(uint16_t( trigger::integer_scope));
 		t.push_back(uint16_t(9));
 		t.push_back(uint16_t(15));
-		t.push_back(uint16_t(trigger::is_scope | trigger::generic_scope | trigger::is_disjunctive_scope));
+		t.push_back(uint16_t(trigger::generic_scope | trigger::is_disjunctive_scope));
 		t.push_back(uint16_t(6));
 		t.push_back(uint16_t(trigger::association_eq | trigger::blockade));
 		t.push_back(uint16_t(2));
@@ -403,7 +403,7 @@ TEST_CASE("scope absorbsion", "[trigger_tests]") {
 		const auto new_size = parsers::simplify_trigger(t.data());
 
 		REQUIRE(8 == new_size);
-		REQUIRE(t[0] == uint16_t(trigger::is_scope | trigger::integer_scope | trigger::is_disjunctive_scope));
+		REQUIRE(t[0] == uint16_t(trigger::integer_scope | trigger::is_disjunctive_scope));
 		REQUIRE(t[1] == uint16_t(7));
 		REQUIRE(t[2] == uint16_t(15));
 		REQUIRE(t[3] == uint16_t(trigger::association_eq | trigger::blockade));
@@ -616,7 +616,7 @@ TEST_CASE("scope trigger", "[trigger_tests]") {
 	parsers::parse_trigger_body(gen, err, tc);
 
 	REQUIRE(size_t(8) == tc.compiled_trigger.size());
-	REQUIRE(tc.compiled_trigger[0] == uint16_t(trigger::is_scope | trigger::this_scope_state));
+	REQUIRE(tc.compiled_trigger[0] == uint16_t( trigger::this_scope_state));
 	REQUIRE(tc.compiled_trigger[1] == uint16_t(7));
 	REQUIRE(tc.compiled_trigger[2] == uint16_t(trigger::association_ge | trigger::average_consciousness_province));
 	REQUIRE(tc.compiled_trigger[5] == uint16_t(trigger::association_ne | trigger::average_militancy_province));
@@ -653,10 +653,10 @@ TEST_CASE("complex full reduction", "[trigger_tests]") {
 	tc.compiled_trigger.resize(static_cast<size_t>(new_size));
 
 	REQUIRE(size_t(8) == tc.compiled_trigger.size());
-	REQUIRE(tc.compiled_trigger[0] == uint16_t(trigger::is_scope | trigger::is_disjunctive_scope | trigger::generic_scope));
+	REQUIRE(tc.compiled_trigger[0] == uint16_t( trigger::is_disjunctive_scope | trigger::generic_scope));
 	REQUIRE(tc.compiled_trigger[1] == uint16_t(7));
 	REQUIRE(tc.compiled_trigger[2] == uint16_t(trigger::association_ne | trigger::no_payload | trigger::always));
-	REQUIRE(tc.compiled_trigger[3] == uint16_t(trigger::is_scope | trigger::is_disjunctive_scope | trigger::x_core_scope_nation));
+	REQUIRE(tc.compiled_trigger[3] == uint16_t( trigger::is_disjunctive_scope | trigger::x_core_scope_nation));
 	REQUIRE(tc.compiled_trigger[4] == uint16_t(4));
 	REQUIRE(tc.compiled_trigger[5] == uint16_t(trigger::association_lt | trigger::average_consciousness_province));
 }
