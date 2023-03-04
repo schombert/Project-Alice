@@ -381,6 +381,15 @@ flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_
 	return state.culture_definitions.governments[gov_type].flag;
 }
 
+flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity) {
+	auto holder = state.world.national_identity_get_nation_from_identity_holder(identity);
+	if(holder && state.world.nation_get_owned_province_count(holder) > 0) {
+		return get_current_flag_type(state, holder);
+	} else {
+		return flag_type::default_flag;
+	}
+}
+
 void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id) {
 	uint32_t combined = 0;
 	state.world.for_each_issue([&](dcon::issue_id i_id) {
