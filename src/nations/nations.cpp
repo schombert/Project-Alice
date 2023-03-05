@@ -136,6 +136,11 @@ bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::nat
 	return false;
 }
 
+bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident) {
+	auto fat_ident = dcon::fatten(state.world, ident);
+	return bool(fat_ident.get_nation_from_identity_holder().id);
+}
+
 bool global_national_state::is_global_flag_variable_set(dcon::global_flag_id id) const {
 	if(id)
 		return dcon::bit_vector_test(global_flag_variables.data(), id.index());

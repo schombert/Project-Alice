@@ -344,6 +344,19 @@ namespace sys {
 		}
 	}
 
+	void state::open_diplomacy(dcon::nation_id target) {
+		Cyto::Any payload = target;
+		if(ui_state.diplomacy_subwindow != nullptr) {
+			if(ui_state.topbar_subwindow != nullptr) {
+				ui_state.topbar_subwindow->set_visible(*this, false);
+			}
+			ui_state.topbar_subwindow = ui_state.diplomacy_subwindow;
+			ui_state.diplomacy_subwindow->set_visible(*this, true);
+			ui_state.root->move_child_to_front(ui_state.diplomacy_subwindow);
+			ui_state.diplomacy_subwindow->impl_get(*this, payload);
+		}
+	}
+
 	void state::load_scenario_data() {
 		parsers::error_handler err("");
 

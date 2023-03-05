@@ -208,5 +208,7 @@ namespace sys {
 
 		void load_scenario_data(); // loads all scenario files other than map data
 		void fill_unsaved_data(); // reconstructs derived values that are not directly saved after a save has been loaded
+
+		void open_diplomacy(dcon::nation_id target);  // Open the diplomacy window with target selected
 	};
 }
