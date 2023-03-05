@@ -45,6 +45,24 @@ Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since
 
 If the nation is a civ and is a secondary power start with define:SECOND_RANK_BASE_SHARE_FACTOR, and otherwise start with define:CIV_BASE_SHARE_FACTOR. Also calculate the sphere owner's foreign investment in the nation as a fraction of the total foreign investment in the nation (I believe that this is treated as zero if there is no foreign investment at all). The share factor is (1 - base share factor) * sphere owner investment fraction + base share factor. For uncivs, the share factor is simply equal to define:UNCIV_BASE_SHARE_FACTOR (so 1, by default). If a nation isn't in a sphere, we let the share factor be 0 if it needs to be used in any other calculation.
 
+## Pops and demographics
+
+### Monthly updates for individual pops
+
+The updates described in this section are run once per pop per month, spread out evenly over the month. Rather than trying to figure out the number of day in the month, and divide pops among those days, we should probably just pick a fixed interval. We also **do not** want to divide the updates for the pops by taking their lower N bits to group them. For performance reasons, it is important to update the pops in groups of contiguous ids.
+
+This monthly update contains:
+- determining what political or social movement the pop is part of
+- determining what rebel faction the pop is part of
+- if the amount of people to move for the pop are either greater than its type's minimum promotion size or the size of the pop as a whole, the pop may migrate, either internally or externally.
+
+### Growth
+
+Only owned provinces grow. To calculate the pop growth in a province: First, calculate the modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+
+### Migration
+
+Internal and external "normal" migration appears to be handled distinctly from "colonial" migration. In performing colonial migration, all pops of the same culture+religion+type seems to get combined before moving them around.
 
 ## Military
 
@@ -68,6 +86,20 @@ If the nation is a civ and is a secondary power start with define:SECOND_RANK_BA
 - zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
 - calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
 
+##### Unit stats
+
+- Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
+- Units start with max strength and org after being built
+
+##### Siege
+
+Garrison recovers at 10% per day when not being sieged
+
+##### Unit construction
+
+- Only a single unit is built per province at a time
+- After being built, units move towards the nearest rally point, if any, to merge with an army there upon arrival
+
 #### Invalid  war states
 
 - A primary belligerent may not be a vassal or substate of another nation
@@ -76,9 +108,20 @@ If the nation is a civ and is a secondary power start with define:SECOND_RANK_BA
 - There must be at least one wargoal (other than status quo) in the war
 - idle for too long -- if the war goes too long without some event happening within it (battle or occupation) it may be terminated. If something is occupied, I believe the war is safe from termination in this way
 
+## Movements
+
+- Movements come in two types: political and social (Here I fold independence movements under the political). Functionally, we can better distinguish the movements between those associated with a position on some issue (either political or social) and those for the independence of some national identity.
+- Slave pops cannot belong to a movement
+
 ## Rebels
 
 - Rebel fraction: There is a trigger that depends on the fraction of provinces that are controlled by rebels. My notes say that only either not-overseas (or maybe only connected to capital) provinces count for calculating this fraction
+- Pops with militancy >= define:MIL_TO_JOIN_REBEL will join a rebel faction rather than a movement (and if the pop's militancy is less than this, it will drop out).
+- Picking a faction for a pop:
+- A pop in a province sieged or controlled by rebels will join that faction, if the pop is compatible with the faction.
+- Otherwise take all the compatible and possible rebel types. Determine the spawn chance for each of them, by taking the *product* of the modifiers. The pop then joins the type with the greatest chance (that's right, it isn't really a *chance* at all). If that type has a defection type, it joins the faction with the national identity most compatible with it and that type (pan-nationalist go to the union tag, everyone else uses the logic I outline below)
+- Faction compatibility: a pop will not join a faction that it is excluded from based on its culture, culture group, religion, or ideology (here it is the dominant ideology of the pop that matters). There is also some logic for determining if a pop is compatible with a national identity for independence. I don't think it is worth trying to imitate the logic of the base game here. Instead I will go with: pop is not an accepted culture and either its primary culture is associated with that identity *or* there is no core in the province associated with its primary identity.
+- When a pop joins a faction, my notes say that the organization of the faction increases by either by the number of divisions that could spawn from that pop (calculated directly by pop size / define:POP_MIN_SIZE_FOR_REGIMENT) or maybe some multiple of that.
 
 ### Calculating how many regiments are "ready to join" a rebel faction
 

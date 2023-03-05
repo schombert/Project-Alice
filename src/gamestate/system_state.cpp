@@ -1253,7 +1253,9 @@ namespace sys {
 			world.province_set_terrain(id, context.ocean_terrain);
 		}
 
-		
+		fill_unsaved_data(); // we need this to run triggers
+
+		culture::create_initial_ideology_and_issues_distribution(*this);
 
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);

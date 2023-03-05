@@ -160,4 +160,6 @@ flag_type get_current_flag_type(sys::state const& state, dcon::national_identity
 void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id);
 void update_all_nations_issue_rules(sys::state& state);
 
+void create_initial_ideology_and_issues_distribution(sys::state& state);
+
 }

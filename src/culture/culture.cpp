@@ -1,6 +1,7 @@
 #include "dcon_generated.hpp"
 #include "culture.hpp"
 #include "system_state.hpp"
+#include "triggers.hpp"
 
 namespace culture {
 
@@ -408,6 +409,38 @@ void update_all_nations_issue_rules(sys::state& state) {
 			combined = combined | rules_for_opt;
 		});
 		state.world.nation_set_combined_issue_rules(n_id, combined);
+	});
+}
+
+void create_initial_ideology_and_issues_distribution(sys::state& state) {
+	state.world.for_each_pop([&state](dcon::pop_id pid) {
+		auto ptype = state.world.pop_get_poptype(pid);
+		auto owner = nations::owner_of_pop(state, pid);
+		auto psize = state.world.pop_get_size(pid);
+		if(psize <= 0)
+			return;
+
+		float total = 0.0f;
+		state.world.for_each_ideology([&](dcon::ideology_id iid) {
+			if(state.world.ideology_get_enabled(iid) && (!state.world.ideology_get_is_civilized_only(iid) || state.world.nation_get_is_civilized(owner))) {
+				auto ptrigger = state.world.pop_type_get_ideology(ptype, iid);
+				if(ptrigger) {
+					auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
+					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
+					total += amount;
+				}
+			}
+		});
+		if(total == 0)
+			return;
+
+		float adjustment_factor = psize / total;
+		state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
+			auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
+			state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
+		});
+
+		// TODO: issues
 	});
 }
 
