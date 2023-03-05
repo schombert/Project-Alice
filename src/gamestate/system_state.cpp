@@ -848,7 +848,8 @@ namespace sys {
 
 		world.nation_resize_active_inventions(world.invention_size());
 		world.nation_resize_active_technologies(world.technology_size());
-		world.nation_resize_reforms_and_issues(world.issue_size());
+		world.nation_resize_issues(world.issue_size());
+		world.nation_resize_reforms(world.reform_size());
 		world.nation_resize_upper_house(world.ideology_size());
 
 		world.national_identity_resize_government_flag_type(uint32_t(culture_definitions.governments.size()));
@@ -968,8 +969,15 @@ namespace sys {
 		// pending issue options
 		{
 			err.file_name = "issues.txt";
-			for(auto& r : context.map_of_options) {
+			for(auto& r : context.map_of_ioptions) {
 				parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
+			}
+		}
+		// pending reform options
+		{
+			err.file_name = "issues.txt";
+			for(auto& r : context.map_of_roptions) {
+				parsers::read_pending_reform(r.second.id, r.second.generator_state, err, context);
 			}
 		}
 		// parse national_focus.txt
@@ -1297,14 +1305,21 @@ namespace sys {
 				}
 			}
 		});
+		world.for_each_reform([&](dcon::reform_id id) {
+			for(auto& opt : world.reform_get_options(id)) {
+				if(opt) {
+					world.reform_option_set_parent_reform(opt, id);
+				}
+			}
+		});
 		for(auto i : culture_definitions.party_issues) {
 			world.issue_set_issue_type(i, uint8_t(culture::issue_type::party));
 		}
 		for(auto i : culture_definitions.military_issues) {
-			world.issue_set_issue_type(i, uint8_t(culture::issue_type::military));
+			world.reform_set_reform_type(i, uint8_t(culture::issue_type::military));
 		}
 		for(auto i : culture_definitions.economic_issues) {
-			world.issue_set_issue_type(i, uint8_t(culture::issue_type::economic));
+			world.reform_set_reform_type(i, uint8_t(culture::issue_type::economic));
 		}
 		for(auto i : culture_definitions.social_issues) {
 			world.issue_set_issue_type(i, uint8_t(culture::issue_type::social));

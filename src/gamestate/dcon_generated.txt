@@ -627,6 +627,104 @@ object {
 }
 
 object {
+	name{ reform }
+	storage_type{ contiguous }
+	size{ 120 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ options }
+		type{ std::array<reform_option_id,culture::max_issue_options> }
+		tag{ scenario }
+	}
+	property{
+		name{ is_next_step_only }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ is_administrative }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ reform_type }
+		type{ uint8_t }
+	}
+}
+
+object {
+	name{ reform_option }
+	storage_type{ contiguous }
+	size{ 720 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+
+	property{
+		name{ rules }
+		type{ uint32_t }
+		tag{ scenario }
+	}
+
+	property{
+		name{ modifier }
+		type{ modifier_id }
+		tag{ scenario }
+	}
+
+	property{
+		name{ technology_cost }
+		type{ int32_t }
+		tag{ scenario }
+	}
+
+	property{
+		name{ war_exhaustion_effect }
+		type{ float }
+		tag{ scenario }
+	}
+
+	property{
+		name{ administrative_multiplier }
+		type{ float }
+		tag{ scenario }
+	}
+
+	property{
+		name{ allow }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+
+	property{
+		name{ on_execute_trigger }
+		type{ trigger_key }
+		tag{ scenario }
+	}
+
+	property{
+		name{ on_execute_effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+
+	property{
+		name{ parent_reform }
+		type{ reform_id }
+	}
+}
+
+object {
 	name{cb_type}
 	storage_type{ contiguous }
 	size{ 120 }
@@ -2050,8 +2148,13 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ reforms_and_issues }
+		name{ issues }
 		type{array{issue_id}{issue_option_id}}
+		tag{ save }
+	}
+	property{
+		name{ reforms }
+		type{array{reform_id}{reform_option_id}}
 		tag{ save }
 	}
 	property{

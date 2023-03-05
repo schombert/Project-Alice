@@ -394,8 +394,13 @@ flag_type get_current_flag_type(sys::state const& state, dcon::national_identity
 void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id) {
 	uint32_t combined = 0;
 	state.world.for_each_issue([&](dcon::issue_id i_id) {
-		auto current_opt = state.world.nation_get_reforms_and_issues(n_id, i_id);
+		auto current_opt = state.world.nation_get_issues(n_id, i_id);
 		auto rules_for_opt = state.world.issue_option_get_rules(current_opt);
+		combined |= rules_for_opt;
+	});
+	state.world.for_each_reform([&](dcon::reform_id i_id) {
+		auto current_opt = state.world.nation_get_reforms(n_id, i_id);
+		auto rules_for_opt = state.world.reform_option_get_rules(current_opt);
 		combined |= rules_for_opt;
 	});
 	state.world.nation_set_combined_issue_rules(n_id, combined);
@@ -404,8 +409,13 @@ void update_all_nations_issue_rules(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto n_id) {
 		ve::int_vector combined;
 		state.world.for_each_issue([&](dcon::issue_id i_id) {
-			auto current_opt = state.world.nation_get_reforms_and_issues(n_id, i_id);
+			auto current_opt = state.world.nation_get_issues(n_id, i_id);
 			auto rules_for_opt = state.world.issue_option_get_rules(current_opt);
+			combined = combined | rules_for_opt;
+		});
+		state.world.for_each_reform([&](dcon::reform_id i_id) {
+			auto current_opt = state.world.nation_get_reforms(n_id, i_id);
+			auto rules_for_opt = state.world.reform_option_get_rules(current_opt);
 			combined = combined | rules_for_opt;
 		});
 		state.world.nation_set_combined_issue_rules(n_id, combined);

@@ -111,6 +111,15 @@ void issue::administrative(association_type, bool value, error_handler& err, int
 	context.outer_context.state.world.issue_set_is_administrative(context.id, value);
 }
 
+void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, reform_context& context) {
+	context.outer_context.state.world.reform_set_is_next_step_only(context.id, value);
+}
+
+void issue::administrative(association_type, bool value, error_handler& err, int32_t line, reform_context& context) {
+	context.outer_context.state.world.reform_set_is_administrative(context.id, value);
+}
+
+
 void government_type::election(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
 	context.outer_context.state.culture_definitions.governments[context.id].has_elections = value;
 }
@@ -296,9 +305,9 @@ void party::end_date(association_type, sys::year_month_day ymd, error_handler& e
 }
 
 void party::any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line, party_context& context) {
-	if(auto it = context.outer_context.map_of_issues.find(std::string(issue)); it != context.outer_context.map_of_issues.end()) {
+	if(auto it = context.outer_context.map_of_iissues.find(std::string(issue)); it != context.outer_context.map_of_iissues.end()) {
 		if(it->second.index() < int32_t(context.outer_context.state.culture_definitions.party_issues.size())) {
-			if(auto oit = context.outer_context.map_of_options.find(std::string(option)); oit != context.outer_context.map_of_options.end()) {
+			if(auto oit = context.outer_context.map_of_ioptions.find(std::string(option)); oit != context.outer_context.map_of_ioptions.end()) {
 				context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, oit->second.id);
 			} else {
 				err.accumulated_errors += std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -940,6 +949,161 @@ void option_rules::build_railway(association_type, bool value, error_handler& er
 		context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_railway;
 }
 
+void option_rules::build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_factory;
+}
+
+void option_rules::expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::expand_factory;
+}
+
+void option_rules::open_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::open_factory;
+}
+
+void option_rules::destroy_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::destroy_factory;
+}
+
+void option_rules::factory_priority(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::factory_priority;
+}
+
+void option_rules::can_subsidise(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::can_subsidise;
+}
+
+void option_rules::pop_build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_build_factory;
+}
+
+void option_rules::pop_expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_expand_factory;
+}
+
+void option_rules::pop_open_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_open_factory;
+}
+
+void option_rules::delete_factory_if_no_input(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::delete_factory_if_no_input;
+}
+
+void option_rules::build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_factory_invest;
+}
+
+void option_rules::expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::expand_factory_invest;
+}
+
+void option_rules::open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::open_factory_invest;
+}
+
+void option_rules::build_railway_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_railway_invest;
+}
+
+void option_rules::can_invest_in_pop_projects(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::can_invest_in_pop_projects;
+}
+
+void option_rules::pop_build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_build_factory_invest;
+}
+
+void option_rules::pop_expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_expand_factory_invest;
+}
+
+void option_rules::pop_open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_open_factory_invest;
+}
+
+void option_rules::allow_foreign_investment(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::allow_foreign_investment;
+}
+
+void option_rules::slavery_allowed(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::slavery_allowed;
+}
+
+void option_rules::primary_culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::primary_culture_voting;
+}
+
+void option_rules::culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::culture_voting;
+}
+
+void option_rules::all_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::all_voting;
+}
+
+void option_rules::largest_share(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::largest_share;
+}
+
+void option_rules::dhont(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::dhont;
+}
+
+void option_rules::sainte_laque(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::sainte_laque;
+}
+
+void option_rules::same_as_ruling_party(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::same_as_ruling_party;
+}
+
+void option_rules::rich_only(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::rich_only;
+}
+
+void option_rules::state_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::state_vote;
+}
+
+void option_rules::population_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::population_vote;
+}
+
+void option_rules::build_railway(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_railway;
+}
+
 void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_option_context& context) {
 	context.outer_context.state.world.issue_option_set_technology_cost(context.id, value);
 }
@@ -957,9 +1121,26 @@ void issue_option_body::is_jingoism(association_type, bool value, error_handler&
 		context.outer_context.state.culture_definitions.jingoism = context.id;
 }
 
+void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_roption_context& context) {
+	context.outer_context.state.world.reform_option_set_technology_cost(context.id, value);
+}
+
+void issue_option_body::war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context) {
+	context.outer_context.state.world.reform_option_set_war_exhaustion_effect(context.id, value);
+}
+
+void issue_option_body::administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context) {
+	context.outer_context.state.world.reform_option_set_administrative_multiplier(context.id, value);
+}
+
 void issue_option_body::on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context) {
 	context.outer_context.state.world.issue_option_set_on_execute_trigger(context.id, value.trigger);
 	context.outer_context.state.world.issue_option_set_on_execute_effect(context.id, value.effect);
+}
+
+void issue_option_body::on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_roption_context& context) {
+	context.outer_context.state.world.reform_option_set_on_execute_trigger(context.id, value.trigger);
+	context.outer_context.state.world.reform_option_set_on_execute_effect(context.id, value.effect);
 }
 
 void national_focus::railroads(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
@@ -1864,11 +2045,17 @@ void country_history_file::any_value(std::string_view label, association_type, s
 	} else if(auto itb = context.outer_context.map_of_inventions.find(str_label); itb != context.outer_context.map_of_inventions.end()) {
 		auto v = parse_bool(value, line, err);
 		context.outer_context.state.world.nation_set_active_inventions(context.holder_id, itb->second.id, v);
-	} else if(auto itc = context.outer_context.map_of_issues.find(str_label); itc != context.outer_context.map_of_issues.end()) {
-		if(auto itd = context.outer_context.map_of_options.find(std::string(value)); itd != context.outer_context.map_of_options.end()) {
-			context.outer_context.state.world.nation_set_reforms_and_issues(context.holder_id, itc->second, itd->second.id);
+	} else if(auto itc = context.outer_context.map_of_iissues.find(str_label); itc != context.outer_context.map_of_iissues.end()) {
+		if(auto itd = context.outer_context.map_of_ioptions.find(std::string(value)); itd != context.outer_context.map_of_ioptions.end()) {
+			context.outer_context.state.world.nation_set_issues(context.holder_id, itc->second, itd->second.id);
 		} else {
 			err.accumulated_errors += "invalid issue option name " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else if(auto ite = context.outer_context.map_of_reforms.find(str_label); ite != context.outer_context.map_of_reforms.end()) {
+		if(auto itd = context.outer_context.map_of_roptions.find(std::string(value)); itd != context.outer_context.map_of_roptions.end()) {
+			context.outer_context.state.world.nation_set_reforms(context.holder_id, ite->second, itd->second.id);
+		} else {
+			err.accumulated_errors += "invalid reform option name " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	} else {
 		err.accumulated_errors += "invalid key " + str_label + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -2038,7 +2225,7 @@ void country_history_file::ruling_party(association_type, std::string_view value
 		if(name == value_key) {
 			context.outer_context.state.world.nation_set_ruling_party(context.holder_id, pid);
 			for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
-				context.outer_context.state.world.nation_set_reforms_and_issues(context.holder_id, p_issue,
+				context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue,
 					context.outer_context.state.world.political_party_get_party_issues(pid, p_issue)
 				);
 			}
