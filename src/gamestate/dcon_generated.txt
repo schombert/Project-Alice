@@ -310,6 +310,11 @@ object {
 		type{ float }
 		tag{ scenario }
 	}
+	property{
+		name{ icon }
+		type{ uint8_t }
+		tag{ scenario }
+	}
 }
 
 object {

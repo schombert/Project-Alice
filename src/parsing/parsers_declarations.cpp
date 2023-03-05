@@ -98,6 +98,11 @@ void good::available_from_start(association_type, bool b, error_handler& err, in
 	context.outer_context.state.world.commodity_set_is_available_from_start(context.id, b);
 }
 
+void good::finish(good_context& context) {
+	++context.outer_context.number_of_commodities_seen;
+	context.outer_context.state.world.commodity_set_icon(context.id, uint8_t(context.outer_context.number_of_commodities_seen));
+}
+
 void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
 	context.outer_context.state.world.issue_set_is_next_step_only(context.id, value);
 }
