@@ -344,6 +344,8 @@ namespace parsers {
 		dcon::national_variable_id get_national_variable(std::string const& name);
 		dcon::national_flag_id get_national_flag(std::string const& name);
 		dcon::global_flag_id get_global_flag(std::string const& name);
+
+		int32_t number_of_commodities_seen = 0;
 	};
 
 	struct national_identity_file {
@@ -454,7 +456,7 @@ namespace parsers {
 		void cost(association_type, float v, error_handler& err, int32_t line, good_context& context);
 		void available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 
-		void finish(good_context& context) { }
+		void finish(good_context& context);
 	};
 
 	void make_good(std::string_view name, token_generator& gen, error_handler& err, good_group_context& context);
