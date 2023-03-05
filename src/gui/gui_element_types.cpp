@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <string_view>
 #include <variant>
+#include "culture.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
 #include "gui_element_types.hpp"
@@ -725,10 +726,10 @@ void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 	);
 }
 
-template<class T>
-std::vector<uint8_t> culture_piechart<T>::get_colors(sys::state& state) noexcept {
+template<class SrcT, class DemoT>
+std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& state) noexcept {
 	std::vector<uint8_t> colors(resolution * channels);
-	Cyto::Any obj_id = T{};
+	Cyto::Any obj_id = SrcT{};
 	size_t i = 0;
 	if(parent) {
 		parent->impl_get(state, obj_id);
@@ -736,14 +737,14 @@ std::vector<uint8_t> culture_piechart<T>::get_colors(sys::state& state) noexcept
 			auto prov_id = any_cast<dcon::province_id>(obj_id);
 			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 			auto total_pops = state.world.province_get_demographics(prov_id, demographics::total);
-			dcon::culture_id last_culture{};
-			state.world.for_each_culture([&](dcon::culture_id cult_id) {
-				last_culture = cult_id;
-				auto culture_fat_id = dcon::fatten(state.world, cult_id);
-				auto culture_key = demographics::to_key(state, culture_fat_id.id);
-				auto volume = state.world.province_get_demographics(prov_id, culture_key);
+			DemoT last_demo{};
+			for_each_demo(state, [&](DemoT demo_id) {
+				last_demo = demo_id;
+				auto demo_fat_id = dcon::fatten(state.world, demo_id);
+				auto demo_key = demographics::to_key(state, demo_fat_id.id);
+				auto volume = state.world.province_get_demographics(prov_id, demo_key);
 				auto slice_count = size_t(volume / total_pops * resolution);
-				auto color = culture_fat_id.get_color();
+				auto color = demo_fat_id.get_color();
 				for(size_t j = 0; j < slice_count * channels; j += channels) {
 					colors[j + i] = uint8_t(color & 0xFF);
 					colors[j + i + 1] = uint8_t(color >> 8 & 0xFF);
@@ -751,7 +752,7 @@ std::vector<uint8_t> culture_piechart<T>::get_colors(sys::state& state) noexcept
 				}
 				i += slice_count * channels;
 			});
-			auto fat_last_culture = dcon::fatten(state.world, last_culture);
+			auto fat_last_culture = dcon::fatten(state.world, last_demo);
 			auto last_cult_color = fat_last_culture.get_color();
 			for(; i < colors.size(); i += channels) {
 				colors[i] = uint8_t(last_cult_color & 0xFF);
@@ -969,15 +970,15 @@ void overlapping_sphere_flags::populate_flags(sys::state& state) {
 		state.world.for_each_nation([&](dcon::nation_id other) {
 			auto other_fat = dcon::fatten(state.world, other);
 			if(other_fat.get_in_sphere_of().id == current_nation) {
-				contents.push_back(other);
+				contents.push_back(other_fat.get_identity_from_identity_holder().id);
 				sphereling_count++;
 			}
 		});
 		if(sphereling_count <= 0) {
 			auto fat_id = dcon::fatten(state.world, current_nation);
-			auto sphere_lord_id = fat_id.get_in_sphere_of().id;
-			if(sphere_lord_id) {
-				contents.push_back(sphere_lord_id);
+			auto sphere_lord = fat_id.get_in_sphere_of();
+			if(sphere_lord.id) {
+				contents.push_back(sphere_lord.get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);
@@ -998,35 +999,37 @@ message_result overlapping_sphere_flags::set(sys::state& state, Cyto::Any& paylo
 	}
 }
 
-dcon::nation_id flag_button::get_current_nation(sys::state& state) noexcept {
-	Cyto::Any output = dcon::nation_id{};
+dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
+	Cyto::Any payload = dcon::nation_id{};
 	if(parent != nullptr) {
-		parent->impl_get(state, output);
-		return any_cast<dcon::nation_id>(output);
+		parent->impl_get(state, payload);
+		auto nation = any_cast<dcon::nation_id>(payload);
+		auto fat_nation = dcon::fatten(state.world, nation);
+		return fat_nation.get_identity_from_identity_holder().id;
 	} else {
-		return dcon::nation_id{};
+		return dcon::national_identity_id{};
 	}
 }
 
 void flag_button::button_action(sys::state& state) noexcept {
-	Cyto::Any payload = get_current_nation(state);
-	if(state.ui_state.diplomacy_subwindow != nullptr) {
-		if(state.ui_state.topbar_subwindow != nullptr) {
-			state.ui_state.topbar_subwindow->set_visible(state, false);
-		}
-		state.ui_state.topbar_subwindow = state.ui_state.diplomacy_subwindow;
-		state.ui_state.diplomacy_subwindow->set_visible(state, true);
-		state.ui_state.root->move_child_to_front(state.ui_state.diplomacy_subwindow);
-		state.ui_state.diplomacy_subwindow->impl_get(state, payload);
+	auto fat_id = dcon::fatten(state.world, get_current_nation(state));
+	auto nation = fat_id.get_nation_from_identity_holder();
+	if(bool(nation.id)) {
+		state.open_diplomacy(nation.id);
 	}
 }
 
-void flag_button::set_current_nation(sys::state& state, dcon::nation_id nat_id) noexcept {
-	if(bool(nat_id)) {
-		dcon::nation_fat_id fat_id = dcon::fatten(state.world, nat_id);
-		auto identity = fat_id.get_identity_holder_as_nation().get_identity();
-		auto flag_type = culture::get_current_flag_type(state, nat_id);
-		flag_texture_handle = ogl::get_flag_handle(state, identity.id, flag_type);
+void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id identity) noexcept {
+	if(bool(identity)) {
+		auto fat_id = dcon::fatten(state.world, identity);
+		auto nation = fat_id.get_nation_from_identity_holder();
+		culture::flag_type flag_type = culture::flag_type{};
+		if(bool(nation.id)) {
+			flag_type = culture::get_current_flag_type(state, nation.id);
+		} else {
+			flag_type = culture::get_current_flag_type(state, identity);
+		}
+		flag_texture_handle = ogl::get_flag_handle(state, identity, flag_type);
 	}
 }
 

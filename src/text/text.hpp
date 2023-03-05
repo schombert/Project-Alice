@@ -177,5 +177,9 @@ namespace text {
 	std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
 	std::string produce_simple_string(sys::state const& state, std::string_view key);
 	dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
+
+	std::string prettify(int32_t num);
+	template<class T>
+	std::string get_name_as_string(sys::state const& state, T t);
 }
 
