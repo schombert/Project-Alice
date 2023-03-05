@@ -95,8 +95,8 @@ struct global_cultural_state {
 	std::vector<dcon::issue_id> party_issues;
 	std::vector<dcon::issue_id> political_issues;
 	std::vector<dcon::issue_id> social_issues;
-	std::vector<dcon::issue_id> military_issues;
-	std::vector<dcon::issue_id> economic_issues;
+	std::vector<dcon::reform_id> military_issues;
+	std::vector<dcon::reform_id> economic_issues;
 
 	std::vector<folder_info> tech_folders; // contains *all* the folder names; techs index into this by an integer index
 

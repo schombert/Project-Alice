@@ -1413,8 +1413,14 @@ constexpr inline uint16_t party_loyalty_generic = 0x026C;
 constexpr inline uint16_t invention = 0x026D;
 constexpr inline uint16_t political_movement_from_reb = 0x026E;
 constexpr inline uint16_t social_movement_from_reb = 0x026F;
+constexpr inline uint16_t is_next_rreform_nation = 0x0270;
+constexpr inline uint16_t is_next_rreform_pop = 0x0271;
+constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
+constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
+constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
+constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
 
-constexpr inline uint16_t first_scope_code = 0x0270;
+constexpr inline uint16_t first_scope_code = 0x0276;
 
 //technology name -- payload 1
 //ideology name -- 4 variants payload 2
@@ -2113,6 +2119,13 @@ inline constexpr int32_t data_sizes[] = {
 	1, //constexpr inline uint16_t invention = 0x026D;
 	0, //constexpr inline uint16_t political_movement_from_reb = 0x026E;
 	0, //constexpr inline uint16_t social_movement_from_reb = 0x026F;
+	1, //constexpr inline uint16_t is_next_rreform_nation = 0x0270;
+	1, //constexpr inline uint16_t is_next_rreform_pop = 0x0271;
+	2, //constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
+	2, //constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
+	2, //constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
+	2, //constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
+
 };
 
 enum class slot_contents {
@@ -2159,7 +2172,8 @@ union payload {
 	dcon::trigger_key tr_id;
 	dcon::crime_id crm_id;
 	dcon::political_party_id par_id;
-
+	dcon::reform_id ref_id;
+	dcon::reform_option_id ropt_id;
 
 	//variables::national_variable_tag nat_var;
 	//variables::national_flag_tag nat_flag;
@@ -2294,6 +2308,14 @@ union payload {
 	payload(dcon::political_party_id i) {
 		memset(this, 0, sizeof(payload));
 		par_id = i;
+	}
+	payload(dcon::reform_id i) {
+		memset(this, 0, sizeof(payload));
+		ref_id = i;
+	}
+	payload(dcon::reform_option_id i) {
+		memset(this, 0, sizeof(payload));
+		ropt_id = i;
 	}
 };
 

@@ -223,15 +223,15 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(err.accumulated_errors == "");
 
 		//school_reforms
-		auto ita = context.map_of_issues.find(std::string("school_reforms"));
-		REQUIRE(ita != context.map_of_issues.end());
+		auto ita = context.map_of_iissues.find(std::string("school_reforms"));
+		REQUIRE(ita != context.map_of_iissues.end());
 
 		auto fata = fatten(state->world, ita->second);
 		REQUIRE(fata.get_is_next_step_only() == true);
 		REQUIRE(fata.get_is_administrative() == true);
 
-		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
-		REQUIRE(itb != context.map_of_options.end());
+		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
+		REQUIRE(itb != context.map_of_ioptions.end());
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fata.get_options().at(2) == fatb);
 
@@ -679,7 +679,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	state->world.nation_resize_active_inventions(state->world.invention_size());
 	state->world.nation_resize_active_technologies(state->world.technology_size());
-	state->world.nation_resize_reforms_and_issues(state->world.issue_size());
+	state->world.nation_resize_issues(state->world.issue_size());
+	state->world.nation_resize_reforms(state->world.reform_size());
 	state->world.nation_resize_upper_house(state->world.ideology_size());
 
 	state->world.national_identity_resize_government_flag_type(uint32_t(state->culture_definitions.governments.size()));
@@ -889,18 +890,21 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(mod_id).get_offet_at_index(0) == sys::provincial_mod_offsets::boost_strongest_party);
 		REQUIRE(state->world.modifier_get_province_values(mod_id).values[0] == 5.0f);
 	}
-	// pending issue options
+	// pending issue/ reform options
 	{
 		err.file_name = "issues.txt";
-		for(auto& r : context.map_of_options) {
+		for(auto& r : context.map_of_ioptions) {
 			parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
+		}
+		for(auto& r : context.map_of_roptions) {
+			parsers::read_pending_reform(r.second.id, r.second.generator_state, err, context);
 		}
 
 		REQUIRE(err.accumulated_errors == "");
 
 		REQUIRE(bool(state->culture_definitions.jingoism) == true);
 
-		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
+		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fatb.get_administrative_multiplier() == 2.0f);
 		auto mid = fatb.get_modifier();
@@ -1260,7 +1264,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_prestige() == 10.0f);
 		REQUIRE(nation.get_is_civilized() == true);
 
-		REQUIRE(nation.get_reforms_and_issues(context.map_of_issues.find("voting_system")->second) == context.map_of_options.find("jefferson_method")->second.id);
+		REQUIRE(nation.get_issues(context.map_of_iissues.find("voting_system")->second) == context.map_of_ioptions.find("jefferson_method")->second.id);
 		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
 
@@ -1406,15 +1410,15 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		//school_reforms
-		auto ita = context.map_of_issues.find(std::string("school_reforms"));
-		REQUIRE(ita != context.map_of_issues.end());
+		auto ita = context.map_of_iissues.find(std::string("school_reforms"));
+		REQUIRE(ita != context.map_of_iissues.end());
 
 		auto fata = fatten(state->world, ita->second);
 		REQUIRE(fata.get_is_next_step_only() == true);
 		REQUIRE(fata.get_is_administrative() == true);
 
-		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
-		REQUIRE(itb != context.map_of_options.end());
+		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
+		REQUIRE(itb != context.map_of_ioptions.end());
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fata.get_options().at(2) == fatb);
 
@@ -1700,7 +1704,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		
 		REQUIRE(bool(state->culture_definitions.jingoism) == true);
 
-		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
+		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fatb.get_administrative_multiplier() == 2.0f);
 		auto mid = fatb.get_modifier();
@@ -1840,7 +1844,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_prestige() == 10.0f);
 		REQUIRE(nation.get_is_civilized() == true);
 
-		REQUIRE(nation.get_reforms_and_issues(context.map_of_issues.find("voting_system")->second) == context.map_of_options.find("jefferson_method")->second.id);
+		REQUIRE(nation.get_issues(context.map_of_iissues.find("voting_system")->second) == context.map_of_ioptions.find("jefferson_method")->second.id);
 		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
 

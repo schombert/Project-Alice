@@ -2576,20 +2576,38 @@ TRIGGER_FUNCTION(tf_average_consciousness_province) {
 	return compare_values(tval[0], ve::select(total_pop > 0, mil_amount / total_pop, 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_is_next_reform_nation) {
-	auto reform_id = payload(tval[1]).opt_id;
-	auto prior_opt = dcon::issue_option_id(dcon::issue_option_id::value_base_t(reform_id.index() - 1));
-	auto reform_parent = ws.world.issue_option_get_parent_issue(reform_id);
-	auto active_option = ws.world.nation_get_reforms_and_issues(to_nation(primary_slot), reform_parent);
+	auto ref_id = payload(tval[1]).opt_id;
+	auto prior_opt = dcon::issue_option_id(dcon::issue_option_id::value_base_t(ref_id.index() - 1));
+	auto reform_parent = ws.world.issue_option_get_parent_issue(ref_id);
+	auto active_option = ws.world.nation_get_issues(to_nation(primary_slot), reform_parent);
 
 	return compare_values_eq(tval[0], active_option, prior_opt);
 }
 TRIGGER_FUNCTION(tf_is_next_reform_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
 
-	auto reform_id = payload(tval[1]).opt_id;
-	auto prior_opt = dcon::issue_option_id(dcon::issue_option_id::value_base_t(reform_id.index() - 1));
-	auto reform_parent = ws.world.issue_option_get_parent_issue(reform_id);
-	auto active_option = ws.world.nation_get_reforms_and_issues(owner, reform_parent);
+	auto ref_id = payload(tval[1]).opt_id;
+	auto prior_opt = dcon::issue_option_id(dcon::issue_option_id::value_base_t(ref_id.index() - 1));
+	auto reform_parent = ws.world.issue_option_get_parent_issue(ref_id);
+	auto active_option = ws.world.nation_get_issues(owner, reform_parent);
+
+	return compare_values_eq(tval[0], active_option, prior_opt);
+}
+TRIGGER_FUNCTION(tf_is_next_rreform_nation) {
+	auto ref_id = payload(tval[1]).ropt_id;
+	auto prior_opt = dcon::reform_option_id(dcon::reform_option_id::value_base_t(ref_id.index() - 1));
+	auto reform_parent = ws.world.reform_option_get_parent_reform(ref_id);
+	auto active_option = ws.world.nation_get_reforms(to_nation(primary_slot), reform_parent);
+
+	return compare_values_eq(tval[0], active_option, prior_opt);
+}
+TRIGGER_FUNCTION(tf_is_next_rreform_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+
+	auto ref_id = payload(tval[1]).ropt_id;
+	auto prior_opt = dcon::reform_option_id(dcon::reform_option_id::value_base_t(ref_id.index() - 1));
+	auto reform_parent = ws.world.reform_option_get_parent_reform(ref_id);
+	auto active_option = ws.world.nation_get_reforms(owner, reform_parent);
 
 	return compare_values_eq(tval[0], active_option, prior_opt);
 }
@@ -4554,25 +4572,48 @@ TRIGGER_FUNCTION(tf_variable_issue_name_pop) {
 TRIGGER_FUNCTION(tf_variable_issue_group_name_nation) {
 	auto option = payload(tval[2]).opt_id;
 	auto issue = payload(tval[1]).iss_id;;
-	return compare_values_eq(tval[0], ws.world.nation_get_reforms_and_issues(to_nation(primary_slot), issue), option);
+	return compare_values_eq(tval[0], ws.world.nation_get_issues(to_nation(primary_slot), issue), option);
 }
 TRIGGER_FUNCTION(tf_variable_issue_group_name_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
 	auto option = payload(tval[2]).opt_id;
 	auto issue = payload(tval[1]).iss_id;;
-	return compare_values_eq(tval[0], ws.world.nation_get_reforms_and_issues(owner, issue), option);
+	return compare_values_eq(tval[0], ws.world.nation_get_issues(owner, issue), option);
 }
 TRIGGER_FUNCTION(tf_variable_issue_group_name_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
 	auto option = payload(tval[2]).opt_id;
 	auto issue = payload(tval[1]).iss_id;;
-	return compare_values_eq(tval[0], ws.world.nation_get_reforms_and_issues(owner, issue), option);
+	return compare_values_eq(tval[0], ws.world.nation_get_issues(owner, issue), option);
 }
 TRIGGER_FUNCTION(tf_variable_issue_group_name_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
 	auto option = payload(tval[2]).opt_id;
 	auto issue = payload(tval[1]).iss_id;;
-	return compare_values_eq(tval[0], ws.world.nation_get_reforms_and_issues(owner, issue), option);
+	return compare_values_eq(tval[0], ws.world.nation_get_issues(owner, issue), option);
+}
+TRIGGER_FUNCTION(tf_variable_reform_group_name_nation) {
+	auto option = payload(tval[2]).ropt_id;
+	auto issue = payload(tval[1]).ref_id;;
+	return compare_values_eq(tval[0], ws.world.nation_get_reforms(to_nation(primary_slot), issue), option);
+}
+TRIGGER_FUNCTION(tf_variable_reform_group_name_state) {
+	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
+	auto option = payload(tval[2]).ropt_id;
+	auto issue = payload(tval[1]).ref_id;;
+	return compare_values_eq(tval[0], ws.world.nation_get_reforms(owner, issue), option);
+}
+TRIGGER_FUNCTION(tf_variable_reform_group_name_province) {
+	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
+	auto option = payload(tval[2]).ropt_id;
+	auto issue = payload(tval[1]).ref_id;;
+	return compare_values_eq(tval[0], ws.world.nation_get_reforms(owner, issue), option);
+}
+TRIGGER_FUNCTION(tf_variable_reform_group_name_pop) {
+	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
+	auto option = payload(tval[2]).ropt_id;
+	auto issue = payload(tval[1]).ref_id;;
+	return compare_values_eq(tval[0], ws.world.nation_get_reforms(owner, issue), option);
 }
 TRIGGER_FUNCTION(tf_variable_pop_type_name_nation) {
 	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
@@ -5276,6 +5317,12 @@ struct trigger_container {
 		tf_invention<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t invention = 0x026D;
 		tf_political_movement_from_reb<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t political_movement_from_reb = 0x026E;
 		tf_social_movement_from_reb<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t social_movement_from_reb = 0x026F;
+		tf_is_next_rreform_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_next_rreform_nation = 0x0270;
+		tf_is_next_rreform_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_next_rreform_pop = 0x0271;
+		tf_variable_reform_group_name_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
+		tf_variable_reform_group_name_state<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
+		tf_variable_reform_group_name_province<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
+		tf_variable_reform_group_name_pop<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
 
 		//
 		// scopes

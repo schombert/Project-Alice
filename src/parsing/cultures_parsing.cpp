@@ -95,42 +95,112 @@ void make_issues_group(std::string_view name, token_generator& gen, error_handle
 }
 
 void make_issue(std::string_view name, token_generator& gen, error_handler& err, issue_group_context& context) {
-	dcon::issue_id new_id = context.outer_context.state.world.create_issue();
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
-
-	context.outer_context.state.world.issue_set_name(new_id, name_id);
-	context.outer_context.map_of_issues.insert_or_assign(std::string(name), new_id);
+	
 
 	switch(context.issue_cat) {
 		case ::culture::issue_category::party:
+		{
+			dcon::issue_id new_id = context.outer_context.state.world.create_issue();
+			auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+			context.outer_context.state.world.issue_set_name(new_id, name_id);
+			context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
+
 			context.outer_context.state.culture_definitions.party_issues.push_back(new_id);
+
+			issue_context new_context{ context.outer_context, new_id };
+			parse_issue(gen, err, new_context);
+		}
 			break;
 		case ::culture::issue_category::economic:
+		{
+			dcon::reform_id new_id = context.outer_context.state.world.create_reform();
+			auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+			context.outer_context.state.world.reform_set_name(new_id, name_id);
+			context.outer_context.map_of_reforms.insert_or_assign(std::string(name), new_id);
+
 			context.outer_context.state.culture_definitions.economic_issues.push_back(new_id);
+
+			reform_context new_context{ context.outer_context, new_id };
+			parse_issue(gen, err, new_context);
+		}
 			break;
 		case ::culture::issue_category::social:
+		{
+			dcon::issue_id new_id = context.outer_context.state.world.create_issue();
+			auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+			context.outer_context.state.world.issue_set_name(new_id, name_id);
+			context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
+
 			context.outer_context.state.culture_definitions.social_issues.push_back(new_id);
+			issue_context new_context{ context.outer_context, new_id };
+			parse_issue(gen, err, new_context);
+		}
 			break;
 		case ::culture::issue_category::political:
+		{
+			dcon::issue_id new_id = context.outer_context.state.world.create_issue();
+			auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+			context.outer_context.state.world.issue_set_name(new_id, name_id);
+			context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
+
 			context.outer_context.state.culture_definitions.political_issues.push_back(new_id);
+			issue_context new_context{ context.outer_context, new_id };
+			parse_issue(gen, err, new_context);
+		}
 			break;
 		case ::culture::issue_category::military:
+		{
+			dcon::reform_id new_id = context.outer_context.state.world.create_reform();
+			auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+			context.outer_context.state.world.reform_set_name(new_id, name_id);
+			context.outer_context.map_of_reforms.insert_or_assign(std::string(name), new_id);
+
 			context.outer_context.state.culture_definitions.military_issues.push_back(new_id);
+
+			reform_context new_context{ context.outer_context, new_id };
+			parse_issue(gen, err, new_context);
+		}
 			break;
 	}
 
-	issue_context new_context{ context.outer_context, new_id };
-	parse_issue(gen, err, new_context);
+	
 }
 void register_option(std::string_view name, token_generator& gen, error_handler& err, issue_context& context) {
 	dcon::issue_option_id new_id = context.outer_context.state.world.create_issue_option();
 	auto name_id = text::find_or_add_key(context.outer_context.state, name);
 
 	context.outer_context.state.world.issue_option_set_name(new_id, name_id);
-	context.outer_context.map_of_options.insert_or_assign(std::string(name), pending_option_content{ gen, new_id });
+	context.outer_context.map_of_ioptions.insert_or_assign(std::string(name), pending_option_content{ gen, new_id });
 
 	bool assigned = false;
 	auto& existing_options = context.outer_context.state.world.issue_get_options(context.id);
+	for(uint32_t i = 0; i < existing_options.size(); ++i) {
+		if(!(existing_options[i])) {
+			existing_options[i] = new_id;
+			assigned = true;
+			break;
+		}
+	}
+	if(!assigned) {
+		err.accumulated_errors += "Option " + std::string(name) + " in file " + err.file_name + " was the 7th or later option\n";
+	}
+
+	gen.discard_group();
+}
+void register_option(std::string_view name, token_generator& gen, error_handler& err, reform_context& context) {
+	dcon::reform_option_id new_id = context.outer_context.state.world.create_reform_option();
+	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+
+	context.outer_context.state.world.reform_option_set_name(new_id, name_id);
+	context.outer_context.map_of_roptions.insert_or_assign(std::string(name), pending_roption_content{ gen, new_id });
+
+	bool assigned = false;
+	auto& existing_options = context.outer_context.state.world.reform_get_options(context.id);
 	for(uint32_t i = 0; i < existing_options.size(); ++i) {
 		if(!(existing_options[i])) {
 			existing_options[i] = new_id;
@@ -274,7 +344,7 @@ void read_pop_ideology(std::string_view name, token_generator& gen, error_handle
 	}
 }
 void read_pop_issue(std::string_view name, token_generator& gen, error_handler& err, poptype_context& context) {
-	if(auto it = context.outer_context.map_of_options.find(std::string(name)); it != context.outer_context.map_of_options.end()) {
+	if(auto it = context.outer_context.map_of_ioptions.find(std::string(name)); it != context.outer_context.map_of_ioptions.end()) {
 		trigger_building_context t_context{ context.outer_context, trigger::slot_contents::pop, trigger::slot_contents::nation, trigger::slot_contents::empty };
 		auto result = make_value_modifier(gen, err, t_context);
 		context.outer_context.state.world.pop_type_set_issues(context.id, it->second.id, result);
@@ -336,6 +406,20 @@ dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, i
 	effect_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
 	return make_effect(gen, err, t_context);
 }
+
+void make_opt_allow(token_generator& gen, error_handler& err, individual_roption_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	context.outer_context.state.world.reform_option_set_allow(context.id, make_trigger(gen, err, t_context));
+}
+dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_roption_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_roption_context& context) {
+	effect_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	return make_effect(gen, err, t_context);
+}
+
 void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	individual_option_context new_context{context, id};
 	issue_option_body opt = parse_issue_option_body(gen, err, new_context);
@@ -347,6 +431,19 @@ void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_h
 		opt.convert_to_national_mod();
 		context.state.world.modifier_set_national_values(new_modifier, opt.constructed_definition);
 		context.state.world.issue_option_set_modifier(id, new_modifier);
+	}
+}
+void read_pending_reform(dcon::reform_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	individual_roption_context new_context{ context, id };
+	issue_option_body opt = parse_issue_option_body(gen, err, new_context);
+
+	if(opt.next_to_add != 0) {
+		auto new_modifier = context.state.world.create_modifier();
+		context.state.world.modifier_set_name(new_modifier, context.state.world.reform_option_get_name(id));
+		context.state.world.modifier_set_icon(new_modifier, uint8_t(opt.icon_index));
+		opt.convert_to_national_mod();
+		context.state.world.modifier_set_national_values(new_modifier, opt.constructed_definition);
+		context.state.world.reform_option_set_modifier(id, new_modifier);
 	}
 }
 

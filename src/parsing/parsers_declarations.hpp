@@ -224,6 +224,10 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::issue_option_id id;
 	};
+	struct pending_roption_content {
+		token_generator generator_state;
+		dcon::reform_option_id id;
+	};
 	struct pending_cb_content {
 		token_generator generator_state;
 		dcon::cb_type_id id;
@@ -297,8 +301,10 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_factory_names;
 		ankerl::unordered_dense::map<std::string, pending_ideology_content> map_of_ideologies;
 		ankerl::unordered_dense::map<std::string, dcon::ideology_group_id> map_of_ideology_groups;
-		ankerl::unordered_dense::map<std::string, pending_option_content> map_of_options;
-		ankerl::unordered_dense::map<std::string, dcon::issue_id> map_of_issues;
+		ankerl::unordered_dense::map<std::string, pending_option_content> map_of_ioptions;
+		ankerl::unordered_dense::map<std::string, pending_roption_content> map_of_roptions;
+		ankerl::unordered_dense::map<std::string, dcon::issue_id> map_of_iissues;
+		ankerl::unordered_dense::map<std::string, dcon::reform_id> map_of_reforms;
 		ankerl::unordered_dense::map<std::string, dcon::government_type_id> map_of_governments;
 		ankerl::unordered_dense::map<std::string, pending_cb_content> map_of_cb_types;
 		ankerl::unordered_dense::map<std::string, dcon::leader_trait_id> map_of_leader_traits;
@@ -884,6 +890,10 @@ namespace parsers {
 		scenario_building_context& outer_context;
 		dcon::issue_id id;
 	};
+	struct reform_context {
+		scenario_building_context& outer_context;
+		dcon::reform_id id;
+	};
 	struct issue_group_context {
 		scenario_building_context& outer_context;
 		::culture::issue_category issue_cat = ::culture::issue_category::party;
@@ -894,6 +904,9 @@ namespace parsers {
 		void next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context);
 		void administrative(association_type, bool value, error_handler& err, int32_t line, issue_context& context);
 		void finish(issue_context&) { }
+		void next_step_only(association_type, bool value, error_handler& err, int32_t line, reform_context& context);
+		void administrative(association_type, bool value, error_handler& err, int32_t line, reform_context& context);
+		void finish(reform_context&) { }
 	};
 	struct issues_group {
 		void finish(issue_group_context&) { }
@@ -905,6 +918,7 @@ namespace parsers {
 	void make_issues_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 	void make_issue(std::string_view name, token_generator& gen, error_handler& err, issue_group_context& context);
 	void register_option(std::string_view name, token_generator& gen, error_handler& err, issue_context& context);
+	void register_option(std::string_view name, token_generator& gen, error_handler& err, reform_context& context);
 
 	struct government_type_context {
 		scenario_building_context& outer_context;
@@ -1519,6 +1533,11 @@ namespace parsers {
 		dcon::issue_option_id id;
 	};
 
+	struct individual_roption_context {
+		scenario_building_context& outer_context;
+		dcon::reform_option_id id;
+	};
+
 	struct option_rules {
 		void finish(individual_option_context&) { }
 		void build_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
@@ -1552,12 +1571,46 @@ namespace parsers {
 		void state_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 		void population_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 		void build_railway(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+
+		void finish(individual_roption_context&) { }
+		void build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void open_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void destroy_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void factory_priority(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void can_subsidise(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_open_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void delete_factory_if_no_input(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void build_railway_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void can_invest_in_pop_projects(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void allow_foreign_investment(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void slavery_allowed(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void primary_culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void all_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void largest_share(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void dhont(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void sainte_laque(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void same_as_ruling_party(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void rich_only(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void state_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void population_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void build_railway(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
 	};
 
 	struct on_execute_body {
 		dcon::trigger_key trigger;
 		dcon::effect_key effect;
 		void finish(individual_option_context&) { }
+		void finish(individual_roption_context&) { }
 	};
 
 	struct issue_option_body : public modifier_base {
@@ -1566,13 +1619,23 @@ namespace parsers {
 		void administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_option_context& context);
 		void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 		void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context);
+
+		void technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_roption_context& context);
+		void war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context);
+		void administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context);
+		void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_roption_context& context);
+		void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) { }
 		option_rules rules;
 	};
 
 	void make_opt_allow(token_generator& gen, error_handler& err, individual_option_context& context);
 	dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_option_context& context);
 	dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_option_context& context);
+	void make_opt_allow(token_generator& gen, error_handler& err, individual_roption_context& context);
+	dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_roption_context& context);
+	dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_roption_context& context);
 	void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void read_pending_reform(dcon::reform_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 	struct national_focus_context {
 		scenario_building_context& outer_context;

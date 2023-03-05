@@ -1422,7 +1422,7 @@ struct trigger_body {
 		}
 	}
 	void pop_majority_issue(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(value)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(value)); it != context.outer_context.map_of_ioptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_trigger.push_back(uint16_t(trigger::pop_majority_issue_nation | association_to_bool_code(a)));
 			} else if(context.main_slot == trigger::slot_contents::state) {
@@ -2977,7 +2977,7 @@ struct trigger_body {
 		context.add_float_to_payload(value);
 	}
 	void is_next_reform(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(value)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(value)); it != context.outer_context.map_of_ioptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_trigger.push_back(uint16_t(trigger::is_next_reform_nation | association_to_bool_code(a)));
 			} else if(context.main_slot == trigger::slot_contents::pop) {
@@ -2987,8 +2987,18 @@ struct trigger_body {
 				return;
 			}
 			context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
+		} else if(auto it = context.outer_context.map_of_roptions.find(std::string(value)); it != context.outer_context.map_of_roptions.end()) {
+			if(context.main_slot == trigger::slot_contents::nation) {
+				context.compiled_trigger.push_back(uint16_t(trigger::is_next_rreform_nation | association_to_bool_code(a)));
+			} else if(context.main_slot == trigger::slot_contents::pop) {
+				context.compiled_trigger.push_back(uint16_t(trigger::is_next_rreform_pop | association_to_bool_code(a)));
+			} else {
+				err.accumulated_errors += "is_next_reform trigger used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+			context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
 		} else {
-			err.accumulated_errors += "is_next_reform trigger supplied with an invalid commodity (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "is_next_reform trigger supplied with an invalid issue/reform (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
 	void rebel_power_fraction(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
@@ -3879,7 +3889,7 @@ struct trigger_body {
 			}
 			context.compiled_trigger.push_back(trigger::payload(ite->second).value);
 			context.add_float_to_payload(parse_float(value, line, err));
-		} else if(auto itg = context.outer_context.map_of_options.find(str_label); itg != context.outer_context.map_of_options.end()) {
+		} else if(auto itg = context.outer_context.map_of_ioptions.find(str_label); itg != context.outer_context.map_of_ioptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation)
 				context.compiled_trigger.push_back(uint16_t(trigger::variable_issue_name_nation | association_to_trigger_code(a)));
 			else if(context.main_slot == trigger::slot_contents::pop)
@@ -3894,8 +3904,8 @@ struct trigger_body {
 			}
 			context.compiled_trigger.push_back(trigger::payload(itg->second.id).value);
 			context.add_float_to_payload(parse_float(value, line, err) / 100.0f);
-		} else if(auto itf = context.outer_context.map_of_issues.find(str_label); itf != context.outer_context.map_of_issues.end()) {
-			if(auto itopt = context.outer_context.map_of_options.find(std::string(value)); itopt != context.outer_context.map_of_options.end()) {
+		} else if(auto itf = context.outer_context.map_of_iissues.find(str_label); itf != context.outer_context.map_of_iissues.end()) {
+			if(auto itopt = context.outer_context.map_of_ioptions.find(std::string(value)); itopt != context.outer_context.map_of_ioptions.end()) {
 				if(context.main_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(uint16_t(trigger::variable_issue_group_name_nation | association_to_bool_code(a)));
 				else if(context.main_slot == trigger::slot_contents::pop)
@@ -3912,6 +3922,26 @@ struct trigger_body {
 				context.compiled_trigger.push_back(trigger::payload(itopt->second.id).value);
 			} else {
 				err.accumulated_errors += "named issue trigger used with an invalid option name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else if(auto itf = context.outer_context.map_of_reforms.find(str_label); itf != context.outer_context.map_of_reforms.end()) {
+			if(auto itopt = context.outer_context.map_of_roptions.find(std::string(value)); itopt != context.outer_context.map_of_roptions.end()) {
+				if(context.main_slot == trigger::slot_contents::nation)
+					context.compiled_trigger.push_back(uint16_t(trigger::variable_reform_group_name_nation | association_to_bool_code(a)));
+				else if(context.main_slot == trigger::slot_contents::pop)
+					context.compiled_trigger.push_back(uint16_t(trigger::variable_reform_group_name_pop | association_to_bool_code(a)));
+				else if(context.main_slot == trigger::slot_contents::province)
+					context.compiled_trigger.push_back(uint16_t(trigger::variable_reform_group_name_province | association_to_bool_code(a)));
+				else if(context.main_slot == trigger::slot_contents::state)
+					context.compiled_trigger.push_back(uint16_t(trigger::variable_reform_group_name_state | association_to_bool_code(a)));
+				else {
+					err.accumulated_errors += "named reform trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+				context.compiled_trigger.push_back(trigger::payload(itf->second).value);
+				context.compiled_trigger.push_back(trigger::payload(itopt->second.id).value);
+			} else {
+				err.accumulated_errors += "named reform trigger used with an invalid option name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
