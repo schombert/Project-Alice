@@ -196,6 +196,7 @@ template<typename T>
 auto occupied_provinces_fraction(sys::state const& state, T ids);
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
+bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
 
 void update_national_rankings(sys::state& state);
 void restore_unsaved_values(sys::state& state);

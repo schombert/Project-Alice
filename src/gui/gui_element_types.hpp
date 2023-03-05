@@ -6,6 +6,7 @@
 #include "sound.hpp"
 #include "text.hpp"
 #include "texture.hpp"
+#include <functional>
 #include <variant>
 
 namespace ui {
@@ -258,8 +259,8 @@ private:
 	GLuint flag_texture_handle = 0;
 
 public:
-	virtual dcon::nation_id get_current_nation(sys::state& state) noexcept;
-	virtual void set_current_nation(sys::state& state, dcon::nation_id nat_id) noexcept;
+	virtual dcon::national_identity_id get_current_nation(sys::state& state) noexcept;
+	virtual void set_current_nation(sys::state& state, dcon::national_identity_id identity) noexcept;
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
@@ -268,25 +269,25 @@ public:
 
 class overlapping_flags_flag_button : public flag_button {
 private:
-	dcon::nation_id stored_nation{};
+	dcon::national_identity_id stored_identity{};
 
 public:
-	dcon::nation_id get_current_nation(sys::state& state) noexcept override {
-		return stored_nation;
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		return stored_identity;
 	}
-	void set_current_nation(sys::state& state, dcon::nation_id nat_id) noexcept override {
-		stored_nation = nat_id;
-		flag_button::set_current_nation(state, nat_id);
+	void set_current_nation(sys::state& state, dcon::national_identity_id identity) noexcept override {
+		stored_identity = identity;
+		flag_button::set_current_nation(state, identity);
 	}
 };
 
-class overlapping_flags_box : public overlapping_listbox_element_base<overlapping_flags_flag_button, dcon::nation_id> {
+class overlapping_flags_box : public overlapping_listbox_element_base<overlapping_flags_flag_button, dcon::national_identity_id> {
 public:
 	std::string_view get_row_element_name() override {
 		return "flag_list_flag";
 	}
 
-	void update_subwindow(sys::state& state, overlapping_flags_flag_button* subwindow, dcon::nation_id content) override {
+	void update_subwindow(sys::state& state, overlapping_flags_flag_button* subwindow, dcon::national_identity_id content) override {
 		subwindow->set_current_nation(state, content);
 	}
 };
@@ -342,10 +343,35 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
-template<class T>
-class culture_piechart : public piechart_element_base {
+template<class SrcT, class DemoT>
+class demographic_piechart : public piechart_element_base {
 protected:
 	std::vector<uint8_t> get_colors(sys::state& state) noexcept override;
+	virtual void for_each_demo(sys::state& state, std::function<void(DemoT)> fun) { }
+};
+
+template<class SrcT>
+class culture_piechart : public demographic_piechart<SrcT, dcon::culture_id> {
+protected:
+	void for_each_demo(sys::state& state, std::function<void(dcon::culture_id)> fun) override {
+		state.world.for_each_culture(fun);
+	}
+};
+
+template<class SrcT>
+class workforce_piechart : public demographic_piechart<SrcT, dcon::pop_type_id> {
+protected:
+	void for_each_demo(sys::state& state, std::function<void(dcon::pop_type_id)> fun) override {
+		state.world.for_each_pop_type(fun);
+	}
+};
+
+template<class SrcT>
+class ideology_piechart : public demographic_piechart<SrcT, dcon::ideology_id> {
+protected:
+	void for_each_demo(sys::state& state, std::function<void(dcon::ideology_id)> fun) override {
+		state.world.for_each_ideology(fun);
+	}
 };
 
 class scrollbar_left : public button_element_base {
