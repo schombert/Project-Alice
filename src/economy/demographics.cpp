@@ -213,13 +213,13 @@ void regenerate_from_pop_data(sys::state& state) {
 					break;
 			}
 		} else if(key.index() < to_key(state, dcon::issue_option_id(0)).index()) { // ideology
-			dcon::issue_option_id pkey{ dcon::issue_option_id::value_base_t( index - count_special_keys ) };
+			dcon::ideology_id pkey{ dcon::ideology_id::value_base_t( index - count_special_keys ) };
 			auto pdemo_key = pop_demographics::to_key(state, pkey);
 			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
 				return state.world.pop_get_demographics(p, pdemo_key);
 			});
 		} else if(key.index() < to_key(state, dcon::pop_type_id(0)).index()) { // issue option
-			dcon::ideology_id pkey{ dcon::ideology_id::value_base_t(index - (count_special_keys + state.world.ideology_size()) ) };
+			dcon::issue_option_id pkey{ dcon::issue_option_id::value_base_t(index - (count_special_keys + state.world.ideology_size()) ) };
 			auto pdemo_key = pop_demographics::to_key(state, pkey);
 			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
 				return state.world.pop_get_demographics(p, pdemo_key);

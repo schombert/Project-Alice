@@ -193,22 +193,6 @@ TRIGGER_FUNCTION(tf_generic_scope) {
 }
 
 
-int32_t to_generic(dcon::province_id v) {
-	return v.index();
-}
-ve::tagged_vector<int32_t> to_generic(ve::tagged_vector<dcon::province_id> v) {
-	return ve::tagged_vector<int32_t>(v);
-}
-ve::contiguous_tags<int32_t> to_generic(ve::contiguous_tags<dcon::province_id> v) {
-	return ve::contiguous_tags<int32_t>(v.value);
-}
-ve::unaligned_contiguous_tags<int32_t> to_generic(ve::unaligned_contiguous_tags<dcon::province_id> v) {
-	return ve::unaligned_contiguous_tags<int32_t>(v.value);
-}
-ve::partial_contiguous_tags<int32_t> to_generic(ve::partial_contiguous_tags<dcon::province_id> v) {
-	return ve::partial_contiguous_tags<int32_t>(v.value, v.subcount);
-}
-
 dcon::province_id to_prov(int32_t v) {
 	return dcon::province_id(dcon::province_id::value_base_t(v));
 }
@@ -223,22 +207,6 @@ ve::unaligned_contiguous_tags<dcon::province_id> to_prov(ve::unaligned_contiguou
 }
 ve::partial_contiguous_tags<dcon::province_id> to_prov(ve::partial_contiguous_tags<int32_t> v) {
 	return ve::partial_contiguous_tags<dcon::province_id>(v.value, v.subcount);
-}
-
-int32_t to_generic(dcon::nation_id v) {
-	return v.index();
-}
-ve::tagged_vector<int32_t> to_generic(ve::tagged_vector<dcon::nation_id> v) {
-	return ve::tagged_vector<int32_t>(v);
-}
-ve::contiguous_tags<int32_t> to_generic(ve::contiguous_tags<dcon::nation_id> v) {
-	return ve::contiguous_tags<int32_t>(v.value);
-}
-ve::unaligned_contiguous_tags<int32_t> to_generic(ve::unaligned_contiguous_tags<dcon::nation_id> v) {
-	return ve::unaligned_contiguous_tags<int32_t>(v.value);
-}
-ve::partial_contiguous_tags<int32_t> to_generic(ve::partial_contiguous_tags<dcon::nation_id> v) {
-	return ve::partial_contiguous_tags<int32_t>(v.value, v.subcount);
 }
 
 dcon::nation_id to_nation(int32_t v) {
@@ -257,21 +225,6 @@ ve::partial_contiguous_tags<dcon::nation_id> to_nation(ve::partial_contiguous_ta
 	return ve::partial_contiguous_tags<dcon::nation_id>(v.value, v.subcount);
 }
 
-int32_t to_generic(dcon::pop_id v) {
-	return v.index();
-}
-ve::tagged_vector<int32_t> to_generic(ve::tagged_vector<dcon::pop_id> v) {
-	return ve::tagged_vector<int32_t>(v);
-}
-ve::contiguous_tags<int32_t> to_generic(ve::contiguous_tags<dcon::pop_id> v) {
-	return ve::contiguous_tags<int32_t>(v.value);
-}
-ve::unaligned_contiguous_tags<int32_t> to_generic(ve::unaligned_contiguous_tags<dcon::pop_id> v) {
-	return ve::unaligned_contiguous_tags<int32_t>(v.value);
-}
-ve::partial_contiguous_tags<int32_t> to_generic(ve::partial_contiguous_tags<dcon::pop_id> v) {
-	return ve::partial_contiguous_tags<int32_t>(v.value, v.subcount);
-}
 
 dcon::pop_id to_pop(int32_t v) {
 	return dcon::pop_id(dcon::pop_id::value_base_t(v));
@@ -289,21 +242,6 @@ ve::partial_contiguous_tags<dcon::pop_id> to_pop(ve::partial_contiguous_tags<int
 	return ve::partial_contiguous_tags<dcon::pop_id>(v.value, v.subcount);
 }
 
-int32_t to_generic(dcon::state_instance_id v) {
-	return v.index();
-}
-ve::tagged_vector<int32_t> to_generic(ve::tagged_vector<dcon::state_instance_id> v) {
-	return ve::tagged_vector<int32_t>(v);
-}
-ve::contiguous_tags<int32_t> to_generic(ve::contiguous_tags<dcon::state_instance_id> v) {
-	return ve::contiguous_tags<int32_t>(v.value);
-}
-ve::unaligned_contiguous_tags<int32_t> to_generic(ve::unaligned_contiguous_tags<dcon::state_instance_id> v) {
-	return ve::unaligned_contiguous_tags<int32_t>(v.value);
-}
-ve::partial_contiguous_tags<int32_t> to_generic(ve::partial_contiguous_tags<dcon::state_instance_id> v) {
-	return ve::partial_contiguous_tags<int32_t>(v.value, v.subcount);
-}
 
 dcon::state_instance_id to_state(int32_t v) {
 	return dcon::state_instance_id(dcon::state_instance_id::value_base_t(v));
@@ -319,22 +257,6 @@ ve::unaligned_contiguous_tags<dcon::state_instance_id> to_state(ve::unaligned_co
 }
 ve::partial_contiguous_tags<dcon::state_instance_id> to_state(ve::partial_contiguous_tags<int32_t> v) {
 	return ve::partial_contiguous_tags<dcon::state_instance_id>(v.value, v.subcount);
-}
-
-int32_t to_generic(dcon::rebel_faction_id v) {
-	return v.index();
-}
-ve::tagged_vector<int32_t> to_generic(ve::tagged_vector<dcon::rebel_faction_id> v) {
-	return ve::tagged_vector<int32_t>(v);
-}
-ve::contiguous_tags<int32_t> to_generic(ve::contiguous_tags<dcon::rebel_faction_id> v) {
-	return ve::contiguous_tags<int32_t>(v.value);
-}
-ve::unaligned_contiguous_tags<int32_t> to_generic(ve::unaligned_contiguous_tags<dcon::rebel_faction_id> v) {
-	return ve::unaligned_contiguous_tags<int32_t>(v.value);
-}
-ve::partial_contiguous_tags<int32_t> to_generic(ve::partial_contiguous_tags<dcon::rebel_faction_id> v) {
-	return ve::partial_contiguous_tags<int32_t>(v.value, v.subcount);
 }
 
 dcon::rebel_faction_id to_rebel(int32_t v) {
@@ -5417,6 +5339,18 @@ return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, 
 #undef CALLTYPE
 #undef TRIGGER_FUNCTION
 
-/**/
+float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	float product = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count && product != 0; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			if(test_trigger_generic<bool>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot)) {
+				product *= seg.factor;
+			}
+		}
+	}
+	return product;
+}
 
 }

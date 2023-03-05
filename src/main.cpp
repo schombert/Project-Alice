@@ -23,13 +23,13 @@
 #include "effect_parsing.cpp"
 #include "parsers_declarations.cpp"
 #include "serialization.cpp"
+#include "nations.cpp"
 #include "culture.cpp"
 #include "military.cpp"
 #include "modifiers.cpp"
 #include "province.cpp"
 #include "triggers.cpp"
 #include "economy.cpp"
-#include "nations.cpp"
 #include "demographics.cpp"
 
 #ifdef _WIN64
