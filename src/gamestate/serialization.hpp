@@ -83,8 +83,27 @@ uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<d
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
+inline size_t serialize_size(ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> const& vec) {
+	return serialize_size(vec.values());
+}
+
+inline uint8_t* serialize(uint8_t* ptr_in, ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> const& vec) {
+	return serialize(ptr_in, vec.values());
+}
+uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash>& vec) {
+	uint32_t length = 0;
+	memcpy(&length, ptr_in, sizeof(uint32_t));
+
+	std::remove_cvref_t<decltype(vec.values())> new_vec;
+	new_vec.resize(length);
+	memcpy(new_vec.data(), ptr_in + sizeof(uint32_t), sizeof(vec.values()[0]) * length);
+	vec.replace(std::move(new_vec));
+
+	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
+}
+
 constexpr inline uint32_t save_file_version = 11;
-constexpr inline uint32_t scenario_file_version = 6 + save_file_version;
+constexpr inline uint32_t scenario_file_version = 7 + save_file_version;
 
 
 struct scenario_header {

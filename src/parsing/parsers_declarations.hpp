@@ -288,6 +288,8 @@ namespace parsers {
 		pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
 	};
 	struct scenario_building_context {
+		building_gfx_context gfx_context;
+
 		sys::state& state;
 
 		ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
@@ -345,7 +347,7 @@ namespace parsers {
 		uint32_t color_by_terrain_index[64] = { 0 }; // these are the (packed) colors given for the terrain type modifier at the given palette index
 		dcon::modifier_id ocean_terrain;
 
-		scenario_building_context(sys::state& state) : state(state) { }
+		scenario_building_context(sys::state& state);
 
 		dcon::national_variable_id get_national_variable(std::string const& name);
 		dcon::national_flag_id get_national_flag(std::string const& name);

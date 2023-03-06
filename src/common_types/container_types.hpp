@@ -50,6 +50,16 @@ struct event_option {
 
 constexpr int32_t max_event_options = 6;
 
+struct modifier_hash {
+	using is_avalanching = void;
+
+	modifier_hash() { }
+
+	auto operator()(dcon::modifier_id m) const noexcept -> uint64_t {
+		int32_t index = m.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
 }
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>

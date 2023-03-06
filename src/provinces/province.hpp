@@ -15,6 +15,8 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 }
 struct global_provincial_state {
 	std::vector<dcon::province_adjacency_id> canals;
+	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
+
 	dcon::province_id first_sea_province;
 
 	// NOTE: these should not be referred to directly by the game mechanics

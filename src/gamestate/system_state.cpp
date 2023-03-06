@@ -360,13 +360,13 @@ namespace sys {
 	void state::load_scenario_data() {
 		parsers::error_handler err("");
 
+		parsers::scenario_building_context context(*this);
+
 		text::load_text_data(*this, 2); // 2 = English
-		ui::load_text_gui_definitions(*this, err);
+		ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
 		auto root = get_root(common_fs);
 		auto common = open_directory(root, NATIVE("common"));
-
-		parsers::scenario_building_context context(*this);
 
 		auto map = open_directory(root, NATIVE("map"));
 		// parse default.map

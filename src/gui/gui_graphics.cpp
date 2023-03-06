@@ -4,9 +4,7 @@
 
 namespace ui {
 
-void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
-	parsers::building_gfx_context context{ state, state.ui_defs };
-
+void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context& context, parsers::error_handler& err) {
 	// preload special background textures
 	assert(context.ui_defs.textures.size() == size_t(0));
 	{

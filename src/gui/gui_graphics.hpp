@@ -9,6 +9,10 @@
 #include "parsers.hpp"
 #include "cyto_any.hpp"
 
+namespace parsers {
+struct building_gfx_context;
+}
+
 namespace ui {
 	enum class object_type : uint8_t {
 		generic_sprite = 0x00,
@@ -311,7 +315,7 @@ namespace ui {
 		tagged_vector<element_data, dcon::gui_def_id> gui;
 	};
 
-	void load_text_gui_definitions(sys::state& state, parsers::error_handler& err);
+	void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context& context, parsers::error_handler& err);
 
 	enum class message_result {
 		unseen, seen, consumed
