@@ -4,6 +4,7 @@
 namespace parsers {
 
 
+scenario_building_context::scenario_building_context(sys::state& state) : gfx_context(state, state.ui_defs), state(state) { }
 
 void religion_def::icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
 	context.outer_context.state.world.religion_set_icon(context.id, uint8_t(v));
