@@ -91,6 +91,7 @@ public:
 class province_view_foreign_details : public window_element_base {
 private:
 	flag_button* country_flag_button = nullptr;
+	image_element_base* rgo_icon = nullptr;
 	simple_text_element_base* country_name_box = nullptr;
 	simple_text_element_base* country_gov_box = nullptr;
 	simple_text_element_base* country_party_box = nullptr;
@@ -135,6 +136,10 @@ public:
 			auto ptr = make_element_by_type<culture_piechart<dcon::province_id>>(state, id);
 			culture_chart = ptr.get();
 			return ptr;
+		} else if(name == "goods_type") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			rgo_icon = ptr.get();
+			return ptr;
 		} else if(name == "sphere_targets") {
 			return make_element_by_type<overlapping_sphere_flags>(state, id);
 		} else if(name == "send_diplomat") {
@@ -165,6 +170,8 @@ public:
 			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
 			population_box->set_text(state, text::prettify(int32_t(total_pop)));
 
+			rgo_icon->frame = fat_id.get_rgo().get_icon();
+
 			culture_chart->on_update(state);
 			workforce_chart->on_update(state);
 			ideology_chart->on_update(state);
@@ -193,14 +200,52 @@ public:
 };
 
 class province_window_colony : public window_element_base {
+private:
+	image_element_base* rgo_icon = nullptr;
+	simple_text_element_base* population_box = nullptr;
+	culture_piechart<dcon::province_id>* culture_chart = nullptr;
+	dcon::province_id stored_province{};
+
 public:
-      void update_province_info(sys::state& state, dcon::province_id prov_id) {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "total_population") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			population_box = ptr.get();
+			return ptr;
+		}  else if(name == "culture_chart") {
+			auto ptr = make_element_by_type<culture_piechart<dcon::province_id>>(state, id);
+			culture_chart = ptr.get();
+			return ptr;
+		} else if(name == "goods_type") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			rgo_icon = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+    void update_province_info(sys::state& state, dcon::province_id prov_id) {
+		stored_province = prov_id;
 		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 		auto nation_id = fat_id.get_nation_from_province_ownership();
 		if(bool(nation_id)) {
 			set_visible(state, false);
 		} else {
+			rgo_icon->frame = fat_id.get_rgo().get_icon();
+			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
+			population_box->set_text(state, text::prettify(int32_t(total_pop)));
+			culture_chart->on_update(state);
 			set_visible(state, true);
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
+			payload.emplace<dcon::province_id>(stored_province);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
 		}
 	}
 };
