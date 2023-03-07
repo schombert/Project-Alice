@@ -142,7 +142,13 @@ public:
 			return ptr;
 		} else if(name == "sphere_targets") {
 			return make_element_by_type<overlapping_sphere_flags>(state, id);
-		} else if(name == "send_diplomat") {
+		} else if(name == "puppet_targets") {
+			return make_element_by_type<overlapping_puppet_flags>(state, id);
+		} else if(name == "allied_targets") {
+			return make_element_by_type<overlapping_ally_flags>(state, id);
+		} else if(name == "war_targets") {
+			return make_element_by_type<overlapping_enemy_flags>(state, id);
+		}  else if(name == "send_diplomat") {
 			return make_element_by_type<province_send_diplomat_button>(state, id);
 		} else if(name == "core_icons") {
 			return make_element_by_type<province_core_flags>(state, id);

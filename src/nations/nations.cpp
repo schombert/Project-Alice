@@ -141,6 +141,11 @@ bool identity_has_holder(sys::state const& state, dcon::national_identity_id ide
 	return bool(fat_ident.get_nation_from_identity_holder().id);
 }
 
+dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query) {
+	auto fat_id = dcon::fatten(state.world, rel_id);
+	return fat_id.get_related_nations(0) == query ? fat_id.get_related_nations(1) : fat_id.get_related_nations(0);
+}
+
 bool global_national_state::is_global_flag_variable_set(dcon::global_flag_id id) const {
 	if(id)
 		return dcon::bit_vector_test(global_flag_variables.data(), id.index());
@@ -149,6 +154,14 @@ bool global_national_state::is_global_flag_variable_set(dcon::global_flag_id id)
 void global_national_state::set_global_flag_variable(dcon::global_flag_id id, bool state) {
 	if(id)
 		dcon::bit_vector_set(global_flag_variables.data(), id.index(), state);
+}
+
+dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag) {
+	auto holder = state.world.national_identity_get_nation_from_identity_holder(tag);
+	if(holder)
+		return state.world.nation_get_name(holder);
+	else
+		return state.world.national_identity_get_name(tag);
 }
 
 }

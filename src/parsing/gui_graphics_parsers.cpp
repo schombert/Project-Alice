@@ -44,11 +44,11 @@ namespace parsers {
 		if(obj_in.secondary_texture.length() > 0) {
 			auto stripped = simple_fs::remove_double_backslashes(obj_in.secondary_texture);
 			if(auto it = context.map_of_texture_names.find(stripped); it != context.map_of_texture_names.end()) {
-				new_obj.type_dependant = uint16_t(it->second.index() + 1);
+				new_obj.type_dependent = uint16_t(it->second.index() + 1);
 			} else {
 				auto index = context.ui_defs.textures.size();
 				context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped));
-				new_obj.type_dependant = uint16_t(index + 1);
+				new_obj.type_dependent = uint16_t(index + 1);
 				context.map_of_texture_names.insert_or_assign(stripped, dcon::texture_id(uint16_t(index)));
 			}
 		}
@@ -62,7 +62,7 @@ namespace parsers {
 			new_obj.size.y = int16_t(obj_in.size_obj->y);
 		}
 		if(obj_in.bordersize) {
-			new_obj.type_dependant = uint16_t(obj_in.bordersize->x);
+			new_obj.type_dependent = uint16_t(obj_in.bordersize->x);
 		}
 
 		return obj_and_horizontal{ &new_obj, obj_in.horizontal };

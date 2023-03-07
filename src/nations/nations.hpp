@@ -197,10 +197,13 @@ auto occupied_provinces_fraction(sys::state const& state, T ids);
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
+dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
 
 void update_national_rankings(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void generate_initial_state_instances(sys::state& state);
+
+dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag);
 
 }
 

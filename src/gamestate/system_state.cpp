@@ -131,11 +131,77 @@ namespace sys {
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 		auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
+		bool tooltip_updated = false;
+
 		if(game_state_was_updated) {
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
 			// TODO also need to update any tooltips (which probably exist outside the root container)
+
+			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type == ui::tooltip_behavior::variable_tooltip) {
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
+						250);
+					ui_state.last_tooltip->update_tooltip(*this, container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				}
+			}
 		}
+
+		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+
+		if(ui_state.last_tooltip != mouse_probe.under_mouse) {
+			ui_state.last_tooltip = mouse_probe.under_mouse;
+			if(mouse_probe.under_mouse) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type != ui::tooltip_behavior::no_tooltip) {
+
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
+						250);
+					ui_state.last_tooltip->update_tooltip(*this, container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				} else {
+					ui_state.tooltip->set_visible(*this, false);
+				}
+			} else {
+				ui_state.tooltip->set_visible(*this, false);
+			}
+		}
+
+		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+			// reposition tooltip
+			auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
+			if(ui_state.tooltip->base_data.size.y <= ui_state.root->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else if(ui_state.tooltip->base_data.size.x <= ui_state.root->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else {
+				ui_state.tooltip->base_data.position.x = std::clamp(int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
+				ui_state.tooltip->base_data.position.y = std::clamp(int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			}
+		}
+
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -151,10 +217,13 @@ namespace sys {
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0, 1.0);
 
-		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
 		ui_state.root->impl_render(*this, 0, 0);
+		if(ui_state.tooltip->is_visible()) {
+			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
+		}
 	}
 	void state::on_create() {
 		{

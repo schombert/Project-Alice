@@ -43,7 +43,7 @@ namespace ui {
 		xy_pair size; //4bytes
 
 		dcon::texture_id primary_texture_handle; //6bytes
-		uint16_t type_dependant = 0; // secondary texture handle or border size -- 8bytes
+		uint16_t type_dependent = 0; // secondary texture handle or border size -- 8bytes
 
 		uint8_t flags = 0; //9bytes
 		uint8_t number_of_frames = 1; //10bytes
@@ -326,8 +326,7 @@ namespace ui {
 	enum class tooltip_behavior {
 		tooltip,
 		variable_tooltip,
-		no_tooltip,
-		transparent
+		no_tooltip
 	};
 
 	class element_base;
@@ -339,18 +338,20 @@ namespace ui {
 
 	struct element_target {
 		ui_hook_fn generator = nullptr;
-		dcon::gui_def_id defintion;
+		dcon::gui_def_id definition;
 	};
 
-	
+	class tool_tip;
 
 	struct state {
 		element_base* under_mouse = nullptr;
 		element_base* drag_target = nullptr;
 		element_base* edit_target = nullptr;
+		element_base* last_tooltip = nullptr;
 
 		xy_pair relative_mouse_location = xy_pair{ 0, 0 };
 		std::unique_ptr<element_base> root;
+		std::unique_ptr<tool_tip> tooltip;
 		ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
 		// elements we are keeping track of
