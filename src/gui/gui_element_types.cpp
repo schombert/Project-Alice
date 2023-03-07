@@ -7,6 +7,7 @@
 #include "gui_element_types.hpp"
 #include "fonts.hpp"
 #include "gui_graphics.hpp"
+#include "nations.hpp"
 #include "opengl_wrapper.hpp"
 #include "text.hpp"
 
@@ -988,6 +989,20 @@ void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& st
 	}
 }
 
+void overlapping_flags_box::on_update(sys::state& state) noexcept {
+	populate_flags(state);
+}
+
+message_result overlapping_flags_box::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<dcon::nation_id>()) {
+		current_nation = any_cast<dcon::nation_id>(payload);
+		populate_flags(state);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
+
 void overlapping_sphere_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
 		contents.clear();
@@ -1010,17 +1025,49 @@ void overlapping_sphere_flags::populate_flags(sys::state& state) {
 	}
 }
 
-void overlapping_sphere_flags::on_update(sys::state& state) noexcept {
-	populate_flags(state);
+void overlapping_puppet_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		auto fat_id = dcon::fatten(state.world, current_nation);
+		auto overlord = state.world.nation_get_overlord_as_subject(current_nation);
+		auto overlord_nation = dcon::fatten(state.world, overlord).get_ruler();
+		if(bool(overlord_nation)) {
+			contents.push_back(overlord_nation.get_identity_from_identity_holder().id);
+		} else {
+			for(auto puppet : state.world.nation_get_overlord_as_ruler(current_nation)) {
+				contents.push_back(puppet.get_subject().get_identity_from_identity_holder().id);
+			}
+		}
+		update(state);
+	}
 }
 
-message_result overlapping_sphere_flags::set(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<dcon::nation_id>()) {
-		current_nation = any_cast<dcon::nation_id>(payload);
-		populate_flags(state);
-		return message_result::consumed;
-	} else {
-		return message_result::unseen;
+void overlapping_ally_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_are_allied()) {
+				auto ally = nations::get_relationship_partner(state, rel.id, current_nation);
+				auto fat_ally = dcon::fatten(state.world, ally);
+				contents.push_back(fat_ally.get_identity_from_identity_holder().id);
+			}
+		}
+		update(state);
+	}
+}
+
+void overlapping_enemy_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto wa : state.world.nation_get_war_participant(current_nation)) {
+			bool is_attacker = wa.get_is_attacker();
+			for(auto o : wa.get_war().get_war_participant()) {
+				if(o.get_is_attacker() != is_attacker) {
+					contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
+				}
+			}
+		}
+		update(state);
 	}
 }
 
