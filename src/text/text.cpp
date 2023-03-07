@@ -654,4 +654,369 @@ namespace text {
 	std::string get_name_as_string(sys::state const& state, T t) {
 		return text::produce_simple_string(state, t.get_name());
 	}
+
+	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value) {
+		mp.insert_or_assign(uint32_t(key), value);
+	}
+
+	std::string localize_month(sys::state const& state, uint16_t month) {
+		switch(month) {
+			case 1:
+				return text::produce_simple_string(state, "January");
+			case 2:
+				return text::produce_simple_string(state, "February");
+			case 3:
+				return text::produce_simple_string(state, "March");
+			case 4:
+				return text::produce_simple_string(state, "April");
+			case 5:
+				return text::produce_simple_string(state, "May");
+			case 6:
+				return text::produce_simple_string(state, "June");
+			case 7:
+				return text::produce_simple_string(state, "July");
+			case 8:
+				return text::produce_simple_string(state, "August");
+			case 9:
+				return text::produce_simple_string(state, "September");
+			case 10:
+				return text::produce_simple_string(state, "October");
+			case 11:
+				return text::produce_simple_string(state, "November");
+			case 12:
+				return text::produce_simple_string(state, "December");
+			default:
+				return text::produce_simple_string(state, "January");
+		}
+	}
+
+	std::string date_to_string(sys::state const& state, sys::date date) {
+		sys::year_month_day ymd = date.to_ymd(state.start_date);
+		return localize_month(state, ymd.month) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
+	}
+
+	text_chunk const* layout::get_chunk_from_position(int32_t x, int32_t y) const {
+		for(auto& chunk : contents) {
+			if(int32_t(chunk.x) <= x && x <= int32_t(chunk.x) + chunk.width && chunk.y <= y && y <= chunk.y + chunk.height) {
+				return &chunk;
+			}
+		}
+		return nullptr;
+	}
+
+	void create_endless_layout(layout& dest, sys::state const& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp) {
+		dest.contents.clear();
+		dest.number_of_lines = 0;
+
+		uint32_t line_start = 0;
+
+		auto seq = state.text_sequences[source_text];
+		auto font_index = text::font_index_from_font_id(params.font_id);
+		auto font_size = text::size_from_font_id(params.font_id);
+		auto& font = state.font_collection.fonts[font_index - 1];
+		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+		auto line_height = text_height + params.leadding;
+
+		text::text_color current_color = params.color;
+		float current_x = params.left;
+		int32_t current_y = params.top;
+
+		auto finish_line = [&](bool force = false) {
+			if(!force && line_start == dest.contents.size())
+				return;
+
+			++dest.number_of_lines;
+
+			if(params.align == alignment::left) {
+				auto adjust = params.right - current_x;
+				for(uint32_t i = line_start; i < dest.contents.size(); ++i) {
+					dest.contents[i].x -= adjust;
+				}
+			} else if(params.align == alignment::center) {
+				auto adjust = (params.right - current_x) / 2;
+				for(uint32_t i = line_start; i < dest.contents.size(); ++i) {
+					dest.contents[i].x -= adjust;
+				}
+			}
+			current_x = params.left;
+			current_y += line_height;
+			line_start = uint32_t(dest.contents.size());
+		};
+
+		auto append_text_chunk = [&](std::string_view txt, substitution source) {
+			size_t str_i = 0;
+			size_t current_len = 0;
+			float extent = 0.0f;
+			float previous_extent = 0.0f;
+			auto tmp_color = current_color;
+			if(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) || std::holds_alternative<dcon::state_instance_id>(source)) {
+				tmp_color = text_color::light_blue;
+			}
+			while(str_i < txt.length()) {
+				auto next_wb = txt.find_first_of(" \r\n\t", str_i + current_len);
+				if(next_wb == std::string_view::npos) {
+					next_wb = txt.length();
+				}
+				next_wb = std::min(next_wb, txt.length()) - str_i;
+				if(next_wb == current_len) {
+					current_len++;
+				} else {
+					std::string_view segment = txt.substr(str_i, next_wb);
+					previous_extent = extent;
+					extent = font.text_extent(segment.data(), uint32_t(next_wb), font_size);
+					if(current_len == 0 && current_x + extent >= params.right) {
+						// the current word is too long for the text box, just let it overflow
+						dest.contents.push_back(text_chunk{ std::string(segment), current_x, source, int16_t(current_y), int16_t(extent), int16_t(text_height), tmp_color });
+						current_x += extent;
+						str_i += next_wb;
+						current_len = 0;
+						finish_line();
+					} else if(current_x + extent >= params.right) {
+						std::string_view section{ segment.data(), current_len };
+						dest.contents.push_back(text_chunk{ std::string(section), current_x, source, int16_t(current_y), int16_t(previous_extent), int16_t(text_height), tmp_color });
+						current_x += previous_extent;
+						current_y += line_height;
+						str_i += current_len;
+						current_len = 0;
+						finish_line();
+					} else if(next_wb == txt.length() - str_i) {
+						// we've reached the end of the text
+						dest.contents.push_back(text_chunk{ std::string(segment), current_x, source, int16_t(current_y), int16_t(extent), int16_t(text_height), tmp_color });
+						current_x += extent;
+						break;
+					} else {
+						current_len = next_wb;
+					}
+				}
+			}
+		};
+
+		auto resolve_substitution = [&](substitution sub) {
+			if(std::holds_alternative<std::string_view>(sub)) {
+				return std::string(std::get<std::string_view>(sub));
+			} else if(std::holds_alternative<dcon::text_key>(sub)) {
+				auto tkey = std::get<dcon::text_key>(sub);
+				return std::string(state.to_string_view(tkey));
+			} else if(std::holds_alternative<dcon::nation_id>(sub)) {
+				dcon::nation_id nid = std::get<dcon::nation_id>(sub);
+				return text::produce_simple_string(state, state.world.nation_get_name(nid));
+			} else if(std::holds_alternative<dcon::state_instance_id>(sub)) {
+				dcon::state_instance_id sid = std::get<dcon::state_instance_id>(sub);
+				auto name = state.world.state_definition_get_name(state.world.state_instance_get_definition(sid));
+				return text::produce_simple_string(state, name);
+			} else if(std::holds_alternative<dcon::province_id>(sub)) {
+				auto pid = std::get<dcon::province_id>(sub);
+				return text::produce_simple_string(state, state.world.province_get_name(pid));
+			} else if(std::holds_alternative<int64_t>(sub)) {
+				return std::to_string(std::get<int64_t>(sub));
+			} else if(std::holds_alternative<float>(sub)) {
+				return std::to_string(std::get<float>(sub));
+			} else if(std::holds_alternative<sys::date>(sub)) {
+				return date_to_string(state, std::get<sys::date>(sub));
+			} else {
+				return std::string("?");
+			}
+		};
+
+		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
+			if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
+				auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+				std::string_view text = state.to_string_view(tkey);
+				append_text_chunk(text, std::monostate{});
+			} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
+				finish_line(true);
+			} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
+				current_color = std::get<text::text_color>(state.text_components[i]);
+			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
+				auto var_type = std::get<text::variable_type>(state.text_components[i]);
+				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
+					append_text_chunk(resolve_substitution(it->second), it->second);
+				} else {
+					append_text_chunk("???", std::monostate{});
+				}
+			}
+		}
+
+		finish_line();
+	}
+
+	/*struct layout_box {
+		size_t first_chunk = 0;
+		int32_t x_offset = 0;
+		int32_t y_size = 0;
+
+		float x_position = 0;
+		int32_t y_position = 0;
+		text_color color = text_color::white;
+	};
+	struct columnar_layout {
+		layout& base_layout;
+		layout_parameters fixed_parameters;
+		int32_t used_height = 0;
+		int32_t used_width = 0;
+		int32_t y_cursor = 0;
+		int32_t current_column = 0;
+		int32_t column_width = 0;
+	};
+
+	
+	*/
+
+	void add_to_layout_box(columnar_layout& dest, sys::state const& state, layout_box& box, std::string_view txt, text_color color, substitution source) {
+
+		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+		auto& font = state.font_collection.fonts[font_index - 1];
+		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+		auto line_height = text_height + dest.fixed_parameters.leadding;
+
+		auto finish_line = [&](bool force = false) {
+			box.x_position = float(box.x_offset);
+			box.y_position += line_height;
+		};
+
+		
+		size_t str_i = 0;
+		size_t current_len = 0;
+		float extent = 0.0f;
+		float previous_extent = 0.0f;
+		auto tmp_color = color;
+	
+		while(str_i < txt.length()) {
+			auto next_wb = txt.find_first_of(" \r\n\t", str_i + current_len);
+			if(next_wb == std::string_view::npos) {
+				next_wb = txt.length();
+			}
+			next_wb = std::min(next_wb, txt.length()) - str_i;
+			if(next_wb == current_len) {
+				current_len++;
+			} else {
+				std::string_view segment = txt.substr(str_i, next_wb);
+				previous_extent = extent;
+				extent = font.text_extent(segment.data(), uint32_t(next_wb), font_size);
+				if(int32_t(box.x_position) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
+					// the current word is too long for the text box, just let it overflow
+					dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+
+					str_i += next_wb;
+
+					box.y_size = std::max(box.y_size, box.y_position + line_height);
+					box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
+					current_len = 0;
+					finish_line();
+				} else if(box.x_position + extent >= dest.fixed_parameters.right) {
+					if(current_len > 0) {
+						std::string_view section{ segment.data(), current_len };
+						dest.base_layout.contents.push_back(text_chunk{ std::string(section), box.x_position, source, int16_t(box.y_position), int16_t(previous_extent), int16_t(text_height), tmp_color });
+
+						box.y_size = std::max(box.y_size, box.y_position + line_height);
+						box.x_size = std::max(box.x_size, int32_t(box.x_position + previous_extent));
+					}
+					str_i += current_len;
+					current_len = 0;
+					finish_line();
+				} else if(next_wb == txt.length() - str_i) {
+					// we've reached the end of the text
+					dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+
+					box.y_size = std::max(box.y_size, box.y_position + line_height);
+					box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
+
+					box.x_position += extent;
+					break;
+				} else {
+					current_len = next_wb;
+				}
+			}
+		}
+	}
+
+	void add_to_layout_box(columnar_layout& dest, sys::state const& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
+
+		auto current_color = dest.fixed_parameters.color;
+		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+		auto& font = state.font_collection.fonts[font_index - 1];
+		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+		auto line_height = text_height + dest.fixed_parameters.leadding;
+
+		auto resolve_substitution = [&](substitution sub) {
+			if(std::holds_alternative<std::string_view>(sub)) {
+				return std::string(std::get<std::string_view>(sub));
+			} else if(std::holds_alternative<dcon::text_key>(sub)) {
+				auto tkey = std::get<dcon::text_key>(sub);
+				return std::string(state.to_string_view(tkey));
+			} else if(std::holds_alternative<dcon::nation_id>(sub)) {
+				dcon::nation_id nid = std::get<dcon::nation_id>(sub);
+				return text::produce_simple_string(state, state.world.nation_get_name(nid));
+			} else if(std::holds_alternative<dcon::state_instance_id>(sub)) {
+				dcon::state_instance_id sid = std::get<dcon::state_instance_id>(sub);
+				auto name = state.world.state_definition_get_name(state.world.state_instance_get_definition(sid));
+				return text::produce_simple_string(state, name);
+			} else if(std::holds_alternative<dcon::province_id>(sub)) {
+				auto pid = std::get<dcon::province_id>(sub);
+				return text::produce_simple_string(state, state.world.province_get_name(pid));
+			} else if(std::holds_alternative<int64_t>(sub)) {
+				return std::to_string(std::get<int64_t>(sub));
+			} else if(std::holds_alternative<float>(sub)) {
+				return std::to_string(std::get<float>(sub));
+			} else if(std::holds_alternative<sys::date>(sub)) {
+				return date_to_string(state, std::get<sys::date>(sub));
+			} else {
+				return std::string("?");
+			}
+		};
+
+		auto seq = state.text_sequences[source_text];
+		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
+			if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
+				auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+				std::string_view text = state.to_string_view(tkey);
+				add_to_layout_box(dest, state, box, std::string_view(text), current_color, std::monostate{});
+			} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
+				box.x_position = float(box.x_offset);
+				box.y_position += line_height;
+			} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
+				current_color = std::get<text::text_color>(state.text_components[i]);
+			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
+				auto var_type = std::get<text::variable_type>(state.text_components[i]);
+				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
+					auto txt = resolve_substitution(it->second);
+					add_to_layout_box(dest, state, box, std::string_view(txt), current_color, it->second);
+				} else {
+					add_to_layout_box(dest, state, box, std::string_view("???"), current_color, std::monostate{});
+				}
+			}
+		}
+	}
+
+	layout_box open_layout_box(columnar_layout& dest, int32_t indent) {
+		return layout_box{ dest.base_layout.contents.size(), indent, 0, 0, float(indent + dest.fixed_parameters.left), 0, dest.fixed_parameters.color };
+	}
+	void close_layout_box(columnar_layout& dest, layout_box const& box) {
+		if(box.y_size + dest.y_cursor >= dest.fixed_parameters.bottom) { // make new column
+			++dest.current_column;
+			for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].y += dest.fixed_parameters.top;
+				dest.base_layout.contents[i].x += float(dest.column_width * dest.current_column);
+				dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
+			}
+			dest.y_cursor = box.y_size + dest.fixed_parameters.top;
+		} else { // append to current column
+			for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
+				dest.base_layout.contents[i].x += float(dest.column_width * dest.current_column);
+				dest.used_width = std::max(dest.used_width, int32_t(dest.base_layout.contents[i].x + dest.base_layout.contents[i].width));
+			}
+			dest.y_cursor += box.y_size;
+		}
+		dest.used_height = std::max(dest.used_height, dest.y_cursor);
+		dest.used_width = std::max(dest.used_width, box.x_size + dest.column_width * dest.current_column);
+	}
+	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width) {
+		dest.contents.clear();
+		dest.number_of_lines = 0;
+		return columnar_layout{ dest, params, 0, 0, params.top, 0, column_width };
+	}
+
 }

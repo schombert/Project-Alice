@@ -69,7 +69,7 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 		REQUIRE(0 == state->ui_defs.gfx[dcon::gfx_object_id(0)].size.x);
 		REQUIRE(0 == state->ui_defs.gfx[dcon::gfx_object_id(0)].size.y);
 		REQUIRE(dcon::texture_id() == state->ui_defs.gfx[dcon::gfx_object_id(0)].primary_texture_handle);
-		REQUIRE(0 == state->ui_defs.gfx[dcon::gfx_object_id(0)].type_dependant);
+		REQUIRE(0 == state->ui_defs.gfx[dcon::gfx_object_id(0)].type_dependent);
 		REQUIRE(1 == state->ui_defs.gfx[dcon::gfx_object_id(0)].number_of_frames);
 		REQUIRE(uint8_t(ui::object_type::generic_sprite) == (state->ui_defs.gfx[dcon::gfx_object_id(0)].flags & ui::gfx_object::type_mask));
 
@@ -113,7 +113,7 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 		REQUIRE(20 == state->ui_defs.gfx[dcon::gfx_object_id(0)].size.x);
 		REQUIRE(40 == state->ui_defs.gfx[dcon::gfx_object_id(0)].size.y);
 		REQUIRE(dcon::texture_id(0) == state->ui_defs.gfx[dcon::gfx_object_id(0)].primary_texture_handle);
-		REQUIRE(4 == state->ui_defs.gfx[dcon::gfx_object_id(0)].type_dependant);
+		REQUIRE(4 == state->ui_defs.gfx[dcon::gfx_object_id(0)].type_dependent);
 		REQUIRE(6 == state->ui_defs.gfx[dcon::gfx_object_id(0)].number_of_frames);
 		REQUIRE(uint8_t(ui::object_type::barchart) == (state->ui_defs.gfx[dcon::gfx_object_id(0)].flags & ui::gfx_object::type_mask));
 
@@ -158,7 +158,7 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 		REQUIRE(30 == state->ui_defs.gfx[dcon::gfx_object_id(0)].size.x);
 		REQUIRE(30 == state->ui_defs.gfx[dcon::gfx_object_id(0)].size.y);
 		REQUIRE(dcon::texture_id() != state->ui_defs.gfx[dcon::gfx_object_id(0)].primary_texture_handle);
-		REQUIRE(0 != state->ui_defs.gfx[dcon::gfx_object_id(0)].type_dependant);
+		REQUIRE(0 != state->ui_defs.gfx[dcon::gfx_object_id(0)].type_dependent);
 		REQUIRE(6 == state->ui_defs.gfx[dcon::gfx_object_id(0)].number_of_frames);
 		REQUIRE(uint8_t(ui::object_type::vertical_progress_bar) == (state->ui_defs.gfx[dcon::gfx_object_id(0)].flags & ui::gfx_object::type_mask));
 
@@ -220,7 +220,7 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 		REQUIRE(state->ui_defs.gfx[found_tag].size.y == int16_t(25));
 		REQUIRE(uint8_t(ui::object_type::horizontal_progress_bar) == (state->ui_defs.gfx[found_tag].flags & ui::gfx_object::type_mask));
 		REQUIRE(state->to_string_view(state->ui_defs.textures[state->ui_defs.gfx[found_tag].primary_texture_handle]) == "gfx" NATIVE_SEP "interface" NATIVE_SEP "unciv_progress2.tga");
-		REQUIRE(state->to_string_view(state->ui_defs.textures[dcon::texture_id(uint16_t(state->ui_defs.gfx[found_tag].type_dependant - 1))]) == "gfx" NATIVE_SEP "interface" NATIVE_SEP "unciv_progress1.tga");
+		REQUIRE(state->to_string_view(state->ui_defs.textures[dcon::texture_id(uint16_t(state->ui_defs.gfx[found_tag].type_dependent - 1))]) == "gfx" NATIVE_SEP "interface" NATIVE_SEP "unciv_progress1.tga");
 
 
 		{

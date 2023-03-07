@@ -7,6 +7,7 @@
 #include "gui_element_types.hpp"
 #include "fonts.hpp"
 #include "gui_graphics.hpp"
+#include "nations.hpp"
 #include "opengl_wrapper.hpp"
 #include "text.hpp"
 
@@ -153,7 +154,7 @@ void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcep
 				ogl::render_bordered_rect(
 					state,
 					get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-					gfx_def.type_dependant,
+					gfx_def.type_dependent,
 					float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(),
@@ -197,6 +198,28 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 			float(x + text_offset), float(y + ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size)), float(font_size),
 			black_text ? ogl::color3f{ 0.0f,0.0f,0.0f } : ogl::color3f{ 1.0f,1.0f,1.0f },
 			state.font_collection.fonts[font_id - 1]);
+	}
+}
+
+ogl::color3f get_text_color(text::text_color text_color) {
+	switch(text_color) {
+		case text::text_color::black:
+		case text::text_color::unspecified:
+			return ogl::color3f{ 0.0f, 0.0f, 0.0f };
+		case text::text_color::white:
+			return ogl::color3f{ 1.0f, 1.0f, 1.0f };
+		case text::text_color::red:
+			return ogl::color3f{ 0.9f, 0.2f, 0.1f };
+		case text::text_color::green:
+			return ogl::color3f{ 0.2f, 0.95f, 0.2f };
+		case text::text_color::yellow:
+			return ogl::color3f{ 0.9f, 0.9f, 0.1f };
+		case text::text_color::light_blue:
+			return ogl::color3f{ 0.3f, 0.3f, 1.0f };
+		case text::text_color::dark_blue:
+			return ogl::color3f{ 0.1f, 0.1f, 0.6f };
+		default:
+			return ogl::color3f{ 0.f, 0.f, 0.f };
 	}
 }
 
@@ -286,10 +309,10 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 		if(bool(background_texture_id)) {
 			ogl::render_bordered_rect(
 				state,
-				get_color_modification(false, false, false),
-				16.f,
+				ogl::color_modification::none,
+				16.0f,
 				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
-				ogl::get_texture_handle(state, background_texture_id, false),
+				ogl::get_texture_handle(state, background_texture_id, true),
 				base_data.get_rotation(),
 				false
 			);
@@ -303,6 +326,30 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 	set_text(state, blink_s);
 	simple_text_element_base::render(state, x, y);
 	set_text(state, old_s);
+}
+
+void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	ogl::render_bordered_rect(
+		state,
+		ogl::color_modification::none,
+		16.0f,
+		float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+		ogl::get_texture_handle(state, definitions::tiles_dialog, true),
+		ui::rotation::upright,
+		false
+	);
+	auto font_id = text::font_index_from_font_id(tooltip_font);
+	auto font_size = text::size_from_font_id(tooltip_font);
+	auto black_text = text::is_black_from_font_id(tooltip_font);
+	for(auto& t : internal_layout.contents) {
+		ogl::render_text(
+			state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()),
+			ogl::color_modification::none,
+			float(x) + t.x, float(y + t.y), float(font_size),
+			get_text_color(t.color),
+			state.font_collection.fonts[font_id - 1]
+		);
+	}
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
@@ -407,28 +454,6 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 	}
 }
 
-ogl::color3f get_text_color(text::text_color text_color) {
-	switch(text_color) {
-	case text::text_color::black:
-	case text::text_color::unspecified:
-		return ogl::color3f{ 0.f, 0.f, 0.f };
-	case text::text_color::white:
-		return ogl::color3f{ 1.f, 1.f, 1.f };
-	case text::text_color::red:
-		return ogl::color3f{ 1.f, 0.f, 0.f };
-	case text::text_color::green:
-		return ogl::color3f{ 0.f, 1.f, 0.f };
-	case text::text_color::yellow:
-		return ogl::color3f{ 1.f, 1.f, 0.f };
-	case text::text_color::light_blue:
-		return ogl::color3f{ 0.f, 0.f, 1.f };
-	case text::text_color::dark_blue:
-		return ogl::color3f{ 0.f, 0.f, .5f };
-	default:
-		return ogl::color3f{ 0.f, 0.f, 0.f };
-	}
-}
-
 bool is_hyperlink_substitution(text_substitution sub) {
         return std::holds_alternative<dcon::nation_id>(sub) ||
                std::holds_alternative<dcon::state_definition_id>(sub) ||
@@ -441,7 +466,7 @@ void multiline_text_element_base::add_text_section(sys::state& state, std::strin
 	size_t current_len = 0;
 	while(str_i < text.size()) {
 		// FIXME: this approach of finding word breaks does not apply to all languages
-		auto next_wb = text.find_first_of(" \n\t", str_i + current_len);
+		auto next_wb = text.find_first_of(" \r\n\t", str_i + current_len);
 		if(next_wb == std::string_view::npos) {
 			next_wb = text.size();
 		}
@@ -652,23 +677,24 @@ std::unique_ptr<element_base> make_element(sys::state& state, std::string_view n
 	auto it = state.ui_state.defs_by_name.find(name);
 	if(it != state.ui_state.defs_by_name.end()) {
 		if(it->second.generator) {
-			auto res = it->second.generator(state, it->second.defintion);
+			auto res = it->second.generator(state, it->second.definition);
 			if(res) {
-				std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.defintion]), sizeof(ui::element_data));
+				std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.definition]), sizeof(ui::element_data));
 				make_size_from_graphics(state, res->base_data);
 				res->on_create(state);
 				return res;
 			}
 		}
-		return make_element_immediate(state, it->second.defintion);
+		return make_element_immediate(state, it->second.definition);
 	}
 	return std::unique_ptr<element_base>{};
 }
 
 state::state() {
 	root = std::make_unique<container_base>();
+	tooltip = std::make_unique<tool_tip>();
+	tooltip->flags |= element_base::is_invisible_mask;
 }
-
 
 void window_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::window) {
@@ -908,7 +934,7 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 				ogl::render_bordered_rect(
 					state,
 					get_color_modification(false, false, true),
-					gfx_def.type_dependant,
+					gfx_def.type_dependent,
 					float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(),
@@ -963,6 +989,20 @@ void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& st
 	}
 }
 
+void overlapping_flags_box::on_update(sys::state& state) noexcept {
+	populate_flags(state);
+}
+
+message_result overlapping_flags_box::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<dcon::nation_id>()) {
+		current_nation = any_cast<dcon::nation_id>(payload);
+		populate_flags(state);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
+
 void overlapping_sphere_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
 		contents.clear();
@@ -985,17 +1025,49 @@ void overlapping_sphere_flags::populate_flags(sys::state& state) {
 	}
 }
 
-void overlapping_sphere_flags::on_update(sys::state& state) noexcept {
-	populate_flags(state);
+void overlapping_puppet_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		auto fat_id = dcon::fatten(state.world, current_nation);
+		auto overlord = state.world.nation_get_overlord_as_subject(current_nation);
+		auto overlord_nation = dcon::fatten(state.world, overlord).get_ruler();
+		if(bool(overlord_nation)) {
+			contents.push_back(overlord_nation.get_identity_from_identity_holder().id);
+		} else {
+			for(auto puppet : state.world.nation_get_overlord_as_ruler(current_nation)) {
+				contents.push_back(puppet.get_subject().get_identity_from_identity_holder().id);
+			}
+		}
+		update(state);
+	}
 }
 
-message_result overlapping_sphere_flags::set(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<dcon::nation_id>()) {
-		current_nation = any_cast<dcon::nation_id>(payload);
-		populate_flags(state);
-		return message_result::consumed;
-	} else {
-		return message_result::unseen;
+void overlapping_ally_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_are_allied()) {
+				auto ally = nations::get_relationship_partner(state, rel.id, current_nation);
+				auto fat_ally = dcon::fatten(state.world, ally);
+				contents.push_back(fat_ally.get_identity_from_identity_holder().id);
+			}
+		}
+		update(state);
+	}
+}
+
+void overlapping_enemy_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto wa : state.world.nation_get_war_participant(current_nation)) {
+			bool is_attacker = wa.get_is_attacker();
+			for(auto o : wa.get_war().get_war_participant()) {
+				if(o.get_is_attacker() != is_attacker) {
+					contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
+				}
+			}
+		}
+		update(state);
 	}
 }
 
@@ -1051,8 +1123,8 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 	if(gid && flag_texture_handle > 0) {
 		auto& gfx_def = state.ui_defs.gfx[gid];
-		if(gfx_def.type_dependant) {
-			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependant - 1), true);
+		if(gfx_def.type_dependent) {
+			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
 			ogl::render_masked_rect(
 				state,
 				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
@@ -1074,6 +1146,15 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 		}
 	}
 	button_element_base::render(state, x, y);
+}
+void flag_button::update_tooltip(sys::state& state, text::columnar_layout& contents) noexcept {
+	auto ident = get_current_nation(state);
+	auto name = nations::name_from_tag(state, ident);
+	if(name) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, name, text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
 }
 
 message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
