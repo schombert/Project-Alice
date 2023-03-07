@@ -715,7 +715,7 @@ namespace text {
 		auto font_size = text::size_from_font_id(params.font_id);
 		auto& font = state.font_collection.fonts[font_index - 1];
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
-		auto line_height = text_height + params.leadding;
+		auto line_height = text_height + params.leading;
 
 		text::text_color current_color = params.color;
 		float current_x = params.left;
@@ -868,7 +868,7 @@ namespace text {
 		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 		auto& font = state.font_collection.fonts[font_index - 1];
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
-		auto line_height = text_height + dest.fixed_parameters.leadding;
+		auto line_height = text_height + dest.fixed_parameters.leading;
 
 		auto finish_line = [&](bool force = false) {
 			box.x_position = float(box.x_offset);
@@ -938,7 +938,7 @@ namespace text {
 		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 		auto& font = state.font_collection.fonts[font_index - 1];
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
-		auto line_height = text_height + dest.fixed_parameters.leadding;
+		auto line_height = text_height + dest.fixed_parameters.leading;
 
 		auto resolve_substitution = [&](substitution sub) {
 			if(std::holds_alternative<std::string_view>(sub)) {
