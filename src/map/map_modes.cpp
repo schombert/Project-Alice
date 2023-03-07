@@ -4,6 +4,7 @@
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
 #include "province.hpp"
+#include "nations.hpp"
 #include <unordered_map>
 
 namespace map_mode {
@@ -187,8 +188,111 @@ void set_nationality(sys::state& state) {
 	} else {
 		prov_color = get_nationality_global_color(state);
 	}
-	
+
 	state.map_display.set_province_color(prov_color, mode::nationality);
+}
+
+std::vector<uint32_t> get_global_sphere_color(sys::state& state) {
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		auto i = province::to_map_id(prov_id);
+
+		auto owner = fat_id.get_nation_from_province_ownership();
+
+		if(bool(owner)) {
+			// Currently there's no simple way to check if a nation is a great power.
+			bool is_great_power = false;
+			owner.for_each_gp_relationship_as_great_power([&](dcon::gp_relationship_id rel_id) {
+				if(!is_great_power) is_great_power = true;
+			});
+
+			if(is_great_power) {
+				prov_color[i] = owner.get_color();
+			} else {
+				auto master = owner.get_in_sphere_of();
+				if(bool(master)) {
+					prov_color[i] = master.get_color();
+				} else {
+					prov_color[i] = 0xFFAAAAAA;
+				}
+			}
+		} else {
+			prov_color[i] = 0x222222;
+		}
+	});
+
+	return prov_color;
+}
+
+bool is_great_power(dcon::nation_fat_id nation) {
+	bool is_great_power = false;
+	nation.for_each_gp_relationship_as_great_power([&](dcon::gp_relationship_id rel_id) {
+		if(!is_great_power) is_great_power = true;
+	});
+	return is_great_power;
+}
+
+std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
+	// Not sure if these are the real colors
+	uint32_t gp_color = 0x3CB43C;
+	uint32_t influence_color = 0xAA5064;
+	uint32_t sphere_color = 0x50A5A5;
+	uint32_t other_influence_color = 0xDC6E6E;
+
+	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+
+	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
+
+	if(is_great_power(selected_nation)) {
+		state.world.for_each_province([&](dcon::province_id prov_id) {
+			auto fat_id = dcon::fatten(state.world, prov_id);
+			auto i = province::to_map_id(prov_id);
+
+			auto owner = fat_id.get_nation_from_province_ownership();
+			if(owner.id == selected_nation.id) {
+				// Province is owned by the GP
+				prov_color[i] = gp_color;
+			} else if(bool(owner)) {
+				bool is_in_sphere = false;
+				bool is_in_influence = false;
+
+				auto rel_id = state.world.get_gp_relationship_by_gp_influence_pair(owner, selected_nation);
+				auto relationship_status = state.world.gp_relationship_get_status(rel_id);
+				if(relationship_status == nations::influence::level_in_sphere) {
+					is_in_sphere = true;
+				} else if(relationship_status != nations::influence::level_neutral && state.world.gp_relationship_get_influence(rel_id) != 0) {
+					is_in_influence = true;
+				}
+
+				if(is_in_sphere) {
+					prov_color[i] = sphere_color;
+				} else if(is_in_influence) {
+					prov_color[i] = influence_color;
+				} else {
+					prov_color[i] = 0xFFAAAAAA;
+				}
+			} else {
+				prov_color[i] = 0x222222;
+			}
+		});
+	}
+
+	return prov_color;
+}
+
+void set_sphere(sys::state& state) {
+	std::vector<uint32_t> prov_color;
+
+	if(state.map_display.get_selected_province()) {
+		prov_color = get_selected_sphere_color(state);
+	} else {
+		prov_color = get_global_sphere_color(state);
+	}
+
+	state.map_display.set_province_color(prov_color, mode::sphere);
 }
 
 void set_map_mode(sys::state& state, mode mode) {
@@ -208,6 +312,9 @@ void set_map_mode(sys::state& state, mode mode) {
 		break;
 	case mode::nationality:
 		set_nationality(state);
+		break;
+	case mode::sphere:
+		set_sphere(state);
 		break;
 	default:
 		break;
