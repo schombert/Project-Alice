@@ -1,4 +1,5 @@
 #include "system_state.hpp"
+#include "dcon_generated.hpp"
 #include "map_modes.hpp"
 #include "opengl_wrapper.hpp"
 #include "window.hpp"
@@ -237,6 +238,7 @@ namespace sys {
 		}
 	}
 	void state::on_create() {
+		local_player_nation = dcon::nation_id{42};
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
