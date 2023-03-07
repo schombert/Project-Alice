@@ -1708,6 +1708,38 @@ object {
 		tag{ save }
 	}
 }
+object {
+	name{ wargoal }
+	storage_type{ erasable }
+	size{ 1000 }
+	tag{ save }
+
+	property{
+		name{ added_by }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
+		name{ target_nation }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
+		name{ type }
+		type{ cb_type_id }
+		tag{ save }
+	}
+	property{
+		name{ associated_tag }
+		type{ national_identity_id }
+		tag{ save }
+	}
+	property{
+		name{ associated_state }
+		type{ state_definition_id }
+		tag{ save }
+	}
+}
 relationship{
 	name{ war_participant }
 	storage_type{ compactable }
@@ -1732,6 +1764,23 @@ relationship{
 		tag{ save }
 	}
 }
+relationship{
+	name{ wargoals_attached }
+	tag{ save }
+
+	link{
+		object{war}
+		name{war}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{wargoal}
+		name{wargoal}
+		type{unique}
+	}
+}
+
 object {
 	name{ state_definition }
 	storage_type{ contiguous }

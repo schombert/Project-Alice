@@ -2265,5 +2265,125 @@ void generic_event::picture(association_type, std::string_view value, error_hand
 	picture_ = context.outer_context.state.add_unique_to_pool(std::string(value));
 }
 
+
+void history_war_goal::receiver(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			receiver_ = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void history_war_goal::actor(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			actor_ = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void history_war_goal::casus_belli(association_type, std::string_view value, error_handler& err, int32_t line, war_history_context& context) {
+	if(auto it = context.outer_context.map_of_cb_types.find(std::string(value)); it != context.outer_context.map_of_cb_types.end()) {
+		casus_belli_ = it->second.id;
+	} else {
+		err.accumulated_errors += "invalid cb type type " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void war_block::add_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto tg = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			if(tg)
+				context.attackers.push_back(tg);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void war_block::add_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto tg = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			if(tg)
+				context.defenders.push_back(tg);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void war_block::rem_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto tg = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			std::erase(context.attackers, tg);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void war_block::rem_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto tg = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			std::erase(context.defenders, tg);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context) {
+	auto ymd = parse_date(label, 0, err);
+	if(sys::absolute_time_point(ymd) <= context.outer_context.state.start_date) {
+		parse_war_block(gen, err, context);
+	} else {
+		gen.discard_group();
+	}
+}
+
+void war_history_file::finish(war_history_context& context) {
+	if(context.attackers.size() > 0 && context.defenders.size() > 0 && context.wargoals.size() > 0) {
+		auto new_war = fatten(context.outer_context.state.world, context.outer_context.state.world.create_war());
+		new_war.set_start_date(sys::date(0));
+		new_war.set_primary_attacker(context.attackers[0]);
+		new_war.set_primary_defender(context.defenders[0]);
+
+		for(auto n : context.attackers) {
+			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);
+			context.outer_context.state.world.war_participant_set_is_attacker(rel, true);
+		}
+		for(auto n : context.defenders) {
+			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);
+			context.outer_context.state.world.war_participant_set_is_attacker(rel, false);
+		}
+		for(auto& wg : context.wargoals) {
+			auto new_wg = fatten(context.outer_context.state.world, context.outer_context.state.world.create_wargoal());
+			new_wg.set_added_by(wg.actor_);
+			new_wg.set_target_nation(wg.receiver_);
+			new_wg.set_type(wg.casus_belli_);
+			context.outer_context.state.world.force_create_wargoals_attached(new_war, new_wg);
+		}
+
+	}
+}
+
 }
 

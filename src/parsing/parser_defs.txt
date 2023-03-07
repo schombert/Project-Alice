@@ -1880,3 +1880,19 @@ country_history_file
 	capital                         value      int                               member_fn
 	colonial_points                 value      int                               discard
 	set_country_flag                value      text                              member_fn
+
+history_war_goal
+	casus_belli                     value      text                              member_fn
+	actor                           value      text                              member_fn
+	receiver                        value      text                              member_fn
+
+war_block
+	add_attacker                    value      text                              member_fn
+	add_defender                    value      text                              member_fn
+	rem_attacker                    value      text                              member_fn
+	rem_defender                    value      text                              member_fn
+	war_goal                        group      history_war_goal                  member_fn
+
+war_history_file
+	name                            value      text                              discard
+	#any                            extern     enter_war_dated_block             discard

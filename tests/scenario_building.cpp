@@ -1267,7 +1267,23 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_issues(context.map_of_iissues.find("voting_system")->second) == context.map_of_ioptions.find("jefferson_method")->second.id);
 		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
+	// load war history
+	{
+		auto country_dir = open_directory(history, NATIVE("wars"));
+		for(auto war_file : list_files(country_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(war_file);
+			if(opened_file) {
+				parsers::war_history_context new_context{ context };
 
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_war_history_file(gen, err, new_context);
+			}
+		}
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(state->world.war_size() == uint32_t(2));
+	}
 
 	state->world.nation_resize_variables(uint32_t(state->national_definitions.num_allocated_national_variables));
 	state->world.pop_resize_demographics(pop_demographics::size(*state));
