@@ -1036,8 +1036,6 @@ value_modifier_definition
 	factor             value         float                              member
 	base               value         float                              member (factor)
 	years              value         float                              member (factor)
-	months             value         float                              member (factor)
-	days               value         float                              member (factor)
 	group              group         value_modifier_definition          member_fn
 	modifier           extern        make_value_modifier_segment        discard
 
