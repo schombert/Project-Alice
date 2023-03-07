@@ -202,5 +202,7 @@ void update_national_rankings(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void generate_initial_state_instances(sys::state& state);
 
+dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag);
+
 }
 
