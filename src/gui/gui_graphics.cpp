@@ -128,7 +128,7 @@ mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t
 				gfx_id = base_data.data.list_box.background_image;
 			}
 			auto& gfx_def = state.ui_defs.gfx[gfx_id];
-			auto mask_handle = gfx_def.type_dependant;
+			auto mask_handle = gfx_def.type_dependent;
 			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle
 					&& get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle)) {
 				probe_result.under_mouse = this;

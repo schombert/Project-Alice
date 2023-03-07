@@ -151,5 +151,13 @@ void global_national_state::set_global_flag_variable(dcon::global_flag_id id, bo
 		dcon::bit_vector_set(global_flag_variables.data(), id.index(), state);
 }
 
+dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag) {
+	auto holder = state.world.national_identity_get_nation_from_identity_holder(tag);
+	if(holder)
+		return state.world.nation_get_name(holder);
+	else
+		return state.world.national_identity_get_name(tag);
+}
+
 }
 

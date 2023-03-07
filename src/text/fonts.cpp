@@ -22,8 +22,6 @@ bool is_black_font(std::string_view txt) {
 }
 
 uint32_t font_size(std::string_view txt) {
-	const auto scaling = 0.75f; // Conservative scaling
-
 	const char* first_int = txt.data();
 	const char* end = txt.data() + txt.size();
 	while(first_int != end && !isdigit(*first_int))
@@ -34,26 +32,26 @@ uint32_t font_size(std::string_view txt) {
 	
 	if(first_int == last_int) {
 		if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "fps_font"))
-			return uint32_t(14.f * scaling);
+			return uint32_t(14);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "tooltip_font"))
-			return uint32_t(16.f * scaling);
+			return uint32_t(16);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "frangoth_bold"))
-			return uint32_t(18.f * scaling);
+			return uint32_t(18);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "impact_small"))
-			return uint32_t(24.f * scaling);
+			return uint32_t(24);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "old_english"))
-			return uint32_t(50.f * scaling);
+			return uint32_t(50);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "timefont"))
-			return uint32_t(24.f * scaling);
+			return uint32_t(24);
 		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "vic_title"))
-			return uint32_t(42.f * scaling);
+			return uint32_t(42);
 		else
-			return uint32_t(14.f * scaling);
+			return uint32_t(14);
 	}
 
 	uint32_t rvalue = 0;
 	std::from_chars(first_int, last_int, rvalue);
-	return uint32_t(float(rvalue) * scaling);
+	return rvalue;
 }
 
 uint32_t font_index(std::string_view txt) {
@@ -86,7 +84,10 @@ uint16_t name_into_font_id(std::string_view txt) {
 }
 
 int32_t size_from_font_id(uint16_t id) {
-	return int32_t(id & 0xFF);
+	if(font_index_from_font_id(id) == 2)
+		return (int32_t(id & 0xFF) * 3) / 4;
+	else
+		return (int32_t(id & 0xFF) * 5) / 6;
 }
 
 bool is_black_from_font_id(uint16_t id) {

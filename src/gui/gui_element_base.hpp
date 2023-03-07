@@ -44,6 +44,11 @@ public:
 	virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;
 
+	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
+		return tooltip_behavior::no_tooltip;
+	}
+	virtual void update_tooltip(sys::state& state, text::columnar_layout& contents) noexcept { }
+
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:
@@ -68,10 +73,6 @@ protected:
 	}
 	virtual void on_lose_focus(sys::state & state) noexcept { } // called when the focus is taken away
 	virtual void on_drag_finish(sys::state & state) noexcept { } // when the mouse is released, and drag ends
-	virtual tooltip_behavior has_tooltip(sys::state& state, int32_t x, int32_t y) noexcept { // used to test whether a tooltip is possible
-		return tooltip_behavior::transparent;
-	}
-	virtual void create_tooltip(sys::state& state, int32_t x, int32_t y, element_base& /*tooltip_window*/) noexcept { }
 private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
 public:

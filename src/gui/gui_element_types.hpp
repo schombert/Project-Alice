@@ -16,7 +16,7 @@ std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::strin
 	auto it = state.ui_state.defs_by_name.find(name);
 	if(it != state.ui_state.defs_by_name.end()) {
 		auto res = std::make_unique<T>();
-		std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.defintion]), sizeof(ui::element_data));
+		std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.definition]), sizeof(ui::element_data));
 		make_size_from_graphics(state, res->base_data);
 		res->on_create(state);
 		return res;
@@ -74,7 +74,7 @@ public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
 	}
-	tooltip_behavior has_tooltip(sys::state& state, int32_t x, int32_t y) noexcept override {
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::no_tooltip;
 	}
 };
@@ -196,6 +196,15 @@ public:
 	}
 };
 
+class tool_tip : public element_base {
+public:
+	text::layout internal_layout;
+
+	uint16_t tooltip_font = text::name_into_font_id("tooltip_font");
+	tool_tip() { }
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
 class draggable_target : public opaque_element_base {
 public:
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -265,6 +274,10 @@ public:
 	void on_update(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, text::columnar_layout& contents) noexcept override;
 };
 
 class overlapping_flags_flag_button : public flag_button {

@@ -57,46 +57,10 @@ public:
 };
 
 class topbar_date_text : public simple_text_element_base {
-private:
-	std::string localize_month(sys::state& state, uint16_t month) {
-		switch (month) {
-		case 1:
-			return text::produce_simple_string(state, "January");
-		case 2:
-			return text::produce_simple_string(state, "February");
-		case 3:
-			return text::produce_simple_string(state, "March");
-		case 4:
-			return text::produce_simple_string(state, "April");
-		case 5:
-			return text::produce_simple_string(state, "May");
-		case 6:
-			return text::produce_simple_string(state, "June");
-		case 7:
-			return text::produce_simple_string(state, "July");
-		case 8:
-			return text::produce_simple_string(state, "August");
-		case 9:
-			return text::produce_simple_string(state, "September");
-		case 10:
-			return text::produce_simple_string(state, "October");
-		case 11:
-			return text::produce_simple_string(state, "November");
-		case 12:
-			return text::produce_simple_string(state, "December");
-		default:
-			return text::produce_simple_string(state, "January");
-		}
-	}
-
-	std::string date_to_string(sys::state& state, sys::date date) {
-		sys::year_month_day ymd = date.to_ymd(state.start_date);
-		return localize_month(state, ymd.month) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
-	}
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, date_to_string(state, state.current_date));
+		set_text(state, text::date_to_string(state, state.current_date));
 	}
 
 	void on_create(sys::state& state) noexcept override {
