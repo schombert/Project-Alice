@@ -3,6 +3,7 @@
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
 #include "gui_element_types.hpp"
+#include "gui_common_elements.hpp"
 #include "province.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
@@ -91,11 +92,6 @@ public:
 class province_view_foreign_details : public window_element_base {
 private:
 	flag_button* country_flag_button = nullptr;
-	image_element_base* rgo_icon = nullptr;
-	simple_text_element_base* country_name_box = nullptr;
-	simple_text_element_base* country_gov_box = nullptr;
-	simple_text_element_base* country_party_box = nullptr;
-	simple_text_element_base* population_box = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 	ideology_piechart<dcon::province_id>* ideology_chart = nullptr;
 	workforce_piechart<dcon::province_id>* workforce_chart = nullptr;
@@ -105,25 +101,31 @@ private:
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_name") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			country_name_box = ptr.get();
-			return ptr;
+			return make_element_by_type<nation_name_text>(state, id);
 		} else if(name == "country_flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
 			country_flag_button = ptr.get();
 			return ptr;
 		} else if(name == "country_gov") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			country_gov_box = ptr.get();
-			return ptr;
+			return make_element_by_type<nation_government_type_text>(state, id);
 		} else if(name == "country_party") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			country_party_box = ptr.get();
-			return ptr;
+			return make_element_by_type<nation_ruling_party_text>(state, id);
+		} else if(name == "country_prestige") {
+			return make_element_by_type<nation_prestige_text>(state, id);
+		} else if(name == "country_economic") {
+			return make_element_by_type<nation_industry_score_text>(state, id);
+		} else if(name == "country_military") {
+			return make_element_by_type<nation_military_score_text>(state, id);
+		} else if(name == "country_total") {
+			return make_element_by_type<nation_total_score_text>(state, id);
 		} else if(name == "total_population") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			population_box = ptr.get();
-			return ptr;
+			return make_element_by_type<province_population_text>(state, id);
+		} else if(name == "sphere_label") {
+			return make_element_by_type<nation_sphere_list_label>(state, id);
+		} else if(name == "puppet_label") {
+			return make_element_by_type<nation_puppet_list_label>(state, id);
+		} else if(name == "our_relation") {
+			return make_element_by_type<nation_player_relations_text>(state, id);
 		} else if(name == "workforce_chart") {
 			auto ptr = make_element_by_type<workforce_piechart<dcon::province_id>>(state, id);
 			workforce_chart = ptr.get();
@@ -137,8 +139,24 @@ public:
 			culture_chart = ptr.get();
 			return ptr;
 		} else if(name == "goods_type") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			rgo_icon = ptr.get();
+			return make_element_by_type<province_rgo_icon>(state, id);
+		} else if(name == "build_icon_fort") {
+			return make_element_by_type<province_fort_icon>(state, id);
+		} else if(name == "build_icon_navalbase") {
+			return make_element_by_type<province_naval_base_icon>(state, id);
+		} else if(name == "build_icon_infra") {
+			return make_element_by_type<province_railroad_icon>(state, id);
+		} else if(name == "infra_progress_win") {
+			auto ptr = make_element_by_type<window_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "invest_build_infra") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->disabled = true;
+			return ptr;
+		} else if(name == "invest_factory_button") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->disabled = true;
 			return ptr;
 		} else if(name == "sphere_targets") {
 			return make_element_by_type<overlapping_sphere_flags>(state, id);
@@ -163,20 +181,7 @@ public:
 		auto nation_id = fat_id.get_nation_from_province_ownership();
 		stored_nation = nation_id;
 		if(bool(nation_id)) {
-			country_name_box->set_text(state, text::get_name_as_string(state, nation_id));
-			country_party_box->set_text(state, text::get_name_as_string(state, nation_id.get_ruling_party()));
-
 			country_flag_button->on_update(state);
-
-			auto gov_type_id = nation_id.get_government_type();
-			auto gov_name_seq = state.culture_definitions.governments[gov_type_id].name;
-			auto gov_name = text::produce_simple_string(state, gov_name_seq);
-			country_gov_box->set_text(state, gov_name);
-
-			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
-			population_box->set_text(state, text::prettify(int32_t(total_pop)));
-
-			rgo_icon->frame = fat_id.get_rgo().get_icon();
 
 			culture_chart->on_update(state);
 			workforce_chart->on_update(state);

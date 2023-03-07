@@ -624,30 +624,22 @@ namespace text {
 	}
 
 	std::string prettify(int32_t num) {
-		int32_t i = 0;
-		while(num >= 1000) {
-			num /= 10;
+		if(num < 1000) {
+			return std::to_string(num);
+		}
+		size_t i = 0;
+		while(num >= 1'000'000) {
+			num /= 1000;
 			i++;
 		}
-		if(i == 0) {
-			return std::to_string(num);
-		} else {
-			std::string pretty_num = std::to_string(num);
-			if(i % 3) {
-				pretty_num.insert(i % 3, ".");
-			}
-			
-			if(i < 4) {
-				pretty_num += 'K';
-			} else if(i < 7) {
-				pretty_num += 'M';
-			} else if(i < 10) {
-				pretty_num += 'B';
-			} else {
-				pretty_num += 'T';
-			}
-			return pretty_num;
-		}
+
+		std::string pretty_num = std::to_string(num / 10);
+		pretty_num.insert(pretty_num.size() - 2, ".");
+
+		const std::string unit_palette = "KMBTPZ";
+		pretty_num += unit_palette[std::min(unit_palette.size() - 1, i)];
+		
+		return pretty_num;
 	}
 
 	template<class T>
