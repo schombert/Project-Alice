@@ -140,7 +140,7 @@ namespace sys {
 
 			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 				auto type = ui_state.last_tooltip->has_tooltip(*this);
-				if(type == ui::tooltip_behavior::variable_tooltip) {
+				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
@@ -179,6 +179,17 @@ namespace sys {
 			} else {
 				ui_state.tooltip->set_visible(*this, false);
 			}
+		} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
+						250);
+			ui_state.last_tooltip->update_tooltip(*this, container);
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.used_width > 0)
+				ui_state.tooltip->set_visible(*this, true);
+			else
+				ui_state.tooltip->set_visible(*this, false);
 		}
 
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
