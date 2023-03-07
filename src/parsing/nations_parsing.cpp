@@ -1043,7 +1043,7 @@ void make_alliance(token_generator& gen, error_handler& err, scenario_building_c
 		context.state.world.diplomatic_relation_set_are_allied(rel, true);
 	} else {
 		auto new_rel = context.state.world.force_create_diplomatic_relation(a.first_, a.second_);
-		context.state.world.diplomatic_relation_set_are_allied(rel, true);
+		context.state.world.diplomatic_relation_set_are_allied(new_rel, true);
 	}
 }
 void make_vassal(token_generator& gen, error_handler& err, scenario_building_context& context) {
