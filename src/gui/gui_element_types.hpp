@@ -295,6 +295,11 @@ public:
 };
 
 class overlapping_flags_box : public overlapping_listbox_element_base<overlapping_flags_flag_button, dcon::national_identity_id> {
+protected:
+	dcon::nation_id current_nation{};
+
+	virtual void populate_flags(sys::state& state) { }
+
 public:
 	std::string_view get_row_element_name() override {
 		return "flag_list_flag";
@@ -303,17 +308,29 @@ public:
 	void update_subwindow(sys::state& state, overlapping_flags_flag_button* subwindow, dcon::national_identity_id content) override {
 		subwindow->set_current_nation(state, content);
 	}
+
+	void on_update(sys::state& state) noexcept override;
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
 class overlapping_sphere_flags : public overlapping_flags_box {
-private:
-	dcon::nation_id current_nation{};
+protected:
+	void populate_flags(sys::state& state) override;
+};
 
-	void populate_flags(sys::state& state);
+class overlapping_puppet_flags : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) override;
+};
 
-public:
-	void on_update(sys::state& state) noexcept override;
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
+class overlapping_ally_flags : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) override;
+};
+
+class overlapping_enemy_flags : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) override;
 };
 
 template<class TabT>
