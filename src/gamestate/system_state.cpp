@@ -1279,6 +1279,22 @@ namespace sys {
 			}
 		}
 
+		// load war history
+		{
+			auto country_dir = open_directory(history, NATIVE("wars"));
+			for(auto war_file : list_files(country_dir, NATIVE(".txt"))) {
+				auto opened_file = open_file(war_file);
+				if(opened_file) {
+					parsers::war_history_context new_context{ context };
+
+					err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
+					auto content = view_contents(*opened_file);
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_war_history_file(gen, err, new_context);
+				}
+			}
+		}
+
 		// misc touch ups
 		nations::generate_initial_state_instances(*this);
 		world.nation_resize_stockpiles(world.commodity_size());
