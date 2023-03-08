@@ -16,8 +16,8 @@ void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, filter);
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, filter);
 	}
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap);
 }
 
 GLuint load_texture_from_file(simple_fs::file& file, GLuint filter) {
@@ -533,6 +533,8 @@ display_data::~display_data() {
 		glDeleteTextures(1, &province_color);
 	if(border_texture)
 		glDeleteTextures(1, &border_texture);
+	if(stripes_texture)
+		glDeleteTextures(1, &stripes_texture);
 	if(province_highlight)
 		glDeleteTextures(1, &province_highlight);
 
@@ -632,11 +634,13 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, overlay);
 	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, province_color);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, province_color);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, colormap_political);
 	glActiveTexture(GL_TEXTURE10);
 	glBindTexture(GL_TEXTURE_2D, province_highlight);
+	glActiveTexture(GL_TEXTURE11);
+	glBindTexture(GL_TEXTURE_2D, stripes_texture);
 
 	glBindVertexArray(vao);
 
@@ -730,8 +734,12 @@ GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x,
 	return texture_handle;
 }
 
-void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color) {
-	glBindTexture(GL_TEXTURE_2D, texture_handle);
+void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers) {
+	if(layers == 1) {
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+	} else {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_handle);
+	}
 	uint32_t rows = ((uint32_t)prov_color.size()) / 256;
 	uint32_t left_on_last_row = ((uint32_t)prov_color.size()) % 256;
 
@@ -739,7 +747,16 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 	uint32_t y = 0;
 	uint32_t width = 256;
 	uint32_t height = rows;
-	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[0]);
+
+	if(layers == 1) {
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[0]);
+	} else {
+		// Set the texture data for each layer
+		for(int i = 0; i < layers; i++) {
+			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, i, width, height / layers, 1, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[i * (prov_color.size() / layers)]);
+		}
+	}
+
 	x = 0;
 	y = rows;
 	width = left_on_last_row;
@@ -747,15 +764,17 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 
 	// SCHOMBERT: added a conditional to block reading from after the end in the case it is evenly divisible by 256
 	// SCHOMBERT: that looks right to me, but I don't fully understand the intent
-	if(left_on_last_row > 0)
+	if(left_on_last_row > 0 && layers == 1)
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[rows * 256]);
 
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+
 void display_data::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
 	active_map_mode = new_map_mode;
-	gen_prov_color_texture(province_color, prov_color);
+	gen_prov_color_texture(province_color, prov_color, 2);
 }
 
 void display_data::set_terrain_map_mode() {
@@ -891,11 +910,16 @@ void display_data::load_map(sys::state& state) {
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	border_texture = load_dds_texture(map_terrain_dir, NATIVE("borders.dds"));
 
+	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
 	// Get the province_color handle
+	// province_color is an array of 2 textures, one for province and the other for stripes
 	glGenTextures(1, &province_color);
-	glBindTexture(GL_TEXTURE_2D, province_color);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
-	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, province_color);
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 256, 256, 2);
+	set_gltex_parameters(GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Get the province_highlight handle
@@ -904,13 +928,24 @@ void display_data::load_map(sys::state& state) {
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
 	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	uint32_t province_size = state.world.province_size() + 1;
+	province_size += 256 - province_size % 256;
 
-	std::vector<uint32_t> test(state.world.province_size() + 1);
-	gen_prov_color_texture(province_highlight, test);
-	for(uint32_t i = 0; i < test.size(); ++i) {
-		test[i] = 255;
+
+	std::vector<uint32_t> testHighlight(province_size);
+	std::vector<uint32_t> testColor(province_size * 4);
+	gen_prov_color_texture(province_highlight, testHighlight);
+
+	for(uint32_t i = 0; i < testHighlight.size(); ++i) {
+		testHighlight[i] = 255;
 	}
-	set_province_color(test, map_mode::mode::terrain);
+
+	for(uint32_t i = 0; i < testColor.size(); ++i) {
+		testColor[i] = 255;
+	}
+
+	set_province_color(testColor, map_mode::mode::terrain);
 }
 
 void display_data::update(sys::state& state) {
