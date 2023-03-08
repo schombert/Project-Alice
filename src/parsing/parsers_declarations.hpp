@@ -724,7 +724,6 @@ namespace parsers {
 		MOD_NAT_FUNCTION(military_tactics)
 		MOD_NAT_FUNCTION(supply_range)
 		MOD_NAT_FUNCTION(regular_experience_level)
-		MOD_NAT_FUNCTION(increase_research)
 		MOD_NAT_FUNCTION(permanent_prestige)
 		MOD_NAT_FUNCTION(soldier_to_pop_loss)
 		MOD_NAT_FUNCTION(naval_attrition)

@@ -164,5 +164,24 @@ dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_ide
 		return state.world.national_identity_get_name(tag);
 }
 
+void update_administrative_efficiency(sys::state& state) {
+	/*
+	- national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto admin_mod = state.world.nation_get_static_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency - sys::provincial_mod_offsets::count);
+
+		ve::fp_vector issue_sum;
+		for(auto i : state.culture_definitions.social_issues) {
+			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(ids, i));
+		}
+		auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
+
+		auto total = (admin_mod + 1.0f) * state.world.nation_get_non_colonial_bureaucrats(ids) / (state.world.nation_get_non_colonial_population(ids) * from_issues);
+
+		state.world.nation_set_administrative_efficiency(ids, ve::min(total, 1.0f));
+	});
+}
+
 }
 
