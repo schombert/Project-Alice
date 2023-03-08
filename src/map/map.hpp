@@ -84,6 +84,7 @@ private:
 	GLuint province_color = 0;
 	GLuint border_texture = 0;
 	GLuint province_highlight = 0;
+	GLuint stripes_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
@@ -118,6 +119,6 @@ private:
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
-	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color);
+	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 };
 }
