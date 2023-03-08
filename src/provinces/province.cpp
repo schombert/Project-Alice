@@ -23,6 +23,12 @@ void for_each_land_province(sys::state& state, F const& func) {
 }
 
 template<typename F>
+void ve_for_each_land_province(sys::state& state, F const& func) {
+	int32_t last = state.province_definitions.first_sea_province.index();
+	ve::execute_serial<dcon::province_id>(uint32_t(last), func);
+}
+
+template<typename F>
 void for_each_sea_province(sys::state& state, F const& func) {
 	int32_t first = state.province_definitions.first_sea_province.index();
 	for(int32_t i = first; i < int32_t(state.world.province_size()); ++i) {
@@ -119,6 +125,9 @@ void restore_unsaved_values(sys::state& state) {
 	});
 	state.world.execute_serial_over_nation([&](auto ids) {
 		state.world.nation_set_owned_state_count(ids, ve::int_vector());
+	});
+	state.world.execute_serial_over_nation([&](auto ids) {
+		state.world.nation_set_is_colonial_nation(ids, ve::mask_vector());
 	});
 	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id pid{ dcon::province_id::value_base_t(i) };

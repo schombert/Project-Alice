@@ -13,6 +13,10 @@
 
 - update wars -- increase ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
 
+- update demographics
+- update admin efficiency
+- accumulate research points
+
 ## Tracking changes
 
 There are some triggers, game rules, and ui elements that need to know the change of certain things, such as pop growth, migration amount, changes in pop wealth perhaps, etc. We will need to decide if these things are tracked by either resetting some value to zero at the beginning of the day and then increasing it over the day or by ensuring that all changes happen in a single place, so that the new delta can be written once (versus writing zero and then adding updates as we go). The second option is better for ui stability, since otherwise reading such a value over the course of a tick runs the risk of not just giving you an out-of-date value, but an incorrect one. We will also need to decide if we are storing these delta values in the save file. If we don't there are two consequences: (a) there will be no information about them in the ui on the first day after a load, and (b) we will need to make sure that they are always generated prior to being needed by any rule; we can't fall back on using the change value from the previous day as there may be no previous day.
@@ -43,7 +47,11 @@ Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since
 
 ### Share factor
 
-If the nation is a civ and is a secondary power start with define:SECOND_RANK_BASE_SHARE_FACTOR, and otherwise start with define:CIV_BASE_SHARE_FACTOR. Also calculate the sphere owner's foreign investment in the nation as a fraction of the total foreign investment in the nation (I believe that this is treated as zero if there is no foreign investment at all). The share factor is (1 - base share factor) * sphere owner investment fraction + base share factor. For uncivs, the share factor is simply equal to define:UNCIV_BASE_SHARE_FACTOR (so 1, by default). If a nation isn't in a sphere, we let the share factor be 0 if it needs to be used in any other calculation.
+If the nation is a civ and is a secondary power start with define:SECOND_RANK_BASE_SHARE_FACTOR, and otherwise start with define:CIV_BASE_SHARE_FACTOR. Also calculate the sphere owner's foreign investment in the nation as a fraction of the total foreign investment in the nation (I believe that this is treated as zero if there is no foreign investment at all). The share factor is (1 - base share factor) x sphere owner investment fraction + base share factor. For uncivs, the share factor is simply equal to define:UNCIV_BASE_SHARE_FACTOR (so 1, by default). If a nation isn't in a sphere, we let the share factor be 0 if it needs to be used in any other calculation.
+
+### Artisan production selection
+
+During its monthly pop update tick (see below), if an artisan hasn't been satisfying its life needs, it may switch to producing another, unlocked, commodity (this is more likely the longer the artisan pop has not been satisfying its life needs). It will not switch to a good where the following are true: it is not base profitable (i.e. raw input-prices x input-quantities - output-price x output-quantities is positive, with no modifiers considered), total world real demand is under total world real supply (schombert notes: maybe simpler to just check the direction of the price movement recently), or where there is no available supply of one or more inputs. The choice of what to produce among the commodities not rejected by the above seems to be weighted by the unit profit, the availability of inputs, how much world demand exceeds the supply, and by the presence of a national focus encouraging the output.
 
 ## Pops and demographics
 
@@ -54,18 +62,29 @@ The updates described in this section are run once per pop per month, spread out
 This monthly update contains:
 - determining what political or social movement the pop is part of
 - determining what rebel faction the pop is part of
+- determining if an artisan should switch production, and to what
+- growing or shrinking the pop
 - if the amount of people to move for the pop are either greater than its type's minimum promotion size or the size of the pop as a whole, the pop may partially migrate, either internally or externally or colonially. (note: slaves do not move or migrate)
 - as above, but for promoting and demotion by pop type
+- religious conversion -- number converted = define:CONVERSION_SCALE x pop-size x conversion chance factor (factor is computed additively). There appears to be some weird logic surrounding pops with religion marked as "pagan" or converting to such a religion, where pops in those cases won't convert unless there is already a matching pop with the same culture & type and with the religion to be converted to in the province. Not clear if we should try to replicate this logic. Also, slaves do not convert.
+- cultural assimilation -- Limitations: slaves do not assimilate, pops of an accepted culture do not assimilate, pops in an overseas and colonial province do not assimilate. For a pop to assimilate, there must be a pop of the same strata of either a primary culture (preferred) or accepted culture in the province to assimilate into. (schombert notes: not sure if it is worthwhile preserving this limitation) Amount: define:ASSIMILATION_SCALE x (provincial-assimilation-rate-modifier + 1) x (national-assimilation-rate-modifier + 1) x pop-size x assimilation chance factor (computed additively, and always at least 0.01). If the pop size is less than 100 or thereabouts, they seem to get all assimilated if there is any assimilation. In a colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a factor of 100. In a non-colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a factor of 10. All pops have their assimilation numbers reduced by a factor of 100 per core in the province sharing their primary culture.
 
 ### Growth
 
-Only owned provinces grow. To calculate the pop growth in a province: First, calculate the modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+Province pop-growth factor: Only owned provinces grow. To calculate the pop growth in a province: First, calculate the modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+
+The amount a pop grows is determine by first computing the growth modifier sum: (pop-life-needs - define:LIFE_NEED_STARVATION_LIMIT) x province-pop-growth-factor x 4 + province-growth-modifier + tech-pop-growth-modifier + national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+
 
 ### Migration
 
 Internal and external "normal" migration appears to be handled distinctly from "colonial" migration. In performing colonial migration, all pops of the same culture+religion+type seems to get combined before moving them around. Pops may only migrate between countries of the same civ/unciv status.
 
 Country targets for external migration: must be a country with its capital on a different continent from the source country *or* an adjacent country (same continent, but non adjacent, countries are not targets). Each country target is then weighted: Firs, the product of the country migration target modifiers (including the base value) is computed, and any results less than 0.01 are increased to that value. That value is then multiplied by (1.0 + the nations immigrant attractiveness modifier). Assuming that there are valid targets for immigration, the nations with the top three values are selected as the possible targets. The pop (or, rather, the part of the pop that is migrating) then goes to one of those three targets, selected at random according to their relative attractiveness weight. The final provincial destination for the pop is then selected as if doing normal internal migration.
+
+Destination for internal migration: colonial provinces are not valid targets, nor are non state capital provinces for pop types restricted to capitals. Valid provinces are weighted according to the product of the factors, times the value of the immigration focus + 1.0 if it is present, times the provinces immigration attractiveness modifier + 1.0. The pop is then distributed more or less evenly over those provinces with positive attractiveness in proportion to their attractiveness, or dumped somewhere at random if no provinces are attractive.
+
+Colonial migration appears to work much the same way as internal migration, except that *only* colonial provinces are valid targets, and pops belonging to cultures with "overseas" = false set will not colonially migrate outside the same continent. The same trigger seems to be used as internal migration for weighting the colonial provinces.
 
 ### Promotion/demotion
 
@@ -140,6 +159,11 @@ Garrison recovers at 10% per day when not being sieged
 
 Loop over all the pops associated with the faction. For each pop with militancy >= define:MIL_TO_JOIN_RISING, the faction is credited one regiment per define:POP_SIZE_PER_REGIMENT the pop has in size.
 
+## Technology
+
+Daily research points:
+Let pop-sum = for each pop type (research-points-from-type x 1^(fraction of population / optimal fraction))
+Then, the daily research points earned by a nation is: (national-modifier-research-points-modifier + tech-research-modifier + 1) x (national-modifier-to-research-points) + pop-sum)
 ## Other concepts
 
 - overseas province: not on same continent as the nation's capital AND not connected by land to the capital
@@ -152,3 +176,4 @@ Loop over all the pops associated with the faction. For each pop with militancy 
 - from naval bases: (1) determined by level and the building defintion, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
 - from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
 - plus points from technologies/inventions
+- national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
