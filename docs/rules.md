@@ -43,7 +43,11 @@ Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since
 
 ### Share factor
 
-If the nation is a civ and is a secondary power start with define:SECOND_RANK_BASE_SHARE_FACTOR, and otherwise start with define:CIV_BASE_SHARE_FACTOR. Also calculate the sphere owner's foreign investment in the nation as a fraction of the total foreign investment in the nation (I believe that this is treated as zero if there is no foreign investment at all). The share factor is (1 - base share factor) * sphere owner investment fraction + base share factor. For uncivs, the share factor is simply equal to define:UNCIV_BASE_SHARE_FACTOR (so 1, by default). If a nation isn't in a sphere, we let the share factor be 0 if it needs to be used in any other calculation.
+If the nation is a civ and is a secondary power start with define:SECOND_RANK_BASE_SHARE_FACTOR, and otherwise start with define:CIV_BASE_SHARE_FACTOR. Also calculate the sphere owner's foreign investment in the nation as a fraction of the total foreign investment in the nation (I believe that this is treated as zero if there is no foreign investment at all). The share factor is (1 - base share factor) x sphere owner investment fraction + base share factor. For uncivs, the share factor is simply equal to define:UNCIV_BASE_SHARE_FACTOR (so 1, by default). If a nation isn't in a sphere, we let the share factor be 0 if it needs to be used in any other calculation.
+
+### Artisan production selection
+
+During its monthly pop update tick (see below), if an artisan hasn't been satisfying its life needs, it may switch to producing another, unlocked, commodity (this is more likely the longer the artisan pop has not been satisfying its life needs). It will not switch to a good where the following are true: it is not base profitable (i.e. raw input-prices x input-quantities - output-price x output-quantities is positive, with no modifiers considered), total world real demand is under total world real supply (schombert notes: maybe simpler to just check the direction of the price movement recently), or where there is no available supply of one or more inputs. The choice of what to produce among the commodities not rejected by the above seems to be weighted by the unit profit, the availability of inputs, how much world demand exceeds the supply, and by the presence of a national focus encouraging the output.
 
 ## Pops and demographics
 
@@ -54,12 +58,19 @@ The updates described in this section are run once per pop per month, spread out
 This monthly update contains:
 - determining what political or social movement the pop is part of
 - determining what rebel faction the pop is part of
+- determining if an artisan should switch production, and to what
+- growing or shrinking the pop
 - if the amount of people to move for the pop are either greater than its type's minimum promotion size or the size of the pop as a whole, the pop may partially migrate, either internally or externally or colonially. (note: slaves do not move or migrate)
 - as above, but for promoting and demotion by pop type
+- religious conversion -- number converted = define:CONVERSION_SCALE x pop-size x conversion chance factor (factor is computed additively). There appears to be some weird logic surrounding pops with religion marked as "pagan" or converting to such a religion, where pops in those cases won't convert unless there is already a matching pop with the same culture & type and with the religion to be converted to in the province. Not clear if we should try to replicate this logic. Also, slaves do not convert.
+- cultural assimilation -- Limitations: slaves do not assimilate, pops of an accepted culture do not assimilate, pops in an overseas and colonial province do not assimilate. For a pop to assimilate, there must be a pop of the same strata of either a primary culture (preferred) or accepted culture in the province to assimilate into. (schombert notes: not sure if it is worthwhile preserving this limitation) Amount: define:ASSIMILATION_SCALE x (provincial-assimilation-rate-modifier + 1) x (national-assimilation-rate-modifier + 1) x pop-size x assimilation chance factor (computed additively, and always at least 0.01). If the pop size is less than 100 or thereabouts, they seem to get all assimilated if there is any assimilation. In a colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a factor of 100. In a non-colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a factor of 10. All pops have their assimilation numbers reduced by a factor of 100 per core in the province sharing their primary culture.
 
 ### Growth
 
-Only owned provinces grow. To calculate the pop growth in a province: First, calculate the modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+Province pop-growth factor: Only owned provinces grow. To calculate the pop growth in a province: First, calculate the modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+
+The amount a pop grows is determine by first computing the growth modifier sum: (pop-life-needs - define:LIFE_NEED_STARVATION_LIMIT) x province-pop-growth-factor x 4 + province-growth-modifier + tech-pop-growth-modifier + national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+
 
 ### Migration
 
