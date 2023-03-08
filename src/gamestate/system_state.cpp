@@ -1473,6 +1473,9 @@ namespace sys {
 
 					current_date += 1;
 
+					demographics::regenerate_from_pop_data(*this);
+					nations::update_administrative_efficiency(*this);
+
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));

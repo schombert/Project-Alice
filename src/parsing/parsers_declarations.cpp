@@ -117,7 +117,7 @@ void issue::next_step_only(association_type, bool value, error_handler& err, int
 }
 
 void issue::administrative(association_type, bool value, error_handler& err, int32_t line, reform_context& context) {
-	context.outer_context.state.world.reform_set_is_administrative(context.id, value);
+	err.accumulated_errors += "Error, only issues can be administrative (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
 
@@ -1131,7 +1131,7 @@ void issue_option_body::war_exhaustion_effect(association_type, float value, err
 }
 
 void issue_option_body::administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context) {
-	context.outer_context.state.world.reform_option_set_administrative_multiplier(context.id, value);
+	err.accumulated_errors += "Error, only issues can have an administrative multiplier (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
 void issue_option_body::on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context) {
