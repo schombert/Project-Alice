@@ -388,7 +388,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 			prov_color[i] = color;
 			prov_color[i + texture_size] = stripe_color;
 		});
-	} else {
+	} else { // Paint selected country and influencers
 		state.world.for_each_province([&](dcon::province_id prov_id) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto i = province::to_map_id(prov_id);
