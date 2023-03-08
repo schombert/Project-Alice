@@ -205,5 +205,7 @@ void generate_initial_state_instances(sys::state& state);
 
 dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag);
 
+void update_administrative_efficiency(sys::state& state);
+
 }
 

@@ -372,7 +372,7 @@ modifier_base
 	military_tactics                          value      float            member_fn
 	supply_range                              value      float            member_fn
 	regular_experience_level                  value      float            member_fn
-	increase_research                         value      float            member_fn
+	increase_research                         value      float            member_fn   (research_points_modifier)
 	permanent_prestige                        value      float            member_fn
 	soldier_to_pop_loss                       value      float            member_fn
 	naval_attrition                           value      float            member_fn
