@@ -46,8 +46,8 @@ uint32_t size(sys::state const& state) {
 template<typename F>
 void sum_over_demographics(sys::state& state, dcon::demographics_key key, F const& source) {
 	//clear province
-	province::for_each_land_province(state, [&](dcon::province_id pi) {
-		state.world.province_set_demographics(pi, key, 0.0f); // TODO: perform clears as a vector op.
+	province::ve_for_each_land_province(state, [&](auto pi) {
+		state.world.province_set_demographics(pi, key, ve::fp_vector());
 	});
 	//sum in province
 	state.world.for_each_pop([&](dcon::pop_id p) {
@@ -55,8 +55,8 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 		state.world.province_get_demographics(location, key) += source(state, p);
 	});
 	//clear state
-	state.world.for_each_state_instance([&](dcon::state_instance_id si) {
-		state.world.state_instance_set_demographics(si, key, 0.0f); // TODO: perform clears as a vector op.
+	state.world.execute_serial_over_state_instance([&](auto si) {
+		state.world.state_instance_set_demographics(si, key, ve::fp_vector());
 	});
 	//sum in state
 	province::for_each_land_province(state, [&](dcon::province_id p) {
@@ -64,8 +64,8 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 		state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(p, key);
 	});
 	//clear nation
-	state.world.for_each_nation([&](dcon::nation_id ni) {
-		state.world.nation_set_demographics(ni, key, 0.0f); // TODO: perform clears as a vector op.
+	state.world.execute_serial_over_nation([&](auto ni) {
+		state.world.nation_set_demographics(ni, key, ve::fp_vector());
 	});
 	//sum in nation
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
@@ -256,7 +256,7 @@ void regenerate_from_pop_data(sys::state& state) {
 	//
 	// calculate values derived from demographics
 	//
-	concurrency::parallel_for(uint32_t(0), uint32_t(14), [&](uint32_t index) {
+	concurrency::parallel_for(uint32_t(0), uint32_t(16), [&](uint32_t index) {
 		switch(index) {
 			case 0:
 			{
@@ -567,6 +567,36 @@ void regenerate_from_pop_data(sys::state& state) {
 						state.world.pop_set_dominant_ideology(p, ve::select(mask, ve::tagged_vector<dcon::ideology_id>(c), state.world.pop_get_dominant_ideology(p)));
 						max_buffer.set(p, ve::select(mask, v, old_max));
 					});
+				});
+				break;
+			}
+			case 14:
+			{
+				//clear nation
+				state.world.execute_serial_over_nation([&](auto ni) {
+					state.world.nation_set_non_colonial_population(ni, ve::fp_vector());
+				});
+				//sum in nation
+				state.world.for_each_state_instance([&](dcon::state_instance_id s) {
+					if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
+						auto location = state.world.state_instance_get_nation_from_state_ownership(s);
+						state.world.nation_get_non_colonial_population(location) += state.world.state_instance_get_demographics(s, demographics::total);
+					}
+				});
+				break;
+			}
+			case 15:
+			{
+				//clear nation
+				state.world.execute_serial_over_nation([&](auto ni) {
+					state.world.nation_set_non_colonial_bureaucrats(ni, ve::fp_vector());
+				});
+				//sum in nation
+				state.world.for_each_state_instance([&, k = demographics::to_key(state, state.culture_definitions.bureaucrat)](dcon::state_instance_id s) {
+					if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
+						auto location = state.world.state_instance_get_nation_from_state_ownership(s);
+						state.world.nation_get_non_colonial_bureaucrats(location) += state.world.state_instance_get_demographics(s, k);
+					}
 				});
 				break;
 			}

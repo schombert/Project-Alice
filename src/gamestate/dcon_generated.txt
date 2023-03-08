@@ -648,11 +648,6 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ is_administrative }
-		type{ bitfield }
-		tag{ scenario }
-	}
-	property{
 		name{ reform_type }
 		type{ uint8_t }
 	}
@@ -690,12 +685,6 @@ object {
 
 	property{
 		name{ war_exhaustion_effect }
-		type{ float }
-		tag{ scenario }
-	}
-
-	property{
-		name{ administrative_multiplier }
 		type{ float }
 		tag{ scenario }
 	}
@@ -2493,6 +2482,18 @@ object {
 		name{ constructing_cb_is_discovered }
 		type{ bitfield }
 		tag{ save }
+	}
+	property {
+		name{ non_colonial_population }
+		type{ float }
+	}
+	property {
+		name{ non_colonial_bureaucrats }
+		type{ float }
+	}
+	property {
+		name{ administrative_efficiency }
+		type{ float }
 	}
 }
 
