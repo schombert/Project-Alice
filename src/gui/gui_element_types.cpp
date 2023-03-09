@@ -139,6 +139,13 @@ ogl::color_modification get_color_modification(bool is_under_mouse, bool is_disa
 	}
 }
 
+void image_element_base::on_create(sys::state &state) noexcept {
+	element_base::on_create(state);
+	if(base_data.get_element_type() == element_type::image) {
+		frame = base_data.data.image.frame();
+	}
+}
+
 void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid;
 	if(base_data.get_element_type() == element_type::image) {
@@ -1117,6 +1124,7 @@ void flag_button::on_update(sys::state& state) noexcept {
 
 void flag_button::on_create(sys::state& state) noexcept {
 	button_element_base::on_create(state);
+	flag_size = base_data.size;
 	on_update(state);
 }
 
@@ -1134,7 +1142,7 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			ogl::render_masked_rect(
 				state,
 				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				float(x + flag_position.x), float(y + flag_position.y), float(flag_size.x), float(flag_size.y),
 				flag_texture_handle,
 				mask_handle,
 				base_data.get_rotation(),
@@ -1144,7 +1152,7 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			ogl::render_textured_rect(
 				state,
 				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				float(x + flag_position.x), float(y + flag_position.y), float(flag_size.x), float(flag_size.y),
 				flag_texture_handle,
 				base_data.get_rotation(),
 				gfx_def.is_vertically_flipped()
