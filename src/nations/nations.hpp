@@ -207,5 +207,8 @@ dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_ide
 
 void update_administrative_efficiency(sys::state& state);
 
+float daily_research_points(sys::state& state, dcon::nation_id n);
+void update_research_points(sys::state& state);
+
 }
 

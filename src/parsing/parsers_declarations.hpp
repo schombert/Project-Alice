@@ -720,7 +720,6 @@ namespace parsers {
 		MOD_NAT_FUNCTION(administrative_efficiency)
 		MOD_NAT_FUNCTION(influence)
 		MOD_NAT_FUNCTION(dig_in_cap)
-		MOD_NAT_FUNCTION(morale)
 		MOD_NAT_FUNCTION(military_tactics)
 		MOD_NAT_FUNCTION(supply_range)
 		MOD_NAT_FUNCTION(regular_experience_level)

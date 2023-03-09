@@ -368,7 +368,7 @@ modifier_base
 	administrative_efficiency                 value      float            member_fn
 	influence                                 value      float            member_fn
 	dig_in_cap                                value      float            member_fn
-	morale                                    value      float            member_fn
+	morale                                    value      float            member_fn   (org_regain)
 	military_tactics                          value      float            member_fn
 	supply_range                              value      float            member_fn
 	regular_experience_level                  value      float            member_fn
