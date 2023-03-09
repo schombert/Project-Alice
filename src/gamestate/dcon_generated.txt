@@ -2495,6 +2495,11 @@ object {
 		name{ administrative_efficiency }
 		type{ float }
 	}
+	property {
+		name{ research_points }
+		type{ float }
+		tag{ save }
+	}
 }
 
 relationship{

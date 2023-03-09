@@ -1473,9 +1473,21 @@ namespace sys {
 
 					current_date += 1;
 
+					// basic repopulation of demographics derived values
 					demographics::regenerate_from_pop_data(*this);
-					nations::update_administrative_efficiency(*this);
 
+					// values updates pass 1 (mostly trivial things, can be done in parallel
+					concurrency::parallel_for(0, 2, [&](int32_t index) {
+						switch(index) {
+							case 0:
+								nations::update_administrative_efficiency(*this);
+								break;
+							case 1:
+								nations::update_research_points(*this);
+								break;
+						}
+						
+					});
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));
