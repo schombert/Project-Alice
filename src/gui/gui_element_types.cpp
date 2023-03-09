@@ -731,8 +731,11 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 }
 
 void piechart_element_base::generate_data_texture(sys::state& state) {
-	memcpy(data_texture.data, get_colors(state).data(), resolution * channels);
-	data_texture.data_updated = true;
+	auto colors = get_colors(state);
+	if(!colors.empty()) {
+		memcpy(data_texture.data, get_colors(state).data(), resolution * channels);
+		data_texture.data_updated = true;
+	}
 }
 
 void piechart_element_base::on_create(sys::state& state) noexcept {
@@ -763,13 +766,16 @@ std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& s
 			auto prov_id = any_cast<dcon::province_id>(obj_id);
 			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 			auto total_pops = state.world.province_get_demographics(prov_id, demographics::total);
+			if(total_pops <= 0) {
+				return std::vector<uint8_t>(0);
+			}
 			DemoT last_demo{};
 			for_each_demo(state, [&](DemoT demo_id) {
 				last_demo = demo_id;
 				auto demo_fat_id = dcon::fatten(state.world, demo_id);
 				auto demo_key = demographics::to_key(state, demo_fat_id.id);
 				auto volume = state.world.province_get_demographics(prov_id, demo_key);
-				auto slice_count = size_t(volume / total_pops * resolution);
+				auto slice_count = std::min(size_t(volume / total_pops * resolution), i + resolution * channels);
 				auto color = demo_fat_id.get_color();
 				for(size_t j = 0; j < slice_count * channels; j += channels) {
 					colors[j + i] = uint8_t(color & 0xFF);
