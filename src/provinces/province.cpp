@@ -205,6 +205,14 @@ float rgo_employment(sys::state& state, dcon::province_id id) {
 	// TODO
 	return 0.0f;
 }
+float rgo_income(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float rgo_production_quantity(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
 float crime_fighting_efficiency(sys::state& state, dcon::province_id id) {
 	// TODO
 	return 0.0f;
