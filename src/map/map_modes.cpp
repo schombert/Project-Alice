@@ -10,9 +10,12 @@
 namespace map_mode {
 
 void set_political(sys::state& state) {
-	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
 
-	state.world.for_each_province([&](dcon::province_id prov_id){
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto id = fat_id.get_nation_from_province_ownership();
 		uint32_t color;
@@ -21,7 +24,10 @@ void set_political(sys::state& state) {
 		else // If no owner use default color
 			color = 255 << 16 | 255 << 8 | 255;
 		auto i = province::to_map_id(prov_id);
+
 		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+
 	});
 
 	state.map_display.set_province_color(prov_color, mode::political);
@@ -44,7 +50,10 @@ inline constexpr uint32_t scramble(uint32_t color) {
 }
 
 void set_region(sys::state& state) {
-	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	uint32_t province_size = state.world.province_size() + 1;
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
@@ -52,6 +61,7 @@ void set_region(sys::state& state) {
 		uint32_t color = scramble(id.get_state().id.index());
 		auto i = province::to_map_id(prov_id);
 		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
 	});
 
 	state.map_display.set_province_color(prov_color, mode::region);
@@ -79,13 +89,20 @@ std::vector<uint32_t> get_global_population_color(sys::state& state) {
 		prov_population[i] = population;
 	});
 
-	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	uint32_t province_size = state.world.province_size() + 1;
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto cid = fat_id.get_continent().id.index();
 		auto i = province::to_map_id(prov_id);
 		float gradient_index = prov_population[i] / continent_max_pop[cid];
-		prov_color[i] = color_gradient(gradient_index, 210, 100 << 8);
+
+		auto color = color_gradient(gradient_index, 210, 100 << 8);
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
 	});
 
 	return prov_color;
@@ -112,14 +129,19 @@ std::vector<uint32_t> get_national_population_color(sys::state& state) {
 		}
 	});
 
-	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	uint32_t province_size = state.world.province_size() + 1;
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
 	for(size_t i = 0; i < prov_population.size(); i++) {
+		uint32_t color = 0xFFAAAAAA;
 		if(prov_population[i] > -1.f) {
 			float gradient_index = prov_population[i] / max_population;
-			prov_color[i] = color_gradient(gradient_index, 210, 100 << 8);
-		} else {
-			prov_color[i] = 0xFFAAAAAA;
+			color = color_gradient(gradient_index, 210, 100 << 8);
 		}
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
 	}
 
 	return prov_color;
@@ -137,18 +159,54 @@ void set_population(sys::state& state) {
 }
 
 std::vector<uint32_t> get_nationality_global_color(sys::state& state) {
-	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	uint32_t province_size = state.world.province_size() + 1;
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
-		auto culture_id = fat_id.get_dominant_culture();
-		
-		auto i = province::to_map_id(prov_id);
-		if(bool(culture_id)) {
-			prov_color[i] = culture_id.get_color();
-		} else {
-			prov_color[i] = 0xFFAAAAAA;
+		auto id = province::to_map_id(prov_id);
+		auto total_pops = state.world.province_get_demographics(prov_id, demographics::total);
+
+		dcon::culture_id primary_culture, secondary_culture;
+		float primary_culture_percent = 0.f, secondary_culture_percent = 0.f;
+
+		state.world.for_each_culture([&](dcon::culture_id culture_id) {
+			auto demo_key = demographics::to_key(state, culture_id);
+			auto volume = state.world.province_get_demographics(prov_id, demo_key);
+			float percent = volume / total_pops;
+
+			if(percent > primary_culture_percent) {
+				secondary_culture = primary_culture;
+				secondary_culture_percent = primary_culture_percent;
+				primary_culture = culture_id;
+				primary_culture_percent = percent;
+			} else if(percent > secondary_culture_percent) {
+				secondary_culture = culture_id;
+				secondary_culture_percent = percent;
+			}
+		});
+
+		dcon::culture_fat_id fat_primary_culture = dcon::fatten(state.world, primary_culture);
+
+		uint32_t primary_culture_color = fat_primary_culture.get_color();
+		uint32_t secondary_culture_color = 0xFFAAAAAA; // This color won't be reached
+
+		if(bool(secondary_culture)) {
+			dcon::culture_fat_id fat_secondary_culture = dcon::fatten(state.world, secondary_culture);
+			secondary_culture_color = fat_secondary_culture.get_color();
 		}
+
+		if(secondary_culture_percent >= .35) {
+			prov_color[id] = primary_culture_color;
+			prov_color[id + texture_size] = secondary_culture_color;
+		} else {
+			prov_color[id] = primary_culture_color;
+			prov_color[id + texture_size] = primary_culture_color;
+		}
+
 	});
+
 	
 	return prov_color;
 }
@@ -158,7 +216,11 @@ std::vector<uint32_t> get_nationality_diaspora_color(sys::state& state) {
 	auto culture_id = fat_selected_id.get_dominant_culture();
 	auto culture_key = demographics::to_key(state, culture_id.id);
 
-	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	uint32_t province_size = state.world.province_size() + 1;
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
 	if(bool(culture_id)) {
 		uint32_t full_color = culture_id.get_color();
 		uint32_t empty_color = 0xDDDDDD;
@@ -175,7 +237,10 @@ std::vector<uint32_t> get_nationality_diaspora_color(sys::state& state) {
 			auto culture_pop = state.world.province_get_demographics(prov_id, culture_key);
 			auto ratio = culture_pop / total_pop;
 
-			prov_color[i] = color_gradient(ratio, full_color, empty_color);
+			auto color = color_gradient(ratio, full_color, empty_color);
+
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color;
 		});
 	}
 	return prov_color;
@@ -193,13 +258,19 @@ void set_nationality(sys::state& state) {
 }
 
 std::vector<uint32_t> get_global_sphere_color(sys::state& state) {
-	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+
+	uint32_t province_size = state.world.province_size() + 1;
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto i = province::to_map_id(prov_id);
 
 		auto owner = fat_id.get_nation_from_province_ownership();
+
+		uint32_t color = 0x222222;
 
 		if(bool(owner)) {
 			// Currently there's no simple way to check if a nation is a great power.
@@ -209,18 +280,18 @@ std::vector<uint32_t> get_global_sphere_color(sys::state& state) {
 			});
 
 			if(is_great_power) {
-				prov_color[i] = owner.get_color();
+				color = owner.get_color();
 			} else {
 				auto master = owner.get_in_sphere_of();
 				if(bool(master)) {
-					prov_color[i] = master.get_color();
+					color = master.get_color();
 				} else {
-					prov_color[i] = 0xFFAAAAAA;
+					color = 0xFFAAAAAA;
 				}
 			}
-		} else {
-			prov_color[i] = 0x222222;
 		}
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
 	});
 
 	return prov_color;
@@ -241,7 +312,10 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 	uint32_t sphere_color = 0x50A5A5;
 	uint32_t other_influence_color = 0xDC6E6E;
 
-	std::vector<uint32_t> prov_color(state.world.province_size() + 1);
+	uint32_t province_size = state.world.province_size() + 1;
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
 
 	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
@@ -251,10 +325,12 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto i = province::to_map_id(prov_id);
 
+			uint32_t color = 0x222222;
+
 			auto owner = fat_id.get_nation_from_province_ownership();
 			if(owner.id == selected_nation.id) {
 				// Province is owned by the GP
-				prov_color[i] = gp_color;
+				color = gp_color;
 			} else if(bool(owner)) {
 				bool is_in_sphere = false;
 				bool is_in_influence = false;
@@ -268,15 +344,16 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 				}
 
 				if(is_in_sphere) {
-					prov_color[i] = sphere_color;
+					color = sphere_color;
 				} else if(is_in_influence) {
-					prov_color[i] = influence_color;
+					color = influence_color;
 				} else {
-					prov_color[i] = 0xFFAAAAAA;
+					color = 0xFFAAAAAA;
 				}
-			} else {
-				prov_color[i] = 0x222222;
 			}
+
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color;
 		});
 	}
 

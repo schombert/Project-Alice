@@ -648,11 +648,6 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ is_administrative }
-		type{ bitfield }
-		tag{ scenario }
-	}
-	property{
 		name{ reform_type }
 		type{ uint8_t }
 	}
@@ -690,12 +685,6 @@ object {
 
 	property{
 		name{ war_exhaustion_effect }
-		type{ float }
-		tag{ scenario }
-	}
-
-	property{
-		name{ administrative_multiplier }
 		type{ float }
 		tag{ scenario }
 	}
@@ -1708,6 +1697,38 @@ object {
 		tag{ save }
 	}
 }
+object {
+	name{ wargoal }
+	storage_type{ erasable }
+	size{ 1000 }
+	tag{ save }
+
+	property{
+		name{ added_by }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
+		name{ target_nation }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
+		name{ type }
+		type{ cb_type_id }
+		tag{ save }
+	}
+	property{
+		name{ associated_tag }
+		type{ national_identity_id }
+		tag{ save }
+	}
+	property{
+		name{ associated_state }
+		type{ state_definition_id }
+		tag{ save }
+	}
+}
 relationship{
 	name{ war_participant }
 	storage_type{ compactable }
@@ -1732,6 +1753,23 @@ relationship{
 		tag{ save }
 	}
 }
+relationship{
+	name{ wargoals_attached }
+	tag{ save }
+
+	link{
+		object{war}
+		name{war}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{wargoal}
+		name{wargoal}
+		type{unique}
+	}
+}
+
 object {
 	name{ state_definition }
 	storage_type{ contiguous }
@@ -2443,6 +2481,23 @@ object {
 	property {
 		name{ constructing_cb_is_discovered }
 		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ non_colonial_population }
+		type{ float }
+	}
+	property {
+		name{ non_colonial_bureaucrats }
+		type{ float }
+	}
+	property {
+		name{ administrative_efficiency }
+		type{ float }
+	}
+	property {
+		name{ research_points }
+		type{ float }
 		tag{ save }
 	}
 }

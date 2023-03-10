@@ -173,22 +173,20 @@ constexpr inline int32_t administrative_efficiency = 110 + provincial_mod_offset
 constexpr inline int32_t influence = 111 + provincial_mod_offsets::count;
 constexpr inline int32_t dig_in_cap = 112 + provincial_mod_offsets::count;
 constexpr inline int32_t combat_width = 113 + provincial_mod_offsets::count;
-constexpr inline int32_t morale = 114 + provincial_mod_offsets::count;
-constexpr inline int32_t military_tactics = 115 + provincial_mod_offsets::count;
-constexpr inline int32_t supply_range = 116 + provincial_mod_offsets::count;
-constexpr inline int32_t regular_experience_level = 117 + provincial_mod_offsets::count;
-constexpr inline int32_t increase_research = 118 + provincial_mod_offsets::count;
-constexpr inline int32_t soldier_to_pop_loss = 119 + provincial_mod_offsets::count;
-constexpr inline int32_t naval_attrition = 120 + provincial_mod_offsets::count;
-constexpr inline int32_t land_attrition = 121 + provincial_mod_offsets::count;
-constexpr inline int32_t pop_growth = 122 + provincial_mod_offsets::count;
-constexpr inline int32_t colonial_life_rating = 123 + provincial_mod_offsets::count;
-constexpr inline int32_t seperatism = 124 + provincial_mod_offsets::count;
-constexpr inline int32_t plurality = 125 + provincial_mod_offsets::count;
-constexpr inline int32_t colonial_prestige = 126 + provincial_mod_offsets::count;
-constexpr inline int32_t permanent_prestige = 127 + provincial_mod_offsets::count;
+constexpr inline int32_t military_tactics = 114 + provincial_mod_offsets::count;
+constexpr inline int32_t supply_range = 115 + provincial_mod_offsets::count;
+constexpr inline int32_t regular_experience_level = 116 + provincial_mod_offsets::count;
+constexpr inline int32_t soldier_to_pop_loss = 117 + provincial_mod_offsets::count;
+constexpr inline int32_t naval_attrition = 118 + provincial_mod_offsets::count;
+constexpr inline int32_t land_attrition = 119 + provincial_mod_offsets::count;
+constexpr inline int32_t pop_growth = 120 + provincial_mod_offsets::count;
+constexpr inline int32_t colonial_life_rating = 121 + provincial_mod_offsets::count;
+constexpr inline int32_t seperatism = 122 + provincial_mod_offsets::count;
+constexpr inline int32_t plurality = 123 + provincial_mod_offsets::count;
+constexpr inline int32_t colonial_prestige = 124 + provincial_mod_offsets::count;
+constexpr inline int32_t permanent_prestige = 125 + provincial_mod_offsets::count;
 
-constexpr inline uint32_t count = 128 + provincial_mod_offsets::count;
+constexpr inline uint32_t count = 126 + provincial_mod_offsets::count;
 }
 
 constexpr inline uint32_t total_modifiers_count = national_mod_offsets::count;

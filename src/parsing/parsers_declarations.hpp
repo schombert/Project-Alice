@@ -720,11 +720,9 @@ namespace parsers {
 		MOD_NAT_FUNCTION(administrative_efficiency)
 		MOD_NAT_FUNCTION(influence)
 		MOD_NAT_FUNCTION(dig_in_cap)
-		MOD_NAT_FUNCTION(morale)
 		MOD_NAT_FUNCTION(military_tactics)
 		MOD_NAT_FUNCTION(supply_range)
 		MOD_NAT_FUNCTION(regular_experience_level)
-		MOD_NAT_FUNCTION(increase_research)
 		MOD_NAT_FUNCTION(permanent_prestige)
 		MOD_NAT_FUNCTION(soldier_to_pop_loss)
 		MOD_NAT_FUNCTION(naval_attrition)
@@ -2278,6 +2276,48 @@ namespace parsers {
 	};
 
 	void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err, country_history_context& context);
+
+	struct war_history_context;
+
+	struct history_war_goal {
+		dcon::nation_id actor_;
+		dcon::nation_id receiver_;
+		dcon::cb_type_id casus_belli_;
+
+		void receiver(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void actor(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void casus_belli(association_type, std::string_view value, error_handler& err, int32_t line, war_history_context& context);
+
+		void finish(war_history_context&) { }
+	};
+
+	struct war_history_context {
+		scenario_building_context& outer_context;
+
+		std::vector<history_war_goal> wargoals;
+		std::vector<dcon::nation_id> attackers;
+		std::vector<dcon::nation_id> defenders;
+
+		war_history_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
+	};
+
+	struct war_block {
+		void add_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void add_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void rem_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void rem_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void war_goal(history_war_goal const& value, error_handler& err, int32_t line, war_history_context& context) {
+			context.wargoals.push_back(value);
+		}
+
+		void finish(war_history_context&) { }
+	};
+
+	struct war_history_file {
+		void finish(war_history_context&);
+	};
+
+	void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context);
 }
 
 #include "trigger_parsing.hpp"
