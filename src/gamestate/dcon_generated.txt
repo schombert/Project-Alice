@@ -2495,6 +2495,11 @@ object {
 		name{ administrative_efficiency }
 		type{ float }
 	}
+	property {
+		name{ research_points }
+		type{ float }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -3114,6 +3119,11 @@ object {
 	}
 	property{
 		name{ icon }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ type }
 		type{ uint8_t }
 		tag{ scenario }
 	}

@@ -780,12 +780,34 @@ dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, nat
 	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
 	return make_trigger(gen, err, t_context);
 }
-void make_focus(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
-	auto new_focus = context.state.world.create_national_focus();
-	context.state.world.national_focus_set_name(new_focus, name_id);
-	national_focus_context new_context{context, new_focus};
-	parse_national_focus(gen, err, new_context);
+void make_focus(std::string_view name, token_generator& gen, error_handler& err, national_focus_context& context) {
+	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto new_focus = context.outer_context.state.world.create_national_focus();
+	context.outer_context.state.world.national_focus_set_name(new_focus, name_id);
+	context.outer_context.state.world.national_focus_set_type(new_focus, uint8_t(context.type));
+	context.id = new_focus;
+	parse_national_focus(gen, err, context);
+}
+void make_focus_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	nations::focus_type t = nations::focus_type::unknown;
+
+	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "rail_focus"))
+		t = nations::focus_type::rail_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "immigration_focus"))
+		t = nations::focus_type::immigration_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "diplomatic_focus"))
+		t = nations::focus_type::diplomatic_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "promotion_focus"))
+		t = nations::focus_type::promotion_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "production_focus"))
+		t = nations::focus_type::production_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "party_loyalty_focus"))
+		t = nations::focus_type::party_loyalty_focus;
+	else
+		err.accumulated_errors += "Unknown national focus group name " + std::string(name) + " (" + err.file_name + ")\n";
+
+	national_focus_context new_context{ context, dcon::national_focus_id{},  t};
+	parse_focus_group(gen, err, new_context);
 }
 
 dcon::value_modifier_key make_decision_ai_choice(token_generator& gen, error_handler& err, decision_context& context) {

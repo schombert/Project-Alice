@@ -15,6 +15,7 @@
 #include "script_constants.hpp"
 #include "container_types.hpp"
 #include "military.hpp"
+#include "nations.hpp"
 
 namespace parsers {
 
@@ -720,7 +721,6 @@ namespace parsers {
 		MOD_NAT_FUNCTION(administrative_efficiency)
 		MOD_NAT_FUNCTION(influence)
 		MOD_NAT_FUNCTION(dig_in_cap)
-		MOD_NAT_FUNCTION(morale)
 		MOD_NAT_FUNCTION(military_tactics)
 		MOD_NAT_FUNCTION(supply_range)
 		MOD_NAT_FUNCTION(regular_experience_level)
@@ -1641,6 +1641,7 @@ namespace parsers {
 	struct national_focus_context {
 		scenario_building_context& outer_context;
 		dcon::national_focus_id id;
+		::nations::focus_type type = ::nations::focus_type::unknown;
 	};
 
 	struct national_focus {
@@ -1657,15 +1658,15 @@ namespace parsers {
 	};
 
 	struct focus_group {
-		void finish(scenario_building_context&) { }
+		void finish(national_focus_context&) { }
 	};
 	struct national_focus_file {
-		focus_group any_group;
 		void finish(scenario_building_context&) { }
 	};
 
 	dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, national_focus_context& context);
-	void make_focus(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void make_focus(std::string_view name, token_generator& gen, error_handler& err, national_focus_context& context);
+	void make_focus_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 	struct main_pop_type_file {
 		void finish(scenario_building_context&) { }
@@ -1716,6 +1717,17 @@ namespace parsers {
 		void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 		void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
+
+		void prestige(association_type, float v, error_handler& err, int32_t line, tech_context& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::prestige_modifier);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			} 
+		}
+
 		tech_rgo_goods_output rgo_goods_output;
 		tech_rgo_size rgo_size;
 		tech_fac_goods_output factory_goods_output;

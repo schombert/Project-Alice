@@ -181,4 +181,45 @@ void restore_unsaved_values(sys::state& state) {
 	});
 }
 
+float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float monthly_net_pop_internal_migration(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float monthly_net_pop_external_migration(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float rgo_maximum_employment(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float rgo_employment(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float rgo_income(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float rgo_production_quantity(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float crime_fighting_efficiency(sys::state& state, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
+	// TODO
+	return 0.0f;
+}
+
 }
