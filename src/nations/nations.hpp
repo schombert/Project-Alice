@@ -27,6 +27,16 @@ struct fixed_province_event {
 	dcon::provincial_event_id id;
 };
 
+enum class focus_type : uint8_t {
+	unknown             = 0,
+	rail_focus          = 1,
+	immigration_focus   = 2,
+	diplomatic_focus    = 3,
+	promotion_focus     = 4,
+	production_focus    = 5,
+	party_loyalty_focus = 6
+};
+
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
 	std::vector<dcon::bitfield_type> global_flag_variables;
@@ -206,6 +216,9 @@ void generate_initial_state_instances(sys::state& state);
 dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag);
 
 void update_administrative_efficiency(sys::state& state);
+
+float daily_research_points(sys::state& state, dcon::nation_id n);
+void update_research_points(sys::state& state);
 
 }
 

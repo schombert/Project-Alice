@@ -58,6 +58,7 @@ public:
 	bool disabled = false;
 	bool interactable = false;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 };
 
 class opaque_element_base : public image_element_base {
@@ -266,6 +267,10 @@ public:
 class flag_button : public button_element_base {
 private:
 	GLuint flag_texture_handle = 0;
+
+protected:
+	xy_pair flag_position{};
+	xy_pair flag_size{};
 
 public:
 	virtual dcon::national_identity_id get_current_nation(sys::state& state) noexcept;

@@ -96,4 +96,8 @@ auto battle_is_ongoing_in_province(sys::state const& state, T ids);
 float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);
 bool state_has_naval_base(sys::state const& state, dcon::state_instance_id di);
 
+int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p);
+int32_t regiments_created_from_province(sys::state& state, dcon::province_id p);
+int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p);
+
 }
