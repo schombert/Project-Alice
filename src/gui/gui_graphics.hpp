@@ -326,6 +326,7 @@ namespace ui {
 	enum class tooltip_behavior {
 		tooltip,
 		variable_tooltip,
+		position_sensitive_tooltip,
 		no_tooltip
 	};
 

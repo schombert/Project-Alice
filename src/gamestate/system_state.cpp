@@ -1,4 +1,5 @@
 #include "system_state.hpp"
+#include "dcon_generated.hpp"
 #include "map_modes.hpp"
 #include "opengl_wrapper.hpp"
 #include "window.hpp"
@@ -140,7 +141,7 @@ namespace sys {
 
 			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 				auto type = ui_state.last_tooltip->has_tooltip(*this);
-				if(type == ui::tooltip_behavior::variable_tooltip) {
+				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
@@ -179,6 +180,17 @@ namespace sys {
 			} else {
 				ui_state.tooltip->set_visible(*this, false);
 			}
+		} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
+						250);
+			ui_state.last_tooltip->update_tooltip(*this, container);
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.used_width > 0)
+				ui_state.tooltip->set_visible(*this, true);
+			else
+				ui_state.tooltip->set_visible(*this, false);
 		}
 
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
@@ -226,6 +238,7 @@ namespace sys {
 		}
 	}
 	void state::on_create() {
+		local_player_nation = dcon::nation_id{42};
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
@@ -1279,6 +1292,22 @@ namespace sys {
 			}
 		}
 
+		// load war history
+		{
+			auto country_dir = open_directory(history, NATIVE("wars"));
+			for(auto war_file : list_files(country_dir, NATIVE(".txt"))) {
+				auto opened_file = open_file(war_file);
+				if(opened_file) {
+					parsers::war_history_context new_context{ context };
+
+					err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
+					auto content = view_contents(*opened_file);
+					parsers::token_generator gen(content.data, content.data + content.file_size);
+					parsers::parse_war_history_file(gen, err, new_context);
+				}
+			}
+		}
+
 		// misc touch ups
 		nations::generate_initial_state_instances(*this);
 		world.nation_resize_stockpiles(world.commodity_size());
@@ -1444,6 +1473,21 @@ namespace sys {
 
 					current_date += 1;
 
+					// basic repopulation of demographics derived values
+					demographics::regenerate_from_pop_data(*this);
+
+					// values updates pass 1 (mostly trivial things, can be done in parallel
+					concurrency::parallel_for(0, 2, [&](int32_t index) {
+						switch(index) {
+							case 0:
+								nations::update_administrative_efficiency(*this);
+								break;
+							case 1:
+								nations::update_research_points(*this);
+								break;
+						}
+						
+					});
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));

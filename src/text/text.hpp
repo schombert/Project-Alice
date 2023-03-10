@@ -187,7 +187,7 @@ namespace text {
 		int16_t right = 0;
 		int16_t bottom = 0;
 		uint16_t font_id = 0;
-		int16_t leadding = 0;
+		int16_t leading = 0;
 		alignment align = alignment::left;
 		text_color color = text_color::white;
 	};

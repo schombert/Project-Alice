@@ -13,6 +13,7 @@
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"
 #include "gui_console.cpp"
+#include "gui_province_window.cpp"
 #include "nations_parsing.cpp"
 #include "cultures_parsing.cpp"
 #include "econ_parsing.cpp"
