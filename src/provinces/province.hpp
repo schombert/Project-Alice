@@ -42,5 +42,14 @@ void restore_unsaved_values(sys::state& state);
 template<typename T>
 auto is_overseas(sys::state const& state, T ids);
 
+float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
+float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
+float monthly_net_pop_internal_migration(sys::state& state, dcon::province_id id);
+float monthly_net_pop_external_migration(sys::state& state, dcon::province_id id);
+float rgo_maximum_employment(sys::state& state, dcon::province_id id);
+float rgo_employment(sys::state& state, dcon::province_id id);
+float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
+float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);
+
 }
 
