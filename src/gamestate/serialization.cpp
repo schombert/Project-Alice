@@ -119,6 +119,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.officers);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.slaves);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.bureaucrat);
+		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.aristocrat);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.primary_factory_worker);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.secondary_factory_worker);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.officer_leadership_points);
@@ -284,6 +285,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.officers);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.slaves);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.bureaucrat);
+		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.aristocrat);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.primary_factory_worker);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.secondary_factory_worker);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.officer_leadership_points);
@@ -447,6 +449,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.culture_definitions.officers);
 		sz += sizeof(state.culture_definitions.slaves);
 		sz += sizeof(state.culture_definitions.bureaucrat);
+		sz += sizeof(state.culture_definitions.aristocrat);
 		sz += sizeof(state.culture_definitions.primary_factory_worker);
 		sz += sizeof(state.culture_definitions.secondary_factory_worker);
 		sz += sizeof(state.culture_definitions.officer_leadership_points);
