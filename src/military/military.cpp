@@ -77,15 +77,15 @@ bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	return false;
 }
 
-int32_t supply_limit_in_province(sys::state const& state, dcon::nation_id n, dcon::province_id p) {
+int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p) {
 	// TODO
 	return 10;
 }
-int32_t regiments_created_from_province(sys::state const& state, dcon::province_id p) {
+int32_t regiments_created_from_province(sys::state& state, dcon::province_id p) {
 	// TODO
 	return 0;
 }
-int32_t regiments_max_possible_from_province(sys::state const& state, dcon::province_id p) {
+int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p) {
 	// TODO
 	return 0;
 }
