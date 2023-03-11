@@ -743,17 +743,14 @@ namespace text {
 		return nullptr;
 	}
 
-	void create_endless_layout(layout& dest, sys::state const& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp) {
+	void create_endless_layout(layout& dest, sys::state& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp) {
 		dest.contents.clear();
 		dest.number_of_lines = 0;
 
 		uint32_t line_start = 0;
 
 		auto seq = state.text_sequences[source_text];
-		auto font_index = text::font_index_from_font_id(params.font_id);
-		auto font_size = text::size_from_font_id(params.font_id);
-		auto& font = state.font_collection.fonts[font_index - 1];
-		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+		auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, params.font_id)));
 		auto line_height = text_height + params.leading;
 
 		text::text_color current_color = params.color;
@@ -802,7 +799,7 @@ namespace text {
 				} else {
 					std::string_view segment = txt.substr(str_i, next_wb);
 					previous_extent = extent;
-					extent = font.text_extent(segment.data(), uint32_t(next_wb), font_size);
+					extent = state.font_collection.text_extent(state, segment.data(), uint32_t(next_wb), params.font_id);
 					if(current_len == 0 && current_x + extent >= params.right) {
 						// the current word is too long for the text box, just let it overflow
 						dest.contents.push_back(text_chunk{ std::string(segment), current_x, source, int16_t(current_y), int16_t(extent), int16_t(text_height), tmp_color });
@@ -878,34 +875,10 @@ namespace text {
 		finish_line();
 	}
 
-	/*struct layout_box {
-		size_t first_chunk = 0;
-		int32_t x_offset = 0;
-		int32_t y_size = 0;
 
-		float x_position = 0;
-		int32_t y_position = 0;
-		text_color color = text_color::white;
-	};
-	struct columnar_layout {
-		layout& base_layout;
-		layout_parameters fixed_parameters;
-		int32_t used_height = 0;
-		int32_t used_width = 0;
-		int32_t y_cursor = 0;
-		int32_t current_column = 0;
-		int32_t column_width = 0;
-	};
+	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, std::string_view txt, text_color color, substitution source) {
 
-	
-	*/
-
-	void add_to_layout_box(columnar_layout& dest, sys::state const& state, layout_box& box, std::string_view txt, text_color color, substitution source) {
-
-		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
-		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-		auto& font = state.font_collection.fonts[font_index - 1];
-		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+		auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 		auto line_height = text_height + dest.fixed_parameters.leading;
 
 		auto finish_line = [&](bool force = false) {
@@ -931,7 +904,7 @@ namespace text {
 			} else {
 				std::string_view segment = txt.substr(str_i, next_wb);
 				previous_extent = extent;
-				extent = font.text_extent(segment.data(), uint32_t(next_wb), font_size);
+				extent = state.font_collection.text_extent(state, segment.data(), uint32_t(next_wb), dest.fixed_parameters.font_id);
 				if(int32_t(box.x_position) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
 					// the current word is too long for the text box, just let it overflow
 					dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
@@ -969,7 +942,7 @@ namespace text {
 		}
 	}
 
-	void add_to_layout_box(columnar_layout& dest, sys::state const& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
+	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
 
 		auto current_color = dest.fixed_parameters.color;
 		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);

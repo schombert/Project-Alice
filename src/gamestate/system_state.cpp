@@ -143,7 +143,7 @@ namespace sys {
 				auto type = ui_state.last_tooltip->has_tooltip(*this);
 				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
+						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
 					ui_state.last_tooltip->update_tooltip(*this, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -165,7 +165,7 @@ namespace sys {
 				if(type != ui::tooltip_behavior::no_tooltip) {
 
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
+						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
 					ui_state.last_tooltip->update_tooltip(*this, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -182,7 +182,7 @@ namespace sys {
 			}
 		} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip->tooltip_font, 0, text::alignment::left, text::text_color::white },
+						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
 			ui_state.last_tooltip->update_tooltip(*this, container);
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -1450,6 +1450,8 @@ namespace sys {
 		if(local_player_nation) {
 			world.nation_set_is_player_controlled(local_player_nation, true);
 		}
+
+		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 	}
 
 	constexpr inline int32_t game_speed[] = {
