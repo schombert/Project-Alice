@@ -57,13 +57,6 @@ public:
 	}
 };
 
-class dynamic_state_name_text : public standard_state_instance_text {
-public:
-	std::string get_text(sys::state& state) noexcept override {
-		return text::get_dynamic_state_name(state, state_id);
-	}
-};
-
 class state_admin_efficiency_text : public standard_state_instance_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -269,6 +262,13 @@ public:
 		auto built = military::regiments_created_from_province(state, province_id);
 		auto max_possible = military::regiments_max_possible_from_province(state, province_id);
 		return text::format_ratio(built, max_possible);
+	}
+};
+
+class province_state_name_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::get_province_state_name(state, province_id);
 	}
 };
 
