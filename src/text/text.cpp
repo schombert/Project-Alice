@@ -647,6 +647,43 @@ namespace text {
 		return text::produce_simple_string(state, t.get_name());
 	}
 
+	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
+		auto fat_id = dcon::fatten(state.world, state_id);
+		for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
+			if(fat_id.id != st.get_province().get_state_membership().id) {
+				auto adj_id = fat_id.get_nation_from_state_ownership().get_adjective();
+				auto adj = produce_simple_string(state, adj_id);
+				return adj + " " + get_name_as_string(state, fat_id.get_definition());
+			}
+		}
+		return get_name_as_string(state, fat_id.get_definition());
+	}
+
+	std::string format_percentage(float num, size_t digits) {
+		return format_float(num * 100.f, digits) + '%';
+	}
+
+	std::string format_float(float num, size_t digits) {
+		auto formatted = std::to_string(num);
+		return formatted.substr(0, digits + size_t(formatted[digits] != '.'));
+	}
+
+	std::string format_money(float num) {
+		std::string amount = "";
+		if(num < 1000.f) {
+			amount = std::to_string(num);
+			amount = amount.substr(0, amount.find_first_of('.') + 3);
+		} else {
+			amount = prettify(int32_t(num));
+		}
+		// TODO: Windows-1250 doesn't have £, need to figure out a way to render it
+		return "$ " + amount;
+	}
+
+	std::string format_ratio(int32_t left, int32_t right) {
+		return std::to_string(left) + '/' + std::to_string(right);
+	}
+
 	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value) {
 		mp.insert_or_assign(uint32_t(key), value);
 	}
