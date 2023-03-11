@@ -659,6 +659,16 @@ namespace text {
 		return get_name_as_string(state, fat_id.get_definition());
 	}
 
+	std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		auto state_instance_id = fat_id.get_state_membership().id;
+		if(state_instance_id) {
+			return get_dynamic_state_name(state, state_instance_id);
+		} else {
+			return get_name_as_string(state, fat_id.get_abstract_state_membership_as_province().get_state());
+		}
+	}
+
 	std::string format_percentage(float num, size_t digits) {
 		return format_float(num * 100.f, digits) + '%';
 	}
