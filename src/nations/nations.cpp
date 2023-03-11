@@ -219,8 +219,8 @@ void update_industrial_scores(sys::state& state) {
 	
 	state.world.for_each_nation([&, iweight = state.defines.investment_score_factor](dcon::nation_id n) {
 		float sum = 0;
-
 		for(auto si : state.world.nation_get_state_ownership(n)) {
+			float total_level = 0;
 			float worker_total =
 				si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))
 				+ si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
@@ -228,15 +228,16 @@ void update_industrial_scores(sys::state& state) {
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				for(auto f : state.world.province_get_factory_location(p)) {
 					total_factory_capacity += float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
+					total_level += float(f.get_factory().get_level());
 				}
 			});
 			if(total_factory_capacity > 0)
-				sum += std::min(1.0f, worker_total / total_factory_capacity);
+				sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 		}
 		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-			sum += ur.get_foreign_investment() * iweight * 0.02f;
+			sum += ur.get_foreign_investment() * iweight * 0.05f;
 		}
-		state.world.nation_set_industrial_score(n, uint16_t(sum * 10.0f));
+		state.world.nation_set_industrial_score(n, uint16_t(sum));
 	});
 }
 void update_military_scores(sys::state& state) {
