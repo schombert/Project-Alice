@@ -113,6 +113,7 @@ struct global_cultural_state {
 	dcon::pop_type_id officers;
 	dcon::pop_type_id slaves;
 	dcon::pop_type_id bureaucrat;
+	dcon::pop_type_id aristocrat;
 
 	dcon::pop_type_id primary_factory_worker;
 	dcon::pop_type_id secondary_factory_worker;

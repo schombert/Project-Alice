@@ -149,7 +149,7 @@ class province_window_header : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_name") {
-			return make_element_by_type<generic_name_text<dcon::state_definition_id>>(state, id);
+			return make_element_by_type<province_state_name_text>(state, id);
 		} else if(name == "province_name") {
 			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else if(name == "prov_terrain") {
@@ -180,6 +180,10 @@ public:
 			return ptr;
 		} else if(name == "national_focus") {
 			return make_element_by_type<province_national_focus_button>(state, id);
+		} else if(name == "admin_efficiency") {
+			return make_element_by_type<state_admin_efficiency_text>(state, id);
+		} else if(name == "owner_presence") {
+			return make_element_by_type<state_aristocrat_presence_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -187,7 +191,7 @@ public:
 
 	void update_province_info(sys::state& state, dcon::province_id prov_id) {
 		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
-		auto state_fat_id = fat_id.get_state_from_abstract_state_membership();
+		auto state_fat_id = fat_id.get_state_membership();
 
 		Cyto::Any prov_id_payload = prov_id;
 		Cyto::Any state_id_payload = state_fat_id.id;
@@ -320,6 +324,8 @@ public:
 			return make_element_by_type<province_send_diplomat_button>(state, id);
 		} else if(name == "core_icons") {
 			return make_element_by_type<province_core_flags>(state, id);
+		} else if(name == "supply_limit") {
+			return make_element_by_type<province_supply_limit_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -388,6 +394,28 @@ public:
 			return ptr;
 		} else if(name == "core_icons") {
 			return make_element_by_type<province_core_flags>(state, id);
+		} else if(name == "supply_limit") {
+			return make_element_by_type<province_supply_limit_text>(state, id);
+		} else if(name == "crime_icon") {
+			return make_element_by_type<province_crime_icon>(state, id);
+		} else if(name == "crime_name") {
+			return make_element_by_type<province_crime_name_text>(state, id);
+		} else if(name == "crimefight_percent") {
+			return make_element_by_type<province_crime_fighting_text>(state, id);
+		} else if(name == "rebel_percent") {
+			return make_element_by_type<province_rebel_percent_text>(state, id);
+		} else if(name == "rgo_population") {
+			return make_element_by_type<province_rgo_workers_text>(state, id);
+		} else if(name == "rgo_percent") {
+			return make_element_by_type<province_rgo_employment_percent_text>(state, id);
+		} else if(name == "produced") {
+			return make_element_by_type<province_goods_produced_text>(state, id);
+		} else if(name == "income") {
+			return make_element_by_type<province_income_text>(state, id);
+		} else if(name == "growth") {
+			return make_element_by_type<province_pop_growth_text>(state, id);
+		} else if(name == "migration") {
+			return make_element_by_type<province_migration_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -522,7 +550,35 @@ public:
     }
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		return nullptr;
+		if(name == "army_progress") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "army_progress_overlay") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "navy_progress") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "navy_progress_overlay") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "army_text") {  // this seems to be unused
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "navy_text") {  // this seems to be unused
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "army_size") {
+			return make_element_by_type<province_army_size_text>(state, id);
+		} else {
+			return nullptr;
+		}
 	}
 
 	void update_province_info(sys::state& state, dcon::province_id prov_id) {

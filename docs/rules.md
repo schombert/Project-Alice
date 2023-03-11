@@ -183,6 +183,8 @@ Units that are moving lose any dig-in bonus they have acquired. A unit that is n
 
 Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are in a rebel faction, and which have organization at least 0.75 will become rebel units.
 
+Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
+
 #### Unit stats
 
 - Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
@@ -213,6 +215,10 @@ Garrison recovers at 10% per day when not being sieged
 - Faction compatibility: a pop will not join a faction that it is excluded from based on its culture, culture group, religion, or ideology (here it is the dominant ideology of the pop that matters). There is also some logic for determining if a pop is compatible with a national identity for independence. I don't think it is worth trying to imitate the logic of the base game here. Instead I will go with: pop is not an accepted culture and either its primary culture is associated with that identity *or* there is no core in the province associated with its primary identity.
 - When a pop joins a faction, my notes say that the organization of the faction increases by either by the number of divisions that could spawn from that pop (calculated directly by pop size / define:POP_MIN_SIZE_FOR_REGIMENT) or maybe some multiple of that.
 
+### Rebel victory
+
+Every day, an active rebel faction has its `demands_enforced_trigger` checked. If it wins, it gets its `demands_enforced_trigger` executed. Any units for the faction that exist are destroyed (or transferred if it is one of the special rebel types). The government type of the nation will change if the rebel type has an associated government (with the same logic for a government type change from a wargoal or other cause). The upper house will then be set in a special way (even if the type of government has not changed). How the upper house is reset is a bit complicated, so the outline I will give here assumes that you understand in general how the upper house works. First we check the relevant rules: in "same as ruling party" we set it 100% to the ruling party ideology. If it is "state vote" we compute the upper house result for each non-colonial state as usual (i.e. we apply the standard strata voting modifiers and weight the vote by culture as the voting rules require), then we normalize each state result and add them together. Otherwise, we are in direct voting, meaning that we just add up each pop vote (again, weighting those votes according to the usual rules and modifiers). If the rebel type has "break alliances on win" then the nation loses all of its alliances, all of its non-substate vassals, all of its sphere members, and loses all of its influence and has its influence level set to neutral. The nation loses prestige equal to define:PRESTIGE_HIT_ON_BREAK_COUNTRY x (nation's current prestige + permanent prestige), which is multiplied by the nation's prestige modifier from technology + 1 as usual (!).
+
 ### Calculating how many regiments are "ready to join" a rebel faction
 
 Loop over all the pops associated with the faction. For each pop with militancy >= define:MIL_TO_JOIN_RISING, the faction is credited one regiment per define:POP_SIZE_PER_REGIMENT the pop has in size.
@@ -228,6 +234,20 @@ If a nation is not currently researching a tech (or is an unciv), research point
 If a nation is researching a tech, a max of define:MAX_DAILY_RESEARCH points can be dumped into it per day.
 
 There is also an instant research cheat, but I see no reason to put it in the game.
+
+## Politics
+
+### Elections
+
+Elections last define:CAMPAIGN_DURATION months.
+
+To determine the outcome of election, we must do the following:
+- Determine the vote in each province. Note that voting is *by active party* not by ideology.
+- Provinces in colonial states don't get to vote
+- Each pop has their vote multiplied by the national modifier for voting for their strata (this could easily result in a strata having no votes). If the nation has primary culture voting set. Primary culture pops get a full vote, accepted culture pops get a half vote, and other culture pops get no vote. If it has culture voting, primary and accepted culture pops get a full vote and no one else gets a vote. If neither is set, all pops get an equal vote.
+- For each party we do the following: figure out the pop's ideological support for the party and its issues based support for the party (by summing up its support for each issue that the party has set, except that pops of non-accepted cultures will never support more restrictive culture voting parties). The pop then votes for the party based on the sum of its issue and ideological support, except that the greater consciousness the pop has, the more its vote is based on ideological support (pops with 0 consciousness vote based on issues alone). I don't know the exact ratio (does anyone care if I don't use the exact ratio?). The support for the party is then multiplied by (provincial-modifier-ruling-party-support + national-modifier-ruling-party-support + 1), if it is the ruling party, and by (1 + province-party-loyalty) for its ideology.
+- After the vote has occurred in each province, the winning party there has the province's ideological loyalty for its ideology increased by define:LOYALTY_BOOST_ON_PARTY_WIN x (provincial-boost-strongest-party-modifier + 1) x fraction-of-vote-for-winning-party
+- That pop's votes according to what it supports, multiplied by (provincial-modifier-number-of-voters + 1)
 
 ## Other concepts
 

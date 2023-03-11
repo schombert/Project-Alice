@@ -3123,6 +3123,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ type }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
 		name{ loyalty_value }
 		type{ float }
 		tag{ scenario }
