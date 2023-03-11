@@ -239,7 +239,12 @@ namespace text {
 	std::string date_to_string(sys::state const& state, sys::date date);
 
 	std::string prettify(int32_t num);
+	std::string format_money(float num);
+	std::string format_percentage(float num, size_t digits = 2);
+	std::string format_float(float num, size_t digits = 2);
+	std::string format_ratio(int32_t left, int32_t right);
 	template<class T>
 	std::string get_name_as_string(sys::state const& state, T t);
+	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 }
 
