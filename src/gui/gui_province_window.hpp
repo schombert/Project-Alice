@@ -149,7 +149,7 @@ class province_window_header : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_name") {
-			return make_element_by_type<dynamic_state_name_text>(state, id);
+			return make_element_by_type<province_state_name_text>(state, id);
 		} else if(name == "province_name") {
 			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else if(name == "prov_terrain") {
