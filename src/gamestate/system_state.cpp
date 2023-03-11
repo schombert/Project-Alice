@@ -1433,7 +1433,6 @@ namespace sys {
 
 		sys::repopulate_modifier_effects(*this);
 		province::update_connected_regions(*this);
-		nations::update_national_rankings(*this);
 
 		military::restore_unsaved_values(*this);
 		province::restore_unsaved_values(*this);
@@ -1441,6 +1440,12 @@ namespace sys {
 
 		culture::update_all_nations_issue_rules(*this);
 		demographics::regenerate_from_pop_data(*this);
+
+		military::regenerate_land_unit_average(*this);
+		military::regenerate_ship_scores(*this);
+		nations::update_industrial_scores(*this);
+		nations::update_military_scores(*this);
+		nations::update_rankings(*this);
 
 		if(local_player_nation) {
 			world.nation_set_is_player_controlled(local_player_nation, true);
@@ -1469,7 +1474,6 @@ namespace sys {
 
 					// do update logic
 					province::update_connected_regions(*this);
-					nations::update_national_rankings(*this);
 
 					current_date += 1;
 
@@ -1477,7 +1481,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 2, [&](int32_t index) {
+					concurrency::parallel_for(0, 5, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1485,9 +1489,21 @@ namespace sys {
 							case 1:
 								nations::update_research_points(*this);
 								break;
+							case 2:
+								military::regenerate_land_unit_average(*this);
+								break;
+							case 3:
+								military::regenerate_ship_scores(*this);
+								break;
+							case 4:
+								nations::update_industrial_scores(*this);
+								break;
 						}
 						
 					});
+					nations::update_military_scores(*this);
+					nations::update_rankings(*this);
+
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));

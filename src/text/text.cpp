@@ -650,7 +650,7 @@ namespace text {
 	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
 		auto fat_id = dcon::fatten(state.world, state_id);
 		for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
-			if(fat_id.id != st.get_province().get_state_membership().id) {
+			if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
 				auto adj_id = fat_id.get_nation_from_state_ownership().get_adjective();
 				auto adj = produce_simple_string(state, adj_id);
 				return adj + " " + get_name_as_string(state, fat_id.get_definition());
@@ -831,8 +831,7 @@ namespace text {
 				return text::produce_simple_string(state, state.world.nation_get_name(nid));
 			} else if(std::holds_alternative<dcon::state_instance_id>(sub)) {
 				dcon::state_instance_id sid = std::get<dcon::state_instance_id>(sub);
-				auto name = state.world.state_definition_get_name(state.world.state_instance_get_definition(sid));
-				return text::produce_simple_string(state, name);
+				return get_dynamic_state_name(state, sid);
 			} else if(std::holds_alternative<dcon::province_id>(sub)) {
 				auto pid = std::get<dcon::province_id>(sub);
 				return text::produce_simple_string(state, state.world.province_get_name(pid));
@@ -980,8 +979,7 @@ namespace text {
 				return text::produce_simple_string(state, state.world.nation_get_name(nid));
 			} else if(std::holds_alternative<dcon::state_instance_id>(sub)) {
 				dcon::state_instance_id sid = std::get<dcon::state_instance_id>(sub);
-				auto name = state.world.state_definition_get_name(state.world.state_instance_get_definition(sid));
-				return text::produce_simple_string(state, name);
+				return get_dynamic_state_name(state, sid);
 			} else if(std::holds_alternative<dcon::province_id>(sub)) {
 				auto pid = std::get<dcon::province_id>(sub);
 				return text::produce_simple_string(state, state.world.province_get_name(pid));

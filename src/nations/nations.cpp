@@ -56,15 +56,6 @@ auto occupied_provinces_fraction(sys::state const& state, T ids) {
 	return ve::select(cpc != 0.0f, occ_count / cpc, decltype(cpc)());
 }
 
-void update_national_rankings(sys::state& state) {
-	if(!state.national_rankings_out_of_date)
-		return;
-
-	state.national_rankings_out_of_date = false;
-
-	// do something to update the rankings
-}
-
 void restore_unsaved_values(sys::state& state) {
 	state.world.for_each_gp_relationship([&](dcon::gp_relationship_id rel) {
 		if((influence::level_mask & state.world.gp_relationship_get_status(rel)) == influence::level_in_sphere) {
@@ -217,6 +208,105 @@ void update_research_points(sys::state& state) {
 		auto amount = (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f);
 		state.world.nation_set_research_points(ids, amount + state.world.nation_get_research_points(ids));
 	});
+}
+
+void update_industrial_scores(sys::state& state) {
+	/*
+	Is the sum of the following two components:
+	- For each state: (fraction of factory workers in each state (types marked with can work factory = yes) to the total-workforce x building level of factories in the state (capped at 1)) x total-factory-levels
+	- For each country that the nation is invested in: define:INVESTMENT_SCORE_FACTOR x the amount invested x 0.01
+	*/
+	
+	state.world.for_each_nation([&, iweight = state.defines.investment_score_factor](dcon::nation_id n) {
+		float sum = 0;
+
+		for(auto si : state.world.nation_get_state_ownership(n)) {
+			float worker_total =
+				si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))
+				+ si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+			float total_factory_capacity = 0;
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				for(auto f : state.world.province_get_factory_location(p)) {
+					total_factory_capacity += float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
+				}
+			});
+			if(total_factory_capacity > 0)
+				sum += std::min(1.0f, worker_total / total_factory_capacity);
+		}
+		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
+			sum += ur.get_foreign_investment() * iweight * 0.01f;
+		}
+		state.world.nation_set_industrial_score(n, uint16_t(sum));
+	});
+}
+void update_military_scores(sys::state& state) {
+	/*
+	The first part  is complicated enough that I am going to simplify things slightly, and ignore how mobilization can interact with this:
+	First, we need to know the total number of recruitable regiments
+	We also need to know the average land unit score, which we define here as (attack + defense + national land attack modifier + national land defense modifier) x discipline
+	Then we take the lesser of the number of regiments in the field x 4 or the number of recruitable regiments and multiply it by define:DISARMAMENT_ARMY_HIT (if disarmed) multiply that by the average land unit score, multiply again by (national-modifier-to-supply-consumption + 1), and then divide by 7.
+
+	To that we add for each capital ship: (hull points + national-naval-defense-modifier) x (gun power + national-naval-attack-modifier) / 250
+
+	And then we add one point either per leader or per regiment, whichever is greater.
+	*/
+	state.world.execute_serial_over_nation([&, disarm = state.defines.disarmament_army_hit](auto n) {
+		float sum = 0;
+		auto recruitable = ve::to_float(state.world.nation_get_recruitable_regiments(n));
+		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
+		auto is_disarmed = ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
+		auto disarm_factor = ve::select(is_disarmed, disarm, 1.0f);
+		auto supply_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::supply_consumption - sys::provincial_mod_offsets::count)
+			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::supply_consumption - sys::provincial_mod_offsets::count)
+			+ 1.0f;
+		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
+		auto num_leaders = ve::apply([&](dcon::nation_id i) {
+			auto gen_range = state.world.nation_get_general_loyalty(i);
+			auto ad_range = state.world.nation_get_admiral_loyalty(i);
+			return float((gen_range.end() - gen_range.begin()) + (ad_range.end() - ad_range.begin()));
+		}, n);
+		state.world.nation_set_military_score(n, ve::to_int(
+			(ve::min(recruitable, active_regs * 4.0f) * avg_land_score) * ((disarm_factor * supply_mod) / 7.0f)
+			+ state.world.nation_get_capital_ship_score(n)
+			+ ve::max(num_leaders, active_regs)
+		));
+	});
+}
+
+float prestige_score(sys::state const& state, dcon::nation_id n) {
+	return state.world.nation_get_prestige(n) + state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::permanent_prestige - sys::provincial_mod_offsets::count);
+}
+
+void update_rankings(sys::state& state) {
+	uint32_t to_sort_count = 0;
+	state.world.for_each_nation([&](dcon::nation_id n) {
+		state.nations_by_rank[to_sort_count] = n;
+		++to_sort_count;
+	});
+	std::sort(state.nations_by_rank.begin(), state.nations_by_rank.begin() + to_sort_count, [&](dcon::nation_id a, dcon::nation_id b) {
+		auto fa = fatten(state.world, a);
+		auto fb = fatten(state.world, b);
+		if(fa.get_is_civilized() && !fb.get_is_civilized())
+			return true;
+		if(!fa.get_is_civilized() && fb.get_is_civilized())
+			return false;
+		if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
+			return false;
+		if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
+			return true;
+		auto a_score = fa.get_military_score() + fa.get_industrial_score() + prestige_score(state, a);
+		auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
+		if(a_score != b_score)
+			return a_score > b_score;
+		return a.index() > b.index();
+	});
+	for(uint32_t i = 0; i < to_sort_count; ++i) {
+		state.world.nation_set_rank(state.nations_by_rank[i], uint16_t(i));
+	}
+}
+
+bool is_greate_power(sys::state const& state, dcon::nation_id n) {
+	return state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count);
 }
 
 }

@@ -1301,6 +1301,10 @@ object {
 		type{ sys::date }
 		tag{ save }
 	}
+	property{
+		name{ is_owner_core }
+		type{ bitfield }
+	}
 }
 
 relationship{
@@ -2499,6 +2503,22 @@ object {
 		name{ research_points }
 		type{ float }
 		tag{ save }
+	}
+	property {
+		name{ active_regiments }
+		type{ uint16_t }
+	}
+	property {
+		name{ recruitable_regiments }
+		type{ uint16_t }
+	}
+	property {
+		name{ averge_land_unit_score }
+		type{ float }
+	}
+	property {
+		name{ capital_ship_score }
+		type{ float }
 	}
 }
 
