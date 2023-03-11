@@ -255,7 +255,7 @@ void update_military_scores(sys::state& state) {
 		auto recruitable = ve::to_float(state.world.nation_get_recruitable_regiments(n));
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
 		auto is_disarmed = ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
-		auto disarm_factor = ve::select(is_disarmed, disarm, 1.0f);
+		auto disarm_factor = ve::select(is_disarmed, ve::fp_vector(disarm), ve::fp_vector(1.0f));
 		auto supply_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::supply_consumption - sys::provincial_mod_offsets::count)
 			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::supply_consumption - sys::provincial_mod_offsets::count)
 			+ 1.0f;

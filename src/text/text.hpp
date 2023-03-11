@@ -246,5 +246,6 @@ namespace text {
 	template<class T>
 	std::string get_name_as_string(sys::state const& state, T t);
 	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
+	std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 }
 
