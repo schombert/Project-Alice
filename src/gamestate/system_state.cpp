@@ -135,6 +135,8 @@ namespace sys {
 		bool tooltip_updated = false;
 
 		if(game_state_was_updated) {
+			nations::update_ui_rankings(*this);
+
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
 			// TODO also need to update any tooltips (which probably exist outside the root container)
@@ -1394,6 +1396,9 @@ namespace sys {
 		});
 
 		nations_by_rank.resize(1000); // TODO: take this value directly from the data container: max number of nations
+		nations_by_industrial_score.resize(1000);
+		nations_by_military_score.resize(1000);
+		nations_by_prestige_score.resize(1000);
 		crisis_participants.resize(1000);
 
 		world.for_each_issue([&](dcon::issue_id id) {
@@ -1446,6 +1451,7 @@ namespace sys {
 		nations::update_industrial_scores(*this);
 		nations::update_military_scores(*this);
 		nations::update_rankings(*this);
+		nations::update_ui_rankings(*this);
 
 		if(local_player_nation) {
 			world.nation_set_is_player_controlled(local_player_nation, true);

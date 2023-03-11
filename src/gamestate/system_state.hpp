@@ -102,6 +102,9 @@ namespace sys {
 
 		bool adjacency_data_out_of_date = true;
 		std::vector<dcon::nation_id> nations_by_rank;
+		std::vector<dcon::nation_id> nations_by_industrial_score;
+		std::vector<dcon::nation_id> nations_by_military_score;
+		std::vector<dcon::nation_id> nations_by_prestige_score;
 
 		dcon::state_instance_id crisis_state;
 		std::vector<crisis_member_def> crisis_participants;
