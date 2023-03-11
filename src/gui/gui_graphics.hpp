@@ -367,6 +367,8 @@ namespace ui {
 
 		int32_t held_game_speed = 1; // used to keep track of speed while paused
 
+		uint16_t tooltip_font = 0;
+
 		state();
 	};
 

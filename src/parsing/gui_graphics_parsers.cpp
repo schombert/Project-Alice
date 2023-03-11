@@ -387,7 +387,7 @@ namespace parsers {
 	}
 
 	void button::buttonfont(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-		target.data.button.font_handle = text::name_into_font_id(txt);
+		target.data.button.font_handle = text::name_into_font_id(context.full_state, txt);
 	}
 
 	void button::format(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -461,7 +461,7 @@ namespace parsers {
 		target.size.y = int16_t(v);
 	}
 	void textbox::font(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-		target.data.text.font_handle = text::name_into_font_id(txt);
+		target.data.text.font_handle = text::name_into_font_id(context.full_state, txt);
 	}
 	void textbox::format(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 		if(is_fixed_token_ci(t.data(), t.data() + t.length(), "centre") || is_fixed_token_ci(t.data(), t.data() + t.length(), "center")) {

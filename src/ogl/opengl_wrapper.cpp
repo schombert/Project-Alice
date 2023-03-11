@@ -473,7 +473,7 @@ void internal_text_render(sys::state const& state, char const* codepoints, uint3
 }
 
 
-void render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
+void render_new_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
@@ -483,7 +483,15 @@ void render_text(sys::state const& state, char const* codepoints, uint32_t count
 	internal_text_render(state, codepoints, count, x, y + size, size, f);
 }
 
-
+void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, const color3f& c, uint16_t font_id) {
+	if(state.user_settings.use_classic_fonts) {
+		// Check if the font is in the map
+		// If not, load it using the font_names map to figure out its name
+		// Then proceed using the found/newly loaded font data
+	} else {
+		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);
+	}
+}
 
 void lines::set_y(float* v) {
 	for(int32_t i = 0; i < static_cast<int32_t>(count); ++i) {

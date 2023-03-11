@@ -85,8 +85,6 @@ private:
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
-	int32_t font_id = 1;
-	int32_t font_size = 14;
 public:
 	button_element_base() {
 		interactable = true;
@@ -120,8 +118,6 @@ private:
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
-	int32_t font_id = 1;
-	int32_t font_size = 14;
 public:
 	void set_text(sys::state& state, std::string const& new_text);
 	void on_create(sys::state& state) noexcept override;
@@ -169,8 +165,7 @@ private:
 	std::vector<multiline_text_section> sections = {};
 	std::vector<hyperlink> hyperlinks = {};
 	std::vector<text_substitution> substitutions = {};
-	int32_t font_id = 1;
-	int32_t font_size = 14;
+
 	float vertical_spacing = 0.f;
 	float line_height = 0.f;
 	int32_t line_count = 0;
@@ -200,8 +195,6 @@ public:
 class tool_tip : public element_base {
 public:
 	text::layout internal_layout;
-
-	uint16_t tooltip_font = text::name_into_font_id("tooltip_font");
 	tool_tip() { }
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };

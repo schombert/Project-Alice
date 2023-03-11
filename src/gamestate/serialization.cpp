@@ -232,6 +232,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = deserialize(ptr_in, state.ui_defs.textures);
 		ptr_in = deserialize(ptr_in, state.ui_defs.gui);
+		ptr_in = deserialize(ptr_in, state.font_collection.font_names);
 	}
 
 	// data container
@@ -398,6 +399,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = serialize(ptr_in, state.ui_defs.textures);
 		ptr_in = serialize(ptr_in, state.ui_defs.gui);
+		ptr_in = serialize(ptr_in, state.font_collection.font_names);
 	}
 
 	dcon::load_record result = state.world.make_serialize_record_store_scenario();
@@ -562,6 +564,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.ui_defs.gfx);
 		sz += serialize_size(state.ui_defs.textures);
 		sz += serialize_size(state.ui_defs.gui);
+		sz += serialize_size(state.font_collection.font_names);
 	}
 
 	// data container contribution

@@ -197,7 +197,7 @@ namespace text {
 		text_chunk const* get_chunk_from_position(int32_t x, int32_t y) const;
 	};
 
-	void create_endless_layout(layout& dest, sys::state const& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp);
+	void create_endless_layout(layout& dest, sys::state& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp);
 
 	struct layout_box {
 		size_t first_chunk = 0;
@@ -221,8 +221,8 @@ namespace text {
 
 	layout_box open_layout_box(columnar_layout& dest, int32_t indent);
 	void close_layout_box(columnar_layout& dest, layout_box const& box);
-	void add_to_layout_box(columnar_layout& dest, sys::state const& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp);
-	void add_to_layout_box(columnar_layout& dest, sys::state const& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{});
+	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp);
+	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{});
 
 	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width);
 

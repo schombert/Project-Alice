@@ -44,6 +44,10 @@ namespace sys {
 		float effects_volume = 1.0f;
 		float interface_volume = 1.0f;
 		bool prefer_fullscreen = false;
+		bool dummy1 = false;
+		bool dummy2 = false;
+		bool dummy3 = false;
+		bool use_classic_fonts = false;
 
 	};
 

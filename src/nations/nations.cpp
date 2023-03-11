@@ -234,9 +234,9 @@ void update_industrial_scores(sys::state& state) {
 				sum += std::min(1.0f, worker_total / total_factory_capacity);
 		}
 		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-			sum += ur.get_foreign_investment() * iweight * 0.01f;
+			sum += ur.get_foreign_investment() * iweight * 0.02f;
 		}
-		state.world.nation_set_industrial_score(n, uint16_t(sum));
+		state.world.nation_set_industrial_score(n, uint16_t(sum * 10.0f));
 	});
 }
 void update_military_scores(sys::state& state) {
