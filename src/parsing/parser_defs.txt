@@ -1510,10 +1510,10 @@ national_focus
 	#any                      value        float            member_fn
 
 focus_group
-	#any                      extern       make_focus       discard
+	#any                      extern       make_focus                 discard
 
 national_focus_file
-	#any                      group        focus_group      member
+	#any                      extern       make_focus_group           discard
 
 main_pop_type_file
 	promotion_chance          extern       make_poptype_pop_chance    member_fn

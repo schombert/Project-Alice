@@ -2,6 +2,7 @@
 
 #include "fonts.hpp"
 #include "parsers.hpp"
+#include "bmfont.h"
 
 namespace text {
 

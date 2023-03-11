@@ -929,6 +929,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(bool(state->national_definitions.flashpoint_focus) == true);
 		REQUIRE(state->world.national_focus_get_icon(state->national_definitions.flashpoint_focus) == uint8_t(4));
+		REQUIRE(state->world.national_focus_get_type(state->national_definitions.flashpoint_focus) == uint8_t(nations::focus_type::diplomatic_focus));
 		REQUIRE(bool(state->world.national_focus_get_limit(state->national_definitions.flashpoint_focus)) == true);
 	}
 	// load pop_types.txt
@@ -1733,6 +1734,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	
 		REQUIRE(bool(state->national_definitions.flashpoint_focus) == true);
 		REQUIRE(state->world.national_focus_get_icon(state->national_definitions.flashpoint_focus) == uint8_t(4));
+		REQUIRE(state->world.national_focus_get_type(state->national_definitions.flashpoint_focus) == uint8_t(nations::focus_type::diplomatic_focus));
 		REQUIRE(bool(state->world.national_focus_get_limit(state->national_definitions.flashpoint_focus)) == true);
 	}
 	// load pop_types.txt
