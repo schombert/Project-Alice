@@ -37,6 +37,17 @@ void for_each_sea_province(sys::state& state, F const& func) {
 	}
 }
 
+template<typename F>
+void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func) {
+	auto d = state.world.state_instance_get_definition(s);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			func(p.get_province().id);
+		}
+	}
+}
+
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
 	return bool(it);
@@ -141,6 +152,15 @@ void restore_unsaved_values(sys::state& state) {
 		}();
 		auto owner = state.world.province_get_nation_from_province_ownership(pid);
 		if(owner) {
+			bool owner_core = false;
+			for(auto c : state.world.province_get_core(pid)) {
+				if(c.get_identity().get_nation_from_identity_holder() == owner) {
+					owner_core = true;
+					break;
+				}
+			}
+			state.world.province_set_is_owner_core(pid, owner_core);
+
 			state.world.nation_get_owned_province_count(owner) += uint16_t(1);
 
 			bool reb_controlled = bool(state.world.province_get_rebel_faction_from_province_rebel_control(pid));
@@ -173,6 +193,8 @@ void restore_unsaved_values(sys::state& state) {
 					state.world.nation_get_central_crime_count(owner) += uint16_t(1);
 				}
 			}
+		} else {
+			state.world.province_set_is_owner_core(pid, false);
 		}
 	}
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {

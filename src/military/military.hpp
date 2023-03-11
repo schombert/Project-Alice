@@ -100,4 +100,11 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 int32_t regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p);
 
+void update_recruitable_regiments(sys::state& state, dcon::nation_id n);
+void update_all_recruitable_regiments(sys::state& state);
+void regenerate_total_regiment_counts(sys::state& state);
+
+void regenerate_land_unit_average(sys::state& state);
+void regenerate_ship_scores(sys::state& state);
+
 }

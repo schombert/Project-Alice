@@ -299,8 +299,7 @@ public:
 class nation_prestige_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		return std::to_string(int32_t(fat_id.get_prestige()));
+		return std::to_string(int32_t(nations::prestige_score(state, nation_id)));
 	}
 };
 
@@ -324,7 +323,7 @@ class nation_total_score_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
-		return std::to_string(int32_t(fat_id.get_prestige() + fat_id.get_industrial_score() + fat_id.get_military_score()));
+		return std::to_string(int32_t(nations::prestige_score(state, nation_id) + fat_id.get_industrial_score() + fat_id.get_military_score()));
 	}
 };
 

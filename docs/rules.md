@@ -41,7 +41,22 @@ It may be expedient to create some structures tracking properties of pathing / c
 
 Both nations and provinces have a set of properties (a bag of float values) that may be affected by modifiers. Some modifiers attached to a province may also affect the bag of values associated with the owning nation. In general, as properties are added or removed, we add or remove their affect on the bag of values (we try not to recalculate the whole set as much as possible). This also means when a province changes ownership that we need to remember to update its affect on the national set of modifiers.
 
+### Scaled national modifiers
+
 Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since these need to be updated daily, there is a second bag of values attached to nations just for these
+
+- rebel occupation: scaled by the fraction of rebel-occupied, non-overseas provinces when at war
+- infamy: scaled by infamy as a fraction of the infamy limit (can be greater than 1)
+- blockaded: scaled by the fraction of non-overseas blockaded ports
+- war exhaustion: scaled by war exhaustion
+- plurality: scaled by plurality
+- literacy: scaled by average literacy
+
+### Other conditional national modifiers
+
+- war/peace
+- disarmed
+- debt: The debt default to modifier is triggered by the nation having the generalized debt default and/or bankruptcy as a timed/triggered modifier and unpaid creditors ... I think.
 
 ## Economy
 
@@ -171,9 +186,13 @@ Leaders who are both less than 26 years old and not in combat have no chance of 
 - There must be at least one wargoal (other than status quo) in the war
 - idle for too long -- if the war goes too long without some event happening within it (battle or occupation) it may be terminated. If something is occupied, I believe the war is safe from termination in this way
 
-### Units
+#### Mobilization
 
-#### Unit daily update
+Mobilization impact = mobilization-size x national-mobilization-economy-impact-modifier
+
+#### Units
+
+##### Unit daily update
 
 Units in combat gain experience. The exact formula is somewhat opaque to me, but here is what I know: units in combat gain experience proportional to define:EXP_GAIN_DIV, the experience gain bonus provided by their leader + 1, and then some other factor that is always at least 1 and goes up as the opposing side has more organization.
 
@@ -185,18 +204,23 @@ Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are i
 
 Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
 
-#### Unit stats
+##### Unit stats
 
 - Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
 - Units start with max strength and org after being built
 
-#### Unit construction
+##### Unit construction
 
 - Only a single unit is built per province at a time
 - See the economy section for details on how construction happens
 - After being built, units move towards the nearest rally point, if any, to merge with an army there upon arrival
 
-### Siege
+##### Regiments per pop
+
+- A soldier pop must be at least define:POP_MIN_SIZE_FOR_REGIMENT to support any regiments
+- If it is at least that large, then it can support one regiment per define:POP_SIZE_PER_REGIMENT x define:POP_MIN_SIZE_FOR_REGIMENT_COLONY_MULTIPLIER (if it is located in a colonial province) x define:POP_MIN_SIZE_FOR_REGIMENT_NONCORE_MULTIPLIER (if it is non-colonial but uncored)
+
+#### Siege
 
 Garrison recovers at 10% per day when not being sieged
 
@@ -225,7 +249,8 @@ Loop over all the pops associated with the faction. For each pop with militancy 
 
 ## Technology
 
-Daily research points:
+### Daily research points
+
 Let pop-sum = for each pop type (research-points-from-type x 1^(fraction of population / optimal fraction))
 Then, the daily research points earned by a nation is: (national-modifier-research-points-modifier + tech-research-modifier + 1) x (national-modifier-to-research-points) + pop-sum)
 
@@ -234,6 +259,10 @@ If a nation is not currently researching a tech (or is an unciv), research point
 If a nation is researching a tech, a max of define:MAX_DAILY_RESEARCH points can be dumped into it per day.
 
 There is also an instant research cheat, but I see no reason to put it in the game.
+
+### Cost
+
+The effective amount of research points a tech costs = base-cost x 0v(1 - (current-year - tech-availability-year) / define:TECH_YEAR_SPAN) x define:TECH_FACTOR_VASSAL(if your overlord has the tech) / (1 + tech-category-research-modifier)
 
 ## Politics
 
@@ -246,8 +275,50 @@ To determine the outcome of election, we must do the following:
 - Provinces in colonial states don't get to vote
 - Each pop has their vote multiplied by the national modifier for voting for their strata (this could easily result in a strata having no votes). If the nation has primary culture voting set. Primary culture pops get a full vote, accepted culture pops get a half vote, and other culture pops get no vote. If it has culture voting, primary and accepted culture pops get a full vote and no one else gets a vote. If neither is set, all pops get an equal vote.
 - For each party we do the following: figure out the pop's ideological support for the party and its issues based support for the party (by summing up its support for each issue that the party has set, except that pops of non-accepted cultures will never support more restrictive culture voting parties). The pop then votes for the party based on the sum of its issue and ideological support, except that the greater consciousness the pop has, the more its vote is based on ideological support (pops with 0 consciousness vote based on issues alone). I don't know the exact ratio (does anyone care if I don't use the exact ratio?). The support for the party is then multiplied by (provincial-modifier-ruling-party-support + national-modifier-ruling-party-support + 1), if it is the ruling party, and by (1 + province-party-loyalty) for its ideology.
+- Pop votes are also multiplied by (provincial-modifier-number-of-voters + 1)
 - After the vote has occurred in each province, the winning party there has the province's ideological loyalty for its ideology increased by define:LOYALTY_BOOST_ON_PARTY_WIN x (provincial-boost-strongest-party-modifier + 1) x fraction-of-vote-for-winning-party
-- That pop's votes according to what it supports, multiplied by (provincial-modifier-number-of-voters + 1)
+- If voting rule "largest_share" is in effect: only votes for the winning party in a province are added to the sum. If it is "dhont", then the votes in each province are normalized to the size of the province, and for "sainte_laque" the votes from the provinces are simply summed up.
+
+What happens with the election result depends partly on the average militancy of the nation. If it is less than 5: We find the ideology group with the greatest support (each active party gives their support to their group), then the party with the greatest support from the winning group is elected. If average militancy is greater than 5: the party with the greatest individual support wins. (Note: so at average militancy less than 5, having parties with duplicate ideologies makes an ideology group much more likely to win, because they get double counted.)
+
+### Election events
+
+While an election is ongoing, random events from the `on_election_tick` category will be fired. These events are picked in the usual way: based on their weights out of those that have their trigger conditions (if any) satisfied. Events occur once every define:CAMPAIGN_EVENT_BASE_TIME / 2 days to define:CAMPAIGN_EVENT_BASE_TIME days (uniformly distributed).
+
+## Scores and ranking
+
+### Industrial score
+
+Is the sum of the following two components:
+- For each state: (fraction of factory workers in each state (types marked with can work factory = yes) to the total-workforce x building level of factories in the state (capped at 1)) x total-factory-levels
+- For each country that the nation is invested in: define:INVESTMENT_SCORE_FACTOR x the amount invested x 0.01
+
+### Military score
+
+The military score is itself a complicated sum:
+
+The first part  is complicated enough that I am going to simplify things slightly, and ignore how mobilization can interact with this:
+First, we need to know the total number of recruitable regiments
+We also need to know the average land unit score, which we define here as (attack + defense + national land attack modifier + national land defense modifier) x discipline
+Then we take the lesser of the number of regiments in the field x 4 or the number of recruitable regiments and multiply it by define:DISARMAMENT_ARMY_HIT (if disarmed) multiply that by the average land unit score, multiply again by (national-modifier-to-supply-consumption + 1), and then divide by 7.
+
+To that we add for each capital ship: (hull points + national-naval-defense-modifier) x (gun power + national-naval-attack-modifier) / 250
+
+And then we add one point either per leader or per regiment, whichever is greater.
+
+## Spheres and Great Powers
+
+### Influence
+
+A nation does not accumulate influence if: their embassy has been banned, if they are at war against the nation, if they have a truce with the nation, if the nation has priority 0, or if their influence is capped (at max value with no other GP influencing).
+
+The nation gets a daily increase of define:BASE_GREATPOWER_DAILY_INFLUENCE x (national-modifier-to-influence-gain + 1) x (technology-modifier-to-influence + 1). This is then divided among the nations they are accumulating influence with in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc). Any influence that accumulates beyond the max will be subtracted from the influence of the great power with the most influence (other than the influencing nation).
+
+## Events
+
+### Yearly and quarterly pulse
+
+I don't know if any mods make use of them (I assume not, at the moment), but a country will see a quarterly pulse event every 1 to 90 days (uniformly randomly distributed in that range) and a yearly pulse events every 1 to 365 days (also uniformly distributed). Yes, this means that on average you would see more than 4 quarterly events per year and more than 1 yearly event per year. Look, I don't make the rules, I just report them.
 
 ## Other concepts
 

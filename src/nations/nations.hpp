@@ -209,7 +209,6 @@ bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::nat
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
 
-void update_national_rankings(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void generate_initial_state_instances(sys::state& state);
 
@@ -219,6 +218,13 @@ void update_administrative_efficiency(sys::state& state);
 
 float daily_research_points(sys::state& state, dcon::nation_id n);
 void update_research_points(sys::state& state);
+
+void update_industrial_scores(sys::state& state);
+void update_military_scores(sys::state& state);
+void update_rankings(sys::state& state);
+
+bool is_greate_power(sys::state const& state, dcon::nation_id n);
+float prestige_score(sys::state const& state, dcon::nation_id n);
 
 }
 
