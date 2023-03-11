@@ -2301,6 +2301,18 @@ object {
 		type{ uint16_t }
 	}
 	property {
+		name{ industrial_rank }
+		type{ uint16_t }
+	}
+	property {
+		name{ military_rank }
+		type{ uint16_t }
+	}
+	property {
+		name{ prestige_rank }
+		type{ uint16_t }
+	}
+	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
 	}

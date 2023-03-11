@@ -222,6 +222,7 @@ void update_research_points(sys::state& state);
 void update_industrial_scores(sys::state& state);
 void update_military_scores(sys::state& state);
 void update_rankings(sys::state& state);
+void update_ui_rankings(sys::state& state);
 
 bool is_greate_power(sys::state const& state, dcon::nation_id n);
 float prestige_score(sys::state const& state, dcon::nation_id n);
