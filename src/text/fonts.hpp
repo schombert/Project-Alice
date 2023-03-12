@@ -81,6 +81,6 @@ public:
 };
 
 void load_standard_fonts(sys::state& state);
-void load_bmfonts(sys::state&, std::vector<uint8_t>);
+void load_bmfonts(sys::state& state);
 
 }
