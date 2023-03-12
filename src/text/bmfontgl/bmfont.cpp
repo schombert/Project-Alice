@@ -43,7 +43,7 @@ aaedev@gmail.com 2012
 #define NOMINMAX
 #include <stdio.h>
 #include <stdlib.h>
-#include "glew.h"
+#include <glew.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -310,12 +310,10 @@ GLuint LoadPNG(std::string filename)
 	return temptex;
 }
 
-std::vector<uint8_t> BMFont::LoadFontImage(char *fontfile, char* olddir, char* newdir, char* tgafile)
-{
-	std::ifstream Stream(fontfile);
-	Stream.close();
+std::vector<uint8_t> BMFont::LoadFontImage(std::string tgafile, std::string gamedir) {
+	std::string filepath = gamedir + tgafile;
 
-	FILE* f = std::fopen(tgafile, "rb");
+	FILE* f = std::fopen(filepath.c_str(), "rb");
 	tga::StdioFileInterface file(f);
 	tga::Decoder decoder(&file);
 	tga::Header header;
