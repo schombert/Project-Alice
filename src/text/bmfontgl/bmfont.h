@@ -89,7 +89,7 @@ class BMFont {
 
 public:
 
-	std::vector<uint8_t> LoadFontImage(char*, char*, char*, char*);
+	std::vector<uint8_t> LoadFontImage(std::string, std::string);
 	bool LoadFontfile(char*);
 	bool MakePNG(std::string, std::string, std::vector<uint8_t>);
 	void SetColor(int r, int g, int b, int a) {
@@ -113,7 +113,7 @@ public:
 		fblend = 0;
 		fscale = 1.0;
 	};
-	//~BMFont();
+	~BMFont();
 
 private:
 	short LineHeight;
