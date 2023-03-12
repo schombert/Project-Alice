@@ -5,6 +5,7 @@
 #include "gui_graphics.hpp"
 #include "gui_element_types.hpp"
 #include "military.hpp"
+#include "nations.hpp"
 #include "province.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
@@ -327,6 +328,60 @@ public:
 	}
 };
 
+class nation_prestige_rank_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return std::to_string(fat_id.get_prestige_rank());
+	}
+};
+
+class nation_industry_rank_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return std::to_string(fat_id.get_industrial_rank());
+	}
+};
+
+class nation_military_rank_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return std::to_string(fat_id.get_military_rank());
+	}
+};
+
+class nation_rank_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return std::to_string(fat_id.get_rank());
+	}
+};
+
+class nation_status_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		switch(nations::get_status(state, nation_id)) {
+			case nations::status::great_power:
+				return text::produce_simple_string(state, "diplomacy_greatnation_status");
+			case nations::status::secondary_power:
+				return text::produce_simple_string(state, "diplomacy_colonialnation_status");
+			case nations::status::civilized:
+				return text::produce_simple_string(state, "diplomacy_civilizednation_status");
+			case nations::status::westernizing:
+				return text::produce_simple_string(state, "diplomacy_almost_western_nation_status");
+			case nations::status::uncivilized:
+				return text::produce_simple_string(state, "diplomacy_uncivilizednation_status");
+			case nations::status::primitive:
+				return text::produce_simple_string(state, "diplomacy_primitivenation_status");
+			default:
+				return text::produce_simple_string(state, "diplomacy_greatnation_status");
+		}
+	}
+};
+
 class nation_ruling_party_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -378,6 +433,38 @@ public:
 		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(nation_id, state.local_player_nation);
 		auto fat_rel = dcon::fatten(state.world, rel);
 		return std::to_string(fat_rel.get_value());
+	}
+};
+
+class standard_nation_icon : public image_element_base {
+protected:
+	dcon::nation_id nation_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class nation_flag_frame : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		auto status = nations::get_status(state, nation_id);
+		return std::min(3, int32_t(status));
 	}
 };
 
