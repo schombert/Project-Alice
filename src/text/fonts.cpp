@@ -426,7 +426,7 @@ void load_standard_fonts(sys::state& state) {
 	}
 }
 
-void load_bmfonts(sys::state& state, std::vector<uint8_t> testbuf) {
+void load_bmfonts(sys::state& state) {
 	//auto root = get_root(state.common_fs);
 	//auto fonts = open_directory(root, NATIVE("gfx/fonts"));
 	//auto fnta = open_file(root, NATIVE("vic_22_bl.fnt"));
@@ -436,14 +436,14 @@ void load_bmfonts(sys::state& state, std::vector<uint8_t> testbuf) {
 
 	BMFont vic_22_bl;
 
+	std::string fnta = "\\gfx\\fonts\\vic_22_bl.fnt";
+	std::string fntfile = "vic_22_bl.fnt";
 	std::string tgaa = "\\gfx\\fonts\\vic_22_bl.tga";
+	std::string tgafile = "vic_22_bl.tga";
 
 	auto vic_22_blbuf = vic_22_bl.LoadFontImage(tgaa, gamedir);
 
-	//const char* fnta = "vic_22_bl.fnt";
-	//const char* tgaa = "vic_22_bl.tga";
-
-	//std::vector<uint8_t> buffer = vic_22_bl.LoadFontImage(fnta, tgaa);
+	vic_22_bl.MakePNG(fntfile, tgafile, vic_22_blbuf);
 }
 
 void font_manager::load_all_glyphs() {

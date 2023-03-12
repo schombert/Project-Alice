@@ -5912,9 +5912,11 @@ void LodePNG_Encoder_encode(LodePNG_Encoder* encoder, unsigned char** out, size_
     return;
   }
   /*error: unexisting color type given*/
-  if((encoder->error == checkColorValidity(info.color.colorType, info.color.bitDepth))) return;
+  encoder->error = checkColorValidity(info.color.colorType, info.color.bitDepth);
+  if(encoder->error) return;
   /*error: unexisting color type given*/
-  if((encoder->error == checkColorValidity(encoder->infoRaw.color.colorType, encoder->infoRaw.color.bitDepth))) return;
+  encoder->error = checkColorValidity(encoder->infoRaw.color.colorType, encoder->infoRaw.color.bitDepth);
+  if(encoder->error) return;
 
   if(!LodePNG_InfoColor_equal(&encoder->infoRaw.color, &info.color))
   {
