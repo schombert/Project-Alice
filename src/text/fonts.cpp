@@ -427,10 +427,6 @@ void load_standard_fonts(sys::state& state) {
 }
 
 void load_bmfonts(sys::state& state) {
-	//auto root = get_root(state.common_fs);
-	//auto fonts = open_directory(root, NATIVE("gfx/fonts"));
-	//auto fnta = open_file(root, NATIVE("vic_22_bl.fnt"));
-	//auto tgaa = open_file(root, NATIVE("assets/fonts/vic_22_bl.tga"));
 
 	std::string gamedir = GAME_DIR;
 
