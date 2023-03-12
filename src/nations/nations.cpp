@@ -376,5 +376,17 @@ bool is_greate_power(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count);
 }
 
+status get_status(sys::state& state, dcon::nation_id n) {
+	if(is_greate_power(state, n)) {
+		return status::great_power;
+	} else if(state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count + 8)) {
+		return status::secondary_power;
+	} else if(state.world.nation_get_is_civilized(n)) {
+		return status::civilized;
+	} else {
+		return status::uncivilized;
+	}
+}
+
 }
 

@@ -9,6 +9,7 @@
 #include "gui_trade_window.hpp"
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
+#include "gui_common_elements.hpp"
 #include "text.hpp"
 
 namespace ui {
@@ -158,6 +159,9 @@ public:
 };
 
 class topbar_window : public window_element_base {
+private:
+	dcon::nation_id current_nation{};
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -165,6 +169,7 @@ public:
 		background_pic = bg_pic.get();
 		add_child_to_back(std::move(bg_pic));
 		state.ui_state.topbar_window = this;
+		on_update(state);
 	}
 	
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -238,8 +243,34 @@ public:
 			return make_element_by_type<topbar_country_name>(state, id);
 		} else if(name == "player_flag") {
 			return make_element_by_type<flag_button>(state, id);
+		} else if(name == "country_prestige") {
+			return make_element_by_type<nation_prestige_text>(state, id);
+		} else if(name == "country_economic") {
+			return make_element_by_type<nation_industry_score_text>(state, id);
+		} else if(name == "country_military") {
+			return make_element_by_type<nation_military_score_text>(state, id);
+		} else if(name == "country_total") {
+			return make_element_by_type<nation_total_score_text>(state, id);
+		} else if(name == "selected_prestige_rank") {
+			return make_element_by_type<nation_prestige_rank_text>(state, id);
+		} else if(name == "selected_industry_rank") {
+			return make_element_by_type<nation_industry_rank_text>(state, id);
+		} else if(name == "selected_military_rank") {
+			return make_element_by_type<nation_military_rank_text>(state, id);
+		} else if(name == "nation_totalrank") {
+			return make_element_by_type<nation_rank_text>(state, id);
+		} else if(name == "topbar_flag_overlay") {
+			return make_element_by_type<nation_flag_frame>(state, id);
 		} else {
 			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.local_player_nation != current_nation) {
+			current_nation = state.local_player_nation;
+			Cyto::Any payload = current_nation;
+			impl_set(state, payload);
 		}
 	}
 
