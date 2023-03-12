@@ -272,6 +272,18 @@ public:
 			return make_element_by_type<nation_military_score_text>(state, id);
 		} else if(name == "country_total") {
 			return make_element_by_type<nation_total_score_text>(state, id);
+		} else if(name == "selected_prestige_rank") {
+			return make_element_by_type<nation_prestige_rank_text>(state, id);
+		} else if(name == "selected_industry_rank") {
+			return make_element_by_type<nation_industry_rank_text>(state, id);
+		} else if(name == "selected_military_rank") {
+			return make_element_by_type<nation_military_rank_text>(state, id);
+		} else if(name == "selected_total_rank") {
+			return make_element_by_type<nation_rank_text>(state, id);
+		} else if(name == "country_status") {
+			return make_element_by_type<nation_status_text>(state, id);
+		} else if(name == "country_flag_overlay") {
+			return make_element_by_type<nation_flag_frame>(state, id);
 		} else if(name == "total_population") {
 			return make_element_by_type<province_population_text>(state, id);
 		} else if(name == "sphere_label") {
