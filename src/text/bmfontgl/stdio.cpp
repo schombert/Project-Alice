@@ -30,7 +30,7 @@ size_t StdioFileInterface::tell()
 void StdioFileInterface::seek(size_t absPos)
 {
   // To detect surprises with the size_t -> long cast.
-  assert(absPos <= std::numeric_limits<long>::max());
+  assert(int(absPos) <= std::numeric_limits<long>::max());
 
   fseek(m_file, (long)absPos, SEEK_SET);
 }
