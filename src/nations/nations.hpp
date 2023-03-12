@@ -227,5 +227,10 @@ void update_ui_rankings(sys::state& state);
 bool is_greate_power(sys::state const& state, dcon::nation_id n);
 float prestige_score(sys::state const& state, dcon::nation_id n);
 
+enum class status : uint8_t {
+	great_power, secondary_power, civilized, westernizing, uncivilized, primitive
+};
+status get_status(sys::state& state, dcon::nation_id n);
+
 }
 
