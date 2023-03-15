@@ -7,7 +7,24 @@
 
 namespace map {
 
+struct image {
+	uint8_t* data = nullptr;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+	int32_t channels = 0;
 
+	image(uint8_t* data, int32_t size_x, int32_t size_y, int32_t channels) {
+		this->data = data;
+		this->size_x = size_x;
+		this->size_y = size_y;
+		this->channels = channels;
+	}
+
+	~image() {
+		if(data)
+			free(data);
+	}
+};
 struct map_vertex {
 	map_vertex(float x, float y) : position(x, y) {};
 	glm::vec2 position;
@@ -51,9 +68,6 @@ public:
 
 	int16_t get_selected_province();
 	void set_selected_province(int16_t prov_id);
-
-	void create_border_data(parsers::scenario_building_context& context);
-	void create_border_ogl_objects();
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -129,6 +143,13 @@ private:
 	void update(sys::state& state);
 
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
+
+	void load_border_data(parsers::scenario_building_context& context);
+	void create_border_ogl_objects();
+	void load_province_data(parsers::scenario_building_context& context, image& image);
+	void load_provinces_mid_point(parsers::scenario_building_context& context);
+	void load_terrain_data(parsers::scenario_building_context& context);
+	void load_median_terrain_type(parsers::scenario_building_context& context);
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();

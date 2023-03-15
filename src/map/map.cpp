@@ -7,7 +7,47 @@
 #include <glm/glm.hpp>
 
 namespace map {
-void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
+
+image load_stb_image(simple_fs::file& file) {
+	int32_t file_channels = 4;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+	auto content = simple_fs::view_contents(file);
+	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
+		&size_x, &size_y, &file_channels, 4);
+	return image(data, size_x, size_y, 4);
+}
+
+GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t channels) {
+	GLuint texture_handle;
+	glGenTextures(1, &texture_handle);
+	const GLuint internalformats[] = { GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 };
+	const GLuint formats[] = { GL_RED, GL_RG, GL_RGB, GL_RGBA };
+	if(texture_handle) {
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+		glTexStorage2D(
+			GL_TEXTURE_2D,
+			1,
+			internalformats[channels - 1],
+			size_x, size_y);
+		glTexSubImage2D(
+			GL_TEXTURE_2D,
+			0, 0, 0,
+			size_x, size_y,
+			formats[channels - 1],
+			GL_UNSIGNED_BYTE,
+			data);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	return texture_handle;
+}
+GLuint make_gl_texture(image& image) {
+	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
+}
+
+void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
+	glBindTexture(texture_type, texture_handle);
 	if(filter == GL_LINEAR_MIPMAP_NEAREST) {
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -18,49 +58,23 @@ void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
 	}
 	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap);
 	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap);
+	glBindTexture(texture_type, 0);
 }
 
-GLuint load_texture_from_file(simple_fs::file& file, GLuint filter) {
-	auto content = simple_fs::view_contents(file);
-	int32_t file_channels, size_x, size_y;
-
-	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-		&size_x, &size_y, &file_channels, 4);
+GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
+	auto image = load_stb_image(file);
 
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
-	if(texture_handle) {
-		glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size_x, size_y);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		set_gltex_parameters(GL_TEXTURE_2D, filter, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	STBI_FREE(data);
-	return texture_handle;
-}
-
-GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
-	auto content = simple_fs::view_contents(file);
-	int32_t file_channels = 3;
-	int32_t size_x = 0;
-	int32_t size_y = 0;
-
-	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-		&size_x, &size_y, &file_channels, 4);
-
-	GLuint texture_handle;
-	glGenTextures(1, &texture_handle);
 	if(texture_handle) {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_handle);
 
-		size_t p_dx = size_x / tiles_x; // Pixels of each tile in x
-		size_t p_dy = size_y / tiles_y; // Pixels of each tile in y
+		size_t p_dx = image.size_x / tiles_x; // Pixels of each tile in x
+		size_t p_dy = image.size_y / tiles_y; // Pixels of each tile in y
 		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, size_x);
-		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, size_y);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.size_x);
+		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, image.size_y);
 
 		for(int32_t x = 0; x < tiles_x; x++)
 			for(int32_t y = 0; y < tiles_y; y++)
@@ -71,46 +85,18 @@ GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, in
 					1,
 					GL_RGBA,
 					GL_UNSIGNED_BYTE,
-					((uint32_t const*)data) + (x * p_dy * size_x + y * p_dx));
+					((uint32_t const*)image.data) + (x * p_dy * image.size_x + y * p_dx));
 
-		set_gltex_parameters(GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_NEAREST, GL_REPEAT);
+		set_gltex_parameters(texture_handle, GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_NEAREST, GL_REPEAT);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
 	}
 
-	STBI_FREE(data);
-
 	return texture_handle;
 }
 
-// Load the terrain texture, will read the BMP file directly
-// The image is flipped for some reason
-GLuint load_terrain_texture(std::vector<uint8_t>& terrain_index, uint32_t size_x, uint32_t size_y) {
-
-	GLuint texture_handle;
-	glGenTextures(1, &texture_handle);
-	if(texture_handle) {
-		glBindTexture(GL_TEXTURE_2D, texture_handle);
-
-		// Create a texture with only one byte color
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, size_x, size_y);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED, GL_UNSIGNED_BYTE, &terrain_index[0]);
-		set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	return texture_handle;
-}
-
-GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
-	auto file = simple_fs::open_file(dir, file_name);
-	auto content = simple_fs::view_contents(*file);
-	uint32_t size_x, size_y;
-	uint8_t const* data = (uint8_t const*)(content.data);
-	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
-}
-
-void display_data::create_border_data(parsers::scenario_building_context& context) {
+void display_data::load_border_data(parsers::scenario_building_context& context) {
 	border_vertices.clear();
 
 	glm::vec2 map_size(size_x, size_y);
@@ -391,43 +377,42 @@ std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, nativ
 	return shader;
 }
 
-std::string_view get_content(simple_fs::file& file) {
-	auto content = simple_fs::view_contents(file);
-	return std::string_view(content.data, content.file_size);
+GLuint create_program(simple_fs::file& vshader_file, simple_fs::file& fshader_file) {
+	auto vshader_content = simple_fs::view_contents(vshader_file);
+	auto vshader_string = std::string_view(vshader_content.data, vshader_content.file_size);
+	auto fshader_content = simple_fs::view_contents(fshader_file);
+	auto fshader_string = std::string_view(fshader_content.data, fshader_content.file_size);
+	return ogl::create_program(vshader_string, fshader_string);
 }
 
 void display_data::load_shaders(simple_fs::directory& root) {
 	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/map_v.glsl"));
 
+	// Land shader
 	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/map_f.glsl"));
 	auto map_political_close_fshader = try_load_shader(root, NATIVE("assets/shaders/map_political_close_f.glsl"));
 	auto map_political_far_fshader = try_load_shader(root, NATIVE("assets/shaders/map_political_far_f.glsl"));
 
+	terrain_shader = create_program(*map_vshader, *map_fshader);
+	terrain_political_close_shader = create_program(*map_vshader, *map_political_close_fshader);
+	terrain_political_far_shader = create_program(*map_vshader, *map_political_far_fshader);
+
+	// Water shaders
 	auto map_water_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_f.glsl"));
 	auto map_water_political_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_political_f.glsl"));
 
+	water_shader = create_program(*map_vshader, *map_water_fshader);
+	water_political_shader = create_program(*map_vshader, *map_water_political_fshader);
+
+	// Line shaders
 	auto line_border_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
 	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
 
 	auto vic2_border_vshader = try_load_shader(root, NATIVE("assets/shaders/vic2_border_v.glsl"));
 	auto vic2_border_fshader = try_load_shader(root, NATIVE("assets/shaders/vic2_border_f.glsl"));
 
-	terrain_shader = ogl::create_program(
-		get_content(*map_vshader), get_content(*map_fshader));
-	terrain_political_close_shader = ogl::create_program(
-		get_content(*map_vshader), get_content(*map_political_close_fshader));
-	terrain_political_far_shader = ogl::create_program(
-		get_content(*map_vshader), get_content(*map_political_far_fshader));
-
-	water_shader = ogl::create_program(
-		get_content(*map_vshader), get_content(*map_water_fshader));
-	water_political_shader = ogl::create_program(
-		get_content(*map_vshader), get_content(*map_water_political_fshader));
-
-	line_border_shader = ogl::create_program(
-		get_content(*line_border_vshader), get_content(*line_border_fshader));
-	vic2_border_shader = ogl::create_program(
-		get_content(*vic2_border_vshader), get_content(*vic2_border_fshader));
+	line_border_shader = create_program(*line_border_vshader, *line_border_fshader);
+	vic2_border_shader = create_program(*vic2_border_vshader, *vic2_border_fshader);
 }
 
 void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
@@ -535,8 +520,8 @@ GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x,
 		// Create a texture with only one byte color
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG8, size_x, size_y);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RG, GL_UNSIGNED_BYTE, &province_index[0]);
-		set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		set_gltex_parameters(texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	}
 	return texture_handle;
 }
@@ -588,41 +573,35 @@ void display_data::set_terrain_map_mode() {
 	active_map_mode = map_mode::mode::terrain;
 }
 
-void display_data::load_map_data(parsers::scenario_building_context& context) {
-	auto root = simple_fs::get_root(context.state.common_fs);
-	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
-
-	// Load the province map
-	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
-	auto bmp_content = simple_fs::view_contents(*provinces_bmp);
-	int32_t file_channels = 4;
-	int32_t temp_size_x = 0;
-	int32_t temp_size_y = 0;
-
-	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(bmp_content.data), int32_t(bmp_content.file_size),
-		&temp_size_x, &temp_size_y, &file_channels, 4);
-	size_x = uint32_t(temp_size_x);
-	size_y = uint32_t(temp_size_y);
-
-	province_id_map.resize(size_x * size_y);
-	for(uint32_t i = 0; i < size_x * size_y; ++i) {
-		uint8_t* ptr = data + i * 4;
-		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
-		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
-			province_id_map[i] = province::to_map_id(it->second);
-		} else {
-			province_id_map[i] = 0;
-		}
+void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
+	median_terrain_type.resize(context.state.world.province_size() + 1);
+	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
+	for(int i = size_x * size_y - 1; i-- > 0;) {
+		auto prov_id = province_id_map[i];
+		auto terrain_id = terrain_id_map[i];
+		if(terrain_id < 64)
+			terrain_histogram[prov_id][terrain_id] += 1;
 	}
 
-	STBI_FREE(data);
+	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+		int max_index = 64;
+		int max = 0;
+		for(int j = max_index; j-- > 0;) {
+			if(terrain_histogram[i][j] > max) {
+				max_index = j;
+				max = terrain_histogram[i][j];
+			}
+		}
+		median_terrain_type[i] = uint8_t(max_index);
+	}
+}
 
-	// Load the terrain map
+void display_data::load_terrain_data(parsers::scenario_building_context& context) {
+	auto root = simple_fs::get_root(context.state.common_fs);
+	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t* start = (uint8_t*)(content.data);
-
-	// TODO make a check for when the bmp format is unsupported
 
 	// Data offset is where the pixel data starts
 	uint8_t* ptr = start + 10;
@@ -636,12 +615,12 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 
 	uint8_t* terrain_data = start + data_offset;
 
-	terrain_id_map.resize(size_x * size_y, uint8_t(255));
-	for(uint32_t y = 0; y < terrain_size_y && y < size_y; ++y) {
-		auto inner_start = terrain_data + (terrain_size_y - y - 1) * terrain_size_x;
-		auto end = terrain_data + (terrain_size_y - y) * terrain_size_x;
-		//terrain_id_map.insert(terrain_id_map.begin() + y * terrain_size_x, inner_start, end);
-		for(uint32_t x = 0; x < terrain_size_x && x < size_x; ++x) {
+	// Create the terrain_id_map
+	// If it is invalid province (meaning that the color didn't map to anything) or a sea province, it forces the terrain to be ocean.
+	// If it is a land province, it forces the terrain to be plains if it is currently ocean
+	terrain_id_map.resize(terrain_size_x * terrain_size_y, uint8_t(255));
+	for(uint32_t y = 0; y < terrain_size_y; ++y) {
+		for(uint32_t x = 0; x < terrain_size_x; ++x) {
 			if(province_id_map[y * size_x + x] == 0 || province_id_map[y * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province)) {
 				terrain_id_map[y * size_x + x] = uint8_t(255);
 			} else {
@@ -654,34 +633,56 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		}
 	}
 
-	median_terrain_type.resize(context.state.world.province_size() + 1);
-	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
-	std::vector<glm::ivec3> province_acc_tile_pos(context.state.world.province_size() + 1, glm::ivec3(0));
-	for(int i = terrain_size_x * terrain_size_y; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+	// Load the terrain
+	load_median_terrain_type(context);
+}
+
+void display_data::load_provinces_mid_point(parsers::scenario_building_context& context) {
+	std::vector<glm::ivec2> accumulated_tile_positions(context.state.world.province_size() + 1, glm::vec2(0));
+	std::vector<int> tiles_number(context.state.world.province_size() + 1, 0);
+	for(int i = size_x * size_y - 1; i-- > 0;) {
 		auto prov_id = province_id_map[i];
-		auto terrain_id = terrain_id_map[i];
-		if(terrain_id < 64)
-			terrain_histogram[prov_id][terrain_id] += 1;
-		int x = i % terrain_size_x;
-		int y = i / terrain_size_x;
-		province_acc_tile_pos[prov_id] += glm::ivec3(x, y, 1);
+		int x = i % size_x;
+		int y = i / size_x;
+		accumulated_tile_positions[prov_id] += glm::vec2(x, y);
+		tiles_number[prov_id]++;
 	}
+	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+		auto tile_pos = accumulated_tile_positions[i] / tiles_number[i];
+		context.state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), tile_pos);
+	}
+}
 
-	for(int i = context.state.world.province_size(); i-- > 1;) {
-		int max_index = 64;
-		int max = 0;
-		for(int j = max_index; j-- > 0;) {
-			if(terrain_histogram[i][j] > max) {
-				max_index = j;
-				max = terrain_histogram[i][j];
-			}
+void display_data::load_province_data(parsers::scenario_building_context& context, image& image) {
+	province_id_map.resize(image.size_x * image.size_y);
+	for(uint32_t i = 0; i < image.size_x * image.size_y; ++i) {
+		uint8_t* ptr = image.data + i * 4;
+		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
+		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
+			province_id_map[i] = province::to_map_id(it->second);
+		} else {
+			province_id_map[i] = 0;
 		}
-		median_terrain_type[i] = uint8_t(max_index);
-		auto acc_tile_pos = glm::vec2(province_acc_tile_pos[i].x, province_acc_tile_pos[i].y);
-		context.state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), acc_tile_pos / (float)province_acc_tile_pos[i].z);
 	}
 
-	create_border_data(context);
+	load_provinces_mid_point(context);
+}
+
+void display_data::load_map_data(parsers::scenario_building_context& context) {
+	auto root = simple_fs::get_root(context.state.common_fs);
+	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
+
+	// Load the province map
+	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
+	auto provinces_image = load_stb_image(*provinces_bmp);
+
+	size_x = uint32_t(provinces_image.size_x);
+	size_y = uint32_t(provinces_image.size_y);
+
+	load_province_data(context, provinces_image);
+	load_terrain_data(context);
+	load_border_data(context);
+
 	parsers::error_handler err("adjacencies.csv");
 	auto adj_csv_file = open_file(map_dir, NATIVE("adjacencies.csv"));
 	if(adj_csv_file) {
@@ -690,25 +691,34 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	}
 }
 
+GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
+	auto file = simple_fs::open_file(dir, file_name);
+	auto content = simple_fs::view_contents(*file);
+	uint32_t size_x, size_y;
+	uint8_t const* data = (uint8_t const*)(content.data);
+	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
+}
+
 void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
 
-	// display_data& map_display = state.map_display;
 	load_shaders(root);
 
-	// auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
-	terrain_texture_handle = load_terrain_texture(terrain_id_map, size_x, size_y);
+	terrain_texture_handle = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
+	set_gltex_parameters(terrain_texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	create_meshes();
 
-	// TODO Better error handling and reporting ^^
 	provinces_texture_handle = load_province_map(province_id_map, size_x, size_y);
 
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
-	rivers_texture_handle = load_texture_from_file(*rivers_bmp, GL_NEAREST);
+	auto rivers_image = load_stb_image(*rivers_bmp);
+	rivers_texture_handle = make_gl_texture(rivers_image);
+	set_gltex_parameters(rivers_texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+
 	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
-	terrainsheet_texture_handle = load_texture_array_from_file(state, *texturesheet, 8, 8);
+	terrainsheet_texture_handle = load_texture_array_from_file(*texturesheet, 8, 8);
 
 	water_normal = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
 	colormap_water = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
@@ -716,7 +726,6 @@ void display_data::load_map(sys::state& state) {
 	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	border_texture = load_dds_texture(map_terrain_dir, NATIVE("borders.dds"));
-
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -726,14 +735,14 @@ void display_data::load_map(sys::state& state) {
 	glGenTextures(1, &province_color);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, province_color);
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 256, 256, 2);
-	set_gltex_parameters(GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	set_gltex_parameters(province_color, GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Get the province_highlight handle
 	glGenTextures(1, &province_highlight);
 	glBindTexture(GL_TEXTURE_2D, province_highlight);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
-	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	set_gltex_parameters(province_highlight, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	uint32_t province_size = state.world.province_size() + 1;
@@ -783,7 +792,7 @@ void display_data::update(sys::state& state) {
 	auto microseconds_since_last_zoom = std::chrono::duration_cast<std::chrono::microseconds>(now - last_zoom_time);
 	float seconds_since_last_zoom = (float)(microseconds_since_last_zoom.count() / 1e6);
 
-	zoom += (zoom_change * seconds_since_last_update)/(1/zoom);
+	zoom += (zoom_change * seconds_since_last_update) / (1 / zoom);
 	zoom_change *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
 	scroll_pos_velocity *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
 
@@ -827,8 +836,7 @@ void display_data::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 		if(pos_velocity.x < 0) {
 			if(right_arrow_key_down == false) {
 				pos_velocity.x = 0;
-			}
-			else {
+			} else {
 				pos_velocity.x *= -1;
 			}
 		}
@@ -876,15 +884,14 @@ void display_data::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, i
 	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
 	has_zoom_changed = true;
 
-    auto mouse_pos = glm::vec2(x, y);
-    auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-    scroll_pos_velocity = mouse_pos - screen_size * .5f;
-    scroll_pos_velocity /= screen_size;
-    scroll_pos_velocity *= zoom_speed_factor;
+	auto mouse_pos = glm::vec2(x, y);
+	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+	scroll_pos_velocity = mouse_pos - screen_size * .5f;
+	scroll_pos_velocity /= screen_size;
+	scroll_pos_velocity *= zoom_speed_factor;
 	if(zoom_change > 0) {
 		scroll_pos_velocity /= 3.f;
-	}
-	else if(zoom_change < 0) {
+	} else if(zoom_change < 0) {
 		scroll_pos_velocity /= 6.f;
 	}
 }
