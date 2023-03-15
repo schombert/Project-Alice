@@ -19,7 +19,6 @@ int main() {
 	// scenario loading functions (would have to run these even when scenario is pre-built
 	game_state->load_user_settings();
 	text::load_standard_fonts(*game_state);
-	//text::load_bmfonts(*game_state);
 	ui::populate_definitions_map(*game_state);
 
 	std::thread update_thread([&]() {
