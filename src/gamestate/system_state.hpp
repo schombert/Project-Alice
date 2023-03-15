@@ -2,6 +2,8 @@
 
 #include <memory>
 #include <stdint.h>
+#include <atomic>
+#include <chrono>
 
 #include "constants.hpp"
 #include "dcon_generated.hpp"
@@ -42,11 +44,23 @@ namespace sys {
 		float effects_volume = 1.0f;
 		float interface_volume = 1.0f;
 		bool prefer_fullscreen = false;
+		bool dummy1 = false;
+		bool dummy2 = false;
+		bool dummy3 = false;
+		bool use_classic_fonts = false;
 
 	};
 
 	struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
 
+	};
+
+	struct crisis_member_def {
+		dcon::nation_id id;
+		bool supports_attacker = false;
+	};
+	enum class crisis_type : uint32_t {
+		none = 0, claim = 1, liberation = 2, colonial = 3
 	};
 
 	struct alignas(64) state {
@@ -86,12 +100,29 @@ namespace sys {
 		tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
 		ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
+		bool adjacency_data_out_of_date = true;
+		std::vector<dcon::nation_id> nations_by_rank;
+		std::vector<dcon::nation_id> nations_by_industrial_score;
+		std::vector<dcon::nation_id> nations_by_military_score;
+		std::vector<dcon::nation_id> nations_by_prestige_score;
+
+		dcon::state_instance_id crisis_state;
+		std::vector<crisis_member_def> crisis_participants;
+		crisis_type current_crisis;
+		float crisis_temperature = 0;
+		dcon::nation_id primary_crisis_attacker;
+		dcon::nation_id primary_crisis_defender;
+
 		std::vector<char> unit_names; // a second text buffer, this time for just the unit names
 		                              // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
 									  // ordinary game text, partly because I envision the possibility that we may stick dynamic names into this
 		                              // We also may push this into the save game if we handle unit renaming using this
 
 		ui::definitions ui_defs; // definitions for graphics and ui
+
+		std::vector<uint8_t> flag_type_map; // flag_type remapper for saving space while also allowing
+		                                    // mods to add flags not present in vanilla
+		std::vector<culture::flag_type> flag_types; // List of unique flag types
 
 		// persistent user settings
 
@@ -100,12 +131,22 @@ namespace sys {
 		// current program / ui state
 
 		dcon::nation_id local_player_nation;
+		sys::date current_date = sys::date{0};
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information
 		std::unique_ptr<sound::sound_impl> sound_ptr = nullptr; // platform-dependent sound information
 		ui::state ui_state; // transient information for the state of the ui
 		text::font_manager font_collection;
+
+		// synchronization data (between main update logic and ui thread)
+		std::atomic<bool> game_state_updated = false; // game state -> ui signal
+		std::atomic<bool> quit_signaled = false; // ui -> game state signal
+		std::atomic<int32_t> actual_game_speed = 0; // ui -> game state message
+
+		// internal game timer / update logic
+		std::chrono::time_point<std::chrono::steady_clock> last_update = std::chrono::steady_clock::now();
+		bool internally_paused = false; // should NOT be set from the ui context (but may be read)
 
 		// common data for the window
 		int32_t x_size = 0;
@@ -140,6 +181,10 @@ namespace sys {
 		void on_text(char c); // c is win1250 codepage value
 		void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 
+		// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
+
+		void game_loop();
+
 		// the following function are for interacting with the string pool
 
 		std::string_view to_string_view(dcon::text_key tag) const; // takes a stored tag and give you the text
@@ -168,5 +213,8 @@ namespace sys {
 		void update_ui_scale(float new_scale);
 
 		void load_scenario_data(); // loads all scenario files other than map data
+		void fill_unsaved_data(); // reconstructs derived values that are not directly saved after a save has been loaded
+
+		void open_diplomacy(dcon::nation_id target);  // Open the diplomacy window with target selected
 	};
 }

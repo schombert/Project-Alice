@@ -263,7 +263,7 @@ struct ef_dominant_issue {
 	float factor = 0.0f;
 	dcon::issue_option_id value_;
 	void value(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(v)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			value_ = it->second.id;
 		} else {
 			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -296,7 +296,7 @@ struct ef_scaled_militancy {
 		}
 	}
 	void issue(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(v)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			issue_ = it->second.id;
 		} else {
 			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -317,7 +317,7 @@ struct ef_scaled_consciousness {
 		}
 	}
 	void issue(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(v)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			issue_ = it->second.id;
 		} else {
 			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -381,14 +381,14 @@ struct ef_move_issue_percentage {
 	dcon::issue_option_id from_;
 	dcon::issue_option_id to_;
 	void from(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(v)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			from_ = it->second.id;
 		} else {
 			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 	void to(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(v)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(v)); it != context.outer_context.map_of_ioptions.end()) {
 			to_ = it->second.id;
 		} else {
 			err.accumulated_errors += "Invalid issue option " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -1561,7 +1561,7 @@ struct effect_body {
 		}
 	}
 	void social_reform(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(value)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(value)); it != context.outer_context.map_of_ioptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_effect.push_back(uint16_t(effect::social_reform));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
@@ -1575,7 +1575,7 @@ struct effect_body {
 		}
 	}
 	void political_reform(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(value)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_ioptions.find(std::string(value)); it != context.outer_context.map_of_ioptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_effect.push_back(uint16_t(effect::political_reform));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
@@ -1664,7 +1664,7 @@ struct effect_body {
 		}
 	}
 	void military_reform(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(value)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_roptions.find(std::string(value)); it != context.outer_context.map_of_roptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_effect.push_back(uint16_t(effect::military_reform));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
@@ -1678,7 +1678,7 @@ struct effect_body {
 		}
 	}
 	void economic_reform(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_options.find(std::string(value)); it != context.outer_context.map_of_options.end()) {
+		if(auto it = context.outer_context.map_of_roptions.find(std::string(value)); it != context.outer_context.map_of_roptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_effect.push_back(uint16_t(effect::economic_reform));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
@@ -2670,11 +2670,11 @@ struct effect_body {
 			context.compiled_effect.push_back(effect::party_loyalty);
 			context.compiled_effect.push_back(trigger::payload(value.province_id_).value);
 			context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
-			context.add_float_to_payload(value.loyalty_value);
+			context.compiled_effect.push_back(trigger::payload(int16_t(value.loyalty_value)).value);
 		} else if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(effect::party_loyalty_province);
 			context.compiled_effect.push_back(trigger::payload(value.ideology_).value);
-			context.add_float_to_payload(value.loyalty_value);
+			context.compiled_effect.push_back(trigger::payload(int16_t(value.loyalty_value)).value);
 		} else {
 			err.accumulated_errors += "party_loyalty effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;

@@ -17,6 +17,7 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	auto adj_id = text::find_or_add_key(context.state, std::string(tag) + "_ADJ");
 	context.state.world.national_identity_set_name(new_ident, name_id);
 	context.state.world.national_identity_set_adjective(new_ident, adj_id);
+	context.state.world.national_identity_set_identifying_int(new_ident, as_int);
 
 	context.file_names_for_idents.resize(context.state.world.national_identity_size());
 	context.file_names_for_idents[new_ident] = txt;
@@ -779,12 +780,34 @@ dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, nat
 	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
 	return make_trigger(gen, err, t_context);
 }
-void make_focus(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
-	auto new_focus = context.state.world.create_national_focus();
-	context.state.world.national_focus_set_name(new_focus, name_id);
-	national_focus_context new_context{context, new_focus};
-	parse_national_focus(gen, err, new_context);
+void make_focus(std::string_view name, token_generator& gen, error_handler& err, national_focus_context& context) {
+	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto new_focus = context.outer_context.state.world.create_national_focus();
+	context.outer_context.state.world.national_focus_set_name(new_focus, name_id);
+	context.outer_context.state.world.national_focus_set_type(new_focus, uint8_t(context.type));
+	context.id = new_focus;
+	parse_national_focus(gen, err, context);
+}
+void make_focus_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
+	nations::focus_type t = nations::focus_type::unknown;
+
+	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "rail_focus"))
+		t = nations::focus_type::rail_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "immigration_focus"))
+		t = nations::focus_type::immigration_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "diplomatic_focus"))
+		t = nations::focus_type::diplomatic_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "promotion_focus"))
+		t = nations::focus_type::promotion_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "production_focus"))
+		t = nations::focus_type::production_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "party_loyalty_focus"))
+		t = nations::focus_type::party_loyalty_focus;
+	else
+		err.accumulated_errors += "Unknown national focus group name " + std::string(name) + " (" + err.file_name + ")\n";
+
+	national_focus_context new_context{ context, dcon::national_focus_id{},  t};
+	parse_focus_group(gen, err, new_context);
 }
 
 dcon::value_modifier_key make_decision_ai_choice(token_generator& gen, error_handler& err, decision_context& context) {
@@ -1042,7 +1065,7 @@ void make_alliance(token_generator& gen, error_handler& err, scenario_building_c
 		context.state.world.diplomatic_relation_set_are_allied(rel, true);
 	} else {
 		auto new_rel = context.state.world.force_create_diplomatic_relation(a.first_, a.second_);
-		context.state.world.diplomatic_relation_set_are_allied(rel, true);
+		context.state.world.diplomatic_relation_set_are_allied(new_rel, true);
 	}
 }
 void make_vassal(token_generator& gen, error_handler& err, scenario_building_context& context) {
@@ -1054,8 +1077,8 @@ void make_vassal(token_generator& gen, error_handler& err, scenario_building_con
 void make_substate(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto a = parse_vassal_description(gen, err, context);
 	if(!a.invalid) {
-		auto rel_id = context.state.world.force_create_overlord(a.second_, a.first_);
-		context.state.world.overlord_set_is_substate(rel_id, true);
+		context.state.world.force_create_overlord(a.second_, a.first_);
+		context.state.world.nation_set_is_substate(a.second_, true);
 	}
 }
 

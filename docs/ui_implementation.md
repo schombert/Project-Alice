@@ -38,9 +38,9 @@ The second group of functions are those that are designed as customization point
 - `virtual void on_drag_finish(sys::state& state) noexcept` : Sent to the `drag_target` when the overall drag event has ended. This may turn out to be unnecessary and thus may be removed in the future.
 - `virtual void on_visible(sys::state& state) noexcept` : called when the element is switched to being visible from being invisible. *Note:* only that particular element receives the message, and not its children which were implicitly invisible.
 - `virtual void on_hide(sys::state& state) noexcept` : as above, but when the element becomes hidden.
-- `virtual tooltip_behavior has_tooltip(sys::state& state, int32_t x, int32_t y) noexcept` : will eventually become part of the tooltip system, but is currently not implemented
-- `virtual void create_tooltip(sys::state& state, int32_t x, int32_t y, element_base& /*tooltip_window*/) noexcept` : as above
 - `virtual void on_create(sys::state& state) noexcept` : this is called on the element after it is first created. The difference between this and the constructor is that when this function runs `base_data` will have been populated, while the constructor runs before that has a chance to happen.
+- `virtual tooltip_behavior has_tooltip(sys::state& state) noexcept` : this function is called to determine what kind of tool tip, if any, the element wants to display. By default, this function returns `tooltip_behavior::no_tooltip`, which means that no tool tip will be displayed when the mouse is above the element. Returning `tooltip_behavior::tooltip` means that this element has a single, fixed, tool tip associated with it. In other words, returning this means that the content of the tool tip will never change. This is not a very common situation, and should *not* be your default. Returning `tooltip_behavior::variable_tooltip` indicates that the displayed tooltip may need to change when the state of the game updates. This is probably a good default choice, as buttons that may become disabled, for example, may need to be able to change their tool tip to explain why they are disabled as the game state advances. Finally, you can return `tooltip_behavior::position_sensitive_tooltip`. This is useful if the content of the tool tip may change depending on the exact location of the mouse in the element (for example, pie charts need this). The downside to this is that the tool tip will be recreated every frame, so ensure that you are minimizing as much as possible the work required to generate such a tool tip.
+- `virtual void update_tooltip(sys::state& state, text::columnar_layout& contents) noexcept` : If the element has reported that it wishes to display a tool tip, this function will be invoked as necessary when the contents of that tool tip must be populated. You must use the `columnar_layout` parameter, as described below in [Text rendering and layout](#text-rendering-and-layout), to generate the contents of the tool tip. If you do not add any text to this layout, the tooltip will not be displayed (this may be the desired behavior if the tool tip should not be displayed in all conditions).
 
 #### Functions you call
 
@@ -136,4 +136,68 @@ struct mutable_scrollbar_settings {
 	bool using_limits = false;
 };
 ```
-`lower_value` and `upper_value` determine the limits of the scrollbar's range. `upper_limit` and `lower_limit` can be used to set visual stops that restrict the movement of the slider to a smaller portion of that range (not currently implemented), and `using_limits` controls whether these additional stops should be used and displayed. Note that changing the scrollbar settings in this may may cause the position of the slider to be changed, and if it is, you will recieve an `on_value_change` message.
+`lower_value` and `upper_value` determine the limits of the scrollbar's range. `upper_limit` and `lower_limit` can be used to set visual stops that restrict the movement of the slider to a smaller portion of that range (not currently implemented), and `using_limits` controls whether these additional stops should be used and displayed. Note that changing the scrollbar settings in this may may cause the position of the slider to be changed, and if it is, you will receive an `on_value_change` message.
+
+### Text rendering and layout
+
+#### Simple text
+
+You can render simple text with the following function:
+`ogl::render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f)`
+The `count` parameter contains the number of characters to render from `codepoints` (the string *does not* have to be null terminated). The `color_modification` enum parameter must be one of `none`, `disabled`, `interactable`, or `interactable_disabled` (`interactable` and `interactable_disabled` are for when a clickable element is under the mouse) and should be chosen to match the way the rest of the element is currently being displayed. `x` and `y` position the text on the screen (you should strive to pick integral values for `y` whenever possible). 
+
+#### Complex text
+
+The functions and classes described in this section are declared in `text.hpp` and are part of the `text` namespace. For anything beyond the trivial, we have to be able to arrange text so that we can later draw it with multiple calls to `render_text` in order to display text that spans more than a single line and/or is in more than a single color. To do this, we create a `text::layout` object. This object stores text along with positioning and color information. Layout objects should not be populated manually. Instead you should use one of the approaches described below
+
+##### Endless text layouts
+
+An endless text layout arranges text basically in the way a webpage does: with a fixed width and allowing it to extend downwards along the imaginary page as long as necessary. You create and populate a layout of this type with the following function:
+`text::create_endless_layout(layout& dest, sys::state const& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp)`
+The `dest` layout object is the layout to be populated. Any existing content in this layout will be removed by the function call. The `params` parameter is a structure with the following members:
+- `int16_t left` : the left margin in the layout's internal coordinate space
+- `int16_t top` : the top margin in the layout's internal coordinate space
+- `int16_t right` : the right margin in the layout's internal coordinate space
+- `int16_t bottom` : this is unused in an endless layout
+- `uint16_t font_id` : the font that will be used to determine how much space text takes up
+- `int16_t leading` : the amount of additional space, in "pixels," to put below each line (may be negative)
+- `alignment align` : the alignment of text within the margins of the imaginary page. May be `left`, `right`, or `centered`
+- `text_color color` : the text color to start the layout with
+All the text for the layout, as well as line breaks, color changes, and variables to be substituted, comes from the `source_text` parameter. Finally, you must pass a `substitution_map` to the function so that it can replace any variable that occur in the source text with meaningful values. The easiest way to populate a substitution map is with `text::add_to_substitution_map(substitution_map& mp, variable_type key, substitution value)`. `substituion` is a `std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, int64_t, float, sys::date, std::monostate>;`. Values of nations, provinces, etc will be converted to their current name upon substitution, dates will turn into a textual representation, etc. (See hit testing, below, for how to get the source of a substitution back out.)
+
+Note that, once an endless layout has been created, the `number_of_lines` member of the layout will tell you how many lines it took to fit all the text.
+
+##### Columnar text layouts
+
+An endless layout is not suited to tool tips, as text spilling off the bottom of the screen would be undesirable. To handle tool tips, we have to use the more complicated columnar layout. Unlike an endless layout, a columnar layout is not created in a single function call. Instead, the process of populating a columnar layout begins with calling the `columnar_layout text::create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width)` function. This function returns the object that will be used to populate the contents of the layout. Note that this object is only required for creating the layout; once the layout has been created it can be discarded.
+
+Briefly, a columnar layout is created as follows: the contents of the layout can be imagined as boxes, with each box containing a single item (a single logical line of text, even if it takes more than one line to display it all). These boxes are then positioned from top to bottom within the boundaries of the imaginary page described by the `layout_parameters` until we reach a box that cannot fit entirely within the page. Upon reaching such a box, we move to the right by `column_width` pixels and return to the top, starting the process over again. (Thus the inter-column space is the difference between `column_width` and the right margin of the imaginary page.)
+
+Each box must be created by a call to `layout_box text::open_layout_box(columnar_layout& dest, int32_t indent)`. `indent` is a measurement of how far the box should be positioned to the right of the left margin. When you aren't adding the contents of a list, an `indent` of 0 is probably what you want. Once the box has been opened, you can add text to it with any combination of the following two functions (calling each as many times as you wish):
+- `add_to_layout_box(columnar_layout& dest, sys::state const& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{})` : this function adds plain text to the box. The `substitution` parameter is only there for making text behave *as if* it came from substituting a variable, which is probably something that you do not have a need for.
+- `add_to_layout_box(columnar_layout& dest, sys::state const& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp)` : functions essentially as creating an endless layout does, except it adds all of the content inside a single text box.
+
+When you have added all the text you want to a box, you must then close it with `text::close_layout_box(columnar_layout& dest, layout_box const& box)` before starting the next box or finishing the layout. Forgetting to close a box will result in a layout containing improperly positioned text. 
+
+Once you are done adding text boxes to the layout, it is immediately ready to use. If necessary, you can find out how much space was used by the layout by consulting the `used_height` and `used_width` members of the `columnar_layout` object. Note that these measurements will take into account any left or top marginal space, but not any right or bottom marginal space.
+
+##### Rendering a text layout
+
+Rendering the contents of a layout is as simple as iterating over it with a loop such as the following:
+```
+for(auto& txt : internal_layout.contents) {
+	ogl::render_text(state,
+		txt.win1250chars.c_str(), uint32_t(t.win1250chars.length()),
+		ogl::color_modification::none,
+		float(x) + txt.x, float(y + txt.y),
+		float(font_size),
+		get_text_color(txt.color),
+		state.font_collection.fonts[font_id - 1]
+	);
+}
+```
+where `x` and `y` are amounts that you want to adjust the position of the layout as a whole relative to its internal coordinate space.
+
+##### Hit testing a text layout
+
+For implementing things such as hyperlinks, it may be necessary to determine what chunk of text, if any, a particular coordinate position is inside. To do this, use the `text_chunk const* get_chunk_from_position(int32_t x, int32_t y)` member of the `layout` object, keeping in mind that `x` and `y` are in terms of the layout's internal coordinate space. This function will return `nullptr` if there is no text being rendered at the given position. In terms of making hyperlinks work, the most important member of the returned object is `source`, which holds the `substitution` variant that created the text, if any. Inspecting the contents of this variant will allow you to find the id of the province, nation, etc that was put into the original substitution map.

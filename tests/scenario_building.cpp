@@ -223,15 +223,15 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(err.accumulated_errors == "");
 
 		//school_reforms
-		auto ita = context.map_of_issues.find(std::string("school_reforms"));
-		REQUIRE(ita != context.map_of_issues.end());
+		auto ita = context.map_of_iissues.find(std::string("school_reforms"));
+		REQUIRE(ita != context.map_of_iissues.end());
 
 		auto fata = fatten(state->world, ita->second);
 		REQUIRE(fata.get_is_next_step_only() == true);
 		REQUIRE(fata.get_is_administrative() == true);
 
-		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
-		REQUIRE(itb != context.map_of_options.end());
+		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
+		REQUIRE(itb != context.map_of_ioptions.end());
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fata.get_options().at(2) == fatb);
 
@@ -471,8 +471,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(1.4f));
 		REQUIRE(state->world.modifier_get_province_values(id).values[1] == Approx(2.0f));
 
-		REQUIRE(state->province_definitions.modifier_by_terrain_index[24] == id);
-		REQUIRE(state->province_definitions.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
+		REQUIRE(context.modifier_by_terrain_index[24] == id);
+		REQUIRE(context.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
 	}
 	{
 		auto region_file = open_file(map, NATIVE("region.txt"));
@@ -679,7 +679,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	state->world.nation_resize_active_inventions(state->world.invention_size());
 	state->world.nation_resize_active_technologies(state->world.technology_size());
-	state->world.nation_resize_reforms_and_issues(state->world.issue_size());
+	state->world.nation_resize_issues(state->world.issue_size());
+	state->world.nation_resize_reforms(state->world.reform_size());
 	state->world.nation_resize_upper_house(state->world.ideology_size());
 
 	state->world.national_identity_resize_government_flag_type(uint32_t(state->culture_definitions.governments.size()));
@@ -889,18 +890,21 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(mod_id).get_offet_at_index(0) == sys::provincial_mod_offsets::boost_strongest_party);
 		REQUIRE(state->world.modifier_get_province_values(mod_id).values[0] == 5.0f);
 	}
-	// pending issue options
+	// pending issue/ reform options
 	{
 		err.file_name = "issues.txt";
-		for(auto& r : context.map_of_options) {
+		for(auto& r : context.map_of_ioptions) {
 			parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
+		}
+		for(auto& r : context.map_of_roptions) {
+			parsers::read_pending_reform(r.second.id, r.second.generator_state, err, context);
 		}
 
 		REQUIRE(err.accumulated_errors == "");
 
 		REQUIRE(bool(state->culture_definitions.jingoism) == true);
 
-		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
+		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fatb.get_administrative_multiplier() == 2.0f);
 		auto mid = fatb.get_modifier();
@@ -925,6 +929,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(bool(state->national_definitions.flashpoint_focus) == true);
 		REQUIRE(state->world.national_focus_get_icon(state->national_definitions.flashpoint_focus) == uint8_t(4));
+		REQUIRE(state->world.national_focus_get_type(state->national_definitions.flashpoint_focus) == uint8_t(nations::focus_type::diplomatic_focus));
 		REQUIRE(bool(state->world.national_focus_get_limit(state->national_definitions.flashpoint_focus)) == true);
 	}
 	// load pop_types.txt
@@ -1112,7 +1117,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 					break;
 				}
 			}
-			if(last - start_of_name >= 6) {
+			if(last - start_of_name >= 6 && file_name.ends_with(NATIVE("_oob.txt"))) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
 				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
@@ -1208,7 +1213,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(bool(gxi.get_overlord_as_subject()) == true);
 		REQUIRE(gxi.get_overlord_as_subject().get_ruler() == china);
-		REQUIRE(gxi.get_overlord_as_subject().get_is_substate() == true);
+		REQUIRE(gxi.get_is_substate() == true);
 
 	}
 
@@ -1260,9 +1265,40 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_prestige() == 10.0f);
 		REQUIRE(nation.get_is_civilized() == true);
 
-		REQUIRE(nation.get_reforms_and_issues(context.map_of_issues.find("voting_system")->second) == context.map_of_options.find("jefferson_method")->second.id);
+		REQUIRE(nation.get_issues(context.map_of_iissues.find("voting_system")->second) == context.map_of_ioptions.find("jefferson_method")->second.id);
 		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
+	// load war history
+	{
+		auto country_dir = open_directory(history, NATIVE("wars"));
+		for(auto war_file : list_files(country_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(war_file);
+			if(opened_file) {
+				parsers::war_history_context new_context{ context };
+
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_war_history_file(gen, err, new_context);
+			}
+		}
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(state->world.war_size() == uint32_t(2));
+	}
+
+	state->world.nation_resize_variables(uint32_t(state->national_definitions.num_allocated_national_variables));
+	state->world.pop_resize_demographics(pop_demographics::size(*state));
+
+	nations::generate_initial_state_instances(*state);
+	state->world.nation_resize_stockpiles(state->world.commodity_size());
+	state->world.nation_resize_last_production(state->world.commodity_size());
+	state->world.state_instance_resize_last_production(state->world.commodity_size());
+
+	state->world.for_each_ideology([&](dcon::ideology_id id) {
+		if(!bool(state->world.ideology_get_activation_date(id))) {
+			state->world.ideology_set_enabled(id, true);
+		}
+	});
 
 	// serialize and reload
 
@@ -1391,15 +1427,15 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	{
 		//school_reforms
-		auto ita = context.map_of_issues.find(std::string("school_reforms"));
-		REQUIRE(ita != context.map_of_issues.end());
+		auto ita = context.map_of_iissues.find(std::string("school_reforms"));
+		REQUIRE(ita != context.map_of_iissues.end());
 
 		auto fata = fatten(state->world, ita->second);
 		REQUIRE(fata.get_is_next_step_only() == true);
 		REQUIRE(fata.get_is_administrative() == true);
 
-		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
-		REQUIRE(itb != context.map_of_options.end());
+		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
+		REQUIRE(itb != context.map_of_ioptions.end());
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fata.get_options().at(2) == fatb);
 
@@ -1506,8 +1542,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.modifier_get_province_values(id).values[0] == Approx(1.4f));
 		REQUIRE(state->world.modifier_get_province_values(id).values[1] == Approx(2.0f));
 
-		REQUIRE(state->province_definitions.modifier_by_terrain_index[24] == id);
-		REQUIRE(state->province_definitions.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
+		REQUIRE(context.modifier_by_terrain_index[24] == id);
+		REQUIRE(context.color_by_terrain_index[24] == sys::pack_color(117, 108, 119));
 	}
 	{
 		auto id721 = fatten(state->world, context.original_id_to_prov_id_map[721]);
@@ -1685,7 +1721,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		
 		REQUIRE(bool(state->culture_definitions.jingoism) == true);
 
-		auto itb = context.map_of_options.find(std::string("acceptable_schools"));
+		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
 		auto fatb = fatten(state->world, itb->second.id);
 		REQUIRE(fatb.get_administrative_multiplier() == 2.0f);
 		auto mid = fatb.get_modifier();
@@ -1698,6 +1734,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	
 		REQUIRE(bool(state->national_definitions.flashpoint_focus) == true);
 		REQUIRE(state->world.national_focus_get_icon(state->national_definitions.flashpoint_focus) == uint8_t(4));
+		REQUIRE(state->world.national_focus_get_type(state->national_definitions.flashpoint_focus) == uint8_t(nations::focus_type::diplomatic_focus));
 		REQUIRE(bool(state->world.national_focus_get_limit(state->national_definitions.flashpoint_focus)) == true);
 	}
 	// load pop_types.txt
@@ -1812,7 +1849,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		REQUIRE(bool(gxi.get_overlord_as_subject()) == true);
 		REQUIRE(gxi.get_overlord_as_subject().get_ruler() == china);
-		REQUIRE(gxi.get_overlord_as_subject().get_is_substate() == true);
+		REQUIRE(gxi.get_is_substate() == true);
 
 	}
 
@@ -1825,8 +1862,105 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_prestige() == 10.0f);
 		REQUIRE(nation.get_is_civilized() == true);
 
-		REQUIRE(nation.get_reforms_and_issues(context.map_of_issues.find("voting_system")->second) == context.map_of_options.find("jefferson_method")->second.id);
+		REQUIRE(nation.get_issues(context.map_of_iissues.find("voting_system")->second) == context.map_of_ioptions.find("jefferson_method")->second.id);
 		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
+
+	state->fill_unsaved_data();
+
+	{
+		auto tag = fatten(state->world, context.map_of_ident_names.find(nations::tag_to_int('R', 'U', 'S'))->second);
+		auto nation = tag.get_nation_from_identity_holder();
+		REQUIRE(nation.get_static_modifier_values(sys::national_mod_offsets::combat_width - sys::provincial_mod_offsets::count) == -1.0f);
+		auto art_id = context.map_of_unit_types.find("artillery")->second;
+		REQUIRE(nation.get_active_unit(art_id) == true);
+		REQUIRE(nation.get_unit_stats(state->military_definitions.base_army_unit).default_organisation == 10);
+		auto b_id = context.map_of_factory_names.find("fabric_factory")->second;
+		REQUIRE(nation.get_active_building(b_id) == true);
+		auto c_id = context.map_of_commodity_names.find("sulphur")->second;
+		REQUIRE(nation.get_rgo_goods_output(c_id) == 0.25f);
+		REQUIRE(nation.get_max_fort_level() == 1);
+	}
+
+	/*************************************************
+	// where some benchmarks live
+
+	const auto trash_cache = []() {
+		volatile char* p[8192];
+		for(uint32_t i = 0; i < 8192; i++) {
+			p[i] = static_cast<volatile char*>(::new char[4096]);
+			p[i][0] = p[i][4095] = 1;
+		}
+		for(uint32_t i = 0; i < 8192; i++) {
+			delete[] p[i];
+		}
+	};
+
+	BENCHMARK_ADVANCED("basic maximum")(Catch::Benchmark::Chronometer meter) {
+		trash_cache();
+		meter.measure([&]() {
+			province::for_each_land_province(*state, [&](dcon::province_id p) {
+				// schombert: there is a faster way to do this. Instead of figuring out the max province by province
+				// it would be better to go culture by culture, storing the temporary max share per province in a
+				// temporary buffer. Why? Because by going through things one culture at a time would be much easier
+				// on the prefetcher given the typical number of cultures
+				dcon::culture_id max_id;
+				float max_value = 0.0f;
+				state->world.for_each_culture([&](dcon::culture_id c) {
+					if(auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c)); v > max_value) {
+						max_value = v;
+						max_id = c;
+					}
+				});
+				state->world.province_set_dominant_culture(p, max_id);
+			});
+		});
+	};
+	BENCHMARK_ADVANCED("vectorized maximum")(Catch::Benchmark::Chronometer meter) {
+		trash_cache();
+		meter.measure([&]() {
+			ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+				ve::tagged_vector<dcon::culture_id> max_id;
+				ve::fp_vector max_value = 0.0f;
+				state->world.for_each_culture([&](dcon::culture_id c) {
+					auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c));
+					auto mask = v > max_value;
+					max_id = ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), max_id);
+					max_value = ve::select(mask, v, max_value);
+				});
+				state->world.province_set_dominant_culture(p, max_id);
+			});
+		});
+	};
+
+	static ve::vectorizable_buffer<float, dcon::province_id> max_buffer(uint32_t(1));
+	static uint32_t old_count = 1;
+
+	// this isn't needed here but I will need it in some of the other places
+	auto new_count = uint32_t(state->province_definitions.first_sea_province.index());
+	if(new_count > old_count) {
+		max_buffer = state->world.province_make_vectorizable_float_buffer();
+		old_count = new_count;
+	}
+
+	BENCHMARK_ADVANCED("vectorized loop exchanged maximum")(Catch::Benchmark::Chronometer meter) {
+		trash_cache();
+		meter.measure([&]() {
+			
+			ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+				max_buffer.set(p, ve::fp_vector());
+			});
+			state->world.for_each_culture([&](dcon::culture_id c) {
+				ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
+					auto v = state->world.province_get_demographics(p, demographics::to_key(*state, c));
+					auto old_max = max_buffer.get(p);
+					auto mask = v > old_max;
+					state->world.province_set_dominant_culture(p, ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), state->world.province_get_dominant_culture(p)));
+					max_buffer.set(p, ve::select(mask, v, old_max));
+				});
+			});
+		});
+	};
+	// ***************************/
 }
 #endif

@@ -4,6 +4,7 @@
 namespace parsers {
 
 
+scenario_building_context::scenario_building_context(sys::state& state) : gfx_context(state, state.ui_defs), state(state) { }
 
 void religion_def::icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context) {
 	context.outer_context.state.world.religion_set_icon(context.id, uint8_t(v));
@@ -72,17 +73,16 @@ void culture_group::union_tag(association_type, uint32_t v, error_handler& err, 
 
 void good::money(association_type, bool v, error_handler& err, int32_t line, good_context& context) {
 	if(v) {
-		auto money_id = dcon::commodity_id(0);
-		context.outer_context.state.world.commodity_set_color(money_id, context.outer_context.state.world.commodity_get_color(context.id));
-		context.outer_context.state.world.commodity_set_cost(money_id, context.outer_context.state.world.commodity_get_cost(context.id));
+		context.outer_context.state.world.commodity_set_color(economy::money, context.outer_context.state.world.commodity_get_color(context.id));
+		context.outer_context.state.world.commodity_set_cost(economy::money, context.outer_context.state.world.commodity_get_cost(context.id));
 
 		for(auto& pr : context.outer_context.map_of_commodity_names) {
 			if(pr.second == context.id) {
-				pr.second = money_id;
+				pr.second = economy::money;
 				break;
 			}
 		}
-		context.id = money_id;
+		context.id = economy::money;
 		context.outer_context.state.world.pop_back_commodity();
 	}
 }
@@ -99,6 +99,11 @@ void good::available_from_start(association_type, bool b, error_handler& err, in
 	context.outer_context.state.world.commodity_set_is_available_from_start(context.id, b);
 }
 
+void good::finish(good_context& context) {
+	++context.outer_context.number_of_commodities_seen;
+	context.outer_context.state.world.commodity_set_icon(context.id, uint8_t(context.outer_context.number_of_commodities_seen));
+}
+
 void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
 	context.outer_context.state.world.issue_set_is_next_step_only(context.id, value);
 }
@@ -106,6 +111,15 @@ void issue::next_step_only(association_type, bool value, error_handler& err, int
 void issue::administrative(association_type, bool value, error_handler& err, int32_t line, issue_context& context) {
 	context.outer_context.state.world.issue_set_is_administrative(context.id, value);
 }
+
+void issue::next_step_only(association_type, bool value, error_handler& err, int32_t line, reform_context& context) {
+	context.outer_context.state.world.reform_set_is_next_step_only(context.id, value);
+}
+
+void issue::administrative(association_type, bool value, error_handler& err, int32_t line, reform_context& context) {
+	err.accumulated_errors += "Error, only issues can be administrative (" + err.file_name + " line " + std::to_string(line) + ")\n";
+}
+
 
 void government_type::election(association_type, bool value, error_handler& err, int32_t line, government_type_context& context) {
 	context.outer_context.state.culture_definitions.governments[context.id].has_elections = value;
@@ -128,6 +142,35 @@ void government_type::flagtype(association_type, std::string_view value, error_h
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic;
+	// Non-vanilla flags
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::theocracy;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "special"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::special;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "spare"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::spare;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "populist"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::populist;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "realm"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::realm;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "other"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::other;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy2"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy2;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic2"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic2;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cosmetic_1"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::cosmetic_1;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cosmetic_2"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::cosmetic_2;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "colonial"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::colonial;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "nationalist"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::nationalist;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "sectarian"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::sectarian;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "socialist"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::socialist;
 	else {
 		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
@@ -263,9 +306,9 @@ void party::end_date(association_type, sys::year_month_day ymd, error_handler& e
 }
 
 void party::any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line, party_context& context) {
-	if(auto it = context.outer_context.map_of_issues.find(std::string(issue)); it != context.outer_context.map_of_issues.end()) {
+	if(auto it = context.outer_context.map_of_iissues.find(std::string(issue)); it != context.outer_context.map_of_iissues.end()) {
 		if(it->second.index() < int32_t(context.outer_context.state.culture_definitions.party_issues.size())) {
-			if(auto oit = context.outer_context.map_of_options.find(std::string(option)); oit != context.outer_context.map_of_options.end()) {
+			if(auto oit = context.outer_context.map_of_ioptions.find(std::string(option)); oit != context.outer_context.map_of_ioptions.end()) {
 				context.outer_context.state.world.political_party_set_party_issues(context.id, it->second, oit->second.id);
 			} else {
 				err.accumulated_errors += std::string(option) + " is not a valid option name (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -907,6 +950,161 @@ void option_rules::build_railway(association_type, bool value, error_handler& er
 		context.outer_context.state.world.issue_option_get_rules(context.id) |= issue_rule::build_railway;
 }
 
+void option_rules::build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_factory;
+}
+
+void option_rules::expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::expand_factory;
+}
+
+void option_rules::open_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::open_factory;
+}
+
+void option_rules::destroy_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::destroy_factory;
+}
+
+void option_rules::factory_priority(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::factory_priority;
+}
+
+void option_rules::can_subsidise(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::can_subsidise;
+}
+
+void option_rules::pop_build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_build_factory;
+}
+
+void option_rules::pop_expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_expand_factory;
+}
+
+void option_rules::pop_open_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_open_factory;
+}
+
+void option_rules::delete_factory_if_no_input(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::delete_factory_if_no_input;
+}
+
+void option_rules::build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_factory_invest;
+}
+
+void option_rules::expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::expand_factory_invest;
+}
+
+void option_rules::open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::open_factory_invest;
+}
+
+void option_rules::build_railway_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_railway_invest;
+}
+
+void option_rules::can_invest_in_pop_projects(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::can_invest_in_pop_projects;
+}
+
+void option_rules::pop_build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_build_factory_invest;
+}
+
+void option_rules::pop_expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_expand_factory_invest;
+}
+
+void option_rules::pop_open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::pop_open_factory_invest;
+}
+
+void option_rules::allow_foreign_investment(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::allow_foreign_investment;
+}
+
+void option_rules::slavery_allowed(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::slavery_allowed;
+}
+
+void option_rules::primary_culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::primary_culture_voting;
+}
+
+void option_rules::culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::culture_voting;
+}
+
+void option_rules::all_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::all_voting;
+}
+
+void option_rules::largest_share(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::largest_share;
+}
+
+void option_rules::dhont(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::dhont;
+}
+
+void option_rules::sainte_laque(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::sainte_laque;
+}
+
+void option_rules::same_as_ruling_party(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::same_as_ruling_party;
+}
+
+void option_rules::rich_only(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::rich_only;
+}
+
+void option_rules::state_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::state_vote;
+}
+
+void option_rules::population_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::population_vote;
+}
+
+void option_rules::build_railway(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) {
+	if(value)
+		context.outer_context.state.world.reform_option_get_rules(context.id) |= issue_rule::build_railway;
+}
+
 void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_option_context& context) {
 	context.outer_context.state.world.issue_option_set_technology_cost(context.id, value);
 }
@@ -924,9 +1122,26 @@ void issue_option_body::is_jingoism(association_type, bool value, error_handler&
 		context.outer_context.state.culture_definitions.jingoism = context.id;
 }
 
+void issue_option_body::technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_roption_context& context) {
+	context.outer_context.state.world.reform_option_set_technology_cost(context.id, value);
+}
+
+void issue_option_body::war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context) {
+	context.outer_context.state.world.reform_option_set_war_exhaustion_effect(context.id, value);
+}
+
+void issue_option_body::administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context) {
+	err.accumulated_errors += "Error, only issues can have an administrative multiplier (" + err.file_name + " line " + std::to_string(line) + ")\n";
+}
+
 void issue_option_body::on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context) {
 	context.outer_context.state.world.issue_option_set_on_execute_trigger(context.id, value.trigger);
 	context.outer_context.state.world.issue_option_set_on_execute_effect(context.id, value.effect);
+}
+
+void issue_option_body::on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_roption_context& context) {
+	context.outer_context.state.world.reform_option_set_on_execute_trigger(context.id, value.trigger);
+	context.outer_context.state.world.reform_option_set_on_execute_effect(context.id, value.effect);
 }
 
 void national_focus::railroads(association_type, float value, error_handler& err, int32_t line, national_focus_context& context) {
@@ -1831,11 +2046,17 @@ void country_history_file::any_value(std::string_view label, association_type, s
 	} else if(auto itb = context.outer_context.map_of_inventions.find(str_label); itb != context.outer_context.map_of_inventions.end()) {
 		auto v = parse_bool(value, line, err);
 		context.outer_context.state.world.nation_set_active_inventions(context.holder_id, itb->second.id, v);
-	} else if(auto itc = context.outer_context.map_of_issues.find(str_label); itc != context.outer_context.map_of_issues.end()) {
-		if(auto itd = context.outer_context.map_of_options.find(std::string(value)); itd != context.outer_context.map_of_options.end()) {
-			context.outer_context.state.world.nation_set_reforms_and_issues(context.holder_id, itc->second, itd->second.id);
+	} else if(auto itc = context.outer_context.map_of_iissues.find(str_label); itc != context.outer_context.map_of_iissues.end()) {
+		if(auto itd = context.outer_context.map_of_ioptions.find(std::string(value)); itd != context.outer_context.map_of_ioptions.end()) {
+			context.outer_context.state.world.nation_set_issues(context.holder_id, itc->second, itd->second.id);
 		} else {
 			err.accumulated_errors += "invalid issue option name " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else if(auto ite = context.outer_context.map_of_reforms.find(str_label); ite != context.outer_context.map_of_reforms.end()) {
+		if(auto itd = context.outer_context.map_of_roptions.find(std::string(value)); itd != context.outer_context.map_of_roptions.end()) {
+			context.outer_context.state.world.nation_set_reforms(context.holder_id, ite->second, itd->second.id);
+		} else {
+			err.accumulated_errors += "invalid reform option name " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	} else {
 		err.accumulated_errors += "invalid key " + str_label + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -2005,7 +2226,7 @@ void country_history_file::ruling_party(association_type, std::string_view value
 		if(name == value_key) {
 			context.outer_context.state.world.nation_set_ruling_party(context.holder_id, pid);
 			for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
-				context.outer_context.state.world.nation_set_reforms_and_issues(context.holder_id, p_issue,
+				context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue,
 					context.outer_context.state.world.political_party_get_party_issues(pid, p_issue)
 				);
 			}
@@ -2042,6 +2263,126 @@ void generic_event::option(sys::event_option const& value, error_handler& err, i
 
 void generic_event::picture(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
 	picture_ = context.outer_context.state.add_unique_to_pool(std::string(value));
+}
+
+
+void history_war_goal::receiver(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			receiver_ = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void history_war_goal::actor(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			actor_ = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void history_war_goal::casus_belli(association_type, std::string_view value, error_handler& err, int32_t line, war_history_context& context) {
+	if(auto it = context.outer_context.map_of_cb_types.find(std::string(value)); it != context.outer_context.map_of_cb_types.end()) {
+		casus_belli_ = it->second.id;
+	} else {
+		err.accumulated_errors += "invalid cb type type " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void war_block::add_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto tg = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			if(tg)
+				context.attackers.push_back(tg);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void war_block::add_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto tg = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			if(tg)
+				context.defenders.push_back(tg);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void war_block::rem_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto tg = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			std::erase(context.attackers, tg);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+void war_block::rem_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
+	if(tag.length() == 3) {
+		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
+			auto tg = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+			std::erase(context.defenders, tg);
+		} else {
+			err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+	} else {
+		err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context) {
+	auto ymd = parse_date(label, 0, err);
+	if(sys::absolute_time_point(ymd) <= context.outer_context.state.start_date) {
+		parse_war_block(gen, err, context);
+	} else {
+		gen.discard_group();
+	}
+}
+
+void war_history_file::finish(war_history_context& context) {
+	if(context.attackers.size() > 0 && context.defenders.size() > 0 && context.wargoals.size() > 0) {
+		auto new_war = fatten(context.outer_context.state.world, context.outer_context.state.world.create_war());
+		new_war.set_start_date(sys::date(0));
+		new_war.set_primary_attacker(context.attackers[0]);
+		new_war.set_primary_defender(context.defenders[0]);
+
+		for(auto n : context.attackers) {
+			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);
+			context.outer_context.state.world.war_participant_set_is_attacker(rel, true);
+		}
+		for(auto n : context.defenders) {
+			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);
+			context.outer_context.state.world.war_participant_set_is_attacker(rel, false);
+		}
+		for(auto& wg : context.wargoals) {
+			auto new_wg = fatten(context.outer_context.state.world, context.outer_context.state.world.create_wargoal());
+			new_wg.set_added_by(wg.actor_);
+			new_wg.set_target_nation(wg.receiver_);
+			new_wg.set_type(wg.casus_belli_);
+			context.outer_context.state.world.force_create_wargoals_attached(new_war, new_wg);
+		}
+
+	}
 }
 
 }

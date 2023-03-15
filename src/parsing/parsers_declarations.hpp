@@ -15,6 +15,7 @@
 #include "script_constants.hpp"
 #include "container_types.hpp"
 #include "military.hpp"
+#include "nations.hpp"
 
 namespace parsers {
 
@@ -224,6 +225,10 @@ namespace parsers {
 		token_generator generator_state;
 		dcon::issue_option_id id;
 	};
+	struct pending_roption_content {
+		token_generator generator_state;
+		dcon::reform_option_id id;
+	};
 	struct pending_cb_content {
 		token_generator generator_state;
 		dcon::cb_type_id id;
@@ -284,6 +289,8 @@ namespace parsers {
 		pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
 	};
 	struct scenario_building_context {
+		building_gfx_context gfx_context;
+
 		sys::state& state;
 
 		ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
@@ -297,8 +304,10 @@ namespace parsers {
 		ankerl::unordered_dense::map<std::string, dcon::factory_type_id> map_of_factory_names;
 		ankerl::unordered_dense::map<std::string, pending_ideology_content> map_of_ideologies;
 		ankerl::unordered_dense::map<std::string, dcon::ideology_group_id> map_of_ideology_groups;
-		ankerl::unordered_dense::map<std::string, pending_option_content> map_of_options;
-		ankerl::unordered_dense::map<std::string, dcon::issue_id> map_of_issues;
+		ankerl::unordered_dense::map<std::string, pending_option_content> map_of_ioptions;
+		ankerl::unordered_dense::map<std::string, pending_roption_content> map_of_roptions;
+		ankerl::unordered_dense::map<std::string, dcon::issue_id> map_of_iissues;
+		ankerl::unordered_dense::map<std::string, dcon::reform_id> map_of_reforms;
 		ankerl::unordered_dense::map<std::string, dcon::government_type_id> map_of_governments;
 		ankerl::unordered_dense::map<std::string, pending_cb_content> map_of_cb_types;
 		ankerl::unordered_dense::map<std::string, dcon::leader_trait_id> map_of_leader_traits;
@@ -334,11 +343,18 @@ namespace parsers {
 
 		dcon::text_key noimage;
 
-		scenario_building_context(sys::state& state) : state(state) { }
+
+		dcon::modifier_id modifier_by_terrain_index[64] = {}; // these are the given mappings from the raw palette index to terrain type
+		uint32_t color_by_terrain_index[64] = { 0 }; // these are the (packed) colors given for the terrain type modifier at the given palette index
+		dcon::modifier_id ocean_terrain;
+
+		scenario_building_context(sys::state& state);
 
 		dcon::national_variable_id get_national_variable(std::string const& name);
 		dcon::national_flag_id get_national_flag(std::string const& name);
 		dcon::global_flag_id get_global_flag(std::string const& name);
+
+		int32_t number_of_commodities_seen = 0;
 	};
 
 	struct national_identity_file {
@@ -449,7 +465,7 @@ namespace parsers {
 		void cost(association_type, float v, error_handler& err, int32_t line, good_context& context);
 		void available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context);
 
-		void finish(good_context& context) { }
+		void finish(good_context& context);
 	};
 
 	void make_good(std::string_view name, token_generator& gen, error_handler& err, good_group_context& context);
@@ -705,11 +721,9 @@ namespace parsers {
 		MOD_NAT_FUNCTION(administrative_efficiency)
 		MOD_NAT_FUNCTION(influence)
 		MOD_NAT_FUNCTION(dig_in_cap)
-		MOD_NAT_FUNCTION(morale)
 		MOD_NAT_FUNCTION(military_tactics)
 		MOD_NAT_FUNCTION(supply_range)
 		MOD_NAT_FUNCTION(regular_experience_level)
-		MOD_NAT_FUNCTION(increase_research)
 		MOD_NAT_FUNCTION(permanent_prestige)
 		MOD_NAT_FUNCTION(soldier_to_pop_loss)
 		MOD_NAT_FUNCTION(naval_attrition)
@@ -769,6 +783,12 @@ namespace parsers {
 					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::supply_limit);
 				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::combat_width) {
 					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::combat_width);
+				} else if(constructed_definition.offsets[i] < sys::provincial_mod_offsets::count) {
+					--this->next_to_add;
+					constructed_definition.offsets[i] = constructed_definition.offsets[this->next_to_add];
+					constructed_definition.values[i] = constructed_definition.values[this->next_to_add];
+					--i;
+					continue;
 				}
 				constructed_definition.offsets[i] += 1;
 			}
@@ -871,6 +891,10 @@ namespace parsers {
 		scenario_building_context& outer_context;
 		dcon::issue_id id;
 	};
+	struct reform_context {
+		scenario_building_context& outer_context;
+		dcon::reform_id id;
+	};
 	struct issue_group_context {
 		scenario_building_context& outer_context;
 		::culture::issue_category issue_cat = ::culture::issue_category::party;
@@ -881,6 +905,9 @@ namespace parsers {
 		void next_step_only(association_type, bool value, error_handler& err, int32_t line, issue_context& context);
 		void administrative(association_type, bool value, error_handler& err, int32_t line, issue_context& context);
 		void finish(issue_context&) { }
+		void next_step_only(association_type, bool value, error_handler& err, int32_t line, reform_context& context);
+		void administrative(association_type, bool value, error_handler& err, int32_t line, reform_context& context);
+		void finish(reform_context&) { }
 	};
 	struct issues_group {
 		void finish(issue_group_context&) { }
@@ -892,6 +919,7 @@ namespace parsers {
 	void make_issues_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 	void make_issue(std::string_view name, token_generator& gen, error_handler& err, issue_group_context& context);
 	void register_option(std::string_view name, token_generator& gen, error_handler& err, issue_context& context);
+	void register_option(std::string_view name, token_generator& gen, error_handler& err, reform_context& context);
 
 	struct government_type_context {
 		scenario_building_context& outer_context;
@@ -1053,7 +1081,7 @@ namespace parsers {
 	};
 
 	void read_map_colors(char const* start, char const* end, error_handler& err, scenario_building_context& context);
-
+	void read_map_adjacency(char const* start, char const* end, error_handler& err, scenario_building_context& context);
 
 	struct terrain_modifier : public modifier_base {
 		color_from_3i color;
@@ -1506,6 +1534,11 @@ namespace parsers {
 		dcon::issue_option_id id;
 	};
 
+	struct individual_roption_context {
+		scenario_building_context& outer_context;
+		dcon::reform_option_id id;
+	};
+
 	struct option_rules {
 		void finish(individual_option_context&) { }
 		void build_factory(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
@@ -1539,12 +1572,46 @@ namespace parsers {
 		void state_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 		void population_vote(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 		void build_railway(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
+
+		void finish(individual_roption_context&) { }
+		void build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void open_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void destroy_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void factory_priority(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void can_subsidise(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_build_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_expand_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_open_factory(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void delete_factory_if_no_input(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void build_railway_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void can_invest_in_pop_projects(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_build_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_expand_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void pop_open_factory_invest(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void allow_foreign_investment(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void slavery_allowed(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void primary_culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void culture_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void all_voting(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void largest_share(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void dhont(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void sainte_laque(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void same_as_ruling_party(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void rich_only(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void state_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void population_vote(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
+		void build_railway(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context);
 	};
 
 	struct on_execute_body {
 		dcon::trigger_key trigger;
 		dcon::effect_key effect;
 		void finish(individual_option_context&) { }
+		void finish(individual_roption_context&) { }
 	};
 
 	struct issue_option_body : public modifier_base {
@@ -1553,17 +1620,28 @@ namespace parsers {
 		void administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_option_context& context);
 		void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
 		void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context);
+
+		void technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_roption_context& context);
+		void war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context);
+		void administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context);
+		void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_roption_context& context);
+		void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) { }
 		option_rules rules;
 	};
 
 	void make_opt_allow(token_generator& gen, error_handler& err, individual_option_context& context);
 	dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_option_context& context);
 	dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_option_context& context);
+	void make_opt_allow(token_generator& gen, error_handler& err, individual_roption_context& context);
+	dcon::trigger_key make_execute_trigger(token_generator& gen, error_handler& err, individual_roption_context& context);
+	dcon::effect_key make_execute_effect(token_generator& gen, error_handler& err, individual_roption_context& context);
 	void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void read_pending_reform(dcon::reform_option_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 	struct national_focus_context {
 		scenario_building_context& outer_context;
 		dcon::national_focus_id id;
+		::nations::focus_type type = ::nations::focus_type::unknown;
 	};
 
 	struct national_focus {
@@ -1580,15 +1658,15 @@ namespace parsers {
 	};
 
 	struct focus_group {
-		void finish(scenario_building_context&) { }
+		void finish(national_focus_context&) { }
 	};
 	struct national_focus_file {
-		focus_group any_group;
 		void finish(scenario_building_context&) { }
 	};
 
 	dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, national_focus_context& context);
-	void make_focus(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+	void make_focus(std::string_view name, token_generator& gen, error_handler& err, national_focus_context& context);
+	void make_focus_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
 	struct main_pop_type_file {
 		void finish(scenario_building_context&) { }
@@ -1639,6 +1717,17 @@ namespace parsers {
 		void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 		void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
+
+		void prestige(association_type, float v, error_handler& err, int32_t line, tech_context& context) {
+			if(next_to_add >= sys::modifier_definition_size) {
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::prestige_modifier);
+				constructed_definition.values[next_to_add] = v;
+				++next_to_add;
+			} 
+		}
+
 		tech_rgo_goods_output rgo_goods_output;
 		tech_rgo_size rgo_size;
 		tech_fac_goods_output factory_goods_output;
@@ -2200,6 +2289,48 @@ namespace parsers {
 	};
 
 	void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err, country_history_context& context);
+
+	struct war_history_context;
+
+	struct history_war_goal {
+		dcon::nation_id actor_;
+		dcon::nation_id receiver_;
+		dcon::cb_type_id casus_belli_;
+
+		void receiver(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void actor(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void casus_belli(association_type, std::string_view value, error_handler& err, int32_t line, war_history_context& context);
+
+		void finish(war_history_context&) { }
+	};
+
+	struct war_history_context {
+		scenario_building_context& outer_context;
+
+		std::vector<history_war_goal> wargoals;
+		std::vector<dcon::nation_id> attackers;
+		std::vector<dcon::nation_id> defenders;
+
+		war_history_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
+	};
+
+	struct war_block {
+		void add_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void add_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void rem_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void rem_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
+		void war_goal(history_war_goal const& value, error_handler& err, int32_t line, war_history_context& context) {
+			context.wargoals.push_back(value);
+		}
+
+		void finish(war_history_context&) { }
+	};
+
+	struct war_history_file {
+		void finish(war_history_context&);
+	};
+
+	void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context);
 }
 
 #include "trigger_parsing.hpp"

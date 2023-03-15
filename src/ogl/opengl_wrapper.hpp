@@ -200,5 +200,6 @@ struct color3f {
 	void render_progress_bar(sys::state const& state, color_modification enabled, float progress, float x, float y, float width, float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped);
 	void render_tinted_textured_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped);
 	void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped);
-	void render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f);
+	void render_new_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f);
+	void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, const color3f& c, uint16_t font_id);
 }

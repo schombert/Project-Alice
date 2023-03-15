@@ -4,9 +4,7 @@
 
 namespace ui {
 
-void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
-	parsers::building_gfx_context context{ state, state.ui_defs };
-
+void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context& context, parsers::error_handler& err) {
 	// preload special background textures
 	assert(context.ui_defs.textures.size() == size_t(0));
 	{
@@ -29,8 +27,17 @@ void load_text_gui_definitions(sys::state& state, parsers::error_handler& err) {
 	auto interfc = open_directory(rt, NATIVE("interface"));
 
 	{
-		auto all_files = list_files(interfc, NATIVE(".gfx"));
+		// first, load in special mod gfx
+		// TODO put this in a better location
+		auto alice_gfx = open_file(rt, NATIVE("assets/alice.gfx"));
+		if(alice_gfx) {
+			auto content = view_contents(*alice_gfx);
+			err.file_name = "assets/alice.gfx";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_gfx_files(gen, err, context);
+		}
 
+		auto all_files = list_files(interfc, NATIVE(".gfx"));
 
 		for(auto& file : all_files) {
 			auto ofile = open_file(file);
@@ -101,7 +108,10 @@ uint8_t element_base::get_pixel_opacity(sys::state& state, int32_t x, int32_t y,
 	uint8_t* pixels = state.open_gl.asset_textures[tid].data;
 	int32_t width = state.open_gl.asset_textures[tid].size_x;
 	int32_t stride = state.open_gl.asset_textures[tid].channels;
-	return pixels[(y * width * stride) + (x * stride) + stride - 1];
+	if(pixels && 0 <= x && x < width && 0 <= y && y < state.open_gl.asset_textures[tid].size_y)
+		return pixels[(y * width * stride) + (x * stride) + stride - 1];
+	else
+		return 0;
 }
 
 mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -118,11 +128,11 @@ mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t
 				gfx_id = base_data.data.list_box.background_image;
 			}
 			auto& gfx_def = state.ui_defs.gfx[gfx_id];
-			auto mask_handle = gfx_def.type_dependant;
+			auto mask_handle = gfx_def.type_dependent;
 			if(gfx_def.is_partially_transparent() && gfx_def.primary_texture_handle
 					&& get_pixel_opacity(state, x, y, gfx_def.primary_texture_handle)) {
 				probe_result.under_mouse = this;
-			} else if(mask_handle && gfx_def.primary_texture_handle) {
+			} else if(gfx_def.get_object_type() == ui::object_type::flag_mask && mask_handle && gfx_def.primary_texture_handle) {
 				ogl::get_texture_handle(state, dcon::texture_id(mask_handle - 1), true);
 				if(get_pixel_opacity(state, x, y, dcon::texture_id(mask_handle - 1))) {
 					probe_result.under_mouse = this;

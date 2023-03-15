@@ -1,4 +1,5 @@
 #include "map.hpp"
+#include "map.hpp"
 #include "texture.hpp"
 #include "province.hpp"
 #include <cmath>
@@ -15,8 +16,8 @@ void set_gltex_parameters(GLuint texture_type, GLuint filter, GLuint wrap) {
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, filter);
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, filter);
 	}
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap);
 }
 
 GLuint load_texture_from_file(simple_fs::file& file, GLuint filter) {
@@ -43,7 +44,9 @@ GLuint load_texture_from_file(simple_fs::file& file, GLuint filter) {
 
 GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
 	auto content = simple_fs::view_contents(file);
-	int32_t file_channels, size_x, size_y;
+	int32_t file_channels = 3;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
 
 	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
 		&size_x, &size_y, &file_channels, 4);
@@ -83,9 +86,7 @@ GLuint load_texture_array_from_file(sys::state& state, simple_fs::file& file, in
 
 // Load the terrain texture, will read the BMP file directly
 // The image is flipped for some reason
-GLuint load_terrain_texture(std::vector<uint8_t>& terrain_index, glm::vec2 size) {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
+GLuint load_terrain_texture(std::vector<uint8_t>& terrain_index, uint32_t size_x, uint32_t size_y) {
 
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
@@ -109,59 +110,32 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 
-void display_data::create_borders1() {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
-	auto add_line = [&map_size = this->size](std::vector<float>& vertices, uint32_t x0, uint32_t y0, glm::vec2 pos1, glm::vec2 pos2) {
-		glm::vec2 dir = normalize(pos2 - pos1);
-		glm::vec2 dir2 = dir;
-		dir = glm::vec2(-dir.y, dir.x);
+void display_data::create_border_data(parsers::scenario_building_context& context) {
+	border_vertices.clear();
 
-		pos1 = (pos1 + glm::vec2(x0 + 0.5f, y0 + 0.5f)) / map_size;
-		pos2 = (pos2 + glm::vec2(x0 + 0.5f, y0 + 0.5f)) / map_size;
+	glm::vec2 map_size(size_x, size_y);
+	auto add_line = [&](glm::vec2 map_pos, glm::vec2 offset1, glm::vec2 offset2) {
+		glm::vec2 direction = normalize(offset2 - offset1);
+		glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
 
-		// glm::vec2 dir = glm::vec2(100, 100) / map_size;
-		vertices.push_back(pos1.x);
-		vertices.push_back(pos1.y);
-		vertices.push_back(dir.x);
-		vertices.push_back(dir.y);
-		vertices.push_back(dir2.x);
-		vertices.push_back(dir2.y);
+		// Offset the map position
+		map_pos += glm::vec2(0.5f);
+		// Get the map coordinates
+		glm::vec2 pos1 = offset1 + map_pos;
+		glm::vec2 pos2 = offset2 + map_pos;
 
-		vertices.push_back(pos1.x);
-		vertices.push_back(pos1.y);
-		vertices.push_back(-dir.x);
-		vertices.push_back(-dir.y);
-		vertices.push_back(dir2.x);
-		vertices.push_back(dir2.y);
+		// Rescale the coordinate to 0-1
+		pos1 /= map_size;
+		pos2 /= map_size;
 
-		vertices.push_back(pos2.x);
-		vertices.push_back(pos2.y);
-		vertices.push_back(-dir.x);
-		vertices.push_back(-dir.y);
-		vertices.push_back(-dir2.x);
-		vertices.push_back(-dir2.y);
-
-		vertices.push_back(pos2.x);
-		vertices.push_back(pos2.y);
-		vertices.push_back(-dir.x);
-		vertices.push_back(-dir.y);
-		vertices.push_back(-dir2.x);
-		vertices.push_back(-dir2.y);
-
-		vertices.push_back(pos2.x);
-		vertices.push_back(pos2.y);
-		vertices.push_back(dir.x);
-		vertices.push_back(dir.y);
-		vertices.push_back(-dir2.x);
-		vertices.push_back(-dir2.y);
-
-		vertices.push_back(pos1.x);
-		vertices.push_back(pos1.y);
-		vertices.push_back(dir.x);
-		vertices.push_back(dir.y);
-		vertices.push_back(dir2.x);
-		vertices.push_back(dir2.y);
+		// First vertex of the line segment
+		border_vertices.emplace_back(pos1, normal_direction, direction);
+		border_vertices.emplace_back(pos1, -normal_direction, direction);
+		border_vertices.emplace_back(pos2, -normal_direction, -direction);
+		// Second vertex of the line segment
+		border_vertices.emplace_back(pos2, -normal_direction, -direction);
+		border_vertices.emplace_back(pos2, normal_direction, -direction);
+		border_vertices.emplace_back(pos1, normal_direction, direction);
 	};
 
 	enum direction {
@@ -170,8 +144,7 @@ void display_data::create_borders1() {
 		LEFT = 1 << 1,
 		RIGHT = 1 << 0,
 	};
-	std::vector<bool> is_border(size_x * size_y, false);
-	std::vector<float> border_vertices;
+
 	auto add_border = [&](uint32_t x0, uint32_t y0, uint16_t id_ul, uint16_t id_ur, uint16_t id_dl, uint16_t id_dr) {
 		// Yes this can be done better and more optimized. But for its good for now
 		uint8_t diff_u = id_ul != id_ur;
@@ -180,50 +153,51 @@ void display_data::create_borders1() {
 		uint8_t diff_r = id_ur != id_dr;
 		uint8_t diff = diff_u << 3 | diff_d << 2 | diff_l << 1 | diff_r;
 
+		glm::vec2 map_pos(x0, y0);
 		float offset = 0.5f * std::cos((float)std::numbers::pi / 4);
 		if(diff == (LEFT | UP)) {
 			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 0.0f);
-			add_line(border_vertices, x0, y0, pos1, pos2);
+			add_line(map_pos, pos1, pos2);
 			return;
 		}
 		if(diff == (LEFT | DOWN)) {
 			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			add_line(border_vertices, x0, y0, pos1, pos2);
+			add_line(map_pos, pos1, pos2);
 			return;
 		}
 		if(diff == (RIGHT | UP)) {
 			glm::vec2 pos1 = glm::vec2(1.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 0.0f);
-			add_line(border_vertices, x0, y0, pos1, pos2);
+			add_line(map_pos, pos1, pos2);
 			return;
 		}
 		if(diff == (RIGHT | DOWN)) {
 			glm::vec2 pos1 = glm::vec2(1.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			add_line(border_vertices, x0, y0, pos1, pos2);
+			add_line(map_pos, pos1, pos2);
 			return;
 		}
 		if(diff_u) {
 			glm::vec2 pos1 = glm::vec2(0.5f, 0.0f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 0.5f);
-			add_line(border_vertices, x0, y0, pos1, pos2);
+			add_line(map_pos, pos1, pos2);
 		}
 		if(diff_d) {
 			glm::vec2 pos1 = glm::vec2(0.5f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			add_line(border_vertices, x0, y0, pos1, pos2);
+			add_line(map_pos, pos1, pos2);
 		}
 		if(diff_l) {
 			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 0.5f);
-			add_line(border_vertices, x0, y0, pos1, pos2);
+			add_line(map_pos, pos1, pos2);
 		}
 		if(diff_r) {
 			glm::vec2 pos1 = glm::vec2(0.5f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(1.0f, 0.5f);
-			add_line(border_vertices, x0, y0, pos1, pos2);
+			add_line(map_pos, pos1, pos2);
 		}
 	};
 
@@ -233,207 +207,80 @@ void display_data::create_borders1() {
 			auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
 			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
-			if((prov_id_ul != prov_id_ur) ||
-				(prov_id_ul != prov_id_dl) ||
-				(prov_id_ul != prov_id_dr)) {
+			if(prov_id_ul != prov_id_ur) {
 				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_ur != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+			} else if(prov_id_ul != prov_id_dl) {
+				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_dl != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+			} else if(prov_id_ul != prov_id_dr) {
+				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_dr != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
+			}
+		}
+		{
+			// handle the international date line
+			auto prov_id_ul = province_id_map[((size_x - 1) + 0) + (y + 0) * size_x];
+			auto prov_id_ur = province_id_map[0 + (y + 0) * size_x];
+			auto prov_id_dl = province_id_map[((size_x - 1) + 0) + (y + 1) * size_x];
+			auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
+			if(prov_id_ul != prov_id_ur) {
+				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_ur != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+			} else if(prov_id_ul != prov_id_dl) {
+				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_dl != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+			} else if(prov_id_ul != prov_id_dr) {
+				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+				if(prov_id_dr != 0 && prov_id_ul != 0)
+					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 			}
 		}
 	}
-
-	border_indicies = ((uint32_t)border_vertices.size()) / 3;
-
-	glGenVertexArrays(1, &border_vao);
-	glBindVertexArray(border_vao);
-
-	glGenBuffers(1, &border_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(4 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	glBindVertexArray(0);
 }
-
-void display_data::create_borders2() {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
-
-	std::vector<bool> is_border(size_x * size_y, false);
-	std::vector<float> border_vertices;
-	auto add_border = [&, &map_size = this->size](uint32_t x0, uint32_t y0, int type1, int type2) {
-		// Yes this can be done better and more optimized. But for its good for now
-		if(is_border[x0 + y0 * size.x])
-			return;
-		is_border[x0 + y0 * size_x] = true;
-
-		glm::vec2 pos0 = glm::vec2(x0 + 0, y0 + 0) / size;
-		glm::vec2 pos1 = glm::vec2(x0 + 1, y0 + 1) / size;
-
-		border_vertices.push_back(pos0.x);
-		border_vertices.push_back(pos0.y);
-		border_vertices.push_back(0);
-		border_vertices.push_back(0);
-		border_vertices.push_back(type1 / 32.f);
-		border_vertices.push_back(type2 / 32.f);
-
-		border_vertices.push_back(pos1.x);
-		border_vertices.push_back(pos0.y);
-		border_vertices.push_back(1);
-		border_vertices.push_back(0);
-		border_vertices.push_back(type1 / 32.f);
-		border_vertices.push_back(type2 / 32.f);
-
-		border_vertices.push_back(pos1.x);
-		border_vertices.push_back(pos1.y);
-		border_vertices.push_back(1);
-		border_vertices.push_back(1);
-		border_vertices.push_back(type1 / 32.f);
-		border_vertices.push_back(type2 / 32.f);
-
-		border_vertices.push_back(pos1.x);
-		border_vertices.push_back(pos1.y);
-		border_vertices.push_back(1);
-		border_vertices.push_back(1);
-		border_vertices.push_back(type1 / 32.f);
-		border_vertices.push_back(type2 / 32.f);
-
-		border_vertices.push_back(pos0.x);
-		border_vertices.push_back(pos1.y);
-		border_vertices.push_back(0);
-		border_vertices.push_back(1);
-		border_vertices.push_back(type1 / 32.f);
-		border_vertices.push_back(type2 / 32.f);
-
-		border_vertices.push_back(pos0.x);
-		border_vertices.push_back(pos0.y);
-		border_vertices.push_back(0);
-		border_vertices.push_back(0);
-		border_vertices.push_back(type1 / 32.f);
-		border_vertices.push_back(type2 / 32.f);
-	};
-
-	enum direction {
-		NW = 1 << 7,
-		NE = 1 << 6,
-		SW = 1 << 5,
-		SE = 1 << 4,
-		N = 1 << 3,
-		S = 1 << 2,
-		W = 1 << 1,
-		E = 1 << 0,
-	};
-	for(uint32_t y = 1; y < size_y - 1; y++) {
-		for(uint32_t x = 1; x < size_x - 1; x++) {
-			auto id_m = province_id_map[(x + 0) + (y + 0) * size_x];
-			auto id_u = province_id_map[(x + 0) + (y + 1) * size_x];
-			auto id_d = province_id_map[(x + 0) + (y - 1) * size_x];
-			auto id_l = province_id_map[(x - 1) + (y + 0) * size_x];
-			auto id_r = province_id_map[(x + 1) + (y + 0) * size_x];
-			auto id_ul = province_id_map[(x - 1) + (y + 1) * size_x];
-			auto id_ur = province_id_map[(x + 1) + (y + 1) * size_x];
-			auto id_dl = province_id_map[(x - 1) + (y - 1) * size_x];
-			auto id_dr = province_id_map[(x + 1) + (y - 1) * size_x];
-			uint8_t diff_u = id_m != id_u;
-			uint8_t diff_d = id_m != id_d;
-			uint8_t diff_l = id_m != id_l;
-			uint8_t diff_r = id_m != id_r;
-			uint8_t diff_ul = id_m != id_ul;
-			uint8_t diff_ur = id_m != id_ur;
-			uint8_t diff_dl = id_m != id_dl;
-			uint8_t diff_dr = id_m != id_dr;
-			uint8_t diff = diff_ul << 7 | diff_ur << 6 | diff_dl << 5 | diff_dr << 4 | diff_u << 3 | diff_d << 2 | diff_l << 1 | diff_r;
-			if (diff == (NW | N | NE))
-				add_border(x, y, 20, 0);
-			if (diff == (NW | N | NE | E))
-				add_border(x, y, 20, 22);
-			if (diff == (W | NW | N | NE))
-				add_border(x, y, 20, 19);
-			if (diff == (N | W | NW))
-				add_border(x, y, 20, 19);
-			if (diff == (N | E | NE))
-				add_border(x, y, 20, 22);
-			if (diff == (SW | S | SE))
-				add_border(x, y, 24, 0);
-			if (diff == (SW | S))
-				add_border(x, y, 24, 0);
-			if (diff == (S | SE))
-				add_border(x, y, 24, 0);
-			if (diff == (NW | W | SW))
-				add_border(x, y, 18, 0);
-			if (diff == (W | SW | S | SE | E))
-				add_border(x, y, 18, 17);
-			if (diff == (NE | E | SE))
-				add_border(x, y, 17, 0);
-			if (diff == (W | SW | S | SE))
-				add_border(x, y, 0, 18);
-			if (diff == (E | SE | S | SW))
-				add_border(x, y, 0, 17);
-			if (diff == (N | NW))
-				add_border(x, y, 0, 19);
-			if (diff == (N | NE))
-				add_border(x, y, 0, 22);
-			if (diff == SW)
-				add_border(x, y, 0, 20);
-			if (diff == SE)
-				add_border(x, y, 0, 21);
-			if (diff == (SW | SE))
-				add_border(x, y, 0, 21);
-			if (diff == N)
-				add_border(x, y, 0, 3);
-		}
-	}
-
-	border_indicies = ((uint32_t)border_vertices.size()) / 3 * 2;
+void display_data::create_border_ogl_objects() {
+	border_indicies = ((uint32_t)border_vertices.size());
 
 	glGenVertexArrays(1, &border_vao);
 	glBindVertexArray(border_vao);
 
 	glGenBuffers(1, &border_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(border_vertex) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(4 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+
 	glBindVertexArray(0);
 }
 
 void display_data::create_meshes() {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
 
-	std::vector<float> water_vertices;
-	std::vector<float> land_vertices;
+	std::vector<map_vertex> water_vertices;
+	std::vector<map_vertex> land_vertices;
 
-	auto add_quad = [&map_size = this->size](std::vector<float>& vertices, float x0, float y0, float x1, float y1) {
-		vertices.push_back(x0 / map_size.x);
-		vertices.push_back(y0 / map_size.y);
+	auto add_quad = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0, glm::vec2 pos1) {
+		// Rescale the coordinate to 0-1
+		pos0 /= map_size;
+		pos1 /= map_size;
 
-		vertices.push_back(x1 / map_size.x);
-		vertices.push_back(y0 / map_size.y);
-
-		vertices.push_back(x1 / map_size.x);
-		vertices.push_back(y1 / map_size.y);
-
-		vertices.push_back(x1 / map_size.x);
-		vertices.push_back(y1 / map_size.y);
-
-		vertices.push_back(x0 / map_size.x);
-		vertices.push_back(y1 / map_size.y);
-
-		vertices.push_back(x0 / map_size.x);
-		vertices.push_back(y0 / map_size.y);
+		// First vertex of the quad
+		vertices.emplace_back(pos0.x, pos0.y);
+		vertices.emplace_back(pos1.x, pos0.y);
+		vertices.emplace_back(pos1.x, pos1.y);
+		// Second vertex of the quad
+		vertices.emplace_back(pos1.x, pos1.y);
+		vertices.emplace_back(pos0.x, pos1.y);
+		vertices.emplace_back(pos0.x, pos0.y);
 	};
 
 
@@ -443,41 +290,45 @@ void display_data::create_meshes() {
 		bool last_is_water = terrain_id_map[index++] > 64;
 		for(uint32_t x = 1; x < size_x; x++) {
 			bool is_water = terrain_id_map[index++] > 64;
-			if(is_water != last_is_water) {
+			if(is_water != last_is_water || (x & (256 - 1)) == 0) {
+				glm::vec2 pos0(last_x, y);
+				glm::vec2 pos1(x, y + 1);
 				if(last_is_water)
-					add_quad(water_vertices, last_x, y, x, y + 1);
+					add_quad(water_vertices, pos0, pos1);
 				else
-					add_quad(land_vertices, last_x, y, x, y + 1);
+					add_quad(land_vertices, pos0, pos1);
 
 				last_x = x;
 				last_is_water = is_water;
 			}
 		}
+		glm::vec2 pos0(last_x, y);
+		glm::vec2 pos1(size_x, y + 1);
 		if(last_is_water)
-			add_quad(water_vertices, last_x, y, size_x, y + 1);
+			add_quad(water_vertices, pos0, pos1);
 		else
-			add_quad(land_vertices, last_x, y, size_x, y + 1);
+			add_quad(land_vertices, pos0, pos1);
 	}
 
-	water_indicies = ((uint32_t)water_vertices.size()) / 3 * 2;
-	land_indicies = ((uint32_t)land_vertices.size()) / 3 * 2;
+	water_indicies = ((uint32_t)water_vertices.size());
+	land_indicies = ((uint32_t)land_vertices.size());
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
 	glGenBuffers(1, &water_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, water_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * water_vertices.size(), &water_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * water_vertices.size(), &water_vertices[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &land_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, land_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * land_vertices.size(), &land_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * land_vertices.size(), &land_vertices[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 
-	create_borders1();
+	create_border_ogl_objects();
 }
 
 display_data::~display_data() {
@@ -501,6 +352,8 @@ display_data::~display_data() {
 		glDeleteTextures(1, &province_color);
 	if(border_texture)
 		glDeleteTextures(1, &border_texture);
+	if(stripes_texture)
+		glDeleteTextures(1, &stripes_texture);
 	if(province_highlight)
 		glDeleteTextures(1, &province_highlight);
 
@@ -577,8 +430,12 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		get_content(*vic2_border_vshader), get_content(*vic2_border_fshader));
 }
 
-void display_data::render(uint32_t screen_x, uint32_t screen_y) {
-	update();
+void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
+	update(state);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, provinces_texture_handle);
 	glActiveTexture(GL_TEXTURE1);
@@ -596,11 +453,13 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, overlay);
 	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, province_color);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, province_color);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, colormap_political);
 	glActiveTexture(GL_TEXTURE10);
 	glBindTexture(GL_TEXTURE_2D, province_highlight);
+	glActiveTexture(GL_TEXTURE11);
+	glBindTexture(GL_TEXTURE_2D, stripes_texture);
 
 	glBindVertexArray(vao);
 
@@ -618,15 +477,11 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	// uniform float zoom
 	glUniform1f(2, zoom);
 	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
+	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 
-	glBindVertexBuffer(0, land_vbo, 0, sizeof(GLfloat) * 2);
+	glBindVertexBuffer(0, land_vbo, 0, sizeof(map_vertex));
 
-	glUniform2f(0, offset_x - 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
 	glUniform2f(0, offset_x + 0.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
-	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
 
 	if(active_map_mode == map_mode::mode::terrain || zoom > 5) {
@@ -642,15 +497,11 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	// uniform float zoom
 	glUniform1f(2, zoom);
 	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
+	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 
-	glBindVertexBuffer(0, water_vbo, 0, sizeof(GLfloat) * 2);
+	glBindVertexBuffer(0, water_vbo, 0, sizeof(map_vertex));
 
-	glUniform2f(0, offset_x - 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
 	glUniform2f(0, offset_x + 0.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
-	glUniform2f(0, offset_x + 1.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -665,22 +516,17 @@ void display_data::render(uint32_t screen_x, uint32_t screen_y) {
 	// uniform float zoom
 	glUniform1f(2, zoom);
 	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size.x), GLfloat(size.y));
+	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 
-	glBindVertexBuffer(0, border_vbo, 0, sizeof(GLfloat) * 6);
+	glBindVertexBuffer(0, border_vbo, 0, sizeof(border_vertex));
 
-	glUniform2f(0, offset_x - 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
 	glUniform2f(0, offset_x + 0.f, offset_y);
 	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
-	glUniform2f(0, offset_x + 1.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
+
+	glDisable(GL_CULL_FACE);
 }
 
-GLuint load_province_map(std::vector<uint16_t>& province_index, glm::vec2 size) {
-	uint32_t size_x = size.x;
-	uint32_t size_y = size.y;
-
+GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x, uint32_t size_y) {
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
 	if(texture_handle) {
@@ -695,91 +541,88 @@ GLuint load_province_map(std::vector<uint16_t>& province_index, glm::vec2 size) 
 	return texture_handle;
 }
 
-void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color) {
-	glBindTexture(GL_TEXTURE_2D, texture_handle);
+void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers) {
+	if(layers == 1) {
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+	} else {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_handle);
+	}
 	uint32_t rows = ((uint32_t)prov_color.size()) / 256;
 	uint32_t left_on_last_row = ((uint32_t)prov_color.size()) % 256;
 
-	uint32_t x = 0, y = 0;
-	uint32_t width = 256, height = rows;
-	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[0]);
-	x = 0, y = rows;
-	width = left_on_last_row, height = 1;
-	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[rows * 256]);
+	uint32_t x = 0;
+	uint32_t y = 0;
+	uint32_t width = 256;
+	uint32_t height = rows;
+
+	if(layers == 1) {
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[0]);
+	} else {
+		// Set the texture data for each layer
+		for(int i = 0; i < layers; i++) {
+			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, i, width, height / layers, 1, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[i * (prov_color.size() / layers)]);
+		}
+	}
+
+	x = 0;
+	y = rows;
+	width = left_on_last_row;
+	height = 1;
+
+	// SCHOMBERT: added a conditional to block reading from after the end in the case it is evenly divisible by 256
+	// SCHOMBERT: that looks right to me, but I don't fully understand the intent
+	if(left_on_last_row > 0 && layers == 1)
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[rows * 256]);
+
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+
 void display_data::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
 	active_map_mode = new_map_mode;
-	gen_prov_color_texture(province_color, prov_color);
+	gen_prov_color_texture(province_color, prov_color, 2);
 }
 
 void display_data::set_terrain_map_mode() {
 	active_map_mode = map_mode::mode::terrain;
 }
 
-void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map<uint32_t, dcon::province_id> const& color_map) {
-	auto root = simple_fs::get_root(state.common_fs);
+void display_data::load_map_data(parsers::scenario_building_context& context) {
+	auto root = simple_fs::get_root(context.state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
-	// Replace this with the color_map once that is implemented
-	// --------------------------------------------------------
-	auto defs = simple_fs::open_file(map_dir, NATIVE("definition.csv"));
-
-	auto defs_content = simple_fs::view_contents(*defs);
-	char const* cpos = defs_content.data;
-	char const* end_of_file = defs_content.data + defs_content.file_size;
-
-	cpos = parsers::csv_advance_to_next_line(cpos, end_of_file);
-
-	ankerl::unordered_dense::map<uint32_t, uint16_t> color_to_id;
-
-	uint16_t index = 0;
-	parsers::error_handler err("no_file");
-	while(cpos < end_of_file) {
-		cpos = parsers::parse_fixed_amount_csv_values<6>(cpos, end_of_file, ';',
-			[&](std::string_view const* values) {
-				uint32_t color = 0;
-				uint32_t color_part;
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[1]), 0, err);
-				color += color_part << 16; 	// Red
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[2]), 0, err);
-				color += color_part << 8; 	// Green
-				color_part = parsers::parse_int(parsers::remove_surrounding_whitespace(values[3]), 0, err);
-				color += color_part; 		// Blue
-				color_to_id.insert_or_assign(color, index++);
-			});
-	}
-	int nr_of_provinces = index;
-	// --------------------------------------------------------
 
 	// Load the province map
 	auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
 	auto bmp_content = simple_fs::view_contents(*provinces_bmp);
-	int32_t file_channels, size_x, size_y;
+	int32_t file_channels = 4;
+	int32_t temp_size_x = 0;
+	int32_t temp_size_y = 0;
 
 	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(bmp_content.data), int32_t(bmp_content.file_size),
-		&size_x, &size_y, &file_channels, 4);
+		&temp_size_x, &temp_size_y, &file_channels, 4);
+	size_x = uint32_t(temp_size_x);
+	size_y = uint32_t(temp_size_y);
 
-	province_id_map = std::vector<uint16_t>(size_x * size_y);
-	for(int i = 0; i < size_x * size_y; i++) {
+	province_id_map.resize(size_x * size_y);
+	for(uint32_t i = 0; i < size_x * size_y; ++i) {
 		uint8_t* ptr = data + i * 4;
-		int b = ptr[2];
-		int g = ptr[1];
-		int r = ptr[0];
-		int32_t color = (r << 16) | (g << 8) | b;
-
-		province_id_map[i] = color_to_id[color] + 1;
+		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
+		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
+			province_id_map[i] = province::to_map_id(it->second);
+		} else {
+			province_id_map[i] = 0;
+		}
 	}
-	STBI_FREE(data);
 
-	size = glm::vec2(size_x, size_y);
+	STBI_FREE(data);
 
 	// Load the terrain map
 	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t* start = (uint8_t*)(content.data);
 
-	// TODO make a check for when the bmp format is unsupporeted
+	// TODO make a check for when the bmp format is unsupported
 
 	// Data offset is where the pixel data starts
 	uint8_t* ptr = start + 10;
@@ -787,34 +630,45 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 
 	// The width & height of the image
 	ptr = start + 18;
-	size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+	uint32_t terrain_size_x = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 	ptr = start + 22;
-	size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+	uint32_t terrain_size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
 	uint8_t* terrain_data = start + data_offset;
 
-	// terrain_id_map.insert(terrain_id_map.begin(), terrain_data, terrain_data + size_x * size_y);
-	terrain_id_map = std::vector<uint8_t>(size_x * size_y);
-	for(int y = 0; y < size_y; y++) {
-		auto start = terrain_data + (size_y - y - 1) * size_x;
-		auto end = terrain_data + (size_y - y) * size_x;
-		terrain_id_map.insert(terrain_id_map.begin() + y * size_x, start, end);
+	terrain_id_map.resize(size_x * size_y, uint8_t(255));
+	for(uint32_t y = 0; y < terrain_size_y && y < size_y; ++y) {
+		auto inner_start = terrain_data + (terrain_size_y - y - 1) * terrain_size_x;
+		auto end = terrain_data + (terrain_size_y - y) * terrain_size_x;
+		//terrain_id_map.insert(terrain_id_map.begin() + y * terrain_size_x, inner_start, end);
+		for(uint32_t x = 0; x < terrain_size_x && x < size_x; ++x) {
+			if(province_id_map[y * size_x + x] == 0 || province_id_map[y * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province)) {
+				terrain_id_map[y * size_x + x] = uint8_t(255);
+			} else {
+				auto value = *(terrain_data + x + (terrain_size_y - y - 1) * terrain_size_x);
+				if(value < 64)
+					terrain_id_map[y * size_x + x] = value;
+				else
+					terrain_id_map[y * size_x + x] = uint8_t(6);
+			}
+		}
 	}
 
-	median_terrain_type = std::vector<uint8_t>(nr_of_provinces);
-	std::vector<std::array<int, 16>> terrain_histogram(nr_of_provinces, std::array<int, 16>{});
-	std::vector<glm::ivec3> province_acc_tile_pos(nr_of_provinces, glm::ivec3(0));
-	for(int i = size_x * size_y; i-- > 0;) {
+	median_terrain_type.resize(context.state.world.province_size() + 1);
+	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
+	std::vector<glm::ivec3> province_acc_tile_pos(context.state.world.province_size() + 1, glm::ivec3(0));
+	for(int i = terrain_size_x * terrain_size_y; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
-		terrain_histogram[prov_id][terrain_id]++;
-		int x = i % size_x;
-		int y = i / size_x;
+		if(terrain_id < 64)
+			terrain_histogram[prov_id][terrain_id] += 1;
+		int x = i % terrain_size_x;
+		int y = i / terrain_size_x;
 		province_acc_tile_pos[prov_id] += glm::ivec3(x, y, 1);
 	}
-	province_mid_point = std::vector<glm::vec2>(nr_of_provinces);
-	for(int i = nr_of_provinces; i-- > 0;) {
-		int max_index = 15;
+
+	for(int i = context.state.world.province_size(); i-- > 1;) {
+		int max_index = 64;
 		int max = 0;
 		for(int j = max_index; j-- > 0;) {
 			if(terrain_histogram[i][j] > max) {
@@ -822,9 +676,17 @@ void display_data::load_map_data(sys::state& state, ankerl::unordered_dense::map
 				max = terrain_histogram[i][j];
 			}
 		}
-		median_terrain_type[i] = max_index;
+		median_terrain_type[i] = uint8_t(max_index);
 		auto acc_tile_pos = glm::vec2(province_acc_tile_pos[i].x, province_acc_tile_pos[i].y);
-		province_mid_point[i] = acc_tile_pos / (float)province_acc_tile_pos[i].z;
+		context.state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), acc_tile_pos / (float)province_acc_tile_pos[i].z);
+	}
+
+	create_border_data(context);
+	parsers::error_handler err("adjacencies.csv");
+	auto adj_csv_file = open_file(map_dir, NATIVE("adjacencies.csv"));
+	if(adj_csv_file) {
+		auto adj_content = view_contents(*adj_csv_file);
+		parsers::read_map_adjacency(adj_content.data, adj_content.data + adj_content.file_size, err, context);
 	}
 }
 
@@ -837,11 +699,11 @@ void display_data::load_map(sys::state& state) {
 	load_shaders(root);
 
 	// auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
-	terrain_texture_handle = load_terrain_texture(terrain_id_map, size);
+	terrain_texture_handle = load_terrain_texture(terrain_id_map, size_x, size_y);
 	create_meshes();
 
 	// TODO Better error handling and reporting ^^
-	provinces_texture_handle = load_province_map(province_id_map, size);
+	provinces_texture_handle = load_province_map(province_id_map, size_x, size_y);
 
 	auto rivers_bmp = open_file(map_dir, NATIVE("rivers.bmp"));
 	rivers_texture_handle = load_texture_from_file(*rivers_bmp, GL_NEAREST);
@@ -855,11 +717,16 @@ void display_data::load_map(sys::state& state) {
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	border_texture = load_dds_texture(map_terrain_dir, NATIVE("borders.dds"));
 
+	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
 	// Get the province_color handle
+	// province_color is an array of 2 textures, one for province and the other for stripes
 	glGenTextures(1, &province_color);
-	glBindTexture(GL_TEXTURE_2D, province_color);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
-	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, province_color);
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 256, 256, 2);
+	set_gltex_parameters(GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Get the province_highlight handle
@@ -869,15 +736,26 @@ void display_data::load_map(sys::state& state) {
 	set_gltex_parameters(GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	std::vector<uint32_t> test(province_id_map.size());
-	gen_prov_color_texture(province_highlight, test);
-	for(int i = 0; i < test.size(); i++) {
-		test[i] = 255;
+	uint32_t province_size = state.world.province_size() + 1;
+	province_size += 256 - province_size % 256;
+
+
+	std::vector<uint32_t> testHighlight(province_size);
+	std::vector<uint32_t> testColor(province_size * 4);
+	gen_prov_color_texture(province_highlight, testHighlight);
+
+	for(uint32_t i = 0; i < testHighlight.size(); ++i) {
+		testHighlight[i] = 255;
 	}
-	set_province_color(test, map_mode::mode::terrain);
+
+	for(uint32_t i = 0; i < testColor.size(); ++i) {
+		testColor[i] = 255;
+	}
+
+	set_province_color(testColor, map_mode::mode::terrain);
 }
 
-void display_data::update() {
+void display_data::update(sys::state& state) {
 	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 	// Set the last_update_time if it hasn't been set yet
 	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
@@ -894,13 +772,8 @@ void display_data::update() {
 
 	glm::vec2 velocity;
 
-	if(zoom_change > 0) {
-		velocity = ((pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom)) / 3.f;
-	}
-	else {
-		velocity = ((pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom)) / 6.f;
-	}
-	velocity.x *= size.y / size.x;
+	velocity = (pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom);
+	velocity.x *= float(size_y) / float(size_x);
 	pos += velocity;
 
 	if(has_zoom_changed) {
@@ -920,7 +793,8 @@ void display_data::update() {
 	offset_y = pos.y - 0.5f;
 
 	if(unhandled_province_selection) {
-		std::vector<uint32_t> province_highlights(province_id_map.size());
+		map_mode::update_map_mode(state);
+		std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
 		if(selected_province)
 			province_highlights[selected_province] = 0x2B2B2B2B;
 		gen_prov_color_texture(province_highlight, province_highlights);
@@ -931,12 +805,16 @@ void display_data::update() {
 void display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(keycode == sys::virtual_key::LEFT) {
 		pos_velocity.x = -1.f;
+		left_arrow_key_down = true;
 	} else if(keycode == sys::virtual_key::RIGHT) {
 		pos_velocity.x = +1.f;
+		right_arrow_key_down = true;
 	} else if(keycode == sys::virtual_key::UP) {
 		pos_velocity.y = -1.f;
+		up_arrow_key_down = true;
 	} else if(keycode == sys::virtual_key::DOWN) {
 		pos_velocity.y = +1.f;
+		down_arrow_key_down = true;
 	} else if(keycode == sys::virtual_key::Q) {
 		zoom_change = zoom * 1.1f;
 	} else if(keycode == sys::virtual_key::E) {
@@ -946,13 +824,42 @@ void display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod)
 
 void display_data::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(keycode == sys::virtual_key::LEFT) {
-		pos_velocity.x = 0;
+		if(pos_velocity.x < 0) {
+			if(right_arrow_key_down == false) {
+				pos_velocity.x = 0;
+			}
+			else {
+				pos_velocity.x *= -1;
+			}
+		}
+		left_arrow_key_down = false;
 	} else if(keycode == sys::virtual_key::RIGHT) {
-		pos_velocity.x = 0;
+		if(pos_velocity.x > 0) {
+			if(left_arrow_key_down == false) {
+				pos_velocity.x = 0;
+			} else {
+				pos_velocity.x *= -1;
+			}
+		}
+		right_arrow_key_down = false;
 	} else if(keycode == sys::virtual_key::UP) {
-		pos_velocity.y = 0;
+		if(pos_velocity.y < 0) {
+			if(down_arrow_key_down == false) {
+				pos_velocity.y = 0;
+			} else {
+				pos_velocity.y *= -1;
+			}
+		}
+		up_arrow_key_down = false;
 	} else if(keycode == sys::virtual_key::DOWN) {
-		pos_velocity.y = 0;
+		if(pos_velocity.y > 0) {
+			if(up_arrow_key_down == false) {
+				pos_velocity.y = 0;
+			} else {
+				pos_velocity.y *= -1;
+			}
+		}
+		down_arrow_key_down = false;
 	}
 }
 
@@ -974,6 +881,12 @@ void display_data::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, i
     scroll_pos_velocity = mouse_pos - screen_size * .5f;
     scroll_pos_velocity /= screen_size;
     scroll_pos_velocity *= zoom_speed_factor;
+	if(zoom_change > 0) {
+		scroll_pos_velocity /= 3.f;
+	}
+	else if(zoom_change < 0) {
+		scroll_pos_velocity /= 6.f;
+	}
 }
 
 void display_data::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
@@ -990,7 +903,7 @@ glm::vec2 display_data::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_siz
 	screen_pos -= screen_size * 0.5f;
 	screen_pos /= screen_size;
 	screen_pos.x *= screen_size.x / screen_size.y;
-	screen_pos.x /= size.x / size.y;
+	screen_pos.x *= float(size_y) / float(size_x);
 
 	screen_pos /= zoom;
 	screen_pos += pos;
@@ -1016,8 +929,8 @@ void display_data::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int3
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	auto map_pos = screen_to_map(mouse_pos, screen_size);
-	map_pos *= size;
-	auto idx = int32_t(size.y - map_pos.y) * int32_t(size.x) + int32_t(map_pos.x);
+	map_pos *= glm::vec2(float(size_x), float(size_y));
+	auto idx = int32_t(size_y - map_pos.y) * int32_t(size_x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < province_id_map.size()) {
 		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 		auto fat_id = dcon::fatten(state.world, province::from_map_id(province_id_map[idx]));

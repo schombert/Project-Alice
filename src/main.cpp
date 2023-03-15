@@ -13,6 +13,7 @@
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"
 #include "gui_console.cpp"
+#include "gui_province_window.cpp"
 #include "nations_parsing.cpp"
 #include "cultures_parsing.cpp"
 #include "econ_parsing.cpp"
@@ -23,6 +24,14 @@
 #include "effect_parsing.cpp"
 #include "parsers_declarations.cpp"
 #include "serialization.cpp"
+#include "nations.cpp"
+#include "culture.cpp"
+#include "military.cpp"
+#include "modifiers.cpp"
+#include "province.cpp"
+#include "triggers.cpp"
+#include "economy.cpp"
+#include "demographics.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

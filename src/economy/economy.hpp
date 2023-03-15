@@ -43,4 +43,16 @@ enum class worker_effect : uint8_t {
 	none = 0, input, output, throughput
 };
 
+template<typename T>
+auto desired_needs_spending(sys::state const& state, T pop_indices) {
+	// TODO: gather pop types, extract cached needs sum, etc etc
+	return 0.0f;
+}
+
+constexpr inline dcon::commodity_id money(0);
+
+bool has_factory(sys::state const& state, dcon::state_instance_id si);
+bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
+bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
+
 }

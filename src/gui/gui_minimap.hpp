@@ -2,6 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
+#include "gui_search_window.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
 #include "map_modes.hpp"
@@ -9,21 +10,36 @@
 
 namespace ui {
 
-class minimap_mapmode_button : public button_element_base {
+class minimap_mapmode_button : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override {
 		map_mode::set_map_mode(state, target);
 	}
 
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		frame = int32_t(state.map_display.active_map_mode == target);
-		button_element_base::render(state, x, y);
+	bool is_active(sys::state& state) noexcept override {
+		return state.map_display.active_map_mode == target;
 	}
 
 	map_mode::mode target = map_mode::mode::terrain;
 };
 
-class minimap_container_window: public window_element_base {
+class minimap_goto_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(!state.ui_state.search_window) {
+			auto window = make_element_by_type<province_search_window>(state, "goto_box");
+			state.ui_state.search_window = window.get();
+			state.ui_state.root->add_child_to_front(std::move(window));
+		} else if(state.ui_state.search_window->is_visible()) {
+			state.ui_state.search_window->set_visible(state, false);
+		} else {
+			state.ui_state.search_window->set_visible(state, true);
+			state.ui_state.root->move_child_to_front(state.ui_state.search_window);
+		}
+	}
+};
+
+class minimap_container_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
@@ -35,6 +51,8 @@ public:
 			auto ptr = make_element_immediate(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
+		} else if(name == "button_goto") {
+			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);
 			size_t num_index = name.rfind("_") + 1;

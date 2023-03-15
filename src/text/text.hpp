@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include "dcon_generated.hpp"
+#include "nations.hpp"
 #include "unordered_dense.h"
 
 namespace sys {
@@ -169,12 +170,84 @@ namespace text {
 		}
 	};
 
+	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, int64_t, float, sys::date, std::monostate>;
+	using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
+	struct text_chunk {
+		std::string win1250chars;
+		float x = 0; // yes, there is a reason the x offset is a floating point value while the y offset is an integer
+		substitution source = std::monostate{};
+		int16_t y = 0;
+		int16_t width = 0;
+		int16_t height = 0;
+		text_color color = text_color::black;
+	};
+	struct layout_parameters {
+		int16_t left = 0;
+		int16_t top = 0;
+		int16_t right = 0;
+		int16_t bottom = 0;
+		uint16_t font_id = 0;
+		int16_t leading = 0;
+		alignment align = alignment::left;
+		text_color color = text_color::white;
+	};
+	struct layout {
+		std::vector<text_chunk> contents;
+		int32_t number_of_lines = 0;
+		text_chunk const* get_chunk_from_position(int32_t x, int32_t y) const;
+	};
+
+	void create_endless_layout(layout& dest, sys::state& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp);
+
+	struct layout_box {
+		size_t first_chunk = 0;
+		int32_t x_offset = 0;
+		int32_t x_size = 0;
+		int32_t y_size = 0;
+
+		float x_position = 0;
+		int32_t y_position = 0;
+		text_color color = text_color::white;
+	};
+	struct columnar_layout {
+		layout& base_layout;
+		layout_parameters fixed_parameters;
+		int32_t used_height = 0;
+		int32_t used_width = 0;
+		int32_t y_cursor = 0;
+		int32_t current_column = 0;
+		int32_t column_width = 0;
+	};
+
+	layout_box open_layout_box(columnar_layout& dest, int32_t indent);
+	void close_layout_box(columnar_layout& dest, layout_box const& box);
+	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp);
+	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{});
+
+	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width);
+
+
+	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
+	
 	void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size);
 	variable_type variable_type_from_name(std::string_view);
 	void load_text_data(sys::state& state, uint32_t language);
 	char16_t win1250toUTF16(char in);
 	std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
+	std::string produce_simple_string(sys::state const& state, std::string_view key);
 	dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
+	std::string date_to_string(sys::state const& state, sys::date date);
+
+	std::string prettify(int32_t num);
+	std::string format_money(float num);
+	std::string format_percentage(float num, size_t digits = 2);
+	std::string format_float(float num, size_t digits = 2);
+	std::string format_ratio(int32_t left, int32_t right);
+	template<class T>
+	std::string get_name_as_string(sys::state const& state, T t);
+	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
+	std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
+	std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
 }
 

@@ -9,6 +9,10 @@
 #include "parsers.hpp"
 #include "cyto_any.hpp"
 
+namespace parsers {
+struct building_gfx_context;
+}
+
 namespace ui {
 	enum class object_type : uint8_t {
 		generic_sprite = 0x00,
@@ -39,7 +43,7 @@ namespace ui {
 		xy_pair size; //4bytes
 
 		dcon::texture_id primary_texture_handle; //6bytes
-		uint16_t type_dependant = 0; // secondary texture handle or border size -- 8bytes
+		uint16_t type_dependent = 0; // secondary texture handle or border size -- 8bytes
 
 		uint8_t flags = 0; //9bytes
 		uint8_t number_of_frames = 1; //10bytes
@@ -311,7 +315,7 @@ namespace ui {
 		tagged_vector<element_data, dcon::gui_def_id> gui;
 	};
 
-	void load_text_gui_definitions(sys::state& state, parsers::error_handler& err);
+	void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context& context, parsers::error_handler& err);
 
 	enum class message_result {
 		unseen, seen, consumed
@@ -322,8 +326,8 @@ namespace ui {
 	enum class tooltip_behavior {
 		tooltip,
 		variable_tooltip,
-		no_tooltip,
-		transparent
+		position_sensitive_tooltip,
+		no_tooltip
 	};
 
 	class element_base;
@@ -335,26 +339,35 @@ namespace ui {
 
 	struct element_target {
 		ui_hook_fn generator = nullptr;
-		dcon::gui_def_id defintion;
+		dcon::gui_def_id definition;
 	};
 
-	
+	class tool_tip;
 
 	struct state {
 		element_base* under_mouse = nullptr;
 		element_base* drag_target = nullptr;
 		element_base* edit_target = nullptr;
+		element_base* last_tooltip = nullptr;
 
 		xy_pair relative_mouse_location = xy_pair{ 0, 0 };
 		std::unique_ptr<element_base> root;
+		std::unique_ptr<tool_tip> tooltip;
 		ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
 		// elements we are keeping track of
 		element_base* main_menu = nullptr;
+		element_base* fps_counter = nullptr;
 		element_base* console_window = nullptr; // console window
 		element_base* topbar_window = nullptr;
 		element_base* topbar_subwindow = nullptr; // current tab window
 		element_base* province_window = nullptr;
+		element_base* search_window = nullptr;
+		element_base* diplomacy_subwindow = nullptr;
+
+		int32_t held_game_speed = 1; // used to keep track of speed while paused
+
+		uint16_t tooltip_font = 0;
 
 		state();
 	};

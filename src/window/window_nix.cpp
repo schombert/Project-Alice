@@ -23,6 +23,7 @@ static const std::unordered_map<int, sys::virtual_key> glfw_key_to_virtual_key =
 { GLFW_KEY_SPACE, sys::virtual_key::SPACE },
 { GLFW_KEY_APOSTROPHE, sys::virtual_key::QUOTE },
 { GLFW_KEY_COMMA, sys::virtual_key::COMMA },
+{ GLFW_KEY_EQUAL, sys::virtual_key::PLUS },
 { GLFW_KEY_MINUS, sys::virtual_key::MINUS },
 { GLFW_KEY_PERIOD, sys::virtual_key::PERIOD },
 { GLFW_KEY_SLASH, sys::virtual_key::FORWARD_SLASH },
@@ -130,7 +131,6 @@ static const std::unordered_map<int, sys::virtual_key> glfw_key_to_virtual_key =
 { GLFW_KEY_KP_SUBTRACT, sys::virtual_key::SUBTRACT},
 { GLFW_KEY_KP_ADD, sys::virtual_key::ADD},
 { GLFW_KEY_KP_ENTER, sys::virtual_key::RETURN},
-{ GLFW_KEY_KP_EQUAL, sys::virtual_key::PLUS}, // Unsure about this one
 { GLFW_KEY_LEFT_SHIFT, sys::virtual_key::LSHIFT},
 { GLFW_KEY_LEFT_CONTROL, sys::virtual_key::LCONTROL},
 { GLFW_KEY_LEFT_ALT, sys::virtual_key::LMENU},
@@ -352,8 +352,6 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	ogl::initialize_opengl(game_state);
-	game_state.map_display.load_map_data(game_state, {});
-	game_state.map_display.load_map(game_state);
 
 	sound::initialize_sound_system(game_state);
 	sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);

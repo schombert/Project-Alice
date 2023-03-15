@@ -15,10 +15,14 @@ void main() {
 	vec2 normal_vector = normalize(direction) * thickness;
 	vec2 extend_vector = -normalize(direction2) * thickness / (1 + sqrt(2));
 	vec2 world_pos = vertex_position + vec2(-offset.x, offset.y);
+
+	world_pos.x = mod(world_pos.x, 1.0f);
+
 	world_pos.x *= map_size.x / map_size.y;
 	world_pos += extend_vector + normal_vector;
+	world_pos.x /= map_size.x / map_size.y;
 	gl_Position = vec4(
-		(2. * world_pos.x - 1.f) * zoom / aspect_ratio,
+		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
 		0.0, 1.0);
 	tex_coord = vertex_position;

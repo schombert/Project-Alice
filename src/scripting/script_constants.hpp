@@ -686,8 +686,8 @@ inline constexpr int32_t data_sizes[] = {
 	4,//constexpr uint16_t move_issue_percentage_state = 0x0104;
 	4,	//constexpr uint16_t move_issue_percentage_province = 0x0105;
 	4,//constexpr uint16_t move_issue_percentage_pop = 0x0106;
-	4,//constexpr uint16_t party_loyalty = 0x0107;
-	3,//constexpr uint16_t party_loyalty_province = 0x0108;
+	3,//constexpr uint16_t party_loyalty = 0x0107;
+	2,//constexpr uint16_t party_loyalty_province = 0x0108;
 	1,//constexpr inline uint16_t variable_tech_name_no = 0x0109;
 	1,//constexpr inline uint16_t variable_invention_name_yes = 0x010A;
 	0,//constexpr uint16_t build_railway_in_capital_yes_whole_state_yes_limit = 0x010B;
@@ -718,18 +718,18 @@ inline constexpr int32_t data_sizes[] = {
 	3, //constexpr uint16_t scaled_consciousness_nation_issue = 0x0123;
 	3, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
 	2, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
-	3, //	constexpr uint16_t scaled_militancy_nation_issue = 0x0120;
-	3, //constexpr uint16_t scaled_militancy_nation_ideology = 0x0121;
-	2, //constexpr uint16_t scaled_militancy_nation_unemployment = 0x0122;
-	3, //constexpr uint16_t scaled_consciousness_nation_issue = 0x0123;
-	3, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
-	2, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
-	3, //	constexpr uint16_t scaled_militancy_nation_issue = 0x0120;
-	3, //constexpr uint16_t scaled_militancy_nation_ideology = 0x0121;
-	2, //constexpr uint16_t scaled_militancy_nation_unemployment = 0x0122;
-	3, //constexpr uint16_t scaled_consciousness_nation_issue = 0x0123;
-	3, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
-	2, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
+	3, //	constexpr uint16_t scaled_militancy_nation_issue = 0x0126;
+	3, //constexpr uint16_t scaled_militancy_nation_ideology = 0x0127;
+	2, //constexpr uint16_t scaled_militancy_nation_unemployment = 0x0128;
+	3, //constexpr uint16_t scaled_consciousness_nation_issue = 0x0129;
+	3, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x012A;
+	2, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x012B;
+	3, //	constexpr uint16_t scaled_militancy_nation_issue = 0x012C;
+	3, //constexpr uint16_t scaled_militancy_nation_ideology = 0x012D;
+	2, //constexpr uint16_t scaled_militancy_nation_unemployment = 0x012E;
+	3, //constexpr uint16_t scaled_consciousness_nation_issue = 0x012F;
+	3, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x0130;
+	2, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0131;
 	3, //	constexpr uint16_t variable_good_name_province = 0x0132;
 	2, // constexpr uint16_t treasury_province = 0x0133;
 	2, //	constexpr uint16_t country_event_this_state = 0x0134;
@@ -768,20 +768,19 @@ inline constexpr int32_t data_sizes[] = {
 
 namespace trigger {
 // flags
-constexpr inline uint16_t is_scope = 0x8000;
 constexpr inline uint16_t is_disjunctive_scope = 0x4000;
-constexpr inline uint16_t is_existence_scope = 0x2000;
+constexpr inline uint16_t is_existence_scope   = 0x2000;
 
-constexpr inline uint16_t association_mask = 0x7000;
-constexpr inline uint16_t association_eq = 0x1000;
-constexpr inline uint16_t association_gt = 0x2000;
-constexpr inline uint16_t association_ge = 0x3000;
-constexpr inline uint16_t association_lt = 0x4000;
-constexpr inline uint16_t association_le = 0x5000;
-constexpr inline uint16_t association_ne = 0x6000;
+constexpr inline uint16_t association_mask     = 0x7000;
+constexpr inline uint16_t association_eq       = 0x1000;
+constexpr inline uint16_t association_gt       = 0x2000;
+constexpr inline uint16_t association_ge       = 0x3000;
+constexpr inline uint16_t association_lt       = 0x4000;
+constexpr inline uint16_t association_le       = 0x5000;
+constexpr inline uint16_t association_ne       = 0x6000;
 
-constexpr inline uint16_t no_payload = 0x0800;
-constexpr inline uint16_t code_mask = 0x07FF;
+constexpr inline uint16_t no_payload           = 0x0800;
+constexpr inline uint16_t code_mask            = 0x07FF;
 
 // non scopes
 constexpr inline uint16_t year = 0x0001;
@@ -1414,8 +1413,14 @@ constexpr inline uint16_t party_loyalty_generic = 0x026C;
 constexpr inline uint16_t invention = 0x026D;
 constexpr inline uint16_t political_movement_from_reb = 0x026E;
 constexpr inline uint16_t social_movement_from_reb = 0x026F;
+constexpr inline uint16_t is_next_rreform_nation = 0x0270;
+constexpr inline uint16_t is_next_rreform_pop = 0x0271;
+constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
+constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
+constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
+constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
 
-constexpr inline uint16_t first_invalid_code = 0x0270;
+constexpr inline uint16_t first_scope_code = 0x0276;
 
 //technology name -- payload 1
 //ideology name -- 4 variants payload 2
@@ -1425,53 +1430,56 @@ constexpr inline uint16_t first_invalid_code = 0x0270;
 //good name -- payload 2
 
 //scopes
-constexpr inline uint16_t generic_scope = 0x0000; // or & and
-constexpr inline uint16_t x_neighbor_province_scope = 0x0001;
-constexpr inline uint16_t x_neighbor_country_scope_nation = 0x0002;
-constexpr inline uint16_t x_neighbor_country_scope_pop = 0x0003;
-constexpr inline uint16_t x_war_countries_scope_nation = 0x0004;
-constexpr inline uint16_t x_war_countries_scope_pop = 0x0005;
-constexpr inline uint16_t x_greater_power_scope = 0x0006;
-constexpr inline uint16_t x_owned_province_scope_state = 0x0007;
-constexpr inline uint16_t x_owned_province_scope_nation = 0x0008;
-constexpr inline uint16_t x_core_scope_province = 0x0009;
-constexpr inline uint16_t x_core_scope_nation = 0x000A;
-constexpr inline uint16_t x_state_scope = 0x000B;
-constexpr inline uint16_t x_substate_scope = 0x000C;
-constexpr inline uint16_t x_sphere_member_scope = 0x000D;
-constexpr inline uint16_t x_pop_scope_province = 0x000E;
-constexpr inline uint16_t x_pop_scope_state = 0x000F;
-constexpr inline uint16_t x_pop_scope_nation = 0x0010;
-constexpr inline uint16_t x_provinces_in_variable_region = 0x0011; // variable name
-constexpr inline uint16_t owner_scope_state = 0x0012;
-constexpr inline uint16_t owner_scope_province = 0x0013;
-constexpr inline uint16_t controller_scope = 0x0014;
-constexpr inline uint16_t location_scope = 0x0015;
-constexpr inline uint16_t country_scope_state = 0x0016;
-constexpr inline uint16_t country_scope_pop = 0x0017;
-constexpr inline uint16_t capital_scope = 0x0018;
-constexpr inline uint16_t this_scope_pop = 0x0019;
-constexpr inline uint16_t this_scope_nation = 0x001A;
-constexpr inline uint16_t this_scope_state = 0x001B;
-constexpr inline uint16_t this_scope_province = 0x001C;
-constexpr inline uint16_t from_scope_pop = 0x001D;
-constexpr inline uint16_t from_scope_nation = 0x001E;
-constexpr inline uint16_t from_scope_state = 0x001F;
-constexpr inline uint16_t from_scope_province = 0x0020;
-constexpr inline uint16_t sea_zone_scope = 0x0021;
-constexpr inline uint16_t cultural_union_scope = 0x0022;
-constexpr inline uint16_t overlord_scope = 0x0023;
-constexpr inline uint16_t sphere_owner_scope = 0x0024;
-constexpr inline uint16_t independence_scope = 0x0025;
-constexpr inline uint16_t flashpoint_tag_scope = 0x0026;
-constexpr inline uint16_t crisis_state_scope = 0x0027;
-constexpr inline uint16_t state_scope_pop = 0x0028;
-constexpr inline uint16_t state_scope_province = 0x0029;
-constexpr inline uint16_t tag_scope = 0x002A; // variable name
-constexpr inline uint16_t integer_scope = 0x002B; // variable name
-constexpr inline uint16_t country_scope_nation = 0x002C;
-constexpr inline uint16_t country_scope_province = 0x002D;
-constexpr inline uint16_t cultural_union_scope_pop = 0x002E;
+constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // or & and
+constexpr inline uint16_t x_neighbor_province_scope = first_scope_code + 0x0001;
+constexpr inline uint16_t x_neighbor_country_scope_nation = first_scope_code + 0x0002;
+constexpr inline uint16_t x_neighbor_country_scope_pop = first_scope_code + 0x0003;
+constexpr inline uint16_t x_war_countries_scope_nation = first_scope_code + 0x0004;
+constexpr inline uint16_t x_war_countries_scope_pop = first_scope_code + 0x0005;
+constexpr inline uint16_t x_greater_power_scope = first_scope_code + 0x0006;
+constexpr inline uint16_t x_owned_province_scope_state = first_scope_code + 0x0007;
+constexpr inline uint16_t x_owned_province_scope_nation = first_scope_code + 0x0008;
+constexpr inline uint16_t x_core_scope_province = first_scope_code + 0x0009;
+constexpr inline uint16_t x_core_scope_nation = first_scope_code + 0x000A;
+constexpr inline uint16_t x_state_scope = first_scope_code + 0x000B;
+constexpr inline uint16_t x_substate_scope = first_scope_code + 0x000C;
+constexpr inline uint16_t x_sphere_member_scope = first_scope_code + 0x000D;
+constexpr inline uint16_t x_pop_scope_province = first_scope_code + 0x000E;
+constexpr inline uint16_t x_pop_scope_state = first_scope_code + 0x000F;
+constexpr inline uint16_t x_pop_scope_nation = first_scope_code + 0x0010;
+constexpr inline uint16_t x_provinces_in_variable_region = first_scope_code + 0x0011; // variable name
+constexpr inline uint16_t owner_scope_state = first_scope_code + 0x0012;
+constexpr inline uint16_t owner_scope_province = first_scope_code + 0x0013;
+constexpr inline uint16_t controller_scope = first_scope_code + 0x0014;
+constexpr inline uint16_t location_scope = first_scope_code + 0x0015;
+constexpr inline uint16_t country_scope_state = first_scope_code + 0x0016;
+constexpr inline uint16_t country_scope_pop = first_scope_code + 0x0017;
+constexpr inline uint16_t capital_scope = first_scope_code + 0x0018;
+constexpr inline uint16_t this_scope_pop = first_scope_code + 0x0019;
+constexpr inline uint16_t this_scope_nation = first_scope_code + 0x001A;
+constexpr inline uint16_t this_scope_state = first_scope_code + 0x001B;
+constexpr inline uint16_t this_scope_province = first_scope_code + 0x001C;
+constexpr inline uint16_t from_scope_pop = first_scope_code + 0x001D;
+constexpr inline uint16_t from_scope_nation = first_scope_code + 0x001E;
+constexpr inline uint16_t from_scope_state = first_scope_code + 0x001F;
+constexpr inline uint16_t from_scope_province = first_scope_code + 0x0020;
+constexpr inline uint16_t sea_zone_scope = first_scope_code + 0x0021;
+constexpr inline uint16_t cultural_union_scope = first_scope_code + 0x0022;
+constexpr inline uint16_t overlord_scope = first_scope_code + 0x0023;
+constexpr inline uint16_t sphere_owner_scope = first_scope_code + 0x0024;
+constexpr inline uint16_t independence_scope = first_scope_code + 0x0025;
+constexpr inline uint16_t flashpoint_tag_scope = first_scope_code + 0x0026;
+constexpr inline uint16_t crisis_state_scope = first_scope_code + 0x0027;
+constexpr inline uint16_t state_scope_pop = first_scope_code + 0x0028;
+constexpr inline uint16_t state_scope_province = first_scope_code + 0x0029;
+constexpr inline uint16_t tag_scope = first_scope_code + 0x002A; // variable name
+constexpr inline uint16_t integer_scope = first_scope_code + 0x002B; // variable name
+constexpr inline uint16_t country_scope_nation = first_scope_code + 0x002C;
+constexpr inline uint16_t country_scope_province = first_scope_code + 0x002D;
+constexpr inline uint16_t cultural_union_scope_pop = first_scope_code + 0x002E;
+
+
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x002F;
 
 constexpr inline uint16_t placeholder_not_scope = code_mask;
 
@@ -1485,9 +1493,9 @@ inline constexpr int32_t data_sizes[] = {
 	0, // none
 	1, // constexpr uint16_t year = 0x0001;
 	1, //constexpr uint16_t month = 0x0002;
-	1, //constexpr uint16_t port = 0x0003;
+	0, //constexpr uint16_t port = 0x0003;
 	1, //constexpr uint16_t rank = 0x0004;
-	1, //constexpr uint16_t invention = 0x0005;
+	1, //constexpr uint16_t technology = 0x0005;
 	0, //constexpr uint16_t strata_rich = 0x0006;
 	1, //constexpr uint16_t life_rating_province = 0x0007;
 	1, //constexpr uint16_t life_rating_state = 0x0008;
@@ -1791,7 +1799,7 @@ inline constexpr int32_t data_sizes[] = {
 	0, //constexpr uint16_t in_default_this_pop = 0x0132;
 	1, //constexpr uint16_t total_num_of_ports = 0x0133;
 	0, //constexpr uint16_t always = 0x0134;
-	1, //constexpr uint16_t election = 0x0135;
+	0, //constexpr uint16_t election = 0x0135;
 	1, //constexpr uint16_t has_global_flag = 0x0136;
 	0, //constexpr uint16_t is_capital = 0x0137;
 	1, //constexpr uint16_t nationalvalue_nation = 0x0138;
@@ -2032,12 +2040,12 @@ inline constexpr int32_t data_sizes[] = {
 	3, //constexpr uint16_t unemployment_by_type_state = 0x0221;
 	3, //constexpr uint16_t unemployment_by_type_province = 0x0222;
 	3, //constexpr uint16_t unemployment_by_type_pop = 0x0223;
-	4, //constexpr uint16_t party_loyalty_nation_province_id = 0x0224;
-	4, //constexpr uint16_t party_loyalty_from_nation_province_id = 0x0225;
-	4, //constexpr uint16_t party_loyalty_province_province_id = 0x0226;
-	4, //constexpr uint16_t party_loyalty_from_province_province_id = 0x0227;
-	3, //constexpr uint16_t party_loyalty_nation_from_province = 0x0228;
-	3, //constexpr uint16_t party_loyalty_from_nation_scope_province = 0x0229;
+	3, //constexpr uint16_t party_loyalty_nation_province_id = 0x0224;
+	3, //constexpr uint16_t party_loyalty_from_nation_province_id = 0x0225;
+	3, //constexpr uint16_t party_loyalty_province_province_id = 0x0226;
+	3, //constexpr uint16_t party_loyalty_from_province_province_id = 0x0227;
+	2, //constexpr uint16_t party_loyalty_nation_from_province = 0x0228;
+	2, //constexpr uint16_t party_loyalty_from_nation_scope_province = 0x0229;
 	0, //constexpr uint16_t can_build_in_province_railroad_no_limit_from_nation = 0x022A;
 	0, //constexpr uint16_t can_build_in_province_railroad_yes_limit_from_nation = 0x022B;
 	0, //constexpr uint16_t can_build_in_province_railroad_no_limit_this_nation = 0x022C;
@@ -2083,7 +2091,7 @@ inline constexpr int32_t data_sizes[] = {
 	//misplaced
 	0, //	constexpr uint16_t strata_middle = 0x0253;
 	0, //constexpr uint16_t strata_poor = 0x0254;
-	3,	//constexpr uint16_t party_loyalty_from_province_scope_province = 0x0254;
+	2,	//constexpr uint16_t party_loyalty_from_province_scope_province = 0x0254;
 	0, //	constexpr uint16_t can_build_factory_nation = 0x0255;
 	0, //	constexpr uint16_t can_build_factory_province = 0x0256;
 	1, //	constexpr uint16_t nationalvalue_pop = 0x0257;
@@ -2107,10 +2115,17 @@ inline constexpr int32_t data_sizes[] = {
 	0, //constexpr uint16_t has_building_factory = 0x0269;
 	1, //constexpr uint16_t has_building_state_from_province = 0x026A;
 	0, //constexpr uint16_t has_building_factory_from_province = 0x026B;
-	0, //constexpr uint16_t party_loyalty_generic = 0x026C;
+	2, //constexpr uint16_t party_loyalty_generic = 0x026C;
 	1, //constexpr inline uint16_t invention = 0x026D;
 	0, //constexpr inline uint16_t political_movement_from_reb = 0x026E;
 	0, //constexpr inline uint16_t social_movement_from_reb = 0x026F;
+	1, //constexpr inline uint16_t is_next_rreform_nation = 0x0270;
+	1, //constexpr inline uint16_t is_next_rreform_pop = 0x0271;
+	2, //constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
+	2, //constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
+	2, //constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
+	2, //constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
+
 };
 
 enum class slot_contents {
@@ -2156,7 +2171,9 @@ union payload {
 	dcon::unit_name_id unam_id;
 	dcon::trigger_key tr_id;
 	dcon::crime_id crm_id;
-
+	dcon::political_party_id par_id;
+	dcon::reform_id ref_id;
+	dcon::reform_option_id ropt_id;
 
 	//variables::national_variable_tag nat_var;
 	//variables::national_flag_tag nat_flag;
@@ -2288,7 +2305,59 @@ union payload {
 		memset(this, 0, sizeof(payload));
 		crm_id = i;
 	}
+	payload(dcon::political_party_id i) {
+		memset(this, 0, sizeof(payload));
+		par_id = i;
+	}
+	payload(dcon::reform_id i) {
+		memset(this, 0, sizeof(payload));
+		ref_id = i;
+	}
+	payload(dcon::reform_option_id i) {
+		memset(this, 0, sizeof(payload));
+		ropt_id = i;
+	}
 };
 
 static_assert(sizeof(payload) == 2);
+
+inline int32_t get_trigger_non_scope_payload_size(const uint16_t* data) {
+	return trigger::data_sizes[data[0] & trigger::code_mask];
+}
+inline int32_t get_trigger_scope_payload_size(const uint16_t* data) {
+	return data[1];
+}
+inline int32_t get_trigger_payload_size(const uint16_t* data) {
+	if((data[0] & trigger::code_mask) >= trigger::first_scope_code)
+		return get_trigger_scope_payload_size(data);
+	else
+		return get_trigger_non_scope_payload_size(data);
+}
+inline int32_t trigger_scope_data_payload(uint16_t code) {
+	const auto masked_code = code & trigger::code_mask;
+	if((masked_code == trigger::x_provinces_in_variable_region) ||
+		(masked_code == trigger::tag_scope) ||
+		(masked_code == trigger::integer_scope))
+		return 1;
+	return 0;
+}
+
+template<typename T>
+uint16_t* recurse_over_triggers(uint16_t* source, const T& f) {
+	f(source);
+	assert((source[0] & trigger::code_mask) < trigger::first_invalid_code || (source[0] & trigger::code_mask) == trigger::code_mask);
+
+	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
+		const auto source_size = 1 + get_trigger_scope_payload_size(source);
+
+		auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
+		while(sub_units_start < source + source_size) {
+			sub_units_start = recurse_over_triggers(sub_units_start, f);
+		}
+		return source + source_size;
+	} else {
+		return source + 1 + get_trigger_non_scope_payload_size(source);
+	}
+}
+
 }

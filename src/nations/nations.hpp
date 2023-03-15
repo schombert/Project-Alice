@@ -1,11 +1,16 @@
 #pragma once
 #include <stdint.h>
 #include <vector>
+#include <string>
 #include "dcon_generated.hpp"
 
 namespace nations {
 inline uint32_t tag_to_int(char first, char second, char third) {
 	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
+}
+inline std::string int_to_tag(uint32_t v) {
+	char values[] = { char((v >> 16) & 0xFF), char((v >> 8) & 0xFF), char((v >> 0) & 0xFF) };
+	return std::string(values, values + 3);
 }
 
 struct triggered_modifier {
@@ -22,8 +27,20 @@ struct fixed_province_event {
 	dcon::provincial_event_id id;
 };
 
+enum class focus_type : uint8_t {
+	unknown             = 0,
+	rail_focus          = 1,
+	immigration_focus   = 2,
+	diplomatic_focus    = 3,
+	promotion_focus     = 4,
+	production_focus    = 5,
+	party_loyalty_focus = 6
+};
+
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
+	std::vector<dcon::bitfield_type> global_flag_variables;
+	std::vector<dcon::nation_id> nations_by_rank;
 
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;
@@ -93,6 +110,9 @@ struct global_national_state {
 	std::vector<fixed_event> on_civilize;
 	std::vector<fixed_event> on_my_factories_nationalized;
 	std::vector<fixed_event> on_crisis_declare_interest;
+
+	bool is_global_flag_variable_set(dcon::global_flag_id id) const;
+	void set_global_flag_variable(dcon::global_flag_id id, bool state);
 };
 
 namespace influence {
@@ -167,6 +187,50 @@ inline uint8_t decrease_priority(uint8_t v) {
 }
 
 }
+
+// returns whether a culture is on the accepted list OR is the primary culture
+template<typename T, typename U>
+auto nation_accepts_culture(sys::state const& state, T ids, U c);
+
+template<typename T>
+auto primary_culture_group(sys::state const& state, T ids);
+template<typename T>
+auto owner_of_pop(sys::state const& state, T pop_ids);
+template<typename T>
+auto central_reb_controlled_fraction(sys::state const& state, T ids);
+template<typename T>
+auto central_blockaded_fraction(sys::state const& state, T ids);
+template<typename T>
+auto central_has_crime_fraction(sys::state const& state, T ids);
+template<typename T>
+auto occupied_provinces_fraction(sys::state const& state, T ids);
+
+bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
+bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
+dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
+
+void restore_unsaved_values(sys::state& state);
+void generate_initial_state_instances(sys::state& state);
+
+dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag);
+
+void update_administrative_efficiency(sys::state& state);
+
+float daily_research_points(sys::state& state, dcon::nation_id n);
+void update_research_points(sys::state& state);
+
+void update_industrial_scores(sys::state& state);
+void update_military_scores(sys::state& state);
+void update_rankings(sys::state& state);
+void update_ui_rankings(sys::state& state);
+
+bool is_greate_power(sys::state const& state, dcon::nation_id n);
+float prestige_score(sys::state const& state, dcon::nation_id n);
+
+enum class status : uint8_t {
+	great_power, secondary_power, civilized, westernizing, uncivilized, primitive
+};
+status get_status(sys::state& state, dcon::nation_id n);
 
 }
 

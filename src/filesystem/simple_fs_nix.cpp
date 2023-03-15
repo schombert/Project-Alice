@@ -48,7 +48,7 @@ file::file(native_string const& full_path) {
         struct stat sb;
         if (fstat(file_descriptor, &sb) != -1) {
             content.file_size = sb.st_size;
-            mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_SHARED, file_descriptor, 0);
+            mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
             if (mapping_handle == MAP_FAILED) {
                 // error
             }
@@ -61,7 +61,7 @@ file::file(int file_descriptor, native_string const& full_path) : file_descripto
     struct stat sb;
     if (fstat(file_descriptor, &sb) != -1) {
         content.file_size = sb.st_size;
-        mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_SHARED, file_descriptor, 0);
+        mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
         if (mapping_handle == MAP_FAILED) {
             // error
         }
@@ -294,14 +294,17 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
     native_string full_path = dir.relative_path + NATIVE('/') + native_string(file_name);
 
     mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-    int file_handle = open(full_path.c_str(), O_RDWR | O_DIRECTORY | O_CREAT, mode);
+    int file_handle = open(full_path.c_str(), O_RDWR | O_CREAT | O_TRUNC, mode);
     if (file_handle != -1) {
-        if (write(file_handle, file_data, file_size) != -1) {
-            // error
-        }
-        if (ftruncate(file_handle, file_size) != -1) {
-            // error
-        }
+		ssize_t written = 0;
+		int64_t size_remaining = file_size;
+		do {
+			written = write(file_handle, file_data, size_t(size_remaining));
+			file_data += written;
+			size_remaining -= written;
+		} while(written >= 0 && size_remaining > 0);
+
+		fsync(file_handle);
         close(file_handle);
     }
 }

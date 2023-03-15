@@ -27,8 +27,8 @@ if(WIN32)
 else() # GCC or CLANG
 	target_compile_options(tests_project PRIVATE
 									# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter
-		$<$<CONFIG:Debug>:			-g>
-		$<$<NOT:$<CONFIG:Debug>>: 	-O3>)
+		$<$<CONFIG:Debug>:			-msse4.1 -g>
+		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3>)
 endif()
 
 FetchContent_MakeAvailable(Catch2)
@@ -82,6 +82,7 @@ target_include_directories(tests_project PUBLIC
 	${PROJECT_SOURCE_DIR}/src/parsing
 	${PROJECT_SOURCE_DIR}/src/window
 	${PROJECT_SOURCE_DIR}/src/text
+	${PROJECT_SOURCE_DIR}/src/text/bmfontgl
 	${PROJECT_SOURCE_DIR}/src/sound
 	${PROJECT_SOURCE_DIR}/src/map
 	${PROJECT_SOURCE_DIR}/src/nations
@@ -103,6 +104,7 @@ target_link_libraries(tests_project PRIVATE freetype)
 target_link_libraries(tests_project PRIVATE glm)
 
 if (NOT WIN32)
+	target_link_libraries(tests_project PRIVATE dependency_tbb)
 	target_link_libraries(tests_project PRIVATE glfw)
 	target_link_libraries(tests_project PRIVATE miniaudio)
 endif()

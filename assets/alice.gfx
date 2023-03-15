@@ -1,0 +1,6 @@
+spriteTypes = {
+    textSpriteType = {
+		name = "GFX_goto_location_button"
+		texturefile = "gfx\\interface\\save_list_button.dds"
+	}
+}

@@ -14,9 +14,10 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 		return dcon::province_id(id - 1);
 }
 struct global_provincial_state {
+	std::vector<dcon::province_adjacency_id> canals;
+	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
+
 	dcon::province_id first_sea_province;
-	dcon::modifier_id modifier_by_terrain_index[64] = {}; // these are the given mappings from the raw palette index to terrain type
-	uint32_t color_by_terrain_index[64] = { 0 }; // these are the (packed) colors given for the terrain type modifier at the given palette index
 
 	// NOTE: these should not be referred to directly by the game mechanics
 	//       they are, however, useful for the ui to filter provinces / nations by continent
@@ -28,17 +29,30 @@ struct global_provincial_state {
 	dcon::modifier_id oceania;
 };
 
-inline uint8_t set_fort_level(uint32_t new_level, uint8_t old_value) {
-	return uint8_t((new_level & 0x0F) | (old_value & 0xF0));
-}
-inline uint8_t set_naval_base_level(uint32_t new_level, uint8_t old_value) {
-	return uint8_t(((new_level << 4) & 0xF0) | (old_value & 0x0F));
-}
-inline int32_t get_fort_level(uint8_t value) {
-	return int32_t(value & 0x0F);
-}
-inline int32_t get_naval_base_level(uint8_t value) {
-	return int32_t((value >> 4) & 0x0F);
-}
+template<typename F>
+void for_each_land_province(sys::state& state, F const& func);
+template<typename F>
+void for_each_sea_province(sys::state& state, F const& func);
+template<typename F>
+void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
+
+bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+void update_connected_regions(sys::state& state);
+void restore_unsaved_values(sys::state& state);
+
+template<typename T>
+auto is_overseas(sys::state const& state, T ids);
+
+float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
+float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
+float monthly_net_pop_internal_migration(sys::state& state, dcon::province_id id);
+float monthly_net_pop_external_migration(sys::state& state, dcon::province_id id);
+float rgo_maximum_employment(sys::state& state, dcon::province_id id);
+float rgo_employment(sys::state& state, dcon::province_id id);
+float rgo_income(sys::state& state, dcon::province_id id);
+float rgo_production_quantity(sys::state& state, dcon::province_id id);
+float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
+float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);
+
 }
 

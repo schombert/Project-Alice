@@ -29,5 +29,8 @@ enum class mode : uint8_t {
 	naval = 0x16
 };
 
+const uint8_t PROV_COLOR_LAYERS = 2;
+
 void set_map_mode(sys::state& state, mode mode);
+void update_map_mode(sys::state& state);
 }

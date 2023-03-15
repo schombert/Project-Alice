@@ -3,23 +3,37 @@
 #include "system_state.hpp"
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
+#include "parsers_declarations.hpp"
 
 namespace map {
 
+
+struct map_vertex {
+	map_vertex(float x, float y) : position(x, y) {};
+	glm::vec2 position;
+};
+struct border_vertex {
+	border_vertex() {};
+	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction)
+		: position_(position), normal_direction_(normal_direction), direction_(direction) {};
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	glm::vec2 direction_;
+};
 class display_data {
 public:
 	display_data() {};
 	~display_data();
 
 	// Called to load the terrain and province map data
-	void load_map_data(sys::state& state, ankerl::unordered_dense::map<uint32_t, dcon::province_id> const& color_map);
+	void load_map_data(parsers::scenario_building_context& context);
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
 	int16_t selected_province = 0;
 
-	void render(uint32_t screen_x, uint32_t screen_y);
+	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
 	void set_terrain_map_mode();
 
@@ -37,15 +51,25 @@ public:
 
 	int16_t get_selected_province();
 	void set_selected_province(int16_t prov_id);
+
+	void create_border_data(parsers::scenario_building_context& context);
+	void create_border_ogl_objects();
+
+	uint32_t size_x;
+	uint32_t size_y;
+
+	std::vector<border_vertex> border_vertices;
+	std::vector<uint8_t> terrain_id_map;
+	std::vector<uint8_t> median_terrain_type;
+
+	// map pixel -> province id
+	std::vector<uint16_t> province_id_map;
 private:
 	// Last update time, used for smooth map movement
 	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
 
 	// Time in seconds, send to the map shader for animations
 	float time_counter = 0;
-
-	// map pixel -> province id
-	std::vector<uint16_t> province_id_map = {};
 
 	// interaction
 	bool unhandled_province_selection = false;
@@ -73,6 +97,7 @@ private:
 	GLuint province_color = 0;
 	GLuint border_texture = 0;
 	GLuint province_highlight = 0;
+	GLuint stripes_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
@@ -83,32 +108,30 @@ private:
 	GLuint vic2_border_shader = 0;
 	GLuint line_border_shader = 0;
 
-	std::vector<uint8_t> terrain_id_map;
-	std::vector<glm::vec2> province_mid_point;
-	std::vector<uint8_t> median_terrain_type;
-
 	// Position and movement
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
 	glm::vec2 pos_velocity = glm::vec2(0.f);
 	glm::vec2 last_camera_drag_pos;
 	bool is_dragging = false;
-	glm::vec2 size; // Map size
+	//glm::vec2 size; // Map size
 	float offset_x = 0.f;
 	float offset_y = 0.f;
 	float zoom = 1.f;
 	float zoom_change = 1.f;
 	bool has_zoom_changed = false;
+	bool left_arrow_key_down = false;
+	bool right_arrow_key_down = false;
+	bool up_arrow_key_down = false;
+	bool down_arrow_key_down = false;
 	glm::vec2 scroll_pos_velocity = glm::vec2(0.f);
 	std::chrono::time_point<std::chrono::system_clock> last_zoom_time{};
 
-	void update();
+	void update(sys::state& state);
 
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
-	void create_borders1();
-	void create_borders2();
-	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color);
+	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 };
 }

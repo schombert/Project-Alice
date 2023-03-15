@@ -92,7 +92,7 @@ MEM_STATIC unsigned ZSTD_countTrailingZeros64(U64 val)
     assert(val != 0);
 #   if defined(_MSC_VER) && defined(_WIN64)
 #       if STATIC_BMI2 == 1
-            return unsigned int(_tzcnt_u64(val));
+            return (unsigned int)(_tzcnt_u64(val));
 #       else
             if (val != 0) {
                 unsigned long r;
@@ -104,7 +104,7 @@ MEM_STATIC unsigned ZSTD_countTrailingZeros64(U64 val)
             }
 #       endif
 #   elif defined(__GNUC__) && (__GNUC__ >= 4) && defined(__LP64__)
-        return (unsigned)__builtin_ctzll(val);
+        return (unsigned int)__builtin_ctzll(val);
 #   else
         {
             U32 mostSignificantWord = (U32)(val >> 32);
@@ -123,7 +123,7 @@ MEM_STATIC unsigned ZSTD_countLeadingZeros64(U64 val)
     assert(val != 0);
 #   if defined(_MSC_VER) && defined(_WIN64)
 #       if STATIC_BMI2 == 1
-            return unsigned int(_lzcnt_u64(val));
+            return (unsigned int)(_lzcnt_u64(val));
 #       else
             if (val != 0) {
                 unsigned long r;

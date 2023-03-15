@@ -356,6 +356,135 @@ GLuint texture::get_texture_handle() const {
 	return texture_handle;
 }
 
+GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture, bool keep_data) {
+	auto name_length = native_name.length();
+
+	auto root = get_root(fs);
+	if(name_length > 4) { // try loading as a dds
+		auto dds_name = native_name.substr(0, name_length - 3) + NATIVE("dds");
+		auto file = open_file(root, dds_name);
+		if(file) {
+			auto content = simple_fs::view_contents(*file);
+
+			uint32_t w = 0;
+			uint32_t h = 0;
+			asset_texture.texture_handle =
+				SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h, 0);
+
+			if(asset_texture.texture_handle) {
+				asset_texture.channels = 4;
+				asset_texture.size_x = int32_t(w);
+				asset_texture.size_y = int32_t(h);
+				asset_texture.loaded = true;
+
+				if(keep_data) {
+					asset_texture.data = static_cast<uint8_t*>(STBI_MALLOC(4 * w * h));
+					glGetTextureImage(asset_texture.texture_handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(4 * w * h), asset_texture.data);
+				}
+				return asset_texture.texture_handle;
+			}
+		}
+	}
+
+	auto file = open_file(root, native_name);
+	if(file) {
+		auto content = simple_fs::view_contents(*file);
+
+		int32_t file_channels = 4;
+
+		asset_texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
+			&(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
+
+
+		asset_texture.channels = 4;
+		asset_texture.loaded = true;
+
+		glGenTextures(1, &asset_texture.texture_handle);
+		if(asset_texture.texture_handle) {
+			glBindTexture(GL_TEXTURE_2D, asset_texture.texture_handle);
+
+			glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, asset_texture.size_x, asset_texture.size_y);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, asset_texture.size_x, asset_texture.size_y, GL_RGBA, GL_UNSIGNED_BYTE, asset_texture.data);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+		if(!keep_data) {
+			STBI_FREE(asset_texture.data);
+			asset_texture.data = nullptr;
+		}
+
+		return asset_texture.texture_handle;
+	}
+	return 0;
+}
+
+GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
+	const auto offset = culture::get_remapped_flag_type(state, type);
+	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset) };
+
+	if(state.open_gl.asset_textures[id].loaded) {
+		return state.open_gl.asset_textures[id].texture_handle;
+	} else { // load from file
+
+		native_string file_str;
+		file_str += NATIVE("gfx");
+		file_str += NATIVE_DIR_SEPARATOR;
+		file_str += NATIVE("flags");
+		file_str += NATIVE_DIR_SEPARATOR;
+		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
+		switch(type) {
+			case culture::flag_type::communist:
+				file_str += NATIVE("_communist"); break;
+			case culture::flag_type::default_flag:
+				break;
+			case culture::flag_type::fascist:
+				file_str += NATIVE("_fascist"); break;
+			case culture::flag_type::monarchy:
+				file_str += NATIVE("_monarchy"); break;
+			case culture::flag_type::republic:
+				file_str += NATIVE("_republic"); break;
+			// Non-vanilla
+			case culture::flag_type::theocracy:
+				file_str += NATIVE("_theocracy"); break;
+			case culture::flag_type::special:
+				file_str += NATIVE("_special"); break;
+			case culture::flag_type::spare:
+				file_str += NATIVE("_spare"); break;
+			case culture::flag_type::populist:
+				file_str += NATIVE("_populist"); break;
+			case culture::flag_type::realm:
+				file_str += NATIVE("_realm"); break;
+			case culture::flag_type::other:
+				file_str += NATIVE("_other"); break;
+			case culture::flag_type::monarchy2:
+				file_str += NATIVE("_monarchy2"); break;
+			case culture::flag_type::republic2:
+				file_str += NATIVE("_republic2"); break;
+			case culture::flag_type::cosmetic_1:
+				file_str += NATIVE("_cosmetic_1"); break;
+			case culture::flag_type::cosmetic_2:
+				file_str += NATIVE("_cosmetic_2"); break;
+			case culture::flag_type::colonial:
+				file_str += NATIVE("_colonial"); break;
+			case culture::flag_type::nationalist:
+				file_str += NATIVE("_nationalist"); break;
+			case culture::flag_type::sectarian:
+				file_str += NATIVE("_sectarian"); break;
+			case culture::flag_type::socialist:
+				file_str += NATIVE("_socialist"); break;
+		}
+		file_str += NATIVE(".tga");
+
+		return load_file_and_return_handle(file_str, state.common_fs, state.open_gl.asset_textures[id], false);
+	}
+}
+
 GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data) {
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
@@ -363,71 +492,8 @@ GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data
 		auto fname = state.ui_defs.textures[id];
 		auto fname_view = state.to_string_view(fname);
 		auto native_name = simple_fs::win1250_to_native(fname_view);
-		auto name_length = native_name.length();
 
-		auto root = get_root(state.common_fs);
-		if(name_length > 4) { // try loading as a dds
-			auto dds_name = native_name.substr(0, name_length - 3) + NATIVE("dds");
-			auto file = open_file(root, dds_name);
-			if(file) {
-				auto content = simple_fs::view_contents(*file);
-
-				uint32_t w = 0;
-				uint32_t h = 0;
-				state.open_gl.asset_textures[id].texture_handle =
-					SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h, 0);
-
-				if(state.open_gl.asset_textures[id].texture_handle) {
-					state.open_gl.asset_textures[id].channels = 4;
-					state.open_gl.asset_textures[id].size_x = int32_t(w);
-					state.open_gl.asset_textures[id].size_y = int32_t(h);
-					state.open_gl.asset_textures[id].loaded = true;
-
-					if(keep_data) {
-						state.open_gl.asset_textures[id].data = static_cast<uint8_t*>(STBI_MALLOC(4 * w * h));
-						glGetTextureImage(state.open_gl.asset_textures[id].texture_handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(4 * w * h), state.open_gl.asset_textures[id].data);
-					}
-					return state.open_gl.asset_textures[id].texture_handle;
-				}
-			}
-		}
-
-		auto file = open_file(root, native_name);
-		if(file) {
-			auto content = simple_fs::view_contents(*file);
-
-			int32_t file_channels = 4;
-
-			state.open_gl.asset_textures[id].data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-				&(state.open_gl.asset_textures[id].size_x), &(state.open_gl.asset_textures[id].size_y), &file_channels, 4);
-
-
-			state.open_gl.asset_textures[id].channels = 4;
-			state.open_gl.asset_textures[id].loaded = true;
-
-			glGenTextures(1, &state.open_gl.asset_textures[id].texture_handle);
-			if(state.open_gl.asset_textures[id].texture_handle) {
-				glBindTexture(GL_TEXTURE_2D, state.open_gl.asset_textures[id].texture_handle);
-
-				glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, state.open_gl.asset_textures[id].size_x, state.open_gl.asset_textures[id].size_y);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, state.open_gl.asset_textures[id].size_x, state.open_gl.asset_textures[id].size_y, GL_RGBA, GL_UNSIGNED_BYTE, state.open_gl.asset_textures[id].data);
-
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-				glBindTexture(GL_TEXTURE_2D, 0);
-			}
-
-			if(!keep_data) {
-				STBI_FREE(state.open_gl.asset_textures[id].data);
-				state.open_gl.asset_textures[id].data = nullptr;
-			}
-
-			return state.open_gl.asset_textures[id].texture_handle;
-		}
-		return 0;
+		return load_file_and_return_handle(native_name, state.common_fs, state.open_gl.asset_textures[id], keep_data);
 	} // end else (not already loaded)
 }
 

@@ -49,7 +49,7 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 
 	uint32_t section_length = uint32_t(
 		ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size),
-			ptr_in, uncompressed_size, 10)); // write compressed data
+			ptr_in, uncompressed_size, 0)); // write compressed data
 
 	memcpy(ptr_out, &section_length, sizeof(uint32_t));
 	memcpy(ptr_out + sizeof(uint32_t), &decompressed_length, sizeof(uint32_t));
@@ -78,6 +78,13 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 
 uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
+	{ // map
+		ptr_in = memcpy_deserialize(ptr_in, state.map_display.size_x);
+		ptr_in = memcpy_deserialize(ptr_in, state.map_display.size_y);
+		ptr_in = deserialize(ptr_in, state.map_display.border_vertices);
+		ptr_in = deserialize(ptr_in, state.map_display.terrain_id_map);
+		ptr_in = deserialize(ptr_in, state.map_display.province_id_map);
+	}
 	{
 		uint32_t length = 0;
 		memcpy(&length, ptr_in, sizeof(uint32_t));
@@ -112,6 +119,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.officers);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.slaves);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.bureaucrat);
+		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.aristocrat);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.primary_factory_worker);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.secondary_factory_worker);
 		ptr_in = memcpy_deserialize(ptr_in, state.culture_definitions.officer_leadership_points);
@@ -136,6 +144,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	}
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.triggered_modifiers);
+		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.very_easy_player);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.easy_player);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.hard_player);
@@ -199,11 +208,9 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.national_definitions.on_crisis_declare_interest);
 	}
 	{ // provincial definitions
+		ptr_in = deserialize(ptr_in, state.province_definitions.canals);
+		ptr_in = deserialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.first_sea_province);
-		memcpy(state.province_definitions.modifier_by_terrain_index, ptr_in, sizeof(dcon::modifier_id) * 64);
-		ptr_in += sizeof(dcon::modifier_id) * 64;
-		memcpy(state.province_definitions.color_by_terrain_index, ptr_in, sizeof(uint32_t) * 64);
-		ptr_in += sizeof(uint32_t) * 64;
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.asia);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.africa);
@@ -225,6 +232,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = deserialize(ptr_in, state.ui_defs.textures);
 		ptr_in = deserialize(ptr_in, state.ui_defs.gui);
+		ptr_in = deserialize(ptr_in, state.font_collection.font_names);
 	}
 
 	// data container
@@ -237,6 +245,13 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 }
 uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
+	{ // map
+		ptr_in = memcpy_serialize(ptr_in, state.map_display.size_x);
+		ptr_in = memcpy_serialize(ptr_in, state.map_display.size_y);
+		ptr_in = serialize(ptr_in, state.map_display.border_vertices);
+		ptr_in = serialize(ptr_in, state.map_display.terrain_id_map);
+		ptr_in = serialize(ptr_in, state.map_display.province_id_map);
+	}
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);
 		uint32_t length = uint32_t(fs_str.length());
@@ -271,6 +286,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.officers);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.slaves);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.bureaucrat);
+		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.aristocrat);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.primary_factory_worker);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.secondary_factory_worker);
 		ptr_in = memcpy_serialize(ptr_in, state.culture_definitions.officer_leadership_points);
@@ -295,6 +311,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	}
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.triggered_modifiers);
+		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.very_easy_player);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.easy_player);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.hard_player);
@@ -358,11 +375,9 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.national_definitions.on_crisis_declare_interest);
 	}
 	{ // provincial definitions
+		ptr_in = serialize(ptr_in, state.province_definitions.canals);
+		ptr_in = serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
-		memcpy(ptr_in, state.province_definitions.modifier_by_terrain_index, sizeof(dcon::modifier_id) * 64);
-		ptr_in += sizeof(dcon::modifier_id) * 64;
-		memcpy(ptr_in, state.province_definitions.color_by_terrain_index, sizeof(uint32_t) * 64);
-		ptr_in += sizeof(uint32_t) * 64;
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.asia);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.africa);
@@ -384,6 +399,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = serialize(ptr_in, state.ui_defs.textures);
 		ptr_in = serialize(ptr_in, state.ui_defs.gui);
+		ptr_in = serialize(ptr_in, state.font_collection.font_names);
 	}
 
 	dcon::load_record result = state.world.make_serialize_record_store_scenario();
@@ -396,6 +412,13 @@ size_t sizeof_scenario_section(sys::state& state) {
 	size_t sz = 0;
 
 	// hand-written contribution
+	{ // map
+		sz += sizeof(state.map_display.size_x);
+		sz += sizeof(state.map_display.size_y);
+		sz += serialize_size(state.map_display.border_vertices);
+		sz += serialize_size(state.map_display.terrain_id_map);
+		sz += serialize_size(state.map_display.province_id_map);
+	}
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);
 		uint32_t length = uint32_t(fs_str.length());
@@ -428,6 +451,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.culture_definitions.officers);
 		sz += sizeof(state.culture_definitions.slaves);
 		sz += sizeof(state.culture_definitions.bureaucrat);
+		sz += sizeof(state.culture_definitions.aristocrat);
 		sz += sizeof(state.culture_definitions.primary_factory_worker);
 		sz += sizeof(state.culture_definitions.secondary_factory_worker);
 		sz += sizeof(state.culture_definitions.officer_leadership_points);
@@ -452,6 +476,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 	}
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.triggered_modifiers);
+		sz += serialize_size(state.national_definitions.global_flag_variables);
 		sz += sizeof(state.national_definitions.very_easy_player);
 		sz += sizeof(state.national_definitions.easy_player);
 		sz += sizeof(state.national_definitions.hard_player);
@@ -515,9 +540,9 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.national_definitions.on_crisis_declare_interest);
 	}
 	{ // provincial definitions
+		sz += serialize_size(state.province_definitions.canals);
+		sz += serialize_size(state.province_definitions.terrain_to_gfx_map);
 		sz += sizeof(state.province_definitions.first_sea_province);
-		sz += sizeof(dcon::modifier_id) * 64;
-		sz += sizeof(uint32_t) * 64;
 		sz += sizeof(state.province_definitions.europe);
 		sz += sizeof(state.province_definitions.asia);
 		sz += sizeof(state.province_definitions.africa);
@@ -539,6 +564,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.ui_defs.gfx);
 		sz += serialize_size(state.ui_defs.textures);
 		sz += serialize_size(state.ui_defs.gui);
+		sz += serialize_size(state.font_collection.font_names);
 	}
 
 	// data container contribution
@@ -554,6 +580,18 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	// hand-written contribution
 	ptr_in = deserialize(ptr_in, state.unit_names);
 	ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
+	ptr_in = memcpy_deserialize(ptr_in, state.current_date);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_state);
+	ptr_in = deserialize(ptr_in, state.crisis_participants);
+	ptr_in = memcpy_deserialize(ptr_in, state.current_crisis);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_temperature);
+	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_attacker);
+	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_defender);
+
+	{ // military definitions
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
+	}
 
 	// data container contribution
 
@@ -568,6 +606,18 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
 	ptr_in = serialize(ptr_in, state.unit_names);
 	ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
+	ptr_in = memcpy_serialize(ptr_in, state.current_date);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_state);
+	ptr_in = serialize(ptr_in, state.crisis_participants);
+	ptr_in = memcpy_serialize(ptr_in, state.current_crisis);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_temperature);
+	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_attacker);
+	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_defender);
+
+	{ // military definitions
+		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.great_wars_enabled);
+		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.world_wars_enabled);
+	}
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
@@ -583,6 +633,18 @@ size_t sizeof_save_section(sys::state& state) {
 
 	sz += serialize_size(state.unit_names);
 	sz += sizeof(state.local_player_nation);
+	sz += sizeof(state.current_date);
+	sz += sizeof(state.crisis_state);
+	sz += serialize_size(state.crisis_participants);
+	sz += sizeof(state.current_crisis);
+	sz += sizeof(state.crisis_temperature);
+	sz += sizeof(state.primary_crisis_attacker);
+	sz += sizeof(state.primary_crisis_defender);
+
+	{ // military definitions
+		sz += sizeof(state.military_definitions.great_wars_enabled);
+		sz += sizeof(state.military_definitions.world_wars_enabled);
+	}
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();

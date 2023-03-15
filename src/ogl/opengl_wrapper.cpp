@@ -21,10 +21,32 @@ void initialize_opengl(sys::state& state) {
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
+	state.flag_type_map.resize(culture::flag_count, 0);
+	// Create the remapping for flags
+	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
+		auto fat_id = dcon::fatten(state.world, ident_id);
+		auto nat_id = fat_id.get_nation_from_identity_holder().id;
+		for(uint32_t i = 0; i < state.culture_definitions.governments.size(); ++i) {
+			const auto gov_id = dcon::government_type_id(dcon::government_type_id::value_base_t(i));
+			state.flag_types.push_back(state.culture_definitions.governments[gov_id].flag);
+		}
+	});
+	// Eliminate duplicates
+	std::sort(state.flag_types.begin(), state.flag_types.end());
+    state.flag_types.erase(std::unique(state.flag_types.begin(), state.flag_types.end()), state.flag_types.end());
 
+	// Automatically assign texture offsets to the flag_types
+	auto id = 0;
+	for(auto type : state.flag_types)
+		state.flag_type_map[uint32_t(type)] = uint8_t(id++);
+	assert(state.flag_type_map[0] == 0); // default_flag
 
-	//glEnable(GL_SCISSOR_TEST);
+	// Allocate textures for the flags
+	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + (state.world.national_identity_size() + 1) * state.flag_types.size());
 
+	state.map_display.load_map(state);
+
+	state.font_collection.load_all_glyphs();
 }
 
 GLint compile_shader(std::string_view source, GLenum type) {
@@ -416,7 +438,7 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 
 void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, text::font& f) {
 	if(text::win1250toUTF16(codepoint) != ' ') {
-		f.make_glyph(codepoint);
+		//f.make_glyph(codepoint);
 
 		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
@@ -436,7 +458,7 @@ void render_character(sys::state const& state, char codepoint, color_modificatio
 void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f) {
 	for(uint32_t i = 0; i < count; ++i) {
 		if(text::win1250toUTF16(codepoints[i]) != ' ') {
-			f.make_glyph(codepoints[i]);
+			//f.make_glyph(codepoints[i]);
 
 			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE0);
@@ -451,7 +473,7 @@ void internal_text_render(sys::state const& state, char const* codepoints, uint3
 }
 
 
-void render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
+void render_new_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
@@ -461,7 +483,15 @@ void render_text(sys::state const& state, char const* codepoints, uint32_t count
 	internal_text_render(state, codepoints, count, x, y + size, size, f);
 }
 
-
+void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, const color3f& c, uint16_t font_id) {
+	if(state.user_settings.use_classic_fonts) {
+		// Check if the font is in the map
+		// If not, load it using the font_names map to figure out its name
+		// Then proceed using the found/newly loaded font data
+	} else {
+		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);
+	}
+}
 
 void lines::set_y(float* v) {
 	for(int32_t i = 0; i < static_cast<int32_t>(count); ++i) {

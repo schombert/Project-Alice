@@ -42,8 +42,13 @@ constexpr inline uint32_t build_railway              = 0x40000000;
 namespace culture {
 
 enum class flag_type : uint8_t {
-	default_flag = 0, republic, communist, fascist, monarchy
+	default_flag = 0, republic = 1, communist = 2, fascist = 3, monarchy = 4,
+	// Non-vanilla flags
+	theocracy = 5, special = 6, spare = 7, populist = 8, realm = 9, other = 10,
+	monarchy2 = 11, republic2 = 12, cosmetic_1 = 13, cosmetic_2 = 14,
+	colonial = 15, nationalist = 16, sectarian = 17, socialist = 18
 };
+inline constexpr int32_t flag_count = 19;
 
 struct government_type {
 	uint32_t ideologies_allowed = 0;
@@ -83,13 +88,15 @@ enum class pop_strata : uint8_t {
 enum class income_type : uint8_t {
 	none = 0, administration = 1, military = 2, education = 3, reforms = 4,
 };
-
+enum class issue_type : uint8_t {
+	party = 0, political = 1, social = 2, military = 3, economic = 4
+};
 struct global_cultural_state {
 	std::vector<dcon::issue_id> party_issues;
 	std::vector<dcon::issue_id> political_issues;
 	std::vector<dcon::issue_id> social_issues;
-	std::vector<dcon::issue_id> military_issues;
-	std::vector<dcon::issue_id> economic_issues;
+	std::vector<dcon::reform_id> military_issues;
+	std::vector<dcon::reform_id> economic_issues;
 
 	std::vector<folder_info> tech_folders; // contains *all* the folder names; techs index into this by an integer index
 
@@ -106,6 +113,7 @@ struct global_cultural_state {
 	dcon::pop_type_id officers;
 	dcon::pop_type_id slaves;
 	dcon::pop_type_id bureaucrat;
+	dcon::pop_type_id aristocrat;
 
 	dcon::pop_type_id primary_factory_worker;
 	dcon::pop_type_id secondary_factory_worker;
@@ -141,5 +149,18 @@ enum class rebel_defection : uint8_t {
 enum class rebel_independence : uint8_t {
 	none = 0, culture, culture_group, religion, colonial, any, pan_nationalist
 };
+
+// these functions are to be called only after loading a save
+void repopulate_technology_effects(sys::state& state);
+void repopulate_invention_effects(sys::state& state);
+void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
+void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id inv_id); //  TODO: shared prestige effect
+uint32_t get_remapped_flag_type(sys::state const& state, flag_type type);
+flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation);
+flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity);
+void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id);
+void update_all_nations_issue_rules(sys::state& state);
+
+void create_initial_ideology_and_issues_distribution(sys::state& state);
 
 }

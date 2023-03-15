@@ -8,3 +8,4 @@ using native_char = char;
 
 #define NATIVE(X) X
 #define NATIVE_M(X) NATIVE(X)
+#define NATIVE_DIR_SEPARATOR '/'

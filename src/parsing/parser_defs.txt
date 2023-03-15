@@ -368,11 +368,11 @@ modifier_base
 	administrative_efficiency                 value      float            member_fn
 	influence                                 value      float            member_fn
 	dig_in_cap                                value      float            member_fn
-	morale                                    value      float            member_fn
+	morale                                    value      float            member_fn   (org_regain)
 	military_tactics                          value      float            member_fn
 	supply_range                              value      float            member_fn
 	regular_experience_level                  value      float            member_fn
-	increase_research                         value      float            member_fn
+	increase_research                         value      float            member_fn   (research_points_modifier)
 	permanent_prestige                        value      float            member_fn
 	soldier_to_pop_loss                       value      float            member_fn
 	naval_attrition                           value      float            member_fn
@@ -1506,10 +1506,10 @@ national_focus
 	#any                      value        float            member_fn
 
 focus_group
-	#any                      extern       make_focus       discard
+	#any                      extern       make_focus                 discard
 
 national_focus_file
-	#any                      group        focus_group      member
+	#any                      extern       make_focus_group           discard
 
 main_pop_type_file
 	promotion_chance          extern       make_poptype_pop_chance    member_fn
@@ -1880,3 +1880,19 @@ country_history_file
 	capital                         value      int                               member_fn
 	colonial_points                 value      int                               discard
 	set_country_flag                value      text                              member_fn
+
+history_war_goal
+	casus_belli                     value      text                              member_fn
+	actor                           value      text                              member_fn
+	receiver                        value      text                              member_fn
+
+war_block
+	add_attacker                    value      text                              member_fn
+	add_defender                    value      text                              member_fn
+	rem_attacker                    value      text                              member_fn
+	rem_defender                    value      text                              member_fn
+	war_goal                        group      history_war_goal                  member_fn
+
+war_history_file
+	name                            value      text                              discard
+	#any                            extern     enter_war_dated_block             discard
