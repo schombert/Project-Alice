@@ -8,7 +8,6 @@
 #include "gui_graphics_parsers.cpp"
 #include "text.cpp"
 #include "fonts.cpp"
-#include "bmfont.cpp"
 #include "decoder.cpp"
 #include "encoder.cpp"
 #include "image_iterator.cpp"
@@ -46,6 +45,7 @@
 #include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
 #include "lodepng.cpp"
+#include "bmfont.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_win.cpp"
