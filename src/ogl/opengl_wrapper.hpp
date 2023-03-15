@@ -47,8 +47,8 @@ enum class color_modification {
 
 struct color3f {
 	float r = 0.0f;
-	float b = 0.0f;
 	float g = 0.0f;
+	float b = 0.0f;
 };
 
 #ifndef NDEBUG
