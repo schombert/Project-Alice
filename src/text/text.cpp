@@ -1,5 +1,6 @@
 #include <string_view>
 
+#include "nations.hpp"
 #include "text.hpp"
 #include "system_state.hpp"
 #include "parsers.hpp"
@@ -666,6 +667,25 @@ namespace text {
 			return get_dynamic_state_name(state, state_instance_id);
 		} else {
 			return get_name_as_string(state, fat_id.get_abstract_state_membership_as_province().get_state());
+		}
+	}
+
+	std::string get_focus_category_name(sys::state const& state, nations::focus_type category) {
+		switch(category) {
+			case nations::focus_type::rail_focus:
+				return produce_simple_string(state, "rail_focus");
+			case nations::focus_type::immigration_focus:
+				return produce_simple_string(state, "immigration_focus");
+			case nations::focus_type::diplomatic_focus:
+				return produce_simple_string(state, "diplomatic_focus");
+			case nations::focus_type::promotion_focus:
+				return produce_simple_string(state, "promotion_focus");
+			case nations::focus_type::production_focus:
+				return produce_simple_string(state, "production_focus");
+			case nations::focus_type::party_loyalty_focus:
+				return produce_simple_string(state, "party_loyalty_focus");
+			default:
+				return produce_simple_string(state, "Category");
 		}
 	}
 
