@@ -7,6 +7,19 @@
 
 namespace map {
 
+
+struct map_vertex {
+	map_vertex(float x, float y) : position(x, y) {};
+	glm::vec2 position;
+};
+struct border_vertex {
+	border_vertex() {};
+	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction)
+		: position_(position), normal_direction_(normal_direction), direction_(direction) {};
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	glm::vec2 direction_;
+};
 class display_data {
 public:
 	display_data() {};
@@ -45,7 +58,7 @@ public:
 	uint32_t size_x;
 	uint32_t size_y;
 
-	std::vector<float> border_vertices;
+	std::vector<border_vertex> border_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
 
