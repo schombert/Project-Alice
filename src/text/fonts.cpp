@@ -428,18 +428,18 @@ void load_standard_fonts(sys::state& state) {
 
 void load_bmfonts(sys::state& state) {
 
-	std::string gamedir = GAME_DIR;
+	//std::string gamedir = GAME_DIR;
 
-	BMFont vic_22_bl;
+	//BMFont vic_22_bl;
 
-	std::string fnta = "\\gfx\\fonts\\vic_22_bl.fnt";
-	std::string fntfile = "vic_22_bl.fnt";
-	std::string tgaa = "\\gfx\\fonts\\vic_22_bl.tga";
-	std::string tgafile = "vic_22_bl.tga";
+	//std::string fnta = "\\gfx\\fonts\\vic_22_bl.fnt";
+	//std::string fntfile = "vic_22_bl.fnt";
+	//std::string tgaa = "\\gfx\\fonts\\vic_22_bl.tga";
+	//std::string tgafile = "vic_22_bl.tga";
 
-	auto vic_22_blbuf = vic_22_bl.LoadFontImage(tgaa, gamedir);
+	//auto vic_22_blbuf = vic_22_bl.LoadFontImage(tgaa, gamedir);
 
-	vic_22_bl.MakePNG(fntfile, tgafile, vic_22_blbuf);
+	//vic_22_bl.MakePNG(fntfile, tgafile, vic_22_blbuf);
 }
 
 void font_manager::load_all_glyphs() {
