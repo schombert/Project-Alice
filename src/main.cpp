@@ -12,7 +12,6 @@
 #include "decoder.cpp"
 #include "encoder.cpp"
 #include "image_iterator.cpp"
-#include "lodepng.cpp"
 #include "stdio.cpp"
 #include "texture.cpp"
 #include "gui_graphics.cpp"
@@ -46,6 +45,7 @@
 #include "window_win.cpp"
 #include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
+#include "lodepng.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_win.cpp"
