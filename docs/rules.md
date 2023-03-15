@@ -440,7 +440,66 @@ Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may 
 
 #### Siege
 
-Garrison recovers at 10% per day when not being sieged
+Garrison recovers at 10% per day when not being sieged (to 100%)
+
+Only stationary, non black flagged regiments with at least 0.001 strength contribute to a siege.
+
+If there is a regiment with siege present:
+We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer) greatest-siege-value-present x
+((the ratio of the strength of regiments with siege present to the total strength of all regiments) ^ define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
+We calculate the siege speed modifier as: 1 + define:RECON_SIEGE_EFFECT x greatest-reconnaissance-value-present x ((the ratio of the strength of regiments with reconnaissance present to the total strength of all regiments) ^ define:RECON_UNIT_RATIO) / define:RECON_UNIT_RATIO.
+We calculate the modifier for number of brigades: first we get the "number of brigades" as total-strength-of-regiments x 1000 / define:POP_SIZE_PER_REGIMENT, and capping it to at most define:SIEGE_BRIGADES_MAX. Then we calculate the bonus as (number-of-brigades - define:SIEGE_BRIGADES_MIN) x define:SIEGE_BRIGADES_BONUS if number-of-brigades is greater the minimum, and as number-of-brigades / define:SIEGE_BRIGADES_MIN otherwise.
+Finally, the amount subtracted from the garrison each day is: siege-speed-modifier x number-of-brigades-modifier x Progress-Table\[random-int-from-0-to-9\] x (1.25 if the owner is sieging it back) x (1.1 if the sieger is not the owner but does have a core) / Siege-Table\[effective-fort-level\]
+
+The garrison returns to 100% immediately after the siege is complete and the controller changes. If your siege returns a province to its owner's control without the owner participating, you get +25 relations with the owner.
+
+When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
+
+Siege Table:
+0: 1.0
+1: 2.0
+2: 3.8
+3: 3.4
+4: 3.8 
+5: 4.2
+6: 4.5
+7: 4.8
+8: 5.0
+9: 5.2
+
+Progress Table:
+0: 0
+1: 0.2
+2: 0.5
+3: 0.75
+4: 0.75
+5: 1
+6: 1.1
+7: 1.1
+8: 1.25
+9: 1.25
+
+#### Land combat
+
+(Units in this section means regiments)
+For the duration of this section we will define a regiment's ADMOS as its (attack + defense + maneuver) x organization x strength.
+Combat width for a battle is determined by the least define:BASE_COMBAT_WIDTH + technology-modifier-to-combat width of any participant, from a maximum of 30 to a minimum of 2, multiplied by the combat-width modifier from terrain + 1.
+
+Any units added to an ongoing combat after the initial ones are added first as additional reserves. Units with strength less than 0.1 or organization less than 1 are immediately treated as retreating. Then divide the units into three groups: those with positive support value, those with zero support and positive reconnaissance, and the rest.
+
+The initial front line will be constructed with pairs of reconnaissance units flanking the center, although I believe giving precedence to non reconnaissance units (? someone should double check this). The number of units without reconnaissance placed in the front line is limited to at most the number of opposing regiments. In all cases the highest ADMOS units are chosen for the initial front line. Units with positive support are placed in the back line in order of ADMOS. All remaining units that are not initially placed on the field are put in the reserves.
+
+On the first day, and every six days thereafter, each side in the combat receives a "die roll" of 0-to-9, inclusive.
+Every day, each side tries to fill in their back line with reserves. If both the front slot and back slot are empty, this is first done by finding a non-support unit with organization at least 1 and strength at least 0.1. Then for back row slots where the front slot is not empty, units with positive support value are put in, and then finally non support units are put in (someone should double check this; do support units really get preference here?).
+Then, any unit in the back row with an empty font row slot ahead of it is moved forwards.
+One side may instantly wipe the other on the first day. This happens if one side has less than one tenth the total unit strength of the other. In a wipe, each regiment is treated as having been destroyed.
+
+#### Naval combat
+
+(Units in this section means ships)
+
+On the first day, and every six days thereafter, each side in the combat receives a "die roll" of 0-to-9, inclusive.
+One side may instantly wipe the other on the first day. This happens if one side has less than one tenth the total hull strength of the other. In a wipe, each ship is treated as having been sunk.
 
 ## Movements
 
