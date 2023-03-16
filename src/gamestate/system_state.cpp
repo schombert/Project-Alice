@@ -1444,6 +1444,8 @@ namespace sys {
 
 		culture::update_all_nations_issue_rules(*this);
 		demographics::regenerate_from_pop_data(*this);
+		pop_demographics::regenerate_is_primary_or_accepted(*this);
+		province::update_state_administrative_efficiency(*this);
 
 		military::regenerate_land_unit_average(*this);
 		military::regenerate_ship_scores(*this);
@@ -1488,7 +1490,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 5, [&](int32_t index) {
+					concurrency::parallel_for(0, 6, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1504,6 +1506,9 @@ namespace sys {
 								break;
 							case 4:
 								nations::update_industrial_scores(*this);
+								break;
+							case 5:
+								province::update_state_administrative_efficiency(*this);
 								break;
 						}
 						

@@ -8,6 +8,8 @@ dcon::pop_demographics_key to_key(sys::state const& state, dcon::ideology_id v);
 dcon::pop_demographics_key to_key(sys::state const& state, dcon::issue_option_id v);
 uint32_t size(sys::state const& state);
 
+void regenerate_is_primary_or_accepted(sys::state& state);
+
 }
 namespace demographics {
 

@@ -562,4 +562,39 @@ data_texture& data_texture::operator=(data_texture&& other) noexcept {
 	return *this;
 }
 
+uint32_t make_font_texture(simple_fs::file& file) {
+
+	auto content = simple_fs::view_contents(file);
+
+	int32_t file_channels = 4;
+
+	uint8_t* data = nullptr;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+	int32_t channels = 4;
+
+	data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
+		&(size_x), &(size_y), &file_channels, 4);
+
+	uint32_t ftexid = 0;
+
+	glGenTextures(1, &ftexid);
+	if(data && ftexid) {
+		glBindTexture(GL_TEXTURE_2D, ftexid);
+
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size_x, size_y);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+
+	STBI_FREE(data);
+
+	return ftexid;
+}
+
 }

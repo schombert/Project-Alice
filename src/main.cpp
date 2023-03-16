@@ -8,10 +8,6 @@
 #include "gui_graphics_parsers.cpp"
 #include "text.cpp"
 #include "fonts.cpp"
-#include "decoder.cpp"
-#include "encoder.cpp"
-#include "image_iterator.cpp"
-#include "stdio.cpp"
 #include "texture.cpp"
 #include "gui_graphics.cpp"
 #include "gui_element_types.cpp"
@@ -36,7 +32,6 @@
 #include "triggers.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"
-#include "lodepng.cpp"
 #include "bmfont.cpp"
 
 #ifdef _WIN64

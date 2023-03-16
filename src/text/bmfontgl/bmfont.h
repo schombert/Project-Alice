@@ -33,6 +33,8 @@ For more information, please refer to <http://unlicense.org/>
 #include <vector>
 #include <map>
 
+#include "simple_fs.hpp"
+
 #ifndef MAKE_RGBA
 
 #define MAKE_RGBA(r,g,b,a)  (r | (g << 8) | (b << 16) | (a << 24))
@@ -89,9 +91,8 @@ class BMFont {
 
 public:
 
-	std::vector<uint8_t> LoadFontImage(std::string, std::string);
-	bool LoadFontfile(char*);
-	bool MakePNG(std::string, std::string, std::vector<uint8_t>);
+	void LoadFontImage(simple_fs::file& file);
+	bool LoadFontfile(simple_fs::file& file);
 	void SetColor(int r, int g, int b, int a) {
 		fcolor = MAKE_RGBA(r, g, b, a);
 	}
@@ -130,7 +131,7 @@ private:
 	float fscale;
 	int fblend;
 
-	bool ParseFont(char*);
+	bool ParseFont(simple_fs::file& file);
 	int GetKerningPair(int, int);
 	float GetStringWidth(const char*);
 

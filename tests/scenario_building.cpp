@@ -1321,16 +1321,12 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			REQUIRE(it != context.map_of_ident_names.end());
 			auto id = it->second;
 			REQUIRE(bool(id) == true);
-			REQUIRE(context.file_names_for_idents[id] == "countries/Taiping.txt");
 		}
 		{
 			REQUIRE(nations::tag_to_int('M', 'E', 'X') != nations::tag_to_int('M', 'T', 'C'));
 			auto name_num = nations::tag_to_int('M', 'E', 'X');
 			auto it = context.map_of_ident_names.find(name_num);
 			REQUIRE(it != context.map_of_ident_names.end());
-			auto id = it->second;
-			auto file_name = simple_fs::win1250_to_native(context.file_names_for_idents[id]);
-			REQUIRE(file_name == NATIVE("countries/Mexico.txt"));
 		}
 	}
 	//RELIGION

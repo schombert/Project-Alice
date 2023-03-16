@@ -429,19 +429,14 @@ void load_standard_fonts(sys::state& state) {
 
 void load_bmfonts(sys::state& state) {
 
-	std::string gamedir = GAME_DIR;
-
 	BMFont vic_22_bl;
 
 	auto fnta = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.fnt"));
 	auto tgaa = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.tga"));
 
-	std::string fntfile = "vic_22_bl.fnt";
-	std::string tgafile = "vic_22_bl.tga";
-
-	auto vic_22_blbuf = vic_22_bl.LoadFontImage(tgaa, gamedir);
-
-	vic_22_bl.MakePNG(fntfile, tgafile, vic_22_blbuf);
+	auto fimg = simple_fs::open_file(get_root(state.common_fs), tgaa);
+	if(fimg)
+		vic_22_bl.LoadFontImage(*fimg);
 }
 
 void font_manager::load_all_glyphs() {
