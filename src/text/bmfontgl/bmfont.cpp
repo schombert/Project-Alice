@@ -43,7 +43,7 @@ aaedev@gmail.com 2012
 #define NOMINMAX
 #include <stdio.h>
 #include <stdlib.h>
-#include "glew.h"
+#include <glew.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -60,23 +60,6 @@ aaedev@gmail.com 2012
 
 #define MAX_BUFFER 256
 
-char *replace_str(char *str, char *orig, char *rep)
-{
-  static char buffer[MAX_BUFFER];
-  char *p;
-
-  if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
-    return str;
-
-  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
-  buffer[p-str] = '\0';
-
-  sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
-
-  return buffer;
-}
-
-
 // This structure holds the vertices for rendering with glDrawArrays
 typedef struct 
 {
@@ -86,7 +69,6 @@ typedef struct
 } vlist;                      
 
 vlist texlst[2048*4];
-
 
 bool BMFont::ParseFont(char *fontfile )
 {
@@ -246,7 +228,7 @@ float BMFont::GetStringWidth(const char *string)
   float total=0;
   CharDescriptor  *f;
 
-  for (int i = 0; i != strlen(string); i++)
+  for (uint8_t i = 0; i != strlen(string); i++)
    { 
 	  f=&Chars[string[i]];
       total+=f->XAdvance;
@@ -255,7 +237,7 @@ float BMFont::GetStringWidth(const char *string)
   return total * fscale;
 }
 
-GLuint LoadPNG(char* filename)
+GLuint LoadPNG(std::string filename)
 {
 
 	GLuint temptex;
@@ -328,12 +310,10 @@ GLuint LoadPNG(char* filename)
 	return temptex;
 }
 
-std::vector<uint8_t> BMFont::LoadFontImage(char *fontfile, char* olddir, char* newdir, char* tgafile)
-{
-	std::ifstream Stream(fontfile);
-	Stream.close();
+std::vector<uint8_t> BMFont::LoadFontImage(std::string tgafile, std::string gamedir) {
+	std::string filepath = gamedir + tgafile;
 
-	FILE* f = std::fopen(tgafile, "rb");
+	FILE* f = std::fopen(filepath.c_str(), "rb");
 	tga::StdioFileInterface file(f);
 	tga::Decoder decoder(&file);
 	tga::Header header;
@@ -352,12 +332,12 @@ std::vector<uint8_t> BMFont::LoadFontImage(char *fontfile, char* olddir, char* n
 	return buffer;
 }
 
-bool BMFont::MakePNG(char* fontfile, char* tgafile, std::vector<uint8_t> buffer) {
+bool BMFont::MakePNG(std::string fontfile, std::string tgafile, std::vector<uint8_t> buffer) {
 
-	LodePNG::encode(replace_str(tgafile, ".tga", ".png"), buffer, 256, 256);
+	LodePNG::encode(tgafile.replace(tgafile.size() - 4, tgafile.size(), ".png"), buffer, 256, 256);
 
 	//Ok, we have a file. Can we get the Texture as well?
-	char* buf = replace_str(fontfile, ".fnt", ".png");
+	std::string buf = tgafile.replace(fontfile.size() - 4, fontfile.size(), ".png");
 
 	ftexid = LoadPNG(buf);
 
@@ -366,7 +346,7 @@ bool BMFont::MakePNG(char* fontfile, char* tgafile, std::vector<uint8_t> buffer)
 
 bool BMFont::LoadFontfile(char* fontfile) {
 	ParseFont(fontfile);
-	KernCount = (int)Kearn.size();
+	KernCount = (short)Kearn.size();
 
 	return true;
 }
@@ -449,7 +429,7 @@ void BMFont::Print(float x, float y, const char *fmt, ...)
 	unsigned char *color = (unsigned char*)&fcolor;
 	
 	y= y + LineHeight;
-    Flen = strlen(text);
+    Flen = (int)strlen(text);
 
 	for (int i = 0; i != Flen; ++i)
 	{
@@ -510,7 +490,7 @@ void BMFont::Print(float x, float y, const char *fmt, ...)
 		  
 		 x +=  f->XAdvance;
     }
-   Render_String(strlen(text));
+   Render_String((int)strlen(text));
 }
 
 
@@ -521,7 +501,7 @@ void BMFont::PrintCenter( float y, const char *string)
 	
 	int window_width = 500;
 
-		int len = strlen(string);
+		int len = (int)strlen(string);
 
 		for (int i = 0; i != len; ++i)
 		{

@@ -27,28 +27,28 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <http://unlicense.org/>
 */
 
-#ifndef __BMFONT__
-#define __BMFONT__
+#ifndef BMFONT
+#define BMFONT
 
 #include <vector>
 #include <map>
 
 #ifndef MAKE_RGBA
- 
+
 #define MAKE_RGBA(r,g,b,a)  (r | (g << 8) | (b << 16) | (a << 24))
 
 #endif
- 
+
 #ifndef GET_BLUE
- 
+
 #define GET_BLUE(rgba) (( (rgba)>>16 ) & 0xff )
 #endif
- 
+
 #ifndef GET_GREEN
- 
+
 #define GET_GREEN(rgba) (( (rgba)>>8 ) & 0xff )
 #endif
- 
+
 #ifndef GET_RED
 
 #define GET_RED(rgba) ( rgba & 0xff )
@@ -59,20 +59,18 @@ For more information, please refer to <http://unlicense.org/>
 #define GET_ALPHA(rgba) (( (rgba)>>24 ) & 0xff)
 #endif
 
-class KearningInfo
-{
+class KearningInfo {
 
 public:
 	short First;
 	short Second;
 	short Amount;
 
-	KearningInfo() :  First( 0 ), Second( 0 ), Amount( 0 )	{ }
+	KearningInfo() : First(0), Second(0), Amount(0) { }
 };
 
 
-class CharDescriptor
-{
+class CharDescriptor {
 
 public:
 	short x, y;
@@ -83,53 +81,58 @@ public:
 	short XAdvance;
 	short Page;
 
-	CharDescriptor() : x( 0 ), y( 0 ), Width( 0 ), Height( 0 ), XOffset( 0 ), YOffset( 0 ),
-		XAdvance( 0 ), Page( 0 )
-	{ }
+	CharDescriptor() : x(0), y(0), Width(0), Height(0), XOffset(0), YOffset(0),
+		XAdvance(0), Page(0) { }
 };
 
-class BMFont
-{
+class BMFont {
 
- public:
-	
-	std::vector<uint8_t> LoadFontImage(char *, char*, char*, char*);
+public:
+
+	std::vector<uint8_t> LoadFontImage(std::string, std::string);
 	bool LoadFontfile(char*);
-	bool MakePNG(char*, char*, std::vector<uint8_t>);
-	void SetColor(int r, int g, int b, int a) {fcolor = MAKE_RGBA(r,g,b,a);}
-	void SetBlend(int b) {fblend = b;}
-	void SetScale(float scale){fscale = scale;}
-	float GetHeight(){return LineHeight * fscale;}
-	void Print(float, float, const char *,...);
-	void PrintCenter( float, const char *);
-	BMFont() 
-	  {
-		  SetColor(255,255,255,255);
-   	      KernCount = 0;
-		  ftexid = -1;
-		  fblend = 0;
-          fscale = 1.0;
-	  };
-	 ~BMFont ();
+	bool MakePNG(std::string, std::string, std::vector<uint8_t>);
+	void SetColor(int r, int g, int b, int a) {
+		fcolor = MAKE_RGBA(r, g, b, a);
+	}
+	void SetBlend(int b) {
+		fblend = b;
+	}
+	void SetScale(float scale) {
+		fscale = scale;
+	}
+	float GetHeight() {
+		return LineHeight * fscale;
+	}
+	void Print(float, float, const char*, ...);
+	void PrintCenter(float, const char*);
+	BMFont() {
+		SetColor(255, 255, 255, 255);
+		KernCount = 0;
+		ftexid = GLuint(0);
+		fblend = 0;
+		fscale = 1.0;
+	};
+	~BMFont();
 
 private:
-    short LineHeight;
+	short LineHeight;
 	short Base;
 	short Width;
 	short Height;
 	short Pages;
 	short Outline;
 	short KernCount;
-	std::map<int,CharDescriptor> Chars;
+	std::map<int, CharDescriptor> Chars;
 	std::vector<KearningInfo> Kearn;
 	int fcolor;
-	GLint ftexid;
+	GLuint ftexid;
 	float fscale;
 	int fblend;
 
-	bool ParseFont(char *);
+	bool ParseFont(char*);
 	int GetKerningPair(int, int);
-	float GetStringWidth(const char *);
+	float GetStringWidth(const char*);
 
 };
 
