@@ -433,9 +433,9 @@ void load_bmfonts(sys::state& state) {
 
 	BMFont vic_22_bl;
 
-	std::string fnta = simple_fs::remove_double_backslashes("\\gfx\\fonts\\vic_22_bl.fnt");
-	std::string tgaa = simple_fs::remove_double_backslashes("\\gfx\\fonts\\vic_22_bl.tga");
-	
+	auto fnta = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.fnt"));
+	auto tgaa = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.tga"));
+
 	std::string fntfile = "vic_22_bl.fnt";
 	std::string tgafile = "vic_22_bl.tga";
 
