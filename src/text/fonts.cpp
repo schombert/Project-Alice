@@ -2,6 +2,7 @@
 
 #include "fonts.hpp"
 #include "parsers.hpp"
+#include "simple_fs.hpp"
 #include "system_state.hpp"
 
 #include "bmfont.h"
@@ -432,9 +433,10 @@ void load_bmfonts(sys::state& state) {
 
 	BMFont vic_22_bl;
 
-	std::string fnta = "\\gfx\\fonts\\vic_22_bl.fnt";
+	std::string fnta = simple_fs::remove_double_backslashes("\\gfx\\fonts\\vic_22_bl.fnt");
+	std::string tgaa = simple_fs::remove_double_backslashes("\\gfx\\fonts\\vic_22_bl.tga");
+	
 	std::string fntfile = "vic_22_bl.fnt";
-	std::string tgaa = "\\gfx\\fonts\\vic_22_bl.tga";
 	std::string tgafile = "vic_22_bl.tga";
 
 	auto vic_22_blbuf = vic_22_bl.LoadFontImage(tgaa, gamedir);
