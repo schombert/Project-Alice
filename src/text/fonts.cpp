@@ -433,8 +433,17 @@ void load_bmfonts(sys::state& state) {
 
 	BMFont vic_22_bl;
 
+	#ifdef _WIN64
+
+	std::string fnta = "\\gfx\\fonts\\vic_22_bl.fnt";
+	std::string tgaa = "\\gfx\\fonts\\vic_22_bl.tga";
+
+	#else
+
 	auto fnta = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.fnt"));
 	auto tgaa = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.tga"));
+
+	#endif
 
 	std::string fntfile = "vic_22_bl.fnt";
 	std::string tgafile = "vic_22_bl.tga";
