@@ -30,7 +30,14 @@ size_t StdioFileInterface::tell()
 void StdioFileInterface::seek(size_t absPos)
 {
   // To detect surprises with the size_t -> long cast.
+  #ifndef _WIN64
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+  #endif
   assert(int(absPos) <= std::numeric_limits<long>::max());
+  #ifndef _WIN64
+  #pragma clang diagnostic pop
+  #endif
 
   fseek(m_file, (long)absPos, SEEK_SET);
 }
