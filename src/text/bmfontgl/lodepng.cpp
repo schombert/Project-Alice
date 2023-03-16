@@ -1428,7 +1428,7 @@ void updateHashChain(unsigned short* hashchain, int* hashhead, int* hashval,
 {
   unsigned wpos = pos % windowSize;
   hashval[wpos] = hash;
-  if(hashhead[hash] != -1) hashchain[wpos] = unsigned short(hashhead[hash]);
+  if(hashhead[hash] != -1) hashchain[wpos] = uint16_t(hashhead[hash]);
   hashhead[hash] = wpos;
 }
 
@@ -1477,7 +1477,7 @@ static unsigned encodeLZ77(uivector* out, const unsigned char* in, size_t insize
     /*initialize hash table*/
     for(i = 0; i < HASH_NUM_VALUES; i++) hashhead[i] = -1;
     for(i = 0; i < windowSize; i++) hashval[i] = -1;
-    for(i = 0; i < windowSize; i++) hashchain[i] = unsigned short(i); /*same value as index indicates uninitialized*/
+    for(i = 0; i < windowSize; i++) hashchain[i] = uint16_t(i); /*same value as index indicates uninitialized*/
 
     for(pos = 0; pos < insize; pos++)
     {
@@ -1487,13 +1487,13 @@ static unsigned encodeLZ77(uivector* out, const unsigned char* in, size_t insize
       updateHashChain(hashchain, hashhead, hashval, pos, hash, windowSize);
       if(hash == 0)
       {
-        numzeros = unsigned short(countZeros(in, insize, pos));
+        numzeros = uint16_t(countZeros(in, insize, pos));
         hashzeros[wpos] = numzeros;
       }
 
       length = 0, offset = 0; /*the length and offset found for the current position*/
 
-      prevpos = unsigned short(hashhead[hash]);
+      prevpos = uint16_t(hashhead[hash]);
       hashpos = hashchain[prevpos];
 
       lastptr = &in[insize < pos + MAX_SUPPORTED_DEFLATE_LENGTH ? insize : pos + MAX_SUPPORTED_DEFLATE_LENGTH];
@@ -1507,7 +1507,7 @@ static unsigned encodeLZ77(uivector* out, const unsigned char* in, size_t insize
           if(prevpos < wpos && hashpos > prevpos && hashpos <= wpos) break;
           if(prevpos > wpos && (hashpos <= wpos || hashpos > prevpos)) break;
 
-          current_offset = unsigned int(hashpos <= wpos ? wpos - hashpos : wpos - hashpos + windowSize);
+          current_offset = uint32_t(hashpos <= wpos ? wpos - hashpos : wpos - hashpos + windowSize);
 
           if(current_offset > 0) {
             /*test the next characters*/
@@ -1518,7 +1518,7 @@ static unsigned encodeLZ77(uivector* out, const unsigned char* in, size_t insize
               /*common case in PNGs is lots of zeros. Quickly skip over them as a speedup*/
               unsigned skip = hashzeros[hashpos];
               if(skip > numzeros) skip = numzeros;
-              if(skip > insize - pos) skip = unsigned int(insize) - pos;
+              if(skip > insize - pos) skip = uint32_t(insize) - pos;
               backptr += skip;
               foreptr += skip;
             }
@@ -1598,7 +1598,7 @@ static unsigned encodeLZ77(uivector* out, const unsigned char* in, size_t insize
           updateHashChain(hashchain, hashhead, hashval, pos, hash, windowSize);
           if(hash == 0)
           {
-            hashzeros[pos % windowSize] = unsigned short(countZeros(in, insize, pos));
+            hashzeros[pos % windowSize] = uint16_t(countZeros(in, insize, pos));
           }
           else if(hash == 1)
           {
@@ -1884,7 +1884,7 @@ static unsigned deflateDynamic(ucvector* out, const unsigned char* data, size_t 
     */
 
     /*Write block type*/
-    addBitToStream(&bp, out, unsigned char(BFINAL));
+    addBitToStream(&bp, out, uint8_t(BFINAL));
     addBitToStream(&bp, out, 0); /*first bit of BTYPE "dynamic"*/
     addBitToStream(&bp, out, 1); /*second bit of BTYPE "dynamic"*/
 
@@ -1952,7 +1952,7 @@ static unsigned deflateFixed(ucvector* out, const unsigned char* data,
   generateFixedLitLenTree(&tree_ll);
   generateFixedDistanceTree(&tree_d);
 
-  addBitToStream(&bp, out, unsigned char(BFINAL));
+  addBitToStream(&bp, out, uint8_t(BFINAL));
   addBitToStream(&bp, out, 1); /*first bit of BTYPE*/
   addBitToStream(&bp, out, 0); /*second bit of BTYPE*/
 
@@ -3260,7 +3260,7 @@ static void addColorBits(unsigned char* out, size_t index, unsigned bits, unsign
   unsigned p = index % (8 / bits);
   in &= (1 << bits) - 1; /*filter out any other bits of the input value*/
   in = in << (bits * (8 / bits - p - 1));
-  if(p == 0) out[index * bits / 8] = unsigned char(in);
+  if(p == 0) out[index * bits / 8] = uint8_t(in);
   else out[index * bits / 8] |= in;
 }
 
@@ -3274,7 +3274,7 @@ static void freeColorTree(void** tree, unsigned c)
   cleanstackpos[0] = 0;
   while(cssize > 0)
   {
-    for(k = unsigned int(cleanstackpos[cssize - 1]); k < 256; k++)
+    for(k = uint32_t(cleanstackpos[cssize - 1]); k < 256; k++)
     {
       void** tree2 = (void**)((void**)cleanstack[cssize - 1])[k];
       if(tree2 != 0 && cssize < c)
@@ -3366,8 +3366,8 @@ static unsigned LodePNG_convert_palette(unsigned char* out, const unsigned char*
       tree2 = (void**)tree2[b]; if(!tree2) return 82 /*error: color not in palette*/;
       /* Extract integer from the void pointer */
       /* TODO: this is not very portable. Use something else than storing an integer value in a void**. */
-      palette_index = unsigned int((size_t)tree2[a]); if(palette_index > 255) return 82 /*error: color not in palette*/;
-      if(palettebits == 8) out[i] = unsigned char(palette_index);
+      palette_index = uint32_t((size_t)tree2[a]); if(palette_index > 255) return 82 /*error: color not in palette*/;
+      if(palettebits == 8) out[i] = uint8_t(palette_index);
       else addColorBits(out, i, palettebits, palette_index);
     }
     /*clean up the data structure*/
@@ -3380,7 +3380,7 @@ static unsigned LodePNG_convert_palette(unsigned char* out, const unsigned char*
     unsigned highest = ((1U << infoIn->bitDepth) - 1U); /*highest possible value for this bit depth*/
     size_t bp = 0;
 
-    for(i = 0; i < palettesize; i++) pal[palette[i * 4]] = unsigned char(i);
+    for(i = 0; i < palettesize; i++) pal[palette[i * 4]] = uint8_t(i);
 
     for(i = 0; i < numpixels; i++)
     {
@@ -3412,7 +3412,7 @@ static unsigned LodePNG_convert_palette(unsigned char* out, const unsigned char*
         if(palette[i * 4] == infoIn->palette[j * 4] && palette[i * 4 + 1] == infoIn->palette[j * 4 + 1]
         && palette[i * 4 + 2] == infoIn->palette[j * 4 + 2] && palette[i * 4 + 3] == infoIn->palette[j * 4 + 3])
         {
-          pal[j] = unsigned char(i);
+          pal[j] = uint8_t(i);
           break;
         }
       }
@@ -3442,7 +3442,7 @@ static unsigned LodePNG_convert_greybits(unsigned char* out, const unsigned char
   size_t i;
   size_t bp = 0; /*bit pointer*/
 
-  if(bits == infoIn->bitDepth && infoIn->colorType == (alpha ? unsigned int(4) : unsigned int(0)))
+  if(bits == infoIn->bitDepth && infoIn->colorType == (alpha ? uint32_t(4) : uint32_t(0)))
   {
     for(i = 0; i < bytes; i++) out[i] = in[i];
     return 0;
@@ -3523,12 +3523,12 @@ static unsigned LodePNG_convert_greybits(unsigned char* out, const unsigned char
     if(alpha)
     {
       /*with alpha, it's always 8 bit*/
-      out[i * 2 + 0] = unsigned char(g);
-      out[i * 2 + 1] = unsigned char(a);
+      out[i * 2 + 0] = uint8_t(g);
+      out[i * 2 + 1] = uint8_t(a);
     }
     else
     {
-      if(bits == 8) out[i] = unsigned char(g);
+      if(bits == 8) out[i] = uint8_t(g);
       else addColorBits(out, i, bits, g); /*8-bit value g can be used! Its bits repeat the correct pattern.*/
     }
   }
@@ -4538,7 +4538,7 @@ static unsigned addChunk_IHDR(ucvector* out, unsigned w, unsigned h, unsigned bi
   ucvector_push_back(&header, (unsigned char)colorType); /*color type*/
   ucvector_push_back(&header, 0); /*compression method*/
   ucvector_push_back(&header, 0); /*filter method*/
-  ucvector_push_back(&header, unsigned char(interlaceMethod)); /*interlace method*/
+  ucvector_push_back(&header, uint8_t(interlaceMethod)); /*interlace method*/
 
   error = addChunk(out, "IHDR", header.data, header.size);
   ucvector_cleanup(&header);
@@ -4896,7 +4896,7 @@ static unsigned filter(unsigned char* out, const unsigned char* in, unsigned w, 
           /*try the 5 filter types*/
           for(type = 0; type < 5; type++)
           {
-            filterScanline(attempt[type].data, &in[y * linebytes], prevline, linebytes, bytewidth, unsigned char(type));
+            filterScanline(attempt[type].data, &in[y * linebytes], prevline, linebytes, bytewidth, uint8_t(type));
 
             /*calculate the sum of the result*/
             sum[type] = 0;
@@ -4925,7 +4925,7 @@ static unsigned filter(unsigned char* out, const unsigned char* in, unsigned w, 
           prevline = &in[y * linebytes];
 
           /*now fill the out values*/
-          out[y * (linebytes + 1)] = unsigned char(bestType); /*the first byte of a scanline will be the filter type*/
+          out[y * (linebytes + 1)] = uint8_t(bestType); /*the first byte of a scanline will be the filter type*/
           for(x = 0; x < linebytes; x++) out[y * (linebytes + 1) + 1 + x] = attempt[bestType].data[x];
         }
       }
@@ -4962,7 +4962,7 @@ static unsigned filter(unsigned char* out, const unsigned char* in, unsigned w, 
         /*unsigned testsize = attempt[type].size / 8;*/ /*it already works good enough by testing a part of the row*/
         /*if(testsize == 0) testsize = attempt[type].size;*/
 
-        filterScanline(attempt[type].data, &in[y * linebytes], prevline, linebytes, bytewidth, unsigned char(type));
+        filterScanline(attempt[type].data, &in[y * linebytes], prevline, linebytes, bytewidth, uint8_t(type));
         size[type] = 0;
         dummy = 0;
         LodePNG_zlib_compress(&dummy, &size[type], attempt[type].data, testsize, &zlibsettings);
@@ -4975,7 +4975,7 @@ static unsigned filter(unsigned char* out, const unsigned char* in, unsigned w, 
         }
       }
       prevline = &in[y * linebytes];
-      out[y * (linebytes + 1)] = unsigned char(bestType); /*the first byte of a scanline will be the filter type*/
+      out[y * (linebytes + 1)] = uint8_t(bestType); /*the first byte of a scanline will be the filter type*/
       for(x = 0; x < linebytes; x++) out[y * (linebytes + 1) + 1 + x] = attempt[bestType].data[x];
     }
     for(type = 0; type < 5; type++) ucvector_cleanup(&attempt[type]);
@@ -5497,7 +5497,7 @@ unsigned getPixelColorRGBA8(unsigned char *r, unsigned char *g, unsigned char *b
       unsigned highest = ((1U << info->bitDepth) - 1U); /*highest possible value for this bit depth*/
       size_t j = i * info->bitDepth;
       unsigned value = readBitsFromReversedStream(&j, in, info->bitDepth);
-      *r = *g = *b = unsigned char((value * 255) / highest);
+      *r = *g = *b = uint8_t((value * 255) / highest);
       if(info->key_defined && value == info->key_r) *a = 0;
       else *a = 255;
     }
@@ -5545,8 +5545,8 @@ unsigned getPixelColorRGBA8(unsigned char *r, unsigned char *g, unsigned char *b
     }
     else
     {
-      *r = *g = *b = unsigned char(256 * in[i * 2 + 0] + in[i * 4 + 1]);
-      *a = unsigned char(256 * in[i * 4 + 2] + in[i * 4 + 3]);
+      *r = *g = *b = uint8_t(256 * in[i * 2 + 0] + in[i * 4 + 1]);
+      *a = uint8_t(256 * in[i * 4 + 2] + in[i * 4 + 3]);
     }
   }
   else if(info->colorType == 6)
@@ -5557,10 +5557,10 @@ unsigned getPixelColorRGBA8(unsigned char *r, unsigned char *g, unsigned char *b
     }
     else
     {
-      *r = unsigned char(256 * in[i * 8 + 0] + in[i * 8 + 1]);
-      *g = unsigned char(256 * in[i * 8 + 2] + in[i * 8 + 3]);
-      *b = unsigned char(256 * in[i * 8 + 4] + in[i * 8 + 5]);
-      *a = unsigned char(256 * in[i * 8 + 6] + in[i * 8 + 7]);
+      *r = uint8_t(256 * in[i * 8 + 0] + in[i * 8 + 1]);
+      *g = uint8_t(256 * in[i * 8 + 2] + in[i * 8 + 3]);
+      *b = uint8_t(256 * in[i * 8 + 4] + in[i * 8 + 5]);
+      *a = uint8_t(256 * in[i * 8 + 6] + in[i * 8 + 7]);
     }
   }
 
@@ -5690,18 +5690,19 @@ static size_t countColors(unsigned char* palette_out,
 static unsigned can16BitBe8Bit(const unsigned char* image, unsigned w, unsigned h, LodePNG_InfoColor* info)
 {
   size_t i, numpixels = w * h;
-  if(info->colorType == 0)
+  if(info->colorType == 0) {
     for(i = 0; i < numpixels; i++)
       if(image[i * 2 + 1]) return 0;
-  else if(info->colorType == 2)
+  } else if(info->colorType == 2) {
     for(i = 0; i < numpixels; i++)
       if(image[i * 6 + 1] || image[i * 6 + 3] || image[i * 6 + 5]) return 0;
-  else if(info->colorType == 4)
+  } else if(info->colorType == 4) {
     for(i = 0; i < numpixels; i++)
       if(image[i * 4 + 1] || image[i * 4 + 3]) return 0;
-  else if(info->colorType == 6)
+  } else if(info->colorType == 6) {
     for(i = 0; i < numpixels; i++)
       if(image[i * 8 + 1] || image[i * 8 + 3] || image[i * 8 + 5] || image[i * 8 + 7]) return 0;
+  }
   return 1;
 }
 
