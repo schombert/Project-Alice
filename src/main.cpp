@@ -36,6 +36,8 @@
 #include "triggers.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"
+#include "lodepng.cpp"
+#include "bmfont.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
@@ -44,8 +46,6 @@
 #include "window_win.cpp"
 #include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
-#include "lodepng.cpp"
-#include "bmfont.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_win.cpp"
