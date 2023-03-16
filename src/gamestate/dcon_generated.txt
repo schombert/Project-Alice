@@ -1839,6 +1839,10 @@ object {
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
+	property {
+		name{ administrative_efficiency }
+		type{ float }
+	}
 }
 
 relationship{
@@ -2954,6 +2958,10 @@ object {
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
+	}
+	property {
+		name{ is_primary_or_accepted_culture }
+		type{ bitfield }
 	}
 }
 

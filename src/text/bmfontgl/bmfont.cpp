@@ -49,10 +49,9 @@ aaedev@gmail.com 2012
 #include <string>
 #include <sstream> 
 #include "bmfont.h"
-#include "tga.h"
-#include "lodepng.h"
 #include <stdarg.h>
 
+#include "texture.hpp"
 
 #pragma warning (disable : 4996 )
 
@@ -70,9 +69,11 @@ typedef struct
 
 vlist texlst[2048*4];
 
-bool BMFont::ParseFont(char *fontfile )
+bool BMFont::ParseFont(simple_fs::file& file)
 {
-	std::ifstream Stream(fontfile); 
+	auto content = simple_fs::view_contents(file);
+
+	std::stringstream Stream(std::string(content.data, content.file_size));
 	std::string Line;
 	std::string Read, Key, Value;
 	std::size_t i;
@@ -197,7 +198,6 @@ bool BMFont::ParseFont(char *fontfile )
 		}
 	}
 
-	Stream.close();
 	return true;
 }
 
@@ -237,115 +237,14 @@ float BMFont::GetStringWidth(const char *string)
   return total * fscale;
 }
 
-GLuint LoadPNG(std::string filename)
-{
+void BMFont::LoadFontImage(simple_fs::file& file) {
+	assert(ftexid == 0);
 
-	GLuint temptex;
-
-	std::vector< unsigned char > rawImage;
-	LodePNG::loadFile(rawImage, filename);
-
-	LodePNG::Decoder decoder;
-	std::vector< unsigned char > image;
-	decoder.decode(image, rawImage.empty() ? 0 : &rawImage[0],
-		(unsigned)rawImage.size());
-	//
-	// Flip and invert the PNG image since OpenGL likes to load everything
-	// backwards from what is considered normal!
-	//
-
-	unsigned char* imagePtr = &image[0];
-	int halfTheHeightInPixels = decoder.getHeight() / 2;
-	int heightInPixels = decoder.getHeight();
-
-	// Assuming RGBA for 4 components per pixel.
-	int numColorComponents = 4;
-
-	// Assuming each color component is an unsigned char.
-	int widthInChars = decoder.getWidth() * numColorComponents;
-
-	unsigned char* top = NULL;
-	unsigned char* bottom = NULL;
-	unsigned char temp = 0;
-
-	for (int h = 0; h < halfTheHeightInPixels; ++h)
-	{
-		top = imagePtr + h * widthInChars;
-		bottom = imagePtr + (heightInPixels - h - 1) * widthInChars;
-
-		for (int w = 0; w < widthInChars; ++w)
-		{
-			// Swap the chars around.
-			temp = *top;
-			*top = *bottom;
-			*bottom = temp;
-
-			++top;
-			++bottom;
-		}
-	}
-	//
-	// Create the OpenGL texture and fill it with our PNG image.
-	//
-	// Allocates one texture handle
-	//glHint (GL_GENERATE_MIPMAP_HINT, GL_NICEST);
-
-	glGenTextures(1, &temptex);
-
-	// Binds this texture handle so we can load the data into it
-	glBindTexture(GL_TEXTURE_2D, temptex);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, decoder.getWidth(),
-		decoder.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
-		&image[0]);
-
-
-	rawImage.clear();
-
-	return temptex;
+	ftexid = ogl::make_font_texture(file);
 }
 
-std::vector<uint8_t> BMFont::LoadFontImage(std::string tgafile, std::string gamedir) {
-	std::string filepath = gamedir + tgafile;
-
-	FILE* f = std::fopen(filepath.c_str(), "rb");
-	tga::StdioFileInterface file(f);
-	tga::Decoder decoder(&file);
-	tga::Header header;
-
-	decoder.readHeader(header);
-
-	tga::Image image;
-	image.bytesPerPixel = header.bytesPerPixel();
-	image.rowstride = header.width * header.bytesPerPixel();
-
-	std::vector<uint8_t> buffer(image.rowstride * header.height);
-	image.pixels = &buffer[0];
-
-	decoder.readImage(header, image, nullptr);
-
-	return buffer;
-}
-
-bool BMFont::MakePNG(std::string fontfile, std::string tgafile, std::vector<uint8_t> buffer) {
-
-	LodePNG::encode(tgafile.replace(tgafile.size() - 4, tgafile.size(), ".png"), buffer, 256, 256);
-
-	//Ok, we have a file. Can we get the Texture as well?
-	std::string buf = tgafile.replace(fontfile.size() - 4, fontfile.size(), ".png");
-
-	ftexid = LoadPNG(buf);
-
-	return true;
-}
-
-bool BMFont::LoadFontfile(char* fontfile) {
-	ParseFont(fontfile);
+bool BMFont::LoadFontfile(simple_fs::file& file) {
+	ParseFont(file);
 	KernCount = (short)Kearn.size();
 
 	return true;
@@ -522,5 +421,6 @@ BMFont::~BMFont()
 {
 	Chars.clear();
 	Kearn.clear();
-	glDeleteTextures(1, &ftexid);
+	if(ftexid)
+		glDeleteTextures(1, &ftexid);
 }

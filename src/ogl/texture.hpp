@@ -84,4 +84,6 @@ public:
 	~data_texture();
 };
 
+uint32_t make_font_texture(simple_fs::file& file);
+
 }
