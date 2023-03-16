@@ -378,4 +378,13 @@ namespace simple_fs {
 		}
 		return res;
 	}
+
+	native_string correct_slashes(native_string path) {
+		std::wstring res;
+		res.reserve(path.size());
+		for(size_t i = 0; i < path.size(); i++) {
+			res += path[i] == '/' ? '\\' : path[i];
+		}
+		return res;
+	}
 }
