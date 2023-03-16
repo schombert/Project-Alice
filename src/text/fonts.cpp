@@ -4,9 +4,7 @@
 #include "parsers.hpp"
 #include "system_state.hpp"
 
-#ifdef _WIN64
 #include "bmfont.h"
-#endif
 namespace text {
 
 constexpr uint16_t pack_font_handle(uint32_t font_index, bool black, uint32_t size) {
@@ -427,7 +425,7 @@ void load_standard_fonts(sys::state& state) {
 		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size);
 	}
 }
-#ifdef _WIN64
+
 void load_bmfonts(sys::state& state) {
 
 	std::string gamedir = GAME_DIR;
@@ -443,7 +441,7 @@ void load_bmfonts(sys::state& state) {
 
 	vic_22_bl.MakePNG(fntfile, tgafile, vic_22_blbuf);
 }
-#endif
+
 void font_manager::load_all_glyphs() {
 	for(uint32_t j = 0; j < 2; ++j) {
 		for(uint32_t i = 0; i < 256; ++i)
