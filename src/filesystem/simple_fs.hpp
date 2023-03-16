@@ -82,5 +82,6 @@ namespace simple_fs {
 	std::string native_to_utf8(native_string_view data_in);
 
 	std::string remove_double_backslashes(std::string_view data_in); // unfortunately, paradox decided to escape their paths ...
+	native_string correct_slashes(native_string path);
 }
 
