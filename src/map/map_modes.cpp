@@ -37,15 +37,15 @@ void set_political(sys::state& state) {
 inline constexpr uint32_t scramble(uint32_t color) {
 	uint32_t m1 = 0x1337CAFE;
 	uint32_t m2 = 0xDEADBEEF;
-	m1 -= m2; m1 -= color; m1 ^= (color>>13);
-	m2 -= color; m2 -= m1; m2 ^= (m1<<8);
-	color -= m1; color -= m2; color ^= (m2>>13);
-	m1 -= m2; m1 -= color; m1 ^= (color>>12);
-	m2 -= color; m2 -= m1; m2 ^= (m1<<16);
-	color -= m1; color -= m2; color ^= (m2>>5);
-	m1 -= m2; m1 -= color; m1 ^= (color>>3);
-	m2 -= color; m2 -= m1; m2 ^= (m1<<10);
-	color -= m1; color -= m2; color ^= (m2>>15);
+	m1 -= m2; m1 -= color; m1 ^= (color >> 13);
+	m2 -= color; m2 -= m1; m2 ^= (m1 << 8);
+	color -= m1; color -= m2; color ^= (m2 >> 13);
+	m1 -= m2; m1 -= color; m1 ^= (color >> 12);
+	m2 -= color; m2 -= m1; m2 ^= (m1 << 16);
+	color -= m1; color -= m2; color ^= (m2 >> 5);
+	m1 -= m2; m1 -= color; m1 ^= (color >> 3);
+	m2 -= color; m2 -= m1; m2 ^= (m1 << 10);
+	color -= m1; color -= m2; color ^= (m2 >> 15);
 	return color;
 }
 
@@ -457,7 +457,7 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 	 *  - Dark green -> Puppet or puppet master X
 	 */
 
-	// This could be stored in an other place
+	 // This could be stored in an other place
 	uint32_t causus_belli_color = 0x00AAFF;
 	uint32_t ally_color = 0xFFAA00;
 	uint32_t selected_color = 0x00FF00; // Also unclaimed cores stripes color
@@ -473,7 +473,7 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 
 	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
-	
+
 	std::vector<dcon::nation_id> enemies, allies, sphere;
 
 	if(bool(selected_nation)) {
@@ -583,31 +583,30 @@ void set_diplomatic(sys::state& state) {
 }
 
 void set_map_mode(sys::state& state, mode mode) {
-	switch (mode)
-	{
-	case mode::terrain:
-		state.map_display.set_terrain_map_mode();
-		break;
-	case mode::political:
-		set_political(state);
-		break;
-	case mode::region:
-		set_region(state);
-		break;
-	case mode::population:
-		set_population(state);
-		break;
-	case mode::nationality:
-		set_nationality(state);
-		break;
-	case mode::sphere:
-		set_sphere(state);
-		break;
-	case mode::diplomatic:
-		set_diplomatic(state);
-		break;
-	default:
-		break;
+	switch(mode) {
+		case mode::terrain:
+			state.map_display.set_terrain_map_mode();
+			break;
+		case mode::political:
+			set_political(state);
+			break;
+		case mode::region:
+			set_region(state);
+			break;
+		case mode::population:
+			set_population(state);
+			break;
+		case mode::nationality:
+			set_nationality(state);
+			break;
+		case mode::sphere:
+			set_sphere(state);
+			break;
+		case mode::diplomatic:
+			set_diplomatic(state);
+			break;
+		default:
+			break;
 	}
 }
 

@@ -31,11 +31,12 @@ struct map_vertex {
 };
 struct border_vertex {
 	border_vertex() {};
-	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction)
-		: position_(position), normal_direction_(normal_direction), direction_(direction) {};
+	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, uint32_t border_id)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id) {};
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
+	uint32_t border_id_;
 };
 class display_data {
 public:
@@ -89,14 +90,14 @@ private:
 	bool unhandled_province_selection = false;
 
 	// Meshes
+	GLuint water_vao = 0;
 	GLuint water_vbo = 0;
+	GLuint land_vao = 0;
 	GLuint land_vbo = 0;
-	GLuint border_vbo = 0;
-	GLuint vao = 0;
 	GLuint border_vao = 0;
-	uint32_t water_indicies = 0;
-	uint32_t land_indicies = 0;
-	uint32_t border_indicies = 0;
+	GLuint border_vbo = 0;
+	uint32_t water_vertex_count = 0;
+	uint32_t land_vertex_count = 0;
 
 	// Textures
 	GLuint provinces_texture_handle = 0;

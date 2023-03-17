@@ -5,6 +5,7 @@
 #include <cmath>
 #include <numbers>
 #include <glm/glm.hpp>
+#include <unordered_map>
 
 namespace map {
 
@@ -96,13 +97,114 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 	return texture_handle;
 }
 
+struct border {
+	border(uint32_t border_id): id{ border_id } {
+	}
+	uint32_t id;
+	std::vector<border_vertex> vertices;
+};
+
+enum direction: u_int8_t {
+	UP_LEFT = 1 << 7,
+	UP_RIGHT = 1 << 6,
+	DOWN_LEFT = 1 << 5,
+	DOWN_RIGHT = 1 << 4,
+	UP = 1 << 3,
+	DOWN = 1 << 2,
+	LEFT = 1 << 1,
+	RIGHT = 1 << 0,
+};
+
+struct BorderDirection {
+	BorderDirection() {
+	};
+	struct Information {
+		Information() {
+		};
+		Information(int32_t index_, int32_t id_): index{ index_ }, id{ id_ } {
+		};
+		int32_t index = -1;
+		int32_t id = -1;
+	};
+	Information up;
+	Information down;
+	Information left;
+	Information right;
+};
+
 void display_data::load_border_data(parsers::scenario_building_context& context) {
 	border_vertices.clear();
 
+	std::unordered_map<uint32_t, border> borders;
 	glm::vec2 map_size(size_x, size_y);
-	auto add_line = [&](glm::vec2 map_pos, glm::vec2 offset1, glm::vec2 offset2) {
+
+	// The borders of the current row and last row
+	std::vector<BorderDirection> border_direction(size_x * 2);
+	// Will check if there is an border there already and extend if it can
+	auto extend_if_possible = [&](uint16_t x, int32_t border_id, direction dir) -> bool {
+		if(dir == direction::LEFT)
+			if(x - 1 < 0)
+				return false;
+
+		BorderDirection::Information direction_information;
+		switch(dir) {
+			case direction::UP:
+				direction_information = border_direction[x].down; break;
+			case direction::DOWN:
+				direction_information = border_direction[x + size_x].up; break;
+			case direction::LEFT:
+				direction_information = border_direction[x - 1 + size_x].right; break;
+			case direction::RIGHT:
+				direction_information = border_direction[x + size_x].left; break;
+			default:
+				return false;
+		}
+		if(direction_information.id != border_id)
+			return false;
+
+		auto border_index = direction_information.index;
+		if(border_index == -1)
+			return false;
+
+		switch(dir) {
+			case direction::UP:
+			case direction::DOWN:
+				border_vertices[border_index + 2].position_.y += 0.5f / map_size.y;
+				border_vertices[border_index + 3].position_.y += 0.5f / map_size.y;
+				border_vertices[border_index + 4].position_.y += 0.5f / map_size.y;
+				break;
+			case direction::LEFT:
+			case direction::RIGHT:
+				border_vertices[border_index + 2].position_.x += 0.5f / map_size.x;
+				border_vertices[border_index + 3].position_.x += 0.5f / map_size.x;
+				border_vertices[border_index + 4].position_.x += 0.5f / map_size.x;
+				break;
+			default:
+				break;
+		}
+		switch(dir) {
+			case direction::UP:
+				border_direction[x + size_x].up = direction_information; break;
+			case direction::DOWN:
+				border_direction[x + size_x].down = direction_information; break;
+			case direction::LEFT:
+				border_direction[x + size_x].left = direction_information; break;
+			case direction::RIGHT:
+				border_direction[x + size_x].right = direction_information; break;
+			default:
+				break;
+		}
+		return true;
+	};
+
+	// Create a new vertices to make a line segment
+	auto add_line = [&](glm::vec2 map_pos, glm::vec2 offset1, glm::vec2 offset2, int32_t border_id, uint16_t x, direction dir) {
 		glm::vec2 direction = normalize(offset2 - offset1);
 		glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
+
+		// if(!borders.count(border_id))
+		// 	borders.emplace(border_id, border(border_id));
+		// auto border = borders.at(border_id);
 
 		// Offset the map position
 		map_pos += glm::vec2(0.5f);
@@ -114,21 +216,39 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		pos1 /= map_size;
 		pos2 /= map_size;
 
+		int32_t border_index = border_vertices.size();
 		// First vertex of the line segment
-		border_vertices.emplace_back(pos1, normal_direction, direction);
-		border_vertices.emplace_back(pos1, -normal_direction, direction);
-		border_vertices.emplace_back(pos2, -normal_direction, -direction);
+		border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
+		border_vertices.emplace_back(pos1, -normal_direction, direction, border_id);
+		border_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
 		// Second vertex of the line segment
-		border_vertices.emplace_back(pos2, -normal_direction, -direction);
-		border_vertices.emplace_back(pos2, normal_direction, -direction);
-		border_vertices.emplace_back(pos1, normal_direction, direction);
+		border_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
+		border_vertices.emplace_back(pos2, normal_direction, -direction, border_id);
+		border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
+
+		BorderDirection::Information direction_information(border_index, border_id);
+		switch(dir) {
+			case direction::UP:
+				border_direction[x + size_x].up = direction_information; break;
+			case direction::DOWN:
+				border_direction[x + size_x].down = direction_information; break;
+			case direction::LEFT:
+				border_direction[x + size_x].left = direction_information; break;
+			case direction::RIGHT:
+				border_direction[x + size_x].right = direction_information; break;
+			default:
+				break;
+		}
 	};
 
-	enum direction {
-		UP = 1 << 3,
-		DOWN = 1 << 2,
-		LEFT = 1 << 1,
-		RIGHT = 1 << 0,
+	// Get the index of the border from the province ids and create a new one if one doesn't exist
+	auto get_border_index = [&](uint16_t map_province_id1, uint16_t map_province_id2) -> int32_t {
+		auto province_id1 = province::from_map_id(map_province_id1);
+		auto province_id2 = province::from_map_id(map_province_id2);
+		auto border_index = context.state.world.get_province_adjacency_by_province_pair(province_id1, province_id2).index();
+		if(border_index == -1)
+			border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2).index();
+		return border_index;
 	};
 
 	auto add_border = [&](uint32_t x0, uint32_t y0, uint16_t id_ul, uint16_t id_ur, uint16_t id_dl, uint16_t id_dr) {
@@ -137,53 +257,66 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		uint8_t diff_d = id_dl != id_dr;
 		uint8_t diff_l = id_ul != id_dl;
 		uint8_t diff_r = id_ur != id_dr;
-		uint8_t diff = diff_u << 3 | diff_d << 2 | diff_l << 1 | diff_r;
 
 		glm::vec2 map_pos(x0, y0);
-		float offset = 0.5f * std::cos((float)std::numbers::pi / 4);
-		if(diff == (LEFT | UP)) {
+
+		// Diagonal borders
+		if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
+			auto border_index = get_border_index(id_ul, id_dl);
 			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 0.0f);
-			add_line(map_pos, pos1, pos2);
+			add_line(map_pos, pos1, pos2, border_index, x0, direction::UP_LEFT);
 			return;
 		}
-		if(diff == (LEFT | DOWN)) {
+		if(diff_l && diff_d && !diff_r && !diff_u) { // Lower left
+			auto border_index = get_border_index(id_ul, id_dl);
 			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			add_line(map_pos, pos1, pos2);
+			add_line(map_pos, pos1, pos2, border_index, x0, direction::DOWN_LEFT);
 			return;
 		}
-		if(diff == (RIGHT | UP)) {
+		if(diff_r && diff_u && !diff_l && !diff_d) { // Upper right
+			auto border_index = get_border_index(id_ur, id_dr);
 			glm::vec2 pos1 = glm::vec2(1.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 0.0f);
-			add_line(map_pos, pos1, pos2);
+			add_line(map_pos, pos1, pos2, border_index, x0, direction::UP_RIGHT);
 			return;
 		}
-		if(diff == (RIGHT | DOWN)) {
+		if(diff_r && diff_d && !diff_l && !diff_u) { // Lower right
+			auto border_index = get_border_index(id_ur, id_dr);
 			glm::vec2 pos1 = glm::vec2(1.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			add_line(map_pos, pos1, pos2);
+			add_line(map_pos, pos1, pos2, border_index, x0, direction::DOWN_LEFT);
 			return;
 		}
+		// Straight borders
 		if(diff_u) {
+			auto border_index = get_border_index(id_ul, id_ur);
 			glm::vec2 pos1 = glm::vec2(0.5f, 0.0f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 0.5f);
-			add_line(map_pos, pos1, pos2);
+			if(!extend_if_possible(x0, border_index, direction::UP))
+				add_line(map_pos, pos1, pos2, border_index, x0, direction::UP);
 		}
 		if(diff_d) {
+			auto border_index = get_border_index(id_dl, id_dr);
 			glm::vec2 pos1 = glm::vec2(0.5f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			add_line(map_pos, pos1, pos2);
+			if(!extend_if_possible(x0, border_index, direction::DOWN))
+				add_line(map_pos, pos1, pos2, border_index, x0, direction::DOWN);
 		}
 		if(diff_l) {
+			auto border_index = get_border_index(id_ul, id_dl);
 			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(0.5f, 0.5f);
-			add_line(map_pos, pos1, pos2);
+			if(!extend_if_possible(x0, border_index, direction::LEFT))
+				add_line(map_pos, pos1, pos2, border_index, x0, direction::LEFT);
 		}
 		if(diff_r) {
+			auto border_index = get_border_index(id_ur, id_dr);
 			glm::vec2 pos1 = glm::vec2(0.5f, 0.5f);
 			glm::vec2 pos2 = glm::vec2(1.0f, 0.5f);
-			add_line(map_pos, pos1, pos2);
+			if(!extend_if_possible(x0, border_index, direction::LEFT))
+				add_line(map_pos, pos1, pos2, border_index, x0, direction::RIGHT);
 		}
 	};
 
@@ -227,24 +360,49 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 			}
 		}
+		// Move the border_direction rows a step down
+		for(uint32_t x = 0; x < size_x; x++) {
+			border_direction[x] = border_direction[x + size_x];
+			border_direction[x + size_x] = BorderDirection();
+		}
 	}
 }
+
+void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* offset) {
+	glVertexAttribFormat(index, size, type, normalized, stride);
+	glEnableVertexAttribArray(index);
+	glVertexAttribBinding(index, 0);
+}
+
 void display_data::create_border_ogl_objects() {
-	border_indicies = ((uint32_t)border_vertices.size());
-
-	glGenVertexArrays(1, &border_vao);
-	glBindVertexArray(border_vao);
-
+	// Create and populate the VBO
 	glGenBuffers(1, &border_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(border_vertex) * border_vertices.size(), &border_vertices[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	// Create and bind the VAO
+	glGenVertexArrays(1, &border_vao);
+	glBindVertexArray(border_vao);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, border_vbo, 0, sizeof(border_vertex));
+
+	// Set up vertex attribute format for the position
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, position_));
+	// Set up vertex attribute format for the normal direction
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, normal_direction_));
+	// Set up vertex attribute format for the direction
+	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, direction_));
+	// Set up vertex attribute format for the border id
+	glVertexAttribFormat(3, 1, GL_UNSIGNED_INT, GL_FALSE, offsetof(border_vertex, border_id_));
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(4 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glVertexAttribBinding(0, 0);
+	glVertexAttribBinding(1, 0);
+	glVertexAttribBinding(2, 0);
+	glVertexAttribBinding(3, 0);
 
 	glBindVertexArray(0);
 }
@@ -296,22 +454,45 @@ void display_data::create_meshes() {
 			add_quad(land_vertices, pos0, pos1);
 	}
 
-	water_indicies = ((uint32_t)water_vertices.size());
-	land_indicies = ((uint32_t)land_vertices.size());
+	water_vertex_count = ((uint32_t)water_vertices.size());
+	land_vertex_count = ((uint32_t)land_vertices.size());
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
+	// Create and populate the VBO
 	glGenBuffers(1, &water_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, water_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * water_vertices.size(), &water_vertices[0], GL_STATIC_DRAW);
 
+	// Create and bind the VAO
+	glGenVertexArrays(1, &water_vao);
+	glBindVertexArray(water_vao);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, water_vbo, 0, sizeof(map_vertex));
+
+	// Set up vertex attribute format for the position
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(map_vertex, position));
+	glEnableVertexAttribArray(0);
+	glVertexAttribBinding(0, 0);
+
+	glBindVertexArray(0);
+
+	// Create and populate the VBO
 	glGenBuffers(1, &land_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, land_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * land_vertices.size(), &land_vertices[0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	// Create and bind the VAO
+	glGenVertexArrays(1, &land_vao);
+	glBindVertexArray(land_vao);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, land_vbo, 0, sizeof(map_vertex));
+
+	// Set up vertex attribute format for the position
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(map_vertex, position));
 	glEnableVertexAttribArray(0);
+	glVertexAttribBinding(0, 0);
+
 	glBindVertexArray(0);
 
 	create_border_ogl_objects();
@@ -343,10 +524,13 @@ display_data::~display_data() {
 	if(province_highlight)
 		glDeleteTextures(1, &province_highlight);
 
-	if(vao)
-		glDeleteVertexArrays(1, &vao);
+	if(water_vao)
+		glDeleteVertexArrays(1, &water_vao);
+	if(land_vao)
+		glDeleteVertexArrays(1, &land_vao);
 	if(border_vao)
 		glDeleteVertexArrays(1, &border_vao);
+
 	if(land_vbo)
 		glDeleteBuffers(1, &land_vbo);
 	if(water_vbo)
@@ -446,68 +630,53 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 	glActiveTexture(GL_TEXTURE11);
 	glBindTexture(GL_TEXTURE_2D, stripes_texture);
 
-	glBindVertexArray(vao);
+	auto load_shader = [&](GLuint program) {
+		glUseProgram(program);
 
+		// uniform vec2 offset
+		glUniform2f(0, offset_x + 0.f, offset_y);
+		// uniform float aspect_ratio
+		glUniform1f(1, screen_x / ((float)screen_y));
+		// uniform float zoom
+		glUniform1f(2, zoom);
+		// uniform vec2 map_size
+		glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
+	};
+
+	// Draw the land part of the map
 	if(active_map_mode == map_mode::mode::terrain)
-		glUseProgram(terrain_shader);
+		load_shader(terrain_shader);
 	else {
 		if(zoom > 5)
-			glUseProgram(terrain_political_close_shader);
+			load_shader(terrain_political_close_shader);
 		else
-			glUseProgram(terrain_political_far_shader);
+			load_shader(terrain_political_far_shader);
 	}
 
-	// uniform float aspect_ratio
-	glUniform1f(1, screen_x / ((float)screen_y));
-	// uniform float zoom
-	glUniform1f(2, zoom);
-	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
+	glBindVertexArray(land_vao);
+	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
 
-	glBindVertexBuffer(0, land_vbo, 0, sizeof(map_vertex));
-
-	glUniform2f(0, offset_x + 0.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, land_indicies);
-
+	// Draw the water part of the map
 	if(active_map_mode == map_mode::mode::terrain || zoom > 5) {
-		glUseProgram(water_shader);
+		load_shader(water_shader);
 		// uniform float time
 		glUniform1f(4, time_counter);
 	} else {
-		glUseProgram(water_political_shader);
+		load_shader(water_political_shader);
 	}
 
-	// uniform float aspect_ratio
-	glUniform1f(1, screen_x / ((float)screen_y));
-	// uniform float zoom
-	glUniform1f(2, zoom);
-	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
-
-	glBindVertexBuffer(0, water_vbo, 0, sizeof(map_vertex));
-
-	glUniform2f(0, offset_x + 0.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, water_indicies);
+	glBindVertexArray(water_vao);
+	glDrawArrays(GL_TRIANGLES, 0, water_vertex_count);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, border_texture);
 
+	// Draw the borders
+	load_shader(line_border_shader);
 	glBindVertexArray(border_vao);
+	glDrawArrays(GL_TRIANGLES, 0, border_vertices.size());
 
-	glUseProgram(line_border_shader);
-
-	// uniform float aspect_ratio
-	glUniform1f(1, screen_x / ((float)screen_y));
-	// uniform float zoom
-	glUniform1f(2, zoom);
-	// uniform vec2 map_size
-	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
-
-	glBindVertexBuffer(0, border_vbo, 0, sizeof(border_vertex));
-
-	glUniform2f(0, offset_x + 0.f, offset_y);
-	glDrawArrays(GL_TRIANGLES, 0, border_indicies);
-
+	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
 }
 
