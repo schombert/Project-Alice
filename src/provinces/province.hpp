@@ -43,6 +43,8 @@ void restore_unsaved_values(sys::state& state);
 template<typename T>
 auto is_overseas(sys::state const& state, T ids);
 
+void update_state_administrative_efficiency(sys::state& state);
+
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
 float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
 float monthly_net_pop_internal_migration(sys::state& state, dcon::province_id id);

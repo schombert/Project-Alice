@@ -60,6 +60,10 @@ Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since
 
 ## Economy
 
+### Stockpile automation
+
+The player may automate their stockpile management, and the AI always does (uh, by definition). For each commodity we first figure out the cost required to buy land-units-supply x land-units-spending + naval-units-supply x naval-units-spending + construction-projects x construction-spending worth of the commodity. If the limit for the stockpile is set to less than the amount required to fulfill those purchases, the stockpile is set to buy and the limit is raised to the necessary value. And that is it. So on automation eventually the limits get raised to the greatest value that has ever been seen for national spending.
+
 ### Share factor
 
 If the nation is a civ and is a secondary power start with define:SECOND_RANK_BASE_SHARE_FACTOR, and otherwise start with define:CIV_BASE_SHARE_FACTOR. Also calculate the sphere owner's foreign investment in the nation as a fraction of the total foreign investment in the nation (I believe that this is treated as zero if there is no foreign investment at all). The share factor is (1 - base share factor) x sphere owner investment fraction + base share factor. For uncivs, the share factor is simply equal to define:UNCIV_BASE_SHARE_FACTOR (so 1, by default). If a nation isn't in a sphere, we let the share factor be 0 if it needs to be used in any other calculation.
@@ -70,15 +74,231 @@ During its monthly pop update tick (see below), if an artisan hasn't been satisf
 
 ### Construction
 
+#### National projects
+
 (Note: this applies to both military unit and building projects, I believe)
 - A project under construction demands 1/100th of its total commodity cost per day until enough of each commodity has been consumed.
 - A project under construction takes its daily demanded commodities out of the national stockpile (up to availability). It then loses money based on the price of those commodities (although this amount is not allowed to leave it with negative money, so the possibility of free commodities exists), and the nation gains money equal to the amount the project loses.
 - Note that much of this is entirely wasted computation if the nation itself has funded the project: it puts money into the project only to pay itself back. In the case of private investment, it would be simpler just to pay the nation directly at the start. In the end, it will all come to the same thing, and it removes a non-trivial amount of bookkeeping.
 - The amount demanded by projects is added to the nation's daily demand for good
 
+#### Pop projects
+
+Pop projects are things like factory construction / upgrading / reopening / railroad building
+Pop projects are possible only subject to the political rules, and must be under construction long enough to complete.
+
+A pop project buys commodities like a factory would buy its inputs (i.e. it doesn't draw directly from the national stockpile).
+Constructing a new building has a cost based on commodities of (technology-factory-owner-cost + 1) x (national-factory-owner-cost-modifier) x (the-price-required-to-purchase-construction-goods) + 25 x cost-to-purchase-one-day-of-inputs-at-level-1
+Reopening a building has a cost of : 25 x cost-to-purchase-one-day-of-inputs-at-level-1
+Upgrading a building has a cost of: (technology-factory-owner-cost + 1) x (national-factory-owner-cost-modifier) x (the-price-required-to-purchase-construction-goods) + building-cost x 2-to-the-level-minus-2-power
+
 ### Overseas penalty
 
 For each commodity that has been discovered by *someone*, a nation pays define:PROVINCE_OVERSEAS_PENALTY x number-of-overseas-provinces per day. Then take the fraction of each commodity that the nation is *not* able to supply, average them together and multiply by 1/4th to determine the nation's overseas penalty.
+
+### Invisible "banking"
+
+Yes, there are flows of currency that are largely invisible in the game. I think of them collectively as banking or finance, but really that is just a nice name.
+
+We associate a "bank" with each nation, and we think of it as having a branch in each state within the nation. This bank has a central reserve of money and can accumulate loan interest (always positive; it never loses money on loans). If the bank has nearly no money, this loan interest is deposited directly into its central reserves. If the central bank's reserves are not empty, then the money is "distributed" to the branches. ("distributed" because, as you will see, that is only a rough analogy for what happens). To distribute it over the states, we keep a running total of the loan interest to subtract from as we visit each state. First we calculate for a state the fraction of the branch's reserve to the central bank's reserve and multiply the total loan interest by that fraction. If that amount is less that what remains in the running total, we give that amount to the branch as its loan interest and subtract it from the running total. If it is greater than what is left in the running total, we add what remains in the running total to the branch's loan interest. We then do not alter the running total and proceed to the next state. As you can tell, this method is going to be very order dependent in terms of what happens, and yet I have no idea if there is any canonical way the states are supposed to be ordered. In any case, after distribution we zero out the loan interest credited to the central bank.
+
+When a pop withdraws money to make a purchase, the amount that can be withdrawn is limited to the least of the pop's savings (obviously), the amount of savings stored in their state branch, and the money in the central bank's reserves - the amount it has lent out. The amount is then subtracted from both the local branch and the central bank, as well as the pop's account. NOTE: a pop's bank account is in addition to any money it has on hand. Pops try to keep about twice their needs spending out of the bank and as cash on hand. However, if a pop is satisfying all of its luxury needs (or nearly so) it will put define:POP_SAVINGS x its cash on hand into the bank. (Adding an identical amount to its state branch and central bank ledgers.)
+
+### Maximum loan amount
+
+A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. THere is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base. And there is also a cap from what is available in the central banks of other nations, where for each nation not currently at war with the borrowing nation and which is not an unpaid creditor we add: (national-modifier-to-max-loan-amount + 1) x (money-in-reserves-of-that-central-bank - money-that-central-bank-has-loaned-out) - amount-already-loaned (and this should be calculated even for the nation itself, i.e. borrowing from its own central bank), and then define:SHADOWY_FINANCIERS_MAX_LOAN_AMOUNT. The lower of these two values is the maximum amount a nation can borrow.
+
+### Workforce adjustment
+
+This is a common concept between both factories and RGOs, which both have employment. When we are adjusting the number of workers employed we have both a target number of employees that the adjustment is made towards and a speed factor that determines how fast the adjustment is made. Let us call the change in employment required to reach our target delta. When firing people, we fire up to the greater of 50 or delta x define:EMPLOYMENT_HIRE_LOWEST, and then limit that to at most delta x speed-factor x 0.25. When hiring people, the logic appears to be completely different. People are hired towards the target at the rate of delta x speed-factor, or define:EMPLOYMENT_HIRE_LOWEST x number-currently-employed, or 50, whichever is greater.
+
+### Factory internals
+
+Every day, on a state by state basis, we must adjust the status of each factory, going from highest priority to the lowest (the exact ordering within factories with the same priority appears to be constant but is otherwise opaque -- leftmost in the gui?) we perform its daily update:
+- We define the delete-factory-condition as true if the delete-factories-with-no-input rule is set and the nation is player controlled OR if the nation is ai controlled and at peace, and false otherwise
+- If the delete-factories-with-no-input rule is in effect, any factory that employs more than 1000 people has its priority set to 0 (and set to 1 if there are fewer than 1000 people employed).
+- We must determine if it has made a profit, which depends on whether its last income + its last investment + its last shortfall subsidy is greater than the amount it payed out in wages + its spending on inputs. If it is profitable, it gets marked as having an additional profitable day (I think this record is 8 days long?), and the net profit or loss is recorded
+- Factories receiving an injection of cash for N days receive 1/Nth of the amount each day to their local cash reserves. This does not affect whether they are deemed to be profitable.
+- Factories that have gone for more than 10 days without input or are closed by the player are considered to be closed.
+- Open factories have their employment adjusted. A factory that is being subsidized, or has spending less than its income, or has sufficient cash reserves (100?) is considered to be financially stable. The effective max employment in a factory is its level x its base workforce x the fraction of the state that is not occupied (i.e. fraction-of-state-controlled x level gives us its effective level). If the factory is financially stable we adjust its workforce towards the effective max employment with a speed of 0.15, otherwise we adjust it towards zero with a speed of 0.15.
+- Note that factories with higher priority, because they go first, get a first shot at the factory workers to hire/fire, meaning that they end up with more.
+- Note also that factories that are currently upgrading ignore days without input / other shutdown rules
+- Newly built factories (upgrading from 0) seem to have some special employment logic to get them up to 1000. ... Look I can only figure out so many details.
+- Automatic deletion of factories: if the delete-factory-condition is met AND the factory has gone more than 10 days without input AND it wasn't closed by the player AND there are are least define:MIN_NUM_FACTORIES_PER_STATE_BEFORE_DELETING_LASSIEZ_FAIRE factories in the state AND no provinces in the state are occupied AND (there are at least define:NUM_CLOSED_FACTORIES_PER_STATE_LASSIEZ_FAIRE closed factories OR there are 8 factories in state) THEN the factory will be deleted
+- Each factory has an input, output, and throughput multipliers.
+- These are computed from the employees present. Input and output are 1 + employee effects, throughput starts at 0
+- Owner fraction is calculated from the fraction of owners in the state to total state population in the state (with some cap -- 5%?)
+- For each pop type employed, we calculate the ratio of number-of-pop-employed-of-a-type / (base-workforce x level) to the optimal fraction defined for the production type (capping it at 1). That ratio x the-employee-effect-amount is then added into the input/output/throughput modifier for the factory.
+- Then, for input/output/throughput we sum up national and provincial modifiers to general factory input/output/throughput are added, plus technology modifiers to its specific output commodity, add one to the sum, and then multiply the input/output/throughput modifier from the workforce by it.
+- Factories also contain a purchasing factor that limits how much of their inputs they buy, which is also updated daily
+- If factory unsold quantity / factory current production is less than define:FACTORY_PURCHASE_DRAWDOWN_FACTOR, then the factory's purchasing factor is increased by define:FACTORY_PURCHASE_DRAWDOWN_FACTOR
+- Otherwise, decrease its purchasing factor by define:FACTORY_PURCHASE_DRAWDOWN_FACTOR to a minimum of define:FACTORY_PURCHASE_MIN_FACTOR
+
+
+Factory cost modifier: (technology-factory-cost-modifier + 1) x national-factory-cost-modifier
+(for RR / forts / naval bases built by the nation: (technology-factory-cost-modifier + 1) x (2 - national-administrative-efficiency))
+(for RR build by pops: national-factory-cost-modifier)
+
+### Artisans internals
+
+- Each artisan pop has its own rate of production speed that can increase or decrease based on the status of the artisan pop.
+- If the artisan pop is getting its everyday needs at more than 0.85 or all of its everyday needs are deemed to be affordable: the production rate is multiplied by 1.15 up to a maximum of 1
+- If the artisan pop is getting its everyday needs at less than 0.85 and either all of its life needs are affordable or its life needs are satisfied by at least 0.9: the production rate is not adjusted
+- If the artisan pop is getting its everyday needs at less than 0.85, is life needs are not all affordable, and its life need satisfaction is less than 0.9: the production rate is multiplied by 0.85 down to a minimum of 0.15
+- Like factories, artisan spending is also governed partly by a purchasing limit. This limit can increases by 1.05 times per day limited to between half their last income and total last income (I believe that this income does not take into account their expenses, however ...).
+
+### RGO internals
+
+Each RGO has an effective size = base size x (technology-bonus-to-specific-rgo-good-size + technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1).
+Like a factory, the rgo employs pops. If the province is currently occupied, its workers are adjusted towards 0, just as a factory makes such an adjustment. If the province is newly restored to owner control, there seems to be some special logic pushing employment up (something like: the workforce increase speed is 25x faster).
+If the supply to real demand ratio for the commodity produced by the RGO is greater than 1.05: the workforce is adjusted towards zero at speed (supply-to-demand-ratio - 1) x define:RGO_SUPPLY_DEMAND_FACTOR_FIRE
+If the supply to real demand ratio is less than 1.1 but greater than 1.0: the workforce remains the same
+If the supply to real demand ratio is less than 1.0 but greater than 0.9: the workforce is adjusted towards full employment at speed (1 - supply-to-demand-ratio) x define:RGO_SUPPLY_DEMAND_FACTOR_HIRE_LO
+If the supply to real demand ratio is less than 0.9: the workforce is adjusted towards full employment at speed (1 - supply-to-demand-ratio) x define:RGO_SUPPLY_DEMAND_FACTOR_HIRE_HI
+The money RGO always targets full employment
+
+### Prices, production, buying, and selling
+
+The material in this section is often what people think of as the Victoria 2 economy, so brace yourself for a somewhat complicated explanation.
+
+At the beginning of the update we calculate from values generated by the previous day: (change-in-money-in-circulation + money-value-produced) / (money-in-circulation + money-value-produced) + ~0.8 (approx-a-little-less-than-this). And then this value is itself set to 1.0 if it is out of the 0.0 to 1.0 range. Let us call this the circulation-ratio.
+
+1. Update prices based on values from the previous day (everything below refers to global demand and supply):
+- price of money remains the price defined by the commodities file
+- for each other commodity, check its real demand (see below for what real demand is), and if its real demand is positive, check its supply. If its supply is also positive, we then take the square root of real-demand / supply and multiply that result by the base price of the commodity. Let us call this the ratio-adjusted-price.
+- If the ratio-adjusted-price is less than the current price - 0.01, then the price decreases by 0.01.
+- If the ratio-adjusted-price is greater than the current price + 0.01, then the price increases by 0.01.
+- Prices are then limited to being within 1/5th to 5x the base price of the commodity.
+
+2. Unadjusted supply and demand:
+While most of what goes on below is expressed directly in terms of adding to domestic supply or demand, unless noted otherwise, it should be taken as given that the same is added to world supply or demand. Also, world supply and demand for all commodities should be treated as at least 1.
+
+A.
+- For each commodity:
+- If the national stockpile is *not* buying (i.e. it is selling)
+- - If the nation is *not* set to buy from its own stockpile
+- - Add the amount in the stockpile over the limit to the domestic supply, reduce the national stockpile to the limit value
+- - If the nation *is* set to buy from its own stockpile, then do not adjust it at all at this point
+- If the national stockpile *is* buying, add the difference between the actual stockpile and the limit to domestic demand
+- Add the national stockpiles to domestic supply if the nation is set to buy from its own stockpiles.
+B.
+- For each factory:
+- Only non-closed (see above) factories that are at least level 1 (i.e. not doing their initial construction) produce/consume
+- Each factory produces by consuming inputs from its internal stockpile
+- The target input consumption scale is: input-multiplier x throughput-multiplier x factory level
+- The actual consumption scale is limited by the input commodities sitting in the stockpile (i.e. input-consumption-scale x input-quantity must be less than the amount in the stockpile)
+- A similar process is done for efficiency inputs, except the consumption of efficiency inputs is (national-factory-maintenance-modifier + 1) x input-multiplier x throughput-multiplier x factory level
+- Finally, we get the efficiency-adjusted consumption scale by multiplying the base consumption scale by (0.75 + 0.25 x the efficiency consumption scale)
+- (A factory with no efficiency goods performs as if all its efficiency goods are fully consumable)
+- A factory *produces* efficiency-adjusted-consumption-scale x output-multiplier x throughput-multiplier x level x production quantity amount of its output good, which gets added to domestic supply
+- Using the same consumption calculation, the factory adds the difference between what it has left in its stockpile to what it would require to produce at its maximum consumption scale to domestic demand.
+C.
+- For each expansion or construction project:
+- Multiply the cost modifier (see above) by the cost in commodities for the project. Then subtract the project's stockpile from what is required. Figure out the maximum amount the project can purchase based on its money. Then, add those commodities to domestic demand.
+D.
+- For each artisan pop:
+- We calculate pop-size x artisan-production-rate (see above) / artisan-production-workforce. Then we do the production step essentially as we do for factories, except that we use the preceding value as the "level" of the factory.
+E.
+- For each RGO:
+- We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size + technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
+- We add its production to domestic supply, calculating that amount basically in the same way we do for factories, by computing RGO-throughput x RGO-output x RGO-size x base-commodity-production-quantity, except that it is affected by different modifiers.
+F.
+- For each pop
+- Each pop strata and needs type has its own demand modifier, calculated as follows:
+- (national-modifier-to-goods-demand + define:BASE_GOODS_DEMAND) x (national-modifier-to-specific-strata-and-needs-type + 1) x (define:INVENTION_IMPACT_ON_DEMAND x number-of-unlocked-inventions + 1, but for non-life-needs only)
+- Each needs demand is also multiplied by  2 - the nation's administrative efficiency if the pop has education / admin / military income for that need category
+- We calculate an adjusted pop-size as (0.5 + pop-consciousness / define:PDEF_BASE_CON) x (for non-colonial pops: 1 + national-plurality (as a fraction of 100)) x pop-size
+- Each of the pop's needs for life/everyday/luxury are multiplied by the appropriate modifier and added to domestic demand
+
+3. Adjusting sphere supply / demand
+- Each sphere member has its domestic x its-share-factor (see above) of its base supply and demand added to its sphere leader's domestic supply and demand (this does not affect global supply and demand)
+- Every nation in a sphere (after the above has been calculated for the entire sphere) has their effective domestic supply set to (1 - its-share-factor) x original-domestic-supply + sphere-leader's-domestic supply
+
+4. Purchasing
+Common purchasing concepts:
+- Whenever purchases are made, the purchaser tries first to purchase as much as possible from domestic supply, and then tries to buy any remainder from the global supply (where does global supply come from? keep reading)
+- If you take the the available amount that could be purchased assuming unlimited supply, given the amount of money that the purchaser is spending, you have a quantity of commodities that we then add to the *real demand* for those commodities.
+- What is actually purchased is limited to first availability in domestic supply, and then availability in global supply, except that when purchasing from global supply, prices are multiplied by (the nation's current tariff setting x its tariff efficiency x its blockaded fraction + 1)
+- Money spent on purchasing from the global supply will eventually become the basis for tariff income. (So blockades make things cost more, but they also potentially increase your income ...)
+- Note that money used to make purchases does not "go" anywhere, it just vanishes. See Selling, below, for how producers earn money
+
+We do the below for each nation in order of their rank (rank 1 goes first)
+
+For each open factory:
+- Calculate the total inputs that would be required for full production given the current workforce, modifiers, etc *in addition* to what is left in its stockpile
+- Then reduce these inputs by multiplying them by the factory's purchasing factor
+- These commodities are what it will try to purchase.
+- A factory is allowed to spend up to (current-cash-reserves ^ last spending x 1.05) v 0.1 x current-cash-reserves
+- If its spending limit is less than the base cost if its inputs, the factory's purchases are thus further proportionally limited
+- If the factory can't purchase anything, once the prices have been computed, and it isn't being subsidized, then it would be marked as having gone a day without inputs, which will eventually result in it being closed.
+- Purchased commodities go into the factory stockpile
+For each construction project:
+- The project purchases as much as it can based on its current cash reserves
+- Commodities go into its internal stockpile
+For the national stockpile:
+- Commodities where the stockpile is set to buy and there is not enough in the stockpile function like normal purchases, except that the country automatically borrows up to its max loan limit to do the purchasing. There is one major caveat, however: nations don't appear to pay any extra for commodities from the global supply (not even from blockade effects), and naturally their stockpile purchases aren't added to tariff sums.
+For pops:
+- Pops buy their needs in order of their strata (rich first), and then within that ... I don't know the details.
+- Artisans buy inputs (they withdraw from their bank to make purchases in preference to their money on hand)
+- Pops buy needs first from their money on hand and then by withdrawing from the bank if necessary.
+- Pops of a given type seem to buy their needs more or less "together" (i.e. if needs satisfaction is limited by commodity availability and not price, the pops seem to get more or less an even share of it)
+- Pops get define:LUXURY_CON_CHANGE whenever they spend enough on luxury goods.
+
+Note that a nation that is in the sphere or another can purchase from any unsold commodities in its sphere leader's domestic supply after it exhausts its own domestic supply (and no tariffs etc are applied here).
+
+Once all purchasing has been completed, commodities that were moved into domestic supply to be sold as part of the buy-from-the-nation's-stockpile setting are moved back into national stockpiles if they were not in fact purchased.
+
+The simplest case are nations neither in a sphere nor part of a sphere:
+If the nation has buying from the stockpile enabled, any "unsold" commodities that were moved from the stockpile to domestic supply are moved back into the stockpile. In other words, buying from the stockpile acts like another source of supply that commodities are purchased from after normal domestic supply is exhausted.
+
+The problem, of course, is that the domestic supply from sphere members gets mixed together. How can you keep track of how much of what has been dumped on the market for selling has actually been sold? Here is what probably should happen: we would figure out the percentage of stockpile commodities that were placed into domestic supply that were sold, and put back into each sphere member (and the sphere leader) an amount proportional to what it put in. However, something seems to go wrong in the actual game here, and it looks like some or all of these commodities are being drained out of the sphere leader's stockpiles (??). More investigation may be required here to determine the exact nature of this bug.
+
+Any remaining, unconsumed domestic supply is then added to global supply.
+
+5. Income
+
+Common income concepts:
+Reminder, the effective domestic supply is defined above in step 3.
+Consumed domestic supply: even when in a sphere, a nation is treated as having bought its domestic production first
+When pops are paid: when a pop is paid we must calculate the nation's tax efficiency, which is: (nation's-modifier-to-tax-efficiency + tax-efficiency-from-technology + define:BASE_COUNTRY_TAX_EFFICIENCY). The amount of pop income x tax-efficiency value add up to the unmodified tax base of the nation. Multiplying this by the tax setting for the strata determines the amount of tax the nation collects.
+Slave type pops are not counted as workers when paying pops.
+
+For factories:
+For each factory, we calculate the share of the effective domestic supply that its production contributed to.
+We also calculate the share of the previous day's global supply pool that its production-not-purchased-domestically from the previous day contributed to (obviously that value must then be calculated for the upcoming day, etc). The factory is then given income equal to the quantity of its production that was sold domestically as well as for any production that was sold from the global supply pool on the previous day (as if all purchases were distributed proportionally to the amount of production). This value becomes the factory's income (see the details of how factories work for why this may matter), and we can compare it to the spending from the day to see whether the factory was profitable.
+
+Each factory has base expenses equal to the money required to pay for its inputs the next day plus 1/5th of the life needs costs of its employees. If it is subsidized and has less than that amount of money, the owning nation pays it the difference in subsidies.
+
+If there is enough money in the cash reserves to cover at least one week of input, the factory pays out a bonus. The bonus is (factory-profit = income - input-costs) x define:FACTORY_PAYCHECKS_LEFTOVER_FACTOR x factory-cash-reserves / (define:MAX_FACTORY_MONEY_SAVE x factory-level). If this bonus is greater than the minimum wage value (life-needs-costs-of-its-employees x national-minimum-wage-modifier x national-administrative-efficiency), then the owners, if any, are paid the amount of the bonus in excess of the minimum wage, and the workers get the minimum wage. Otherwise, the owners get half the bonus and the workers get the other half.
+
+Stockpile sales:
+Each nation earns money equal to the quantity of commodities sold from the stockpile times the price of the commodity (this applies to both the simple "dumping on the market" sales and allowing entities within the nation to purchase form the stockpile).
+
+Direct gold income:
+A nations earns define:GOLD_TO_CASH_RATE x the amount of gold produced from each money RGO
+
+Reparations:
+A nation paying reparations loses define:REPARATIONS_TAX_HIT x its-tax-base in money per day, while the country receiving them gets that much money.
+
+War subsidies:
+Yep, you can get money from war subsidies.
+
+Tariffs:
+Each nation earns (or loses, for subsidies) money equal to its-tariff-setting x tariff-efficiency x total-amount-of-global-supply-purchases (see above). Given how these values are calculated, this usually means money is appearing from nothing or vanishing into nothing.
+
+RGOs:
+The money RGO computes its income as if all of its production sold at the current price (which is fixed for "money/gold") and then is further multiplied by define:GOLD_TO_WORKER_PAY_RATE. Otherwise, RGO income is calculated like factory income. Since RGOs don't have to keep a reserve, I believe that they pay out wages by first paying out up to the minimum wage value to the normal workers, and then pay the remainder to the aristocrats (if any) (someone should check this).
+
+Artisans:
+Profit is calculated as per a factory. Any profit (i.e. income over that required to purchase inputs) goes into the pockets of the artisan, meaning that it is taxed as normal pop income.
+
+Other pop income:
+Pops may receive income directly from the the nation depending on their income type/national policies. For each needs category, the payout is based on how much it would cost to fully satisfy those needs and the payout type. Payouts of this sort do seem to be taxed, confusingly enough.
+
+Pops that don't have their needs categories covered by direct state spending appear to get: social-spending x life-needs-cost x pension-level x administrative-efficiency + social-spending x life-needs-cost x unemployment-fraction x administrative-efficiency per day.
+
+And for each need category where the pop is payed by education/administration/military:
+The nation pays the pop nations-administrative/education/military-spending x (2 - administrative-efficiency) x needs-cost
 
 ## Pops and demographics
 
@@ -102,7 +322,6 @@ Province pop-growth factor: Only owned provinces grow. To calculate the pop grow
 
 The amount a pop grows is determine by first computing the growth modifier sum: (pop-life-needs - define:LIFE_NEED_STARVATION_LIMIT) x province-pop-growth-factor x 4 + province-growth-modifier + tech-pop-growth-modifier + national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
 
-
 ### Migration
 
 Internal and external "normal" migration appears to be handled distinctly from "colonial" migration. In performing colonial migration, all pops of the same culture+religion+type seems to get combined before moving them around. Pops may only migrate between countries of the same civ/unciv status.
@@ -123,11 +342,27 @@ As for demotion, there appear to an extra wrinkle. Pops do not appear to demote 
 
 Pops that move / promote seem to take some money with them, but there is also magical money generated by starter share, at least for capitalists, probably so that it is possible for the first capitalists in a state with no factories to build a factory. I propose the following instead: capitalists building a factory in a province with no open factories (or reopening a closed factory in those conditions) is simply free.
 
-## Politics
+### Militancy
 
-### Party loyalty
+Let us define the local pop militancy modifier as the province's militancy modifier + the nation's militancy modifier + the nation's core pop militancy modifier (for non-colonial states, not just core provinces).
 
-Each province has a party loyalty value (although it is by ideology, not party, so it would be more appropriately called ideology loyalty ... whatever). If the national focus is present in the state for party loyalty, the loyalty in each province in the state for that ideology will increase by the loyalty value of the focus.
+### Consciousness
+
+Pops in non-colonial states have a plurality multiplier of 1 + national plurality, (treat this value as 1 for colonial pops)
+
+### Literacy
+
+Everyday, the literacy of each pop changes by: 0.01 x define:LITERACY_CHANGE_SPEED x education-spending x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) / (define:MAX_CLERGY_FOR_LITERACY - define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0). Literacy cannot drop below 0.01.
+
+### Ideology
+
+For ideologies after their enable date (actual discovery / activation is irrelevant), and not restricted to civs only for pops in an unciv, the attraction modifier is computed *multiplicatively*. Then, these values are collectively normalized. If the normalized value is greater than twice the pop's current support for the ideology: add 0.25 to the pop's current support for the ideology
+If the normalized value is greater than the pop's current support for the ideology: add 0.05 to the pop's current support for the ideology
+If the normalized value is greater than half the pop's current support for the ideology: do nothing
+Otherwise: subtract 0.25 from the pop's current support for the ideology (to a minimum of zero)
+The ideological support of the pop is then normalized after the changes.
+
+### Issues
 
 ## Military
 
@@ -143,6 +378,10 @@ define:CB_GENERATION_BASE_SPEED x cb-type-construction-speed x (national-cb-cons
 Each day, a fabricating CB has a define:CB_DETECTION_CHANCE_BASE out of 1000 chance to be detected. If discovered, the fabricating country gains the infamy for that war goal x the fraction of fabrication remaining. If discovered relations between the two nations are changed by define:ON_CB_DETECTED_RELATION_CHANGE. If discovered, any states with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
 
 When fabrication progress reaches 100, the CB will remain valid for define:CREATED_CB_VALID_TIME months (so x30 days for us). Note that pending CBs have their target nation fixed, but all other parameters are flexible.
+
+### Other CBs
+
+Beyond fabricating a CB, you can get one from any CB with "triggered_only = yes" if the "is_valid" trigger is satisfied (with the potential target country in scope and the country that would be granted the CB in "this"). I believe that this is always tested daily. At least for the player, some record of which CBs were available in the previous day must be maintained in order to give messages about CB gained/lost for these triggered CBs
 
 ### Leaders (Generals and Admirals)
 
@@ -222,12 +461,168 @@ Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may 
 
 #### Siege
 
-Garrison recovers at 10% per day when not being sieged
+Garrison recovers at 10% per day when not being sieged (to 100%)
+
+Only stationary, non black flagged regiments with at least 0.001 strength contribute to a siege.
+
+If there is a regiment with siege present:
+We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer) greatest-siege-value-present x
+((the ratio of the strength of regiments with siege present to the total strength of all regiments) ^ define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
+We calculate the siege speed modifier as: 1 + define:RECON_SIEGE_EFFECT x greatest-reconnaissance-value-present x ((the ratio of the strength of regiments with reconnaissance present to the total strength of all regiments) ^ define:RECON_UNIT_RATIO) / define:RECON_UNIT_RATIO.
+We calculate the modifier for number of brigades: first we get the "number of brigades" as total-strength-of-regiments x 1000 / define:POP_SIZE_PER_REGIMENT, and capping it to at most define:SIEGE_BRIGADES_MAX. Then we calculate the bonus as (number-of-brigades - define:SIEGE_BRIGADES_MIN) x define:SIEGE_BRIGADES_BONUS if number-of-brigades is greater the minimum, and as number-of-brigades / define:SIEGE_BRIGADES_MIN otherwise.
+Finally, the amount subtracted from the garrison each day is: siege-speed-modifier x number-of-brigades-modifier x Progress-Table\[random-int-from-0-to-9\] x (1.25 if the owner is sieging it back) x (1.1 if the sieger is not the owner but does have a core) / Siege-Table\[effective-fort-level\]
+
+The garrison returns to 100% immediately after the siege is complete and the controller changes. If your siege returns a province to its owner's control without the owner participating, you get +25 relations with the owner.
+
+When a province controller changes as the result of a siege, and it does not go back to the owner a random, `on_siege_win` event is fired, subject to the conditions of the events being met.
+
+Siege Table:
+0: 1.0
+1: 2.0
+2: 3.8
+3: 3.4
+4: 3.8 
+5: 4.2
+6: 4.5
+7: 4.8
+8: 5.0
+9: 5.2
+
+Progress Table:
+0: 0
+1: 0.2
+2: 0.5
+3: 0.75
+4: 0.75
+5: 1
+6: 1.1
+7: 1.1
+8: 1.25
+9: 1.25
+
+#### Land combat
+
+(Units in this section means regiments)
+
+- For the duration of this section we will define a regiment's ADMOS as its (attack + defense + maneuver) x organization x strength.
+- Combat width for a battle is determined by the least define:BASE_COMBAT_WIDTH + technology-modifier-to-combat width of any participant, from a maximum of 30 to a minimum of 2, multiplied by the combat-width modifier from terrain + 1.
+- Effective military tactics = define:BASE_MILITARY_TACTICS + tactics-from-tech
+- Each side has a leader that is in charge of the combat, which is the leader with the greatest value as determined by the following formula: (organization x 5 + attack + defend + morale + speed + attrition + experience / 2 + reconnaissance / 5  + reliability / 5) x (prestige + 1)
+
+Any units added to an ongoing combat after the initial ones are added first as additional reserves. Units with strength less than 0.1 or organization less than 1 are immediately treated as retreating. Then divide the units into three groups: those with positive support value, those with zero support and positive reconnaissance, and the rest.
+
+The initial front line will be constructed with pairs of reconnaissance units flanking the center, although I believe giving precedence to non reconnaissance units (? someone should double check this). The number of units without reconnaissance placed in the front line is limited to at most the number of opposing regiments. In all cases the highest ADMOS units are chosen for the initial front line. Units with positive support are placed in the back line in order of ADMOS. 
+Then we try to fill the back line with reserves. If both the front slot and back slot are empty, this is first done by finding a non-support unit with organization at least 1 and strength at least 0.1. Then for back row slots where the front slot is not empty, units with positive support value are put in, and then finally non support units are put in (someone should double check this; do support units really get preference here?).
+All remaining units that are not initially placed on the field are put in the reserves.
+
+On the first day, and every five days thereafter, each side in the combat receives a "die roll" of 0-to-9, inclusive.
+Whenever the dice are rolled after the first day, if the attacker rolls higher than the defender, the defender loses one point of dig-in.
+One side may instantly wipe the other on the first day. This happens if one side has less than one tenth the total unit strength of the other. In a wipe, each regiment is treated as having been destroyed.
+
+Combat modifiers:
+In addition to the dice, both sides are affected by:
+Attack or defend trait of the leader in charge (attack for attackers, defend for defenders)
+define:GAS_ATTACK_MODIFIER if the side has gas attack and the other side doesn't have gas defense
+terrain defense bonus (defender only)
+-1 for attacking across a river or -2 for attacking from the sea
+minus the least dig in value on the opposing side / 2 (if the side has at a fraction of units with reconnaissance at least define:RECON_UNIT_RATIO) or divided by (greatest-regiment-reconnaissance x (leader-reconnaissance + 1) x fraction-of-reconnaissance-unit-strength / total-strength)
+
+On each turn the attacker and defender deal damage simultaneously
+
+Units attack the opposing front row, and may look either left or right of their position up to `maneuver` positions.
+Units on the attacking side use their `attack` stat to do damage, while units on the defending side use `defense`.
+Strength damage dealt: unit-strength x (attack/defense x 0.1 + 1) x Modifier-Table\[modifiers + 2\] x 2 / ((effective-fort-level x 0.1 + 1) x opposing-effective-military-tactics x (experience-of-opposing-regiment x 0.1 + 1))
+Organization damage dealt: unit-strength x (attack/defense x 0.1 + 1) x Modifier-Table\[modifiers + 2\] x 2 / ((effective-fort-level x 0.1 + 1) x opposing-discipline (if non zero) x (experience-of-opposing-regiment x 0.1 + 1))
+Units attacking from the back row have these values multiplied by the unit's support value.
+
+If the unit is in a province controlled by a hostile power, we find the effective level of the fort as with a siege (We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer) greatest-siege-value-present x
+((the ratio of the strength of regiments with siege present to the total strength of all regiments) ^ define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.)
+
+When a regiment takes strength damage, the size of the pop backing it is reduced by: define:POP_SIZE_PER_REGIMENT x damage-amount x define:SOLDIER_TO_POP_DAMAGE / (max-strength x (solder-to-pop-loss-from-tech + 1)). Note that this applied to damage from attrition as well.
+
+When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
+
+On completion of a land battle, both sides get war exhaustion equal to: define:COMBATLOSS_WAR_EXHAUSTION x (technology-war-exhaustion-modifier + 1) x strength-lost / (define:POP_SIZE_PER_REGIMENT x total-recruitable-regiments)
+
+Each winning combatant get a random `on_battle_won` event, and each losing combatant gets a random `on_battle_lost` event.
+
+Both sides compute their scaled losses fraction, which is strength losses as a percentage of total possible regiment strength (including mobilization). The scaled losses fraction of the loser / the sum of the scaled losses forms the base of the prestige gain for the nation and the leader in charge on the winning side. The winning leader gets that value / 100 as added prestige. The winning nations gets (define:LEADER_PRESTIGE_LAND_GAIN + 1) x (prestige-from-tech-modifier + 1) x that value. Similarly, the losing nation and leader have their prestige reduced, calculated in the same way.
+
+War score is gained based on the difference in losses (in absolute terms) divided by 5 plus 0.1 to a minimum of 0.1
+
+When you beat someone else's rebels without them being present, you get +5 relations with them.
+
+Then, any unit in the back row with an empty font row slot ahead of it is moved forwards.
+
+Modifier Table
+-1 or less: 0
+0: 0.02
+1: 0.04
+2: 0.06
+3: 0.08
+4: 0.1
+5: 0.12
+6: 0.16
+7: 0.20
+8: 0.25
+9: 0.30
+10: 0.35
+11: 0.40
+12: 0.45
+13: 0.50
+14: 0.60
+15: 0.70
+16: 0.80
+17+: 0.90
+
+#### Naval combat
+
+(Units in this section means ships)
+
+On the first day, and every five days thereafter, each side in the combat receives a "die roll" of 0-to-9, inclusive.
+One side may instantly wipe the other on the first day. This happens if one side has less than one tenth the total hull strength of the other. In a wipe, each ship is treated as having been sunk.
+
+The side with more non-retreating ships has a stacking penalty of 1 - other-ships / more-ships, which is capped at 0.9
+
+On each turn the attacker and defender deal damage simultaneously
+
+A ship without a target (i.e. is seeking) has a chance of define:NAVAL_COMBAT_SEEKING_CHANCE + leader-in-charge-reconnaissance x (1.0 - define:NAVAL_COMBAT_STACKING_TARGET_SEEK x stacking-penalty-factor), or define:NAVAL_COMBAT_SEEKING_CHANCE_MIN, whichever is greater.
+Which target is selected ... is apparently quite complicated. Does anyone care if we copy this exactly or not?
+When a target is selected, distance is increased by random-value-in-range-\[0.0, 1.0) x (1.0 - combat-duration^define:NAVAL_COMBAT_SHIFT_BACK_DURATION_SCALE) / NAVAL_COMBAT_SHIFT_BACK_DURATION_SCALE) x NAVAL_COMBAT_SHIFT_BACK_ON_NEXT_TARGET to a maximum of 1000, and the ship switches to approaching.
+
+An approaching ship:
+Has its distance reduced by (random-value-in-range-\[0.0 - 0.5) + 0.5) x max-speed x define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR to a minimum of 0.
+Switches to engaged when its distance + the target's distance is less than its fire range
+
+An engaged ships:
+An engaged ship has a daily chance of stacking-penalty-factor x define:NAVAL_COMBAT_STACKING_TARGET_CHANCE + define: NAVAL_COMBAT_CHANGE_TARGET_CHANCE of switching targets. This would move it back into seeking.
+Torpedo attack: is treated as 0 except against big ships
+Damage to organization is (gun-power + torpedo-attack) x Modifier-Table\[modifiers + 2\] (see above) x target-strength x define:NAVAL_COMBAT_DAMAGE_ORG_MULT / (target-max-hull x target-experience x 0.1 + 1)
+Damage to strength is (gun-power + torpedo-attack) x Modifier-Table\[modifiers + 2\] (see above) x attacker-strength x define:NAVAL_COMBAT_DAMAGE_STR_MULT x define:NAVAL_COMBAT_DAMAGE_MULT_NO_ORG (if target has no org) / (target-max-hull x target-experience x 0.1 + 1)
+
+Retreating ships:
+A ship with a strength fraction or organization fraction less than define:NAVAL_COMBAT_RETREAT_STR_ORG_LEVEL will attempt to retreat. The probability of a ship retreating is define:NAVAL_COMBAT_RETREAT_CHANCE  + leader-in-charge-experience + leader-in-charge_speed
+A retreating ship will increase its distance by define:NAVAL_COMBAT_RETREAT_SPEED_MOD x define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR x (random value in the range \[0.0 - 0.5) + 0.5) x ship-max-speed.
+When it reaches a distance of 1000 it has successfully retreated.
+
+Note that ship losses are reported in terms of ships sunk (vs. land combat, where they are reported in terms of damage done).
+
+Embarked units that are destroyed because of their ship being destroyed do not reduce the pop size of the backing pop (i.e. they are not treated as having been dealt the damage required to destroy them).
+
+On finishing a naval battle:
+Each winning combatant get a random `on_battle_won` event, and each losing combatant gets a random `on_battle_lost` event.
+
+Both sides compute their scaled losses fraction, which is (1 + (sum over ship type: supply-consumption-score x strength-losses)) as a percentage of (total possible naval supply + 1). The scaled losses fraction of the loser / the sum of the scaled losses forms the base of the prestige gain for the nation and the leader in charge on the winning side. The winning leader gets that value / 100 as added prestige. The winning nations gets (defineLEADER_PRESTIGE_NAVAL_GAIN + 1) x (prestige-from-tech-modifier + 1) x that value. Similarly, the losing nation and leader have their prestige reduced, calculated in the same way.
+
+War score is gained based on the difference in losses (in absolute terms) divided by 5 plus 0.1 to a minimum of 0.1
+
+See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-combat-sort-of.1123034/), although in the case of disagreements you should assume that this document is correct in the absence of empirical evidence from the game proving otherwise.
 
 ## Movements
 
 - Movements come in two types: political and social (Here I fold independence movements under the political). Functionally, we can better distinguish the movements between those associated with a position on some issue (either political or social) and those for the independence of some national identity.
 - Slave pops cannot belong to a movement
+- Movements can accumulate radicalism, but only in civ nations. Internally we may represent radicalism as two values, a radicalism value and transient radicalism. Every day the radicalism value is computed as: define:MOVEMENT_RADICALISM_BASE + the movements current transient radicalism + number-of-political-reforms-passed-in-the-country-over-base x define:MOVEMENT_RADICALISM_PASSED_REFORM_EFFECT + radicalism-of-the-nation's-primary-culture + maximum-nationalism-value-in-any-province x define:MOVEMENT_RADICALISM_NATIONALISM_FACTOR + define:POPULATION_MOVEMENT_RADICAL_FACTOR x movement-support / nation's-non-colonial-population. 
 
 ## Rebels
 
@@ -266,7 +661,21 @@ The effective amount of research points a tech costs = base-cost x 0v(1 - (curre
 
 ## Politics
 
+### Party loyalty
+
+Each province has a party loyalty value (although it is by ideology, not party, so it would be more appropriately called ideology loyalty ... whatever). If the national focus is present in the state for party loyalty, the loyalty in each province in the state for that ideology will increase by the loyalty value of the focus.
+
+### When a social/political reform is possible
+
+These are only available for civ nations. If it is "next step only" either the previous or next issue option must be in effect. At least define:MIN_DELAY_BETWEEN_REFORMS must have passed since the last issue option change (for any type of issue). And it's `allow` trigger must be satisfied. Then. for each ideology, we test its `add_social_reform` or `remove_social_reform` (depending if we are increasing or decreasing, and substituting `political_reform` here as necessary), computing its modifier additively, and then adding the result x the fraction of the upperhouse that the ideology has to a running total. If the running total is > 0.5, the issue option can be implemented.
+
+### When an economic/military reform is possible
+
+These are only available for unciv nations. Some of the rules are the same as for social/political reforms:  If it is "next step only" either the previous or next issue option must be in effect. At least define:MIN_DELAY_BETWEEN_REFORMS must have passed since the last issue option change (for any type of issue). And it's `allow` trigger must be satisfied. Where things are different: Each reform also has a cost in research points. This cost, however, can vary. The actual cost you must pay is multiplied by what I call the "reform factor" + 1. The reform factor is (sum of ideology-in-upper-house x add-reform-triggered-modifier) x define:ECONOMIC_REFORM_UH_FACTOR + the nation's self_unciv_economic/military_modifier + the unciv_economic/military_modifier of the nation it is in the sphere of (if any).
+
 ### Elections
+
+A country with elections starts one every 5 years.
 
 Elections last define:CAMPAIGN_DURATION months.
 
@@ -314,6 +723,26 @@ A nation does not accumulate influence if: their embassy has been banned, if the
 
 The nation gets a daily increase of define:BASE_GREATPOWER_DAILY_INFLUENCE x (national-modifier-to-influence-gain + 1) x (technology-modifier-to-influence + 1). This is then divided among the nations they are accumulating influence with in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc). Any influence that accumulates beyond the max will be subtracted from the influence of the great power with the most influence (other than the influencing nation).
 
+## Crisis mechanics
+
+### Flashpoint tension
+
+The flashpoint focus is only available for non great power, non secondary power, and must be placed in a state that already has a flashpoint (in some province)
+
+## Colonization
+
+You can invest colonially in a region if there are fewer than 4 other colonists there (or you already have a colonist there). You must also have sufficient liferating tech. Specifically, you must have colonial life rating point from technology + define:COLONIAL_LIFERATING less than or equal to the *greatest* life rating of an unowned province in the state. Your country must be of define:COLONIAL_RANK or less. The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
+
+If you haven't yet put a colonist into the region, you must be in range of the region. Any region adjacent to your country or to one of your vassals or substates is considered to be in range. Otherwise it must be in range of one of your naval bases, with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
+
+If you have put a colonist in the region, and colonization is in phase 1 or 2, you can invest if it has been at least define:COLONIZATION_DAYS_BETWEEN_INVESTMENT since your last investment, you have enough colonial points, and the state remains in range.
+
+To finish colonization and make a protectorate: you must be in colonization phase 3, you must have define:COLONIZATION_CREATE_PROTECTORATE_COST free colonial points, and your colonist in the region must have non zero points.
+
+To turn a protectorate into a colony, you must have define:COLONIZATION_CREATE_COLONY_COST x number-of-provinces-in-state colonial points free.
+
+To turn a colony into a regular state, it must have enough bureaucrats with your primary culture to make up define:STATE_CREATION_ADMIN_LIMIT fraction of the population. If the colony has a direct land connection to your capital, this doesn't require any free colonial points. Otherwise, you must also have define:COLONIZATION_CREATE_STATE_COST x number-of-provinces-in-state x 1v(distance-from-capital/define:COLONIZATION_COLONY_STATE_DISTANCE) free points.
+
 ## Events
 
 ### Yearly and quarterly pulse
@@ -333,3 +762,6 @@ I don't know if any mods make use of them (I assume not, at the moment), but a c
 - from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
 - plus points from technologies/inventions
 - national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
+- state administrative efficiency: = define:NONCORE_TAX_PENALTY x number-of-non-core-provinces + (bureaucrat-tax-efficiency x total-number-of-primary-or-accepted-culture-bureaucrats / population-of-state)v1 / x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE)), all clamped between 0 and 1.
+- tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to at most 1.0
+- number of national focuses: the lesser of total-accepted-and-primary-culture-population / define:NATIONAL_FOCUS_DIVIDER and 1 + the number of national focuses provided by technology.

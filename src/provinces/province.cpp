@@ -203,6 +203,40 @@ void restore_unsaved_values(sys::state& state) {
 	});
 }
 
+void update_state_administrative_efficiency(sys::state& state) {
+	/*
+	- state administrative efficiency: = define:NONCORE_TAX_PENALTY x number-of-non-core-provinces + (bureaucrat-tax-efficiency x total-number-of-primary-or-accepted-culture-bureaucrats / population-of-state)v1 / x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE)), all clamped between 0 and 1.
+	*/
+	state.world.for_each_state_instance([&](dcon::state_instance_id si) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+
+		auto admin_mod = state.world.nation_get_static_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency - sys::provincial_mod_offsets::count);
+
+		float issue_sum = 0.0f;
+		for(auto i : state.culture_definitions.social_issues) {
+			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner, i));
+		}
+		auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
+		float non_core_effect = 0.0f;
+		float bsum = 0.0f;
+		for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+			if(!state.world.province_get_is_owner_core(p)) {
+				non_core_effect += state.defines.noncore_tax_penalty;
+			}
+			for(auto po : state.world.province_get_pop_location(p)) {
+				if(po.get_pop().get_is_primary_or_accepted_culture()) {
+					bsum += po.get_pop().get_size();
+				}
+			}
+		});
+		auto total_pop = state.world.state_instance_get_demographics(si, demographics::total);
+		auto total = total_pop > 0 ? std::clamp((non_core_effect + state.culture_definitions.bureaucrat_tax_efficiency * bsum / total_pop) / from_issues, 0.0f, 1.0f) : 0.0f;
+
+		state.world.state_instance_set_administrative_efficiency(si, total);
+
+	});
+}
+
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	// TODO
 	return 0.0f;
@@ -240,8 +274,7 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id) {
 	return 0.0f;
 }
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
-	// TODO
-	return 0.0f;
+	return state.world.state_instance_get_administrative_efficiency(id);
 }
 
 }

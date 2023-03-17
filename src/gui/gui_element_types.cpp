@@ -1151,7 +1151,7 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 	button_element_base::render(state, x, y);
 }
-void flag_button::update_tooltip(sys::state& state, text::columnar_layout& contents) noexcept {
+void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto ident = get_current_nation(state);
 	auto name = nations::name_from_tag(state, ident);
 	if(name) {

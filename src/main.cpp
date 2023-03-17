@@ -32,6 +32,7 @@
 #include "triggers.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"
+#include "bmfont.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

@@ -1,6 +1,7 @@
 #include "demographics.hpp"
 #include "dcon_generated.hpp"
 #include "system_state.hpp"
+#include "nations.hpp"
 
 namespace pop_demographics {
 
@@ -12,6 +13,23 @@ dcon::pop_demographics_key to_key(sys::state const& state, dcon::issue_option_id
 }
 uint32_t size(sys::state const& state) {
 	return state.world.ideology_size() + state.world.issue_option_size();
+}
+
+void regenerate_is_primary_or_accepted(sys::state& state) {
+	state.world.for_each_pop([&](dcon::pop_id p) {
+		auto n = nations::owner_of_pop(state, p);
+		if(state.world.nation_get_primary_culture(n) == state.world.pop_get_culture(p)) {
+			state.world.pop_set_is_primary_or_accepted_culture(p, true);
+			return;
+		}
+		auto accepted = state.world.nation_get_accepted_cultures(n);
+		for(auto c : accepted) {
+			if(c == state.world.pop_get_culture(p)) {
+				state.world.pop_set_is_primary_or_accepted_culture(p, true);
+				return;
+			}
+		}
+	});
 }
 
 }

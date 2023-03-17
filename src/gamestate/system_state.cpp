@@ -132,7 +132,8 @@ namespace sys {
 	}
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 		auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
-		bool tooltip_updated = false;
+
+		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
 
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
@@ -147,7 +148,7 @@ namespace sys {
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
-					ui_state.last_tooltip->update_tooltip(*this, container);
+					ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 					if(container.used_width > 0)
@@ -158,8 +159,6 @@ namespace sys {
 			}
 		}
 
-		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
-
 		if(ui_state.last_tooltip != mouse_probe.under_mouse) {
 			ui_state.last_tooltip = mouse_probe.under_mouse;
 			if(mouse_probe.under_mouse) {
@@ -169,7 +168,7 @@ namespace sys {
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
-					ui_state.last_tooltip->update_tooltip(*this, container);
+					ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 					if(container.used_width > 0)
@@ -186,7 +185,7 @@ namespace sys {
 			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
-			ui_state.last_tooltip->update_tooltip(*this, container);
+			ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 			if(container.used_width > 0)
@@ -1445,6 +1444,8 @@ namespace sys {
 
 		culture::update_all_nations_issue_rules(*this);
 		demographics::regenerate_from_pop_data(*this);
+		pop_demographics::regenerate_is_primary_or_accepted(*this);
+		province::update_state_administrative_efficiency(*this);
 
 		military::regenerate_land_unit_average(*this);
 		military::regenerate_ship_scores(*this);
@@ -1489,7 +1490,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 5, [&](int32_t index) {
+					concurrency::parallel_for(0, 6, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1505,6 +1506,9 @@ namespace sys {
 								break;
 							case 4:
 								nations::update_industrial_scores(*this);
+								break;
+							case 5:
+								province::update_state_administrative_efficiency(*this);
 								break;
 						}
 

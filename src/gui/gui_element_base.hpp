@@ -47,7 +47,7 @@ public:
 	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
 		return tooltip_behavior::no_tooltip;
 	}
-	virtual void update_tooltip(sys::state& state, text::columnar_layout& contents) noexcept { }
+	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept { }
 
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly

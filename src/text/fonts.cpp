@@ -2,9 +2,10 @@
 
 #include "fonts.hpp"
 #include "parsers.hpp"
-#include "bmfont.h"
+#include "simple_fs.hpp"
 #include "system_state.hpp"
 
+#include "bmfont.h"
 namespace text {
 
 constexpr uint16_t pack_font_handle(uint32_t font_index, bool black, uint32_t size) {
@@ -424,6 +425,18 @@ void load_standard_fonts(sys::state& state) {
 		auto file_content = view_contents(*font_b);
 		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size);
 	}
+}
+
+void load_bmfonts(sys::state& state) {
+
+	BMFont vic_22_bl;
+
+	auto fnta = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.fnt"));
+	auto tgaa = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.tga"));
+
+	auto fimg = simple_fs::open_file(get_root(state.common_fs), tgaa);
+	if(fimg)
+		vic_22_bl.LoadFontImage(*fimg);
 }
 
 void font_manager::load_all_glyphs() {

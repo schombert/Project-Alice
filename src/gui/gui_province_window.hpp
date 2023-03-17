@@ -48,7 +48,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void update_tooltip(sys::state& state, text::columnar_layout& contents) noexcept override {
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		// TODO: display terrain modifier values
 		auto fat_id = dcon::fatten(state.world, province_id);
 		auto name = fat_id.get_terrain().get_name();
@@ -678,6 +678,10 @@ public:
 			return message_result::unseen;
 		}
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
 class province_focus_item : public window_element_base {
