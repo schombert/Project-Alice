@@ -141,7 +141,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	// The borders of the current row and last row
 	std::vector<BorderDirection> border_direction(size_x * 2);
 	// Will check if there is an border there already and extend if it can
-	auto extend_if_possible = [&](uint16_t x, int32_t border_id, direction dir) -> bool {
+	auto extend_if_possible = [&](uint32_t x, int32_t border_id, direction dir) -> bool {
 		if(dir == direction::LEFT)
 			if(x - 1 < 0)
 				return false;
@@ -198,7 +198,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	};
 
 	// Create a new vertices to make a line segment
-	auto add_line = [&](glm::vec2 map_pos, glm::vec2 offset1, glm::vec2 offset2, int32_t border_id, uint16_t x, direction dir) {
+	auto add_line = [&](glm::vec2 map_pos, glm::vec2 offset1, glm::vec2 offset2, int32_t border_id, uint32_t x, direction dir) {
 		glm::vec2 direction = normalize(offset2 - offset1);
 		glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
 
