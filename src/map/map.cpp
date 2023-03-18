@@ -104,7 +104,7 @@ struct border {
 	std::vector<border_vertex> vertices;
 };
 
-enum direction: u_int8_t {
+enum direction: uint8_t {
 	UP_LEFT = 1 << 7,
 	UP_RIGHT = 1 << 6,
 	DOWN_LEFT = 1 << 5,
