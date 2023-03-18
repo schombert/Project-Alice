@@ -435,8 +435,12 @@ void load_bmfonts(sys::state& state) {
 	auto tgaa = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.tga"));
 
 	auto fimg = simple_fs::open_file(get_root(state.common_fs), tgaa);
-	if(fimg)
+	auto filefont = simple_fs::open_file(get_root(state.common_fs), fnta);
+	if(fimg) {
 		vic_22_bl.LoadFontImage(*fimg);
+		vic_22_bl.LoadFontfile(*filefont);
+		state.font_collection.bitmap_fonts.insert({ uint16_t(1), vic_22_bl });
+	}
 }
 
 void font_manager::load_all_glyphs() {
