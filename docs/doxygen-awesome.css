@@ -837,18 +837,19 @@ html.dark-mode iframe#MSearchResults {
 }
 
 #nav-tree .arrow {
-    opacity: var(--side-nav-arrow-opacity);
+    /* opacity: var(--side-nav-arrow-opacity); */
 }
 
 .arrow {
     color: inherit;
     cursor: pointer;
-    font-size: 45%;
+    /* font-size: 85%; */
     vertical-align: middle;
     margin-right: 2px;
     font-family: serif;
     height: auto;
     text-align: right;
+    margin-bottom: 5px;
 }
 
 #nav-tree div.item:hover .arrow, #nav-tree a:focus .arrow {
