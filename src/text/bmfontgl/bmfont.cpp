@@ -300,6 +300,12 @@ void SetBlendMode(int mode)
 
 void BMFont::Print(float x, float y, const char *fmt, ...)
 {
+	if(!buffercreated) {
+		glGenBuffers(1, &fbufid);
+		glBindBuffer(GL_ARRAY_BUFFER, fbufid);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(texlst), &texlst[0], GL_STATIC_DRAW);
+		buffercreated = true;
+	}
 	
 	float CurX = (float) x;
 	float CurY = (float) y;
@@ -321,9 +327,9 @@ void BMFont::Print(float x, float y, const char *fmt, ...)
 	va_end(ap);		
 
 	//Select and enable the font texture. (With mipmapping.)
-  	use_texture(&ftexid, 0,1);
+  	//use_texture(&ftexid, 0,1);
     //Set type of blending to use with this font.
-	SetBlendMode(fblend);
+	//SetBlendMode(fblend);
    	//Set Text Color, all one color for now. 
 	unsigned char *color = (unsigned char*)&fcolor;
 	
@@ -388,8 +394,24 @@ void BMFont::Print(float x, float y, const char *fmt, ...)
 		 }
 		  
 		 x +=  f->XAdvance;
+
+		 glActiveTexture(GL_TEXTURE0);
+		 glBindTexture(GL_TEXTURE_2D, ftexid);
+
+		 glBindVertexBuffer(0, fbufid, 0, sizeof(texlst));
+
+		 glUniform4f(ogl::parameters::drawing_rectangle, x, y, 5, 5);
+		 glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
-   Render_String((int)strlen(text));
+   //Render_String((int)strlen(text));
+
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, ftexid);
+
+	//glBindVertexBuffer(0, fbufid, 0, sizeof(texlst));
+
+	//glUniform4f(ogl::parameters::drawing_rectangle, x, y, 50, 50);
+	//glDrawArrays(GL_TRIANGLE_FAN, 0, (int)strlen(text)*4);
 }
 
 

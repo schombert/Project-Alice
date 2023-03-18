@@ -111,6 +111,7 @@ public:
 		SetColor(255, 255, 255, 255);
 		KernCount = 0;
 		ftexid = GLuint(0);
+		fbufid = GLuint(0);
 		fblend = 0;
 		fscale = 1.0;
 	};
@@ -128,6 +129,8 @@ private:
 	std::vector<KearningInfo> Kearn;
 	int fcolor;
 	GLuint ftexid;
+	GLuint fbufid;
+	bool buffercreated = false;
 	float fscale;
 	int fblend;
 
