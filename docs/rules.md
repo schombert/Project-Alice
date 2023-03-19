@@ -644,6 +644,8 @@ Units that are moving lose any dig-in bonus they have acquired. A unit that is n
 
 Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are in a rebel faction, and which have organization at least 0.75 will become rebel units.
 
+Supplies: Rebel units are always treated as having fully supply. Units not in combat consume supply. Which commodities and how many are consumed in this way depends on the specific type of unit. The supply quantities defined by its type are then multiplied by (2 - national-administrative-efficiency) x (supply-consumption-by-type + national-modifier-to-supply-consumption)^0.01 x (naval-or-land-spending-as-appropriate). The average fraction of that consumption that could be fulfilled times naval or land-spending (as appropriate) for each regiment or ship is then averaged over the army/navy. For armies, that value become their new supply for the army. For navies, this value is further multiplied by (1 - the-fraction-the-nation-is-over-naval-supply) before becoming the new supply value.
+
 Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
 
 ### Monthly reinforcement
@@ -692,6 +694,11 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 
 - A soldier pop must be at least define:POP_MIN_SIZE_FOR_REGIMENT to support any regiments
 - If it is at least that large, then it can support one regiment per define:POP_SIZE_PER_REGIMENT x define:POP_MIN_SIZE_FOR_REGIMENT_COLONY_MULTIPLIER (if it is located in a colonial province) x define:POP_MIN_SIZE_FOR_REGIMENT_NONCORE_MULTIPLIER (if it is non-colonial but uncored)
+
+### Naval supply points
+
+- naval supply score: you get one point per level of naval base that is either in a core province or connected by land to the capital. You get define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE per level of other naval bases
+- ships consume naval base supply at their supply_consumption_score. Going over the naval supply score comes with various penalties (described elsewhere).
 
 ## Movements
 
@@ -900,6 +907,13 @@ To turn a protectorate into a colony, you must have define:COLONIZATION_CREATE_C
 
 To turn a colony into a regular state, it must have enough bureaucrats with your primary culture to make up define:STATE_CREATION_ADMIN_LIMIT fraction of the population. If the colony has a direct land connection to your capital, this doesn't require any free colonial points. Otherwise, you must also have define:COLONIZATION_CREATE_STATE_COST x number-of-provinces-in-state x 1v(distance-from-capital/define:COLONIZATION_COLONY_STATE_DISTANCE) free points.
 
+### Points
+
+- colonial points: (for nations with rank at least define:COLONIAL_RANK)
+- from naval bases: (1) determined by level and the building definition, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- plus points from technologies/inventions
+
 ## Events
 
 ### Yearly and quarterly pulse
@@ -934,12 +948,6 @@ The probabilities for province events are calculated in the same way, except tha
 - province value type A: 1 (if unowned or colonial), otherwise: (1 + fort level + naval base level + number of factories in state (if capital province of the state state)) x 2 (if non-overseas core) x 3 (if it is the national capital) -- these values are used to determine the relative worth of provinces (I believe) as a proportion of the total type A valuation of all provinces owned by the country.
 - a port: I believe that any coastal province is considered to have a port, regardless of whether it has a naval base
 - revanchism: you get one point per unowned core if your primary culture is the dominant culture (culture with the most population) in the province, 0.25 points if it is not the dominant culture, and then that total is divided by the total number of your cores to get your revanchism percentage
-- naval base supply score: you get one point per level of naval base that is either in a core province or connected by land to the capital. You get define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE per level of other naval bases
-- ships consume naval base supply at their supply_consumption_score
-- colonial points: (for nations with rank at least define:COLONIAL_RANK)
-- from naval bases: (1) determined by level and the building defintion, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
-- from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
-- plus points from technologies/inventions
 - national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 - tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to at most 1.0
 - number of national focuses: the lesser of total-accepted-and-primary-culture-population / define:NATIONAL_FOCUS_DIVIDER and 1 + the number of national focuses provided by technology.
