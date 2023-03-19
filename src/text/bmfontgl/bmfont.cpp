@@ -356,7 +356,7 @@ void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::st
 
 		 //glBindVertexBuffer(0, fbufid, 0, sizeof(texlst));
 
-		 glUniform4f(ogl::parameters::drawing_rectangle, texlst[i * 4].x, texlst[i * 4].y, 50, 50);
+		 glUniform4f(ogl::parameters::drawing_rectangle, texlst[i * 4].x, texlst[i * 4].y, texlst[(i * 4) + 2].x- texlst[(i * 4) + 3].x, f->YOffset);
 		 glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 }
