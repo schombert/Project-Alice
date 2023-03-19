@@ -61,7 +61,7 @@ Upgrading a building has a cost of: (technology-factory-owner-cost + 1) x (natio
 
 ### Overseas penalty
 
-For each commodity that has been discovered by *someone*, a nation pays define:PROVINCE_OVERSEAS_PENALTY x number-of-overseas-provinces per day. Then take the fraction of each commodity that the nation is *not* able to supply, average them together and multiply by 1/4th to determine the nation's overseas penalty.
+For each commodity that has been discovered by *someone*, a nation must pay define:PROVINCE_OVERSEAS_PENALTY x number-of-overseas-provinces per day. The overseas penalty for a nation is then 0.25 x (1 - the average for all discovered commodities of (the-amount-in-stockpile / amount-required)). A nation without overseas provinces has a penalty of 0.
 
 ### Invisible "banking"
 
@@ -70,6 +70,12 @@ Yes, there are flows of currency that are largely invisible in the game. I think
 We associate a "bank" with each nation, and we think of it as having a branch in each state within the nation. This bank has a central reserve of money and can accumulate loan interest (always positive; it never loses money on loans). If the bank has nearly no money, this loan interest is deposited directly into its central reserves. If the central bank's reserves are not empty, then the money is "distributed" to the branches. ("distributed" because, as you will see, that is only a rough analogy for what happens). To distribute it over the states, we keep a running total of the loan interest to subtract from as we visit each state. First we calculate for a state the fraction of the branch's reserve to the central bank's reserve and multiply the total loan interest by that fraction. If that amount is less that what remains in the running total, we give that amount to the branch as its loan interest and subtract it from the running total. If it is greater than what is left in the running total, we add what remains in the running total to the branch's loan interest. We then do not alter the running total and proceed to the next state. As you can tell, this method is going to be very order dependent in terms of what happens, and yet I have no idea if there is any canonical way the states are supposed to be ordered. In any case, after distribution we zero out the loan interest credited to the central bank.
 
 When a pop withdraws money to make a purchase, the amount that can be withdrawn is limited to the least of the pop's savings (obviously), the amount of savings stored in their state branch, and the money in the central bank's reserves - the amount it has lent out. The amount is then subtracted from both the local branch and the central bank, as well as the pop's account. NOTE: a pop's bank account is in addition to any money it has on hand. Pops try to keep about twice their needs spending out of the bank and as cash on hand. However, if a pop is satisfying all of its luxury needs (or nearly so) it will put define:POP_SAVINGS x its cash on hand into the bank. (Adding an identical amount to its state branch and central bank ledgers.)
+
+The banks of great powers start with (8 - rank) x 20 + 100 in them.
+
+Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30 to the national bank that made the loan (possibly taking out further loans to do so). If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an `on_debtor_default_small` event (with the nation defaulting in the from slot). Otherwise, the event is pulled from `on_debtor_default`. The nation then goes bankrupt. It receives the `bad_debter` modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt *again* within this period, creditors receive an `on_debtor_default_second` event). It receives the `in_bankrupcy` modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2. Any unit or building constructions being undertaken by the state are canceled, as are factories under construction (that is, if the state is allowed to destroy factories, what an odd limitation). All war subsidies are canceled. All the spending sliders are also adjusted and factory subsidies are turned off, but this is probably for the benefit of the AI.
+
+When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
 
 ### Maximum loan amount
 
@@ -94,6 +100,7 @@ Every day, on a state by state basis, we must adjust the status of each factory,
 - Automatic deletion of factories: if the delete-factory-condition is met AND the factory has gone more than 10 days without input AND it wasn't closed by the player AND there are are least define:MIN_NUM_FACTORIES_PER_STATE_BEFORE_DELETING_LASSIEZ_FAIRE factories in the state AND no provinces in the state are occupied AND (there are at least define:NUM_CLOSED_FACTORIES_PER_STATE_LASSIEZ_FAIRE closed factories OR there are 8 factories in state) THEN the factory will be deleted
 - Each factory has an input, output, and throughput multipliers.
 - These are computed from the employees present. Input and output are 1 + employee effects, throughput starts at 0
+- The input multiplier is also multiplied by (1 + sum-of-any-triggered-modifiers-for-the-factory) x 0v(national-mobilization-impact - (overseas-penalty if overseas, or 0 otherwise))
 - Owner fraction is calculated from the fraction of owners in the state to total state population in the state (with some cap -- 5%?)
 - For each pop type employed, we calculate the ratio of number-of-pop-employed-of-a-type / (base-workforce x level) to the optimal fraction defined for the production type (capping it at 1). That ratio x the-employee-effect-amount is then added into the input/output/throughput modifier for the factory.
 - Then, for input/output/throughput we sum up national and provincial modifiers to general factory input/output/throughput are added, plus technology modifiers to its specific output commodity, add one to the sum, and then multiply the input/output/throughput modifier from the workforce by it.
@@ -413,7 +420,7 @@ A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x of
 
 Leaders who are both less than 26 years old and not in combat have no chance of death. Otherwise, we take the age of the leader and divide by define:LEADER_AGE_DEATH_FACTOR. Then we multiply that result by 2 if the leader is currently in combat. That is then the leader's current chance of death out of ... my notes say 11,000 here. Note that the player only gets leader death messages if the leader is currently assigned to an army or navy (assuming the message setting for it is turned on).
 
-### Wars
+## Wars
 
 - Each war has two sides, and each side has a primary belligerent
 - Primary belligerents negotiate in peace deals for their whole side
@@ -422,18 +429,18 @@ Leaders who are both less than 26 years old and not in combat have no chance of 
 - A war that ends up with no members on one (or both) sides will simply be ended as a whole
 - A province is blockaded if there is a hostile sea unit in an adjacent sea province and no ongoing naval combat there. My notes say that only either not-overseas (or maybe only connected to capital) provinces count for calculating the blockade fraction
 
-#### Ticking war score
+### Ticking war score
 
 - ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
 - limited by define: TWS_CB_LIMIT_DEFAULT
 - to calculate: first you need to figure out the percentage of the war goal complete. This is percentage of provinces occupied or, for war score from battles see Battle score below
 
-##### Battle score
+### Battle score
 
 - zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
 - calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
 
-##### Invalid  war states
+### Invalid  war states
 
 - A primary belligerent may not be a vassal or substate of another nation
 - War goals must remain valid (must pass their is-valid trigger check, must have existing target countries, target countries must pass any trigger checks, there must be a valid state in the target country, the country that added them must still be in the war, etc)
@@ -441,54 +448,28 @@ Leaders who are both less than 26 years old and not in combat have no chance of 
 - There must be at least one wargoal (other than status quo) in the war
 - idle for too long -- if the war goes too long without some event happening within it (battle or occupation) it may be terminated. If something is occupied, I believe the war is safe from termination in this way
 
-#### Mobilization
+### Mobilization
 
-Mobilization impact = mobilization-size x national-mobilization-economy-impact-modifier
+Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
+Mobilization impact = 1 - mobilization-size x (national-mobilization-economy-impact-modifier + technology-mobilization-impact-modifier), to a minimum of zero.
 
-#### Units
+Mobilized regiments come only from unoccupied, non-colonial provinces. In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either the primary culture of the nation or an accepted culture. The number of regiments these pops can provide is determined by pop-size x mobilization-size / define:POP_SIZE_PER_REGIMENT. Pops will provide up to this number of regiments per pop, although regiments they are already providing to rebels or which are already mobilized count against this number. At most, national-mobilization-impact-modifier x define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be created by mobilization.
 
-##### Unit daily update
+Mobilization is not instant. Province by province, mobilization advances by define:MOBILIZATION_SPEED_BASE x (1 + define:MOBILIZATION_SPEED_RAILS_MULT x average-railroad-level-in-state / 5) until it reaches 1. Once mobilization has occurred in one province, mobilization in the next province can start. The order this occurs in appears to be determined by the speed of mobilization: the provinces that will mobilize faster go before those that will go slower.
 
-Units in combat gain experience. The exact formula is somewhat opaque to me, but here is what I know: units in combat gain experience proportional to define:EXP_GAIN_DIV, the experience gain bonus provided by their leader + 1, and then some other factor that is always at least 1 and goes up as the opposing side has more organization.
+### Province conquest
 
-Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit.
+When a province changes ownership:
+All pops lose any money they have put into the bank (and the central bank retains that money, so now no pop could possibly withdraw it). Pops leave any movements or rebel factions they are part of. If the province is not colonial, and the new owner does not have a core there, any pops with a culture that is not primary or accepted for the new owner gain define:MIL_FROM_CONQUEST militancy.
 
-Units that are moving lose any dig-in bonus they have acquired. A unit that is not moving gets one point of dig-in per define:DIG_IN_INCREASE_EACH_DAYS days.
+All timed modifiers in the province automatically expire and any ongoing constructions are canceled.
+The conquered province gets nationalism equal to define:YEARS_OF_NATIONALISM.
+If the nation doing the conquering has a non-zero research-points-on-conquer modifier:
+The nation gets "1 year of research points" for each province conquered times its research-points-on-conquest multiplier, and as an unciv (usually) this allows it to exceed its normal research points cap. However, this one year of research points isn't calculated normally; it is calculated as if the province being conquered was an OPM with the modifiers and technology of the conquering nation. Specifically, we let pop-sum = for each pop type in the province (research-points-from-type x 1v(fraction of population / optimal fraction)). Then, the research points earned are 365 x ((national-modifier-research-points-modifier + tech-research-modifier + 1) x (national-modifier-to-research-points) + pop-sum)) x research-points-on-conquer-modifier
 
-Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are in a rebel faction, and which have organization at least 0.75 will become rebel units.
+Provinces a civ conquers from an unciv are turned into colonies.
 
-Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
-
-##### Monthly reinforcement
-
-A unit that is not retreating, not embarked, not in combat is reinforced (has its strength increased) by:
-define:REINFORCE_SPEED x (technology-reinforcement-modifier + 1.0) x (2 if in owned province, 0.1 in an unowned port province, 1 in a controlled province, 0.5 if in a province adjacent to a province with military access, 0.25 in a hostile, unblockaded port, and 0.1 in any other hostile province) x (national-reinforce-speed-modifier + 1) x army-supplies x (number of actual regiments / max possible regiments (feels like a bug to me) or 0.5 if mobilized)
-The units experience is also reduced s.t. its new experience = old experience / (amount-reinforced / 3 + 1)
-
-##### Monthly ship repair / update
-
-A ship that is docked at a naval base is repaired (has its strength increase) by:
-maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate + 1) x ship-supplies x (national-reinforce-speed-modifier + 1) x navy-supplies
-
-A navy that is at sea out of supply range has its "at sea" counter tick up once per month.
-
-##### Unit stats
-
-- Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
-- Units start with max strength and org after being built
-
-##### Unit construction
-
-- Only a single unit is built per province at a time
-- See the economy section for details on how construction happens
-- After being built, units move towards the nearest rally point, if any, to merge with an army there upon arrival
-
-##### Regiments per pop
-
-- A soldier pop must be at least define:POP_MIN_SIZE_FOR_REGIMENT to support any regiments
-- If it is at least that large, then it can support one regiment per define:POP_SIZE_PER_REGIMENT x define:POP_MIN_SIZE_FOR_REGIMENT_COLONY_MULTIPLIER (if it is located in a colonial province) x define:POP_MIN_SIZE_FOR_REGIMENT_NONCORE_MULTIPLIER (if it is non-colonial but uncored)
-
-#### Siege
+### Siege
 
 Garrison recovers at 10% per day when not being sieged (to 100%)
 
@@ -529,7 +510,7 @@ Progress Table:
 8: 1.25
 9: 1.25
 
-#### Land combat
+### Land combat
 
 (Units in this section means regiments)
 
@@ -604,7 +585,7 @@ Modifier Table
 16: 0.80
 17+: 0.90
 
-#### Naval combat
+### Naval combat
 
 (Units in this section means ships)
 
@@ -650,6 +631,67 @@ See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-comb
 ### Supply limit
 
 (province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
+
+## Units
+
+### Unit daily update
+
+Units in combat gain experience. The exact formula is somewhat opaque to me, but here is what I know: units in combat gain experience proportional to define:EXP_GAIN_DIV, the experience gain bonus provided by their leader + 1, and then some other factor that is always at least 1 and goes up as the opposing side has more organization.
+
+Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit.
+
+Units that are moving lose any dig-in bonus they have acquired. A unit that is not moving gets one point of dig-in per define:DIG_IN_INCREASE_EACH_DAYS days.
+
+Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are in a rebel faction, and which have organization at least 0.75 will become rebel units.
+
+Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
+
+### Monthly reinforcement
+
+A unit that is not retreating, not embarked, not in combat is reinforced (has its strength increased) by:
+define:REINFORCE_SPEED x (technology-reinforcement-modifier + 1.0) x (2 if in owned province, 0.1 in an unowned port province, 1 in a controlled province, 0.5 if in a province adjacent to a province with military access, 0.25 in a hostile, unblockaded port, and 0.1 in any other hostile province) x (national-reinforce-speed-modifier + 1) x army-supplies x (number of actual regiments / max possible regiments (feels like a bug to me) or 0.5 if mobilized)
+The units experience is also reduced s.t. its new experience = old experience / (amount-reinforced / 3 + 1)
+
+### Monthly ship repair / update
+
+A ship that is docked at a naval base is repaired (has its strength increase) by:
+maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate + 1) x ship-supplies x (national-reinforce-speed-modifier + 1) x navy-supplies
+
+A navy that is at sea out of supply range has its "at sea" counter tick up once per month.
+
+### Monthly attrition
+
+A unit that is not in combat and not black flagged receives attrition damage on the 1st of the month. 
+
+For armies:
+For armies in their owner's provinces that are not retreating, attrition is calculated based on the total strength of units from their nation in the province. Otherwise, attrition is calculated based on the total strength of all units in the province. First we calculate (total-strength + leader-attrition-trait) x (attrition-modifier-from-technology + 1) - effective-province-supply-limit (rounded down to the nearest integer) + province-attrition-modifier + the-level-of-the-highest-hostile-fort-in-an-adjacent-province. We then reduce that value to at most the max-attrition modifier of the province, and finally we add define:SEIGE_ATTRITION if the army is conducting a siege. Units taking attrition lose max-strength x attrition-value x 0.01 points of strength. This strength loss is treated just like damage taken in combat, meaning that it will reduce the size of the backing pop.
+
+For navies:
+Only navies controlled by the player take attrition, and only those that are not in port or are not off of a controlled coast province. Navies in coastal sea zones in general only take attrition if they are out of supply range. The attrition value for such navies is (time-at-sea x 2 + 1 + leader-attrition-trait) x (naval-attrition-from-technology + 1). Whether a ship takes damage from attrition is partly random. The attrition value / 10 is the probability that the ship will take damage. If the ships does take damage, it loses max-strength x attrition-value x 0.01 points of strength.
+
+When player navies die from attrition, the admirals are lost too.
+
+### Movement
+
+Adjacent provinces have a base distance between them (this base also takes terrain into account in some way). When moving to a province, this cost is multiplied by (destination-province-movement-cost-modifier + 1.0)^0.05. The unit "pays" for this cost each day based on its speed, and when it is all paid for, the unit arrives in its destination province. An army's or navy's speed is based on the speed of its slowest ship or regiment x (1 + infrastructure-level-of-destination) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
+
+When a unit arrives in a new province, it takes attrition (as if it had spent the monthly tick in the province).
+
+### Unit stats
+
+- Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
+- Units start with max strength and org after being built
+
+### Unit construction
+
+- Only a single unit is built per province at a time
+- See the economy section for details on how construction happens
+- After being built, units move towards the nearest rally point, if any, to merge with an army there upon arrival
+
+### Regiments per pop
+
+- A soldier pop must be at least define:POP_MIN_SIZE_FOR_REGIMENT to support any regiments
+- If it is at least that large, then it can support one regiment per define:POP_SIZE_PER_REGIMENT x define:POP_MIN_SIZE_FOR_REGIMENT_COLONY_MULTIPLIER (if it is located in a colonial province) x define:POP_MIN_SIZE_FOR_REGIMENT_NONCORE_MULTIPLIER (if it is non-colonial but uncored)
 
 ## Movements
 
