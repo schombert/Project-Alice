@@ -491,7 +491,7 @@ void render_text(sys::state& state, char const* codepoints, uint32_t count, colo
 		auto testfont = state.font_collection.bitmap_fonts.find(1);
 
 		testfont->second.SetColor(100, 0, 0, 0);
-		testfont->second.Print(x, y, codepoints);
+		testfont->second.Print(x, y, codepoints, state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1].textures, state);
 
 	} else {
 		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);

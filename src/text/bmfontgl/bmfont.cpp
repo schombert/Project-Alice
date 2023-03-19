@@ -237,10 +237,9 @@ float BMFont::GetStringWidth(const char *string)
   return total * fscale;
 }
 
-void BMFont::LoadFontImage(simple_fs::file& file) {
-	assert(ftexid == 0);
+void BMFont::LoadFontImage(native_string file) {
 
-	ftexid = ogl::make_font_texture(file);
+	imagefile = file;
 }
 
 bool BMFont::LoadFontfile(simple_fs::file& file) {
@@ -298,12 +297,17 @@ void SetBlendMode(int mode)
 	}
 }
 
-void BMFont::Print(float x, float y, const char *fmt, ...)
+void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::state& state, ...)
 {
 	if(!buffercreated) {
 		glGenBuffers(1, &fbufid);
 		glBindBuffer(GL_ARRAY_BUFFER, fbufid);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(texlst), &texlst[0], GL_STATIC_DRAW);
+
+		assert(ftexid == 0);
+
+		ftexid = ogl::make_font_texture(imagefile, state);
+
 		buffercreated = true;
 	}
 	
@@ -397,21 +401,13 @@ void BMFont::Print(float x, float y, const char *fmt, ...)
 
 		 glActiveTexture(GL_TEXTURE0);
 		 glBindTexture(GL_TEXTURE_2D, ftexid);
+		 //glBindTexture(GL_TEXTURE_2D, texture[uint8_t(fmt[i]) >> 6]);
 
-		 glBindVertexBuffer(0, fbufid, 0, sizeof(texlst));
+		 //glBindVertexBuffer(0, fbufid, 0, sizeof(texlst));
 
-		 glUniform4f(ogl::parameters::drawing_rectangle, x, y, 5, 5);
+		 glUniform4f(ogl::parameters::drawing_rectangle, texlst[i * 4].x, texlst[i * 4].y, 500, 500);
 		 glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
-   //Render_String((int)strlen(text));
-
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, ftexid);
-
-	//glBindVertexBuffer(0, fbufid, 0, sizeof(texlst));
-
-	//glUniform4f(ogl::parameters::drawing_rectangle, x, y, 50, 50);
-	//glDrawArrays(GL_TRIANGLE_FAN, 0, (int)strlen(text)*4);
 }
 
 
@@ -435,7 +431,7 @@ void BMFont::PrintCenter( float y, const char *string)
 			 x +=  f->XAdvance;
 		}
 
-	Print( (float)(500/2) - (x/2) , y, string);
+	//Print( (float)(500/2) - (x/2) , y, string);
 }
 
 

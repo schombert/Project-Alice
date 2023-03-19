@@ -562,9 +562,11 @@ data_texture& data_texture::operator=(data_texture&& other) noexcept {
 	return *this;
 }
 
-uint32_t make_font_texture(simple_fs::file& file) {
+uint32_t make_font_texture(native_string filename, sys::state& state) {
 
-	auto content = simple_fs::view_contents(file);
+	auto file = simple_fs::open_file(simple_fs::get_root(state.common_fs), filename);
+
+	auto content = simple_fs::view_contents(*file);
 
 	int32_t file_channels = 4;
 
