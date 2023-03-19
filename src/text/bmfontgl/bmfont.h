@@ -111,16 +111,14 @@ public:
 		SetColor(255, 255, 255, 255);
 		KernCount = 0;
 		ftexid = GLuint(0);
-		fbufid = GLuint(0);
 		fblend = 0;
 		fscale = 1.0;
 	};
 	BMFont(BMFont&& src) {
 		ftexid = src.ftexid;
-		fbufid = src.fbufid;
 		imagefile = src.imagefile;
 		fontfile = src.fontfile;
-		buffercreated = src.buffercreated;
+		loadingdone = src.loadingdone;
 		SetColor(255, 255, 255, 255);
 		fblend = 0;
 		fscale = 1.0;
@@ -147,8 +145,7 @@ private:
 	int fcolor;
 	native_string imagefile;
 	native_string fontfile;
-	GLuint fbufid;
-	bool buffercreated = false;
+	bool loadingdone = false;
 	float fscale;
 	int fblend;
 
