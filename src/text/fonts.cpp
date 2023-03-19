@@ -438,8 +438,8 @@ void load_bmfonts(sys::state& state) {
 	auto filefont = simple_fs::open_file(get_root(state.common_fs), fnta);
 	if(fimg) {
 		vic_22_bl.LoadFontImage(tgaa);
-		vic_22_bl.LoadFontfile(*filefont);
-		state.font_collection.bitmap_fonts.insert({ uint16_t(1), vic_22_bl });
+		vic_22_bl.LoadFontfile(fnta);
+		state.font_collection.bitmap_fonts.insert({ uint16_t(1), std::move(vic_22_bl) });
 	}
 }
 
