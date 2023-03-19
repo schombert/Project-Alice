@@ -75,7 +75,7 @@ public:
 	}
 };
 
-class standard_province_icon : public image_element_base {
+class standard_province_icon : public opaque_element_base {
 protected:
 	dcon::province_id prov_id{};
 
@@ -105,6 +105,10 @@ public:
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_rgo().get_icon();
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
 class province_fort_icon : public standard_province_icon {
