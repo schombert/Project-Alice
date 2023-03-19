@@ -92,8 +92,8 @@ class BMFont {
 public:
 
 	void LoadFontImage(native_string file);
-	bool LoadFontfile(simple_fs::file& file);
-	GLuint ftexid;
+	bool LoadFontfile(native_string file);
+	GLuint ftexid = 0;
 	void SetColor(int r, int g, int b, int a) {
 		fcolor = MAKE_RGBA(r, g, b, a);
 	}
@@ -107,7 +107,6 @@ public:
 		return LineHeight * fscale;
 	}
 	void Print(float, float, const char*, uint32_t*, sys::state&, ...);
-	void PrintCenter(float, const char*);
 	BMFont() {
 		SetColor(255, 255, 255, 255);
 		KernCount = 0;
@@ -116,6 +115,23 @@ public:
 		fblend = 0;
 		fscale = 1.0;
 	};
+	BMFont(BMFont&& src) {
+		ftexid = src.ftexid;
+		fbufid = src.fbufid;
+		imagefile = src.imagefile;
+		fontfile = src.fontfile;
+		buffercreated = src.buffercreated;
+		SetColor(255, 255, 255, 255);
+		fblend = 0;
+		fscale = 1.0;
+
+		Chars = src.Chars;
+		Kearn = src.Kearn;
+
+		KernCount = src.KernCount;
+
+		src.ftexid = 0;
+	}
 	~BMFont();
 
 private:
@@ -130,12 +146,13 @@ private:
 	std::vector<KearningInfo> Kearn;
 	int fcolor;
 	native_string imagefile;
+	native_string fontfile;
 	GLuint fbufid;
 	bool buffercreated = false;
 	float fscale;
 	int fblend;
 
-	bool ParseFont(simple_fs::file& file);
+	bool ParseFont(native_string file, sys::state&);
 	int GetKerningPair(int, int);
 	float GetStringWidth(const char*);
 

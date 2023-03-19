@@ -69,9 +69,11 @@ typedef struct
 
 vlist texlst[2048*4];
 
-bool BMFont::ParseFont(simple_fs::file& file)
+bool BMFont::ParseFont(native_string filename, sys::state& state)
 {
-	auto content = simple_fs::view_contents(file);
+	auto file = simple_fs::open_file(simple_fs::get_root(state.common_fs), filename);
+
+	auto content = simple_fs::view_contents(*file);
 
 	std::stringstream Stream(std::string(content.data, content.file_size));
 	std::string Line;
@@ -204,7 +206,6 @@ bool BMFont::ParseFont(simple_fs::file& file)
 
 int BMFont::GetKerningPair(int first, int second)
 {
-		
 	 if (KernCount ) //Only process if there actually is kerning information
 	 {
 	 //Kearning is checked for every character processed. This is expensive in terms of processing time.
@@ -221,7 +222,6 @@ int BMFont::GetKerningPair(int first, int second)
 
 return 0;
 }
-
 
 float BMFont::GetStringWidth(const char *string)
 {
@@ -242,59 +242,11 @@ void BMFont::LoadFontImage(native_string file) {
 	imagefile = file;
 }
 
-bool BMFont::LoadFontfile(simple_fs::file& file) {
-	ParseFont(file);
-	KernCount = (short)Kearn.size();
+bool BMFont::LoadFontfile(native_string file) {
+
+	fontfile = file;
 
 	return true;
-}
-
-
-void Render_String(int len)
-{
-   //Draw Text Array, with 2D, two coordinates per vertex.
-   glEnableClientState(GL_VERTEX_ARRAY);
-   glVertexPointer(2, GL_FLOAT, sizeof(vlist), &texlst[0].x);
-
-   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-   glTexCoordPointer(2, GL_FLOAT, sizeof(vlist), &texlst[0].texx);
-
-   glEnableClientState(GL_COLOR_ARRAY);
-   glColorPointer (4, GL_UNSIGNED_BYTE , sizeof(vlist) , &texlst[0].r);
-
-   glDrawArrays(GL_QUADS, 0, len*4);// 4 Coordinates for a Quad. Could use DrawElements here instead GL 3.X+ GL_TRIANGLE_STRIP? 
- 
-   //Finished Drawing, disable client states.
-   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-   glDisableClientState(GL_VERTEX_ARRAY);
-   glDisableClientState(GL_COLOR_ARRAY);
-}
-
-void use_texture(GLuint* texture, GLboolean linear, GLboolean mipmapping)
-{
-	GLenum filter = linear ? GL_LINEAR : GL_NEAREST;
-	glBindTexture(GL_TEXTURE_2D, *texture);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	if (mipmapping)
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	else
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLfloat)filter);
-}
-
-void SetBlendMode(int mode)
-{
-	if (mode) {
-		glEnable(GL_ALPHA_TEST);
-		glDisable(GL_BLEND);
-		glAlphaFunc(GL_GREATER, 0.5f);
-	}
-	else {
-		glDisable(GL_ALPHA_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
 }
 
 void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::state& state, ...)
@@ -307,6 +259,9 @@ void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::st
 		assert(ftexid == 0);
 
 		ftexid = ogl::make_font_texture(imagefile, state);
+
+		ParseFont(fontfile, state);
+		KernCount = (short)Kearn.size();
 
 		buffercreated = true;
 	}
@@ -330,10 +285,6 @@ void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::st
 	vsprintf(text, fmt, ap);						    // And Converts Symbols To Actual Numbers
 	va_end(ap);		
 
-	//Select and enable the font texture. (With mipmapping.)
-  	//use_texture(&ftexid, 0,1);
-    //Set type of blending to use with this font.
-	//SetBlendMode(fblend);
    	//Set Text Color, all one color for now. 
 	unsigned char *color = (unsigned char*)&fcolor;
 	
@@ -405,35 +356,10 @@ void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::st
 
 		 //glBindVertexBuffer(0, fbufid, 0, sizeof(texlst));
 
-		 glUniform4f(ogl::parameters::drawing_rectangle, texlst[i * 4].x, texlst[i * 4].y, 500, 500);
+		 glUniform4f(ogl::parameters::drawing_rectangle, texlst[i * 4].x, texlst[i * 4].y, 50, 50);
 		 glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 }
-
-
-void BMFont::PrintCenter( float y, const char *string)
-{
-	int x=0;
-	CharDescriptor  *f;		 
-	
-	int window_width = 500;
-
-		int len = (int)strlen(string);
-
-		for (int i = 0; i != len; ++i)
-		{
-			f=&Chars[string[i]];
-
-			if (len > 1 && i < len)
-			 { 
-			   x += GetKerningPair(string[i],string[i+1]);
-			 }
-			 x +=  f->XAdvance;
-		}
-
-	//Print( (float)(500/2) - (x/2) , y, string);
-}
-
 
 BMFont::~BMFont()
 {
