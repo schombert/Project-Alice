@@ -251,10 +251,7 @@ bool BMFont::LoadFontfile(native_string file) {
 
 void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::state& state, ...)
 {
-	if(!buffercreated) {
-		glGenBuffers(1, &fbufid);
-		glBindBuffer(GL_ARRAY_BUFFER, fbufid);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(texlst), &texlst[0], GL_STATIC_DRAW);
+	if(!loadingdone) {
 
 		assert(ftexid == 0);
 
@@ -263,7 +260,7 @@ void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::st
 		ParseFont(fontfile, state);
 		KernCount = (short)Kearn.size();
 
-		buffercreated = true;
+		loadingdone = true;
 	}
 	
 	float CurX = (float) x;
@@ -291,6 +288,16 @@ void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::st
 	y= y + LineHeight;
     Flen = (int)strlen(text);
 
+	//------ FOR SCHOMBERT ------//
+	//Every iteration of this loop draws one character of the string 'fmt'.
+	//'texlst' contains information for each vertex of each rectangle for each character.
+	//Every 4 elements in 'texlst' is one complete rectangle, and one character.
+	//'texlst[i].texx' and 'texlst[i].texy' are the intended texture coordinates of a vertex on the texture.
+	//'texlst[i].x' and 'texlst[i].y' are the coordinates of a vertex of the rendered rectangle in the window.
+	//The color variables are unused currently.
+	//
+	//Spacing, kearning, etc. are already applied.
+	//Scaling (unintentionally) is also applied (by whatever part of Alice scales the normal fonts).
 	for (int i = 0; i != Flen; ++i)
 	{
   
@@ -352,10 +359,8 @@ void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::st
 
 		 glActiveTexture(GL_TEXTURE0);
 		 glBindTexture(GL_TEXTURE_2D, ftexid);
-		 //glBindTexture(GL_TEXTURE_2D, texture[uint8_t(fmt[i]) >> 6]);
 
-		 //glBindVertexBuffer(0, fbufid, 0, sizeof(texlst));
-
+		 //I recommend multiplying the last two arguments by something for testing as the characters are quite small otherwise.
 		 glUniform4f(ogl::parameters::drawing_rectangle, texlst[i * 4].x, texlst[i * 4].y, texlst[(i * 4) + 2].x- texlst[(i * 4) + 3].x, f->YOffset);
 		 glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
