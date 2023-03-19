@@ -1839,10 +1839,6 @@ object {
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
-	property {
-		name{ administrative_efficiency }
-		type{ float }
-	}
 }
 
 relationship{
