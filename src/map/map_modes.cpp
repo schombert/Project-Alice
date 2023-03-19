@@ -582,6 +582,58 @@ void set_diplomatic(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::diplomatic);
 }
 
+void set_rank(sys::state& state) {
+	// These colors are arbitrary
+	// 1 to 8 -> green from #30f233 to #1f991f
+	// 9 to 16 -> blue from #242fff to #151c99
+	// under 16 but civilized -> yellow from #eefc26 to #54590d
+	// under 16 but uncivilized -> red from #ff2626 to #590d0d
+
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		auto nation_id = fat_id.get_nation_from_province_ownership();
+		auto status = nations::get_status(state, nation_id);
+
+
+		//uint16_t nation_rank = state.world.nation_get_rank(nation_id);
+
+
+		uint32_t color;
+		if(bool(nation_id))
+			switch(status) {
+				case nations::status::great_power:
+					color = sys::pack_color(48, 242, 51);
+					break;
+
+				case nations::status::secondary_power:
+					color = sys::pack_color(36, 47, 255);
+					break;
+
+				case nations::status::civilized:
+					color = sys::pack_color(238, 252, 38);
+					break;
+
+					// primitive, uncivilized and westernized
+				default:
+					color = sys::pack_color(250, 5, 5);
+					break;
+			}
+		else // If no owner use default color
+			color = 255 << 16 | 255 << 8 | 255;
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+		
+	});
+	state.map_display.set_province_color(prov_color, mode::rank);
+}
+
 void set_map_mode(sys::state& state, mode mode) {
 	switch (mode)
 	{
@@ -606,6 +658,10 @@ void set_map_mode(sys::state& state, mode mode) {
 	case mode::diplomatic:
 		set_diplomatic(state);
 		break;
+	case mode::rank:
+		set_rank(state);
+		break;
+
 	default:
 		break;
 	}

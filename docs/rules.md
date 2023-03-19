@@ -1,42 +1,5 @@
 # Game rules
 
-## Things to do in a daily update
-
-- bring wars into a valid state
-- either bring blockades into a valid state (this has knock on effects on the percentage blockaded and the modifier derived from that) or recalculate what is blockaded from scratch
-- bring combats into a valid state (if the units wouldn't start fighting given the current set of wars, kick them from combat)
-
-- update the dynamic modifiers (things like literacy where the size of the modifier is multiplied by the value) -- maybe (schombert notes: not that anyone would be able to tell if we updated them once every X days and split the updates for all the nations over the X days in the cycle, just something to think about.)
-- removed expired province and national modifiers
-
-- update cached economics values: Since there is a single global price for all commodities, a number of things can probably be cached at the beginning of each tick, assuming that we want to update the prices late in the tick
-
-- update wars -- increase ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
-
-- update demographics
-- update admin efficiency
-- accumulate research points
-
-## Tracking changes
-
-There are some triggers, game rules, and ui elements that need to know the change of certain things, such as pop growth, migration amount, changes in pop wealth perhaps, etc. We will need to decide if these things are tracked by either resetting some value to zero at the beginning of the day and then increasing it over the day or by ensuring that all changes happen in a single place, so that the new delta can be written once (versus writing zero and then adding updates as we go). The second option is better for ui stability, since otherwise reading such a value over the course of a tick runs the risk of not just giving you an out-of-date value, but an incorrect one. We will also need to decide if we are storing these delta values in the save file. If we don't there are two consequences: (a) there will be no information about them in the ui on the first day after a load, and (b) we will need to make sure that they are always generated prior to being needed by any rule; we can't fall back on using the change value from the previous day as there may be no previous day.
-
-### Paths and connectivity
-
-It may be expedient to create some structures tracking properties of pathing / connectivity. Some properties, such as being "overseas" require in part the ability to check whether one province is connected to another. One way to do this would be by "flood filling" connected provinces with increasing ids until there are no more land provinces. Then, same ID => connected.
-
-### Other values to track (typically we need these stored to evaluate one or more trigger conditions)
-
-- number of ports
-- number of ports connected to the capital
-- number of overseas provinces
-- number of rebel occupied provinces
-- fraction of provinces with a crime
-- whether any two nations are adjacent (i.e. a province owned by one is adjacent to a province owned by the other)
-- whether any two nations each have a colonial province adjacent to a colonial province of the other
-- how many regiments total could possibly be recruited, and what number actually have been recruited
-- total number of allies, vassals, substates, etc
-
 ## Modifiers
 
 Both nations and provinces have a set of properties (a bag of float values) that may be affected by modifiers. Some modifiers attached to a province may also affect the bag of values associated with the owning nation. In general, as properties are added or removed, we add or remove their affect on the bag of values (we try not to recalculate the whole set as much as possible). This also means when a province changes ownership that we need to remember to update its affect on the national set of modifiers.
@@ -57,6 +20,10 @@ Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since
 - war/peace
 - disarmed
 - debt: The debt default to modifier is triggered by the nation having the generalized debt default and/or bankruptcy as a timed/triggered modifier and unpaid creditors ... I think.
+
+### Update frequency
+
+Triggered modifiers for nations appear to be updated on the first of each month. The game appears to update the values that result from modifiers being applied or not on a monthly basis (1st of the month) for provinces and nations.
 
 ## Economy
 
@@ -94,7 +61,7 @@ Upgrading a building has a cost of: (technology-factory-owner-cost + 1) x (natio
 
 ### Overseas penalty
 
-For each commodity that has been discovered by *someone*, a nation pays define:PROVINCE_OVERSEAS_PENALTY x number-of-overseas-provinces per day. Then take the fraction of each commodity that the nation is *not* able to supply, average them together and multiply by 1/4th to determine the nation's overseas penalty.
+For each commodity that has been discovered by *someone*, a nation must pay define:PROVINCE_OVERSEAS_PENALTY x number-of-overseas-provinces per day. The overseas penalty for a nation is then 0.25 x (1 - the average for all discovered commodities of (the-amount-in-stockpile / amount-required)). A nation without overseas provinces has a penalty of 0.
 
 ### Invisible "banking"
 
@@ -103,6 +70,12 @@ Yes, there are flows of currency that are largely invisible in the game. I think
 We associate a "bank" with each nation, and we think of it as having a branch in each state within the nation. This bank has a central reserve of money and can accumulate loan interest (always positive; it never loses money on loans). If the bank has nearly no money, this loan interest is deposited directly into its central reserves. If the central bank's reserves are not empty, then the money is "distributed" to the branches. ("distributed" because, as you will see, that is only a rough analogy for what happens). To distribute it over the states, we keep a running total of the loan interest to subtract from as we visit each state. First we calculate for a state the fraction of the branch's reserve to the central bank's reserve and multiply the total loan interest by that fraction. If that amount is less that what remains in the running total, we give that amount to the branch as its loan interest and subtract it from the running total. If it is greater than what is left in the running total, we add what remains in the running total to the branch's loan interest. We then do not alter the running total and proceed to the next state. As you can tell, this method is going to be very order dependent in terms of what happens, and yet I have no idea if there is any canonical way the states are supposed to be ordered. In any case, after distribution we zero out the loan interest credited to the central bank.
 
 When a pop withdraws money to make a purchase, the amount that can be withdrawn is limited to the least of the pop's savings (obviously), the amount of savings stored in their state branch, and the money in the central bank's reserves - the amount it has lent out. The amount is then subtracted from both the local branch and the central bank, as well as the pop's account. NOTE: a pop's bank account is in addition to any money it has on hand. Pops try to keep about twice their needs spending out of the bank and as cash on hand. However, if a pop is satisfying all of its luxury needs (or nearly so) it will put define:POP_SAVINGS x its cash on hand into the bank. (Adding an identical amount to its state branch and central bank ledgers.)
+
+The banks of great powers start with (8 - rank) x 20 + 100 in them.
+
+Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30 to the national bank that made the loan (possibly taking out further loans to do so). If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an `on_debtor_default_small` event (with the nation defaulting in the from slot). Otherwise, the event is pulled from `on_debtor_default`. The nation then goes bankrupt. It receives the `bad_debter` modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt *again* within this period, creditors receive an `on_debtor_default_second` event). It receives the `in_bankrupcy` modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2. Any unit or building constructions being undertaken by the state are canceled, as are factories under construction (that is, if the state is allowed to destroy factories, what an odd limitation). All war subsidies are canceled. All the spending sliders are also adjusted and factory subsidies are turned off, but this is probably for the benefit of the AI.
+
+When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
 
 ### Maximum loan amount
 
@@ -127,6 +100,7 @@ Every day, on a state by state basis, we must adjust the status of each factory,
 - Automatic deletion of factories: if the delete-factory-condition is met AND the factory has gone more than 10 days without input AND it wasn't closed by the player AND there are are least define:MIN_NUM_FACTORIES_PER_STATE_BEFORE_DELETING_LASSIEZ_FAIRE factories in the state AND no provinces in the state are occupied AND (there are at least define:NUM_CLOSED_FACTORIES_PER_STATE_LASSIEZ_FAIRE closed factories OR there are 8 factories in state) THEN the factory will be deleted
 - Each factory has an input, output, and throughput multipliers.
 - These are computed from the employees present. Input and output are 1 + employee effects, throughput starts at 0
+- The input multiplier is also multiplied by (1 + sum-of-any-triggered-modifiers-for-the-factory) x 0v(national-mobilization-impact - (overseas-penalty if overseas, or 0 otherwise))
 - Owner fraction is calculated from the fraction of owners in the state to total state population in the state (with some cap -- 5%?)
 - For each pop type employed, we calculate the ratio of number-of-pop-employed-of-a-type / (base-workforce x level) to the optimal fraction defined for the production type (capping it at 1). That ratio x the-employee-effect-amount is then added into the input/output/throughput modifier for the factory.
 - Then, for input/output/throughput we sum up national and provincial modifiers to general factory input/output/throughput are added, plus technology modifiers to its specific output commodity, add one to the sum, and then multiply the input/output/throughput modifier from the workforce by it.
@@ -174,6 +148,7 @@ At the beginning of the update we calculate from values generated by the previou
 While most of what goes on below is expressed directly in terms of adding to domestic supply or demand, unless noted otherwise, it should be taken as given that the same is added to world supply or demand. Also, world supply and demand for all commodities should be treated as at least 1.
 
 A.
+
 - For each commodity:
 - If the national stockpile is *not* buying (i.e. it is selling)
 - - If the nation is *not* set to buy from its own stockpile
@@ -181,7 +156,9 @@ A.
 - - If the nation *is* set to buy from its own stockpile, then do not adjust it at all at this point
 - If the national stockpile *is* buying, add the difference between the actual stockpile and the limit to domestic demand
 - Add the national stockpiles to domestic supply if the nation is set to buy from its own stockpiles.
+
 B.
+
 - For each factory:
 - Only non-closed (see above) factories that are at least level 1 (i.e. not doing their initial construction) produce/consume
 - Each factory produces by consuming inputs from its internal stockpile
@@ -192,17 +169,25 @@ B.
 - (A factory with no efficiency goods performs as if all its efficiency goods are fully consumable)
 - A factory *produces* efficiency-adjusted-consumption-scale x output-multiplier x throughput-multiplier x level x production quantity amount of its output good, which gets added to domestic supply
 - Using the same consumption calculation, the factory adds the difference between what it has left in its stockpile to what it would require to produce at its maximum consumption scale to domestic demand.
+
 C.
+
 - For each expansion or construction project:
 - Multiply the cost modifier (see above) by the cost in commodities for the project. Then subtract the project's stockpile from what is required. Figure out the maximum amount the project can purchase based on its money. Then, add those commodities to domestic demand.
+
 D.
+
 - For each artisan pop:
 - We calculate pop-size x artisan-production-rate (see above) / artisan-production-workforce. Then we do the production step essentially as we do for factories, except that we use the preceding value as the "level" of the factory.
+
 E.
+
 - For each RGO:
 - We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size + technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
 - We add its production to domestic supply, calculating that amount basically in the same way we do for factories, by computing RGO-throughput x RGO-output x RGO-size x base-commodity-production-quantity, except that it is affected by different modifiers.
+
 F.
+
 - For each pop
 - Each pop strata and needs type has its own demand modifier, calculated as follows:
 - (national-modifier-to-goods-demand + define:BASE_GOODS_DEMAND) x (national-modifier-to-specific-strata-and-needs-type + 1) x (define:INVENTION_IMPACT_ON_DEMAND x number-of-unlocked-inventions + 1, but for non-life-needs only)
@@ -342,13 +327,37 @@ As for demotion, there appear to an extra wrinkle. Pops do not appear to demote 
 
 Pops that move / promote seem to take some money with them, but there is also magical money generated by starter share, at least for capitalists, probably so that it is possible for the first capitalists in a state with no factories to build a factory. I propose the following instead: capitalists building a factory in a province with no open factories (or reopening a closed factory in those conditions) is simply free.
 
+Even though doing the promotion or demotion is monthly, the amount to promote/demote every month are accumulated daily (except for slave pops, which do not promote or demote).
+
+Promotion amount:
+Compute the promotion modifier *additively*. If it it non-positive, there is no promotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly promote into that type, add the national focus effect to the promotion modifier. Conversely, pops of the focused type, are not allowed to promote out. Then multiply this value by national-administrative-efficiency x define:PROMOTION_SCALE x pop-size to find out how many promote (although at least one person will promote per day if the result is positive).
+
+Demotion amount:
+Compute the demotion modifier *additively*. If it it non-positive, there is no demotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly demote into that type, add the national focus effect to the demotion modifier. Then multiply this value by define:PROMOTION_SCALE x pop-size to find out how many demote (although at least one person will demote per day if the result is positive).
+
+Similarly, for non-slave, non-colonial pops in provinces with a total population > 100, we accumulate the number that will migrate locally every day, even though they only are moved around once per month. This is done by calculating the migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
+If a nation has colonies, non-factory worker, non-rich pops in provinces with a total population > 100 accumulate a daily colonial migration amount. This is done by calculating the colonial migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x (colonial-migration-from-tech + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
+Finally, pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x 1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
 ### Militancy
 
 Let us define the local pop militancy modifier as the province's militancy modifier + the nation's militancy modifier + the nation's core pop militancy modifier (for non-colonial states, not just core provinces).
+Each pop has its militancy adjusted by the local-militancy-modifier + (technology-separatism-modifier + 1) x define:MIL_NON_ACCEPTED (if the pop is not of a primary or accepted culture) - (pop-life-needs-satisfaction - 0.5) x define:MIL_NO_LIFE_NEED - (pop-everyday-needs-satisfaction - 0.5)^0 x define:MIL_LACK_EVERYDAY_NEED + (pop-everyday-needs-satisfaction - 0.5)v0 x define:MIL_HAS_EVERYDAY_NEED + (pop-luxury-needs-satisfaction - 0.5)v0 x define:MIL_HAS_LUXURY_NEED + pops-support-for-conservatism x define:MIL_IDEOLOGY / 100 + pops-support-for-the-ruling-party-ideology x define:MIL_RULING_PARTY / 100 - (if the pop has an attached regiment, applied at most once) leader-reliability-trait / 1000 + define:MIL_WAR_EXHAUSTION x national-war-exhaustion x (sum of support-for-each-issue x issues-war-exhaustion-effect) / 100.0 + (for pops not in colonies) pops-social-issue-support x define:MIL_REQUIRE_REFORM + pops-political-issue-support x define:MIL_REQUIRE_REFORM
+
+NOTE FOR FUTURE SELF: the default war-exhaustion effect of any issue is 1, not 0.
 
 ### Consciousness
 
-Pops in non-colonial states have a plurality multiplier of 1 + national plurality, (treat this value as 1 for colonial pops)
+Pops in provinces controlled by rebels are not subject to consciousness changes.
+
+Otherwise, the daily change in consciousness is:
+(pop-luxury-needs-satisfaction x define:CON_LUXURY_GOODS
++ define:CON_POOR_CLERGY or define:CON_MIDRICH_CLERGY x clergy-fraction-in-province
++ national-plurality x 0v((national-literacy-consciousness-impact-modifier + 1) x define:CON_LITERACY x pop-literacy)
+) x define:CON_COLONIAL_FACTOR if colonial
++ province-pop-consciousness-modifier + national-pop-consciousness-modifier + national-core-pop-consciousness-modifier (in non-colonial states) + national-non-accepted-pop-consciousness-modifier (if not a primary or accepted culture)
 
 ### Literacy
 
@@ -363,6 +372,18 @@ Otherwise: subtract 0.25 from the pop's current support for the ideology (to a m
 The ideological support of the pop is then normalized after the changes.
 
 ### Issues
+
+As with ideologies, the attraction modifier for each issue is computed *multiplicatively* and then are collectively normalized. Then we zero the attraction for any issue that is not currently possible (i.e. its trigger condition is not met or it is not the next/previous step for a next-step type issue, and for uncivs only the party issues are valid here)
+
+Then, like with ideologies, we check how much the normalized attraction is above and below the current support, with a couple of differences. First, for political or social issues, we multiply the magnitude of the adjustment by (national-political-reform-desire-modifier + 1) or (national-social-reform-desire-modifier + 1) as appropriate. Secondly, the base magnitude of the change is either (national-issue-change-speed-modifier + 1.0) x 0.25 or (national-issue-change-speed-modifier + 1.0) x 0.05 (instead of a fixed 0.05 or 0.25). Finally, there is an additional "bin" at 5x more or less where the adjustment is a flat 1.0.
+
+### Movements
+
+Pops may support a movement (either issue based on independence based), and their support is updated daily. If the pop's support of the issue for an issue-based movement drops below define:ISSUE_MOVEMENT_LEAVE_LIMIT the pop will leave the movement. If the pop's militancy falls below define:NATIONALIST_MOVEMENT_MIL_CAP, the pop will leave an independence movement. If the pop is *not* currently part of a movement, not in a colonial province, is not part of a rebel faction, and has a consciousness of at least 1.5 or a literacy of at least 0.25 the pop may join a movement.
+
+If there is one or more issues that the pop supports by at least define:ISSUE_MOVEMENT_JOIN_LIMIT, then the pop has a chance to join an issue-based movement at probability: issue-support x 9 x define:MOVEMENT_LIT_FACTOR x pop-literacy + issue-support x 9 x define:MOVEMENT_CON_FACTOR x pop-consciousness
+
+If there are no valid issues, the pop has a militancy of at least define:NATIONALIST_MOVEMENT_MIL_CAP, does not have the primary culture of the nation it is in, and does have the primary culture of some core in its province, then it has a chance (20% ?) of joining an independence movement.
 
 ## Military
 
@@ -393,11 +414,13 @@ New leaders get a random name based on the primary culture of their nation. Lead
 
 Nations appear to be able to store up to define:LEADER_RECRUIT_COST x 3 leadership points. Nations accumulate leadership points monthly. To calculate the amount, we first take for each pop that provides leadership points, and multiply the amount of points it gives by the ratio of the fraction of the national population composed of that pop type to its research optimum (capping this ratio at 1). We then sum up those values and add the nation's modifier for leadership. Finally, we multiply that sum by (national-leadership-modifier-modifier + 1), giving up the monthly leadership points increase.
 
+A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount + national-modifier-to-leadership x (national-modifier-to-leadership-modifier + 1) leadership points per month.
+
 #### Daily death chances
 
 Leaders who are both less than 26 years old and not in combat have no chance of death. Otherwise, we take the age of the leader and divide by define:LEADER_AGE_DEATH_FACTOR. Then we multiply that result by 2 if the leader is currently in combat. That is then the leader's current chance of death out of ... my notes say 11,000 here. Note that the player only gets leader death messages if the leader is currently assigned to an army or navy (assuming the message setting for it is turned on).
 
-### Wars
+## Wars
 
 - Each war has two sides, and each side has a primary belligerent
 - Primary belligerents negotiate in peace deals for their whole side
@@ -406,18 +429,18 @@ Leaders who are both less than 26 years old and not in combat have no chance of 
 - A war that ends up with no members on one (or both) sides will simply be ended as a whole
 - A province is blockaded if there is a hostile sea unit in an adjacent sea province and no ongoing naval combat there. My notes say that only either not-overseas (or maybe only connected to capital) provinces count for calculating the blockade fraction
 
-#### Ticking war score
+### Ticking war score
 
 - ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
 - limited by define: TWS_CB_LIMIT_DEFAULT
 - to calculate: first you need to figure out the percentage of the war goal complete. This is percentage of provinces occupied or, for war score from battles see Battle score below
 
-##### Battle score
+### Battle score
 
 - zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
 - calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
 
-##### Invalid  war states
+### Invalid  war states
 
 - A primary belligerent may not be a vassal or substate of another nation
 - War goals must remain valid (must pass their is-valid trigger check, must have existing target countries, target countries must pass any trigger checks, there must be a valid state in the target country, the country that added them must still be in the war, etc)
@@ -425,41 +448,28 @@ Leaders who are both less than 26 years old and not in combat have no chance of 
 - There must be at least one wargoal (other than status quo) in the war
 - idle for too long -- if the war goes too long without some event happening within it (battle or occupation) it may be terminated. If something is occupied, I believe the war is safe from termination in this way
 
-#### Mobilization
+### Mobilization
 
-Mobilization impact = mobilization-size x national-mobilization-economy-impact-modifier
+Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
+Mobilization impact = 1 - mobilization-size x (national-mobilization-economy-impact-modifier + technology-mobilization-impact-modifier), to a minimum of zero.
 
-#### Units
+Mobilized regiments come only from unoccupied, non-colonial provinces. In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either the primary culture of the nation or an accepted culture. The number of regiments these pops can provide is determined by pop-size x mobilization-size / define:POP_SIZE_PER_REGIMENT. Pops will provide up to this number of regiments per pop, although regiments they are already providing to rebels or which are already mobilized count against this number. At most, national-mobilization-impact-modifier x define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be created by mobilization.
 
-##### Unit daily update
+Mobilization is not instant. Province by province, mobilization advances by define:MOBILIZATION_SPEED_BASE x (1 + define:MOBILIZATION_SPEED_RAILS_MULT x average-railroad-level-in-state / 5) until it reaches 1. Once mobilization has occurred in one province, mobilization in the next province can start. The order this occurs in appears to be determined by the speed of mobilization: the provinces that will mobilize faster go before those that will go slower.
 
-Units in combat gain experience. The exact formula is somewhat opaque to me, but here is what I know: units in combat gain experience proportional to define:EXP_GAIN_DIV, the experience gain bonus provided by their leader + 1, and then some other factor that is always at least 1 and goes up as the opposing side has more organization.
+### Province conquest
 
-Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit.
+When a province changes ownership:
+All pops lose any money they have put into the bank (and the central bank retains that money, so now no pop could possibly withdraw it). Pops leave any movements or rebel factions they are part of. If the province is not colonial, and the new owner does not have a core there, any pops with a culture that is not primary or accepted for the new owner gain define:MIL_FROM_CONQUEST militancy.
 
-Units that are moving lose any dig-in bonus they have acquired. A unit that is not moving gets one point of dig-in per define:DIG_IN_INCREASE_EACH_DAYS days.
+All timed modifiers in the province automatically expire and any ongoing constructions are canceled.
+The conquered province gets nationalism equal to define:YEARS_OF_NATIONALISM.
+If the nation doing the conquering has a non-zero research-points-on-conquer modifier:
+The nation gets "1 year of research points" for each province conquered times its research-points-on-conquest multiplier, and as an unciv (usually) this allows it to exceed its normal research points cap. However, this one year of research points isn't calculated normally; it is calculated as if the province being conquered was an OPM with the modifiers and technology of the conquering nation. Specifically, we let pop-sum = for each pop type in the province (research-points-from-type x 1v(fraction of population / optimal fraction)). Then, the research points earned are 365 x ((national-modifier-research-points-modifier + tech-research-modifier + 1) x (national-modifier-to-research-points) + pop-sum)) x research-points-on-conquer-modifier
 
-Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are in a rebel faction, and which have organization at least 0.75 will become rebel units.
+Provinces a civ conquers from an unciv are turned into colonies.
 
-Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
-
-##### Unit stats
-
-- Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
-- Units start with max strength and org after being built
-
-##### Unit construction
-
-- Only a single unit is built per province at a time
-- See the economy section for details on how construction happens
-- After being built, units move towards the nearest rally point, if any, to merge with an army there upon arrival
-
-##### Regiments per pop
-
-- A soldier pop must be at least define:POP_MIN_SIZE_FOR_REGIMENT to support any regiments
-- If it is at least that large, then it can support one regiment per define:POP_SIZE_PER_REGIMENT x define:POP_MIN_SIZE_FOR_REGIMENT_COLONY_MULTIPLIER (if it is located in a colonial province) x define:POP_MIN_SIZE_FOR_REGIMENT_NONCORE_MULTIPLIER (if it is non-colonial but uncored)
-
-#### Siege
+### Siege
 
 Garrison recovers at 10% per day when not being sieged (to 100%)
 
@@ -500,7 +510,7 @@ Progress Table:
 8: 1.25
 9: 1.25
 
-#### Land combat
+### Land combat
 
 (Units in this section means regiments)
 
@@ -575,7 +585,7 @@ Modifier Table
 16: 0.80
 17+: 0.90
 
-#### Naval combat
+### Naval combat
 
 (Units in this section means ships)
 
@@ -618,11 +628,90 @@ War score is gained based on the difference in losses (in absolute terms) divide
 
 See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-combat-sort-of.1123034/), although in the case of disagreements you should assume that this document is correct in the absence of empirical evidence from the game proving otherwise.
 
+### Supply limit
+
+(province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
+
+## Units
+
+### Unit daily update
+
+Units in combat gain experience. The exact formula is somewhat opaque to me, but here is what I know: units in combat gain experience proportional to define:EXP_GAIN_DIV, the experience gain bonus provided by their leader + 1, and then some other factor that is always at least 1 and goes up as the opposing side has more organization.
+
+Units that are not in combat and not embarked recover organization daily at: (national-organization-regeneration-modifier + morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit.
+
+Units that are moving lose any dig-in bonus they have acquired. A unit that is not moving gets one point of dig-in per define:DIG_IN_INCREASE_EACH_DAYS days.
+
+Units backed by pops with define:MIL_TO_AUTORISE militancy or greater that are in a rebel faction, and which have organization at least 0.75 will become rebel units.
+
+Supplies: Rebel units are always treated as having fully supply. Units not in combat consume supply. Which commodities and how many are consumed in this way depends on the specific type of unit. The supply quantities defined by its type are then multiplied by (2 - national-administrative-efficiency) x (supply-consumption-by-type + national-modifier-to-supply-consumption)^0.01 x (naval-or-land-spending-as-appropriate). The average fraction of that consumption that could be fulfilled times naval or land-spending (as appropriate) for each regiment or ship is then averaged over the army/navy. For armies, that value become their new supply for the army. For navies, this value is further multiplied by (1 - the-fraction-the-nation-is-over-naval-supply) before becoming the new supply value.
+
+Navies with supplies less than define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS may receive attrition damage. Once a navy has been under that threshold for define:NAVAL_LOW_SUPPLY_DAMAGE_DAYS_DELAY days, each ship in it will receive define:NAVAL_LOW_SUPPLY_DAMAGE_PER_DAY x (1 - navy-supplies / define:NAVAL_LOW_SUPPLY_DAMAGE_SUPPLY_STATUS) damage (to its strength value) until it reaches define:NAVAL_LOW_SUPPLY_DAMAGE_MIN_STR, at which point no more damage will be dealt to it. NOTE: AI controlled navies are exempt from this, and when you realize that this means that *most* ships are exempt, it becomes less clear why we are even bothering the player with it.
+
+### Monthly reinforcement
+
+A unit that is not retreating, not embarked, not in combat is reinforced (has its strength increased) by:
+define:REINFORCE_SPEED x (technology-reinforcement-modifier + 1.0) x (2 if in owned province, 0.1 in an unowned port province, 1 in a controlled province, 0.5 if in a province adjacent to a province with military access, 0.25 in a hostile, unblockaded port, and 0.1 in any other hostile province) x (national-reinforce-speed-modifier + 1) x army-supplies x (number of actual regiments / max possible regiments (feels like a bug to me) or 0.5 if mobilized)
+The units experience is also reduced s.t. its new experience = old experience / (amount-reinforced / 3 + 1)
+
+### Monthly ship repair / update
+
+A ship that is docked at a naval base is repaired (has its strength increase) by:
+maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate + 1) x ship-supplies x (national-reinforce-speed-modifier + 1) x navy-supplies
+
+A navy that is at sea out of supply range has its "at sea" counter tick up once per month.
+
+### Monthly attrition
+
+A unit that is not in combat and not black flagged receives attrition damage on the 1st of the month. 
+
+For armies:
+For armies in their owner's provinces that are not retreating, attrition is calculated based on the total strength of units from their nation in the province. Otherwise, attrition is calculated based on the total strength of all units in the province. First we calculate (total-strength + leader-attrition-trait) x (attrition-modifier-from-technology + 1) - effective-province-supply-limit (rounded down to the nearest integer) + province-attrition-modifier + the-level-of-the-highest-hostile-fort-in-an-adjacent-province. We then reduce that value to at most the max-attrition modifier of the province, and finally we add define:SEIGE_ATTRITION if the army is conducting a siege. Units taking attrition lose max-strength x attrition-value x 0.01 points of strength. This strength loss is treated just like damage taken in combat, meaning that it will reduce the size of the backing pop.
+
+For navies:
+Only navies controlled by the player take attrition, and only those that are not in port or are not off of a controlled coast province. Navies in coastal sea zones in general only take attrition if they are out of supply range. The attrition value for such navies is (time-at-sea x 2 + 1 + leader-attrition-trait) x (naval-attrition-from-technology + 1). Whether a ship takes damage from attrition is partly random. The attrition value / 10 is the probability that the ship will take damage. If the ships does take damage, it loses max-strength x attrition-value x 0.01 points of strength.
+
+When player navies die from attrition, the admirals are lost too.
+
+### Movement
+
+Adjacent provinces have a base distance between them (this base also takes terrain into account in some way). When moving to a province, this cost is multiplied by (destination-province-movement-cost-modifier + 1.0)^0.05. The unit "pays" for this cost each day based on its speed, and when it is all paid for, the unit arrives in its destination province. An army's or navy's speed is based on the speed of its slowest ship or regiment x (1 + infrastructure-level-of-destination) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
+
+When a unit arrives in a new province, it takes attrition (as if it had spent the monthly tick in the province).
+
+### Unit stats
+
+- Unit experience goes up to 100. Units after being built start with a base experience level equal to the bonus given by technologies + the nations naval/land starting experience modifier (as appropriate)
+- Units start with max strength and org after being built
+
+### Unit construction
+
+- Only a single unit is built per province at a time
+- See the economy section for details on how construction happens
+- After being built, units move towards the nearest rally point, if any, to merge with an army there upon arrival
+
+### Regiments per pop
+
+- A soldier pop must be at least define:POP_MIN_SIZE_FOR_REGIMENT to support any regiments
+- If it is at least that large, then it can support one regiment per define:POP_SIZE_PER_REGIMENT x define:POP_MIN_SIZE_FOR_REGIMENT_COLONY_MULTIPLIER (if it is located in a colonial province) x define:POP_MIN_SIZE_FOR_REGIMENT_NONCORE_MULTIPLIER (if it is non-colonial but uncored)
+
+### Naval supply points
+
+- naval supply score: you get one point per level of naval base that is either in a core province or connected by land to the capital. You get define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE per level of other naval bases
+- ships consume naval base supply at their supply_consumption_score. Going over the naval supply score comes with various penalties (described elsewhere).
+
 ## Movements
 
-- Movements come in two types: political and social (Here I fold independence movements under the political). Functionally, we can better distinguish the movements between those associated with a position on some issue (either political or social) and those for the independence of some national identity.
+- Movements come in three types: political, social, and independence movements. Functionally, we can better distinguish the movements between those associated with a position on some issue (either political or social) and those for the independence of some national identity.
 - Slave pops cannot belong to a movement
 - Movements can accumulate radicalism, but only in civ nations. Internally we may represent radicalism as two values, a radicalism value and transient radicalism. Every day the radicalism value is computed as: define:MOVEMENT_RADICALISM_BASE + the movements current transient radicalism + number-of-political-reforms-passed-in-the-country-over-base x define:MOVEMENT_RADICALISM_PASSED_REFORM_EFFECT + radicalism-of-the-nation's-primary-culture + maximum-nationalism-value-in-any-province x define:MOVEMENT_RADICALISM_NATIONALISM_FACTOR + define:POPULATION_MOVEMENT_RADICAL_FACTOR x movement-support / nation's-non-colonial-population. 
+- When the radicalism value for a movement reaches 100, pops get removed from the movement and added to a rebel faction. Those pops have their militancy increased to a minimum of define:MIL_ON_REB_MOVE. See below for determining which rebel faction the pop joins.
+- Political and social movements are used to calculate the support for political / social reform in the nation by taking the proportion of the non-colonial population involved in political / social movements, respectively, and multiplying by define:MOVEMENT_SUPPORT_UH_FACTOR.
+
+- When a movement is suppressed:
+Reduce the suppression points for the nation by: if define:POPULATION_SUPPRESSION_FACTOR is zero, movement radicalism + 1, otherwise the greater of movement-radicalism + 1 and movement-radicalism x movement-support / define:POPULATION_SUPPRESSION_FACTOR, to a minimum of zero
+Increase the transient radicalism of the movement by: define:SUPPRESSION_RADICALISM_HIT
+Increase the consciousness of all pops that were in the movement by 1 and remove them from it.
 
 ## Rebels
 
@@ -633,6 +722,20 @@ See also: (https://forum.paradoxplaza.com/forum/threads/understanding-naval-comb
 - Otherwise take all the compatible and possible rebel types. Determine the spawn chance for each of them, by taking the *product* of the modifiers. The pop then joins the type with the greatest chance (that's right, it isn't really a *chance* at all). If that type has a defection type, it joins the faction with the national identity most compatible with it and that type (pan-nationalist go to the union tag, everyone else uses the logic I outline below)
 - Faction compatibility: a pop will not join a faction that it is excluded from based on its culture, culture group, religion, or ideology (here it is the dominant ideology of the pop that matters). There is also some logic for determining if a pop is compatible with a national identity for independence. I don't think it is worth trying to imitate the logic of the base game here. Instead I will go with: pop is not an accepted culture and either its primary culture is associated with that identity *or* there is no core in the province associated with its primary identity.
 - When a pop joins a faction, my notes say that the organization of the faction increases by either by the number of divisions that could spawn from that pop (calculated directly by pop size / define:POP_MIN_SIZE_FOR_REGIMENT) or maybe some multiple of that.
+- A rebel faction with no pops in it will disband
+- Rebel factions whose independence country exists will disband (different for defection rebels?)
+- Pan nationalists inside their union country will disband
+- Any pops belonging to a rebel faction that disbands have their militancy reduced to 0
+- Sum for each pop belonging to the faction that has made money in the day: net-income x pop-literacy x (10 if militancy is > define:MILITANCY_TO_AUTO_RISE and 5 if militancy is less than that but > define:MILITANCY_TO_JOIN_RISING) / (1 + national-administration-spending-setting). Take this sum, multiply by (rebel organization from technology + 1) and divide by the number of regiments those pops could form. If positive, add this to the current organization of the rebel faction (to a maximum of 1)
+- Rebels have a chance to rise once per month. If there are pops belonging to the faction with militancy greater than define:MILITANCY_TO_JOIN_RISING that can form at least one regiment, then a random check is made. The probability the rising will happen is: faction-organization x 0.05 + 0.02 + faction-organization x number-of-regiments-the-rising-could-form / 1v(number-of-regiments-controlled-by-nation x 20)
+- When a rising happens, pops with at least define:MILITANCY_TO_JOIN_RISING will spawn faction-organization x max-possible-supported-regiments, to a minimum of 1 (if any more regiments are possible).
+- Any pop that contributes regiments has its militancy reduced by define:REDUCTION_AFTER_RISING
+- Any flashpoint state where one or more rebel regiments is created has its flashpoint tension increased by define:TENSION_ON_REVOLT to a maximum of 100
+- Faction organization is reduced to 0 after an initial rising (for later contributory risings, it may instead be reduced by a factor of (number-of-additional-regiments x 0.01 + 1))
+
+### Province defection
+
+If, on the first of the month, a non-capital province is controlled by rebels and it is not currently being sieged, and no battle is currently taking place in it, and it has been at least as many months as defined in the rebel type, the province will defect if the rebel type permits it. Where that defection goes ... is complicated (anyone know the logic for this?), and seems to be biased towards nations with cores in the province, and then adjacent nations failing that. Although capital provinces don't defect in this way, if a nation has only a single state, and a province defects in this way, the whole nation will be annexed into the defection target.
 
 ### Rebel victory
 
@@ -641,6 +744,14 @@ Every day, an active rebel faction has its `demands_enforced_trigger` checked. I
 ### Calculating how many regiments are "ready to join" a rebel faction
 
 Loop over all the pops associated with the faction. For each pop with militancy >= define:MIL_TO_JOIN_RISING, the faction is credited one regiment per define:POP_SIZE_PER_REGIMENT the pop has in size.
+
+## Crime
+
+Crime is apparently the single place where the following value matters:
+- state administrative efficiency: = define:NONCORE_TAX_PENALTY x number-of-non-core-provinces + (bureaucrat-tax-efficiency x total-number-of-primary-or-accepted-culture-bureaucrats / population-of-state)v1 / x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE)), all clamped between 0 and 1.
+The crime fighting percent of a province is then calculated as: (state-administration-efficiency x define:ADMIN_EFFICIENCY_CRIMEFIGHT_PERCENT + administration-spending-setting x (1 - ADMIN_EFFICIENCY_CRIMEFIGHT_PERCENT)) x (define:MAX_CRIMEFIGHTING_PERCENT - define:MIN_CRIMEFIGHTING_PERCENT) + define:MIN_CRIMEFIGHTING_PERCENT
+
+Once per month (the 1st) province crimes are updated. If the province has a crime, the crime fighting percent is the probability of that crime being removed. If there is no crime, the crime fighting percent is the probability that it will remain crime free. If a crime is added to the province, it is selected randomly (with equal probability) from the crimes that are possible for the province (determined by the crime being activated and its trigger passing).
 
 ## Technology
 
@@ -658,6 +769,10 @@ There is also an instant research cheat, but I see no reason to put it in the ga
 ### Cost
 
 The effective amount of research points a tech costs = base-cost x 0v(1 - (current-year - tech-availability-year) / define:TECH_YEAR_SPAN) x define:TECH_FACTOR_VASSAL(if your overlord has the tech) / (1 + tech-category-research-modifier)
+
+### Inventions
+
+Inventions have a chance to be discovered on the 1st of every month. The invention chance modifier is computed additively, and the result is the chance out of 100 that the invention will be discovered. When an invention with shared prestige is discovered, the discoverer gains that amount of shared prestige / the number of times it has been discovered (including the current time).
 
 ## Politics
 
@@ -717,6 +832,16 @@ And then we add one point either per leader or per regiment, whichever is greate
 
 ## Spheres and Great Powers
 
+### Great powers
+
+An uncivilized nation or a nation with only a single state cannot be a great power.
+
+When a nation becomes great is ceases to be a vassal / substate. It also gets an `on_new_great_nation` event.
+
+When a nation loses GP status, it gets an `on_lost_great_nation` event.
+
+A nation that falls out of the top 8 does not stop being a GP until define:GREATNESS_DAYS have passed since it was last a GP *and* it is not currently involved in a crisis war, or a war that could potentially be a great war (if they were to be enabled), *and* it is not involved in a crisis as either a defender or attacker.
+
 ### Influence
 
 A nation does not accumulate influence if: their embassy has been banned, if they are at war against the nation, if they have a truce with the nation, if the nation has priority 0, or if their influence is capped (at max value with no other GP influencing).
@@ -727,7 +852,36 @@ The nation gets a daily increase of define:BASE_GREATPOWER_DAILY_INFLUENCE x (na
 
 ### Flashpoint tension
 
-The flashpoint focus is only available for non great power, non secondary power, and must be placed in a state that already has a flashpoint (in some province)
+The flashpoint focus is only available for non great power, non secondary power, and must be placed in a state that already has a flashpoint (in some province). States that are part of a substate (i.e. the special vassal type) or states that contain a nation's capital cannot have flashpoints or accumulate tension.
+
+Whether a state contains a flashpoint depends on: whether a province in the state contains a core other than that of its owner and of a tag that is marked as releasable (i.e. not a cultural union core), and which has a primary culture that is not the primary culture or an accepted culture of its owner. If any core qualifies, the state is considered to be a flashpoint, and its default flashpoint tag will be the qualifying core whose culture has the greatest population in the state. (However, if a nation puts a flashpoint focus in the state, the flashpoint tag will change to that of the nation that placed the focus.)
+
+- If at least one nation has a CB on the owner of a flashpoint state, the tension increases by define:TENSION_FROM_CB per day.
+- If there is an independence movement within the nation owning the state for the independence tag, the tension will increase by movement-radicalism x define:TENSION_FROM_MOVEMENT x fraction-of-population-in-state-with-same-culture-as-independence-tag x movement-support / 4000, up to a maximum of define:TENSION_FROM_MOVEMENT_MAX per day.
+- Any flashpoint focus increases the tension by the amount listed in it per day.
+- Tension increases by define:TENSION_DECAY per day (this is negative, so this is actually a daily decrease).
+- Tension increased by define:TENSION_WHILE_CRISIS per day while a crisis is ongoing.
+- If the state is owned by a great power, tension is increased by define:RANK_X_TENSION_DECAY per day
+- For each great power at war or disarmed on the same continent as either the owner or the state, tension is increased by define:AT_WAR_TENSION_DECAY per day.
+- Tension ranges between 0 and 100
+
+### Starting a Crisis
+
+A crisis may not start until define:CRISIS_COOLDOWN_MONTHS months after the last crisis or crisis war has ended. When a crisis becomes possible, we first check each of the three states with the highest tension > 50 where neither the owner of the state nor the nation associated with the flashpoint (if any) is at war. I believe the probability of a crisis happening in any of those states is 0.001 x define:CRISIS_BASE_CHANCE x state-tension / 100. If this turns into a crisis, the tension in the state is immediately zeroed. Failing that, any contested colonial region where neither colonizer is at war will become a crisis and the colonial "temperature" has reached 100.
+
+### Interested GPs
+
+A GP that is not disarmed and not at war with war exhaustion less than define:CRISIS_INTEREST_WAR_EXHAUSTION_LIMIT and is either on the same continent as the crisis target, crisis attacker, or state (or with a few other special cases: I think European GPs are interested in everything, and I think north and south America are considered one continent here) is considered to be interested. When a GP becomes interested it gets a `on_crisis_declare_interest` event.
+
+### Crisis temperature
+
+Every day where there is at least one defending GP and one attacking GP, the crisis temperature increases by  define:CRISIS_TEMPERATURE_INCREASE x define:CRISIS_TEMPERATURE_PARTICIPANT_FACTOR x the ratio of GPs currently involved in the crisis to the total number of interested GPs and participating GPs.
+
+### Crisis resolution
+
+The nation controlling the state that was the target of the crisis will lose all tension in any of its flashpoint states at the end of the crisis (however it resolves).
+If the crisis becomes a war, any interested GP which did not take a side loses (years-after-start-date x define:CRISIS_DID_NOT_TAKE_SIDE_PRESTIGE_FACTOR_YEAR + define:CRISIS_DID_NOT_TAKE_SIDE_PRESTIGE_FACTOR_BASE) as a fraction of their prestige.
+If the crisis fails with a GP backer but no attackers, the lone backer gets extra prestige equal to define:LONE_BACKER_PRESTIGE_FACTOR as a fraction of their prestige.
 
 ## Colonization
 
@@ -737,11 +891,28 @@ If you haven't yet put a colonist into the region, you must be in range of the r
 
 If you have put a colonist in the region, and colonization is in phase 1 or 2, you can invest if it has been at least define:COLONIZATION_DAYS_BETWEEN_INVESTMENT since your last investment, you have enough colonial points, and the state remains in range.
 
+If you have put in a colonist in a region and it goes at least define:COLONIZATION_DAYS_FOR_INITIAL_INVESTMENT without any other colonizers, it then moves into phase 3 with define:COLONIZATION_INTEREST_LEAD points.
+
+If you get define:COLONIZATION_INTEREST_LEAD ahead in points of all other colonizers in the region, and it is phase 1, it moves into phase 2, kicking out all but the second-most colonizer (in terms of points).
+
+In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
+
+In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY ... etc as for ordinary state flashpoint tension. 
+
 To finish colonization and make a protectorate: you must be in colonization phase 3, you must have define:COLONIZATION_CREATE_PROTECTORATE_COST free colonial points, and your colonist in the region must have non zero points.
+
+If you leave a colony in phase 3 for define:COLONIZATION_MONTHS_TO_CANCEL months, the colonization will reset to phase 0 (no colonization in progress).
 
 To turn a protectorate into a colony, you must have define:COLONIZATION_CREATE_COLONY_COST x number-of-provinces-in-state colonial points free.
 
 To turn a colony into a regular state, it must have enough bureaucrats with your primary culture to make up define:STATE_CREATION_ADMIN_LIMIT fraction of the population. If the colony has a direct land connection to your capital, this doesn't require any free colonial points. Otherwise, you must also have define:COLONIZATION_CREATE_STATE_COST x number-of-provinces-in-state x 1v(distance-from-capital/define:COLONIZATION_COLONY_STATE_DISTANCE) free points.
+
+### Points
+
+- colonial points: (for nations with rank at least define:COLONIAL_RANK)
+- from naval bases: (1) determined by level and the building definition, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- plus points from technologies/inventions
 
 ## Events
 
@@ -749,19 +920,55 @@ To turn a colony into a regular state, it must have enough bureaucrats with your
 
 I don't know if any mods make use of them (I assume not, at the moment), but a country will see a quarterly pulse event every 1 to 90 days (uniformly randomly distributed in that range) and a yearly pulse events every 1 to 365 days (also uniformly distributed). Yes, this means that on average you would see more than 4 quarterly events per year and more than 1 yearly event per year. Look, I don't make the rules, I just report them.
 
+### Random events
+
+Some events are designated as being able to be triggered at most once. Obviously, this means that they can happen at most once. Also note that some events have an immediate effect, which occurs when the even is triggered, before any option can be chosen.
+
+Which events are possible at all seems to be tested less frequently than testing for the occurrence of an event.
+
+Province events and national events are checked on alternating days.
+
+For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
+
+The probabilities for province events are calculated in the same way, except that they are twice as likely to happen.
+
 ## Other concepts
 
+- Prestige: generally positive prestige gains are increased by a factor of (technology-prestige-modifier + 1)
+- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
+- Infamy: a nation with a badboy modifier gains that amount of infamy per month
+- War exhaustion: a nation with a war exhaustion modifier gains that much at the start of the month, and every month its war exhaustion is capped to its maximum-war-exhaustion modifier at most.
+- Monthly relations adjustment = +0.25 for subjects/overlords, -0.01 for being at war, +0.05 if adjacent and both are at peace, +0.025 for having military access, -0.15 for being able to use a CB against each other (-0.30 if it goes both ways)
+- Once relations are at 100, monthly increases cannot take them higher
+- Except: ai overlords and vassals increase their relation by +2 a month up to 200.
+- Monthly plurality increase: plurality increases by average consciousness / 45 per month.
+- Monthly diplo-points: (1 + national-modifier-to-diplo-points + diplo-points-from-technology) x define:BASE_MONTHLY_DIPLOPOINTS (to a maximum of 9)
+- Monthly suppression point gain: define:SUPPRESS_BUREAUCRAT_FACTOR x fraction-of-population-that-are-bureaucrats x define:SUPPRESSION_POINTS_GAIN_BASE x (suppression-points-from-technology + national-suppression-points-modifier + 1) (to a maximum of define:MAX_SUPPRESSION)
 - overseas province: not on same continent as the nation's capital AND not connected by land to the capital
 - province value type A: 1 (if unowned or colonial), otherwise: (1 + fort level + naval base level + number of factories in state (if capital province of the state state)) x 2 (if non-overseas core) x 3 (if it is the national capital) -- these values are used to determine the relative worth of provinces (I believe) as a proportion of the total type A valuation of all provinces owned by the country.
 - a port: I believe that any coastal province is considered to have a port, regardless of whether it has a naval base
 - revanchism: you get one point per unowned core if your primary culture is the dominant culture (culture with the most population) in the province, 0.25 points if it is not the dominant culture, and then that total is divided by the total number of your cores to get your revanchism percentage
-- naval base supply score: you get one point per level of naval base that is either in a core province or connected by land to the capital. You get define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE per level of other naval bases
-- ships consume naval base supply at their supply_consumption_score
-- colonial points: (for nations with rank at least define:COLONIAL_RANK)
-- from naval bases: (1) determined by level and the building defintion, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
-- from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
-- plus points from technologies/inventions
 - national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
-- state administrative efficiency: = define:NONCORE_TAX_PENALTY x number-of-non-core-provinces + (bureaucrat-tax-efficiency x total-number-of-primary-or-accepted-culture-bureaucrats / population-of-state)v1 / x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE)), all clamped between 0 and 1.
 - tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to at most 1.0
 - number of national focuses: the lesser of total-accepted-and-primary-culture-population / define:NATIONAL_FOCUS_DIVIDER and 1 + the number of national focuses provided by technology.
+- province nationalism decreases by 0.083 per month.
+
+## Tracking changes
+
+There are some triggers, game rules, and ui elements that need to know the change of certain things, such as pop growth, migration amount, changes in pop wealth perhaps, etc. We will need to decide if these things are tracked by either resetting some value to zero at the beginning of the day and then increasing it over the day or by ensuring that all changes happen in a single place, so that the new delta can be written once (versus writing zero and then adding updates as we go). The second option is better for ui stability, since otherwise reading such a value over the course of a tick runs the risk of not just giving you an out-of-date value, but an incorrect one. We will also need to decide if we are storing these delta values in the save file. If we don't there are two consequences: (a) there will be no information about them in the ui on the first day after a load, and (b) we will need to make sure that they are always generated prior to being needed by any rule; we can't fall back on using the change value from the previous day as there may be no previous day.
+
+### Paths and connectivity
+
+It may be expedient to create some structures tracking properties of pathing / connectivity. Some properties, such as being "overseas" require in part the ability to check whether one province is connected to another. One way to do this would be by "flood filling" connected provinces with increasing ids until there are no more land provinces. Then, same ID => connected.
+
+### Other values to track (typically we need these stored to evaluate one or more trigger conditions)
+
+- number of ports
+- number of ports connected to the capital
+- number of overseas provinces
+- number of rebel occupied provinces
+- fraction of provinces with a crime
+- whether any two nations are adjacent (i.e. a province owned by one is adjacent to a province owned by the other)
+- whether any two nations each have a colonial province adjacent to a colonial province of the other
+- how many regiments total could possibly be recruited, and what number actually have been recruited
+- total number of allies, vassals, substates, etc
