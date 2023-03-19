@@ -14,3 +14,5 @@ interface_volume_label;Interface volume;;;;;;;;;;;;x
 effect_volume_label;Sound effect volume;;;;;;;;;;;;x
 alice_mode_window;Windowed;;;;;;;;;;;;x
 alice_mode_fullscreen;Fullscreen;;;;;;;;;;;;x
+use_standard_fonts;Use Standard Fonts;;;;;;;;;;;;x
+use_classic_fonts;Use Classic Fonts;;;;;;;;;;;;x

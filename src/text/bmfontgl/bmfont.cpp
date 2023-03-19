@@ -69,9 +69,11 @@ typedef struct
 
 vlist texlst[2048*4];
 
-bool BMFont::ParseFont(simple_fs::file& file)
+bool BMFont::ParseFont(native_string filename, sys::state& state)
 {
-	auto content = simple_fs::view_contents(file);
+	auto file = simple_fs::open_file(simple_fs::get_root(state.common_fs), filename);
+
+	auto content = simple_fs::view_contents(*file);
 
 	std::stringstream Stream(std::string(content.data, content.file_size));
 	std::string Line;
@@ -204,7 +206,6 @@ bool BMFont::ParseFont(simple_fs::file& file)
 
 int BMFont::GetKerningPair(int first, int second)
 {
-		
 	 if (KernCount ) //Only process if there actually is kerning information
 	 {
 	 //Kearning is checked for every character processed. This is expensive in terms of processing time.
@@ -222,7 +223,6 @@ int BMFont::GetKerningPair(int first, int second)
 return 0;
 }
 
-
 float BMFont::GetStringWidth(const char *string)
 {
   float total=0;
@@ -237,69 +237,31 @@ float BMFont::GetStringWidth(const char *string)
   return total * fscale;
 }
 
-void BMFont::LoadFontImage(simple_fs::file& file) {
-	assert(ftexid == 0);
+void BMFont::LoadFontImage(native_string file) {
 
-	ftexid = ogl::make_font_texture(file);
+	imagefile = file;
 }
 
-bool BMFont::LoadFontfile(simple_fs::file& file) {
-	ParseFont(file);
-	KernCount = (short)Kearn.size();
+bool BMFont::LoadFontfile(native_string file) {
+
+	fontfile = file;
 
 	return true;
 }
 
-
-void Render_String(int len)
+void BMFont::Print(float x, float y, const char *fmt, uint32_t* texture, sys::state& state, ...)
 {
-   //Draw Text Array, with 2D, two coordinates per vertex.
-   glEnableClientState(GL_VERTEX_ARRAY);
-   glVertexPointer(2, GL_FLOAT, sizeof(vlist), &texlst[0].x);
+	if(!loadingdone) {
 
-   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-   glTexCoordPointer(2, GL_FLOAT, sizeof(vlist), &texlst[0].texx);
+		assert(ftexid == 0);
 
-   glEnableClientState(GL_COLOR_ARRAY);
-   glColorPointer (4, GL_UNSIGNED_BYTE , sizeof(vlist) , &texlst[0].r);
+		ftexid = ogl::make_font_texture(imagefile, state);
 
-   glDrawArrays(GL_QUADS, 0, len*4);// 4 Coordinates for a Quad. Could use DrawElements here instead GL 3.X+ GL_TRIANGLE_STRIP? 
- 
-   //Finished Drawing, disable client states.
-   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-   glDisableClientState(GL_VERTEX_ARRAY);
-   glDisableClientState(GL_COLOR_ARRAY);
-}
+		ParseFont(fontfile, state);
+		KernCount = (short)Kearn.size();
 
-void use_texture(GLuint* texture, GLboolean linear, GLboolean mipmapping)
-{
-	GLenum filter = linear ? GL_LINEAR : GL_NEAREST;
-	glBindTexture(GL_TEXTURE_2D, *texture);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	if (mipmapping)
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	else
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLfloat)filter);
-}
-
-void SetBlendMode(int mode)
-{
-	if (mode) {
-		glEnable(GL_ALPHA_TEST);
-		glDisable(GL_BLEND);
-		glAlphaFunc(GL_GREATER, 0.5f);
+		loadingdone = true;
 	}
-	else {
-		glDisable(GL_ALPHA_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-}
-
-void BMFont::Print(float x, float y, const char *fmt, ...)
-{
 	
 	float CurX = (float) x;
 	float CurY = (float) y;
@@ -320,16 +282,22 @@ void BMFont::Print(float x, float y, const char *fmt, ...)
 	vsprintf(text, fmt, ap);						    // And Converts Symbols To Actual Numbers
 	va_end(ap);		
 
-	//Select and enable the font texture. (With mipmapping.)
-  	use_texture(&ftexid, 0,1);
-    //Set type of blending to use with this font.
-	SetBlendMode(fblend);
    	//Set Text Color, all one color for now. 
 	unsigned char *color = (unsigned char*)&fcolor;
 	
 	y= y + LineHeight;
     Flen = (int)strlen(text);
 
+	//------ FOR SCHOMBERT ------//
+	//Every iteration of this loop draws one character of the string 'fmt'.
+	//'texlst' contains information for each vertex of each rectangle for each character.
+	//Every 4 elements in 'texlst' is one complete rectangle, and one character.
+	//'texlst[i].texx' and 'texlst[i].texy' are the intended texture coordinates of a vertex on the texture.
+	//'texlst[i].x' and 'texlst[i].y' are the coordinates of a vertex of the rendered rectangle in the window.
+	//The color variables are unused currently.
+	//
+	//Spacing, kearning, etc. are already applied.
+	//Scaling (unintentionally) is also applied (by whatever part of Alice scales the normal fonts).
 	for (int i = 0; i != Flen; ++i)
 	{
   
@@ -388,34 +356,15 @@ void BMFont::Print(float x, float y, const char *fmt, ...)
 		 }
 		  
 		 x +=  f->XAdvance;
+
+		 glActiveTexture(GL_TEXTURE0);
+		 glBindTexture(GL_TEXTURE_2D, ftexid);
+
+		 //I recommend multiplying the last two arguments by something for testing as the characters are quite small otherwise.
+		 glUniform4f(ogl::parameters::drawing_rectangle, texlst[i * 4].x, texlst[i * 4].y, texlst[(i * 4) + 2].x- texlst[(i * 4) + 3].x, f->YOffset);
+		 glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
-   Render_String((int)strlen(text));
 }
-
-
-void BMFont::PrintCenter( float y, const char *string)
-{
-	int x=0;
-	CharDescriptor  *f;		 
-	
-	int window_width = 500;
-
-		int len = (int)strlen(string);
-
-		for (int i = 0; i != len; ++i)
-		{
-			f=&Chars[string[i]];
-
-			if (len > 1 && i < len)
-			 { 
-			   x += GetKerningPair(string[i],string[i+1]);
-			 }
-			 x +=  f->XAdvance;
-		}
-
-	Print( (float)(500/2) - (x/2) , y, string);
-}
-
 
 BMFont::~BMFont()
 {

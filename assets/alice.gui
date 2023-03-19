@@ -196,6 +196,39 @@ guiTypes = {
 				position = { x = 269 y = 221 }
 				quadTextureSprite = "option_next"
 			}
+			instantTextBoxType={
+				position = {x = 58 y = 270 }
+				name = "fonts_label"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}	
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+
+			instantTextBoxType={
+				position = {x = 58 y = 288 }
+				name = "fonts_value"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}	
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+
+			guiButtonType = {
+				name = "fonts_left"
+				position = { x = 51 y = 281 }
+				quadTextureSprite = "option_prev"
+			}
+
+			guiButtonType = {
+				name = "fonts_right"
+				position = { x = 269 y = 281 }
+				quadTextureSprite = "option_next"
+			}
 		}
 	
 		windowType = {

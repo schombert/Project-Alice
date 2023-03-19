@@ -32,6 +32,20 @@ class window_mode_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class fonts_mode_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class fonts_mode_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class fonts_mode_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
 
 class master_volume : public scrollbar {
 	void on_value_change(sys::state& state, int32_t v) noexcept final;
@@ -94,6 +108,12 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<window_mode_left>(state, id);
 		else if(name == "window_mode_right")
 			return make_element_by_type<window_mode_right>(state, id);
+		else if(name == "fonts_value")
+			return make_element_by_type<fonts_mode_display>(state, id);
+		else if(name == "fonts_left")
+			return make_element_by_type<fonts_mode_right>(state, id);
+		else if(name == "fonts_right")
+			return make_element_by_type<fonts_mode_right>(state, id);
 		//window_mode_left
 		else
 			return nullptr;
