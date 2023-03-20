@@ -582,12 +582,41 @@ void set_diplomatic(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::diplomatic);
 }
 
+
+uint32_t get_number_nations_with_status(sys::state& state, nations::status status) {
+		if(status == nations::status::great_power || status == nations::status::secondary_power) {
+			return 8;
+		}
+		uint32_t total = 0;
+		state.world.for_each_nation([&](dcon::nation_id nation_id) {
+
+			if(nations::get_status(state, nation_id) == status)
+				total++;
+
+		});
+		return total;
+
+}
+uint32_t get_status_starting_point(sys::state& state, nations::status status) {
+	switch(status) {
+		case nations::status::great_power:
+			return 0;
+		case nations::status::secondary_power:
+			return 8;
+		case nations::status::civilized:
+			return 15;
+		default:
+			return 15 + get_number_nations_with_status(state, status);
+	}
+
+}
+
 void set_rank(sys::state& state) {
 	// These colors are arbitrary
-	// 1 to 8 -> green from #30f233 to #1f991f
-	// 9 to 16 -> blue from #242fff to #151c99
-	// under 16 but civilized -> yellow from #eefc26 to #54590d
-	// under 16 but uncivilized -> red from #ff2626 to #590d0d
+	// 1 to 8 -> green #30f233
+	// 9 to 16 -> blue #242fff
+	// under 16 but civilized -> yellow #eefc26 
+	// under 16 but uncivilized -> red #ff2626
 
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
@@ -599,28 +628,43 @@ void set_rank(sys::state& state) {
 		auto nation_id = fat_id.get_nation_from_province_ownership();
 		auto status = nations::get_status(state, nation_id);
 
-
-		//uint16_t nation_rank = state.world.nation_get_rank(nation_id);
-
+		float darkness =  1 - 0.7 * (state.world.nation_get_rank(nation_id) - get_status_starting_point(state, status)) / (float)get_number_nations_with_status(state, status);
+		//                    ^^^ the darkness is capped at 70%	
 
 		uint32_t color;
 		if(bool(nation_id))
 			switch(status) {
 				case nations::status::great_power:
-					color = sys::pack_color(48, 242, 51);
+					color = sys::pack_color(
+						(int32_t)(48 * darkness),
+						(int32_t)(242 *  darkness),
+						(int32_t)(51 * darkness)
+					);
 					break;
 
 				case nations::status::secondary_power:
-					color = sys::pack_color(36, 47, 255);
+					color = sys::pack_color(
+						(int32_t)(36 * darkness),
+						(int32_t)(47 * darkness),
+						(int32_t)(255 * darkness)
+					);
 					break;
 
 				case nations::status::civilized:
-					color = sys::pack_color(238, 252, 38);
+					color = sys::pack_color(
+						(int32_t)(238 * darkness),
+						(int32_t)(252 * darkness),
+						(int32_t)(38 * darkness)
+					);
 					break;
 
 					// primitive, uncivilized and westernized
 				default:
-					color = sys::pack_color(250, 5, 5);
+					color = sys::pack_color(
+						(int32_t)(250 * darkness),
+						(int32_t)(5 * darkness),
+						(int32_t)(5 * darkness)
+					);
 					break;
 			}
 		else // If no owner use default color
