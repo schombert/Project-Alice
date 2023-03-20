@@ -49,7 +49,7 @@ jobs:
       - name: Generate docs post process
         run: |
           cd docs
-          bash ./generate_docs_post.sh
+          sudo bash ./generate_docs_post.sh
           cd ..
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
