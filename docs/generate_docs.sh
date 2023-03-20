@@ -41,10 +41,3 @@ echo '</tab>' 	>> layout_file.xml
 
 echo '</navindex>'						>> layout_file.xml
 echo '</doxygenlayout>' 	>> layout_file.xml
-
-# Run doxygen
-doxygen
-
-# Replace broken code blocks in headers
-sed -i "s/&lt;tt&gt;/<code>/g" out/html/md_*.html
-sed -i "s/&lt;\/tt&gt;/<\/code>/g" out/html/md_*.html

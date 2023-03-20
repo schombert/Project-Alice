@@ -42,6 +42,16 @@ jobs:
           cd docs
           bash ./generate_docs.sh
           cd ..
+      - name: Run doxygen
+        uses: mattnotmitt/doxygen-action@v1.9.5
+        with:
+            working-directory: 'docs/'
+            doxyfile-path: 'docs/Doxygen'
+      - name: Generate docs post process
+        run: |
+          cd docs
+          bash ./generate_docs_post.sh
+          cd ..
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
