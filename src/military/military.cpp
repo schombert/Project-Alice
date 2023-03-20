@@ -83,14 +83,14 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 	/*
 	(province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
 	*/
-	float modifier = 1.0f;
+	float modifier = 2.0f;
 	auto prov_controller = state.world.province_get_nation_from_province_control(p);
 	auto self_controlled = prov_controller == n;
 	if(state.world.province_get_nation_from_province_ownership(p) == n && self_controlled) {
 		modifier = 2.5f;
 	} else if(self_controlled || bool(state.world.province_get_rebel_faction_from_province_rebel_control(p))) { // TODO: check for sieging
 		modifier = 2.0f;
-	} else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, n);
+	} /*else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, n);
 		state.world.diplomatic_relation_get_are_allied(dip_rel)
 		) {
 		modifier = 2.0f;
@@ -100,7 +100,7 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 		modifier = 2.0f;
 	} else if(bool(state.world.get_core_by_prov_tag_key(p, state.world.nation_get_identity_from_identity_holder(n)))) {
 		modifier = 2.0f;
-	}
+	}*/
 	auto base_supply_lim = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::supply_limit) + 1.0f);
 	auto national_supply_lim = (state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::supply_limit - sys::provincial_mod_offsets::count) + 1.0f);
 	return int32_t( base_supply_lim * modifier * national_supply_lim );

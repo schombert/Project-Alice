@@ -42,6 +42,7 @@ public:
 	void impl_on_update(sys::state& state) noexcept final;
 	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void impl_on_reset_text(sys::state& state) noexcept override;
 
 	std::unique_ptr<element_base> remove_child(element_base* child) noexcept final;
 	void move_child_to_front(element_base* child) noexcept final;
@@ -91,6 +92,7 @@ public:
 	}
 
 	void set_button_text(sys::state& state, std::string const& new_text);
+	void on_reset_text(sys::state& state) noexcept override;
 
 	virtual void button_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
@@ -120,6 +122,7 @@ private:
 	bool black_text = true;
 public:
 	void set_text(sys::state& state, std::string const& new_text);
+	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 
@@ -133,6 +136,7 @@ class edit_box_element_base : public simple_text_element_base {
 public:
 	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept { }
 	virtual void edit_box_update(sys::state& state, std::string_view s) noexcept { }
+	void on_reset_text(sys::state& state) noexcept override;
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
@@ -179,6 +183,7 @@ public:
 	void on_create(sys::state& state) noexcept override;
 	void update_substitutions(sys::state& state, std::vector<text_substitution> subs);
 	void update_text(sys::state& state, dcon::text_sequence_id seq_id);
+	void on_reset_text(sys::state& state) noexcept override;
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {

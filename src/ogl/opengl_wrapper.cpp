@@ -483,16 +483,63 @@ void render_new_text(sys::state const& state, char const* codepoints, uint32_t c
 	internal_text_render(state, codepoints, count, x, y + size, size, f);
 }
 
+void render_classic_text(sys::state const& state, float x, float y, char const* codepoints, uint32_t count, color_modification enabled, const color3f& c, text::BMFont const& font) {
+	float adv = (float)1.0 / font.Width;                      // Font texture atlas spacing.
+
+
+	bind_vertices_by_rotation(state, ui::rotation::upright, false);
+
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::subsprite_b };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+
+	//Set Text Color, all one color for now.
+
+	//------ FOR SCHOMBERT ------//
+	//Every iteration of this loop draws one character of the string 'fmt'.
+	//'texlst' contains information for each vertex of each rectangle for each character.
+	//Every 4 elements in 'texlst' is one complete rectangle, and one character.
+	//'texlst[i].texx' and 'texlst[i].texy' are the intended texture coordinates of a vertex on the texture.
+	//'texlst[i].x' and 'texlst[i].y' are the coordinates of a vertex of the rendered rectangle in the window.
+	//The color variables are unused currently.
+	//
+	//Spacing, kearning, etc. are already applied.
+	//Scaling (unintentionally) is also applied (by whatever part of Alice scales the normal fonts).
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, font.ftexid);
+
+	for(uint32_t i = 0; i < count; ++i) {
+		auto f = font.Chars[uint8_t(codepoints[i])];
+
+		float CurX = x + f.XOffset;
+		float CurY = y + f.YOffset;
+
+		glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.Width), float(f.Height));
+
+		glUniform3f(parameters::inner_color, c.r, c.g, c.b);
+
+		glUniform4f(ogl::parameters::subrect,
+			float(f.x) / float(font.Width) /* x offset */,
+			float(f.Width) / float(font.Width) /* x width */,
+			float(f.y) / float(font.Width) /* y offset */,
+			float(f.Height) / float(font.Width) /* y height */
+		);
+
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+
+		//Only check kerning if there is greater then 1 character and 
+		//if the check character is 1 less then the end of the string.
+		if(i != count - 1) {
+			x += font.GetKerningPair(codepoints[i], codepoints[i + 1]);
+		}
+		x += f.XAdvance;
+	}
+}
+
 void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, const color3f& c, uint16_t font_id) {
 	if(state.user_settings.use_classic_fonts) {
-		// Check if the font is in the map
-		// If not, load it using the font_names map to figure out its name
-		// Then proceed using the found/newly loaded font data
-		auto testfont = state.font_collection.bitmap_fonts.find(1);
-
-		testfont->second.SetColor(100, 0, 0, 0);
-		testfont->second.Print(x, y, codepoints, state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1].textures, state);
-
+		render_classic_text(state, x, y, codepoints, count, enabled, c, text::get_bm_font(state, font_id));
 	} else {
 		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);
 	}
