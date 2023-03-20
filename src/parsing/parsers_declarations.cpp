@@ -1423,9 +1423,18 @@ void invention_contents::effect(inv_effect const& value, error_handler& err, int
 			err.accumulated_errors += "Too many modifiers attached to invention (" + err.file_name + " line " + std::to_string(line) + ")\n";
 			break;
 		}
-		constructed_definition_n.offsets[next_to_add_n] = value.constructed_definition_n.offsets[i];
-		constructed_definition_n.values[next_to_add_n] = value.constructed_definition_n.values[i];
+		constructed_definition_n.offsets[next_to_add_n] = value.peek_national_mod().offsets[i];
+		constructed_definition_n.values[next_to_add_n] = value.peek_national_mod().values[i];
 		++next_to_add_n;
+	}
+	for(uint32_t i = 0; i < value.next_to_add_p; ++i) {
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
+			err.accumulated_errors += "Too many modifiers attached to invention (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			break;
+		}
+		constructed_definition_p.offsets[next_to_add_p] = value.peek_province_mod().offsets[i];
+		constructed_definition_p.values[next_to_add_p] = value.peek_province_mod().values[i];
+		++next_to_add_p;
 	}
 }
 

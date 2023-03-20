@@ -583,34 +583,6 @@ void set_diplomatic(sys::state& state) {
 }
 
 
-uint32_t get_number_nations_with_status(sys::state& state, nations::status status) {
-		if(status == nations::status::great_power || status == nations::status::secondary_power) {
-			return 8;
-		}
-		uint32_t total = 0;
-		state.world.for_each_nation([&](dcon::nation_id nation_id) {
-
-			if(nations::get_status(state, nation_id) == status)
-				total++;
-
-		});
-		return total;
-
-}
-uint32_t get_status_starting_point(sys::state& state, nations::status status) {
-	switch(status) {
-		case nations::status::great_power:
-			return 0;
-		case nations::status::secondary_power:
-			return 8;
-		case nations::status::civilized:
-			return 15;
-		default:
-			return 15 + get_number_nations_with_status(state, status);
-	}
-
-}
-
 void set_rank(sys::state& state) {
 	// These colors are arbitrary
 	// 1 to 8 -> green #30f233
@@ -623,21 +595,37 @@ void set_rank(sys::state& state) {
 
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
+	auto num_nations = state.world.nation_size();
+	auto unciv_rank = num_nations;
+	for(uint32_t i = 0; i < num_nations; ++i) {
+		if(!state.world.nation_get_is_civilized(state.nations_by_rank[i])) {
+			unciv_rank = i;
+			break;
+		}
+	}
+
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto nation_id = fat_id.get_nation_from_province_ownership();
 		auto status = nations::get_status(state, nation_id);
 
-		float darkness =  1 - 0.7 * (state.world.nation_get_rank(nation_id) - get_status_starting_point(state, status)) / (float)get_number_nations_with_status(state, status);
-		//                    ^^^ the darkness is capped at 70%	
+		float darkness = 0.0f;
+		if(status == nations::status::great_power)
+			darkness =  1.0f - 0.7f * (state.world.nation_get_rank(nation_id)) / state.defines.great_nations_count;
+		else if(status == nations::status::secondary_power)
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.great_nations_count) / (state.defines.colonial_rank - state.defines.great_nations_count);
+		else if(status == nations::status::civilized)
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.colonial_rank) / std::max(1.0f, (float(unciv_rank) - state.defines.colonial_rank));
+		else
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - unciv_rank) / std::max(1.0f, (float(num_nations) - float(unciv_rank)));
 
 		uint32_t color;
-		if(bool(nation_id))
+		if(bool(nation_id)) {
 			switch(status) {
 				case nations::status::great_power:
 					color = sys::pack_color(
 						(int32_t)(48 * darkness),
-						(int32_t)(242 *  darkness),
+						(int32_t)(242 * darkness),
 						(int32_t)(51 * darkness)
 					);
 					break;
@@ -667,8 +655,10 @@ void set_rank(sys::state& state) {
 					);
 					break;
 			}
-		else // If no owner use default color
+		} else { // If no owner use default color
 			color = 255 << 16 | 255 << 8 | 255;
+		}
+
 		auto i = province::to_map_id(prov_id);
 
 		prov_color[i] = color;
