@@ -846,7 +846,12 @@ A nation that falls out of the top 8 does not stop being a GP until define:GREAT
 
 A nation does not accumulate influence if: their embassy has been banned, if they are at war against the nation, if they have a truce with the nation, if the nation has priority 0, or if their influence is capped (at max value with no other GP influencing).
 
-The nation gets a daily increase of define:BASE_GREATPOWER_DAILY_INFLUENCE x (national-modifier-to-influence-gain + 1) x (technology-modifier-to-influence + 1). This is then divided among the nations they are accumulating influence with in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc). Any influence that accumulates beyond the max will be subtracted from the influence of the great power with the most influence (other than the influencing nation).
+The nation gets a daily increase of define:BASE_GREATPOWER_DAILY_INFLUENCE x (national-modifier-to-influence-gain + 1) x (technology-modifier-to-influence + 1). This is then divided among the nations they are accumulating influence with in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc). 
+
+This influence value does not translate directly into influence with the target nation. Instead it is first multiplied by the following factor:
+1 + define:DISCREDIT_INFLUENCE_GAIN_FACTOR (if discredited) + define:NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if the nations are adjacent) + define:SPHERE_NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if some member of the influencing nation's sphere is adjacent but not the influencing nation itself) + define:OTHER_CONTINENT_BONUS_INFLUENCE_PERCENT (if the influencing nation and the target have capitals on different continents) + define:PUPPET_BONUS_INFLUENCE_PERCENT (if the target is a vassal of the influencer) + relation-value / define:RELATION_INFLUENCE_MODIFIER + define:INVESTMENT_INFLUENCE_DEFENSE + (define:INVESTMENT_INFLUENCE_DEFENCE x (fraction-of-influencer's-foreign-investment-out-of-total-foreign-investment - 1)) + define:LARGE_POPULATION_INFLUENCE_PENALTY x target-population / define:LARGE_POPULATION_INFLUENCE_PENALTY_CHUNK (if the target nation has population greater than define:LARGE_POPULATION_LIMIT) + (1 - target-score / influencer-score)^0
+
+Note that you cannot gain influence with a nation while your embassy is banned, but you still appear to "spend" influence anyways. Any influence that accumulates beyond the max (define:MAX_INFLUENCE) will be subtracted from the influence of the great power with the most influence (other than the influencing nation).
 
 ## Crisis mechanics
 

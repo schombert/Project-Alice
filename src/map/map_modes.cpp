@@ -756,7 +756,7 @@ void set_relation(sys::state& state) {
 				15
 			);
 
-			auto i = province::to_map_id(prov_id);
+			auto i = province::to_map_id(state.world.province_ownership_get_province(prov_id));
 
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
