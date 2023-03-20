@@ -606,6 +606,7 @@ void set_rank(sys::state& state) {
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
+
 		auto nation_id = fat_id.get_nation_from_province_ownership();
 		auto status = nations::get_status(state, nation_id);
 
@@ -668,6 +669,103 @@ void set_rank(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::rank);
 }
 
+void set_recruitment(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		auto nation = fat_id.get_nation_from_province_ownership();
+
+		if(nation == state.local_player_nation) {
+			auto max_regiments = military::regiments_max_possible_from_province(state, prov_id);
+			auto created_regiments = military::regiments_created_from_province(state, prov_id);
+
+			uint32_t color;
+			if(max_regiments == 0) {
+				// grey
+				color = sys::pack_color(155, 156, 149);
+			} else if(created_regiments < max_regiments) {
+				// yellow
+				color = sys::pack_color(212, 214, 62);
+			} else {
+				// green
+				color = sys::pack_color(53, 196, 53);
+			}
+			auto i = province::to_map_id(prov_id);
+
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color;
+		}
+		
+	});
+
+	state.map_display.set_province_color(prov_color, mode::recruitment);
+}
+
+void set_supply(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		auto nation = fat_id.get_nation_from_province_ownership();
+		int32_t supply_limit = military::supply_limit_in_province(state, nation, prov_id);
+		float interpolation = (supply_limit < 50 ? supply_limit : 50) / 50.f;
+
+		// red: 247, 15, 15
+		// green: 46, 247, 15
+		uint32_t color = sys::pack_color(
+			uint32_t(247 + (46 - 247) * interpolation),
+			uint32_t(15 + (247 - 15) * interpolation),
+			15
+		);
+
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+	});
+	state.map_display.set_province_color(prov_color, mode::supply);
+}
+
+void set_relation(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	auto selected_province = province::from_map_id(state.map_display.get_selected_province());
+	auto fat_id = dcon::fatten(state.world, selected_province);
+	auto selected_nation = fat_id.get_nation_from_province_ownership();
+
+	state.world.nation_for_each_diplomatic_relation(selected_nation, [&](dcon::diplomatic_relation_id relation_id) {
+		int32_t relation_value = state.world.diplomatic_relation_get_value(relation_id);
+		auto other_nation = state.world.diplomatic_relation_get_related_nations(relation_id, 1);
+
+		state.world.nation_for_each_province_ownership(other_nation, [&](dcon::province_ownership_id prov_id) {
+			float interpolation = (200 + relation_value) / 400.f;
+
+			uint32_t color = sys::pack_color(
+				uint32_t(247 + (46 - 247) * interpolation),
+				uint32_t(15 + (247 - 15) * interpolation),
+				15
+			);
+
+			auto i = province::to_map_id(prov_id);
+
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color;
+		});
+
+	});
+	state.map_display.set_province_color(prov_color, mode::relation);
+}
+
 void set_map_mode(sys::state& state, mode mode) {
 	switch (mode)
 	{
@@ -695,7 +793,15 @@ void set_map_mode(sys::state& state, mode mode) {
 	case mode::rank:
 		set_rank(state);
 		break;
-
+	case mode::recruitment:
+		set_recruitment(state);
+		break;
+	case mode::supply:
+		set_supply(state);
+		break;
+	case mode::relation:
+		set_relation(state);
+		break;
 	default:
 		break;
 	}
