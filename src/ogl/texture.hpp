@@ -84,6 +84,11 @@ public:
 	~data_texture();
 };
 
-uint32_t make_font_texture(native_string file, sys::state&);
+struct font_texture_result {
+	uint32_t handle = 0;
+	uint32_t size = 0;
+};
+
+font_texture_result make_font_texture(simple_fs::file& f);
 
 }

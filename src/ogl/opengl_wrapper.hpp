@@ -22,6 +22,7 @@ inline constexpr GLuint drawing_rectangle = 2;
 
 inline constexpr GLuint border_size = 6;
 inline constexpr GLuint inner_color = 7;
+inline constexpr GLuint subrect = 10;
 
 inline constexpr GLuint enabled = 4;
 inline constexpr GLuint disabled = 3;
@@ -38,7 +39,7 @@ inline constexpr GLuint linegraph = 11;
 inline constexpr GLuint tint = 12;
 inline constexpr GLuint interactable = 13;
 inline constexpr GLuint interactable_disabled = 14;
-
+inline constexpr GLuint subsprite_b = 15;
 }
 
 enum class color_modification {

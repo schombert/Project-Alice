@@ -27,55 +27,24 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <http://unlicense.org/>
 */
 
-#ifndef BMFONT
-#define BMFONT
+#pragma once
 
 #include <vector>
-#include <map>
-
 #include "simple_fs.hpp"
+#include "texture.hpp"
+#include "unordered_dense.h"
 
-#ifndef MAKE_RGBA
+namespace sys {
+struct state;
+}
 
-#define MAKE_RGBA(r,g,b,a)  (r | (g << 8) | (b << 16) | (a << 24))
-
-#endif
-
-#ifndef GET_BLUE
-
-#define GET_BLUE(rgba) (( (rgba)>>16 ) & 0xff )
-#endif
-
-#ifndef GET_GREEN
-
-#define GET_GREEN(rgba) (( (rgba)>>8 ) & 0xff )
-#endif
-
-#ifndef GET_RED
-
-#define GET_RED(rgba) ( rgba & 0xff )
-#endif
-
-#ifndef GET_ALPHA
-
-#define GET_ALPHA(rgba) (( (rgba)>>24 ) & 0xff)
-#endif
-
-class KearningInfo {
-
-public:
-	short First;
-	short Second;
-	short Amount;
-
-	KearningInfo() : First(0), Second(0), Amount(0) { }
-};
-
+namespace text {
 
 class CharDescriptor {
 
 public:
-	short x, y;
+	short x;
+	short y;
 	short Width;
 	short Height;
 	short XOffset;
@@ -90,70 +59,56 @@ public:
 class BMFont {
 
 public:
-
-	void LoadFontImage(native_string file);
-	bool LoadFontfile(native_string file);
 	GLuint ftexid = 0;
-	void SetColor(int r, int g, int b, int a) {
-		fcolor = MAKE_RGBA(r, g, b, a);
+
+	float GetHeight() const {
+		return LineHeight;
 	}
-	void SetBlend(int b) {
-		fblend = b;
-	}
-	void SetScale(float scale) {
-		fscale = scale;
-	}
-	float GetHeight() {
-		return LineHeight * fscale;
-	}
-	void Print(float, float, const char*, uint32_t*, sys::state&, ...);
-	BMFont() {
-		SetColor(255, 255, 255, 255);
-		KernCount = 0;
-		ftexid = GLuint(0);
-		fblend = 0;
-		fscale = 1.0;
+	float GetStringWidth(const char*, uint32_t) const;
+
+	BMFont(simple_fs::file& font_metrics, simple_fs::file& font_image) {
+		auto font_result = ogl::make_font_texture(font_image);
+		ftexid = font_result.handle;
+		ParseFont(font_metrics);
+		assert(ftexid != 0);
+		Width = int16_t(font_result.size);
 	};
-	BMFont(BMFont&& src) {
+	BMFont(BMFont&& src) noexcept {
 		ftexid = src.ftexid;
-		imagefile = src.imagefile;
-		fontfile = src.fontfile;
-		loadingdone = src.loadingdone;
-		SetColor(255, 255, 255, 255);
-		fblend = 0;
-		fscale = 1.0;
-
 		Chars = src.Chars;
-		Kearn = src.Kearn;
-
-		KernCount = src.KernCount;
-
+		Kern = std::move(src.Kern);
+		Width = src.Width;
+		Height = src.Height;
+		Base = src.Base;
+		LineHeight = src.LineHeight;
 		src.ftexid = 0;
 	}
+	BMFont& operator=(BMFont&& src) noexcept{
+		ftexid = src.ftexid;
+		Chars = src.Chars;
+		Kern = std::move(src.Kern);
+		Width = src.Width;
+		Height = src.Height;
+		Base = src.Base;
+		LineHeight = src.LineHeight;
+		src.ftexid = 0;
+
+		return *this;
+	}
 	~BMFont();
+	
+	std::array<CharDescriptor, 256> Chars;
+	ankerl::unordered_dense::map<uint16_t, int32_t> Kern;
 
-private:
-	short LineHeight;
-	short Base;
-	short Width;
-	short Height;
-	short Pages;
-	short Outline;
-	short KernCount;
-	std::map<int, CharDescriptor> Chars;
-	std::vector<KearningInfo> Kearn;
-	int fcolor;
-	native_string imagefile;
-	native_string fontfile;
-	bool loadingdone = false;
-	float fscale;
-	int fblend;
+	int16_t LineHeight = 0;
+	int16_t Base = 0;
+	int16_t Width = 0;
+	int16_t Height = 0;
 
-	bool ParseFont(native_string file, sys::state&);
-	int GetKerningPair(int, int);
-	float GetStringWidth(const char*);
-
+	bool ParseFont(simple_fs::file& f);
+	int GetKerningPair(char, char) const;
 };
 
+BMFont const& get_bm_font(sys::state& state, uint16_t font_handle);
 
-#endif
+}

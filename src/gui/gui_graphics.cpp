@@ -164,6 +164,9 @@ message_result element_base::impl_on_mouse_move(sys::state& state, int32_t x, in
 void element_base::impl_on_update(sys::state& state) noexcept {
 	on_update(state);
 }
+void element_base::impl_on_reset_text(sys::state& state) noexcept {
+	on_reset_text(state);
+}
 message_result element_base::impl_get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(auto res = get(state, payload); res != message_result::consumed) {
 		if(parent)

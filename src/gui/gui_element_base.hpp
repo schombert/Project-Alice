@@ -43,6 +43,7 @@ public:
 	message_result impl_get(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept;
 	virtual void impl_render(sys::state& state, int32_t x, int32_t y) noexcept;
+	virtual void impl_on_reset_text(sys::state& state) noexcept;
 
 	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
 		return tooltip_behavior::no_tooltip;
@@ -67,6 +68,7 @@ protected:
 	virtual void on_text(sys::state& state, char ch) noexcept { }
 	virtual void on_visible(sys::state& state) noexcept { }
 	virtual void on_hide(sys::state& state) noexcept { }
+	virtual void on_reset_text(sys::state& state) noexcept { }
 
 	virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
 		return focus_result::ingored;

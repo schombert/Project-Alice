@@ -675,7 +675,7 @@ When player navies die from attrition, the admirals are lost too.
 
 ### Movement
 
-Adjacent provinces have a base distance between them (this base also takes terrain into account in some way). When moving to a province, this cost is multiplied by (destination-province-movement-cost-modifier + 1.0)^0.05. The unit "pays" for this cost each day based on its speed, and when it is all paid for, the unit arrives in its destination province. An army's or navy's speed is based on the speed of its slowest ship or regiment x (1 + infrastructure-level-of-destination) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
+Adjacent provinces have a base distance between them (this base also takes terrain into account in some way). When moving to a province, this cost is multiplied by (destination-province-movement-cost-modifier + 1.0)^0.05. The unit "pays" for this cost each day based on its speed, and when it is all paid for, the unit arrives in its destination province. An army's or navy's speed is based on the speed of its slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-destination) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
 
 When a unit arrives in a new province, it takes attrition (as if it had spent the monthly tick in the province).
 
@@ -909,10 +909,14 @@ To turn a colony into a regular state, it must have enough bureaucrats with your
 
 ### Points
 
-- colonial points: (for nations with rank at least define:COLONIAL_RANK)
-- from naval bases: (1) determined by level and the building definition, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
-- from units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
-- plus points from technologies/inventions
+Only nations with rank at least define:COLONIAL_RANK get colonial points. Colonial points come from three sources:
+- naval bases: (1) determined by level and the building definition, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- points from technologies/inventions
+
+Generally "spent" colonial points get tied up in the colony, and are returned to you when it stops being a colony (the exception being the point "cost" to turn a colony into a state, which is really just a requirement to have a certain number of colonial points unused). For any state that is in the process of being turned into a colony, any points spent there are locked away until the process ends, one way or another. Each province in a protectorate state costs define:COLONIZATION_PROTECTORATE_PROVINCE_MAINTAINANCE points. Each province in a colony state costs define:COLONIZATION_COLONY_PROVINCE_MAINTAINANCE + infrastructure-value-provided-by-railroads x railroad-level-in-the-province x define:COLONIZATION_COLONY_RAILWAY_MAINTAINANCE. Additionally, a colony state costs define:COLONIZATION_COLONY_INDUSTRY_MAINTAINANCE x the-number-of-factories.
+
+Investing in a colony costs define:COLONIZATION_INVEST_COST_INITIAL + define:COLONIZATION_INTEREST_COST_NEIGHBOR_MODIFIER (if a province adjacent to the region is owned) to place the initial colonist. Further steps cost define:COLONIZATION_INTEREST_COST while in phase 1. In phase two, each point of investment cost define:COLONIZATION_INFLUENCE_COST up to the fourth point. After reaching the fourth point, further points cost define:COLONIZATION_EXTRA_GUARD_COST x (points - 4) + define:COLONIZATION_INFLUENCE_COST.
 
 ## Events
 
