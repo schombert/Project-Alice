@@ -1418,14 +1418,14 @@ void invention_contents::chance(dcon::value_modifier_key value, error_handler& e
 }
 
 void invention_contents::effect(inv_effect const& value, error_handler& err, int32_t line, invention_context& context) {
-	for(uint32_t i = 0; i < value.next_to_add; ++i) {
-		if(next_to_add >= sys::modifier_definition_size) {
+	for(uint32_t i = 0; i < value.next_to_add_n; ++i) {
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifiers attached to invention (" + err.file_name + " line " + std::to_string(line) + ")\n";
 			break;
 		}
-		constructed_definition.offsets[next_to_add] = value.constructed_definition.offsets[i];
-		constructed_definition.values[next_to_add] = value.constructed_definition.values[i];
-		++next_to_add;
+		constructed_definition_n.offsets[next_to_add_n] = value.constructed_definition_n.offsets[i];
+		constructed_definition_n.values[next_to_add_n] = value.constructed_definition_n.values[i];
+		++next_to_add_n;
 	}
 }
 

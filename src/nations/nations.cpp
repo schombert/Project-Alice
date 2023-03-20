@@ -160,8 +160,7 @@ void update_administrative_efficiency(sys::state& state) {
 	- national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 	*/
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto admin_mod = state.world.nation_get_static_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency - sys::provincial_mod_offsets::count);
-
+		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency);
 		ve::fp_vector issue_sum;
 		for(auto i : state.culture_definitions.social_issues) {
 			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(ids, i));
@@ -175,9 +174,8 @@ void update_administrative_efficiency(sys::state& state) {
 }
 
 float daily_research_points(sys::state& state, dcon::nation_id n) {
-	auto rp_mod_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::research_points_modifier - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::research_points_modifier - sys::provincial_mod_offsets::count);
-
-	auto rp_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::research_points - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::research_points - sys::provincial_mod_offsets::count);
+	auto rp_mod_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::research_points_modifier);
+	auto rp_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::research_points);
 
 	float sum_from_pops = 0;
 	state.world.for_each_pop_type([&](dcon::pop_type_id t) {
@@ -191,9 +189,8 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 }
 void update_research_points(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto rp_mod_mod = state.world.nation_get_static_modifier_values(ids, sys::national_mod_offsets::research_points_modifier - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(ids, sys::national_mod_offsets::research_points_modifier - sys::provincial_mod_offsets::count);
-
-		auto rp_mod = state.world.nation_get_static_modifier_values(ids, sys::national_mod_offsets::research_points - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(ids, sys::national_mod_offsets::research_points - sys::provincial_mod_offsets::count);
+		auto rp_mod_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::research_points_modifier);
+		auto rp_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::research_points);
 
 		ve::fp_vector sum_from_pops;
 		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
@@ -257,9 +254,7 @@ void update_military_scores(sys::state& state) {
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
 		auto is_disarmed = ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
 		auto disarm_factor = ve::select(is_disarmed, ve::fp_vector(disarm), ve::fp_vector(1.0f));
-		auto supply_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::supply_consumption - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::supply_consumption - sys::provincial_mod_offsets::count)
-			+ 1.0f;
+		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto num_leaders = ve::apply([&](dcon::nation_id i) {
 			auto gen_range = state.world.nation_get_general_loyalty(i);
@@ -275,7 +270,7 @@ void update_military_scores(sys::state& state) {
 }
 
 float prestige_score(sys::state const& state, dcon::nation_id n) {
-	return state.world.nation_get_prestige(n) + state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::permanent_prestige - sys::provincial_mod_offsets::count);
+	return state.world.nation_get_prestige(n) + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige);
 }
 
 void update_rankings(sys::state& state) {

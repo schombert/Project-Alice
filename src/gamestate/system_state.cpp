@@ -1369,8 +1369,7 @@ namespace sys {
 	}
 
 	void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
-		world.nation_resize_fluctuating_modifier_values(sys::national_mod_offsets::count - provincial_mod_offsets::count);
-		world.nation_resize_static_modifier_values(sys::national_mod_offsets::count - provincial_mod_offsets::count);
+		world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 		world.nation_resize_rgo_goods_output(world.commodity_size());
 		world.nation_resize_factory_goods_output(world.commodity_size());
 		world.nation_resize_factory_goods_throughput(world.commodity_size());

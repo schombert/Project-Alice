@@ -102,7 +102,7 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 		modifier = 2.0f;
 	}*/
 	auto base_supply_lim = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::supply_limit) + 1.0f);
-	auto national_supply_lim = (state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::supply_limit - sys::provincial_mod_offsets::count) + 1.0f);
+	auto national_supply_lim = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_limit) + 1.0f);
 	return int32_t( base_supply_lim * modifier * national_supply_lim );
 }
 int32_t regiments_created_from_province(sys::state& state, dcon::province_id p) {
@@ -193,10 +193,8 @@ void regenerate_land_unit_average(sys::state& state) {
 		float total = 0;
 		float count = 0;
 
-		auto lo_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::land_attack_modifier - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::land_attack_modifier - sys::provincial_mod_offsets::count);
-		auto ld_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::land_defense_modifier - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::land_defense_modifier - sys::provincial_mod_offsets::count);
+		auto lo_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_attack_modifier);
+		auto ld_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_defense_modifier);
 
 		for(uint32_t i = 2; i < max; ++i) {
 			dcon::unit_type_id u{ dcon::unit_type_id::value_base_t(i) };
@@ -216,10 +214,8 @@ void regenerate_ship_scores(sys::state& state) {
 	*/
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		float total = 0;
-		auto no_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::naval_attack_modifier - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::naval_attack_modifier - sys::provincial_mod_offsets::count);
-		auto nd_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::naval_defense_modifier - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::naval_defense_modifier - sys::provincial_mod_offsets::count);
+		auto no_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_attack_modifier);
+		auto nd_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_defense_modifier);
 
 		for(auto nv : state.world.nation_get_navy_control(n)) {
 			for(auto shp : nv.get_navy().get_navy_membership()) {

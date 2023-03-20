@@ -22,6 +22,8 @@ make_index{effect_key}{uint16_t}
 make_index{value_modifier_key}{uint16_t}
 make_index{pop_demographics_key}{uint16_t}
 make_index{demographics_key}{uint16_t}
+make_index{provincial_modifier_value}{uint8_t}
+make_index{national_modifier_value}{uint8_t}
 
 object{
 	name{ national_identity }
@@ -330,12 +332,12 @@ object {
 	}
 	property{
 		name{ province_values }
-		type{ sys::modifier_definition }
+		type{ sys::provincial_modifier_definition }
 		tag{ scenario }
 	}
 	property{
 		name{ national_values }
-		type{ sys::modifier_definition }
+		type{ sys::national_modifier_definition }
 		tag{ scenario }
 	}
 	property{
@@ -1246,7 +1248,7 @@ object {
 
 	property{
 		name{ modifier_values }
-		type{ array{int32_t}{float} }
+		type{ array{provincial_modifier_value}{float} }
 	}
 
 	property {
@@ -2224,8 +2226,8 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ static_modifier_values }
-		type{ array{int32_t}{float} }
+		name{ modifier_values }
+		type{ array{national_modifier_value}{float} }
 	}
 	property{
 		name{ fluctuating_modifier_values }

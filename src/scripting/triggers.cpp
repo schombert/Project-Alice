@@ -2976,7 +2976,7 @@ TRIGGER_FUNCTION(tf_is_mobilised) {
 }
 TRIGGER_FUNCTION(tf_mobilisation_size) {
 	return compare_values(tval[0],
-		ws.world.nation_get_static_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::mobilisation_size - sys::provincial_mod_offsets::count),
+		ws.world.nation_get_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::mobilisation_size),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_crime_higher_than_education_nation) {
@@ -3656,7 +3656,7 @@ TRIGGER_FUNCTION(tf_constructing_cb_progress) {
 }
 TRIGGER_FUNCTION(tf_civilization_progress) {
 	return compare_values(tval[0],
-		ws.world.nation_get_static_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::civilization_progress_modifier - sys::provincial_mod_offsets::count),
+		ws.world.nation_get_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::civilization_progress_modifier),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_constructing_cb_type) {
