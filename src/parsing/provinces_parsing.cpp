@@ -139,8 +139,7 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
 
-	parsed_modifier.convert_to_province_mod();
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 	context.map_of_terrain_types.insert_or_assign(std::string(name), terrain_type{ new_modifier, parsed_modifier.color.value });
@@ -170,8 +169,7 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 	auto continent = parse_continent_definition(gen, err, new_context);
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(continent.icon_index));
-	continent.convert_to_province_mod();
-	context.state.world.modifier_set_province_values(new_modifier, continent.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, continent.constructed_definition_p);
 
 	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "europe")) {
 		context.state.province_definitions.europe = new_modifier;
@@ -208,9 +206,8 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 
 	if(climate.icon_index != 0)
 		context.state.world.modifier_set_icon(new_modifier, uint8_t(climate.icon_index));
-	if(climate.constructed_definition.valid_offset_at_index(0)) {
-		climate.convert_to_province_mod();
-		context.state.world.modifier_set_province_values(new_modifier, climate.constructed_definition);
+	if(climate.next_to_add_p != 0) {
+		context.state.world.modifier_set_province_values(new_modifier, climate.constructed_definition_p);
 	}
 }
 

@@ -13,17 +13,17 @@ void repopulate_technology_effects(sys::state& state) {
 		auto tech_mod = tech_id.get_modifier();
 		if(tech_mod) {
 			auto& tech_nat_values = tech_mod.get_national_values();
-			for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-				if(tech_nat_values.offsets[i] == 0)
+			for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+				if(!(tech_nat_values.offsets[i]))
 					break; // no more modifier values attached to this tech
 
 				state.world.execute_serial_over_nation([&,
-					fixed_offset = tech_nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count,
+					fixed_offset = tech_nat_values.offsets[i],
 					modifier_amount = tech_nat_values.values[i]
 				](auto nation_indices) {
 					auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
-					auto old_mod_value = state.world.nation_get_static_modifier_values(nation_indices, fixed_offset);
-					state.world.nation_set_static_modifier_values(nation_indices, fixed_offset,
+					auto old_mod_value = state.world.nation_get_modifier_values(nation_indices, fixed_offset);
+					state.world.nation_set_modifier_values(nation_indices, fixed_offset,
 						ve::select(has_tech_mask, old_mod_value + modifier_amount, old_mod_value));
 				});
 			}
@@ -116,17 +116,17 @@ void repopulate_invention_effects(sys::state& state) {
 		auto inv_mod = inv_id.get_modifier();
 		if(inv_mod) {
 			auto& inv_nat_values = inv_mod.get_national_values();
-			for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-				if(inv_nat_values.offsets[i] == 0)
+			for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+				if(!(inv_nat_values.offsets[i]))
 					break; // no more modifier values attached to this invention
 
 				state.world.execute_serial_over_nation([&,
-					fixed_offset = inv_nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count,
+					fixed_offset = inv_nat_values.offsets[i],
 					modifier_amount = inv_nat_values.values[i]
 				](auto nation_indices) {
 					auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
-					auto old_mod_value = state.world.nation_get_static_modifier_values(nation_indices, fixed_offset);
-					state.world.nation_set_static_modifier_values(nation_indices, fixed_offset,
+					auto old_mod_value = state.world.nation_get_modifier_values(nation_indices, fixed_offset);
+					state.world.nation_set_modifier_values(nation_indices, fixed_offset,
 						ve::select(has_inv_mask, old_mod_value + modifier_amount, old_mod_value));
 				});
 			}
@@ -227,14 +227,14 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 	auto tech_mod = tech_id.get_modifier();
 	if(tech_mod) {
 		auto& tech_nat_values = tech_mod.get_national_values();
-		for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-			if(tech_nat_values.offsets[i] == 0)
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(!(tech_nat_values.offsets[i]))
 				break; // no more modifier values attached to this tech
 
-			auto fixed_offset = tech_nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count;
+			auto fixed_offset = tech_nat_values.offsets[i];
 			auto modifier_amount = tech_nat_values.values[i];
 
-			state.world.nation_get_static_modifier_values(target_nation, fixed_offset) += modifier_amount;
+			state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
 		}
 	}
 
@@ -299,14 +299,14 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	auto inv_mod = inv_id.get_modifier();
 	if(inv_mod) {
 		auto& inv_nat_values = inv_mod.get_national_values();
-		for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-			if(inv_nat_values.offsets[i] == 0)
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(!(inv_nat_values.offsets[i]))
 				break; // no more modifier values attached to this tech
 
-			auto fixed_offset = inv_nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count;
+			auto fixed_offset = inv_nat_values.offsets[i];
 			auto modifier_amount = inv_nat_values.values[i];
 
-			state.world.nation_get_static_modifier_values(target_nation, fixed_offset) += modifier_amount;
+			state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
 		}
 	}
 

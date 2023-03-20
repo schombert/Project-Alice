@@ -32,8 +32,7 @@ void triggered_modifier::finish(triggered_modifier_context& context) {
 
 	context.outer_context.state.world.modifier_set_icon(modifier_id, uint8_t(icon_index));
 	context.outer_context.state.world.modifier_set_name(modifier_id, name_id);
-	this->convert_to_national_mod();
-	context.outer_context.state.world.modifier_set_province_values(modifier_id, constructed_definition);
+	context.outer_context.state.world.modifier_set_province_values(modifier_id, constructed_definition_p);
 
 	context.outer_context.map_of_modifiers.insert_or_assign(std::string(context.name), modifier_id);
 
@@ -56,13 +55,12 @@ void make_national_value(std::string_view name, token_generator& gen, error_hand
 	auto name_id = text::find_or_add_key(context.state, name);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 }
@@ -71,13 +69,12 @@ void m_very_easy_player(token_generator& gen, error_handler& err, scenario_build
 	auto name_id = text::find_or_add_key(context.state, "very_easy_player");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("very_easy_player"), new_modifier);
 	context.state.national_definitions.very_easy_player = new_modifier;
@@ -87,13 +84,12 @@ void m_easy_player(token_generator& gen, error_handler& err, scenario_building_c
 	auto name_id = text::find_or_add_key(context.state, "easy_player");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("easy_player"), new_modifier);
 	context.state.national_definitions.easy_player = new_modifier;
@@ -103,13 +99,12 @@ void m_hard_player(token_generator& gen, error_handler& err, scenario_building_c
 	auto name_id = text::find_or_add_key(context.state, "hard_player");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("hard_player"), new_modifier);
 	context.state.national_definitions.hard_player = new_modifier;
@@ -119,13 +114,12 @@ void m_very_hard_player(token_generator& gen, error_handler& err, scenario_build
 	auto name_id = text::find_or_add_key(context.state, "very_hard_player");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("very_hard_player"), new_modifier);
 	context.state.national_definitions.very_hard_player = new_modifier;
@@ -135,13 +129,12 @@ void m_very_easy_ai(token_generator& gen, error_handler& err, scenario_building_
 	auto name_id = text::find_or_add_key(context.state, "very_easy_ai");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("very_easy_ai"), new_modifier);
 	context.state.national_definitions.very_easy_ai = new_modifier;
@@ -151,13 +144,12 @@ void m_easy_ai(token_generator& gen, error_handler& err, scenario_building_conte
 	auto name_id = text::find_or_add_key(context.state, "easy_ai");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("easy_ai"), new_modifier);
 	context.state.national_definitions.easy_ai = new_modifier;
@@ -167,13 +159,12 @@ void m_hard_ai(token_generator& gen, error_handler& err, scenario_building_conte
 	auto name_id = text::find_or_add_key(context.state, "hard_ai");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("hard_ai"), new_modifier);
 	context.state.national_definitions.hard_ai = new_modifier;
@@ -183,13 +174,12 @@ void m_very_hard_ai(token_generator& gen, error_handler& err, scenario_building_
 	auto name_id = text::find_or_add_key(context.state, "very_hard_ai");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("very_hard_ai"), new_modifier);
 	context.state.national_definitions.very_hard_ai = new_modifier;
@@ -199,13 +189,12 @@ void m_overseas(token_generator& gen, error_handler& err, scenario_building_cont
 	auto name_id = text::find_or_add_key(context.state, "overseas");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("overseas"), new_modifier);
 	context.state.national_definitions.overseas = new_modifier;
@@ -215,13 +204,12 @@ void m_coastal(token_generator& gen, error_handler& err, scenario_building_conte
 	auto name_id = text::find_or_add_key(context.state, "coastal");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("coastal"), new_modifier);
 	context.state.national_definitions.coastal = new_modifier;
@@ -231,13 +219,12 @@ void m_non_coastal(token_generator& gen, error_handler& err, scenario_building_c
 	auto name_id = text::find_or_add_key(context.state, "non_coastal");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("non_coastal"), new_modifier);
 	context.state.national_definitions.non_coastal = new_modifier;
@@ -247,13 +234,12 @@ void m_coastal_sea(token_generator& gen, error_handler& err, scenario_building_c
 	auto name_id = text::find_or_add_key(context.state, "coastal_sea");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("coastal_sea"), new_modifier);
 	context.state.national_definitions.coastal_sea = new_modifier;
@@ -263,13 +249,12 @@ void m_sea_zone(token_generator& gen, error_handler& err, scenario_building_cont
 	auto name_id = text::find_or_add_key(context.state, "sea_zone");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("sea_zone"), new_modifier);
 	context.state.national_definitions.sea_zone = new_modifier;
@@ -279,13 +264,12 @@ void m_land_province(token_generator& gen, error_handler& err, scenario_building
 	auto name_id = text::find_or_add_key(context.state, "land_province");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("land_province"), new_modifier);
 	context.state.national_definitions.land_province = new_modifier;
@@ -295,13 +279,12 @@ void m_blockaded(token_generator& gen, error_handler& err, scenario_building_con
 	auto name_id = text::find_or_add_key(context.state, "blockaded");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("blockaded"), new_modifier);
 	context.state.national_definitions.blockaded = new_modifier;
@@ -311,13 +294,12 @@ void m_no_adjacent_controlled(token_generator& gen, error_handler& err, scenario
 	auto name_id = text::find_or_add_key(context.state, "no_adjacent_controlled");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("no_adjacent_controlled"), new_modifier);
 	context.state.national_definitions.no_adjacent_controlled = new_modifier;
@@ -327,13 +309,12 @@ void m_core(token_generator& gen, error_handler& err, scenario_building_context&
 	auto name_id = text::find_or_add_key(context.state, "core");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("core"), new_modifier);
 	context.state.national_definitions.core = new_modifier;
@@ -343,13 +324,12 @@ void m_has_siege(token_generator& gen, error_handler& err, scenario_building_con
 	auto name_id = text::find_or_add_key(context.state, "has_siege");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("has_siege"), new_modifier);
 	context.state.national_definitions.has_siege = new_modifier;
@@ -359,13 +339,12 @@ void m_occupied(token_generator& gen, error_handler& err, scenario_building_cont
 	auto name_id = text::find_or_add_key(context.state, "occupied");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("occupied"), new_modifier);
 	context.state.national_definitions.occupied = new_modifier;
@@ -375,13 +354,12 @@ void m_nationalism(token_generator& gen, error_handler& err, scenario_building_c
 	auto name_id = text::find_or_add_key(context.state, "nationalism");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("nationalism"), new_modifier);
 	context.state.national_definitions.nationalism = new_modifier;
@@ -391,13 +369,12 @@ void m_infrastructure(token_generator& gen, error_handler& err, scenario_buildin
 	auto name_id = text::find_or_add_key(context.state, "infrastructure");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_province_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
 
 	context.map_of_modifiers.insert_or_assign(std::string("infrastructure"), new_modifier);
 	context.state.national_definitions.infrastructure = new_modifier;
@@ -407,13 +384,12 @@ void m_base_values(token_generator& gen, error_handler& err, scenario_building_c
 	auto name_id = text::find_or_add_key(context.state, "base_values");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("base_values"), new_modifier);
 	context.state.national_definitions.base_values = new_modifier;
@@ -423,13 +399,12 @@ void m_war(token_generator& gen, error_handler& err, scenario_building_context& 
 	auto name_id = text::find_or_add_key(context.state, "war");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("war"), new_modifier);
 	context.state.national_definitions.war = new_modifier;
@@ -439,13 +414,12 @@ void m_peace(token_generator& gen, error_handler& err, scenario_building_context
 	auto name_id = text::find_or_add_key(context.state, "peace");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("peace"), new_modifier);
 	context.state.national_definitions.peace = new_modifier;
@@ -455,13 +429,12 @@ void m_disarming(token_generator& gen, error_handler& err, scenario_building_con
 	auto name_id = text::find_or_add_key(context.state, "disarming");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("disarming"), new_modifier);
 	context.state.national_definitions.disarming = new_modifier;
@@ -471,13 +444,12 @@ void m_war_exhaustion(token_generator& gen, error_handler& err, scenario_buildin
 	auto name_id = text::find_or_add_key(context.state, "war_exhaustion");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("war_exhaustion"), new_modifier);
 	context.state.national_definitions.war_exhaustion = new_modifier;
@@ -487,13 +459,12 @@ void m_badboy(token_generator& gen, error_handler& err, scenario_building_contex
 	auto name_id = text::find_or_add_key(context.state, "badboy");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("badboy"), new_modifier);
 	context.state.national_definitions.badboy = new_modifier;
@@ -503,13 +474,12 @@ void m_debt_default_to(token_generator& gen, error_handler& err, scenario_buildi
 	auto name_id = text::find_or_add_key(context.state, "debt_default_to");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("debt_default_to"), new_modifier);
 	context.state.national_definitions.debt_default_to = new_modifier;
@@ -519,13 +489,12 @@ void m_bad_debter(token_generator& gen, error_handler& err, scenario_building_co
 	auto name_id = text::find_or_add_key(context.state, "bad_debter");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("bad_debter"), new_modifier);
 	context.state.national_definitions.bad_debter = new_modifier;
@@ -535,13 +504,12 @@ void m_great_power(token_generator& gen, error_handler& err, scenario_building_c
 	auto name_id = text::find_or_add_key(context.state, "great_power");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("great_power"), new_modifier);
 	context.state.national_definitions.great_power = new_modifier;
@@ -551,13 +519,12 @@ void m_second_power(token_generator& gen, error_handler& err, scenario_building_
 	auto name_id = text::find_or_add_key(context.state, "second_power");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("second_power"), new_modifier);
 	context.state.national_definitions.second_power = new_modifier;
@@ -567,13 +534,12 @@ void m_civ_nation(token_generator& gen, error_handler& err, scenario_building_co
 	auto name_id = text::find_or_add_key(context.state, "civ_nation");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("civ_nation"), new_modifier);
 	context.state.national_definitions.civ_nation = new_modifier;
@@ -583,13 +549,12 @@ void m_unciv_nation(token_generator& gen, error_handler& err, scenario_building_
 	auto name_id = text::find_or_add_key(context.state, "unciv_nation");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("unciv_nation"), new_modifier);
 	context.state.national_definitions.unciv_nation = new_modifier;
@@ -599,13 +564,12 @@ void m_average_literacy(token_generator& gen, error_handler& err, scenario_build
 	auto name_id = text::find_or_add_key(context.state, "average_literacy");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("average_literacy"), new_modifier);
 	context.state.national_definitions.average_literacy = new_modifier;
@@ -615,13 +579,12 @@ void m_plurality(token_generator& gen, error_handler& err, scenario_building_con
 	auto name_id = text::find_or_add_key(context.state, "plurality");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("plurality"), new_modifier);
 	context.state.national_definitions.plurality = new_modifier;
@@ -631,13 +594,12 @@ void m_generalised_debt_default(token_generator& gen, error_handler& err, scenar
 	auto name_id = text::find_or_add_key(context.state, "generalised_debt_default");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("generalised_debt_default"), new_modifier);
 	context.state.national_definitions.generalised_debt_default = new_modifier;
@@ -647,13 +609,12 @@ void m_total_occupation(token_generator& gen, error_handler& err, scenario_build
 	auto name_id = text::find_or_add_key(context.state, "total_occupation");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("total_occupation"), new_modifier);
 	context.state.national_definitions.total_occupation = new_modifier;
@@ -663,13 +624,12 @@ void m_total_blockaded(token_generator& gen, error_handler& err, scenario_buildi
 	auto name_id = text::find_or_add_key(context.state, "total_blockaded");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("total_blockaded"), new_modifier);
 	context.state.national_definitions.total_blockaded = new_modifier;
@@ -679,13 +639,12 @@ void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_
 	auto name_id = text::find_or_add_key(context.state, "in_bankrupcy");
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	parsed_modifier.convert_to_national_mod();
 
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 
 	context.map_of_modifiers.insert_or_assign(std::string("in_bankrupcy"), new_modifier);
 	context.state.national_definitions.in_bankrupcy = new_modifier;
@@ -702,12 +661,8 @@ void make_event_modifier(std::string_view name, token_generator& gen, error_hand
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
 
-	parsed_modifier.convert_to_province_mod();
-	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition);
-
-	parsed_modifier.convert_to_neutral_mod();
-	parsed_modifier.convert_to_national_mod();
-	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition);
+	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.constructed_definition_p);
+	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.constructed_definition_n);
 	
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 }

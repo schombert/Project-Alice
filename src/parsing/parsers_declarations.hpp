@@ -481,29 +481,65 @@ namespace parsers {
 
 #define MOD_PROV_FUNCTION(X) template<typename T> \
 	void X (association_type, float v, error_handler& err, int32_t line, T& context) { \
-		if(next_to_add >= sys::modifier_definition_size) { \
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) { \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
 		} else { \
-			constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets:: X ); \
-			constructed_definition.values[next_to_add] = v; \
-			++next_to_add; \
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets:: X ; \
+			constructed_definition_p.values[next_to_add_p] = v; \
+			++next_to_add_p; \
 		} \
 	}
 #define MOD_NAT_FUNCTION(X) template<typename T> \
 	void X (association_type, float v, error_handler& err, int32_t line, T& context) { \
-		if(next_to_add >= sys::modifier_definition_size) { \
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) { \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
 		} else { \
-			constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets:: X ); \
-			constructed_definition.values[next_to_add] = v; \
-			++next_to_add; \
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets:: X ; \
+			constructed_definition_n.values[next_to_add_n] = v; \
+			++next_to_add_n; \
+		} \
+	}
+#define MOD_BOTH_FUNCTION(X) template<typename T> \
+	void X (association_type, float v, error_handler& err, int32_t line, T& context) { \
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) { \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
+		} else { \
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets:: X ; \
+			constructed_definition_n.values[next_to_add_n] = v; \
+			++next_to_add_n; \
+		} \
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) { \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
+		} else { \
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets:: X ; \
+			constructed_definition_p.values[next_to_add_p] = v; \
+			++next_to_add_p; \
+		} \
+	}
+#define MOD_GBOTH_FUNCTION(X) template<typename T> \
+	void X (association_type, float v, error_handler& err, int32_t line, T& context) { \
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) { \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
+		} else { \
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::global_ ## X ; \
+			constructed_definition_n.values[next_to_add_n] = v; \
+			++next_to_add_n; \
+		} \
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) { \
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
+		} else { \
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets:: X ; \
+			constructed_definition_p.values[next_to_add_p] = v; \
+			++next_to_add_p; \
 		} \
 	}
 
 	struct modifier_base {
 		uint8_t icon_index = 0;
-		sys::modifier_definition constructed_definition;
-		uint32_t next_to_add = 0;
+		sys::national_modifier_definition constructed_definition_n;
+		sys::provincial_modifier_definition constructed_definition_p;
+		uint32_t next_to_add_p = 0;
+		uint32_t next_to_add_n = 0;
 		template<typename T>
 		void icon(association_type, uint32_t v, error_handler& err, int32_t line, T& context) {
 			icon_index = uint8_t(v);
@@ -543,15 +579,15 @@ namespace parsers {
 		MOD_NAT_FUNCTION(poor_vote)
 		MOD_NAT_FUNCTION(minimum_wage)
 		MOD_NAT_FUNCTION(factory_maintenance)
-		MOD_PROV_FUNCTION(poor_life_needs)
-		MOD_PROV_FUNCTION(rich_life_needs)
-		MOD_PROV_FUNCTION(middle_life_needs)
-		MOD_PROV_FUNCTION(poor_everyday_needs)
-		MOD_PROV_FUNCTION(middle_everyday_needs)
-		MOD_PROV_FUNCTION(rich_everyday_needs)
-		MOD_PROV_FUNCTION(poor_luxury_needs)
-		MOD_PROV_FUNCTION(middle_luxury_needs)
-		MOD_PROV_FUNCTION(rich_luxury_needs)
+		MOD_BOTH_FUNCTION(poor_life_needs)
+		MOD_BOTH_FUNCTION(rich_life_needs)
+		MOD_BOTH_FUNCTION(middle_life_needs)
+		MOD_BOTH_FUNCTION(poor_everyday_needs)
+		MOD_BOTH_FUNCTION(middle_everyday_needs)
+		MOD_BOTH_FUNCTION(rich_everyday_needs)
+		MOD_BOTH_FUNCTION(poor_luxury_needs)
+		MOD_BOTH_FUNCTION(middle_luxury_needs)
+		MOD_BOTH_FUNCTION(rich_luxury_needs)
 		MOD_NAT_FUNCTION(unemployment_benefit)
 		MOD_NAT_FUNCTION(pension_level)
 		MOD_PROV_FUNCTION(population_growth)
@@ -575,36 +611,36 @@ namespace parsers {
 		MOD_PROV_FUNCTION(local_artisan_output)
 		MOD_PROV_FUNCTION(local_artisan_throughput)
 		MOD_PROV_FUNCTION(number_of_voters)
-		MOD_PROV_FUNCTION(goods_demand)
+		MOD_BOTH_FUNCTION(goods_demand)
 		MOD_NAT_FUNCTION(badboy)
-		MOD_PROV_FUNCTION(assimilation_rate)
+		MOD_GBOTH_FUNCTION(assimilation_rate)
 		MOD_NAT_FUNCTION(global_assimilation_rate)
 		MOD_NAT_FUNCTION(prestige)
 		MOD_NAT_FUNCTION(factory_cost)
 		MOD_PROV_FUNCTION(life_rating)
-		MOD_PROV_FUNCTION(farm_rgo_eff)
-		MOD_PROV_FUNCTION(mine_rgo_eff)
-		MOD_PROV_FUNCTION(farm_rgo_size)
-		MOD_PROV_FUNCTION(mine_rgo_size)
+		MOD_BOTH_FUNCTION(farm_rgo_eff)
+		MOD_BOTH_FUNCTION(mine_rgo_eff)
+		MOD_BOTH_FUNCTION(farm_rgo_size)
+		MOD_BOTH_FUNCTION(mine_rgo_size)
 		MOD_NAT_FUNCTION(issue_change_speed)
 		MOD_NAT_FUNCTION(social_reform_desire)
 		MOD_NAT_FUNCTION(political_reform_desire)
 		MOD_NAT_FUNCTION(literacy_con_impact)
-		MOD_PROV_FUNCTION(pop_militancy_modifier)
-		MOD_PROV_FUNCTION(pop_consciousness_modifier)
-		MOD_PROV_FUNCTION(rich_income_modifier)
-		MOD_PROV_FUNCTION(middle_income_modifier)
-		MOD_PROV_FUNCTION(poor_income_modifier)
+		MOD_GBOTH_FUNCTION(pop_militancy_modifier)
+		MOD_GBOTH_FUNCTION(pop_consciousness_modifier)
+		MOD_BOTH_FUNCTION(rich_income_modifier)
+		MOD_BOTH_FUNCTION(middle_income_modifier)
+		MOD_BOTH_FUNCTION(poor_income_modifier)
 		MOD_PROV_FUNCTION(boost_strongest_party)
 		MOD_NAT_FUNCTION(global_immigrant_attract)
 		template<typename T>
 		void immigration(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::immigrant_attract);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::immigrant_attract;
+				constructed_definition_p.values[next_to_add_p] = v;
+				++next_to_add_p;
 			}
 		}
 		MOD_PROV_FUNCTION(immigrant_attract)
@@ -618,60 +654,60 @@ namespace parsers {
 		MOD_NAT_FUNCTION(mobilisation_economy_impact)
 		template<typename T> \
 		void mobilization_size(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 					err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilisation_size);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilisation_size;
+				constructed_definition_n.values[next_to_add_n] = v;
+				++next_to_add_n;
 			}
 		}
 		template<typename T>
 		void mobilization_economy_impact(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilisation_economy_impact);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilisation_economy_impact;
+				constructed_definition_n.values[next_to_add_n] = v;
+				++next_to_add_n;
 			}
 		}
 		MOD_NAT_FUNCTION(global_pop_militancy_modifier)
 		MOD_NAT_FUNCTION(global_pop_consciousness_modifier)
 		MOD_PROV_FUNCTION(movement_cost)
-		MOD_PROV_FUNCTION(combat_width)
+		MOD_BOTH_FUNCTION(combat_width)
 		MOD_PROV_FUNCTION(min_build_naval_base)
 		MOD_PROV_FUNCTION(min_build_railroad)
 		MOD_PROV_FUNCTION(min_build_fort)
 		MOD_PROV_FUNCTION(attack)
 		template<typename T>
 		void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::defense);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::defense;
+				constructed_definition_p.values[next_to_add_p] = v;
+				++next_to_add_p;
 			}
 		}
 		template<typename T>
 		void attacker(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::attack);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::attack;
+				constructed_definition_p.values[next_to_add_p] = v;
+				++next_to_add_p;
 			}
 		}
 		template<typename T>
 		void defence(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::defense);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::defense;
+				constructed_definition_p.values[next_to_add_p] = v;
+				++next_to_add_p;
 			}
 		}
 		MOD_NAT_FUNCTION(core_pop_militancy_modifier)
@@ -682,12 +718,12 @@ namespace parsers {
 		MOD_NAT_FUNCTION(mobilization_impact)
 		template<typename T>
 		void mobilisation_impact(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilization_impact);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilization_impact;
+				constructed_definition_n.values[next_to_add_n] = v;
+				++next_to_add_n;
 			}
 		}
 		MOD_NAT_FUNCTION(suppression_points_modifier)
@@ -736,78 +772,12 @@ namespace parsers {
 
 		template<typename T>
 		void finish(T& context) { }
-
-		void convert_to_national_mod() {
-			for(uint32_t i = 0; i < this->next_to_add; ++i) {
-				if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_life_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_life_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_life_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_life_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_life_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_life_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_everyday_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_everyday_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_everyday_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_everyday_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_everyday_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_everyday_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_luxury_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_luxury_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_luxury_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_luxury_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_luxury_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_luxury_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::goods_demand) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::goods_demand);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::assimilation_rate) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_assimilation_rate);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::farm_rgo_eff) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::farm_rgo_eff);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::mine_rgo_eff) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::mine_rgo_eff);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::farm_rgo_size) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::farm_rgo_size);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::mine_rgo_size) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::mine_rgo_size);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::pop_militancy_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_pop_militancy_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::pop_consciousness_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_pop_consciousness_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_income_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_income_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_income_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_income_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_income_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_income_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::supply_limit) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::supply_limit);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::combat_width) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::combat_width);
-				} else if(constructed_definition.offsets[i] < sys::provincial_mod_offsets::count) {
-					--this->next_to_add;
-					constructed_definition.offsets[i] = constructed_definition.offsets[this->next_to_add];
-					constructed_definition.values[i] = constructed_definition.values[this->next_to_add];
-					--i;
-					continue;
-				}
-				constructed_definition.offsets[i] += 1;
-			}
-		}
-		void convert_to_province_mod() {
-			for(uint32_t i = 0; i < this->next_to_add; ++i) {
-				constructed_definition.offsets[i] += 1;
-			}
-		}
-		void convert_to_neutral_mod() {
-			for(uint32_t i = 0; i < this->next_to_add; ++i) {
-				constructed_definition.offsets[i] -= 1;
-			}
-		}
 	};
 
 #undef MOD_PROV_FUNCTION
 #undef MOD_NAT_FUNCTION
-
+#undef MOD_BOTH_FUNCTION
+#undef MOD_GBOTH_FUNCTION
 
 	struct int_vector {
 		std::vector<int32_t> data;
@@ -1719,12 +1689,12 @@ namespace parsers {
 		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 
 		void prestige(association_type, float v, error_handler& err, int32_t line, tech_context& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::prestige_modifier);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::prestige_modifier;
+				constructed_definition_n.values[next_to_add_n] = v;
+				++next_to_add_n;
 			} 
 		}
 
