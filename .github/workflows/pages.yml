@@ -46,7 +46,7 @@ jobs:
         uses: mattnotmitt/doxygen-action@v1.9.5
         with:
             working-directory: 'docs/'
-            doxyfile-path: 'docs/Doxygen'
+            doxyfile-path: 'docs/Doxyfile'
       - name: Generate docs post process
         run: |
           cd docs
