@@ -300,7 +300,7 @@ void read_school_modifier(std::string_view name, token_generator& gen, error_han
 	auto school = parse_modifier_base(gen, err, context);
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(school.icon_index));
-	context.state.world.modifier_set_national_values(new_modifier, school.constructed_definition_n);
+	context.state.world.modifier_set_national_values(new_modifier, school.force_national_mod());
 }
 
 void register_technology(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
@@ -387,7 +387,8 @@ void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& 
 		context.state.world.modifier_set_name(new_modifier, context.state.culture_definitions.crimes[id].name);
 		context.state.world.modifier_set_icon(new_modifier, uint8_t(crime_body.icon_index));
 
-		context.state.world.modifier_set_province_values(new_modifier, crime_body.constructed_definition_p);
+		context.state.world.modifier_set_province_values(new_modifier, crime_body.peek_province_mod());
+		context.state.world.modifier_set_national_values(new_modifier, crime_body.peek_national_mod());
 		context.state.culture_definitions.crimes[id].modifier = new_modifier;
 	}
 }
@@ -422,11 +423,11 @@ void read_pending_option(dcon::issue_option_id id, token_generator& gen, error_h
 	individual_option_context new_context{context, id};
 	issue_option_body opt = parse_issue_option_body(gen, err, new_context);
 
-	if(opt.next_to_add_n != 0) {
+	if(opt.next_to_add_n != 0 || opt.next_to_add_p != 0) {
 		auto new_modifier = context.state.world.create_modifier();
 		context.state.world.modifier_set_name(new_modifier, context.state.world.issue_option_get_name(id));
 		context.state.world.modifier_set_icon(new_modifier, uint8_t(opt.icon_index));
-		context.state.world.modifier_set_national_values(new_modifier, opt.constructed_definition_n);
+		context.state.world.modifier_set_national_values(new_modifier, opt.force_national_mod());
 		context.state.world.issue_option_set_modifier(id, new_modifier);
 	}
 }
@@ -434,11 +435,11 @@ void read_pending_reform(dcon::reform_option_id id, token_generator& gen, error_
 	individual_roption_context new_context{ context, id };
 	issue_option_body opt = parse_issue_option_body(gen, err, new_context);
 
-	if(opt.next_to_add_n != 0) {
+	if(opt.next_to_add_n != 0 || opt.next_to_add_p != 0) {
 		auto new_modifier = context.state.world.create_modifier();
 		context.state.world.modifier_set_name(new_modifier, context.state.world.reform_option_get_name(id));
 		context.state.world.modifier_set_icon(new_modifier, uint8_t(opt.icon_index));
-		context.state.world.modifier_set_national_values(new_modifier, opt.constructed_definition_n);
+		context.state.world.modifier_set_national_values(new_modifier, opt.force_national_mod());
 		context.state.world.reform_option_set_modifier(id, new_modifier);
 	}
 }
@@ -456,11 +457,11 @@ void read_pending_technology(dcon::technology_id id, token_generator& gen, error
 	tech_context new_context{context, id};
 	auto modifier = parse_technology_contents(gen, err, new_context);
 
-	if(modifier.next_to_add_n != 0) {
+	if(modifier.next_to_add_n != 0 || modifier.next_to_add_p != 0) {
 		auto new_modifier = context.state.world.create_modifier();
 		context.state.world.modifier_set_name(new_modifier, context.state.world.technology_get_name(id));
 		context.state.world.modifier_set_icon(new_modifier, uint8_t(modifier.icon_index));
-		context.state.world.modifier_set_national_values(new_modifier, modifier.constructed_definition_n);
+		context.state.world.modifier_set_national_values(new_modifier, modifier.force_national_mod());
 		context.state.world.technology_set_modifier(id, new_modifier);
 	}
 }
@@ -478,11 +479,11 @@ void read_pending_invention(dcon::invention_id id, token_generator& gen, error_h
 	invention_context new_context{ context, id };
 	auto modifier = parse_invention_contents(gen, err, new_context);
 
-	if(modifier.next_to_add_n != 0) {
+	if(modifier.next_to_add_n != 0 || modifier.next_to_add_p != 0) {
 		auto new_modifier = context.state.world.create_modifier();
 		context.state.world.modifier_set_name(new_modifier, context.state.world.invention_get_name(id));
 		context.state.world.modifier_set_icon(new_modifier, uint8_t(modifier.icon_index));
-		context.state.world.modifier_set_national_values(new_modifier, modifier.constructed_definition_n);
+		context.state.world.modifier_set_national_values(new_modifier, modifier.force_national_mod());
 		context.state.world.invention_set_modifier(id, new_modifier);
 	}
 }
