@@ -13,6 +13,7 @@ Now for the part that matters,
 - Neither the folders or the file names can have spaces in them
 - The file should start with a markdown header, this will be the title in the sidebar and the page
 - The [about.md](about.md) is the start page by default
+- A table of context can be added by adding `[TOC]` under the first header
 
 #### Issues
 - The website doesn't work on mobile devices
