@@ -2817,7 +2817,6 @@ object {
 		type{ issue_option_id }
 		tag{ save }
 	}
-
 	property{
 		name{ associated_independence }
 		type{ national_identity_id }
