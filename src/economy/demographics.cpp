@@ -94,8 +94,6 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 
 void regenerate_from_pop_data(sys::state& state) {
 
-	// TODO: regenerate pop political and social reform desire
-
 	concurrency::parallel_for(uint32_t(0), size(state), [&](uint32_t index) {
 		dcon::demographics_key key{ dcon::demographics_key::value_base_t(index) };
 		if(index < count_special_keys) {

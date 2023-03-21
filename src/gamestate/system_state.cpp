@@ -1364,6 +1364,7 @@ namespace sys {
 		fill_unsaved_data(); // we need this to run triggers
 
 		culture::create_initial_ideology_and_issues_distribution(*this);
+		demographics::regenerate_from_pop_data(*this);
 
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
