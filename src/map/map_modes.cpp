@@ -764,13 +764,8 @@ void set_relation(sys::state& state) {
 			// the selected nation should be blue
 			color = sys::pack_color(66, 106, 227);
 		} else {
-			int32_t relation_value = 0;
-			for(auto relation: relations) {
-				if(relation.get_related_nations(1).id == other_nation) {
-					relation_value = relation.get_value();
-					break;
-				}
-			}
+			auto diplo_relation = state.world.get_diplomatic_relation_by_diplomatic_pair(other_nation, selected_nation);
+			int32_t relation_value = state.world.diplomatic_relation_get_value(diplo_relation);
 
 			float interpolation = (200 + relation_value) / 400.f;
 			color = sys::pack_color(
