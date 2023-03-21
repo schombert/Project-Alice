@@ -97,6 +97,34 @@ void repopulate_modifier_effects(sys::state& state) {
 		for(auto mpr : state.world.nation_get_current_modifiers(n)) {
 			apply_modifier_values_to_nation(state, n, mpr.mod_id);
 		}
+		state.world.for_each_technology([&](dcon::technology_id t) {
+			auto tmod = state.world.technology_get_modifier(t);
+			if(tmod && state.world.nation_get_active_technologies(n, t)) {
+				apply_modifier_values_to_nation(state, n, tmod);
+			}
+		});
+		state.world.for_each_invention([&](dcon::invention_id i) {
+			auto imod = state.world.invention_get_modifier(i);
+			if(imod && state.world.nation_get_active_inventions(n, i)) {
+				apply_modifier_values_to_nation(state, n, imod);
+			}
+		});
+		state.world.for_each_issue([&](dcon::issue_id i) {
+			auto iopt = state.world.nation_get_issues(n, i);
+			auto imod = state.world.issue_option_get_modifier(iopt);
+			if(imod) {
+				apply_modifier_values_to_nation(state, n, imod);
+			}
+		});
+		if(!state.world.nation_get_is_civilized(n)) {
+			state.world.for_each_reform([&](dcon::reform_id r) {
+				auto ropt = state.world.nation_get_reforms(n, r);
+				auto rmod = state.world.reform_option_get_modifier(ropt);
+				if(rmod) {
+					apply_modifier_values_to_nation(state, n, rmod);
+				}
+			});
+		}
 	});
 }
 
