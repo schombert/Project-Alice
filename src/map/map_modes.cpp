@@ -828,6 +828,34 @@ void set_civilization_level(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::civilization_level);
 }
 
+void set_migration(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		// TODO:
+		//	check if immigrant_attraction is a [-1, 1] value,
+		//	because right now it is always 0
+
+		auto immigrant_attraction = state.world.province_get_modifier_values(prov_id, sys::provincial_mod_offsets::immigrant_attract);
+		float interpolation = (immigrant_attraction + 1) / 2;
+
+		uint32_t color = sys::pack_color(
+			uint32_t(247 + (46 - 247) * interpolation),
+			uint32_t(15 + (247 - 15) * interpolation),
+			15
+		);
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+	});
+	state.map_display.set_province_color(prov_color, mode::migration);
+}
+
+
 void set_map_mode(sys::state& state, mode mode) {
 	switch (mode)
 	{
@@ -866,6 +894,9 @@ void set_map_mode(sys::state& state, mode mode) {
 		break;
 	case mode::civilization_level:
 		set_civilization_level(state);
+		break;
+	case mode::migration:
+		set_migration(state);
 		break;
 	default:
 		break;
