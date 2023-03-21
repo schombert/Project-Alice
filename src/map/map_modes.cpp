@@ -743,26 +743,49 @@ void set_relation(sys::state& state) {
 	auto fat_id = dcon::fatten(state.world, selected_province);
 	auto selected_nation = fat_id.get_nation_from_province_ownership();
 
-	state.world.nation_for_each_diplomatic_relation(selected_nation, [&](dcon::diplomatic_relation_id relation_id) {
-		int32_t relation_value = state.world.diplomatic_relation_get_value(relation_id);
-		auto other_nation = state.world.diplomatic_relation_get_related_nations(relation_id, 1);
+	if(!selected_nation) {
+		selected_nation = state.local_player_nation;
+	}
 
-		state.world.nation_for_each_province_ownership(other_nation, [&](dcon::province_ownership_id prov_id) {
+	auto relations = selected_nation.get_diplomatic_relation_as_related_nations();
+
+	
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto other_nation = state.world.province_get_nation_from_province_ownership(prov_id);
+
+		// if the province has no owners
+		if(!other_nation) {
+			return;
+		}
+
+		uint32_t color;
+
+		if(other_nation == selected_nation.id) {
+			// the selected nation should be blue
+			color = sys::pack_color(66, 106, 227);
+		} else {
+			int32_t relation_value = 0;
+			for(auto relation: relations) {
+				if(relation.get_related_nations(1).id == other_nation) {
+					relation_value = relation.get_value();
+					break;
+				}
+			}
+
 			float interpolation = (200 + relation_value) / 400.f;
-
-			uint32_t color = sys::pack_color(
+			color = sys::pack_color(
 				uint32_t(247 + (46 - 247) * interpolation),
 				uint32_t(15 + (247 - 15) * interpolation),
 				15
 			);
+		}
 
-			auto i = province::to_map_id(state.world.province_ownership_get_province(prov_id));
+		auto i = province::to_map_id(prov_id);
 
-			prov_color[i] = color;
-			prov_color[i + texture_size] = color;
-		});
-
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
 	});
+
 	state.map_display.set_province_color(prov_color, mode::relation);
 }
 
