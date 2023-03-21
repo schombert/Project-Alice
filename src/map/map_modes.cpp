@@ -807,10 +807,12 @@ void set_civilization_level(sys::state& state) {
 				case nations::status::civilized:
 					color = sys::pack_color(53, 196, 53);// green
 					break;
-				case nations::status::uncivilized:
+				case nations::status::westernizing:
 					color = sys::pack_color(201, 187, 28);// yellow
 					break;
-				case nations::status::westernizing:
+				case nations::status::uncivilized:
+					color = sys::pack_color(179, 164, 7);// dark yellow
+					break;
 				case nations::status::primitive:
 					color = sys::pack_color(155, 156, 149); // grey
 					break;
@@ -819,7 +821,9 @@ void set_civilization_level(sys::state& state) {
 		auto i = province::to_map_id(prov_id);
 
 		prov_color[i] = color;
-		prov_color[i + texture_size] = color;
+		if(!state.world.province_get_is_colonial(prov_id)) {
+			prov_color[i + texture_size] = color;
+		}
 	});
 	state.map_display.set_province_color(prov_color, mode::civilization_level);
 }

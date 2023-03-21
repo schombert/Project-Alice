@@ -383,9 +383,9 @@ status get_status(sys::state& state, dcon::nation_id n) {
 		if(civ_progress < 0.15f) {
 			return status::primitive;
 		} else if(civ_progress < 0.5f) {
-			return status::westernizing;
-		} else {
 			return status::uncivilized;
+		} else {
+			return status::westernizing;
 		}
 	}
 }
