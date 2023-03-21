@@ -33,6 +33,7 @@
 #include "economy.cpp"
 #include "demographics.cpp"
 #include "bmfont.cpp"
+#include "rebels.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

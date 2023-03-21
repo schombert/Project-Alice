@@ -14,6 +14,7 @@
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
+#include "rebels.hpp"
 
 namespace sys {
 	//
@@ -1445,6 +1446,8 @@ namespace sys {
 		demographics::regenerate_from_pop_data(*this);
 		pop_demographics::regenerate_is_primary_or_accepted(*this);
 
+		rebel::update_movement_values(*this);
+
 		military::regenerate_land_unit_average(*this);
 		military::regenerate_ship_scores(*this);
 		nations::update_industrial_scores(*this);
@@ -1484,6 +1487,8 @@ namespace sys {
 
 					current_date += 1;
 
+					auto ymd_date = current_date.to_ymd(start_date);
+
 					// basic repopulation of demographics derived values
 					demographics::regenerate_from_pop_data(*this);
 
@@ -1510,6 +1515,15 @@ namespace sys {
 					});
 					nations::update_military_scores(*this);
 					nations::update_rankings(*this);
+
+					// Once per month updates, spread out over the month
+					switch(ymd_date.day) {
+						case 5:
+							rebel::update_movements(*this);
+							break;
+						default:
+							break;
+					}
 
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
