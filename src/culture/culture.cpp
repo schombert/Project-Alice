@@ -430,27 +430,50 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 		if(psize <= 0)
 			return;
 
-		float total = 0.0f;
-		state.world.for_each_ideology([&](dcon::ideology_id iid) {
-			if(state.world.ideology_get_enabled(iid) && (!state.world.ideology_get_is_civilized_only(iid) || state.world.nation_get_is_civilized(owner))) {
-				auto ptrigger = state.world.pop_type_get_ideology(ptype, iid);
-				if(ptrigger) {
-					auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
-					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
-					total += amount;
+		{ // ideologies
+			float total = 0.0f;
+			state.world.for_each_ideology([&](dcon::ideology_id iid) {
+				if(state.world.ideology_get_enabled(iid) && (!state.world.ideology_get_is_civilized_only(iid) || state.world.nation_get_is_civilized(owner))) {
+					auto ptrigger = state.world.pop_type_get_ideology(ptype, iid);
+					if(ptrigger) {
+						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
+						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
+						total += amount;
+					}
 				}
+			});
+			if(total != 0) {
+				float adjustment_factor = psize / total;
+				state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
+					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
+					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
+				});
 			}
-		});
-		if(total == 0)
-			return;
-
-		float adjustment_factor = psize / total;
-		state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
-			auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
-			state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
-		});
-
-		// TODO: issues
+		}
+		{ // issues
+			
+			float total = 0.0f;
+			state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+				auto opt = fatten(state.world, iid);
+				auto allow = opt.get_allow();
+				auto parent_issue = opt.get_parent_issue();
+				if((state.world.nation_get_is_civilized(owner) || state.world.issue_get_issue_type(parent_issue) == uint8_t(issue_type::party))
+					&& (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+					if(auto mtrigger = state.world.pop_type_get_issues(ptype, iid); mtrigger) {
+						auto amount = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
+						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
+						total += amount;
+					}
+				}
+			});
+			if(total != 0) {
+				float adjustment_factor = psize / total;
+				state.world.for_each_issue_option([&state, pid, adjustment_factor](dcon::issue_option_id iid) {
+					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
+					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
+				});
+			}
+		}
 	});
 }
 
