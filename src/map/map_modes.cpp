@@ -814,6 +814,7 @@ void set_civilization_level(sys::state& state) {
 					color = sys::pack_color(179, 164, 7);// dark yellow
 					break;
 				case nations::status::primitive:
+				default:
 					color = sys::pack_color(155, 156, 149); // grey
 					break;
 			}
