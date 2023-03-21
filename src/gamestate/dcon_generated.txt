@@ -2823,9 +2823,16 @@ object {
 		type{ national_identity_id }
 		tag{ save }
 	}
-
 	property{
-		name{ strength }
+		name{ pop_support }
+		type{ float }
+	}
+	property{
+		name{ radicalism }
+		type{ float }
+	}
+	property{
+		name{ transient_radicalism }
 		type{ float }
 		tag{ save }
 	}

@@ -2293,7 +2293,7 @@ TRIGGER_FUNCTION(tf_is_ideology_enabled) {
 }
 TRIGGER_FUNCTION(tf_political_reform_want_nation) {
 	return compare_values(tval[0],
-		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::political_reform_desire),
+		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::political_reform_desire) * ws.defines.movement_support_uh_factor / ws.world.nation_get_non_colonial_population(to_nation(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_political_reform_want_pop) {
@@ -2303,7 +2303,7 @@ TRIGGER_FUNCTION(tf_political_reform_want_pop) {
 }
 TRIGGER_FUNCTION(tf_social_reform_want_nation) {
 	return compare_values(tval[0],
-		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::social_reform_desire),
+		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::social_reform_desire) * ws.defines.movement_support_uh_factor / ws.world.nation_get_non_colonial_population(to_nation(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_social_reform_want_pop) {
@@ -3784,13 +3784,13 @@ TRIGGER_FUNCTION(tf_social_movement_strength) {
 				auto issue = m.get_movement().get_associated_issue_option();
 				if(issue) {
 					if(culture::issue_type(issue.get_parent_issue().get_issue_type()) == culture::issue_type::social
-						&& m.get_movement().get_strength() > max_str) {
-						max_str = m.get_movement().get_strength();
+						&& m.get_movement().get_pop_support() > max_str) {
+						max_str = m.get_movement().get_pop_support();
 					}
 				}
 			}
 			return max_str;
-		}, to_nation(primary_slot)),
+		}, to_nation(primary_slot)) * ws.defines.movement_support_uh_factor / ws.world.nation_get_non_colonial_population(to_nation(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_political_movement_strength) {
@@ -3801,13 +3801,13 @@ TRIGGER_FUNCTION(tf_political_movement_strength) {
 				auto issue = m.get_movement().get_associated_issue_option();
 				if(issue) {
 					if(culture::issue_type(issue.get_parent_issue().get_issue_type()) == culture::issue_type::political
-						&& m.get_movement().get_strength() > max_str) {
-						max_str = m.get_movement().get_strength();
+						&& m.get_movement().get_pop_support() > max_str) {
+						max_str = m.get_movement().get_pop_support();
 					}
 				}
 			}
 			return max_str;
-		}, to_nation(primary_slot)),
+		}, to_nation(primary_slot)) * ws.defines.movement_support_uh_factor / ws.world.nation_get_non_colonial_population(to_nation(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_can_build_factory_in_capital_state) {
