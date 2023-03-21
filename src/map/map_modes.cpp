@@ -784,6 +784,46 @@ void set_relation(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::relation);
 }
 
+void set_civilization_level(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+		auto status = nations::get_status(state, nation);
+
+		uint32_t color;
+
+		// if it is uncolonized
+		if(!nation) {
+			color = sys::pack_color(250, 5, 5);// red
+		} else {
+
+			switch(status) {
+				case nations::status::great_power:
+				case nations::status::secondary_power:
+				case nations::status::civilized:
+					color = sys::pack_color(53, 196, 53);// green
+					break;
+				case nations::status::uncivilized:
+					color = sys::pack_color(201, 187, 28);// yellow
+					break;
+				case nations::status::westernizing:
+				case nations::status::primitive:
+					color = sys::pack_color(155, 156, 149); // grey
+					break;
+			}
+		}
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+	});
+	state.map_display.set_province_color(prov_color, mode::civilization_level);
+}
+
 void set_map_mode(sys::state& state, mode mode) {
 	switch (mode)
 	{
@@ -819,6 +859,9 @@ void set_map_mode(sys::state& state, mode mode) {
 		break;
 	case mode::relation:
 		set_relation(state);
+		break;
+	case mode::civilization_level:
+		set_civilization_level(state);
 		break;
 	default:
 		break;
