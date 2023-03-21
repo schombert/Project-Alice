@@ -379,7 +379,14 @@ status get_status(sys::state& state, dcon::nation_id n) {
 	} else if(state.world.nation_get_is_civilized(n)) {
 		return status::civilized;
 	} else {
-		return status::uncivilized;
+		auto civ_progress = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::civilization_progress_modifier);
+		if(civ_progress < 0.15f) {
+			return status::primitive;
+		} else if(civ_progress < 0.5f) {
+			return status::uncivilized;
+		} else {
+			return status::westernizing;
+		}
 	}
 }
 
