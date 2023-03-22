@@ -156,6 +156,10 @@ public:
 		set_text(state, get_text(state));
 	}
 
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::province_id>()) {
 			province_id = any_cast<dcon::province_id>(payload);
@@ -168,10 +172,23 @@ public:
 };
 
 class province_population_text : public standard_province_text {
+
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
 		return text::prettify(int32_t(total_pop));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_totalpop")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -180,6 +197,18 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto supply = military::supply_limit_in_province(state, state.local_player_nation, province_id);
 		return std::to_string(supply);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_supply_limit")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -201,6 +230,17 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 3);
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_crimefight")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class province_rebel_percent_text : public standard_province_text {
@@ -215,6 +255,18 @@ class province_rgo_workers_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		return text::prettify(int32_t(province::rgo_employment(state, province_id)));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_employment")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
