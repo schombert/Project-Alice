@@ -223,6 +223,13 @@ public:
 			return "";
 		}
 	}
+};
+
+class province_crime_fighting_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 3);
+	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -233,13 +240,6 @@ public:
 			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
 			text::close_layout_box(contents, box);
 		}
-	}
-};
-
-class province_crime_fighting_text : public standard_province_text {
-public:
-	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 3);
 	}
 };
 
