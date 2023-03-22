@@ -1,5 +1,6 @@
 #include "map_modes.hpp"
 
+#include "container_types.hpp"
 #include "demographics.hpp"
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
@@ -808,13 +809,8 @@ void set_civilization_level(sys::state& state) {
 		} else {
 
 			float civ_level = state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::civilization_progress_modifier);
-			float interpolation = 1 - civ_level;
 			// gray <-> yellow
-			color = sys::pack_color(
-				int32_t(255 + (128 - 255) * interpolation),
-				int32_t(220 + (128 - 220) * interpolation),
-				int32_t(40 + (128 - 40) * interpolation)
-			);
+			color = color_gradient(civ_level * (1 + (1 - civ_level)), sys::pack_color(250, 250, 5), sys::pack_color(64, 64, 64));
 
 		}
 		auto i = province::to_map_id(prov_id);
