@@ -1,6 +1,5 @@
 #include "map_modes.hpp"
 
-#include "container_types.hpp"
 #include "demographics.hpp"
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
@@ -718,12 +717,10 @@ void set_supply(sys::state& state) {
 		int32_t supply_limit = military::supply_limit_in_province(state, nation, prov_id);
 		float interpolation = (supply_limit < 50 ? supply_limit : 50) / 50.f;
 
-		// red: 247, 15, 15
-		// green: 46, 247, 15
-		uint32_t color = sys::pack_color(
-			int32_t(247 + (46 - 247) * interpolation),
-			int32_t(15 + (247 - 15) * interpolation),
-			15
+		uint32_t color = color_gradient(
+				interpolation,
+				sys::pack_color(46, 247, 15), // red
+				sys::pack_color(247, 15, 15) // green
 		);
 
 		auto i = province::to_map_id(prov_id);
@@ -769,10 +766,11 @@ void set_relation(sys::state& state) {
 			int32_t relation_value = state.world.diplomatic_relation_get_value(diplo_relation);
 
 			float interpolation = (200 + relation_value) / 400.f;
-			color = sys::pack_color(
-				int32_t(247 + (46 - 247) * interpolation),
-				int32_t(15 + (247 - 15) * interpolation),
-				15
+
+			color = color_gradient(
+				interpolation,
+				sys::pack_color(46, 247, 15), // red
+				sys::pack_color(247, 15, 15) // green
 			);
 		}
 
@@ -837,10 +835,10 @@ void set_migration(sys::state& state) {
 		auto immigrant_attraction = state.world.province_get_modifier_values(prov_id, sys::provincial_mod_offsets::immigrant_attract);
 		float interpolation = (immigrant_attraction + 1) / 2;
 
-		uint32_t color = sys::pack_color(
-			uint32_t(247 + (46 - 247) * interpolation),
-			uint32_t(15 + (247 - 15) * interpolation),
-			15
+		uint32_t color = color_gradient(
+				interpolation,
+				sys::pack_color(46, 247, 15), // red
+				sys::pack_color(247, 15, 15) // green
 		);
 		auto i = province::to_map_id(prov_id);
 
