@@ -37,15 +37,15 @@ void set_political(sys::state& state) {
 inline constexpr uint32_t scramble(uint32_t color) {
 	uint32_t m1 = 0x1337CAFE;
 	uint32_t m2 = 0xDEADBEEF;
-	m1 -= m2; m1 -= color; m1 ^= (color>>13);
-	m2 -= color; m2 -= m1; m2 ^= (m1<<8);
-	color -= m1; color -= m2; color ^= (m2>>13);
-	m1 -= m2; m1 -= color; m1 ^= (color>>12);
-	m2 -= color; m2 -= m1; m2 ^= (m1<<16);
-	color -= m1; color -= m2; color ^= (m2>>5);
-	m1 -= m2; m1 -= color; m1 ^= (color>>3);
-	m2 -= color; m2 -= m1; m2 ^= (m1<<10);
-	color -= m1; color -= m2; color ^= (m2>>15);
+	m1 -= m2; m1 -= color; m1 ^= (color >> 13);
+	m2 -= color; m2 -= m1; m2 ^= (m1 << 8);
+	color -= m1; color -= m2; color ^= (m2 >> 13);
+	m1 -= m2; m1 -= color; m1 ^= (color >> 12);
+	m2 -= color; m2 -= m1; m2 ^= (m1 << 16);
+	color -= m1; color -= m2; color ^= (m2 >> 5);
+	m1 -= m2; m1 -= color; m1 ^= (color >> 3);
+	m2 -= color; m2 -= m1; m2 ^= (m1 << 10);
+	color -= m1; color -= m2; color ^= (m2 >> 15);
 	return color;
 }
 
@@ -457,7 +457,7 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 	 *  - Dark green -> Puppet or puppet master X
 	 */
 
-	// This could be stored in an other place
+	 // This could be stored in an other place
 	uint32_t causus_belli_color = 0x00AAFF;
 	uint32_t ally_color = 0xFFAA00;
 	uint32_t selected_color = 0x00FF00; // Also unclaimed cores stripes color
@@ -473,7 +473,7 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 
 	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
-	
+
 	std::vector<dcon::nation_id> enemies, allies, sphere;
 
 	if(bool(selected_nation)) {
@@ -587,7 +587,7 @@ void set_rank(sys::state& state) {
 	// These colors are arbitrary
 	// 1 to 8 -> green #30f233
 	// 9 to 16 -> blue #242fff
-	// under 16 but civilized -> yellow #eefc26 
+	// under 16 but civilized -> yellow #eefc26
 	// under 16 but uncivilized -> red #ff2626
 
 	uint32_t province_size = state.world.province_size();
@@ -612,7 +612,7 @@ void set_rank(sys::state& state) {
 
 		float darkness = 0.0f;
 		if(status == nations::status::great_power)
-			darkness =  1.0f - 0.7f * (state.world.nation_get_rank(nation_id)) / state.defines.great_nations_count;
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id)) / state.defines.great_nations_count;
 		else if(status == nations::status::secondary_power)
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.great_nations_count) / (state.defines.colonial_rank - state.defines.great_nations_count);
 		else if(status == nations::status::civilized)
@@ -625,34 +625,34 @@ void set_rank(sys::state& state) {
 			switch(status) {
 				case nations::status::great_power:
 					color = sys::pack_color(
-						(int32_t)(48 * darkness),
-						(int32_t)(242 * darkness),
-						(int32_t)(51 * darkness)
+						int32_t(48 * darkness),
+						int32_t(242 * darkness),
+						int32_t(51 * darkness)
 					);
 					break;
 
 				case nations::status::secondary_power:
 					color = sys::pack_color(
-						(int32_t)(36 * darkness),
-						(int32_t)(47 * darkness),
-						(int32_t)(255 * darkness)
+						int32_t(36 * darkness),
+						int32_t(47 * darkness),
+						int32_t(255 * darkness)
 					);
 					break;
 
 				case nations::status::civilized:
 					color = sys::pack_color(
-						(int32_t)(238 * darkness),
-						(int32_t)(252 * darkness),
-						(int32_t)(38 * darkness)
+						int32_t(238 * darkness),
+						int32_t(252 * darkness),
+						int32_t(38 * darkness)
 					);
 					break;
 
 					// primitive, uncivilized and westernized
 				default:
 					color = sys::pack_color(
-						(int32_t)(250 * darkness),
-						(int32_t)(5 * darkness),
-						(int32_t)(5 * darkness)
+						int32_t(250 * darkness),
+						int32_t(5 * darkness),
+						int32_t(5 * darkness)
 					);
 					break;
 			}
@@ -664,7 +664,7 @@ void set_rank(sys::state& state) {
 
 		prov_color[i] = color;
 		prov_color[i + texture_size] = color;
-		
+
 	});
 	state.map_display.set_province_color(prov_color, mode::rank);
 }
@@ -699,7 +699,7 @@ void set_recruitment(sys::state& state) {
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
 		}
-		
+
 	});
 
 	state.map_display.set_province_color(prov_color, mode::recruitment);
@@ -720,8 +720,8 @@ void set_supply(sys::state& state) {
 		// red: 247, 15, 15
 		// green: 46, 247, 15
 		uint32_t color = sys::pack_color(
-			uint32_t(247 + (46 - 247) * interpolation),
-			uint32_t(15 + (247 - 15) * interpolation),
+			int32_t(247 + (46 - 247) * interpolation),
+			int32_t(15 + (247 - 15) * interpolation),
 			15
 		);
 
@@ -749,7 +749,7 @@ void set_relation(sys::state& state) {
 
 	auto relations = selected_nation.get_diplomatic_relation_as_related_nations();
 
-	
+
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto other_nation = state.world.province_get_nation_from_province_ownership(prov_id);
 
@@ -769,8 +769,8 @@ void set_relation(sys::state& state) {
 
 			float interpolation = (200 + relation_value) / 400.f;
 			color = sys::pack_color(
-				uint32_t(247 + (46 - 247) * interpolation),
-				uint32_t(15 + (247 - 15) * interpolation),
+				int32_t(247 + (46 - 247) * interpolation),
+				int32_t(15 + (247 - 15) * interpolation),
 				15
 			);
 		}
@@ -798,26 +798,24 @@ void set_civilization_level(sys::state& state) {
 
 		// if it is uncolonized
 		if(!nation) {
+
 			color = sys::pack_color(250, 5, 5);// red
+
+		} else if(state.world.nation_get_is_civilized(nation)) {
+
+			color = sys::pack_color(53, 196, 53);// green
+
 		} else {
 
-			switch(status) {
-				case nations::status::great_power:
-				case nations::status::secondary_power:
-				case nations::status::civilized:
-					color = sys::pack_color(53, 196, 53);// green
-					break;
-				case nations::status::westernizing:
-					color = sys::pack_color(201, 187, 28);// yellow
-					break;
-				case nations::status::uncivilized:
-					color = sys::pack_color(179, 164, 7);// dark yellow
-					break;
-				case nations::status::primitive:
-				default:
-					color = sys::pack_color(155, 156, 149); // grey
-					break;
-			}
+			float civ_level = state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::civilization_progress_modifier);
+			float interpolation = 1 - civ_level;
+			// gray <-> yellow
+			color = sys::pack_color(
+				int32_t(255 + (128 - 255) * interpolation),
+				int32_t(220 + (128 - 220) * interpolation),
+				int32_t(40 + (128 - 40) * interpolation)
+			);
+
 		}
 		auto i = province::to_map_id(prov_id);
 
@@ -858,49 +856,48 @@ void set_migration(sys::state& state) {
 
 
 void set_map_mode(sys::state& state, mode mode) {
-	switch (mode)
-	{
-	case mode::terrain:
-		state.map_display.set_terrain_map_mode();
-		break;
-	case mode::political:
-		set_political(state);
-		break;
-	case mode::region:
-		set_region(state);
-		break;
-	case mode::population:
-		set_population(state);
-		break;
-	case mode::nationality:
-		set_nationality(state);
-		break;
-	case mode::sphere:
-		set_sphere(state);
-		break;
-	case mode::diplomatic:
-		set_diplomatic(state);
-		break;
-	case mode::rank:
-		set_rank(state);
-		break;
-	case mode::recruitment:
-		set_recruitment(state);
-		break;
-	case mode::supply:
-		set_supply(state);
-		break;
-	case mode::relation:
-		set_relation(state);
-		break;
-	case mode::civilization_level:
-		set_civilization_level(state);
-		break;
-	case mode::migration:
-		set_migration(state);
-		break;
-	default:
-		break;
+	switch(mode) {
+		case mode::terrain:
+			state.map_display.set_terrain_map_mode();
+			break;
+		case mode::political:
+			set_political(state);
+			break;
+		case mode::region:
+			set_region(state);
+			break;
+		case mode::population:
+			set_population(state);
+			break;
+		case mode::nationality:
+			set_nationality(state);
+			break;
+		case mode::sphere:
+			set_sphere(state);
+			break;
+		case mode::diplomatic:
+			set_diplomatic(state);
+			break;
+		case mode::rank:
+			set_rank(state);
+			break;
+		case mode::recruitment:
+			set_recruitment(state);
+			break;
+		case mode::supply:
+			set_supply(state);
+			break;
+		case mode::relation:
+			set_relation(state);
+			break;
+		case mode::civilization_level:
+			set_civilization_level(state);
+			break;
+		case mode::migration:
+			set_migration(state);
+			break;
+		default:
+			break;
 	}
 }
 
