@@ -55,4 +55,7 @@ bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
+bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
+bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
+
 }

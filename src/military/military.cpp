@@ -152,6 +152,10 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 	return total;
 }
 
+int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p) {
+	// TODO
+	return 0;
+}
 
 void update_recruitable_regiments(sys::state& state, dcon::nation_id n) {
 	state.world.nation_set_recruitable_regiments(n, uint16_t(0));
@@ -227,6 +231,15 @@ void regenerate_ship_scores(sys::state& state) {
 		}
 		state.world.nation_set_capital_ship_score(n, total / 250.0f);
 	});
+}
+
+int32_t naval_supply_points(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return 0;
+}
+int32_t naval_supply_points_used(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return 0;
 }
 
 }
