@@ -83,5 +83,6 @@ inline ve::partial_contiguous_tags<int32_t> to_generic(ve::partial_contiguous_ta
 }
 
 float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
-	
+bool evaluate_trigger(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot);
+
 }

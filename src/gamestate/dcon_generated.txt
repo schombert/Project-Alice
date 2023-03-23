@@ -22,6 +22,8 @@ make_index{effect_key}{uint16_t}
 make_index{value_modifier_key}{uint16_t}
 make_index{pop_demographics_key}{uint16_t}
 make_index{demographics_key}{uint16_t}
+make_index{provincial_modifier_value}{uint8_t}
+make_index{national_modifier_value}{uint8_t}
 
 object{
 	name{ national_identity }
@@ -330,12 +332,12 @@ object {
 	}
 	property{
 		name{ province_values }
-		type{ sys::modifier_definition }
+		type{ sys::provincial_modifier_definition }
 		tag{ scenario }
 	}
 	property{
 		name{ national_values }
-		type{ sys::modifier_definition }
+		type{ sys::national_modifier_definition }
 		tag{ scenario }
 	}
 	property{
@@ -1246,7 +1248,7 @@ object {
 
 	property{
 		name{ modifier_values }
-		type{ array{int32_t}{float} }
+		type{ array{provincial_modifier_value}{float} }
 	}
 
 	property {
@@ -2224,8 +2226,8 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ static_modifier_values }
-		type{ array{int32_t}{float} }
+		name{ modifier_values }
+		type{ array{national_modifier_value}{float} }
 	}
 	property{
 		name{ fluctuating_modifier_values }
@@ -2532,6 +2534,21 @@ object {
 		name{ capital_ship_score }
 		type{ float }
 	}
+	property {
+		name{ suppression_points }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ diplomatic_points }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ leadership_points }
+		type{ float }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -2815,15 +2832,21 @@ object {
 		type{ issue_option_id }
 		tag{ save }
 	}
-
 	property{
 		name{ associated_independence }
 		type{ national_identity_id }
 		tag{ save }
 	}
-
 	property{
-		name{ strength }
+		name{ pop_support }
+		type{ float }
+	}
+	property{
+		name{ radicalism }
+		type{ float }
+	}
+	property{
+		name{ transient_radicalism }
 		type{ float }
 		tag{ save }
 	}
@@ -2858,6 +2881,23 @@ relationship{
 	link{
 		object{movement}
 		name{movement}
+		type{many}
+		index_storage{array}
+	}
+}
+
+relationship{
+	name{ pop_rebellion_membership }
+	tag{ save }
+
+	link{
+		object{pop}
+		name{pop}
+		type{unique}
+	}
+	link{
+		object{rebel_faction}
+		name{rebel_faction}
 		type{many}
 		index_storage{array}
 	}
@@ -2912,11 +2952,6 @@ object {
 	property{
 		name{ employment }
 		type{ float }
-		tag{ save }
-	}
-	property{
-		name{ rebel_group }
-		type{ rebel_type_id }
 		tag{ save }
 	}
 	property{
@@ -3014,7 +3049,6 @@ object {
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
 	}
-	
 }
 
 object {
@@ -3096,7 +3130,6 @@ object {
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
 	}
-	
 }
 
 object {

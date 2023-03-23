@@ -94,8 +94,6 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 
 void regenerate_from_pop_data(sys::state& state) {
 
-	// TODO: regenerate pop political and social reform desire
-
 	concurrency::parallel_for(uint32_t(0), size(state), [&](uint32_t index) {
 		dcon::demographics_key key{ dcon::demographics_key::value_base_t(index) };
 		if(index < count_special_keys) {
@@ -131,12 +129,32 @@ void regenerate_from_pop_data(sys::state& state) {
 					break;
 				case 6: //constexpr inline dcon::demographics_key political_reform_desire(6);
 					sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
-						return state.world.pop_get_political_reform_desire(p);
+						if(state.world.province_get_is_colonial(state.world.pop_get_province_from_pop_location(p)) == false) {
+							auto movement = state.world.pop_get_movement_from_pop_movement_membership(p);
+							if(movement) {
+								auto opt = state.world.movement_get_associated_issue_option(movement);
+								auto optpar = state.world.issue_option_get_parent_issue(opt);
+								if(opt && state.world.issue_get_issue_type(optpar) == uint8_t(culture::issue_type::political))
+									return state.world.pop_get_size(p);
+							}
+							return 0.0f;
+						} else
+							return 0.0f;
 					});
 					break;
 				case 7: //constexpr inline dcon::demographics_key social_reform_desire(7);
 					sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
-						return state.world.pop_get_social_reform_desire(p);
+						if(state.world.province_get_is_colonial(state.world.pop_get_province_from_pop_location(p)) == false) {
+							auto movement = state.world.pop_get_movement_from_pop_movement_membership(p);
+							if(movement) {
+								auto opt = state.world.movement_get_associated_issue_option(movement);
+								auto optpar = state.world.issue_option_get_parent_issue(opt);
+								if(opt && state.world.issue_get_issue_type(optpar) == uint8_t(culture::issue_type::social))
+									return state.world.pop_get_size(p);
+							}
+							return 0.0f;
+						} else
+							return 0.0f;
 					});
 					break;
 				case 8:	//constexpr inline dcon::demographics_key poor_militancy(8);

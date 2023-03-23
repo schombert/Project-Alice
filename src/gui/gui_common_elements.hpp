@@ -156,6 +156,10 @@ public:
 		set_text(state, get_text(state));
 	}
 
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::province_id>()) {
 			province_id = any_cast<dcon::province_id>(payload);
@@ -168,10 +172,23 @@ public:
 };
 
 class province_population_text : public standard_province_text {
+
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
 		return text::prettify(int32_t(total_pop));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_totalpop")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -180,6 +197,18 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto supply = military::supply_limit_in_province(state, state.local_player_nation, province_id);
 		return std::to_string(supply);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_supply_limit")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -201,13 +230,27 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 3);
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_crimefight")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map cf_sub;
+			text::add_to_substitution_map(cf_sub, text::variable_type::value, text::fp_one_place{ province::crime_fighting_efficiency(state, province_id) * 100 });
+			text::add_to_layout_box(contents, state, box, k->second, cf_sub);
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class province_rebel_percent_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto militancy = state.world.province_get_demographics(province_id, demographics::militancy);
-		return text::format_float(militancy, 2);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::format_float(militancy / total_pop, 2);
 	}
 };
 
@@ -215,6 +258,18 @@ class province_rgo_workers_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		return text::prettify(int32_t(province::rgo_employment(state, province_id)));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_employment")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -437,6 +492,41 @@ public:
 		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(nation_id, state.local_player_nation);
 		auto fat_rel = dcon::fatten(state.world, rel);
 		return std::to_string(fat_rel.get_value());
+	}
+};
+
+class nation_militancy_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto militancy = state.world.nation_get_demographics(nation_id, demographics::militancy);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::format_float(militancy / total_pop);
+	}
+};
+
+class nation_consciousness_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto consciousness = state.world.nation_get_demographics(nation_id, demographics::consciousness);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::format_float(consciousness / total_pop);
+	}
+};
+
+class nation_literacy_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto literacy = state.world.nation_get_demographics(nation_id, demographics::literacy);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::format_percentage(literacy / total_pop, 3);
+	}
+};
+
+class nation_infamy_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return text::format_float(fat_id.get_infamy(), 3);
 	}
 };
 

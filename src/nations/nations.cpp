@@ -160,8 +160,7 @@ void update_administrative_efficiency(sys::state& state) {
 	- national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 	*/
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto admin_mod = state.world.nation_get_static_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency - sys::provincial_mod_offsets::count);
-
+		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency);
 		ve::fp_vector issue_sum;
 		for(auto i : state.culture_definitions.social_issues) {
 			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(ids, i));
@@ -175,9 +174,8 @@ void update_administrative_efficiency(sys::state& state) {
 }
 
 float daily_research_points(sys::state& state, dcon::nation_id n) {
-	auto rp_mod_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::research_points_modifier - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::research_points_modifier - sys::provincial_mod_offsets::count);
-
-	auto rp_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::research_points - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::research_points - sys::provincial_mod_offsets::count);
+	auto rp_mod_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::research_points_modifier);
+	auto rp_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::research_points);
 
 	float sum_from_pops = 0;
 	state.world.for_each_pop_type([&](dcon::pop_type_id t) {
@@ -191,9 +189,8 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 }
 void update_research_points(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto rp_mod_mod = state.world.nation_get_static_modifier_values(ids, sys::national_mod_offsets::research_points_modifier - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(ids, sys::national_mod_offsets::research_points_modifier - sys::provincial_mod_offsets::count);
-
-		auto rp_mod = state.world.nation_get_static_modifier_values(ids, sys::national_mod_offsets::research_points - sys::provincial_mod_offsets::count) + state.world.nation_get_fluctuating_modifier_values(ids, sys::national_mod_offsets::research_points - sys::provincial_mod_offsets::count);
+		auto rp_mod_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::research_points_modifier);
+		auto rp_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::research_points);
 
 		ve::fp_vector sum_from_pops;
 		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
@@ -257,9 +254,7 @@ void update_military_scores(sys::state& state) {
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
 		auto is_disarmed = ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
 		auto disarm_factor = ve::select(is_disarmed, ve::fp_vector(disarm), ve::fp_vector(1.0f));
-		auto supply_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::supply_consumption - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::supply_consumption - sys::provincial_mod_offsets::count)
-			+ 1.0f;
+		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto num_leaders = ve::apply([&](dcon::nation_id i) {
 			auto gen_range = state.world.nation_get_general_loyalty(i);
@@ -275,7 +270,7 @@ void update_military_scores(sys::state& state) {
 }
 
 float prestige_score(sys::state const& state, dcon::nation_id n) {
-	return state.world.nation_get_prestige(n) + state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::permanent_prestige - sys::provincial_mod_offsets::count);
+	return state.world.nation_get_prestige(n) + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige);
 }
 
 void update_rankings(sys::state& state) {
@@ -384,8 +379,119 @@ status get_status(sys::state& state, dcon::nation_id n) {
 	} else if(state.world.nation_get_is_civilized(n)) {
 		return status::civilized;
 	} else {
-		return status::uncivilized;
+		auto civ_progress = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::civilization_progress_modifier);
+		if(civ_progress < 0.15f) {
+			return status::primitive;
+		} else if(civ_progress < 0.5f) {
+			return status::uncivilized;
+		} else {
+			return status::westernizing;
+		}
 	}
+}
+
+dcon::technology_id current_research(sys::state const& state, dcon::nation_id n) {
+	// TODO
+	return dcon::technology_id{};
+}
+float daily_research_points(sys::state const& state, dcon::nation_id n) {
+	// TODO
+	return 0.0f;
+}
+float suppression_points(sys::state const& state, dcon::nation_id n) {
+	return state.world.nation_get_suppression_points(n);
+}
+float leadership_points(sys::state const& state, dcon::nation_id n) {
+	return state.world.nation_get_leadership_points(n);
+}
+
+int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return 0;
+}
+int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return 0;
+}
+
+float diplomatic_points(sys::state const& state, dcon::nation_id n) {
+	return state.world.nation_get_diplomatic_points(n);
+}
+
+bool can_expand_colony(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+
+bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+
+void update_monthly_points(sys::state& state) {
+	/*
+	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
+		state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
+	});
+	/*
+	- Infamy: a nation with a badboy modifier gains that amount of infamy per month
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto imod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::badboy);
+		state.world.nation_set_infamy(ids, state.world.nation_get_infamy(ids) + imod);
+	});
+	/*
+	- War exhaustion: a nation with a war exhaustion modifier gains that much at the start of the month, and every month its war exhaustion is capped to its maximum-war-exhaustion modifier at most.
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto wmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::war_exhaustion);
+		auto wmax_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::max_war_exhaustion);
+		state.world.nation_set_war_exhaustion(ids,
+			ve::min(state.world.nation_get_war_exhaustion(ids) + wmod, wmax_mod));
+	});
+	/*
+	- Monthly plurality increase: plurality increases by average consciousness / 45 per month.
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto pmod = state.world.nation_get_demographics(ids, demographics::consciousness) / ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) * 0.0222f;
+		state.world.nation_set_plurality(ids, ve::min(state.world.nation_get_plurality(ids) + pmod, 100.0f));
+	});
+	/*
+	- Monthly diplo-points: (1 + national-modifier-to-diplo-points + diplo-points-from-technology) x define:BASE_MONTHLY_DIPLOPOINTS (to a maximum of 9)
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto bmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::diplomatic_points_modifier) + 1.0f;
+		auto dmod = bmod * state.defines.base_monthly_diplopoints;
+
+		state.world.nation_set_diplomatic_points(ids, ve::min(state.world.nation_get_diplomatic_points(ids) + dmod, 9.0f));
+	});
+	/*
+	- Monthly suppression point gain: define:SUPPRESS_BUREAUCRAT_FACTOR x fraction-of-population-that-are-bureaucrats x define:SUPPRESSION_POINTS_GAIN_BASE x (suppression-points-from-technology + national-suppression-points-modifier + 1) (to a maximum of define:MAX_SUPPRESSION)
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto bmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::suppression_points_modifier) + 1.0f);
+		auto cmod = (bmod * state.defines.suppression_points_gain_base) * (state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.bureaucrat)) / ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) * state.defines.suppress_bureaucrat_factor);
+
+		state.world.nation_set_suppression_points(ids, ve::min(state.world.nation_get_suppression_points(ids) + cmod, state.defines.max_suppression));
+	});
+	/*
+	- A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount + national-modifier-to-leadership x (national-modifier-to-leadership-modifier + 1) leadership points per month.
+	*/
+
+	state.world.execute_serial_over_nation([&, optimum_officers = state.world.pop_type_get_research_optimum(state.culture_definitions.officers)](auto ids) {
+		auto ofrac = state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.officers)) / ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f);
+		auto omod = ve::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points);
+		auto nmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership_modifier) + 1.0f) * state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership);
+
+		state.world.nation_set_leadership_points(ids, ve::min(state.world.nation_get_leadership_points(ids) + omod + nmod, state.defines.leader_recruit_cost * 3));
+	});
 }
 
 }

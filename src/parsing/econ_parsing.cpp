@@ -76,10 +76,10 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			context.state.economy_definitions.naval_base_definition.naval_capacity = res.naval_capacity;
 			context.state.economy_definitions.naval_base_definition.time = res.time;
 			context.state.economy_definitions.naval_base_definition.name = text::find_or_add_key(context.state, name);
-			if(res.next_to_add != 0) {
-				res.convert_to_province_mod();
+			if(res.next_to_add_p != 0) {
 				context.state.economy_definitions.naval_base_definition.province_modifier = context.state.world.create_modifier();
-				context.state.world.modifier_set_province_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.constructed_definition);
+				context.state.world.modifier_set_province_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_province_mod());
+				context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
 				context.state.world.modifier_set_icon(context.state.economy_definitions.naval_base_definition.province_modifier, uint8_t(res.icon_index));
 				context.state.world.modifier_set_name(context.state.economy_definitions.naval_base_definition.province_modifier, context.state.economy_definitions.naval_base_definition.name);
 			}
@@ -104,10 +104,10 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			context.state.economy_definitions.fort_definition.max_level = res.max_level;
 			context.state.economy_definitions.fort_definition.time = res.time;
 			context.state.economy_definitions.fort_definition.name = text::find_or_add_key(context.state, name);
-			if(res.next_to_add != 0) {
-				res.convert_to_province_mod();
+			if(res.next_to_add_p != 0) {
 				context.state.economy_definitions.fort_definition.province_modifier = context.state.world.create_modifier();
-				context.state.world.modifier_set_province_values(context.state.economy_definitions.fort_definition.province_modifier, res.constructed_definition);
+				context.state.world.modifier_set_province_values(context.state.economy_definitions.fort_definition.province_modifier, res.peek_province_mod());
+				context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
 				context.state.world.modifier_set_icon(context.state.economy_definitions.fort_definition.province_modifier, uint8_t(res.icon_index));
 				context.state.world.modifier_set_name(context.state.economy_definitions.fort_definition.province_modifier, context.state.economy_definitions.fort_definition.name);
 			}
@@ -133,10 +133,10 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			context.state.economy_definitions.railroad_definition.max_level = res.max_level;
 			context.state.economy_definitions.railroad_definition.time = res.time;
 			context.state.economy_definitions.railroad_definition.name = text::find_or_add_key(context.state, name);
-			if(res.next_to_add != 0) {
-				res.convert_to_province_mod();
+			if(res.next_to_add_p != 0) {
 				context.state.economy_definitions.railroad_definition.province_modifier = context.state.world.create_modifier();
-				context.state.world.modifier_set_province_values(context.state.economy_definitions.railroad_definition.province_modifier, res.constructed_definition);
+				context.state.world.modifier_set_province_values(context.state.economy_definitions.railroad_definition.province_modifier, res.peek_province_mod());
+				context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
 				context.state.world.modifier_set_icon(context.state.economy_definitions.railroad_definition.province_modifier, uint8_t(res.icon_index));
 				context.state.world.modifier_set_name(context.state.economy_definitions.railroad_definition.province_modifier, context.state.economy_definitions.railroad_definition.name);
 			}

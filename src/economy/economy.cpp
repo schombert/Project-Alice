@@ -36,5 +36,14 @@ bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon:
 		state.world.unilateral_relationship_get_owns_debt_of(state.world.get_unilateral_relationship_by_unilateral_pair(debtor, debt_holder)) > 0.1f;
 }
 
+bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+
 }
 

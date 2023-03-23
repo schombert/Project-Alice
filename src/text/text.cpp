@@ -62,7 +62,7 @@ namespace text {
 						}
 
 						if(vend > pos + 1) {
-							state.text_components.emplace_back( variable_type_from_name(std::string_view(pos + 1, pos + 1 - vend)) );
+							state.text_components.emplace_back( variable_type_from_name(std::string_view(pos + 1, vend - pos - 1)) );
 						}
 						pos = vend;
 						section_start = vend + 1;
@@ -147,6 +147,7 @@ namespace text {
 			if(false) { }
 			CT_STRING_ENUM(d)
 			CT_STRING_ENUM(m)
+			CT_STRING_ENUM(n)
 			CT_STRING_ENUM(x)
 			CT_STRING_ENUM(y)
 		} else if(v.length() == 2) {
@@ -158,6 +159,7 @@ namespace text {
 		} else if(v.length() == 3) {
 			if(false) { }
 			CT_STRING_ENUM(adj)
+			CT_STRING_ENUM(avg)
 			CT_STRING_ENUM(bac)
 			CT_STRING_ENUM(bat)
 			CT_STRING_ENUM(bld)
@@ -209,7 +211,7 @@ namespace text {
 			CT_STRING_ENUM(val)
 			CT_STRING_ENUM(war)
 			CT_STRING_ENUM(who)
-		} else if(v.length() == 3) {
+		} else if(v.length() == 4) {
 			if(false) { }
 			CT_STRING_ENUM(army)
 			CT_STRING_ENUM(base)
@@ -297,6 +299,7 @@ namespace text {
 			CT_STRING_ENUM(terms)
 			CT_STRING_ENUM(third)
 			CT_STRING_ENUM(title)
+			CT_STRING_ENUM(total)
 			CT_STRING_ENUM(truth)
 			else if(is_fixed_token_ci(v, "union")) return variable_type::vtype_union;
 			CT_STRING_ENUM(units)
@@ -421,6 +424,7 @@ namespace text {
 			CT_STRING_ENUM(reqlevel)
 			CT_STRING_ENUM(required)
 			CT_STRING_ENUM(resource)
+			CT_STRING_ENUM(strength)
 			CT_STRING_ENUM(tag_0_0_)
 			CT_STRING_ENUM(theirnum)
 			CT_STRING_ENUM(totalemi)
@@ -448,6 +452,7 @@ namespace text {
 			CT_STRING_ENUM(theirlost)
 			CT_STRING_ENUM(theirship)
 			CT_STRING_ENUM(union_adj)
+			CT_STRING_ENUM(yesterday)
 		} else if(v.length() == 10) {
 			if(false) { }
 			CT_STRING_ENUM(countryadj)
@@ -539,11 +544,11 @@ namespace text {
 			CT_STRING_ENUM(crisistarget_adj)
 			CT_STRING_ENUM(engineermaxunits)
 			CT_STRING_ENUM(provincereligion)
-		} else if(v.length() == 17) {
+		} else if(v.length() == 18) {
 			if(false) { }
 			CT_STRING_ENUM(cb_target_name_adj)
 			CT_STRING_ENUM(head_of_government)
-		} else if(v.length() == 18) {
+		} else if(v.length() == 19) {
 			if(false) { }
 			CT_STRING_ENUM(culture_group_union)
 			CT_STRING_ENUM(numspecialfactories)
@@ -864,8 +869,18 @@ namespace text {
 				return text::produce_simple_string(state, state.world.province_get_name(pid));
 			} else if(std::holds_alternative<int64_t>(sub)) {
 				return std::to_string(std::get<int64_t>(sub));
-			} else if(std::holds_alternative<float>(sub)) {
-				return std::to_string(std::get<float>(sub));
+			} else if(std::holds_alternative<fp_one_place>(sub)) {
+				char buffer[200] = { 0 };
+				snprintf(buffer, 200, "%.1f", std::get<fp_one_place>(sub).value);
+				return std::string(buffer);
+			} else if(std::holds_alternative<fp_two_places>(sub)) {
+				char buffer[200] = { 0 };
+				snprintf(buffer, 200, "%.2f", std::get<fp_two_places>(sub).value);
+				return std::string(buffer);
+			} else if(std::holds_alternative<fp_three_places>(sub)) {
+				char buffer[200] = { 0 };
+				snprintf(buffer, 200, "%.2f", std::get<fp_three_places>(sub).value);
+				return std::string(buffer);
 			} else if(std::holds_alternative<sys::date>(sub)) {
 				return date_to_string(state, std::get<sys::date>(sub));
 			} else {
@@ -988,8 +1003,18 @@ namespace text {
 				return text::produce_simple_string(state, state.world.province_get_name(pid));
 			} else if(std::holds_alternative<int64_t>(sub)) {
 				return std::to_string(std::get<int64_t>(sub));
-			} else if(std::holds_alternative<float>(sub)) {
-				return std::to_string(std::get<float>(sub));
+			} else if(std::holds_alternative<fp_one_place>(sub)) {
+				char buffer[200] = { 0 };
+				snprintf(buffer, 200, "%.1f", std::get<fp_one_place>(sub).value);
+				return std::string(buffer);
+			} else if(std::holds_alternative<fp_two_places>(sub)) {
+				char buffer[200] = { 0 };
+				snprintf(buffer, 200, "%.2f", std::get<fp_two_places>(sub).value);
+				return std::string(buffer);
+			} else if(std::holds_alternative<fp_three_places>(sub)) {
+				char buffer[200] = { 0 };
+				snprintf(buffer, 200, "%.2f", std::get<fp_three_places>(sub).value);
+				return std::string(buffer);
 			} else if(std::holds_alternative<sys::date>(sub)) {
 				return date_to_string(state, std::get<sys::date>(sub));
 			} else {
