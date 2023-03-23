@@ -2534,6 +2534,21 @@ object {
 		name{ capital_ship_score }
 		type{ float }
 	}
+	property {
+		name{ suppression_points }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ diplomatic_points }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ leadership_points }
+		type{ float }
+		tag{ save }
+	}
 }
 
 relationship{

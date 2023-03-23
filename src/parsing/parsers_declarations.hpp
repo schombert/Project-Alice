@@ -719,7 +719,6 @@ namespace parsers {
 		MOD_NAT_FUNCTION(max_national_focus)
 		MOD_NAT_FUNCTION(cb_creation_speed)
 		MOD_NAT_FUNCTION(education_efficiency)
-		MOD_NAT_FUNCTION(diplomatic_points)
 		MOD_NAT_FUNCTION(reinforce_rate)
 		MOD_NAT_FUNCTION(tax_eff)
 		MOD_NAT_FUNCTION(administrative_efficiency)
