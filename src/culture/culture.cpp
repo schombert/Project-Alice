@@ -5,11 +5,32 @@
 
 namespace culture {
 
+void set_default_issue_and_reform_options(sys::state& state) {
+	state.world.nation_resize_issues(state.world.issue_size());
+
+	state.world.for_each_issue([&](dcon::issue_id i) {
+		auto def_option = state.world.issue_get_options(i)[0];
+		state.world.execute_serial_over_nation([&](auto ids) {
+			state.world.nation_set_issues(ids, i, def_option);
+		});
+	});
+
+	state.world.nation_resize_reforms(state.world.reform_size());
+
+	state.world.for_each_reform([&](dcon::reform_id i) {
+		auto def_option = state.world.reform_get_options(i)[0];
+		state.world.execute_serial_over_nation([&](auto ids) {
+			state.world.nation_set_reforms(ids, i, def_option);
+		});
+	});
+}
+
 void repopulate_technology_effects(sys::state& state) {
 	state.world.for_each_technology([&](dcon::technology_id t_id) {
 		auto tech_id = fatten(state.world, t_id);
 
 		// apply modifiers from active technologies
+		/*
 		auto tech_mod = tech_id.get_modifier();
 		if(tech_mod) {
 			auto& tech_nat_values = tech_mod.get_national_values();
@@ -28,6 +49,7 @@ void repopulate_technology_effects(sys::state& state) {
 				});
 			}
 		}
+		*/
 
 		if(tech_id.get_increase_railroad()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
@@ -113,6 +135,7 @@ void repopulate_invention_effects(sys::state& state) {
 		auto inv_id = fatten(state.world, i_id);
 
 		// apply modifiers from active inventions
+		/*
 		auto inv_mod = inv_id.get_modifier();
 		if(inv_mod) {
 			auto& inv_nat_values = inv_mod.get_national_values();
@@ -131,6 +154,7 @@ void repopulate_invention_effects(sys::state& state) {
 				});
 			}
 		}
+		*/
 
 		if(inv_id.get_enable_gas_attack()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {

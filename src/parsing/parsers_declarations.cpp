@@ -1,5 +1,6 @@
 #include "parsers_declarations.hpp"
 #include "system_state.hpp"
+#include "rebels.hpp"
 
 namespace parsers {
 
@@ -382,7 +383,22 @@ void pop_province_list::any_group(std::string_view type, pop_history_definition 
 	new_pop.set_size(float(def.size));
 	new_pop.set_poptype(ptype);
 	new_pop.set_militancy(def.militancy);
-	new_pop.set_rebel_group(def.reb_id);
+	//new_pop.set_rebel_group(def.reb_id);
+
+	auto pop_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(context.id);
+	if(def.reb_id) {
+		assert(pop_owner);
+		auto existing_faction = rebel::get_faction_by_type(context.outer_context.state, pop_owner, def.reb_id);
+		if(existing_faction) {
+			context.outer_context.state.world.try_create_pop_rebellion_membership(new_pop, existing_faction);
+		} else {
+			auto new_faction = fatten(context.outer_context.state.world, context.outer_context.state.world.create_rebel_faction());
+			new_faction.set_type(def.reb_id);
+			context.outer_context.state.world.try_create_rebellion_within(new_faction, pop_owner);
+			context.outer_context.state.world.try_create_pop_rebellion_membership(new_pop, new_faction);
+		}
+	}
+
 	context.outer_context.state.world.force_create_pop_location(new_pop, context.id);
 }
 
