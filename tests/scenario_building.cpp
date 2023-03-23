@@ -33,6 +33,43 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	parsers::scenario_building_context context(*state);
 
+
+	auto map = open_directory(root, NATIVE("map"));
+	{
+		auto def_map_file = open_file(map, NATIVE("default.map"));
+		if(def_map_file) {
+			auto content = view_contents(*def_map_file);
+			err.file_name = "default.map";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_default_map_file(gen, err, context);
+		}
+
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(state->world.province_size() == size_t(3248));
+	}
+	{
+		auto def_csv_file = open_file(map, NATIVE("definition.csv"));
+		if(def_csv_file) {
+			auto content = view_contents(*def_csv_file);
+			err.file_name = "definition.csv";
+			parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
+		}
+		REQUIRE(err.accumulated_errors == "");
+		REQUIRE(context.map_color_to_province_id.size() != size_t(0));
+		auto clr = sys::pack_color(4, 78, 135);
+		auto it = context.map_color_to_province_id.find(clr);
+		REQUIRE(it != context.map_color_to_province_id.end());
+		auto id = it->second;
+		REQUIRE(id);
+		REQUIRE(id.index() < state->province_definitions.first_sea_province.index());
+		//REQUIRE(context.prov_id_to_original_id_map[id].is_sea == false);
+		REQUIRE(context.prov_id_to_original_id_map[id].id == 2702);
+	}
+
+	std::thread map_loader([&]() {
+		state->map_display.load_map_data(context);
+	});
+
 	//COUNTRIES
 	{
 		auto countries = open_file(common, NATIVE("countries.txt"));
@@ -419,37 +456,6 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nvit != context.map_of_rebeltypes.end());
 		REQUIRE(bool(nvit->second.id) == true);
 	}
-	auto map = open_directory(root, NATIVE("map"));
-	{
-		auto def_map_file = open_file(map, NATIVE("default.map"));
-		if(def_map_file) {
-			auto content = view_contents(*def_map_file);
-			err.file_name = "default.map";
-			parsers::token_generator gen(content.data, content.data + content.file_size);
-			parsers::parse_default_map_file(gen, err, context);
-		}
-
-		REQUIRE(err.accumulated_errors == "");
-		REQUIRE(state->world.province_size() == size_t(3248));
-	}
-	{
-		auto def_csv_file = open_file(map, NATIVE("definition.csv"));
-		if(def_csv_file) {
-			auto content = view_contents(*def_csv_file);
-			err.file_name = "definition.csv";
-			parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
-		}
-		REQUIRE(err.accumulated_errors == "");
-		REQUIRE(context.map_color_to_province_id.size() != size_t(0));
-		auto clr = sys::pack_color(4, 78, 135);
-		auto it = context.map_color_to_province_id.find(clr);
-		REQUIRE(it != context.map_color_to_province_id.end());
-		auto id = it->second;
-		REQUIRE(id);
-		REQUIRE(id.index() < state->province_definitions.first_sea_province.index());
-		//REQUIRE(context.prov_id_to_original_id_map[id].is_sea == false);
-		REQUIRE(context.prov_id_to_original_id_map[id].id == 2702);
-	}
 	{
 		auto terrain_file = open_file(map, NATIVE("terrain.txt"));
 		if(terrain_file) {
@@ -679,8 +685,6 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	state->world.nation_resize_active_inventions(state->world.invention_size());
 	state->world.nation_resize_active_technologies(state->world.technology_size());
-	state->world.nation_resize_issues(state->world.issue_size());
-	state->world.nation_resize_reforms(state->world.reform_size());
 	state->world.nation_resize_upper_house(state->world.ideology_size());
 
 	state->world.national_identity_resize_government_flag_type(uint32_t(state->culture_definitions.governments.size()));
@@ -770,6 +774,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		}
 		REQUIRE(found_france);
 	}
+
+	culture::set_default_issue_and_reform_options(*state);
 
 	// load pop history files
 	{
@@ -1294,13 +1300,70 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->world.nation_resize_last_production(state->world.commodity_size());
 	state->world.state_instance_resize_last_production(state->world.commodity_size());
 
+	state->national_definitions.global_flag_variables.resize((state->national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
+
 	state->world.for_each_ideology([&](dcon::ideology_id id) {
 		if(!bool(state->world.ideology_get_activation_date(id))) {
 			state->world.ideology_set_enabled(id, true);
 		}
 	});
 
+	map_loader.join();
+
+	// touch up adjacencies
+	state->world.for_each_province_adjacency([&](dcon::province_adjacency_id id) {
+		auto frel = fatten(state->world, id);
+		auto prov_a = frel.get_connected_provinces(0);
+		auto prov_b = frel.get_connected_provinces(1);
+		if(prov_a.id.index() < state->province_definitions.first_sea_province.index() &&
+			prov_b.id.index() >= state->province_definitions.first_sea_province.index()) {
+			frel.get_type() |= province::border::coastal_bit;
+		} else if(prov_a.id.index() >= state->province_definitions.first_sea_province.index() &&
+			prov_b.id.index() < state->province_definitions.first_sea_province.index()) {
+			frel.get_type() |= province::border::coastal_bit;
+		}
+		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
+			frel.get_type() |= province::border::state_bit;
+		}
+		if(prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
+			frel.get_type() |= province::border::national_bit;
+		}
+	});
+
+	// fill in the terrain type
+
+	for(int32_t i = 0; i < state->province_definitions.first_sea_province.index(); ++i) {
+		dcon::province_id id{ dcon::province_id::value_base_t(i) };
+		if(!state->world.province_get_terrain(id)) { // don't overwrite if set by the history file
+			auto modifier = context.modifier_by_terrain_index[state->map_display.median_terrain_type[province::to_map_id(id)]];
+			state->world.province_set_terrain(id, modifier);
+		}
+	}
+	for(int32_t i = state->province_definitions.first_sea_province.index(); i < int32_t(state->world.province_size()); ++i) {
+		dcon::province_id id{ dcon::province_id::value_base_t(i) };
+		state->world.province_set_terrain(id, context.ocean_terrain);
+	}
+
+	state->fill_unsaved_data(); // we need this to run triggers
+
+	culture::create_initial_ideology_and_issues_distribution(*state);
+	demographics::regenerate_from_pop_data(*state);
+
 	// serialize and reload
+
+	{
+		auto tag = fatten(state->world, context.map_of_ident_names.find(nations::tag_to_int('N', 'E', 'J'))->second);
+		int32_t non_def_count = 0;
+
+		state->world.for_each_reform([&](dcon::reform_id r) {
+			auto optzero = state->world.reform_get_options(r)[0];
+			if(tag.get_nation_from_identity_holder().get_reforms(r) != optzero)
+				++non_def_count;
+		});
+		REQUIRE(non_def_count == 0);
+
+		REQUIRE(tag.get_nation_from_identity_holder().get_modifier_values(sys::national_mod_offsets::civilization_progress_modifier) == 0.0f);
+	}
 
 	sys::write_scenario_file(*state, NATIVE("sb_test_file.bin"));
 
@@ -1310,7 +1373,23 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	auto load_result = sys::try_read_scenario_and_save_file(*state, NATIVE("sb_test_file.bin"));
 	REQUIRE(load_result == true);
 
+	state->fill_unsaved_data();
+
 	// now ... retest everything
+
+	{
+		auto tag = fatten(state->world, context.map_of_ident_names.find(nations::tag_to_int('N', 'E', 'J'))->second);
+		int32_t non_def_count = 0;
+
+		state->world.for_each_reform([&](dcon::reform_id r) {
+			auto optzero = state->world.reform_get_options(r)[0];
+			if(tag.get_nation_from_identity_holder().get_reforms(r) != optzero)
+				++non_def_count;
+		});
+		REQUIRE(non_def_count == 0);
+
+		REQUIRE(tag.get_nation_from_identity_holder().get_modifier_values(sys::national_mod_offsets::civilization_progress_modifier) == 0.0f);
+	}
 
 	//COUNTRIES
 	{
@@ -1861,8 +1940,6 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(nation.get_issues(context.map_of_iissues.find("voting_system")->second) == context.map_of_ioptions.find("jefferson_method")->second.id);
 		REQUIRE(nation.get_active_technologies(context.map_of_technologies.find("alphabetic_flag_signaling")->second.id) == true);
 	}
-
-	state->fill_unsaved_data();
 
 	{
 		auto tag = fatten(state->world, context.map_of_ident_names.find(nations::tag_to_int('R', 'U', 'S'))->second);

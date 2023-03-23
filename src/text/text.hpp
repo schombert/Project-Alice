@@ -58,7 +58,8 @@ namespace text {
 		tot, totalemi, totalimm, tra, truth, type, unemployed, vtype_union, union_adj, unit, units,
 		until, usloss, usnum, val, value, value_int1, value_int_0_0, value_int_0_1, value_int_0_2,
 		value_int_0_3, value_int_0_4, verb, versus, war, wargoal, we, what, where, which, who, winner,
-		x, y, year, years, chief_of_navy, chief_of_staff, control, head_of_government, owner, playername
+		x, y, year, years, chief_of_navy, chief_of_staff, control, head_of_government, owner, playername,
+		yesterday, avg, n, strength, total
 	};
 
 	struct line_break {
@@ -170,7 +171,16 @@ namespace text {
 		}
 	};
 
-	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, int64_t, float, sys::date, std::monostate>;
+	struct fp_one_place {
+		float value = 0.0f;
+	};
+	struct fp_two_places {
+		float value = 0.0f;
+	};
+	struct fp_three_places {
+		float value = 0.0f;
+	};
+	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places>;
 	using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 	struct text_chunk {

@@ -237,7 +237,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_crimefight")); k != state.key_to_text_sequence.end()) {
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::substitution_map cf_sub;
+			text::add_to_substitution_map(cf_sub, text::variable_type::value, text::fp_one_place{ province::crime_fighting_efficiency(state, province_id) * 100 });
+			text::add_to_layout_box(contents, state, box, k->second, cf_sub);
 			text::close_layout_box(contents, box);
 		}
 	}

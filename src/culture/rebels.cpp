@@ -18,6 +18,14 @@ dcon::movement_id get_movement_by_independence(sys::state& state, dcon::nation_i
 	return dcon::movement_id{};
 }
 
+dcon::rebel_faction_id get_faction_by_type(sys::state& state, dcon::nation_id n, dcon::rebel_type_id r) {
+	for(auto f : state.world.nation_get_rebellion_within(n)) {
+		if(f.get_rebels().get_type() == r)
+			return f.get_rebels().id;
+	}
+	return dcon::rebel_faction_id{};
+}
+
 void update_movement_values(sys::state& state) { // simply updates cached values
 
 	state.world.execute_serial_over_movement([&](auto ids) {
@@ -122,10 +130,146 @@ void turn_movement_into_rebels(sys::state& state, dcon::movement_id m) {
 	state.world.delete_movement(m);
 }
 
-void update_movements(sys::state& state) { // updates cached values and then possibly turns movements into rebels
-	update_movement_values(state);
+bool movement_is_valid(sys::state& state, dcon::movement_id m) {
+	auto i = state.world.movement_get_associated_issue_option(m);
 
+	auto nation_within = state.world.movement_get_nation_from_movement_within(m);
+	if(i) {
+		auto parent_issue = state.world.issue_option_get_parent_issue(i);
+		auto current_setting = state.world.nation_get_issues(nation_within, parent_issue);
+		if(i == current_setting)
+			return false;
+		if(state.world.issue_get_is_next_step_only(parent_issue)) {
+			if(i.id.index() != current_setting.id.index() - 1 && i.id.index() != current_setting.id.index() + 1)
+				return false;
+		}
+		auto allow = state.world.issue_option_get_allow(i);
+		if(allow && !trigger::evaluate_trigger(state, allow, trigger::to_generic(nation_within), trigger::to_generic(nation_within), 0))
+			return false;
+
+		return true;
+	}
+
+	auto t = state.world.movement_get_associated_independence(m);
+	if(t) {
+		for(auto p : state.world.nation_get_province_ownership(nation_within)) {
+			if(state.world.get_core_by_prov_tag_key(p.get_province(), t))
+				return true;
+		}
+		return false;
+	}
+
+	return false;
+}
+
+void update_pop_movement_membership(sys::state& state) {
+	state.world.for_each_pop([&](dcon::pop_id p) {
+		// - Slave pops cannot belong to a movement
+		if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
+			return;
+		// pops in rebel factions don't join movements
+		if(state.world.pop_get_pop_rebellion_membership(p))
+			return;
+		
+		auto pop_location = state.world.pop_get_province_from_pop_location(p);
+		//pops in colonial provinces don't join movements
+		if(state.world.province_get_is_colonial(pop_location))
+			return;
+
+		auto existing_movement = state.world.pop_get_pop_movement_membership(p);
+		auto mil = state.world.pop_get_militancy(p);
+
+		// -Pops with define : MIL_TO_JOIN_REBEL or greater militancy cannot join a movement
+		if(mil >= state.defines.mil_to_join_rebel) {
+			if(existing_movement)
+				state.world.delete_pop_movement_membership(existing_movement);
+			return;
+		}
+		if(existing_movement) {
+			auto i = state.world.movement_get_associated_issue_option(state.world.pop_movement_membership_get_movement(existing_movement));
+			if(i) {
+				auto support = state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) / state.world.pop_get_size(p);
+				if(support * 100.0f < state.defines.issue_movement_leave_limit) {
+					// If the pop's support of the issue for an issue-based movement drops below define:ISSUE_MOVEMENT_LEAVE_LIMIT the pop will leave the movement. 
+					state.world.delete_pop_movement_membership(existing_movement);
+					return;
+				}
+			} else if(mil < state.defines.nationalist_movement_mil_cap) {
+				// If the pop's militancy falls below define:NATIONALIST_MOVEMENT_MIL_CAP, the pop will leave an independence movement.
+				state.world.delete_pop_movement_membership(existing_movement);
+				return;
+			}
+			// pop still remains in movement, no more work to do
+			return;
+		}
+
+		auto owner = nations::owner_of_pop(state, p);
+
+		auto con = state.world.pop_get_consciousness(p);
+		auto lit = state.world.pop_get_literacy(p);
+
+		// a pop with a consciousness of at least 1.5 or a literacy of at least 0.25 may join a movement
+		if(con >= 1.5 || lit >= 0.25) {
+			/*
+			- If there are one or more issues that the pop supports by at least define:ISSUE_MOVEMENT_JOIN_LIMIT, then the pop has a chance to join an issue-based movement at probability: issue-support x 9 x define:MOVEMENT_LIT_FACTOR x pop-literacy + issue-support x 9 x define:MOVEMENT_CON_FACTOR x pop-consciousness
+			*/
+			dcon::issue_option_id max_option;
+			float max_support = 0;
+			state.world.for_each_issue_option([&](dcon::issue_option_id io) {
+				auto parent = state.world.issue_option_get_parent_issue(io);
+				auto co = state.world.nation_get_issues(owner, parent);
+				auto allow = state.world.issue_option_get_allow(io);
+				if(co != io
+					&& (state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() -1 == io.index())
+					&& (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io)) / state.world.pop_get_size(p);
+					if(sup * 100.0f >= state.defines.issue_movement_join_limit && sup > max_support) {
+						max_option = io;
+						max_support = sup;
+					}
+				}
+			});
+
+			if(max_option) {
+
+				return;
+			}
+
+			if(!state.world.pop_get_is_primary_or_accepted_culture(p) && mil >= state.defines.nationalist_movement_mil_cap) {
+				/*
+				- If there are no valid issues, the pop has a militancy of at least define:NATIONALIST_MOVEMENT_MIL_CAP, does not have the primary culture of the nation it is in, and does have the primary culture of some core in its province, then it has a chance (20% ?) of joining an independence movement for such a core.
+				*/
+				auto pop_culture = state.world.pop_get_culture(p);
+				for(auto c : state.world.province_get_core(pop_location)) {
+					if(c.get_identity().get_primary_culture() == pop_culture) {
+						auto existing_mov = get_movement_by_independence(state, owner, c.get_identity());
+						if(existing_mov) {
+							state.world.try_create_pop_movement_membership(p, existing_mov);
+						} else {
+							auto new_mov = fatten(state.world, state.world.create_movement());
+							new_mov.set_associated_independence(c.get_identity());
+							state.world.try_create_movement_within(new_mov, owner);
+							state.world.try_create_pop_movement_membership(p, new_mov);
+						}
+						return;
+					}
+				}
+			}
+		}
+	});
+}
+
+void update_movements(sys::state& state) { // updates cached values and then possibly turns movements into rebels
 	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
+	for(auto last = state.world.movement_size(); last-- > 0; ) {
+		dcon::movement_id m{ dcon::movement_id::value_base_t(last) };
+		if(!movement_is_valid(state, m)) {
+			state.world.delete_movement(m);
+		}
+	}
+
+	update_movement_values(state);
+	
 	for(auto last = state.world.movement_size(); last-- > 0; ) {
 		dcon::movement_id m{ dcon::movement_id::value_base_t(last) };
 		if(state.world.movement_get_radicalism(m) >= 100.0f) {

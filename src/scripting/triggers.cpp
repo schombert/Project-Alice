@@ -1473,7 +1473,8 @@ TRIGGER_FUNCTION(tf_has_faction_nation) {
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_has_faction_pop) {
-	return compare_values_eq(tval[0], ws.world.pop_get_rebel_group(to_pop(primary_slot)), trigger::payload(tval[1]).reb_id);
+	auto rf = ws.world.pop_get_rebel_faction_from_pop_rebellion_membership(to_pop(primary_slot));
+	return compare_values_eq(tval[0], ws.world.rebel_faction_get_type(rf), trigger::payload(tval[1]).reb_id);
 }
 auto unowned_core_accumulator(sys::state const& ws, dcon::nation_id n) {
 	return make_true_accumulator([&ws, n](ve::tagged_vector<int32_t> v) {
