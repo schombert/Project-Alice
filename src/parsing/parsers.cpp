@@ -13,7 +13,7 @@ namespace parsers {
 	}
 
 	bool breaking_char(char c) {
-		return ignorable_char(c) || (c == '{') || (c == '}') || special_identifier_char(c) || (c == '\"') || (c == '\'') || (c == '#');
+		return ignorable_char(c) || (c == '{') || (c == '}') || special_identifier_char(c) || (c == '#');
 	}
 
 	bool not_special_identifier_char(char c) {
