@@ -1154,7 +1154,7 @@ object {
 object {
 	name{ province }
 	storage_type{ contiguous }
-	size{ 14000 }
+	size{ 17000 }
 	tag{ scenario }
 	tag{ save }
 
@@ -1312,7 +1312,7 @@ object {
 relationship{
 	name{ province_adjacency }
 	storage_type{ compactable }
-	size{ 24000 }
+	size{ 28000 }
 	tag{ scenario }
 	tag{ save }
 
@@ -1779,7 +1779,7 @@ relationship{
 object {
 	name{ state_definition }
 	storage_type{ contiguous }
-	size{ 2000 }
+	size{ 5000 }
 	tag{ scenario }
 	tag{ save }
 
@@ -2003,7 +2003,7 @@ object {
 	}
 	property{
 		name{ modified_units }
-		type{vector_pool{8200}{sys::unit_modifier}}
+		type{vector_pool{18500}{sys::unit_modifier}}
 		tag{ scenario }
 	}
 }
@@ -3082,7 +3082,7 @@ object {
 object {
 	name { free_national_event }
 	storage_type{ contiguous }
-	size{ 4000 }
+	size{ 8000 }
 	tag{ scenario }
 
 	property{
@@ -3135,7 +3135,7 @@ object {
 object {
 	name { free_provincial_event }
 	storage_type{ contiguous }
-	size{ 4000 }
+	size{ 8000 }
 	tag{ scenario }
 
 	property{
