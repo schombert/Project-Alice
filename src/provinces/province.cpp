@@ -71,10 +71,10 @@ void update_connected_regions(sys::state& state) {
 	to_fill_list.reserve(state.world.province_size());
 
 	for(int32_t i = state.province_definitions.first_sea_province.index(); i-- > 0; ) {
-		dcon::province_id id{ dcon::province_id ::value_base_t(i) };
+		dcon::province_id id{ dcon::province_id::value_base_t(i) };
 		if(state.world.province_get_connected_region_id(id) == 0) {
 			++current_fill_id;
-			
+
 			to_fill_list.push_back(id);
 
 			while(!to_fill_list.empty()) {
@@ -208,7 +208,7 @@ void restore_unsaved_values(sys::state& state) {
 void update_state_administrative_efficiency(sys::state& state) {
 
 	//- state administrative efficiency: = define:NONCORE_TAX_PENALTY x number-of-non-core-provinces + (bureaucrat-tax-efficiency x total-number-of-primary-or-accepted-culture-bureaucrats / population-of-state)v1 / x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE)), all clamped between 0 and 1.
-	
+
 	state.world.for_each_state_instance([&](dcon::state_instance_id si) {
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
 
@@ -239,6 +239,19 @@ void update_state_administrative_efficiency(sys::state& state) {
 	});
 }
 */
+
+bool has_railroads_being_built(sys::state& state, dcon::province_id id) {
+	return false;
+}
+
+bool can_build_railroads(sys::state& state, dcon::province_id id) {
+	auto nation = state.world.province_get_nation_from_province_ownership(id);
+	int32_t current_rails_lvl = state.world.province_get_railroad_level(id);
+	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(nation);
+	int32_t min_build_railroad = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+
+	return !has_railroads_being_built(state, id) && (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0);
+}
 
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	// TODO

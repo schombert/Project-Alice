@@ -10,6 +10,7 @@
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
 #include "gui_common_elements.hpp"
+#include "nations.hpp"
 #include "text.hpp"
 
 namespace ui {
@@ -135,26 +136,22 @@ public:
 	}
 };
 
-class topbar_country_name : public simple_text_element_base {
-private:
-	dcon::nation_id current_nation{};
-
+class topbar_losing_gp_status_icon : public standard_nation_icon {
 public:
-	void on_update(sys::state& state) noexcept override {
-		if(current_nation != state.local_player_nation) {
-			if(bool(state.local_player_nation)) {
-				dcon::nation_fat_id fat_id = dcon::fatten(state.world, state.local_player_nation);
-				set_text(state, text::produce_simple_string(state, fat_id.get_name()));
-			} else {
-				set_text(state, "");
-			}
-			current_nation = state.local_player_nation;
-		}
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(!(nations::is_greate_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
 	}
+};
 
-	void on_create(sys::state& state) noexcept override {
-		simple_text_element_base::on_create(state);
-		on_update(state);
+class topbar_at_peace_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		if(state.world.nation_get_is_at_war(nation_id)) {
+			set_visible(state, false);
+		} else {
+			set_visible(state, true);
+		}
+		return text::produce_simple_string(state, "atpeace");
 	}
 };
 
@@ -240,7 +237,7 @@ public:
 		} else if(name == "datetext") {
 			return make_element_by_type<topbar_date_text>(state, id);
 		} else if(name == "countryname") {
-			return make_element_by_type<topbar_country_name>(state, id);
+			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "player_flag") {
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "country_prestige") {
@@ -261,6 +258,24 @@ public:
 			return make_element_by_type<nation_rank_text>(state, id);
 		} else if(name == "topbar_flag_overlay") {
 			return make_element_by_type<nation_flag_frame>(state, id);
+		} else if(name == "tech_literacy_value") {
+			return make_element_by_type<nation_literacy_text>(state, id);
+		} else if(name == "politics_ruling_party") {
+			return make_element_by_type<nation_ruling_party_text>(state, id);
+		} else if(name == "politics_infamy_value") {
+			return make_element_by_type<nation_infamy_text>(state, id);
+		} else if(name == "population_avg_mil_value") {
+			return make_element_by_type<nation_militancy_text>(state, id);
+		} else if(name == "population_avg_con_value") {
+			return make_element_by_type<nation_consciousness_text>(state, id);
+		} else if(name == "diplomacy_status") {
+			return make_element_by_type<topbar_at_peace_text>(state, id);
+		} else if(name == "diplomacy_at_war") {
+			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
+			ptr->base_data.position.y -= ptr->base_data.position.y / 4;
+			return ptr;
+		} else if(name == "alert_loosing_gp") {
+			return make_element_by_type<topbar_losing_gp_status_icon>(state, id);
 		} else {
 			return nullptr;
 		}

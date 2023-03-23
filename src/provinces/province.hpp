@@ -46,6 +46,9 @@ auto is_overseas(sys::state const& state, T ids);
 // can we just do without this?
 // void update_state_administrative_efficiency(sys::state& state);
 
+bool has_railroads_being_built(sys::state& state, dcon::province_id id);
+bool can_build_railroads(sys::state& state, dcon::province_id id);
+
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
 float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
 float monthly_net_pop_internal_migration(sys::state& state, dcon::province_id id);

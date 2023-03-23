@@ -278,4 +278,9 @@ void update_movements(sys::state& state) { // updates cached values and then pos
 	}
 }
 
+bool sphere_member_has_ongoing_revolt(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+
 }

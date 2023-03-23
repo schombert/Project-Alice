@@ -108,7 +108,7 @@ namespace sys {
 
 		dcon::state_instance_id crisis_state;
 		std::vector<crisis_member_def> crisis_participants;
-		crisis_type current_crisis;
+		crisis_type current_crisis = crisis_type::none;
 		float crisis_temperature = 0;
 		dcon::nation_id primary_crisis_attacker;
 		dcon::nation_id primary_crisis_defender;
