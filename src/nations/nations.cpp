@@ -399,12 +399,10 @@ float daily_research_points(sys::state const& state, dcon::nation_id n) {
 	return 0.0f;
 }
 float suppression_points(sys::state const& state, dcon::nation_id n) {
-	// TODO
-	return 0.0f;
+	return state.world.nation_get_suppression_points(n);
 }
 float leadership_points(sys::state const& state, dcon::nation_id n) {
-	// TODO
-	return 0.0f;
+	return state.world.nation_get_leadership_points(n);
 }
 
 int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
@@ -417,8 +415,7 @@ int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
 }
 
 float diplomatic_points(sys::state const& state, dcon::nation_id n) {
-	// TODO
-	return 0.0f;
+	return state.world.nation_get_diplomatic_points(n);
 }
 
 bool can_expand_colony(sys::state& state, dcon::nation_id n) {
@@ -433,6 +430,68 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 	// TODO
 	return false;
+}
+
+void update_monthly_points(sys::state& state) {
+	/*
+	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
+		state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
+	});
+	/*
+	- Infamy: a nation with a badboy modifier gains that amount of infamy per month
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto imod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::badboy);
+		state.world.nation_set_infamy(ids, state.world.nation_get_infamy(ids) + imod);
+	});
+	/*
+	- War exhaustion: a nation with a war exhaustion modifier gains that much at the start of the month, and every month its war exhaustion is capped to its maximum-war-exhaustion modifier at most.
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto wmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::war_exhaustion);
+		auto wmax_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::max_war_exhaustion);
+		state.world.nation_set_war_exhaustion(ids,
+			ve::min(state.world.nation_get_war_exhaustion(ids) + wmod, wmax_mod));
+	});
+	/*
+	- Monthly plurality increase: plurality increases by average consciousness / 45 per month.
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto pmod = state.world.nation_get_demographics(ids, demographics::consciousness) / ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) * 0.0222f;
+		state.world.nation_set_plurality(ids, ve::min(state.world.nation_get_plurality(ids) + pmod, 100.0f));
+	});
+	/*
+	- Monthly diplo-points: (1 + national-modifier-to-diplo-points + diplo-points-from-technology) x define:BASE_MONTHLY_DIPLOPOINTS (to a maximum of 9)
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto bmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::diplomatic_points_modifier) + 1.0f;
+		auto dmod = bmod * state.defines.base_monthly_diplopoints;
+
+		state.world.nation_set_diplomatic_points(ids, ve::min(state.world.nation_get_diplomatic_points(ids) + dmod, 9.0f));
+	});
+	/*
+	- Monthly suppression point gain: define:SUPPRESS_BUREAUCRAT_FACTOR x fraction-of-population-that-are-bureaucrats x define:SUPPRESSION_POINTS_GAIN_BASE x (suppression-points-from-technology + national-suppression-points-modifier + 1) (to a maximum of define:MAX_SUPPRESSION)
+	*/
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto bmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::suppression_points_modifier) + 1.0f);
+		auto cmod = (bmod * state.defines.suppression_points_gain_base) * (state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.bureaucrat)) / ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f) * state.defines.suppress_bureaucrat_factor);
+
+		state.world.nation_set_suppression_points(ids, ve::min(state.world.nation_get_suppression_points(ids) + cmod, state.defines.max_suppression));
+	});
+	/*
+	- A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount + national-modifier-to-leadership x (national-modifier-to-leadership-modifier + 1) leadership points per month.
+	*/
+
+	state.world.execute_serial_over_nation([&, optimum_officers = state.world.pop_type_get_research_optimum(state.culture_definitions.officers)](auto ids) {
+		auto ofrac = state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.officers)) / ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f);
+		auto omod = ve::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points);
+		auto nmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership_modifier) + 1.0f) * state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership);
+
+		state.world.nation_set_leadership_points(ids, ve::min(state.world.nation_get_leadership_points(ids) + omod + nmod, state.defines.leader_recruit_cost * 3));
+	});
 }
 
 }
