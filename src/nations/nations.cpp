@@ -390,5 +390,50 @@ status get_status(sys::state& state, dcon::nation_id n) {
 	}
 }
 
+dcon::technology_id current_research(sys::state const& state, dcon::nation_id n) {
+	// TODO
+	return dcon::technology_id{};
+}
+float daily_research_points(sys::state const& state, dcon::nation_id n) {
+	// TODO
+	return 0.0f;
+}
+float suppression_points(sys::state const& state, dcon::nation_id n) {
+	// TODO
+	return 0.0f;
+}
+float leadership_points(sys::state const& state, dcon::nation_id n) {
+	// TODO
+	return 0.0f;
+}
+
+int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return 0;
+}
+int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return 0;
+}
+
+float diplomatic_points(sys::state const& state, dcon::nation_id n) {
+	// TODO
+	return 0.0f;
+}
+
+bool can_expand_colony(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+
+bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+
 }
 
