@@ -249,7 +249,8 @@ class province_rebel_percent_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto militancy = state.world.province_get_demographics(province_id, demographics::militancy);
-		return text::format_float(militancy, 2);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::format_float(militancy / total_pop, 2);
 	}
 };
 
@@ -491,6 +492,41 @@ public:
 		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(nation_id, state.local_player_nation);
 		auto fat_rel = dcon::fatten(state.world, rel);
 		return std::to_string(fat_rel.get_value());
+	}
+};
+
+class nation_militancy_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto militancy = state.world.nation_get_demographics(nation_id, demographics::militancy);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::format_float(militancy / total_pop);
+	}
+};
+
+class nation_consciousness_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto consciousness = state.world.nation_get_demographics(nation_id, demographics::consciousness);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::format_float(consciousness / total_pop);
+	}
+};
+
+class nation_literacy_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto literacy = state.world.nation_get_demographics(nation_id, demographics::literacy);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::format_percentage(literacy / total_pop, 3);
+	}
+};
+
+class nation_infamy_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return text::format_float(fat_id.get_infamy(), 3);
 	}
 };
 
