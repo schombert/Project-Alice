@@ -848,6 +848,54 @@ void set_migration(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::migration);
 }
 
+void set_infrastructure(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	int32_t max_rails_lvl = state.economy_definitions.railroad_definition.max_level;
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+
+		int32_t current_rails_lvl = state.world.province_get_railroad_level(prov_id);
+		int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(nation);
+		bool party_allows_building_railroads = state.world.nation_get_combined_issue_rules(nation) & issue_rule::build_railway;
+		uint32_t color;
+
+		if(party_allows_building_railroads) {
+
+			if(province::can_build_railroads(state, prov_id)) {
+
+				color = color_gradient(
+					current_rails_lvl / max_rails_lvl,
+					sys::pack_color(214, 4, 18), // red
+					sys::pack_color(41, 5, 245) // blue
+					
+				);
+
+			} else if(current_rails_lvl == max_local_rails_lvl) {
+				color = sys::pack_color(232, 228, 111); // yellow
+			} else {
+				color = sys::pack_color(222, 7, 46); // red
+			}
+
+		} else {
+			color = sys::pack_color(232, 228, 111); // yellow
+		}
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+
+		if(province::has_railroads_being_built(state, prov_id)) {
+			prov_color[i + texture_size] = sys::pack_color(232, 228, 111); // yellow
+		} else {
+			prov_color[i + texture_size] = color;
+		}
+	});
+
+	state.map_display.set_province_color(prov_color, mode::infrastructure);
+}
 
 void set_map_mode(sys::state& state, mode mode) {
 	switch(mode) {
@@ -889,6 +937,9 @@ void set_map_mode(sys::state& state, mode mode) {
 			break;
 		case mode::migration:
 			set_migration(state);
+			break;
+		case mode::infrastructure:
+			set_infrastructure(state);
 			break;
 		default:
 			break;

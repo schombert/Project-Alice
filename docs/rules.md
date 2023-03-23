@@ -59,6 +59,22 @@ Constructing a new building has a cost based on commodities of (technology-facto
 Reopening a building has a cost of : 25 x cost-to-purchase-one-day-of-inputs-at-level-1
 Upgrading a building has a cost of: (technology-factory-owner-cost + 1) x (national-factory-owner-cost-modifier) x (the-price-required-to-purchase-construction-goods) + building-cost x 2-to-the-level-minus-2-power
 
+#### Railroads
+
+Railroads increase a province military and economic potential. The maximum level at the start of the game is 0, it can be increased to a maximum of 6 through researches in the infrastructure subcathegory of the industrial technologies. It can be built by capitalists and through the forgein investment mechanic.
+
+You can build a railroad in a province if (nation_max_railroad_level - province_terrain_railroad_levels_modifier) > 0 and the cost requirements are satisfied.
+
+You cannot build railroads on occupied territories.
+
+A railway increases:
+
+- The infrastructure modifier
+- Troops movement speed (for both enemies and allies)
+- RGO output
+- Factory throughput
+- Supply limit
+
 ### Overseas penalty
 
 For each commodity that has been discovered by *someone*, a nation must pay define:PROVINCE_OVERSEAS_PENALTY x number-of-overseas-provinces per day. The overseas penalty for a nation is then 0.25 x (1 - the average for all discovered commodities of (the-amount-in-stockpile / amount-required)). A nation without overseas provinces has a penalty of 0.
@@ -481,7 +497,7 @@ Siege Table:
 1: 2.0
 2: 3.8
 3: 3.4
-4: 3.8 
+4: 3.8
 5: 4.2
 6: 4.5
 7: 4.8
@@ -511,7 +527,7 @@ Progress Table:
 
 Any units added to an ongoing combat after the initial ones are added first as additional reserves. Units with strength less than 0.1 or organization less than 1 are immediately treated as retreating. Then divide the units into three groups: those with positive support value, those with zero support and positive reconnaissance, and the rest.
 
-The initial front line will be constructed with pairs of reconnaissance units flanking the center, although I believe giving precedence to non reconnaissance units (? someone should double check this). The number of units without reconnaissance placed in the front line is limited to at most the number of opposing regiments. In all cases the highest ADMOS units are chosen for the initial front line. Units with positive support are placed in the back line in order of ADMOS. 
+The initial front line will be constructed with pairs of reconnaissance units flanking the center, although I believe giving precedence to non reconnaissance units (? someone should double check this). The number of units without reconnaissance placed in the front line is limited to at most the number of opposing regiments. In all cases the highest ADMOS units are chosen for the initial front line. Units with positive support are placed in the back line in order of ADMOS.
 Then we try to fill the back line with reserves. If both the front slot and back slot are empty, this is first done by finding a non-support unit with organization at least 1 and strength at least 0.1. Then for back row slots where the front slot is not empty, units with positive support value are put in, and then finally non support units are put in (someone should double check this; do support units really get preference here?).
 All remaining units that are not initially placed on the field are put in the reserves.
 
@@ -653,7 +669,7 @@ A navy that is at sea out of supply range has its "at sea" counter tick up once 
 
 ### Monthly attrition
 
-A unit that is not in combat and not black flagged receives attrition damage on the 1st of the month. 
+A unit that is not in combat and not black flagged receives attrition damage on the 1st of the month.
 
 For armies:
 For armies in their owner's provinces that are not retreating, attrition is calculated based on the total strength of units from their nation in the province. Otherwise, attrition is calculated based on the total strength of all units in the province. First we calculate (total-strength + leader-attrition-trait) x (attrition-modifier-from-technology + 1) - effective-province-supply-limit (rounded down to the nearest integer) + province-attrition-modifier + the-level-of-the-highest-hostile-fort-in-an-adjacent-province. We then reduce that value to at most the max-attrition modifier of the province, and finally we add define:SEIGE_ATTRITION if the army is conducting a siege. Units taking attrition lose max-strength x attrition-value x 0.01 points of strength. This strength loss is treated just like damage taken in combat, meaning that it will reduce the size of the backing pop.
@@ -693,7 +709,7 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 ## Movements
 
 - Movements come in three types: political, social, and independence movements. Functionally, we can better distinguish the movements between those associated with a position on some issue (either political or social) and those for the independence of some national identity.
-- Movements can accumulate radicalism, but only in civ nations. Internally we may represent radicalism as two values, a radicalism value and transient radicalism. Every day the radicalism value is computed as: define:MOVEMENT_RADICALISM_BASE + the movements current transient radicalism + number-of-political-reforms-passed-in-the-country-over-base x define:MOVEMENT_RADICALISM_PASSED_REFORM_EFFECT + radicalism-of-the-nation's-primary-culture + maximum-nationalism-value-in-any-province x define:MOVEMENT_RADICALISM_NATIONALISM_FACTOR + define:POPULATION_MOVEMENT_RADICAL_FACTOR x movement-support / nation's-non-colonial-population. 
+- Movements can accumulate radicalism, but only in civ nations. Internally we may represent radicalism as two values, a radicalism value and transient radicalism. Every day the radicalism value is computed as: define:MOVEMENT_RADICALISM_BASE + the movements current transient radicalism + number-of-political-reforms-passed-in-the-country-over-base x define:MOVEMENT_RADICALISM_PASSED_REFORM_EFFECT + radicalism-of-the-nation's-primary-culture + maximum-nationalism-value-in-any-province x define:MOVEMENT_RADICALISM_NATIONALISM_FACTOR + define:POPULATION_MOVEMENT_RADICAL_FACTOR x movement-support / nation's-non-colonial-population.
 - When the radicalism value for a movement reaches 100, pops get removed from the movement and added to a rebel faction. Those pops have their militancy increased to a minimum of define:MIL_ON_REB_MOVE. See below for determining which rebel faction the pop joins.
 - Political and social movements are used to calculate the support for political / social reform in the nation by taking the proportion of the non-colonial population involved in political / social movements, respectively, and multiplying by define:MOVEMENT_SUPPORT_UH_FACTOR.
 
@@ -847,7 +863,7 @@ A nation that falls out of the top 8 does not stop being a GP until define:GREAT
 
 A nation does not accumulate influence if: their embassy has been banned, if they are at war against the nation, if they have a truce with the nation, if the nation has priority 0, or if their influence is capped (at max value with no other GP influencing).
 
-The nation gets a daily increase of define:BASE_GREATPOWER_DAILY_INFLUENCE x (national-modifier-to-influence-gain + 1) x (technology-modifier-to-influence + 1). This is then divided among the nations they are accumulating influence with in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc). 
+The nation gets a daily increase of define:BASE_GREATPOWER_DAILY_INFLUENCE x (national-modifier-to-influence-gain + 1) x (technology-modifier-to-influence + 1). This is then divided among the nations they are accumulating influence with in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc).
 
 This influence value does not translate directly into influence with the target nation. Instead it is first multiplied by the following factor:
 1 + define:DISCREDIT_INFLUENCE_GAIN_FACTOR (if discredited) + define:NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if the nations are adjacent) + define:SPHERE_NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if some member of the influencing nation's sphere is adjacent but not the influencing nation itself) + define:OTHER_CONTINENT_BONUS_INFLUENCE_PERCENT (if the influencing nation and the target have capitals on different continents) + define:PUPPET_BONUS_INFLUENCE_PERCENT (if the target is a vassal of the influencer) + relation-value / define:RELATION_INFLUENCE_MODIFIER + define:INVESTMENT_INFLUENCE_DEFENSE + (define:INVESTMENT_INFLUENCE_DEFENCE x (fraction-of-influencer's-foreign-investment-out-of-total-foreign-investment - 1)) + define:LARGE_POPULATION_INFLUENCE_PENALTY x target-population / define:LARGE_POPULATION_INFLUENCE_PENALTY_CHUNK (if the target nation has population greater than define:LARGE_POPULATION_LIMIT) + (1 - target-score / influencer-score)^0
@@ -903,7 +919,7 @@ If you get define:COLONIZATION_INTEREST_LEAD ahead in points of all other coloni
 
 In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
 
-In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY ... etc as for ordinary state flashpoint tension. 
+In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY ... etc as for ordinary state flashpoint tension.
 
 To finish colonization and make a protectorate: you must be in colonization phase 3, you must have define:COLONIZATION_CREATE_PROTECTORATE_COST free colonial points, and your colonist in the region must have non zero points.
 
