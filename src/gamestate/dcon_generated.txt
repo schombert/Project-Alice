@@ -2871,6 +2871,23 @@ relationship{
 	}
 }
 
+relationship{
+	name{ pop_rebellion_membership }
+	tag{ save }
+
+	link{
+		object{pop}
+		name{pop}
+		type{unique}
+	}
+	link{
+		object{rebel_faction}
+		name{rebel_faction}
+		type{many}
+		index_storage{array}
+	}
+}
+
 object {
 	name { pop }
 	storage_type{ compactable }
@@ -2920,11 +2937,6 @@ object {
 	property{
 		name{ employment }
 		type{ float }
-		tag{ save }
-	}
-	property{
-		name{ rebel_group }
-		type{ rebel_type_id }
 		tag{ save }
 	}
 	property{
@@ -3022,7 +3034,6 @@ object {
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
 	}
-	
 }
 
 object {
@@ -3104,7 +3115,6 @@ object {
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
 	}
-	
 }
 
 object {
