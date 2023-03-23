@@ -868,7 +868,7 @@ void set_infrastructure(sys::state& state) {
 			if(province::can_build_railroads(state, prov_id)) {
 
 				color = color_gradient(
-					current_rails_lvl / max_rails_lvl,
+					float(current_rails_lvl) / float(max_rails_lvl),
 					sys::pack_color(214, 4, 18), // red
 					sys::pack_color(41, 5, 245) // blue
 					
