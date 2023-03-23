@@ -22,7 +22,6 @@
 #include "provinces_parsing.cpp"
 #include "trigger_parsing.cpp"
 #include "effect_parsing.cpp"
-#include "parsers_declarations.cpp"
 #include "serialization.cpp"
 #include "nations.cpp"
 #include "culture.cpp"
@@ -34,6 +33,7 @@
 #include "demographics.cpp"
 #include "bmfont.cpp"
 #include "rebels.cpp"
+#include "parsers_declarations.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

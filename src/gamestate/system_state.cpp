@@ -932,8 +932,6 @@ namespace sys {
 
 		world.nation_resize_active_inventions(world.invention_size());
 		world.nation_resize_active_technologies(world.technology_size());
-		world.nation_resize_issues(world.issue_size());
-		world.nation_resize_reforms(world.reform_size());
 		world.nation_resize_upper_house(world.ideology_size());
 
 		world.national_identity_resize_government_flag_type(uint32_t(culture_definitions.governments.size()));
@@ -987,6 +985,8 @@ namespace sys {
 				}
 			}
 		}
+
+		culture::set_default_issue_and_reform_options(*this);
 
 		// load pop history files
 		{
