@@ -1519,6 +1519,9 @@ namespace sys {
 
 					// Once per month updates, spread out over the month
 					switch(ymd_date.day) {
+						case 1:
+							nations::update_monthly_points(*this);
+							break;
 						case 5:
 							rebel::update_movements(*this);
 							break;

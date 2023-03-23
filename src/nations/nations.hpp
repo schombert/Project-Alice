@@ -246,5 +246,7 @@ bool can_expand_colony(sys::state& state, dcon::nation_id n);
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
 
+void update_monthly_points(sys::state& state);
+
 }
 
