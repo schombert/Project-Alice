@@ -977,6 +977,14 @@ namespace text {
 		}
 	}
 
+	/**
+	A method that adds text to a layout_box object based on a given text sequenceand substitution map.
+		@param dest The columnar_layout object to which the text will be added.
+		@param state The sys::state object representing the current state of the system.
+		@param box The layout_box object to which the text will be added.
+		@param source_text The ID of the text sequence containing the text to be added.
+		@param mp The substitution map containing the values to be substituted for placeholders in the text.
+	**/
 	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
 
 		auto current_color = dest.fixed_parameters.color;
