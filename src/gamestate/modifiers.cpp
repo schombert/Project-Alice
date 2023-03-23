@@ -6,81 +6,70 @@ namespace sys {
 // NOTE: these functions do not add or remove a modifier from the list of modifiers for an entity
 void apply_modifier_values_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id) {
 	auto& nat_values = state.world.modifier_get_national_values(mod_id);
-	for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-		if(nat_values.offsets[i] == 0)
+	for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+		if(!(nat_values.offsets[i]))
 			break; // no more modifier values
 
-		auto fixed_offset = nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count;
+		auto fixed_offset = nat_values.offsets[i];
 		auto modifier_amount = nat_values.values[i];
-		state.world.nation_get_static_modifier_values(target_nation, fixed_offset) += modifier_amount;
+		state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
 	}
 }
 void apply_modifier_values_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id) {
 	auto& prov_values = state.world.modifier_get_province_values(mod_id);
 	auto owner = state.world.province_get_nation_from_province_ownership(target_prov);
-	for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-		if(prov_values.offsets[i] == 0)
+	for(uint32_t i = 0; i < sys::provincial_modifier_definition::modifier_definition_size; ++i) {
+		if(!(prov_values.offsets[i]))
 			break; // no more modifier values
 
-		auto fixed_offset = prov_values.get_offet_at_index(i);
+		auto fixed_offset = prov_values.offsets[i];
 		auto modifier_amount = prov_values.values[i];
-		if(fixed_offset < int32_t(sys::provincial_mod_offsets::count)) {
-			state.world.province_get_modifier_values(target_prov, fixed_offset) += modifier_amount;
-		} else if(owner) {
-			state.world.nation_get_static_modifier_values(owner, fixed_offset - sys::provincial_mod_offsets::count) += modifier_amount;
+		state.world.province_get_modifier_values(target_prov, fixed_offset) += modifier_amount;
+		
+	}
+	if(owner) {
+		auto& nat_values = state.world.modifier_get_national_values(mod_id);
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(!(nat_values.offsets[i]))
+				break; // no more modifier values
+
+			auto fixed_offset = nat_values.offsets[i];
+			auto modifier_amount = nat_values.values[i];
+			state.world.nation_get_modifier_values(owner, fixed_offset) += modifier_amount;
 		}
 	}
 }
 void remove_modifier_values_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id) {
 	auto& nat_values = state.world.modifier_get_national_values(mod_id);
-	for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-		if(nat_values.offsets[i] == 0)
+	for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+		if(!(nat_values.offsets[i]))
 			break; // no more modifier values
 
-		auto fixed_offset = nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count;
+		auto fixed_offset = nat_values.offsets[i];
 		auto modifier_amount = nat_values.values[i];
-		state.world.nation_get_static_modifier_values(target_nation, fixed_offset) -= modifier_amount;
+		state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
 	}
 }
 void remove_modifier_values_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id) {
 	auto& prov_values = state.world.modifier_get_province_values(mod_id);
 	auto owner = state.world.province_get_nation_from_province_ownership(target_prov);
-	for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-		if(prov_values.offsets[i] == 0)
+	for(uint32_t i = 0; i < sys::provincial_modifier_definition::modifier_definition_size; ++i) {
+		if(!(prov_values.offsets[i]))
 			break; // no more modifier values
 
-		auto fixed_offset = prov_values.get_offet_at_index(i);
+		auto fixed_offset = prov_values.offsets[i];
 		auto modifier_amount = prov_values.values[i];
-		if(fixed_offset < int32_t(sys::provincial_mod_offsets::count)) {
-			state.world.province_get_modifier_values(target_prov, fixed_offset) -= modifier_amount;
-		} else if(owner) {
-			state.world.nation_get_static_modifier_values(owner, fixed_offset - sys::provincial_mod_offsets::count) -= modifier_amount;
-		}
+		state.world.province_get_modifier_values(target_prov, fixed_offset) -= modifier_amount;
 	}
-}
-void apply_modifier_values_to_province_owner(sys::state& state, dcon::nation_id owner, dcon::modifier_id mod_id) {
-	auto& prov_values = state.world.modifier_get_province_values(mod_id);
-	for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-		if(prov_values.offsets[i] == 0)
-			break; // no more modifier values
+	if(owner) {
+		auto& nat_values = state.world.modifier_get_national_values(mod_id);
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(!(nat_values.offsets[i]))
+				break; // no more modifier values
 
-		auto fixed_offset = prov_values.get_offet_at_index(i);
-		auto modifier_amount = prov_values.values[i];
-		if(fixed_offset >= int32_t(sys::provincial_mod_offsets::count)) {
-			state.world.nation_get_static_modifier_values(owner, fixed_offset - sys::provincial_mod_offsets::count) += modifier_amount;
-		}
-	}
-}
-void remove_modifier_values_from_province_owner(sys::state& state, dcon::nation_id owner, dcon::modifier_id mod_id) {
-	auto& prov_values = state.world.modifier_get_province_values(mod_id);
-	for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-		if(prov_values.offsets[i] == 0)
-			break; // no more modifier values
-
-		auto fixed_offset = prov_values.get_offet_at_index(i);
-		auto modifier_amount = prov_values.values[i];
-		if(fixed_offset >= int32_t(sys::provincial_mod_offsets::count)) {
-			state.world.nation_get_static_modifier_values(owner, fixed_offset - sys::provincial_mod_offsets::count) -= modifier_amount;
+			auto fixed_offset = nat_values.offsets[i];
+			auto modifier_amount = nat_values.values[i];
+			state.world.nation_get_modifier_values(owner, fixed_offset) -= modifier_amount;
 		}
 	}
 }
@@ -107,6 +96,34 @@ void repopulate_modifier_effects(sys::state& state) {
 
 		for(auto mpr : state.world.nation_get_current_modifiers(n)) {
 			apply_modifier_values_to_nation(state, n, mpr.mod_id);
+		}
+		state.world.for_each_technology([&](dcon::technology_id t) {
+			auto tmod = state.world.technology_get_modifier(t);
+			if(tmod && state.world.nation_get_active_technologies(n, t)) {
+				apply_modifier_values_to_nation(state, n, tmod);
+			}
+		});
+		state.world.for_each_invention([&](dcon::invention_id i) {
+			auto imod = state.world.invention_get_modifier(i);
+			if(imod && state.world.nation_get_active_inventions(n, i)) {
+				apply_modifier_values_to_nation(state, n, imod);
+			}
+		});
+		state.world.for_each_issue([&](dcon::issue_id i) {
+			auto iopt = state.world.nation_get_issues(n, i);
+			auto imod = state.world.issue_option_get_modifier(iopt);
+			if(imod) {
+				apply_modifier_values_to_nation(state, n, imod);
+			}
+		});
+		if(!state.world.nation_get_is_civilized(n)) {
+			state.world.for_each_reform([&](dcon::reform_id r) {
+				auto ropt = state.world.nation_get_reforms(n, r);
+				auto rmod = state.world.reform_option_get_modifier(ropt);
+				if(rmod) {
+					apply_modifier_values_to_nation(state, n, rmod);
+				}
+			});
 		}
 	});
 }

@@ -5,29 +5,51 @@
 
 namespace culture {
 
+void set_default_issue_and_reform_options(sys::state& state) {
+	state.world.nation_resize_issues(state.world.issue_size());
+
+	state.world.for_each_issue([&](dcon::issue_id i) {
+		auto def_option = state.world.issue_get_options(i)[0];
+		state.world.execute_serial_over_nation([&](auto ids) {
+			state.world.nation_set_issues(ids, i, def_option);
+		});
+	});
+
+	state.world.nation_resize_reforms(state.world.reform_size());
+
+	state.world.for_each_reform([&](dcon::reform_id i) {
+		auto def_option = state.world.reform_get_options(i)[0];
+		state.world.execute_serial_over_nation([&](auto ids) {
+			state.world.nation_set_reforms(ids, i, def_option);
+		});
+	});
+}
+
 void repopulate_technology_effects(sys::state& state) {
 	state.world.for_each_technology([&](dcon::technology_id t_id) {
 		auto tech_id = fatten(state.world, t_id);
 
 		// apply modifiers from active technologies
+		/*
 		auto tech_mod = tech_id.get_modifier();
 		if(tech_mod) {
 			auto& tech_nat_values = tech_mod.get_national_values();
-			for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-				if(tech_nat_values.offsets[i] == 0)
+			for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+				if(!(tech_nat_values.offsets[i]))
 					break; // no more modifier values attached to this tech
 
 				state.world.execute_serial_over_nation([&,
-					fixed_offset = tech_nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count,
+					fixed_offset = tech_nat_values.offsets[i],
 					modifier_amount = tech_nat_values.values[i]
 				](auto nation_indices) {
 					auto has_tech_mask = state.world.nation_get_active_technologies(nation_indices, t_id);
-					auto old_mod_value = state.world.nation_get_static_modifier_values(nation_indices, fixed_offset);
-					state.world.nation_set_static_modifier_values(nation_indices, fixed_offset,
+					auto old_mod_value = state.world.nation_get_modifier_values(nation_indices, fixed_offset);
+					state.world.nation_set_modifier_values(nation_indices, fixed_offset,
 						ve::select(has_tech_mask, old_mod_value + modifier_amount, old_mod_value));
 				});
 			}
 		}
+		*/
 
 		if(tech_id.get_increase_railroad()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
@@ -113,24 +135,26 @@ void repopulate_invention_effects(sys::state& state) {
 		auto inv_id = fatten(state.world, i_id);
 
 		// apply modifiers from active inventions
+		/*
 		auto inv_mod = inv_id.get_modifier();
 		if(inv_mod) {
 			auto& inv_nat_values = inv_mod.get_national_values();
-			for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-				if(inv_nat_values.offsets[i] == 0)
+			for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+				if(!(inv_nat_values.offsets[i]))
 					break; // no more modifier values attached to this invention
 
 				state.world.execute_serial_over_nation([&,
-					fixed_offset = inv_nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count,
+					fixed_offset = inv_nat_values.offsets[i],
 					modifier_amount = inv_nat_values.values[i]
 				](auto nation_indices) {
 					auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
-					auto old_mod_value = state.world.nation_get_static_modifier_values(nation_indices, fixed_offset);
-					state.world.nation_set_static_modifier_values(nation_indices, fixed_offset,
+					auto old_mod_value = state.world.nation_get_modifier_values(nation_indices, fixed_offset);
+					state.world.nation_set_modifier_values(nation_indices, fixed_offset,
 						ve::select(has_inv_mask, old_mod_value + modifier_amount, old_mod_value));
 				});
 			}
 		}
+		*/
 
 		if(inv_id.get_enable_gas_attack()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
@@ -227,14 +251,14 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 	auto tech_mod = tech_id.get_modifier();
 	if(tech_mod) {
 		auto& tech_nat_values = tech_mod.get_national_values();
-		for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-			if(tech_nat_values.offsets[i] == 0)
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(!(tech_nat_values.offsets[i]))
 				break; // no more modifier values attached to this tech
 
-			auto fixed_offset = tech_nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count;
+			auto fixed_offset = tech_nat_values.offsets[i];
 			auto modifier_amount = tech_nat_values.values[i];
 
-			state.world.nation_get_static_modifier_values(target_nation, fixed_offset) += modifier_amount;
+			state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
 		}
 	}
 
@@ -299,14 +323,14 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	auto inv_mod = inv_id.get_modifier();
 	if(inv_mod) {
 		auto& inv_nat_values = inv_mod.get_national_values();
-		for(uint32_t i = 0; i < sys::modifier_definition_size; ++i) {
-			if(inv_nat_values.offsets[i] == 0)
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(!(inv_nat_values.offsets[i]))
 				break; // no more modifier values attached to this tech
 
-			auto fixed_offset = inv_nat_values.get_offet_at_index(i) - sys::provincial_mod_offsets::count;
+			auto fixed_offset = inv_nat_values.offsets[i];
 			auto modifier_amount = inv_nat_values.values[i];
 
-			state.world.nation_get_static_modifier_values(target_nation, fixed_offset) += modifier_amount;
+			state.world.nation_get_modifier_values(target_nation, fixed_offset) += modifier_amount;
 		}
 	}
 
@@ -430,27 +454,50 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 		if(psize <= 0)
 			return;
 
-		float total = 0.0f;
-		state.world.for_each_ideology([&](dcon::ideology_id iid) {
-			if(state.world.ideology_get_enabled(iid) && (!state.world.ideology_get_is_civilized_only(iid) || state.world.nation_get_is_civilized(owner))) {
-				auto ptrigger = state.world.pop_type_get_ideology(ptype, iid);
-				if(ptrigger) {
-					auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
-					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
-					total += amount;
+		{ // ideologies
+			float total = 0.0f;
+			state.world.for_each_ideology([&](dcon::ideology_id iid) {
+				if(state.world.ideology_get_enabled(iid) && (!state.world.ideology_get_is_civilized_only(iid) || state.world.nation_get_is_civilized(owner))) {
+					auto ptrigger = state.world.pop_type_get_ideology(ptype, iid);
+					if(ptrigger) {
+						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
+						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
+						total += amount;
+					}
 				}
+			});
+			if(total != 0) {
+				float adjustment_factor = psize / total;
+				state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
+					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
+					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
+				});
 			}
-		});
-		if(total == 0)
-			return;
-
-		float adjustment_factor = psize / total;
-		state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
-			auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
-			state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
-		});
-
-		// TODO: issues
+		}
+		{ // issues
+			
+			float total = 0.0f;
+			state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+				auto opt = fatten(state.world, iid);
+				auto allow = opt.get_allow();
+				auto parent_issue = opt.get_parent_issue();
+				if((state.world.nation_get_is_civilized(owner) || state.world.issue_get_issue_type(parent_issue) == uint8_t(issue_type::party))
+					&& (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+					if(auto mtrigger = state.world.pop_type_get_issues(ptype, iid); mtrigger) {
+						auto amount = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
+						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
+						total += amount;
+					}
+				}
+			});
+			if(total != 0) {
+				float adjustment_factor = psize / total;
+				state.world.for_each_issue_option([&state, pid, adjustment_factor](dcon::issue_option_id iid) {
+					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
+					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
+				});
+			}
+		}
 	});
 }
 
