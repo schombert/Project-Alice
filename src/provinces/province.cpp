@@ -248,7 +248,7 @@ bool can_build_railroads(sys::state& state, dcon::province_id id) {
 	auto nation = state.world.province_get_nation_from_province_ownership(id);
 	int32_t current_rails_lvl = state.world.province_get_railroad_level(id);
 	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(nation);
-	int32_t min_build_railroad = state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad);
+	int32_t min_build_railroad = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
 
 	return !has_railroads_being_built(state, id) && (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0);
 }
