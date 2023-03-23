@@ -231,16 +231,14 @@ BMFont const& get_bm_font(sys::state& state, uint16_t font_handle) {
 				return std::string("Arial14");
 			if(sv == "ToolTip_Font")
 				return std::string("Arial14");
+			if(sv == "FPS_Font")
+				return std::string("Arial14");
 			return std::string(sv);
 		}();
 
 		auto root = get_root(state.common_fs);
 		auto gfx_dir = open_directory(root, NATIVE("gfx"));
 		auto font_dir = open_directory(gfx_dir, NATIVE("fonts"));
-
-		if(fname == "FPS_Font") {
-			fname = "vic_18";
-		}
 
 		auto font_def = open_file(font_dir, simple_fs::win1250_to_native(fname + ".fnt"));
 		auto font_image = open_file(font_dir, simple_fs::win1250_to_native(fname + ".tga"));
