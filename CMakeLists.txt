@@ -62,6 +62,7 @@ if(WIN32)
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 	else()
+	set_target_properties(Alice PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
 		target_compile_options(Alice PRIVATE
 										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>

@@ -54,7 +54,7 @@
     },
     {
       "name": "x64-debug-win-clang",
-      "displayName": "x64 Debug",
+      "displayName": "x64 Debug (Clang)",
       "inherits": "windows-clang-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
@@ -70,7 +70,7 @@
     },
     {
       "name": "x64-release-win-clang",
-      "displayName": "x64 Release",
+      "displayName": "x64 Release (Clang)",
       "inherits": "windows-clang-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
