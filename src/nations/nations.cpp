@@ -432,6 +432,16 @@ bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
+bool has_reform_available(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+
+bool has_decision_available(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return false;
+}
+
 void update_monthly_points(sys::state& state) {
 	/*
 	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)

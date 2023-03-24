@@ -530,7 +530,123 @@ public:
 	}
 };
 
+class nation_population_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::prettify(int32_t(total_pop));
+	}
+};
+
+class nation_current_research_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto tech_id = nations::current_research(state, nation_id);
+		if(tech_id) {
+			return text::get_name_as_string(state, dcon::fatten(state.world, tech_id));
+		} else {
+			return text::produce_simple_string(state, "tb_tech_no_current");
+		}
+	}
+};
+
+class nation_research_points_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto points = nations::daily_research_points(state, nation_id);
+		return text::format_float(points, 3);
+	}
+};
+
+class nation_suppression_points_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto points = nations::suppression_points(state, nation_id);
+		return text::format_float(points, 3);
+	}
+};
+
+class nation_focus_allocation_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto available = nations::max_national_focuses(state, nation_id);
+		auto in_use = nations::national_focuses_in_use(state, nation_id);
+		return text::format_ratio(in_use, available);
+	}
+};
+
+class nation_diplomatic_points_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto points = nations::diplomatic_points(state, nation_id);
+		return text::format_float(points, 1);
+	}
+};
+
+class nation_brigade_allocation_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto available = state.world.nation_get_recruitable_regiments(nation_id);
+		auto in_use = state.world.nation_get_active_regiments(nation_id);
+		return text::format_ratio(in_use, available + in_use);
+	}
+};
+
+class nation_mobilization_size_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		int32_t sum = 0;
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		for(auto prov_own : fat_id.get_province_ownership_as_nation()) {
+			auto prov = prov_own.get_province();
+			sum += military::mobilized_regiments_possible_from_province(state, prov.id);
+		}
+		return std::to_string(sum);
+	}
+};
+
+class nation_navy_allocation_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto available = military::naval_supply_points(state, nation_id);
+		auto in_use = military::naval_supply_points_used(state, nation_id);
+		return text::format_ratio(in_use, available);
+	}
+};
+
+class nation_leadership_points_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto points = nations::leadership_points(state, nation_id);
+		return text::format_float(points, 2);
+	}
+};
+
 class standard_nation_icon : public image_element_base {
+protected:
+	dcon::nation_id nation_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class standard_nation_button : public button_element_base {
 protected:
 	dcon::nation_id nation_id{};
 
