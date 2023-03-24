@@ -2201,6 +2201,11 @@ object {
 		type{array{reform_id}{reform_option_id}}
 		tag{ save }
 	}
+	property {
+		name{ last_issue_or_reform_change }
+		type{ sys::date }
+		tag{ save }
+	}
 	property{
 		name{ combined_issue_rules }
 		type{ uint32_t }
