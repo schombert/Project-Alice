@@ -15,7 +15,7 @@ namespace ui {
 class province_close_button : public generic_close_button {
 public:
 	void button_action(sys::state& state) noexcept override {
-		state.map_display.set_selected_province(0);
+		state.map_display.set_selected_province(dcon::province_id{});
         generic_close_button::button_action(state);
 	}
 };
@@ -845,9 +845,8 @@ public:
 		colony_window->update_province_info(state, active_province);
 	}
 
-    void set_active_province(sys::state& state, int16_t map_province) {
-		active_province = province::from_map_id(map_province);
-		if(bool(active_province)) {
+    void set_active_province(sys::state& state, dcon::province_id map_province) {
+		if(bool(map_province)) {
 			update_province_info(state);
 			set_visible(state, true);
 		} else {

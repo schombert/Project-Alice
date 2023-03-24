@@ -109,7 +109,7 @@ std::vector<uint32_t> get_global_population_color(sys::state& state) {
 }
 
 std::vector<uint32_t> get_national_population_color(sys::state& state) {
-	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
 	auto nat_id = fat_selected_id.get_nation_from_province_ownership();
 	if(!bool(nat_id)) {
 		return get_global_population_color(state);
@@ -210,7 +210,7 @@ std::vector<uint32_t> get_nationality_global_color(sys::state& state) {
 }
 
 std::vector<uint32_t> get_nationality_diaspora_color(sys::state& state) {
-	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
 	auto culture_id = fat_selected_id.get_dominant_culture();
 	auto culture_key = demographics::to_key(state, culture_id.id);
 
@@ -329,7 +329,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
 
 	// Get sphere master if exists
@@ -471,7 +471,7 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
 
 	std::vector<dcon::nation_id> enemies, allies, sphere;
@@ -737,7 +737,7 @@ void set_relation(sys::state& state) {
 
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto selected_province = province::from_map_id(state.map_display.get_selected_province());
+	auto selected_province = state.map_display.get_selected_province();
 	auto fat_id = dcon::fatten(state.world, selected_province);
 	auto selected_nation = fat_id.get_nation_from_province_ownership();
 
