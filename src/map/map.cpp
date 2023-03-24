@@ -796,7 +796,7 @@ void display_data::update(sys::state& state) {
 		map_mode::update_map_mode(state);
 		std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
 		if(selected_province)
-			province_highlights[selected_province.value] = 0x2B2B2B2B;
+			province_highlights[province::to_map_id(selected_province)] = 0x2B2B2B2B;
 		gen_prov_color_texture(province_highlight, province_highlights);
 		unhandled_province_selection = false;
 	}
