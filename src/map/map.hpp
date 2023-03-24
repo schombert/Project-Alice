@@ -31,7 +31,7 @@ public:
 	void load_map(sys::state& state);
 
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
-	int16_t selected_province = 0;
+	dcon::province_id selected_province;
 
 	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
@@ -49,8 +49,8 @@ public:
 	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
 	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 
-	int16_t get_selected_province();
-	void set_selected_province(int16_t prov_id);
+	dcon::province_id get_selected_province();
+	void set_selected_province(dcon::province_id prov_id);
 
 	void create_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();
