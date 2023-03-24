@@ -38,6 +38,8 @@ void for_each_sea_province(sys::state& state, F const& func) {
 }
 
 template<typename F>
+
+/* Helper methods for obtaining province data */
 void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func) {
 	auto d = state.world.state_instance_get_definition(s);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
@@ -47,12 +49,10 @@ void for_each_province_in_state_instance(sys::state& state, dcon::state_instance
 		}
 	}
 }
-
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
 	return bool(it);
 }
-
 void update_connected_regions(sys::state& state) {
 	if(!state.adjacency_data_out_of_date)
 		return;
@@ -102,8 +102,6 @@ void update_connected_regions(sys::state& state) {
 		}
 	}
 }
-
-
 void restore_unsaved_values(sys::state& state) {
 	//clear nation values that cache province information
 
@@ -202,7 +200,6 @@ void restore_unsaved_values(sys::state& state) {
 		state.world.nation_get_owned_state_count(owner) += uint16_t(1);
 	});
 }
-
 /*
 // We can probably do without this
 void update_state_administrative_efficiency(sys::state& state) {
@@ -239,11 +236,9 @@ void update_state_administrative_efficiency(sys::state& state) {
 	});
 }
 */
-
 bool has_railroads_being_built(sys::state& state, dcon::province_id id) {
 	return false;
 }
-
 bool can_build_railroads(sys::state& state, dcon::province_id id) {
 	auto nation = state.world.province_get_nation_from_province_ownership(id);
 	int32_t current_rails_lvl = state.world.province_get_railroad_level(id);
@@ -252,7 +247,6 @@ bool can_build_railroads(sys::state& state, dcon::province_id id) {
 
 	return !has_railroads_being_built(state, id) && (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0);
 }
-
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	// TODO
 	return 0.0f;
@@ -288,7 +282,7 @@ float rgo_production_quantity(sys::state& state, dcon::province_id id) {
 float internal_get_state_admin_efficiency(sys::state& state, dcon::state_instance_id si) {
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
 
-	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency );
+	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency);
 
 	float issue_sum = 0.0f;
 	for(auto i : state.culture_definitions.social_issues) {
@@ -332,5 +326,9 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	// TODO
 	return 0.0f;
 }
-
+float revolt_risk(sys::state& state, dcon::province_id id) {
+	auto militancy = state.world.province_get_demographics(id, demographics::militancy);
+	auto total_pop = state.world.province_get_demographics(id, demographics::total);
+	return militancy / total_pop;
+}
 }
