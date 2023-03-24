@@ -248,9 +248,22 @@ public:
 class province_rebel_percent_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		auto militancy = state.world.province_get_demographics(province_id, demographics::militancy);
-		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
-		return text::format_float(militancy / total_pop, 2);
+		return text::format_float(province::revolt_risk(state, province_id),2);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can substitute.
+		if(auto k = state.key_to_text_sequence.find(std::string_view("avg_mil_on_map")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map cf_sub;
+			text::add_to_substitution_map(cf_sub, text::variable_type::value, text::fp_one_place{ province::revolt_risk(state, province_id) * 100 });
+			text::add_to_layout_box(contents, state, box, k->second, cf_sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
