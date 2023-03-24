@@ -1,6 +1,7 @@
 #include "nations.hpp"
 #include "system_state.hpp"
 #include "ve_scalar_extensions.hpp"
+#include "triggers.hpp"
 
 namespace nations {
 
@@ -174,6 +175,10 @@ void update_administrative_efficiency(sys::state& state) {
 }
 
 float daily_research_points(sys::state& state, dcon::nation_id n) {
+	/*
+	Let pop-sum = for each pop type (research-points-from-type x 1^(fraction of population / optimal fraction))
+	Then, the daily research points earned by a nation is: (national-modifier-research-points-modifier + tech-research-modifier + 1) x (national-modifier-to-research-points) + pop-sum)
+	*/
 	auto rp_mod_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::research_points_modifier);
 	auto rp_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::research_points);
 
@@ -188,6 +193,10 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 	return (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f);
 }
 void update_research_points(sys::state& state) {
+	/*
+	Let pop-sum = for each pop type (research-points-from-type x 1^(fraction of population / optimal fraction))
+	Then, the daily research points earned by a nation is: (national-modifier-research-points-modifier + tech-research-modifier + 1) x (national-modifier-to-research-points) + pop-sum)
+	*/
 	state.world.execute_serial_over_nation([&](auto ids) {
 		auto rp_mod_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::research_points_modifier);
 		auto rp_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::research_points);
@@ -203,7 +212,12 @@ void update_research_points(sys::state& state) {
 			}
 		});
 		auto amount = (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f);
-		state.world.nation_set_research_points(ids, amount + state.world.nation_get_research_points(ids));
+		/*
+		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x daily research points, for civs, or define:MAX_RESEARCH_POINTS for uncivs.
+		*/
+		auto current_points = state.world.nation_get_research_points(ids);
+		auto capped_value = ve::min(amount + current_points, ve::select(state.world.nation_get_is_civilized(ids), amount * 365.0f, state.defines.max_research_points));
+		state.world.nation_set_research_points(ids, capped_value);
 	});
 }
 
@@ -394,10 +408,6 @@ dcon::technology_id current_research(sys::state const& state, dcon::nation_id n)
 	// TODO
 	return dcon::technology_id{};
 }
-float daily_research_points(sys::state const& state, dcon::nation_id n) {
-	// TODO
-	return 0.0f;
-}
 float suppression_points(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_suppression_points(n);
 }
@@ -406,8 +416,15 @@ float leadership_points(sys::state const& state, dcon::nation_id n) {
 }
 
 int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
-	// TODO
-	return 0;
+	/*
+	- number of national focuses: the lesser of total-accepted-and-primary-culture-population / define:NATIONAL_FOCUS_DIVIDER and 1 + the number of national focuses provided by technology.
+	*/
+	float relevant_pop = state.world.nation_get_demographics(n, demographics::to_key(state, state.world.nation_get_primary_culture(n)));
+	for(auto ac : state.world.nation_get_accepted_cultures(n)) {
+		relevant_pop += state.world.nation_get_demographics(n, demographics::to_key(state, ac));
+	}
+
+	return std::max(1, std::min(int32_t(relevant_pop / state.defines.national_focus_divider), int32_t(1 + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_national_focus))));
 }
 int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
 	// TODO
@@ -433,7 +450,144 @@ bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 }
 
 bool has_reform_available(sys::state& state, dcon::nation_id n) {
-	// TODO
+	//At least define:MIN_DELAY_BETWEEN_REFORMS months must have passed since the last issue option change (for any type of issue).
+	auto last_date = state.world.nation_get_last_issue_or_reform_change(n);
+	if(bool(last_date) && (last_date + int32_t(state.defines.min_delay_between_reforms * 30.0f)) > state.current_date)
+		return false;
+
+	if(state.world.nation_get_is_civilized(n)) {
+		/*
+		### When a social/political reform is possible
+		These are only available for civ nations. If it is "next step only" either the previous or next issue option must be in effect And it's `allow` trigger must be satisfied. Then. for each ideology, we test its `add_social_reform` or `remove_social_reform` (depending if we are increasing or decreasing, and substituting `political_reform` here as necessary), computing its modifier additively, and then adding the result x the fraction of the upperhouse that the ideology has to a running total. If the running total is > 0.5, the issue option can be implemented.
+		*/
+		for(auto i : state.culture_definitions.political_issues) {
+			auto current = state.world.nation_get_issues(n, i);
+			for(auto o : state.world.issue_get_options(i)) {
+				if(!o)
+					break;
+				auto allow = state.world.issue_option_get_allow(o);
+				if(
+					o != current
+					&&
+					(!state.world.issue_get_is_next_step_only(i) || current.id.index() + 1 == o.index() || current.id.index() - 1 == o.index())
+					&&
+					(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+					) {
+
+					float total = 0.0f;
+					for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+						dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+						auto condition = o.index() > current.id.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
+						auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+						if(condition && upperhouse_weight > 0.0f)
+							total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+						if(total > 0.5f)
+							return true;
+					}
+				}
+			}
+		}
+		for(auto i : state.culture_definitions.social_issues) {
+			auto current = state.world.nation_get_issues(n, i);
+			for(auto o : state.world.issue_get_options(i)) {
+				if(!o)
+					break;
+				auto allow = state.world.issue_option_get_allow(o);
+				if(
+					o != current
+					&&
+					(!state.world.issue_get_is_next_step_only(i) || current.id.index() + 1 == o.index() || current.id.index() - 1 == o.index())
+					&&
+					(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+					) {
+
+					float total = 0.0f;
+					for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+						dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+						auto condition = o.index() > current.id.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
+						auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+						if(condition && upperhouse_weight > 0.0f)
+							total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+						if(total > 0.5f)
+							return true;
+					}
+				}
+			}
+		}
+	}
+	/*
+	### When an economic/military reform is possible
+	These are only available for unciv nations. Some of the rules are the same as for social/political reforms:  If it is "next step only" either the previous or next issue option must be in effect. And it's `allow` trigger must be satisfied. Where things are different: Each reform also has a cost in research points. This cost, however, can vary. The actual cost you must pay is multiplied by what I call the "reform factor" + 1. The reform factor is (sum of ideology-in-upper-house x add-reform-triggered-modifier) x define:ECONOMIC_REFORM_UH_FACTOR + the nation's self_unciv_economic/military_modifier + the unciv_economic/military_modifier of the nation it is in the sphere of (if any).
+	*/
+	else {
+		auto stored_rp = state.world.nation_get_research_points(n);
+		for(auto i : state.culture_definitions.military_issues) {
+			auto current = state.world.nation_get_reforms(n, i);
+			for(auto o : state.world.reform_get_options(i)) {
+				if(!o)
+					break;
+				auto allow = state.world.reform_option_get_allow(o);
+				if(
+					o.index() > current.id.index()
+					&&
+					(!state.world.reform_get_is_next_step_only(i) || current.id.index() + 1 == o.index())
+					&&
+					(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+					) {
+
+					float base_cost = float(state.world.reform_option_get_technology_cost(o));
+					float reform_factor =
+						1.0f
+						+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_military_modifier)
+						+ state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_military_modifier);
+
+					for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+						dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+						auto condition = state.world.ideology_get_add_military_reform(iid);
+						auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+						if(condition && upperhouse_weight > 0.0f)
+							reform_factor += state.defines.military_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+					}
+
+					if(base_cost * reform_factor < stored_rp)
+						return true;
+				}
+			}
+		}
+		for(auto i : state.culture_definitions.economic_issues) {
+			auto current = state.world.nation_get_reforms(n, i);
+			for(auto o : state.world.reform_get_options(i)) {
+				if(!o)
+					break;
+				auto allow = state.world.reform_option_get_allow(o);
+				if(
+					o.index() > current.id.index()
+					&&
+					(!state.world.reform_get_is_next_step_only(i) || current.id.index() + 1 == o.index())
+					&&
+					(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+					) {
+
+					float base_cost = float(state.world.reform_option_get_technology_cost(o));
+					float reform_factor =
+						1.0f
+						+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_economic_modifier)
+						+ state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_economic_modifier);
+
+					for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+						dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+						auto condition = state.world.ideology_get_add_economic_reform(iid);
+						auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+						if(condition && upperhouse_weight > 0.0f)
+							reform_factor += state.defines.economic_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+					}
+
+					if(base_cost * reform_factor < stored_rp)
+						return true;
+				}
+			}
+		}
+	}
 	return false;
 }
 

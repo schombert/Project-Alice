@@ -5400,6 +5400,19 @@ float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_k
 	}
 	return product;
 }
+float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	float sum = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			if(test_trigger_generic<bool>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot)) {
+				sum += seg.factor;
+			}
+		}
+	}
+	return sum;
+}
 
 bool evaluate_trigger(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	return test_trigger_generic<bool>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
