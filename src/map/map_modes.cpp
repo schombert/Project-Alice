@@ -869,7 +869,7 @@ void set_infrastructure(sys::state& state) {
 
 				color = color_gradient(
 					float(current_rails_lvl) / float(max_rails_lvl),
-					sys::pack_color(214, 4, 18), // red
+					sys::pack_color(14, 240, 44), // green
 					sys::pack_color(41, 5, 245) // blue
 					
 				);
