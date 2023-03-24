@@ -60,6 +60,6 @@ float rgo_income(sys::state& state, dcon::province_id id);
 float rgo_production_quantity(sys::state& state, dcon::province_id id);
 float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);
-
+float revolt_risk(sys::state& state, dcon::province_id id);
 }
 
