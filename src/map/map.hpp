@@ -31,7 +31,7 @@ public:
 	void load_map(sys::state& state);
 
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
-	dcon::province_id selected_province;
+	dcon::province_id selected_province = dcon::province_id{};
 
 	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);

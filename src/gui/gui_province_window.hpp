@@ -15,7 +15,7 @@ namespace ui {
 class province_close_button : public generic_close_button {
 public:
 	void button_action(sys::state& state) noexcept override {
-		state.map_display.set_selected_province(province::from_map_id(0));
+		state.map_display.set_selected_province(dcon::province_id{});
         generic_close_button::button_action(state);
 	}
 };

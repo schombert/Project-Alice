@@ -937,10 +937,10 @@ void display_data::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int3
 		if(province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 			set_selected_province(province::from_map_id(province_id_map[idx]));
 		} else {
-			set_selected_province(province::from_map_id(0));
+			set_selected_province(dcon::province_id{});
 		}
 	} else {
-		set_selected_province(province::from_map_id(0));
+		set_selected_province(dcon::province_id{});
 	}
 }
 
