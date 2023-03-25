@@ -2669,6 +2669,11 @@ relationship{
 		type{ uint8_t }
 		tag{ save }
 	}
+	property{
+		name{ penalty_expires_date }
+		type{ sys::date }
+		tag{ save }
+	}
 }
 
 object {

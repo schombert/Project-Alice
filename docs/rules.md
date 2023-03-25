@@ -803,7 +803,7 @@ These are only available for civ nations. If it is "next step only" either the p
 
 ### When an economic/military reform is possible
 
-These are only available for unciv nations. Some of the rules are the same as for social/political reforms:  If it is "next step only" either the previous or next issue option must be in effect. At least define:MIN_DELAY_BETWEEN_REFORMS months must have passed since the last issue option change (for any type of issue). And it's `allow` trigger must be satisfied. Where things are different: Each reform also has a cost in research points. This cost, however, can vary. The actual cost you must pay is multiplied by what I call the "reform factor" + 1. The reform factor is (sum of ideology-in-upper-house x add-reform-triggered-modifier) x define:ECONOMIC_REFORM_UH_FACTOR + the nation's self_unciv_economic/military_modifier + the unciv_economic/military_modifier of the nation it is in the sphere of (if any).
+These are only available for unciv nations. Some of the rules are the same as for social/political reforms:  If it is "next step only" either the previous or next reform option must be in effect. At least define:MIN_DELAY_BETWEEN_REFORMS months must have passed since the last reform option change (for any type of reform). And it's `allow` trigger must be satisfied. Where things are different: Each reform also has a cost in research points. This cost, however, can vary. The actual cost you must pay is multiplied by what I call the "reform factor" + 1. The reform factor is (sum of ideology-in-upper-house x add-reform-triggered-modifier) x define:ECONOMIC_REFORM_UH_FACTOR + the nation's self_unciv_economic/military_modifier + the unciv_economic/military_modifier of the nation it is in the sphere of (if any).
 
 ### Elections
 
@@ -869,6 +869,36 @@ This influence value does not translate directly into influence with the target 
 1 + define:DISCREDIT_INFLUENCE_GAIN_FACTOR (if discredited) + define:NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if the nations are adjacent) + define:SPHERE_NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if some member of the influencing nation's sphere is adjacent but not the influencing nation itself) + define:OTHER_CONTINENT_BONUS_INFLUENCE_PERCENT (if the influencing nation and the target have capitals on different continents) + define:PUPPET_BONUS_INFLUENCE_PERCENT (if the target is a vassal of the influencer) + relation-value / define:RELATION_INFLUENCE_MODIFIER + define:INVESTMENT_INFLUENCE_DEFENSE + (define:INVESTMENT_INFLUENCE_DEFENCE x (fraction-of-influencer's-foreign-investment-out-of-total-foreign-investment - 1)) + define:LARGE_POPULATION_INFLUENCE_PENALTY x target-population / define:LARGE_POPULATION_INFLUENCE_PENALTY_CHUNK (if the target nation has population greater than define:LARGE_POPULATION_LIMIT) + (1 - target-score / influencer-score)^0
 
 Note that you cannot gain influence with a nation while your embassy is banned, but you still appear to "spend" influence anyways. Any influence that accumulates beyond the max (define:MAX_INFLUENCE) will be subtracted from the influence of the great power with the most influence (other than the influencing nation).
+
+General rules for influence actions: you cannot take an influence action where the influenced nation is in a war opposing you or if your embassy has been banned there. And, obviously, you must have enough influence points to pay the cost.
+
+Discrediting:
+
+A nation is discredited for define:DISCREDIT_DAYS. Being discredited twice does not add these durations together; it just resets the timer from the current day. Discrediting a nation "increases" your relationship with them by define:DISCREDIT_RELATION_ON_ACCEPT. Discrediting costs define:DISCREDIT_INFLUENCE_COST influence points. To discredit a nation, you must have an opinion of at least "opposed" with the influenced nation and you must have a an equal or better opinion level with the influenced nation than the nation you are discrediting does.
+
+Expelling advisors:
+
+Expelling a nation's advisors "increases" your relationship with them by define:EXPELADVISORS_RELATION_ON_ACCEPT. This action costs define:EXPELADVISORS_INFLUENCE_COST influence points. To expel the advisors of a nation, you must have a an equal or better opinion level with the influenced nation than the nation you are doing the action to does does. Being expelled cancels any ongoing discredit effect. Being expelled reduces your influence to zero. To expel advisors you must have at least neutral opinion with the influenced nation and an equal or better opinion level than that of the nation you are expelling.
+
+Banning embassy:
+
+Banning a nation's embassy "increases" your relationship with them by define:BANEMBASSY_RELATION_ON_ACCEPT. This action costs define:BANEMBASSY_INFLUENCE_COST influence points. The ban embassy effect lasts for define:BANEMBASSY_DAYS. If you are already banned, being banned again simply restarts the timer. Being banned cancels out any ongoing discredit effect. To ban a nation you must be at least friendly with the influenced nation and have an equal or better opinion level than that of the nation you are expelling.
+
+Increase opinion:
+
+Increasing the opinion of a nation costs define:INCREASEOPINION_INFLUENCE_COST influence points. Opinion can be increased to a maximum of friendly.
+	
+Decrease opinion:
+
+Decreasing the opinion of a nation "increases" your relationship with them by define:DECREASEOPINION_RELATION_ON_ACCEPT. This actions costs define:DECREASEOPINION_INFLUENCE_COST influence points. Decreasing the opinion of another nation requires that you have an opinion of at least "opposed" with the influenced nation and you must have a an equal or better opinion level with the influenced nation than the nation you are lowering their opinion of does.
+	
+Add to sphere:
+
+Adding a nation to your sphere costs define:ADDTOSPHERE_INFLUENCE_COST influence points, and the nation must have a friendly opinion of you.
+
+Remove from sphere:
+
+Removing a nation from a sphere costs define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. If you remove a nation from your own sphere you lose define:REMOVEFROMSPHERE_PRESTIGE_COST prestige and gain define:REMOVEFROMSPHERE_INFAMY_COST infamy. Removing a nation from the sphere of another nation "increases" your relationship with the former sphere leader by define:REMOVEFROMSPHERE_RELATION_ON_ACCEPT points. To preform this action you must have an opinion level of at least friendly with the nation you are removing from a sphere. (The removed nation then becomes friendly with its former sphere leader.)
 
 ## Crisis mechanics
 

@@ -445,7 +445,18 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
 }
 
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
-	// TODO
+	for(auto it : state.world.nation_get_gp_relationship_as_great_power(n)) {
+		auto act_date = it.get_penalty_expires_date();
+		if(!act_date || act_date <= state.current_date || (it.get_status() & influence::is_banned) == 0) {
+			if(it.get_influence() >= state.defines.increaseopinion_influence_cost && (influence::level_mask & it.get_status()) != influence::level_in_sphere) {
+				return true;
+			} else if(!(it.get_influence_target().get_in_sphere_of()) && it.get_influence() >= state.defines.addtosphere_influence_cost) {
+				return true;
+			} else if(it.get_influence_target().get_in_sphere_of() && (influence::level_mask & it.get_status()) == influence::level_friendly && it.get_influence() >= state.defines.removefromsphere_influence_cost) {
+				return true;
+			}
+		}
+	}
 	return false;
 }
 
@@ -592,7 +603,17 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 }
 
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
-	// TODO
+	for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
+		dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+		auto lim = state.world.decision_get_potential(did);
+		if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+			auto allow = state.world.decision_get_allow(did);
+			if(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 
