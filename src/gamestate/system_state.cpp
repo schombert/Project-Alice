@@ -1494,7 +1494,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 5, [&](int32_t index) {
+					concurrency::parallel_for(0, 6, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1511,11 +1511,17 @@ namespace sys {
 							case 4:
 								nations::update_industrial_scores(*this);
 								break;
+							case 5:
+								military::update_naval_supply_points(*this);
+								break;
 						}
 						
 					});
-					nations::update_military_scores(*this);
-					nations::update_rankings(*this);
+
+					nations::update_military_scores(*this); // depends on ship score, land unit average
+					nations::update_rankings(*this); // depends on industrial score, military scores 
+
+					nations::update_colonial_points(*this); // depends on rankings, naval supply values
 
 					// Once per month updates, spread out over the month
 					switch(ymd_date.day) {

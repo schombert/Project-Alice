@@ -703,7 +703,7 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 
 ### Naval supply points
 
-- naval supply score: you get one point per level of naval base that is either in a core province or connected by land to the capital. You get define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE per level of other naval bases
+- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or define:NAVAL_BASE_SUPPLY_SCORE_EMPTY for each state without one, multiplied by define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE if it is neither a core nor connected to the capital.
 - ships consume naval base supply at their supply_consumption_score. Going over the naval supply score comes with various penalties (described elsewhere).
 
 ## Movements
@@ -962,7 +962,7 @@ To turn a colony into a regular state, it must have enough bureaucrats with your
 ### Points
 
 Only nations with rank at least define:COLONIAL_RANK get colonial points. Colonial points come from three sources:
-- naval bases: (1) determined by level and the building definition, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+- naval bases: (1) determined by level and the building definition, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital. (2) multiply that result by define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR (NOTE to self: double check this)
 - units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
 - points from technologies/inventions
 

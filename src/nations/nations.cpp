@@ -100,6 +100,9 @@ void restore_unsaved_values(sys::state& state) {
 		state.world.nation_set_vassals_count(n, uint16_t(total));
 		state.world.nation_set_substates_count(n, uint16_t(substates_total));
 	});
+
+	// NOTE: relies on naval supply being set
+	update_colonial_points(state);
 }
 
 void generate_initial_state_instances(sys::state& state) {
@@ -441,8 +444,58 @@ int32_t free_colonial_points(sys::state const& state, dcon::nation_id n) {
 	return 0;
 }
 int32_t max_colonial_points(sys::state const& state, dcon::nation_id n) {
-	// TODO
-	return 0;
+	return int32_t(state.world.nation_get_colonial_points(n));
+}
+
+void update_colonial_points(sys::state& state) {
+	state.world.for_each_nation([&](dcon::nation_id n) {
+		/*
+		Only nations with rank at least define:COLONIAL_RANK get colonial points.
+		*/
+		if(state.world.nation_get_rank(n) <= state.defines.colonial_rank) {
+			float points = 0.0f;
+			/*
+			Colonial points come from three sources:
+			- naval bases: (1) determined by level and the building definition, except you get only define:COLONIAL_POINTS_FOR_NON_CORE_BASE (a flat rate) for naval bases not in a core province and not connected by land to the capital.
+			*/
+			for(auto p : state.world.nation_get_province_ownership(n)) {
+				auto nb_rank = state.world.province_get_naval_base_level(p.get_province());
+				if(nb_rank > 0) {
+					if(p.get_province().get_is_owner_core() || p.get_province().get_connected_region_id() == state.world.province_get_connected_region_id(state.world.nation_get_capital(n))) {
+
+						points += float(state.economy_definitions.naval_base_definition.colonial_points[nb_rank]);
+					} else {
+						points += state.defines.colonial_points_for_non_core_base;
+					}
+				}
+			}
+			/*
+			- units: the colonial points they grant x (1.0 - the fraction the nation's naval supply consumption is over that provided by its naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
+			*/
+			int32_t unit_sum = 0;
+			for(auto nv : state.world.nation_get_navy_control(n)) {
+				for(auto shp : nv.get_navy().get_navy_membership()) {
+					unit_sum += state.military_definitions.unit_base_definitions[shp.get_ship().get_type()].colonial_points;
+				}
+			}
+			float base_supply = std::max(1.0f, float(military::naval_supply_points(state, n)));
+			float used_supply = float(military::naval_supply_points_used(state, n));
+			float pts_factor = used_supply > base_supply ? std::max(0.0f, 2.0f - used_supply / base_supply) : 1.0f;
+			points += unit_sum * pts_factor * state.defines.colonial_points_from_supply_factor;
+
+			/*
+			- points from technologies/inventions
+			*/
+			state.world.for_each_technology([&](dcon::technology_id t) {
+				if(state.world.nation_get_active_technologies(n, t)) {
+					points += float(state.world.technology_get_colonial_points(t));
+				}
+			});
+			state.world.nation_set_colonial_points(n, points);
+		} else {
+			state.world.nation_set_colonial_points(n, 0.0f);
+		}
+	});
 }
 
 bool can_expand_colony(sys::state& state, dcon::nation_id n) {

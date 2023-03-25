@@ -83,7 +83,7 @@ struct global_military_state {
 
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
-void restore_unsaved_values(sys::state& state);
+void restore_unsaved_values(sys::state& state); // must run after determining connectivity
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool can_use_cb_against(sys::state const& state, dcon::nation_id from, dcon::nation_id target);
@@ -97,9 +97,11 @@ float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);
 bool state_has_naval_base(sys::state const& state, dcon::state_instance_id di);
 
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p);
-int32_t regiments_created_from_province(sys::state& state, dcon::province_id p);
+int32_t regiments_created_from_province(sys::state& state, dcon::province_id p); // does not include mobilized regiments
 int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p);
+int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
+
 
 void update_recruitable_regiments(sys::state& state, dcon::nation_id n);
 void update_all_recruitable_regiments(sys::state& state);
@@ -110,5 +112,7 @@ void regenerate_ship_scores(sys::state& state);
 
 int32_t naval_supply_points(sys::state& state, dcon::nation_id n);
 int32_t naval_supply_points_used(sys::state& state, dcon::nation_id n);
+
+void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 
 }

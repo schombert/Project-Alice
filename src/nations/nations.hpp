@@ -218,6 +218,7 @@ void update_administrative_efficiency(sys::state& state);
 
 float daily_research_points(sys::state& state, dcon::nation_id n);
 void update_research_points(sys::state& state);
+void update_colonial_points(sys::state& state); // NOTE: relies on naval supply being set
 
 void update_industrial_scores(sys::state& state);
 void update_military_scores(sys::state& state);
