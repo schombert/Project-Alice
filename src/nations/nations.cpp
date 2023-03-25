@@ -435,12 +435,56 @@ float diplomatic_points(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_diplomatic_points(n);
 }
 
-bool can_expand_colony(sys::state& state, dcon::nation_id n) {
+
+int32_t free_colonial_points(sys::state const& state, dcon::nation_id n) {
 	// TODO
+	return 0;
+}
+int32_t max_colonial_points(sys::state const& state, dcon::nation_id n) {
+	// TODO
+	return 0;
+}
+
+bool can_expand_colony(sys::state& state, dcon::nation_id n) {
+	for(auto cols : state.world.nation_get_colonization_as_colonizer(n)) {
+		auto state_colonization = state.world.state_definition_get_colonization(cols.get_state());
+		auto num_colonizers = state_colonization.end() - state_colonization.begin();
+		if(num_colonizers == 1) {
+			/*
+			If you have put in a colonist in a region and it goes at least define:COLONIZATION_DAYS_FOR_INITIAL_INVESTMENT without any other colonizers, it then moves into phase 3 with define:COLONIZATION_INTEREST_LEAD points.
+			*/
+			if(state.current_date >= cols.get_last_investment() + int32_t(state.defines.colonization_days_for_initial_investment)) {
+				if(free_colonial_points(state, n) >= int32_t(state.defines.colonization_create_protectorate_cost)) {
+					return true;
+				}
+			}
+		} else {
+			/*
+			If you have put a colonist in the region, and colonization is in phase 1 or 2, you can invest if it has been at least define:COLONIZATION_DAYS_BETWEEN_INVESTMENT since your last investment, you have enough colonial points, and the state remains in range.
+			*/
+			if(state.current_date >= cols.get_last_investment() + int32_t(state.defines.colonization_days_between_investment)) {
+				/*
+				Investing in a colony costs define:COLONIZATION_INVEST_COST_INITIAL + define:COLONIZATION_INTEREST_COST_NEIGHBOR_MODIFIER (if a province adjacent to the region is owned) to place the initial colonist. Further steps cost define:COLONIZATION_INTEREST_COST while in phase 1. In phase two, each point of investment cost define:COLONIZATION_INFLUENCE_COST up to the fourth point. After reaching the fourth point, further points cost define:COLONIZATION_EXTRA_GUARD_COST x (points - 4) + define:COLONIZATION_INFLUENCE_COST.
+				*/
+				auto points = cols.get_level() < 4
+					? int32_t(state.defines.colonization_interest_cost)
+					: int32_t(state.defines.colonization_extra_guard_cost * (cols.get_level() - 4) + state.defines.colonization_influence_cost);
+				if(free_colonial_points(state, n) >= points) {
+					return true;
+				}
+			}
+		}
+	}
 	return false;
 }
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
-	// TODO
+	for(auto cols : state.world.nation_get_colonization_as_colonizer(n)) {
+		auto lvl = cols.get_level();
+		for(auto ocol : state.world.state_definition_get_colonization(cols.get_state())) {
+			if(lvl < ocol.get_level())
+				return true;
+		}
+	}
 	return false;
 }
 

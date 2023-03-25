@@ -1779,7 +1779,7 @@ relationship{
 object {
 	name{ state_definition }
 	storage_type{ contiguous }
-	size{ 5000 }
+	size{ 3000 }
 	tag{ scenario }
 	tag{ save }
 
@@ -1842,6 +1842,41 @@ object {
 		tag{ save }
 	}
 }
+relationship{
+	name{ colonization }
+	storage_type{ compactable }
+	size{ 3000 }
+	tag{ save }
+
+	link{
+		object{state_definition}
+		name{state}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{colonizer}
+		type{many}
+		index_storage{array}
+	}
+	property {
+		name{ last_investment }
+		type{ sys::date }
+		tag{ save }
+	}
+	property {
+		name{ points_invested }
+		type{ uint16_t }
+		tag{ save }
+	}
+	property {
+		name{ level }
+		type{ uint8_t }
+		tag{ save }
+	}
+}
+
 
 relationship{
 	name{ state_ownership }
