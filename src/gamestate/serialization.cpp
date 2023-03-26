@@ -82,6 +82,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.map_display.size_x);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_display.size_y);
 		ptr_in = deserialize(ptr_in, state.map_display.border_vertices);
+		ptr_in = deserialize(ptr_in, state.map_display.borders);
 		ptr_in = deserialize(ptr_in, state.map_display.terrain_id_map);
 		ptr_in = deserialize(ptr_in, state.map_display.province_id_map);
 	}
@@ -250,6 +251,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.map_display.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_display.size_y);
 		ptr_in = serialize(ptr_in, state.map_display.border_vertices);
+		ptr_in = serialize(ptr_in, state.map_display.borders);
 		ptr_in = serialize(ptr_in, state.map_display.terrain_id_map);
 		ptr_in = serialize(ptr_in, state.map_display.province_id_map);
 	}
@@ -418,6 +420,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.map_display.size_x);
 		sz += sizeof(state.map_display.size_y);
 		sz += serialize_size(state.map_display.border_vertices);
+		sz += serialize_size(state.map_display.borders);
 		sz += serialize_size(state.map_display.terrain_id_map);
 		sz += serialize_size(state.map_display.province_id_map);
 	}

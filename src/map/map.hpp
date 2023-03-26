@@ -7,18 +7,41 @@
 
 namespace map {
 
+struct image {
+	uint8_t* data = nullptr;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+	int32_t channels = 0;
 
+	image(uint8_t* data, int32_t size_x, int32_t size_y, int32_t channels) {
+		this->data = data;
+		this->size_x = size_x;
+		this->size_y = size_y;
+		this->channels = channels;
+	}
+
+	~image() {
+		if(data)
+			free(data);
+	}
+};
 struct map_vertex {
 	map_vertex(float x, float y) : position(x, y) {};
 	glm::vec2 position;
 };
 struct border_vertex {
 	border_vertex() {};
-	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction)
-		: position_(position), normal_direction_(normal_direction), direction_(direction) {};
+	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, int32_t border_id)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id) {};
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
+	int32_t border_id_;
+};
+struct border {
+	int start_index = -1;
+	int count = -1;
+	uint8_t type_flag;
 };
 class display_data {
 public:
@@ -36,6 +59,7 @@ public:
 	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
 	void set_terrain_map_mode();
+	void update_borders(sys::state& state);
 
 	// Set the position of camera. Position relative from 0-1
 	void set_pos(glm::vec2 pos);
@@ -52,12 +76,10 @@ public:
 	dcon::province_id get_selected_province();
 	void set_selected_province(dcon::province_id prov_id);
 
-	void create_border_data(parsers::scenario_building_context& context);
-	void create_border_ogl_objects();
-
 	uint32_t size_x;
 	uint32_t size_y;
 
+	std::vector<border> borders;
 	std::vector<border_vertex> border_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
@@ -75,14 +97,14 @@ private:
 	bool unhandled_province_selection = false;
 
 	// Meshes
+	GLuint water_vao = 0;
 	GLuint water_vbo = 0;
+	GLuint land_vao = 0;
 	GLuint land_vbo = 0;
-	GLuint border_vbo = 0;
-	GLuint vao = 0;
 	GLuint border_vao = 0;
-	uint32_t water_indicies = 0;
-	uint32_t land_indicies = 0;
-	uint32_t border_indicies = 0;
+	GLuint border_vbo = 0;
+	uint32_t water_vertex_count = 0;
+	uint32_t land_vertex_count = 0;
 
 	// Textures
 	GLuint provinces_texture_handle = 0;
@@ -129,6 +151,13 @@ private:
 	void update(sys::state& state);
 
 	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
+
+	void load_border_data(parsers::scenario_building_context& context);
+	void create_border_ogl_objects();
+	void load_province_data(parsers::scenario_building_context& context, image& image);
+	void load_provinces_mid_point(parsers::scenario_building_context& context);
+	void load_terrain_data(parsers::scenario_building_context& context);
+	void load_median_terrain_type(parsers::scenario_building_context& context);
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();

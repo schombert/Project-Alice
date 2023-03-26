@@ -871,7 +871,7 @@ void set_infrastructure(sys::state& state) {
 					float(current_rails_lvl) / float(max_rails_lvl),
 					sys::pack_color(14, 240, 44), // green
 					sys::pack_color(41, 5, 245) // blue
-					
+
 				);
 
 			} else if(current_rails_lvl == max_local_rails_lvl) {

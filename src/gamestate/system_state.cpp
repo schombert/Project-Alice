@@ -24,7 +24,7 @@ namespace sys {
 	void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		// Lose focus on text
 		ui_state.edit_target = nullptr;
-		
+
 		if(ui_state.under_mouse != nullptr) {
 			// TODO: look at return value
 			ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
@@ -136,6 +136,7 @@ namespace sys {
 
 		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
 
+		map_display.update_borders(*this);
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
@@ -231,7 +232,7 @@ namespace sys {
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0, 1.0);
 
-		
+
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
 		ui_state.root->impl_render(*this, 0, 0);
@@ -747,7 +748,7 @@ namespace sys {
 			}
 		}
 
-		
+
 		// parse terrain.txt
 		{
 			auto terrain_file = open_file(map, NATIVE("terrain.txt"));
@@ -1211,7 +1212,7 @@ namespace sys {
 						err.accumulated_errors += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 					}
 
-					
+
 				}
 			}
 		}
@@ -1276,7 +1277,7 @@ namespace sys {
 
 					if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 						auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
-						
+
 						parsers::country_history_context new_context{ context, it->second, holder };
 
 						auto opened_file = open_file(country_file);
@@ -1286,7 +1287,7 @@ namespace sys {
 							parsers::token_generator gen(content.data, content.data + content.file_size);
 							parsers::parse_country_history_file(gen, err, new_context);
 						}
-						
+
 					} else {
 						err.accumulated_errors += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
 					}
@@ -1515,7 +1516,7 @@ namespace sys {
 								military::update_naval_supply_points(*this);
 								break;
 						}
-						
+
 					});
 
 					nations::update_military_scores(*this); // depends on ship score, land unit average
