@@ -40,6 +40,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		const auto override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
+			topbar_subwindow->impl_on_update(state);
 			state.ui_state.root->move_child_to_front(topbar_subwindow);
 			state.ui_state.topbar_subwindow = topbar_subwindow;
 		};

@@ -1,4 +1,5 @@
 #include "nations.hpp"
+#include "dcon_generated.hpp"
 #include "system_state.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "triggers.hpp"
@@ -557,6 +558,68 @@ bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
+bool has_political_reform_available(sys::state& state, dcon::nation_id n) {
+	for(auto i : state.culture_definitions.political_issues) {
+		auto current = state.world.nation_get_issues(n, i);
+		for(auto o : state.world.issue_get_options(i)) {
+			if(!o)
+				break;
+			auto allow = state.world.issue_option_get_allow(o);
+			if(
+				o != current
+				&&
+				(!state.world.issue_get_is_next_step_only(i) || current.id.index() + 1 == o.index() || current.id.index() - 1 == o.index())
+				&&
+				(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+				) {
+
+				float total = 0.0f;
+				for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+					dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+					auto condition = o.index() > current.id.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
+					auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+					if(condition && upperhouse_weight > 0.0f)
+						total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+					if(total > 0.5f)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool has_social_reform_available(sys::state& state, dcon::nation_id n) {
+	for(auto i : state.culture_definitions.social_issues) {
+		auto current = state.world.nation_get_issues(n, i);
+		for(auto o : state.world.issue_get_options(i)) {
+			if(!o)
+				break;
+			auto allow = state.world.issue_option_get_allow(o);
+			if(
+				o != current
+				&&
+				(!state.world.issue_get_is_next_step_only(i) || current.id.index() + 1 == o.index() || current.id.index() - 1 == o.index())
+				&&
+				(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+				) {
+
+				float total = 0.0f;
+				for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+					dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+					auto condition = o.index() > current.id.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
+					auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+					if(condition && upperhouse_weight > 0.0f)
+						total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+					if(total > 0.5f)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 bool has_reform_available(sys::state& state, dcon::nation_id n) {
 	//At least define:MIN_DELAY_BETWEEN_REFORMS months must have passed since the last issue option change (for any type of issue).
 	auto last_date = state.world.nation_get_last_issue_or_reform_change(n);
@@ -568,60 +631,7 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 		### When a social/political reform is possible
 		These are only available for civ nations. If it is "next step only" either the previous or next issue option must be in effect And it's `allow` trigger must be satisfied. Then. for each ideology, we test its `add_social_reform` or `remove_social_reform` (depending if we are increasing or decreasing, and substituting `political_reform` here as necessary), computing its modifier additively, and then adding the result x the fraction of the upperhouse that the ideology has to a running total. If the running total is > 0.5, the issue option can be implemented.
 		*/
-		for(auto i : state.culture_definitions.political_issues) {
-			auto current = state.world.nation_get_issues(n, i);
-			for(auto o : state.world.issue_get_options(i)) {
-				if(!o)
-					break;
-				auto allow = state.world.issue_option_get_allow(o);
-				if(
-					o != current
-					&&
-					(!state.world.issue_get_is_next_step_only(i) || current.id.index() + 1 == o.index() || current.id.index() - 1 == o.index())
-					&&
-					(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
-					) {
-
-					float total = 0.0f;
-					for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
-						dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-						auto condition = o.index() > current.id.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
-						auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
-						if(condition && upperhouse_weight > 0.0f)
-							total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
-						if(total > 0.5f)
-							return true;
-					}
-				}
-			}
-		}
-		for(auto i : state.culture_definitions.social_issues) {
-			auto current = state.world.nation_get_issues(n, i);
-			for(auto o : state.world.issue_get_options(i)) {
-				if(!o)
-					break;
-				auto allow = state.world.issue_option_get_allow(o);
-				if(
-					o != current
-					&&
-					(!state.world.issue_get_is_next_step_only(i) || current.id.index() + 1 == o.index() || current.id.index() - 1 == o.index())
-					&&
-					(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
-					) {
-
-					float total = 0.0f;
-					for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
-						dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-						auto condition = o.index() > current.id.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
-						auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
-						if(condition && upperhouse_weight > 0.0f)
-							total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
-						if(total > 0.5f)
-							return true;
-					}
-				}
-			}
-		}
+		return has_political_reform_available(state, n) || has_social_reform_available(state, n);
 	}
 	/*
 	### When an economic/military reform is possible
