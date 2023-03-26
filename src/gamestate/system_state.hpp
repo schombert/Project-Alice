@@ -153,7 +153,6 @@ namespace sys {
 		int32_t y_size = 0;
 		int32_t mouse_x_position = 0;
 		int32_t mouse_y_position = 0;
-		bool in_edit_control = false;
 		bool is_dragging = false;
 
 		// map data

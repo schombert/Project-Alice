@@ -280,7 +280,7 @@ namespace window {
 				return 0;
 			case WM_CHAR:
 			{
-				if(state->in_edit_control) {
+				if(state->ui_state.edit_target) {
 					char turned_into = process_utf16_to_win1250(wchar_t(wParam));
 					if(turned_into)
 						state->on_text(turned_into);
@@ -416,7 +416,7 @@ namespace window {
 				if(msg.message == WM_QUIT) {
 					break;
 				}
-				if(game_state.in_edit_control)
+				if(game_state.ui_state.edit_target)
 					TranslateMessage(&msg);
 				DispatchMessageW(&msg);
 			} else {

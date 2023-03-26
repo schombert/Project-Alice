@@ -7,6 +7,9 @@ namespace ui {
 class console_edit : public edit_box_element_base {
 public:
 	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept;
+	void edit_box_esc(sys::state& state) noexcept override {
+		state.ui_state.console_window->set_visible(state, false);
+	}
 };
 
 class console_list_entry : public listbox_row_element_base<std::string> {
@@ -44,6 +47,7 @@ protected:
 class console_window : public window_element_base {
 private:
 	console_list* console_output_list = nullptr;
+	console_edit* edit_box = nullptr;
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -52,7 +56,9 @@ public:
 			console_output_list = ptr.get();
 			return ptr;
 		} else if(name == "console_edit") {
-			return make_element_by_type<console_edit>(state, id);
+			auto ptr = make_element_by_type<console_edit>(state, id);
+			edit_box = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -70,5 +76,9 @@ public:
 	}
 
 	static void show_toggle(sys::state& state);
+
+	virtual void on_visible(sys::state& state) noexcept {
+		state.ui_state.edit_target = edit_box;
+	}
 };
 }

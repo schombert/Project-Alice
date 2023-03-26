@@ -31,18 +31,16 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
     } else if(s.starts_with("tag ") && s.size() == 7) {
         set_active_tag(state, s.substr(4));
+		state.game_state_updated.store(true, std::memory_order::release);
     }
     Cyto::Any output = std::string(s);
     parent->impl_get(state, output);
 }
 
 void ui::console_window::show_toggle(sys::state& state) {
-	if(!state.ui_state.console_window) {
-		auto window = make_element_by_type<console_window>(state, "console_wnd");
-		state.ui_state.console_window = window.get();
-		state.ui_state.root->add_child_to_front(std::move(window));
-	} else if(state.ui_state.console_window->is_visible()) {
-            state.ui_state.console_window->set_visible(state, false);
+	assert(state.ui_state.console_window);
+	if(state.ui_state.console_window->is_visible()) {
+		state.ui_state.console_window->set_visible(state, false);
     } else {
         state.ui_state.console_window->set_visible(state, true);
         state.ui_state.root->move_child_to_front(state.ui_state.console_window);

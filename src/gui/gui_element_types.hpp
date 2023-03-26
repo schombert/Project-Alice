@@ -116,7 +116,7 @@ public:
 };
 
 class simple_text_element_base : public element_base {
-private:
+protected:
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
@@ -136,7 +136,9 @@ class edit_box_element_base : public simple_text_element_base {
 public:
 	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept { }
 	virtual void edit_box_update(sys::state& state, std::string_view s) noexcept { }
+	virtual void edit_box_esc(sys::state& state) noexcept { }
 	void on_reset_text(sys::state& state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;

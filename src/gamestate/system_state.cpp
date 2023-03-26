@@ -116,7 +116,10 @@ namespace sys {
 		} else {
 			if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 				if(keycode == virtual_key::ESCAPE) {
-					ui::show_main_menu(*this);
+					if(ui_state.console_window->is_visible())
+						ui::console_window::show_toggle(*this);
+					else
+						ui::show_main_menu(*this);
 				} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 					ui::console_window::show_toggle(*this);
 				}
@@ -256,7 +259,14 @@ namespace sys {
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
+			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
+			ui_state.console_window = window.get();
+			window->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(window));
 		}
 	}
 	//

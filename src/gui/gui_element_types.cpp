@@ -260,7 +260,6 @@ void button_element_base::on_create(sys::state& state) noexcept {
 
 message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	// Set edit control so we get on_text events
-	state.in_edit_control = true;
 	state.ui_state.edit_target = this;
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 	return message_result::consumed;
@@ -285,6 +284,9 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 			s.clear();
 			set_text(state, s);
 			edit_index = 0;
+			break;
+		case sys::virtual_key::ESCAPE:
+			edit_box_esc(state);
 			break;
 		case sys::virtual_key::LEFT:
 			edit_index = std::max<int32_t>(edit_index - 1, 0);
@@ -314,6 +316,16 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 
 void edit_box_element_base::on_reset_text(sys::state& state) noexcept {
 
+}
+
+void edit_box_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
+		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		simple_text_element_base::text_offset = 0.0f;
+	} else if(base_data.get_element_type() == element_type::text) {;
+		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+		simple_text_element_base::text_offset = base_data.data.text.border_size.x;
+	}
 }
 
 void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {

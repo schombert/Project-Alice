@@ -274,7 +274,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
 void character_callback(GLFWwindow* window, unsigned int codepoint) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
-	if(state->in_edit_control) {
+	if(state->ui_state.edit_target) {
 		// TODO change UTF32 to (win1250??)
 		state->on_text(char(codepoint));
 	}
