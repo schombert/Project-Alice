@@ -80,6 +80,3 @@ gen_directory "." "! -name about.md"
 
 echo '</navindex>'						>> layout_file.xml
 echo '</doxygenlayout>' 	>> layout_file.xml
-
-# Copy all the pngs recursivly to the html folder
-find . -type f -not -path "./out/*" -name "*.png" -exec cp {} ./out/html/ \;
