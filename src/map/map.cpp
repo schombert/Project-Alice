@@ -705,7 +705,7 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 	std::vector<GLint> first;
 	std::vector<GLsizei> count;
 	for(auto& border : borders) {
-		if (border.type_flag & visible_borders) {
+		if ((border.type_flag & visible_borders) || zoom > 8) {
 			first.push_back(border.start_index);
 			count.push_back(border.count);
 		}
