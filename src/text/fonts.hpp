@@ -5,6 +5,7 @@
 #include "freetype/ftglyph.h"
 #include "unordered_dense.h"
 #include "bmfont.h"
+
 namespace sys {
 struct state;
 }

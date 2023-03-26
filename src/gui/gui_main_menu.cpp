@@ -79,6 +79,34 @@ void window_mode_display::on_update(sys::state& state) noexcept {
 	set_text(state, temp_string);
 }
 
+void fonts_mode_left::button_action(sys::state& state) noexcept {
+	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
+	Cyto::Any payload = notify_setting_update{ };
+	if(parent) parent->impl_get(state, payload);
+
+	state.ui_state.root->impl_on_reset_text(state);
+	state.ui_state.tooltip->set_visible(state, false);
+	state.ui_state.last_tooltip = nullptr;
+}
+void fonts_mode_left::on_update(sys::state& state) noexcept {
+}
+void fonts_mode_right::button_action(sys::state& state) noexcept {
+	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
+	Cyto::Any payload = notify_setting_update{ };
+	if(parent) parent->impl_get(state, payload);
+
+	state.ui_state.root->impl_on_reset_text(state);
+	state.ui_state.tooltip->set_visible(state, false);
+	state.ui_state.last_tooltip = nullptr;
+}
+void fonts_mode_right::on_update(sys::state& state) noexcept {
+}
+void fonts_mode_display::on_update(sys::state& state) noexcept {
+	auto it = state.key_to_text_sequence.find(state.user_settings.use_classic_fonts ? std::string_view("use_classic_fonts") : std::string_view("use_standard_fonts"));
+	auto temp_string = (it != state.key_to_text_sequence.end()) ? text::produce_simple_string(state, it->second) : std::string("");
+	set_text(state, temp_string);
+}
+
 
 void master_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 	auto float_v = float(v) / 128.0f;

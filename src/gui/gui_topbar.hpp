@@ -1,5 +1,6 @@
 #pragma once
 
+#include "demographics.hpp"
 #include "gui_element_types.hpp"
 #include "gui_production_window.hpp"
 #include "gui_diplomacy_window.hpp"
@@ -10,6 +11,9 @@
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
 #include "gui_common_elements.hpp"
+#include "nations.hpp"
+#include "rebels.hpp"
+#include "system_state.hpp"
 #include "text.hpp"
 
 namespace ui {
@@ -36,6 +40,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		const auto override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
+			topbar_subwindow->impl_on_update(state);
 			state.ui_state.root->move_child_to_front(topbar_subwindow);
 			state.ui_state.topbar_subwindow = topbar_subwindow;
 		};
@@ -135,26 +140,121 @@ public:
 	}
 };
 
-class topbar_country_name : public simple_text_element_base {
-private:
-	dcon::nation_id current_nation{};
-
+class topbar_losing_gp_status_icon : public standard_nation_icon {
 public:
-	void on_update(sys::state& state) noexcept override {
-		if(current_nation != state.local_player_nation) {
-			if(bool(state.local_player_nation)) {
-				dcon::nation_fat_id fat_id = dcon::fatten(state.world, state.local_player_nation);
-				set_text(state, text::produce_simple_string(state, fat_id.get_name()));
-			} else {
-				set_text(state, "");
-			}
-			current_nation = state.local_player_nation;
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(!(nations::is_greate_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
+	}
+};
+
+class topbar_at_peace_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		if(state.world.nation_get_is_at_war(nation_id)) {
+			set_visible(state, false);
+		} else {
+			set_visible(state, true);
 		}
+		return text::produce_simple_string(state, "atpeace");
+	}
+};
+
+class topbar_building_factories_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(!economy::nation_is_constructing_factories(state, nation_id));
+	}
+};
+
+class topbar_closed_factories_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(!economy::nation_has_closed_factories(state, nation_id));
+	}
+};
+
+class topbar_unemployment_icon : public standard_nation_icon {
+private:
+	float get_num_unemployed(sys::state& state, dcon::pop_type_id pop_type) noexcept {
+		auto total_key = demographics::to_key(state, pop_type);
+		auto employment_key = demographics::to_employment_key(state, pop_type);
+		return state.world.nation_get_demographics(nation_id, total_key) - state.world.nation_get_demographics(nation_id, employment_key);
 	}
 
-	void on_create(sys::state& state) noexcept override {
-		simple_text_element_base::on_create(state);
-		on_update(state);
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker);
+		auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker);
+		return int32_t(primary_unemployed + secondary_unemployed <= 0.f);
+	}
+};
+
+class topbar_available_reforms_icon : public standard_nation_button {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(!nations::has_reform_available(state, nation_id));
+	}
+};
+
+class topbar_available_decisions_icon : public standard_nation_button {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(!nations::has_decision_available(state, nation_id));
+	}
+};
+
+class topbar_ongoing_election_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		auto election_end_date = dcon::fatten(state.world, nation_id).get_election_ends();
+		return int32_t(!election_end_date || election_end_date <= state.current_date);
+	}
+};
+
+class topbar_rebels_icon : public standard_nation_button {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
+		return int32_t(rebellions_iter.begin() == rebellions_iter.end());
+	}
+};
+
+class topbar_colony_icon : public standard_nation_button {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		if(nations::can_expand_colony(state, nation_id)) {
+			return 0;
+		} else if(nations::is_losing_colonial_race(state, nation_id)) {
+			return 1;
+		} else {
+			return 2;
+		}
+	}
+};
+
+class topbar_crisis_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		if(state.current_crisis == sys::crisis_type::none) {
+			return 2;
+		} else if(state.crisis_temperature > 0.8f) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+};
+
+class topbar_sphere_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		if(nations::sphereing_progress_is_possible(state, nation_id)) {
+			return 0;
+		} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
+			return 2;
+		} else {
+			return 1;
+		}
 	}
 };
 
@@ -240,7 +340,7 @@ public:
 		} else if(name == "datetext") {
 			return make_element_by_type<topbar_date_text>(state, id);
 		} else if(name == "countryname") {
-			return make_element_by_type<topbar_country_name>(state, id);
+			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "player_flag") {
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "country_prestige") {
@@ -261,6 +361,64 @@ public:
 			return make_element_by_type<nation_rank_text>(state, id);
 		} else if(name == "topbar_flag_overlay") {
 			return make_element_by_type<nation_flag_frame>(state, id);
+		} else if(name == "alert_building_factories") {
+			return make_element_by_type<topbar_building_factories_icon>(state, id);
+		} else if(name == "alert_closed_factories") {
+			return make_element_by_type<topbar_closed_factories_icon>(state, id);
+		} else if(name == "alert_unemployed_workers") {
+			return make_element_by_type<topbar_unemployment_icon>(state, id);
+		} else if(name == "tech_current_research") {
+			return make_element_by_type<nation_current_research_text>(state, id);
+		} else if(name == "topbar_researchpoints_value") {
+			return make_element_by_type<nation_research_points_text>(state, id);
+		} else if(name == "tech_literacy_value") {
+			return make_element_by_type<nation_literacy_text>(state, id);
+		} else if(name == "politics_ruling_party") {
+			return make_element_by_type<nation_ruling_party_text>(state, id);
+		} else if(name == "politics_supressionpoints_value") {
+			return make_element_by_type<nation_suppression_points_text>(state, id);
+		} else if(name == "politics_infamy_value") {
+			return make_element_by_type<nation_infamy_text>(state, id);
+		} else if(name == "alert_can_do_reforms") {
+			return make_element_by_type<topbar_available_reforms_icon>(state, id);
+		} else if(name == "alert_can_do_decisions") {
+			return make_element_by_type<topbar_available_decisions_icon>(state, id);
+		} else if(name == "alert_is_in_election") {
+			return make_element_by_type<topbar_ongoing_election_icon>(state, id);
+		} else if(name == "alert_have_rebels") {
+			return make_element_by_type<topbar_rebels_icon>(state, id);
+		} else if(name == "population_total_value") {
+			return make_element_by_type<nation_population_text>(state, id);  // TODO: display daily change alongside total
+		} else if(name == "topbar_focus_value") {
+			return make_element_by_type<nation_focus_allocation_text>(state, id);
+		} else if(name == "population_avg_mil_value") {
+			return make_element_by_type<nation_militancy_text>(state, id);
+		} else if(name == "population_avg_con_value") {
+			return make_element_by_type<nation_consciousness_text>(state, id);
+		} else if(name == "diplomacy_status") {
+			return make_element_by_type<topbar_at_peace_text>(state, id);
+		} else if(name == "diplomacy_at_war") {
+			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
+			ptr->base_data.position.y -= ptr->base_data.position.y / 4;
+			return ptr;
+		} else if(name == "diplomacy_diplopoints_value") {
+			return make_element_by_type<nation_diplomatic_points_text>(state, id);
+		} else if(name == "alert_colony") {
+			return make_element_by_type<topbar_colony_icon>(state, id);
+		} else if(name == "alert_crisis") {
+			return make_element_by_type<topbar_crisis_icon>(state, id);
+		} else if(name == "alert_can_increase_opinion") {
+			return make_element_by_type<topbar_sphere_icon>(state, id);
+		} else if(name == "alert_loosing_gp") {
+			return make_element_by_type<topbar_losing_gp_status_icon>(state, id);
+		} else if(name == "military_army_value") {
+			return make_element_by_type<nation_brigade_allocation_text>(state, id);
+		} else if(name == "military_navy_value") {
+			return make_element_by_type<nation_navy_allocation_text>(state, id);
+		} else if(name == "military_manpower_value") {
+			return make_element_by_type<nation_mobilization_size_text>(state, id);
+		} else if(name == "military_leadership_value") {
+			return make_element_by_type<nation_leadership_points_text>(state, id);
 		} else {
 			return nullptr;
 		}

@@ -562,9 +562,8 @@ data_texture& data_texture::operator=(data_texture&& other) noexcept {
 	return *this;
 }
 
-uint32_t make_font_texture(simple_fs::file& file) {
-
-	auto content = simple_fs::view_contents(file);
+font_texture_result make_font_texture(simple_fs::file& f) {
+	auto content = simple_fs::view_contents(f);
 
 	int32_t file_channels = 4;
 
@@ -585,16 +584,17 @@ uint32_t make_font_texture(simple_fs::file& file) {
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size_x, size_y);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		//glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
 	STBI_FREE(data);
 
-	return ftexid;
+
+	return font_texture_result{ ftexid, uint32_t(size_x) };
 }
 
 }

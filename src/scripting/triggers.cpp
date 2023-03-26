@@ -1473,7 +1473,8 @@ TRIGGER_FUNCTION(tf_has_faction_nation) {
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_has_faction_pop) {
-	return compare_values_eq(tval[0], ws.world.pop_get_rebel_group(to_pop(primary_slot)), trigger::payload(tval[1]).reb_id);
+	auto rf = ws.world.pop_get_rebel_faction_from_pop_rebellion_membership(to_pop(primary_slot));
+	return compare_values_eq(tval[0], ws.world.rebel_faction_get_type(rf), trigger::payload(tval[1]).reb_id);
 }
 auto unowned_core_accumulator(sys::state const& ws, dcon::nation_id n) {
 	return make_true_accumulator([&ws, n](ve::tagged_vector<int32_t> v) {
@@ -2293,7 +2294,7 @@ TRIGGER_FUNCTION(tf_is_ideology_enabled) {
 }
 TRIGGER_FUNCTION(tf_political_reform_want_nation) {
 	return compare_values(tval[0],
-		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::political_reform_desire),
+		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::political_reform_desire) * ws.defines.movement_support_uh_factor / ws.world.nation_get_non_colonial_population(to_nation(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_political_reform_want_pop) {
@@ -2303,7 +2304,7 @@ TRIGGER_FUNCTION(tf_political_reform_want_pop) {
 }
 TRIGGER_FUNCTION(tf_social_reform_want_nation) {
 	return compare_values(tval[0],
-		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::social_reform_desire),
+		ws.world.nation_get_demographics(to_nation(primary_slot), demographics::social_reform_desire) * ws.defines.movement_support_uh_factor / ws.world.nation_get_non_colonial_population(to_nation(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_social_reform_want_pop) {
@@ -2976,7 +2977,7 @@ TRIGGER_FUNCTION(tf_is_mobilised) {
 }
 TRIGGER_FUNCTION(tf_mobilisation_size) {
 	return compare_values(tval[0],
-		ws.world.nation_get_static_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::mobilisation_size - sys::provincial_mod_offsets::count),
+		ws.world.nation_get_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::mobilisation_size),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_crime_higher_than_education_nation) {
@@ -3656,7 +3657,7 @@ TRIGGER_FUNCTION(tf_constructing_cb_progress) {
 }
 TRIGGER_FUNCTION(tf_civilization_progress) {
 	return compare_values(tval[0],
-		ws.world.nation_get_static_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::civilization_progress_modifier - sys::provincial_mod_offsets::count),
+		ws.world.nation_get_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::civilization_progress_modifier),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_constructing_cb_type) {
@@ -3784,13 +3785,13 @@ TRIGGER_FUNCTION(tf_social_movement_strength) {
 				auto issue = m.get_movement().get_associated_issue_option();
 				if(issue) {
 					if(culture::issue_type(issue.get_parent_issue().get_issue_type()) == culture::issue_type::social
-						&& m.get_movement().get_strength() > max_str) {
-						max_str = m.get_movement().get_strength();
+						&& m.get_movement().get_pop_support() > max_str) {
+						max_str = m.get_movement().get_pop_support();
 					}
 				}
 			}
 			return max_str;
-		}, to_nation(primary_slot)),
+		}, to_nation(primary_slot)) * ws.defines.movement_support_uh_factor / ws.world.nation_get_non_colonial_population(to_nation(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_political_movement_strength) {
@@ -3801,13 +3802,13 @@ TRIGGER_FUNCTION(tf_political_movement_strength) {
 				auto issue = m.get_movement().get_associated_issue_option();
 				if(issue) {
 					if(culture::issue_type(issue.get_parent_issue().get_issue_type()) == culture::issue_type::political
-						&& m.get_movement().get_strength() > max_str) {
-						max_str = m.get_movement().get_strength();
+						&& m.get_movement().get_pop_support() > max_str) {
+						max_str = m.get_movement().get_pop_support();
 					}
 				}
 			}
 			return max_str;
-		}, to_nation(primary_slot)),
+		}, to_nation(primary_slot)) * ws.defines.movement_support_uh_factor / ws.world.nation_get_non_colonial_population(to_nation(primary_slot)),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_can_build_factory_in_capital_state) {
@@ -5398,6 +5399,23 @@ float evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_k
 		}
 	}
 	return product;
+}
+float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	float sum = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			if(test_trigger_generic<bool>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot)) {
+				sum += seg.factor;
+			}
+		}
+	}
+	return sum;
+}
+
+bool evaluate_trigger(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
+	return test_trigger_generic<bool>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
 }
 
 }

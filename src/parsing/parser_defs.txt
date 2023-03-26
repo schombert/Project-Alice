@@ -5,6 +5,7 @@ gfx_xy_pair
 gfx_object
 	name               value     text         member
 	horizontal         value     bool         member
+	horisontal         value     bool         member     (horizontal)
 	allwaystransparent value     bool         member
 	transparencecheck  value     bool         member
 	flipv              value     bool         member
@@ -349,6 +350,7 @@ modifier_base
 	defender                                  value      float            member_fn
 	attacker                                  value      float            member_fn
 	defence                                   value      float            member_fn
+	defense                                   value      float            member_fn (defence)
 	attack                                    value      float            member_fn
 	combat_width                              value      float            member_fn
 	min_build_naval_base                      value      float            member_fn
@@ -362,7 +364,7 @@ modifier_base
 	colonial_migration                        value      float            member_fn
 	max_national_focus                        value      float            member_fn
 	cb_creation_speed                         value      float            member_fn
-	diplomatic_points                         value      float            member_fn
+	diplomatic_points                         value      float            member_fn  (diplomatic_points_modifier)
 	reinforce_rate                            value      float            member_fn
 	tax_eff                                   value      float            member_fn
 	administrative_efficiency                 value      float            member_fn
@@ -559,6 +561,8 @@ terrain_modifier
 	#base          modifier_base
 	color          group      color_from_3i             member
 	is_water       value      none                      discard
+	tree           value      bool                      discard
+	tree_density   value      float                     discard
 
 terrain_modifiers_list
 	#any           extern     make_terrain_modifier     discard

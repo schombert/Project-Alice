@@ -21,7 +21,7 @@ public:
 class province_search_list_item : public listbox_row_button_base<dcon::province_id> {
 public:
     void button_action(sys::state& state) noexcept override {
-        auto map_prov_id = province::to_map_id(content);
+        auto map_prov_id = content;
         state.map_display.set_selected_province(map_prov_id);
         static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, map_prov_id);
     }

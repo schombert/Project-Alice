@@ -109,7 +109,7 @@ std::vector<uint32_t> get_global_population_color(sys::state& state) {
 }
 
 std::vector<uint32_t> get_national_population_color(sys::state& state) {
-	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
 	auto nat_id = fat_selected_id.get_nation_from_province_ownership();
 	if(!bool(nat_id)) {
 		return get_global_population_color(state);
@@ -210,7 +210,7 @@ std::vector<uint32_t> get_nationality_global_color(sys::state& state) {
 }
 
 std::vector<uint32_t> get_nationality_diaspora_color(sys::state& state) {
-	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
 	auto culture_id = fat_selected_id.get_dominant_culture();
 	auto culture_key = demographics::to_key(state, culture_id.id);
 
@@ -329,7 +329,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
 
 	// Get sphere master if exists
@@ -471,7 +471,7 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto fat_selected_id = dcon::fatten(state.world, province::from_map_id(state.map_display.get_selected_province()));
+	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
 
 	std::vector<dcon::nation_id> enemies, allies, sphere;
@@ -582,6 +582,321 @@ void set_diplomatic(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::diplomatic);
 }
 
+
+void set_rank(sys::state& state) {
+	// These colors are arbitrary
+	// 1 to 8 -> green #30f233
+	// 9 to 16 -> blue #242fff
+	// under 16 but civilized -> yellow #eefc26
+	// under 16 but uncivilized -> red #ff2626
+
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	auto num_nations = state.world.nation_size();
+	auto unciv_rank = num_nations;
+	for(uint32_t i = 0; i < num_nations; ++i) {
+		if(!state.world.nation_get_is_civilized(state.nations_by_rank[i])) {
+			unciv_rank = i;
+			break;
+		}
+	}
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+
+		auto nation_id = fat_id.get_nation_from_province_ownership();
+		auto status = nations::get_status(state, nation_id);
+
+		float darkness = 0.0f;
+		if(status == nations::status::great_power)
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id)) / state.defines.great_nations_count;
+		else if(status == nations::status::secondary_power)
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.great_nations_count) / (state.defines.colonial_rank - state.defines.great_nations_count);
+		else if(status == nations::status::civilized)
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.colonial_rank) / std::max(1.0f, (float(unciv_rank) - state.defines.colonial_rank));
+		else
+			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - unciv_rank) / std::max(1.0f, (float(num_nations) - float(unciv_rank)));
+
+		uint32_t color;
+		if(bool(nation_id)) {
+			switch(status) {
+				case nations::status::great_power:
+					color = sys::pack_color(
+						int32_t(48 * darkness),
+						int32_t(242 * darkness),
+						int32_t(51 * darkness)
+					);
+					break;
+
+				case nations::status::secondary_power:
+					color = sys::pack_color(
+						int32_t(36 * darkness),
+						int32_t(47 * darkness),
+						int32_t(255 * darkness)
+					);
+					break;
+
+				case nations::status::civilized:
+					color = sys::pack_color(
+						int32_t(238 * darkness),
+						int32_t(252 * darkness),
+						int32_t(38 * darkness)
+					);
+					break;
+
+					// primitive, uncivilized and westernized
+				default:
+					color = sys::pack_color(
+						int32_t(250 * darkness),
+						int32_t(5 * darkness),
+						int32_t(5 * darkness)
+					);
+					break;
+			}
+		} else { // If no owner use default color
+			color = 255 << 16 | 255 << 8 | 255;
+		}
+
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+
+	});
+	state.map_display.set_province_color(prov_color, mode::rank);
+}
+
+void set_recruitment(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		auto nation = fat_id.get_nation_from_province_ownership();
+
+		if(nation == state.local_player_nation) {
+			auto max_regiments = military::regiments_max_possible_from_province(state, prov_id);
+			auto created_regiments = military::regiments_created_from_province(state, prov_id);
+
+			uint32_t color;
+			if(max_regiments == 0) {
+				// grey
+				color = sys::pack_color(155, 156, 149);
+			} else if(created_regiments < max_regiments) {
+				// yellow
+				color = sys::pack_color(212, 214, 62);
+			} else {
+				// green
+				color = sys::pack_color(53, 196, 53);
+			}
+			auto i = province::to_map_id(prov_id);
+
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color;
+		}
+
+	});
+
+	state.map_display.set_province_color(prov_color, mode::recruitment);
+}
+
+void set_supply(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto fat_id = dcon::fatten(state.world, prov_id);
+		auto nation = fat_id.get_nation_from_province_ownership();
+		int32_t supply_limit = military::supply_limit_in_province(state, nation, prov_id);
+		float interpolation = (supply_limit < 50 ? supply_limit : 50) / 50.f;
+
+		uint32_t color = color_gradient(
+				interpolation,
+				sys::pack_color(46, 247, 15), // red
+				sys::pack_color(247, 15, 15) // green
+		);
+
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+	});
+	state.map_display.set_province_color(prov_color, mode::supply);
+}
+
+void set_relation(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	auto selected_province = state.map_display.get_selected_province();
+	auto fat_id = dcon::fatten(state.world, selected_province);
+	auto selected_nation = fat_id.get_nation_from_province_ownership();
+
+	if(!selected_nation) {
+		selected_nation = state.local_player_nation;
+	}
+
+	auto relations = selected_nation.get_diplomatic_relation_as_related_nations();
+
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto other_nation = state.world.province_get_nation_from_province_ownership(prov_id);
+
+		// if the province has no owners
+		if(!other_nation) {
+			return;
+		}
+
+		uint32_t color;
+
+		if(other_nation == selected_nation.id) {
+			// the selected nation should be blue
+			color = sys::pack_color(66, 106, 227);
+		} else {
+			auto diplo_relation = state.world.get_diplomatic_relation_by_diplomatic_pair(other_nation, selected_nation);
+			int32_t relation_value = state.world.diplomatic_relation_get_value(diplo_relation);
+
+			float interpolation = (200 + relation_value) / 400.f;
+
+			color = color_gradient(
+				interpolation,
+				sys::pack_color(46, 247, 15), // red
+				sys::pack_color(247, 15, 15) // green
+			);
+		}
+
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+	});
+
+	state.map_display.set_province_color(prov_color, mode::relation);
+}
+
+void set_civilization_level(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+		auto status = nations::get_status(state, nation);
+
+		uint32_t color;
+
+		// if it is uncolonized
+		if(!nation) {
+
+			color = sys::pack_color(250, 5, 5);// red
+
+		} else if(state.world.nation_get_is_civilized(nation)) {
+
+			color = sys::pack_color(53, 196, 53);// green
+
+		} else {
+
+			float civ_level = state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::civilization_progress_modifier);
+			// gray <-> yellow
+			color = color_gradient(civ_level * (1 + (1 - civ_level)), sys::pack_color(250, 250, 5), sys::pack_color(64, 64, 64));
+
+		}
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		if(!state.world.province_get_is_colonial(prov_id)) {
+			prov_color[i + texture_size] = color;
+		}
+	});
+	state.map_display.set_province_color(prov_color, mode::civilization_level);
+}
+
+void set_migration(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		// TODO:
+		//	check if immigrant_attraction is a [-1, 1] value,
+		//	because right now it is always 0
+
+		auto immigrant_attraction = state.world.province_get_modifier_values(prov_id, sys::provincial_mod_offsets::immigrant_attract);
+		float interpolation = (immigrant_attraction + 1) / 2;
+
+		uint32_t color = color_gradient(
+				interpolation,
+				sys::pack_color(46, 247, 15), // red
+				sys::pack_color(247, 15, 15) // green
+		);
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+		prov_color[i + texture_size] = color;
+	});
+	state.map_display.set_province_color(prov_color, mode::migration);
+}
+
+void set_infrastructure(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	int32_t max_rails_lvl = state.economy_definitions.railroad_definition.max_level;
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+
+		int32_t current_rails_lvl = state.world.province_get_railroad_level(prov_id);
+		int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(nation);
+		bool party_allows_building_railroads = state.world.nation_get_combined_issue_rules(nation) & issue_rule::build_railway;
+		uint32_t color;
+
+		if(party_allows_building_railroads) {
+
+			if(province::can_build_railroads(state, prov_id)) {
+
+				color = color_gradient(
+					float(current_rails_lvl) / float(max_rails_lvl),
+					sys::pack_color(14, 240, 44), // green
+					sys::pack_color(41, 5, 245) // blue
+
+				);
+
+			} else if(current_rails_lvl == max_local_rails_lvl) {
+				color = sys::pack_color(232, 228, 111); // yellow
+			} else {
+				color = sys::pack_color(222, 7, 46); // red
+			}
+
+		} else {
+			color = sys::pack_color(232, 228, 111); // yellow
+		}
+		auto i = province::to_map_id(prov_id);
+
+		prov_color[i] = color;
+
+		if(province::has_railroads_being_built(state, prov_id)) {
+			prov_color[i + texture_size] = sys::pack_color(232, 228, 111); // yellow
+		} else {
+			prov_color[i + texture_size] = color;
+		}
+	});
+
+	state.map_display.set_province_color(prov_color, mode::infrastructure);
+}
+
 void set_map_mode(sys::state& state, mode mode) {
 	switch(mode) {
 		case mode::terrain:
@@ -604,6 +919,27 @@ void set_map_mode(sys::state& state, mode mode) {
 			break;
 		case mode::diplomatic:
 			set_diplomatic(state);
+			break;
+		case mode::rank:
+			set_rank(state);
+			break;
+		case mode::recruitment:
+			set_recruitment(state);
+			break;
+		case mode::supply:
+			set_supply(state);
+			break;
+		case mode::relation:
+			set_relation(state);
+			break;
+		case mode::civilization_level:
+			set_civilization_level(state);
+			break;
+		case mode::migration:
+			set_migration(state);
+			break;
+		case mode::infrastructure:
+			set_infrastructure(state);
 			break;
 		default:
 			break;

@@ -84,17 +84,28 @@ uint32_t font_index(std::string_view txt) {
 
 uint16_t name_into_font_id(sys::state& state, std::string_view txt) {
 	auto base_id = pack_font_handle(font_index(txt), is_black_font(txt), font_size(txt));
+	std::string txt_copy = [&]() {
+		if(parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "_black")) {
+			return std::string(txt.substr(0, txt.length() - 6));
+		}
+		if(parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "_black_bold")) {
+			return std::string(txt.substr(0, txt.length() - 11)) + "_bold";
+		}
+		return std::string(txt);
+	}();
 	uint16_t individuator = 0;
 	auto it = state.font_collection.font_names.find(uint16_t(base_id | (individuator << 8)));
 	while(it != state.font_collection.font_names.end()) {
-		if(state.to_string_view(it->second) == txt) {
+		if(state.to_string_view(it->second) == txt_copy) {
 			return uint16_t(base_id | (individuator << 8));
 		}
 		++individuator;
 		it = state.font_collection.font_names.find(uint16_t(base_id | (individuator << 8)));
 	}
-	auto new_key = state.add_to_pool(txt);
-	return uint16_t(base_id | (individuator << 8));
+	auto new_key = state.add_to_pool(txt_copy);
+	auto new_handle = uint16_t(base_id | (individuator << 8));
+	state.font_collection.font_names.insert_or_assign(new_handle, new_key);
+	return new_handle;
 }
 
 int32_t size_from_font_id(uint16_t id) {
@@ -302,20 +313,14 @@ float font::top_adjustment(int32_t size) const {
 
 float font_manager::line_height(sys::state& state, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {
-		// Check if the font is in the map
-		// If not, load it using the font_names map to figure out its name
-		// Then proceed using the found/newly loaded font data
-		return 0.0f;
+		return text::get_bm_font(state, font_id).GetHeight();
 	} else {
 		return float(fonts[text::font_index_from_font_id(font_id) - 1].line_height(text::size_from_font_id(font_id)));
 	}
 }
 float font_manager::text_extent(sys::state& state, const char* codepoints, uint32_t count, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {
-		// Check if the font is in the map
-		// If not, load it using the font_names map to figure out its name
-		// Then proceed using the found/newly loaded font data
-		return 0.0f;
+		return text::get_bm_font(state, font_id).GetStringWidth(codepoints, count);
 	} else {
 		return float(fonts[text::font_index_from_font_id(font_id) - 1].text_extent(codepoints, count, text::size_from_font_id(font_id)));
 	}
@@ -428,15 +433,6 @@ void load_standard_fonts(sys::state& state) {
 }
 
 void load_bmfonts(sys::state& state) {
-
-	BMFont vic_22_bl;
-
-	auto fnta = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.fnt"));
-	auto tgaa = simple_fs::correct_slashes(NATIVE("/gfx/fonts/vic_22_bl.tga"));
-
-	auto fimg = simple_fs::open_file(get_root(state.common_fs), tgaa);
-	if(fimg)
-		vic_22_bl.LoadFontImage(*fimg);
 }
 
 void font_manager::load_all_glyphs() {

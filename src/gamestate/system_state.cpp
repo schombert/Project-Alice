@@ -14,6 +14,7 @@
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
+#include "rebels.hpp"
 
 namespace sys {
 	//
@@ -116,7 +117,7 @@ namespace sys {
 			if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 				if(keycode == virtual_key::ESCAPE) {
 					ui::show_main_menu(*this);
-				} else if(keycode == virtual_key::TILDA) {
+				} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 					ui::console_window::show_toggle(*this);
 				}
 				map_display.on_key_down(keycode, mod);
@@ -932,8 +933,6 @@ namespace sys {
 
 		world.nation_resize_active_inventions(world.invention_size());
 		world.nation_resize_active_technologies(world.technology_size());
-		world.nation_resize_issues(world.issue_size());
-		world.nation_resize_reforms(world.reform_size());
 		world.nation_resize_upper_house(world.ideology_size());
 
 		world.national_identity_resize_government_flag_type(uint32_t(culture_definitions.governments.size()));
@@ -987,6 +986,8 @@ namespace sys {
 				}
 			}
 		}
+
+		culture::set_default_issue_and_reform_options(*this);
 
 		// load pop history files
 		{
@@ -1364,14 +1365,14 @@ namespace sys {
 		fill_unsaved_data(); // we need this to run triggers
 
 		culture::create_initial_ideology_and_issues_distribution(*this);
+		demographics::regenerate_from_pop_data(*this);
 
 		if(err.accumulated_errors.length() > 0)
 			window::emit_error_message(err.accumulated_errors, err.fatal);
 	}
 
 	void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
-		world.nation_resize_fluctuating_modifier_values(sys::national_mod_offsets::count - provincial_mod_offsets::count);
-		world.nation_resize_static_modifier_values(sys::national_mod_offsets::count - provincial_mod_offsets::count);
+		world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 		world.nation_resize_rgo_goods_output(world.commodity_size());
 		world.nation_resize_factory_goods_output(world.commodity_size());
 		world.nation_resize_factory_goods_throughput(world.commodity_size());
@@ -1446,7 +1447,8 @@ namespace sys {
 		culture::update_all_nations_issue_rules(*this);
 		demographics::regenerate_from_pop_data(*this);
 		pop_demographics::regenerate_is_primary_or_accepted(*this);
-		province::update_state_administrative_efficiency(*this);
+
+		rebel::update_movement_values(*this);
 
 		military::regenerate_land_unit_average(*this);
 		military::regenerate_ship_scores(*this);
@@ -1487,6 +1489,8 @@ namespace sys {
 
 					current_date += 1;
 
+					auto ymd_date = current_date.to_ymd(start_date);
+
 					// basic repopulation of demographics derived values
 					demographics::regenerate_from_pop_data(*this);
 
@@ -1509,13 +1513,28 @@ namespace sys {
 								nations::update_industrial_scores(*this);
 								break;
 							case 5:
-								province::update_state_administrative_efficiency(*this);
+								military::update_naval_supply_points(*this);
 								break;
 						}
 
 					});
-					nations::update_military_scores(*this);
-					nations::update_rankings(*this);
+
+					nations::update_military_scores(*this); // depends on ship score, land unit average
+					nations::update_rankings(*this); // depends on industrial score, military scores 
+
+					nations::update_colonial_points(*this); // depends on rankings, naval supply values
+
+					// Once per month updates, spread out over the month
+					switch(ymd_date.day) {
+						case 1:
+							nations::update_monthly_points(*this);
+							break;
+						case 5:
+							rebel::update_movements(*this);
+							break;
+						default:
+							break;
+					}
 
 					game_state_updated.store(true, std::memory_order::release);
 				} else {

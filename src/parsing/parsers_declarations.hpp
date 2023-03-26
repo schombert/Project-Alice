@@ -355,6 +355,7 @@ namespace parsers {
 		dcon::global_flag_id get_global_flag(std::string const& name);
 
 		int32_t number_of_commodities_seen = 0;
+		int32_t number_of_national_values_seen = 0;
 	};
 
 	struct national_identity_file {
@@ -481,29 +482,33 @@ namespace parsers {
 
 #define MOD_PROV_FUNCTION(X) template<typename T> \
 	void X (association_type, float v, error_handler& err, int32_t line, T& context) { \
-		if(next_to_add >= sys::modifier_definition_size) { \
+		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) { \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
 		} else { \
-			constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets:: X ); \
-			constructed_definition.values[next_to_add] = v; \
-			++next_to_add; \
+			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets:: X ; \
+			constructed_definition_p.values[next_to_add_p] = v; \
+			++next_to_add_p; \
 		} \
 	}
 #define MOD_NAT_FUNCTION(X) template<typename T> \
 	void X (association_type, float v, error_handler& err, int32_t line, T& context) { \
-		if(next_to_add >= sys::modifier_definition_size) { \
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) { \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; \
 		} else { \
-			constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets:: X ); \
-			constructed_definition.values[next_to_add] = v; \
-			++next_to_add; \
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets:: X ; \
+			constructed_definition_n.values[next_to_add_n] = v; \
+			++next_to_add_n; \
 		} \
 	}
 
 	struct modifier_base {
+	protected:
+		sys::national_modifier_definition constructed_definition_n;
+		sys::provincial_modifier_definition constructed_definition_p;
+	public:
+		uint32_t next_to_add_p = 0;
+		uint32_t next_to_add_n = 0;
 		uint8_t icon_index = 0;
-		sys::modifier_definition constructed_definition;
-		uint32_t next_to_add = 0;
 		template<typename T>
 		void icon(association_type, uint32_t v, error_handler& err, int32_t line, T& context) {
 			icon_index = uint8_t(v);
@@ -599,12 +604,12 @@ namespace parsers {
 		MOD_NAT_FUNCTION(global_immigrant_attract)
 		template<typename T>
 		void immigration(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::immigrant_attract);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::immigrant_attract;
+				constructed_definition_p.values[next_to_add_p] = v;
+				++next_to_add_p;
 			}
 		}
 		MOD_PROV_FUNCTION(immigrant_attract)
@@ -618,22 +623,22 @@ namespace parsers {
 		MOD_NAT_FUNCTION(mobilisation_economy_impact)
 		template<typename T> \
 		void mobilization_size(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 					err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilisation_size);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilisation_size;
+				constructed_definition_n.values[next_to_add_n] = v;
+				++next_to_add_n;
 			}
 		}
 		template<typename T>
 		void mobilization_economy_impact(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilisation_economy_impact);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilisation_economy_impact;
+				constructed_definition_n.values[next_to_add_n] = v;
+				++next_to_add_n;
 			}
 		}
 		MOD_NAT_FUNCTION(global_pop_militancy_modifier)
@@ -646,32 +651,32 @@ namespace parsers {
 		MOD_PROV_FUNCTION(attack)
 		template<typename T>
 		void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::defense);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::defense;
+				constructed_definition_p.values[next_to_add_p] = v;
+				++next_to_add_p;
 			}
 		}
 		template<typename T>
 		void attacker(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::attack);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::attack;
+				constructed_definition_p.values[next_to_add_p] = v;
+				++next_to_add_p;
 			}
 		}
 		template<typename T>
 		void defence(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::provincial_mod_offsets::defense);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::defense;
+				constructed_definition_p.values[next_to_add_p] = v;
+				++next_to_add_p;
 			}
 		}
 		MOD_NAT_FUNCTION(core_pop_militancy_modifier)
@@ -682,12 +687,12 @@ namespace parsers {
 		MOD_NAT_FUNCTION(mobilization_impact)
 		template<typename T>
 		void mobilisation_impact(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::mobilization_impact);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilization_impact;
+				constructed_definition_n.values[next_to_add_n] = v;
+				++next_to_add_n;
 			}
 		}
 		MOD_NAT_FUNCTION(suppression_points_modifier)
@@ -715,7 +720,6 @@ namespace parsers {
 		MOD_NAT_FUNCTION(max_national_focus)
 		MOD_NAT_FUNCTION(cb_creation_speed)
 		MOD_NAT_FUNCTION(education_efficiency)
-		MOD_NAT_FUNCTION(diplomatic_points)
 		MOD_NAT_FUNCTION(reinforce_rate)
 		MOD_NAT_FUNCTION(tax_eff)
 		MOD_NAT_FUNCTION(administrative_efficiency)
@@ -737,77 +741,150 @@ namespace parsers {
 		template<typename T>
 		void finish(T& context) { }
 
-		void convert_to_national_mod() {
-			for(uint32_t i = 0; i < this->next_to_add; ++i) {
-				if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_life_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_life_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_life_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_life_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_life_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_life_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_everyday_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_everyday_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_everyday_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_everyday_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_everyday_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_everyday_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_luxury_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_luxury_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_luxury_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_luxury_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_luxury_needs) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_luxury_needs);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::goods_demand) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::goods_demand);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::assimilation_rate) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_assimilation_rate);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::farm_rgo_eff) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::farm_rgo_eff);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::mine_rgo_eff) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::mine_rgo_eff);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::farm_rgo_size) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::farm_rgo_size);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::mine_rgo_size) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::mine_rgo_size);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::pop_militancy_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_pop_militancy_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::pop_consciousness_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::global_pop_consciousness_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::rich_income_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::rich_income_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::middle_income_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::middle_income_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::poor_income_modifier) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::poor_income_modifier);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::supply_limit) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::supply_limit);
-				} else if(constructed_definition.offsets[i] == sys::provincial_mod_offsets::combat_width) {
-					constructed_definition.offsets[i] = uint8_t(sys::national_mod_offsets::combat_width);
-				} else if(constructed_definition.offsets[i] < sys::provincial_mod_offsets::count) {
-					--this->next_to_add;
-					constructed_definition.offsets[i] = constructed_definition.offsets[this->next_to_add];
-					constructed_definition.values[i] = constructed_definition.values[this->next_to_add];
-					--i;
-					continue;
+		sys::provincial_modifier_definition const& peek_province_mod() const {
+			return constructed_definition_p;
+		}
+		sys::national_modifier_definition const& peek_national_mod() const {
+			return constructed_definition_n;
+		}
+		sys::national_modifier_definition force_national_mod() const {
+			sys::national_modifier_definition temp = constructed_definition_n;
+			auto temp_next = next_to_add_n;
+			for(uint32_t i = 0; i < sys::provincial_modifier_definition::modifier_definition_size; ++i) {
+				if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::poor_life_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::poor_life_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::middle_life_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::middle_life_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::rich_life_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::rich_life_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::poor_everyday_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::poor_everyday_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::middle_everyday_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::middle_everyday_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::rich_everyday_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::rich_everyday_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::poor_luxury_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::poor_luxury_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::middle_luxury_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::middle_luxury_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::rich_luxury_needs) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::rich_luxury_needs;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::goods_demand) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::goods_demand;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::farm_rgo_eff) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::farm_rgo_eff;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::mine_rgo_eff) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::mine_rgo_eff;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::farm_rgo_size) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::farm_rgo_size;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::mine_rgo_size) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::mine_rgo_size;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::rich_income_modifier) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::rich_income_modifier;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::middle_income_modifier) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::middle_income_modifier;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::poor_income_modifier) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::poor_income_modifier;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::combat_width) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::combat_width;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::assimilation_rate) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::global_assimilation_rate;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::pop_militancy_modifier) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::global_pop_militancy_modifier;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
+				} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::pop_consciousness_modifier) {
+					if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+						temp.offsets[temp_next] = sys::national_mod_offsets::global_pop_consciousness_modifier;
+						temp.values[temp_next] = constructed_definition_p.values[i];
+						++temp_next;
+					}
 				}
-				constructed_definition.offsets[i] += 1;
 			}
-		}
-		void convert_to_province_mod() {
-			for(uint32_t i = 0; i < this->next_to_add; ++i) {
-				constructed_definition.offsets[i] += 1;
-			}
-		}
-		void convert_to_neutral_mod() {
-			for(uint32_t i = 0; i < this->next_to_add; ++i) {
-				constructed_definition.offsets[i] -= 1;
-			}
+			return temp;
 		}
 	};
 
 #undef MOD_PROV_FUNCTION
 #undef MOD_NAT_FUNCTION
-
 
 	struct int_vector {
 		std::vector<int32_t> data;
@@ -1719,12 +1796,12 @@ namespace parsers {
 		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 
 		void prestige(association_type, float v, error_handler& err, int32_t line, tech_context& context) {
-			if(next_to_add >= sys::modifier_definition_size) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 			} else {
-				constructed_definition.offsets[next_to_add] = uint8_t(sys::national_mod_offsets::prestige_modifier);
-				constructed_definition.values[next_to_add] = v;
-				++next_to_add;
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::prestige_modifier;
+				constructed_definition_n.values[next_to_add_n] = v;
+				++next_to_add_n;
 			} 
 		}
 

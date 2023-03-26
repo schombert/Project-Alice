@@ -218,6 +218,7 @@ void update_administrative_efficiency(sys::state& state);
 
 float daily_research_points(sys::state& state, dcon::nation_id n);
 void update_research_points(sys::state& state);
+void update_colonial_points(sys::state& state); // NOTE: relies on naval supply being set
 
 void update_industrial_scores(sys::state& state);
 void update_military_scores(sys::state& state);
@@ -231,6 +232,25 @@ enum class status : uint8_t {
 	great_power, secondary_power, civilized, westernizing, uncivilized, primitive
 };
 status get_status(sys::state& state, dcon::nation_id n);
+
+dcon::technology_id current_research(sys::state const& state, dcon::nation_id n);
+float suppression_points(sys::state const& state, dcon::nation_id n);
+float diplomatic_points(sys::state const& state, dcon::nation_id n);
+float leadership_points(sys::state const& state, dcon::nation_id n);
+int32_t free_colonial_points(sys::state const& state, dcon::nation_id n);
+int32_t max_colonial_points(sys::state const& state, dcon::nation_id n);
+
+bool has_political_reform_available(sys::state& state, dcon::nation_id n);
+bool has_social_reform_available(sys::state& state, dcon::nation_id n);
+bool has_reform_available(sys::state& state, dcon::nation_id n);
+bool has_decision_available(sys::state& state, dcon::nation_id n);
+int32_t max_national_focuses(sys::state& state, dcon::nation_id n);
+int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n);
+bool can_expand_colony(sys::state& state, dcon::nation_id n);
+bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
+bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
+
+void update_monthly_points(sys::state& state);
 
 }
 

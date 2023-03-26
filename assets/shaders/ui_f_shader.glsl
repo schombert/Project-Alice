@@ -16,6 +16,7 @@ layout (binding = 1) uniform sampler2D secondary_texture_sampler;
 layout (location = 2) uniform vec4 d_rect;
 layout (location = 6) uniform float border_size;
 layout (location = 7) uniform vec3 inner_color;
+layout (location = 10) uniform vec4 subrect;
 		
 layout(index = 0) subroutine(font_function_class)
 vec4 border_filter(vec2 tc) {
@@ -46,6 +47,11 @@ vec4 no_filter(vec2 tc) {
 layout(index = 5) subroutine(font_function_class)
 vec4 subsprite(vec2 tc) {
 	return texture(texture_sampler, vec2(tc.x * inner_color.y + inner_color.x, tc.y));
+}
+
+layout(index = 15) subroutine(font_function_class)
+vec4 subsprite_b(vec2 tc) {
+	return vec4(inner_color, texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).a);
 }
 		
 layout(index = 6) subroutine(font_function_class)

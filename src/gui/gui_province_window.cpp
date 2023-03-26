@@ -15,4 +15,13 @@ void national_focus_icon::update_tooltip(sys::state& state, int32_t x, int32_t y
 	}
 }
 
+void province_rgo_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto rgo_good = state.world.province_get_rgo(prov_id);
+	if(rgo_good) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, state.world.commodity_get_name(rgo_good), text::substitution_map{ });
+		text::close_layout_box(contents, box);
+	}
+}
+
 };

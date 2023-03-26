@@ -53,6 +53,12 @@ void container_base::impl_on_update(sys::state& state) noexcept {
 	}
 	on_update(state);
 }
+void container_base::impl_on_reset_text(sys::state& state) noexcept {
+	for(auto& c : children) {
+		c->impl_on_reset_text(state);
+	}
+	on_reset_text(state);
+}
 message_result container_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
 	message_result res = message_result::unseen;
 	for(auto& c : children) {
@@ -235,12 +241,20 @@ void button_element_base::set_button_text(sys::state& state, std::string const& 
 	text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 }
 
+void button_element_base::on_reset_text(sys::state& state) noexcept {
+	if(stored_text.length() > 0) {
+		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
+	}
+}
+
 void button_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
 		auto base_text_handle = base_data.data.button.txt;
-		stored_text = text::produce_simple_string(state, base_text_handle);
-		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
+		if(base_text_handle) {
+			stored_text = text::produce_simple_string(state, base_text_handle);
+			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
+		}
 	}
 }
 
@@ -296,6 +310,10 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 		return message_result::consumed;
 	}
 	return message_result::unseen;
+}
+
+void edit_box_element_base::on_reset_text(sys::state& state) noexcept {
+
 }
 
 void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -357,6 +375,12 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
 	stored_text = new_text;
+	on_reset_text(state);
+}
+
+void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
+	if(stored_text.length() == 0)
+		return;
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {
 			case alignment::centered:
@@ -598,6 +622,9 @@ void multiline_text_element_base::on_create(sys::state& state) noexcept {
 	}
 }
 
+void multiline_text_element_base::on_reset_text(sys::state& state) noexcept {
+	generate_sections(state);
+}
 void multiline_text_element_base::update_text(sys::state& state, dcon::text_sequence_id seq_id) {
 	if(base_data.get_element_type() == element_type::text) {
 		base_data.data.text.txt = seq_id;
@@ -755,39 +782,50 @@ void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 template<class SrcT, class DemoT>
 std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& state) noexcept {
 	std::vector<uint8_t> colors(resolution * channels);
-	Cyto::Any obj_id = SrcT{};
+	Cyto::Any obj_id_payload = SrcT{};
 	size_t i = 0;
 	if(parent) {
-		parent->impl_get(state, obj_id);
-		if(obj_id.holds_type<dcon::province_id>()) {
-			auto prov_id = any_cast<dcon::province_id>(obj_id);
-			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
-			auto total_pops = state.world.province_get_demographics(prov_id, demographics::total);
-			if(total_pops <= 0) {
-				return std::vector<uint8_t>(0);
+		parent->impl_get(state, obj_id_payload);
+		float total_pops = 0.f;
+		if(obj_id_payload.holds_type<dcon::province_id>()) {
+			auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
+			total_pops = state.world.province_get_demographics(prov_id, demographics::total);
+		} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
+			auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
+			total_pops = state.world.nation_get_demographics(nat_id, demographics::total);
+		}
+		
+		if(total_pops <= 0) {
+			return std::vector<uint8_t>(0);
+		}
+		DemoT last_demo{};
+		for_each_demo(state, [&](DemoT demo_id) {
+			last_demo = demo_id;
+			auto demo_fat_id = dcon::fatten(state.world, demo_id);
+			auto demo_key = demographics::to_key(state, demo_fat_id.id);
+			float volume = 0.f;
+			if(obj_id_payload.holds_type<dcon::province_id>()) {
+				auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
+				volume = state.world.province_get_demographics(prov_id, demo_key);
+			} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
+				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
+				volume = state.world.nation_get_demographics(nat_id, demo_key);
 			}
-			DemoT last_demo{};
-			for_each_demo(state, [&](DemoT demo_id) {
-				last_demo = demo_id;
-				auto demo_fat_id = dcon::fatten(state.world, demo_id);
-				auto demo_key = demographics::to_key(state, demo_fat_id.id);
-				auto volume = state.world.province_get_demographics(prov_id, demo_key);
-				auto slice_count = std::min(size_t(volume / total_pops * resolution), i + resolution * channels);
-				auto color = demo_fat_id.get_color();
-				for(size_t j = 0; j < slice_count * channels; j += channels) {
-					colors[j + i] = uint8_t(color & 0xFF);
-					colors[j + i + 1] = uint8_t(color >> 8 & 0xFF);
-					colors[j + i + 2] = uint8_t(color >> 16 & 0xFF);
-				}
-				i += slice_count * channels;
-			});
-			auto fat_last_culture = dcon::fatten(state.world, last_demo);
-			auto last_cult_color = fat_last_culture.get_color();
-			for(; i < colors.size(); i += channels) {
-				colors[i] = uint8_t(last_cult_color & 0xFF);
-				colors[i + 1] = uint8_t(last_cult_color >> 8 & 0xFF);
-				colors[i + 2] = uint8_t(last_cult_color >> 16 & 0xFF);
+			auto slice_count = std::min(size_t(volume / total_pops * resolution), i + resolution * channels);
+			auto color = demo_fat_id.get_color();
+			for(size_t j = 0; j < slice_count * channels; j += channels) {
+				colors[j + i] = uint8_t(color & 0xFF);
+				colors[j + i + 1] = uint8_t(color >> 8 & 0xFF);
+				colors[j + i + 2] = uint8_t(color >> 16 & 0xFF);
 			}
+			i += slice_count * channels;
+		});
+		auto fat_last_culture = dcon::fatten(state.world, last_demo);
+		auto last_cult_color = fat_last_culture.get_color();
+		for(; i < colors.size(); i += channels) {
+			colors[i] = uint8_t(last_cult_color & 0xFF);
+			colors[i + 1] = uint8_t(last_cult_color >> 8 & 0xFF);
+			colors[i + 2] = uint8_t(last_cult_color >> 16 & 0xFF);
 		}
 	}
 	return colors;
@@ -817,21 +855,9 @@ void standard_listbox_scrollbar<RowWinT, RowConT>::on_value_change(sys::state& s
 }
 
 template<class RowConT>
-class wrapped_row_content {
-public:
-	RowConT content;
-	wrapped_row_content() {
-		content = RowConT{};
-	}
-	wrapped_row_content(RowConT con) {
-		content = con;
-	}
-};
-
-template<class RowConT>
 message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<wrapped_row_content<RowConT>>()) {
-		content = any_cast<wrapped_row_content<RowConT>>(payload).content;
+	if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
+		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
 		update(state);
 		return message_result::consumed;
 	}
@@ -845,8 +871,8 @@ message_result listbox_row_element_base<RowConT>::on_scroll(sys::state& state, i
 
 template<class RowConT>
 message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<wrapped_row_content<RowConT>>()) {
-		content = any_cast<wrapped_row_content<RowConT>>(payload).content;
+	if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
+		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
 		update(state);
 		return message_result::consumed;
 	}
@@ -876,7 +902,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
 		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
 			if(i >= 0) {
-				Cyto::Any payload = wrapped_row_content<RowConT>{ row_contents[i--] };
+				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ row_contents[i--] };
 				row_windows[rw_i]->impl_get(state, payload);
 				row_windows[rw_i]->set_visible(state, true);
 			} else {
@@ -887,7 +913,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		auto i = size_t(scroll_pos);
 		for(RowWinT* row_window : row_windows) {
 			if(i < row_contents.size()) {
-				Cyto::Any payload = wrapped_row_content<RowConT>{ row_contents[i++] };
+				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ row_contents[i++] };
 				row_window->impl_get(state, payload);
 				row_window->set_visible(state, true);
 			} else {

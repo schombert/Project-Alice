@@ -4,6 +4,9 @@
 #include "simple_fs.hpp"
 #include "system_state.hpp"
 
+#ifndef DCON_TRAP_INVALID_STORE
+#define DCON_TRAP_INVALID_STORE 1
+#endif
 
 #define ALICE_NO_ENTRY_POINT
 #include "main.cpp"

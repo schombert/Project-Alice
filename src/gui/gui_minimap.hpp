@@ -21,6 +21,105 @@ public:
 	}
 
 	map_mode::mode target = map_mode::mode::terrain;
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		switch(target) {
+			case map_mode::mode::admin:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_8")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::civilization_level:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_19")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::colonial:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_7")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::crisis:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_21")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::diplomatic:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_4")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::infrastructure:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_6")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::migration:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_18")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::naval:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_22")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::nationality:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_13")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::national_focus:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_10")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::party_loyalty:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_16")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::political:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_2")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::population:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_12")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::rank:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_17")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::recruitment:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_9")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::region:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_5")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::relation:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_20")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::revolt:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_3")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::rgo_output:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_11")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::sphere:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_14")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::supply:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_15")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+			case map_mode::mode::terrain:
+				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_1")); k != state.key_to_text_sequence.end())
+					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				break;
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class minimap_goto_button : public button_element_base {

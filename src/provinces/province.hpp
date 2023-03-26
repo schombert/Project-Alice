@@ -27,6 +27,7 @@ struct global_provincial_state {
 	dcon::modifier_id north_america;
 	dcon::modifier_id south_america;
 	dcon::modifier_id oceania;
+	dcon::modifier_id mena; // Non-vanila
 };
 
 template<typename F>
@@ -43,7 +44,11 @@ void restore_unsaved_values(sys::state& state);
 template<typename T>
 auto is_overseas(sys::state const& state, T ids);
 
-void update_state_administrative_efficiency(sys::state& state);
+// can we just do without this?
+// void update_state_administrative_efficiency(sys::state& state);
+
+bool has_railroads_being_built(sys::state& state, dcon::province_id id);
+bool can_build_railroads(sys::state& state, dcon::province_id id);
 
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
 float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
@@ -55,6 +60,6 @@ float rgo_income(sys::state& state, dcon::province_id id);
 float rgo_production_quantity(sys::state& state, dcon::province_id id);
 float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);
-
+float revolt_risk(sys::state& state, dcon::province_id id);
 }
 

@@ -218,6 +218,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.north_america);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.south_america);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.oceania);
+		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.mena); // Non-vanilla
 	}
 	ptr_in = memcpy_deserialize(ptr_in, state.start_date);
 	ptr_in = memcpy_deserialize(ptr_in, state.end_date);
@@ -386,6 +387,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.north_america);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.south_america);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.oceania);
+		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.mena); // Non-vanilla
 	}
 	ptr_in = memcpy_serialize(ptr_in, state.start_date);
 	ptr_in = memcpy_serialize(ptr_in, state.end_date);
@@ -552,6 +554,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.province_definitions.north_america);
 		sz += sizeof(state.province_definitions.south_america);
 		sz += sizeof(state.province_definitions.oceania);
+		sz += sizeof(state.province_definitions.mena); // Non-vanilla
 	}
 	sz += sizeof(state.start_date);
 	sz += sizeof(state.end_date);

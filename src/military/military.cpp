@@ -31,6 +31,7 @@ void restore_unsaved_values(sys::state& state) {
 	});
 	update_all_recruitable_regiments(state);
 	regenerate_total_regiment_counts(state);
+	update_naval_supply_points(state);
 }
 
 bool can_use_cb_against(sys::state const& state, dcon::nation_id from, dcon::nation_id target) {
@@ -80,13 +81,51 @@ bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 }
 
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p) {
-	// TODO
-	return 10;
+	/*
+	(province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
+	*/
+	float modifier = 2.0f;
+	auto prov_controller = state.world.province_get_nation_from_province_control(p);
+	auto self_controlled = prov_controller == n;
+	if(state.world.province_get_nation_from_province_ownership(p) == n && self_controlled) {
+		modifier = 2.5f;
+	} else if(self_controlled || bool(state.world.province_get_rebel_faction_from_province_rebel_control(p))) { // TODO: check for sieging
+		modifier = 2.0f;
+	} /*else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, n);
+		state.world.diplomatic_relation_get_are_allied(dip_rel)
+		) {
+		modifier = 2.0f;
+	} else if(auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(prov_controller, n);
+		state.world.unilateral_relationship_get_military_access(uni_rel)
+		) {
+		modifier = 2.0f;
+	} else if(bool(state.world.get_core_by_prov_tag_key(p, state.world.nation_get_identity_from_identity_holder(n)))) {
+		modifier = 2.0f;
+	}*/
+	auto base_supply_lim = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::supply_limit) + 1.0f);
+	auto national_supply_lim = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_limit) + 1.0f);
+	return int32_t( base_supply_lim * modifier * national_supply_lim );
 }
 int32_t regiments_created_from_province(sys::state& state, dcon::province_id p) {
 	int32_t total = 0;
 	for(auto pop : state.world.province_get_pop_location(p)) {
 		if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+			auto regs = pop.get_pop().get_regiment_source();
+			total += int32_t(regs.end() - regs.begin());
+		}
+	}
+	return total;
+}
+int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::province_id p) {
+	/*
+	Mobilized regiments come only from non-colonial provinces.
+	*/
+	if(fatten(state.world, p).get_is_colonial())
+		return 0;
+
+	int32_t total = 0;
+	for(auto pop : state.world.province_get_pop_location(p)) {
+		if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers && pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
 			auto regs = pop.get_pop().get_regiment_source();
 			total += int32_t(regs.end() - regs.begin());
 		}
@@ -130,6 +169,33 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 	return total;
 }
 
+int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p) {
+	/*
+	Mobilized regiments come only from unoccupied, non-colonial provinces. 
+	*/
+	auto fp = fatten(state.world, p);
+	if(fp.get_is_colonial() || fp.get_nation_from_province_control() != fp.get_nation_from_province_ownership())
+		return 0;
+
+	int32_t total = 0;
+	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
+	auto mobilization_size = fp.get_nation_from_province_ownership().get_modifier_values(sys::national_mod_offsets::mobilisation_size);
+
+	for(auto pop : state.world.province_get_pop_location(p)) {
+		/*
+		In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either the primary culture of the nation or an accepted culture.
+		*/
+
+		if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers && pop.get_pop().get_poptype() != state.culture_definitions.slaves && pop.get_pop().get_is_primary_or_accepted_culture() && pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+
+			/*
+			The number of regiments these pops can provide is determined by pop-size x mobilization-size / define:POP_SIZE_PER_REGIMENT.
+			*/
+			total += int32_t(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment);
+		}
+	}
+	return total;
+}
 
 void update_recruitable_regiments(sys::state& state, dcon::nation_id n) {
 	state.world.nation_set_recruitable_regiments(n, uint16_t(0));
@@ -171,10 +237,8 @@ void regenerate_land_unit_average(sys::state& state) {
 		float total = 0;
 		float count = 0;
 
-		auto lo_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::land_attack_modifier - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::land_attack_modifier - sys::provincial_mod_offsets::count);
-		auto ld_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::land_defense_modifier - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::land_defense_modifier - sys::provincial_mod_offsets::count);
+		auto lo_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_attack_modifier);
+		auto ld_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_defense_modifier);
 
 		for(uint32_t i = 2; i < max; ++i) {
 			dcon::unit_type_id u{ dcon::unit_type_id::value_base_t(i) };
@@ -194,10 +258,8 @@ void regenerate_ship_scores(sys::state& state) {
 	*/
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		float total = 0;
-		auto no_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::naval_attack_modifier - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::naval_attack_modifier - sys::provincial_mod_offsets::count);
-		auto nd_mod = state.world.nation_get_static_modifier_values(n, sys::national_mod_offsets::naval_defense_modifier - sys::provincial_mod_offsets::count)
-			+ state.world.nation_get_fluctuating_modifier_values(n, sys::national_mod_offsets::naval_defense_modifier - sys::provincial_mod_offsets::count);
+		auto no_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_attack_modifier);
+		auto nd_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::naval_defense_modifier);
 
 		for(auto nv : state.world.nation_get_navy_control(n)) {
 			for(auto shp : nv.get_navy().get_navy_membership()) {
@@ -208,6 +270,57 @@ void regenerate_ship_scores(sys::state& state) {
 			}
 		}
 		state.world.nation_set_capital_ship_score(n, total / 250.0f);
+	});
+}
+
+int32_t naval_supply_points(sys::state& state, dcon::nation_id n) {
+	return int32_t(state.world.nation_get_naval_supply_points(n));
+}
+int32_t naval_supply_points_used(sys::state& state, dcon::nation_id n) {
+	return int32_t(state.world.nation_get_used_naval_supply_points(n));
+}
+
+void update_naval_supply_points(sys::state& state) {
+	/*
+	- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or define:NAVAL_BASE_SUPPLY_SCORE_EMPTY for each state without one, multiplied by define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE if it is neither a core nor connected to the capital.
+	*/
+	state.world.for_each_nation([&](dcon::nation_id n) {
+		auto cap_region = state.world.province_get_connected_region_id(state.world.nation_get_capital(n));
+		float total = 0;
+		for(auto si : state.world.nation_get_state_ownership(n)) {
+			auto d = state.world.state_instance_get_definition(si.get_state());
+			bool saw_coastal = false;
+			int32_t nb_level = 0;
+			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				if(p.get_province().get_nation_from_province_ownership() == n) {
+					if(p.get_province().get_is_coast()) {
+						saw_coastal = true;
+					}
+					nb_level = std::max(nb_level, int32_t(p.get_province().get_naval_base_level()));
+				}
+			}
+			bool is_core_or_connected = si.get_state().get_capital().get_is_owner_core() || si.get_state().get_capital().get_connected_region_id() == cap_region;
+			float core_factor = is_core_or_connected ? 1.0f : state.defines.naval_base_non_core_supply_score;
+			if(nb_level > 0) {
+				total += state.defines.naval_base_supply_score_base * float(1 << (nb_level - 1)) * core_factor;
+			} else if(saw_coastal) {
+				total += state.defines.naval_base_supply_score_empty * core_factor;
+			}
+		}
+		state.world.nation_set_naval_supply_points(n, uint16_t(total));
+	});
+
+	/*
+	- ships consume naval base supply at their supply_consumption_score. Going over the naval supply score comes with various penalties (described elsewhere).
+	*/
+	state.world.for_each_nation([&](dcon::nation_id n) {
+		float total = 0;
+		for(auto nv : state.world.nation_get_navy_control(n)) {
+			for(auto shp : nv.get_navy().get_navy_membership()) {
+				total += state.world.nation_get_unit_stats(n, shp.get_ship().get_type()).supply_consumption;
+			}
+		}
+		state.world.nation_set_used_naval_supply_points(n, uint16_t(total));
 	});
 }
 
