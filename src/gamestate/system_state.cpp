@@ -135,6 +135,7 @@ namespace sys {
 
 		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
 
+		map_display.update_borders(*this);
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 

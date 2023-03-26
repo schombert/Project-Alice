@@ -3,7 +3,7 @@ message(STATUS "Fetching unordered_dense ...")
 FetchContent_Declare(
         unordered_dense
         GIT_REPOSITORY https://github.com/martinus/unordered_dense
-        GIT_TAG v3.0.2
+        GIT_TAG v3.1.1
 )
 
 FetchContent_MakeAvailable(unordered_dense)

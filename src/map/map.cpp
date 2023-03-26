@@ -97,13 +97,6 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 	return texture_handle;
 }
 
-struct border {
-	border(uint32_t border_id): id{ border_id } {
-	}
-	uint32_t id;
-	std::vector<border_vertex> vertices;
-};
-
 enum direction: uint8_t {
 	UP_LEFT = 1 << 7,
 	UP_RIGHT = 1 << 6,
@@ -135,27 +128,29 @@ struct BorderDirection {
 void display_data::load_border_data(parsers::scenario_building_context& context) {
 	border_vertices.clear();
 
-	std::unordered_map<uint32_t, border> borders;
 	glm::vec2 map_size(size_x, size_y);
 
+	std::vector<std::vector<border_vertex>> borders_list_vertices;
+
 	// The borders of the current row and last row
-	std::vector<BorderDirection> border_direction(size_x * 2);
+	std::vector<BorderDirection> current_row(size_x);
+	std::vector<BorderDirection> last_row(size_x);
 	// Will check if there is an border there already and extend if it can
 	auto extend_if_possible = [&](uint32_t x, int32_t border_id, direction dir) -> bool {
 		if(dir == direction::LEFT)
-			if(x - 1 < 0)
+			if(x == 0)
 				return false;
 
 		BorderDirection::Information direction_information;
 		switch(dir) {
 			case direction::UP:
-				direction_information = border_direction[x].down; break;
+				direction_information = last_row[x].down; break;
 			case direction::DOWN:
-				direction_information = border_direction[x + size_x].up; break;
+				direction_information = current_row[x].up; break;
 			case direction::LEFT:
-				direction_information = border_direction[x - 1 + size_x].right; break;
+				direction_information = current_row[x - 1].right; break;
 			case direction::RIGHT:
-				direction_information = border_direction[x + size_x].left; break;
+				direction_information = current_row[x].left; break;
 			default:
 				return false;
 		}
@@ -166,31 +161,33 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		if(border_index == -1)
 			return false;
 
+		auto& current_border_vertices = borders_list_vertices[border_id];
+
 		switch(dir) {
 			case direction::UP:
 			case direction::DOWN:
-				border_vertices[border_index + 2].position_.y += 0.5f / map_size.y;
-				border_vertices[border_index + 3].position_.y += 0.5f / map_size.y;
-				border_vertices[border_index + 4].position_.y += 0.5f / map_size.y;
+				current_border_vertices[border_index + 2].position_.y += 0.5f / map_size.y;
+				current_border_vertices[border_index + 3].position_.y += 0.5f / map_size.y;
+				current_border_vertices[border_index + 4].position_.y += 0.5f / map_size.y;
 				break;
 			case direction::LEFT:
 			case direction::RIGHT:
-				border_vertices[border_index + 2].position_.x += 0.5f / map_size.x;
-				border_vertices[border_index + 3].position_.x += 0.5f / map_size.x;
-				border_vertices[border_index + 4].position_.x += 0.5f / map_size.x;
+				current_border_vertices[border_index + 2].position_.x += 0.5f / map_size.x;
+				current_border_vertices[border_index + 3].position_.x += 0.5f / map_size.x;
+				current_border_vertices[border_index + 4].position_.x += 0.5f / map_size.x;
 				break;
 			default:
 				break;
 		}
 		switch(dir) {
 			case direction::UP:
-				border_direction[x + size_x].up = direction_information; break;
+				current_row[x].up = direction_information; break;
 			case direction::DOWN:
-				border_direction[x + size_x].down = direction_information; break;
+				current_row[x].down = direction_information; break;
 			case direction::LEFT:
-				border_direction[x + size_x].left = direction_information; break;
+				current_row[x].left = direction_information; break;
 			case direction::RIGHT:
-				border_direction[x + size_x].right = direction_information; break;
+				current_row[x].right = direction_information; break;
 			default:
 				break;
 		}
@@ -202,9 +199,9 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		glm::vec2 direction = normalize(offset2 - offset1);
 		glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
 
-		// if(!borders.count(border_id))
-		// 	borders.emplace(border_id, border(border_id));
-		// auto border = borders.at(border_id);
+		if(border_id >= borders_list_vertices.size())
+			borders_list_vertices.resize(border_id + 1);
+		auto& current_border_vertices = borders_list_vertices[border_id];
 
 		// Offset the map position
 		map_pos += glm::vec2(0.5f);
@@ -216,26 +213,26 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		pos1 /= map_size;
 		pos2 /= map_size;
 
-		int32_t border_index = border_vertices.size();
+		int32_t border_index = current_border_vertices.size();
 		// First vertex of the line segment
-		border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
-		border_vertices.emplace_back(pos1, -normal_direction, direction, border_id);
-		border_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
+		current_border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
+		current_border_vertices.emplace_back(pos1, -normal_direction, direction, border_id);
+		current_border_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
 		// Second vertex of the line segment
-		border_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
-		border_vertices.emplace_back(pos2, normal_direction, -direction, border_id);
-		border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
+		current_border_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
+		current_border_vertices.emplace_back(pos2, normal_direction, -direction, border_id);
+		current_border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
 
 		BorderDirection::Information direction_information(border_index, border_id);
 		switch(dir) {
 			case direction::UP:
-				border_direction[x + size_x].up = direction_information; break;
+				current_row[x].up = direction_information; break;
 			case direction::DOWN:
-				border_direction[x + size_x].down = direction_information; break;
+				current_row[x].down = direction_information; break;
 			case direction::LEFT:
-				border_direction[x + size_x].left = direction_information; break;
+				current_row[x].left = direction_information; break;
 			case direction::RIGHT:
-				border_direction[x + size_x].right = direction_information; break;
+				current_row[x].right = direction_information; break;
 			default:
 				break;
 		}
@@ -245,6 +242,9 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	auto get_border_index = [&](uint16_t map_province_id1, uint16_t map_province_id2) -> int32_t {
 		auto province_id1 = province::from_map_id(map_province_id1);
 		auto province_id2 = province::from_map_id(map_province_id2);
+		if (map_province_id1 == 3087 && map_province_id2 == 3088) {
+			int i = 0;
+		}
 		auto border_index = context.state.world.get_province_adjacency_by_province_pair(province_id1, province_id2).index();
 		if(border_index == -1)
 			border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2).index();
@@ -362,9 +362,29 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		}
 		// Move the border_direction rows a step down
 		for(uint32_t x = 0; x < size_x; x++) {
-			border_direction[x] = border_direction[x + size_x];
-			border_direction[x + size_x] = BorderDirection();
+			last_row[x] = current_row[x];
+			current_row[x] = BorderDirection();
 		}
+	}
+
+	borders.resize(borders_list_vertices.size());
+	for(int border_id = 0; border_id < borders.size(); border_id++) {
+		auto& border = borders[border_id];
+		auto& current_border_vertices = borders_list_vertices[border_id];
+		border.start_index = border_vertices.size();
+		border.count = current_border_vertices.size();
+		border.type_flag = context.state.world.province_adjacency_get_type(dcon::province_adjacency_id(border_id));
+
+		border_vertices.insert(border_vertices.end(),
+			std::make_move_iterator(current_border_vertices.begin()),
+			std::make_move_iterator(current_border_vertices.end()));
+	}
+}
+
+void display_data::update_borders(sys::state& state) {
+	for(int border_id = 0; border_id < borders.size(); border_id++) {
+		auto& border = borders[border_id];
+		border.type_flag = state.world.province_adjacency_get_type(dcon::province_adjacency_id(border_id));
 	}
 }
 
@@ -674,7 +694,23 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 	// Draw the borders
 	load_shader(line_border_shader);
 	glBindVertexArray(border_vao);
-	glDrawArrays(GL_TRIANGLES, 0, border_vertices.size());
+
+	uint8_t visible_borders =
+		( province::border::national_bit
+		| province::border::coastal_bit
+		| province::border::non_adjacent_bit
+		| province::border::impassible_bit);
+	if (zoom > 5)
+		visible_borders |= province::border::state_bit;
+	std::vector<GLint> first;
+	std::vector<GLsizei> count;
+	for(auto& border : borders) {
+		if (border.type_flag & visible_borders) {
+			first.push_back(border.start_index);
+			count.push_back(border.count);
+		}
+	}
+	glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], count.size());
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
