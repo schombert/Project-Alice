@@ -58,11 +58,13 @@ void make_national_value(std::string_view name, token_generator& gen, error_hand
 
 	auto new_modifier = context.state.world.create_modifier();
 
-	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(context.number_of_national_values_seen));
 	context.state.world.modifier_set_name(new_modifier, name_id);
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
+
+	++context.number_of_national_values_seen;
 }
 
 void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context) {

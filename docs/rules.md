@@ -99,7 +99,7 @@ A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS
 
 ### Workforce adjustment
 
-This is a common concept between both factories and RGOs, which both have employment. When we are adjusting the number of workers employed we have both a target number of employees that the adjustment is made towards and a speed factor that determines how fast the adjustment is made. Let us call the change in employment required to reach our target delta. When firing people, we fire up to the greater of 50 or delta x define:EMPLOYMENT_HIRE_LOWEST, and then limit that to at most delta x speed-factor x 0.25. When hiring people, the logic appears to be completely different. People are hired towards the target at the rate of delta x speed-factor, or define:EMPLOYMENT_HIRE_LOWEST x number-currently-employed, or 50, whichever is greater.
+This is a common concept between both factories and RGOs, which both have employment. When we are adjusting the number of workers employed we have both a target number of employees that the adjustment is made towards and a speed factor that determines how fast the adjustment is made. Let us call the change in employment required to reach our target delta. When firing people, we fire up to the greater of 50 or delta x define:EMPLOYMENT_FIRE_LOWEST, and then limit that to at most delta x speed-factor x 0.25. When hiring people, the logic appears to be completely different. People are hired towards the target at the rate of delta x speed-factor, or define:EMPLOYMENT_HIRE_LOWEST x number-currently-employed, or 50, whichever is greater.
 
 ### Factory internals
 

@@ -355,6 +355,7 @@ namespace parsers {
 		dcon::global_flag_id get_global_flag(std::string const& name);
 
 		int32_t number_of_commodities_seen = 0;
+		int32_t number_of_national_values_seen = 0;
 	};
 
 	struct national_identity_file {
