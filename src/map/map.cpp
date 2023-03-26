@@ -199,7 +199,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		glm::vec2 direction = normalize(offset2 - offset1);
 		glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
 
-		if(border_id >= borders_list_vertices.size())
+		if(uint32_t(border_id) >= borders_list_vertices.size())
 			borders_list_vertices.resize(border_id + 1);
 		auto& current_border_vertices = borders_list_vertices[border_id];
 
@@ -213,7 +213,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		pos1 /= map_size;
 		pos2 /= map_size;
 
-		int32_t border_index = current_border_vertices.size();
+		int32_t border_index = int32_t(current_border_vertices.size());
 		// First vertex of the line segment
 		current_border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
 		current_border_vertices.emplace_back(pos1, -normal_direction, direction, border_id);
@@ -368,12 +368,12 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	}
 
 	borders.resize(borders_list_vertices.size());
-	for(int border_id = 0; border_id < borders.size(); border_id++) {
+	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
 		auto& border = borders[border_id];
 		auto& current_border_vertices = borders_list_vertices[border_id];
-		border.start_index = border_vertices.size();
-		border.count = current_border_vertices.size();
-		border.type_flag = context.state.world.province_adjacency_get_type(dcon::province_adjacency_id(border_id));
+		border.start_index = int32_t(border_vertices.size());
+		border.count = int32_t(current_border_vertices.size());
+		border.type_flag = context.state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
 
 		border_vertices.insert(border_vertices.end(),
 			std::make_move_iterator(current_border_vertices.begin()),
@@ -382,9 +382,9 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 }
 
 void display_data::update_borders(sys::state& state) {
-	for(int border_id = 0; border_id < borders.size(); border_id++) {
+	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
 		auto& border = borders[border_id];
-		border.type_flag = state.world.province_adjacency_get_type(dcon::province_adjacency_id(border_id));
+		border.type_flag = state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
 	}
 }
 
@@ -710,7 +710,7 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 			count.push_back(border.count);
 		}
 	}
-	glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], count.size());
+	glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -859,8 +859,9 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 }
 
 void display_data::load_province_data(parsers::scenario_building_context& context, image& image) {
-	province_id_map.resize(image.size_x * image.size_y);
-	for(uint32_t i = 0; i < image.size_x * image.size_y; ++i) {
+	uint32_t imsz = uint32_t(image.size_x * image.size_y);
+	province_id_map.resize(imsz);
+	for(uint32_t i = 0; i < imsz; ++i) {
 		uint8_t* ptr = image.data + i * 4;
 		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
 		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
