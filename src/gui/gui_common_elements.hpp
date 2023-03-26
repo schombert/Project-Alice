@@ -635,6 +635,46 @@ public:
 	}
 };
 
+class nation_plurality_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto plurality = state.world.nation_get_plurality(nation_id);
+		return std::to_string(int32_t(plurality)) + '%';
+	}
+};
+
+class nation_revanchism_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto revanchism = state.world.nation_get_revanchism(nation_id);
+		return std::to_string(int32_t(revanchism)) + '%';
+	}
+};
+
+class nation_can_do_social_reform_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		if(nations::has_social_reform_available(state, nation_id)) {
+			// yes, the original localisation says "refroms"
+			return text::produce_simple_string(state, "politics_can_do_social_refroms");
+		} else {
+			return text::produce_simple_string(state, "politics_can_not_do_social_refroms");
+		}
+	}
+};
+
+class nation_can_do_political_reform_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		if(nations::has_political_reform_available(state, nation_id)) {
+			// yes, the original localisation says "refroms"
+			return text::produce_simple_string(state, "politics_can_do_political_refroms");
+		} else {
+			return text::produce_simple_string(state, "politics_can_not_do_political_refroms");
+		}
+	}
+};
+
 class standard_nation_icon : public image_element_base {
 protected:
 	dcon::nation_id nation_id{};
@@ -691,6 +731,28 @@ public:
 	}
 };
 
+class nation_national_value_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		auto nat_val = state.world.nation_get_national_value(nation_id);
+		return nat_val.get_icon();
+	}
+};
+
+class nation_can_do_social_reform_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(!nations::has_social_reform_available(state, nation_id));
+	}
+};
+
+class nation_can_do_political_reform_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(!nations::has_political_reform_available(state, nation_id));
+	}
+};
+
 class pop_type_icon : public button_element_base {
 protected:
 	dcon::pop_type_id pop_type_id{};
@@ -709,6 +771,71 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class nation_ideology_percentage_text : public simple_text_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::ideology_id ideology_id{};
+
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(nation_id && ideology_id) {
+			auto percentage = .01f * state.world.nation_get_upper_house(nation_id, ideology_id);
+			set_text(state, text::format_percentage(percentage, 3));
+		}
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::ideology_id>()) {
+			ideology_id = any_cast<dcon::ideology_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}  else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class upper_house_piechart : public piechart_element_base {
+protected:
+	std::vector<uint8_t> get_colors(sys::state& state) noexcept override {
+		std::vector<uint8_t> colors(resolution * channels);
+		Cyto::Any nat_id_payload = dcon::nation_id{};
+		size_t i = 0;
+		if(parent) {
+			parent->impl_get(state, nat_id_payload);
+			if(nat_id_payload.holds_type<dcon::nation_id>()) {
+				auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
+				dcon::ideology_id last_ideology{};
+				state.world.for_each_ideology([&](dcon::ideology_id ideo_id) {
+					last_ideology = ideo_id;
+					auto ideo_fat_id = dcon::fatten(state.world, ideo_id);
+					auto weight = .01f * state.world.nation_get_upper_house(nat_id, ideo_id);
+					auto slice_count = std::min(size_t(weight * resolution), i + resolution * channels);
+					auto color = ideo_fat_id.get_color();
+					for(size_t j = 0; j < slice_count * channels; j += channels) {
+						colors[j + i] = uint8_t(color & 0xFF);
+						colors[j + i + 1] = uint8_t(color >> 8 & 0xFF);
+						colors[j + i + 2] = uint8_t(color >> 16 & 0xFF);
+					}
+					i += slice_count * channels;
+				});
+				auto fat_last_ideology = dcon::fatten(state.world, last_ideology);
+				auto last_color = fat_last_ideology.get_color();
+				for(; i < colors.size(); i += channels) {
+					colors[i] = uint8_t(last_color & 0xFF);
+					colors[i + 1] = uint8_t(last_color >> 8 & 0xFF);
+					colors[i + 2] = uint8_t(last_color >> 16 & 0xFF);
+				}
+			}
+		}
+		return colors;
 	}
 };
 

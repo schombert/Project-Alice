@@ -240,6 +240,8 @@ float leadership_points(sys::state const& state, dcon::nation_id n);
 int32_t free_colonial_points(sys::state const& state, dcon::nation_id n);
 int32_t max_colonial_points(sys::state const& state, dcon::nation_id n);
 
+bool has_political_reform_available(sys::state& state, dcon::nation_id n);
+bool has_social_reform_available(sys::state& state, dcon::nation_id n);
 bool has_reform_available(sys::state& state, dcon::nation_id n);
 bool has_decision_available(sys::state& state, dcon::nation_id n);
 int32_t max_national_focuses(sys::state& state, dcon::nation_id n);

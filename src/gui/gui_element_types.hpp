@@ -483,6 +483,18 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 
+template<class RowConT>
+class wrapped_listbox_row_content {
+public:
+	RowConT content;
+	wrapped_listbox_row_content() {
+		content = RowConT{};
+	}
+	wrapped_listbox_row_content(RowConT con) {
+		content = con;
+	}
+};
+
 template<class RowWinT, class RowConT>
 class standard_listbox_scrollbar : public scrollbar {
 public:
