@@ -753,6 +753,48 @@ public:
 	}
 };
 
+class nation_ruling_party_ideology_plupp : public tinted_image_element_base {
+protected:
+	dcon::nation_id nation_id{};
+
+public:
+	uint32_t get_tint_color(sys::state& state) noexcept override {
+		auto ruling_party = state.world.nation_get_ruling_party(nation_id);
+		auto ideology = state.world.political_party_get_ideology(ruling_party);
+		return state.world.ideology_get_color(ideology);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class ideology_plupp : public tinted_image_element_base {
+protected:
+	dcon::ideology_id ideology_id{};
+
+public:
+	uint32_t get_tint_color(sys::state& state) noexcept override {
+		return state.world.ideology_get_color(ideology_id);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::ideology_id>()) {
+			ideology_id = any_cast<dcon::ideology_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
 class pop_type_icon : public button_element_base {
 protected:
 	dcon::pop_type_id pop_type_id{};

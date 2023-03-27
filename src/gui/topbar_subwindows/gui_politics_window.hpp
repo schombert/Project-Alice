@@ -34,7 +34,9 @@ private:
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "ideology_name") {
+		if(name == "ideology_icon") {
+			return make_element_by_type<ideology_plupp>(state, id);
+		} else if(name == "ideology_name") {
 			return make_element_by_type<generic_name_text<dcon::ideology_id>>(state, id);
 		} else if(name == "ideology_perc") {
 			return make_element_by_type<nation_ideology_percentage_text>(state, id);

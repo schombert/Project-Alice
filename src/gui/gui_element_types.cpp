@@ -198,6 +198,32 @@ void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcep
 	}
 }
 
+void tinted_image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	dcon::gfx_object_id gid;
+	if(base_data.get_element_type() == element_type::image) {
+		gid = base_data.data.image.gfx_object;
+	} else if(base_data.get_element_type() == element_type::button) {
+		gid = base_data.data.button.button_image;
+	}
+	if(gid) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.primary_texture_handle) {
+			ogl::render_tinted_textured_rect(
+				state,
+				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				float(color & 0xFF) / 255.f, float((color >> 8) & 0xFF) / 255.f, float((color >> 16) & 0xFF) / 255.f,
+				ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+				base_data.get_rotation(),
+				gfx_def.is_vertically_flipped()
+			);
+		}
+	}
+}
+
+void tinted_image_element_base::on_update(sys::state& state) noexcept {
+	color = get_tint_color(state);
+}
+
 void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	image_element_base::render(state, x, y);
 	if(stored_text.length() > 0) {
