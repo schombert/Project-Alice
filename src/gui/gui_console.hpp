@@ -6,7 +6,7 @@ namespace ui {
 
 class console_edit : public edit_box_element_base {
 public:
-	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept;
+	void edit_box_enter(sys::state& state, std::string_view s) noexcept override;
 	void edit_box_esc(sys::state& state) noexcept override {
 		state.ui_state.console_window->set_visible(state, false);
 	}
@@ -77,7 +77,7 @@ public:
 
 	static void show_toggle(sys::state& state);
 
-	virtual void on_visible(sys::state& state) noexcept {
+	void on_visible(sys::state& state) noexcept override {
 		state.ui_state.edit_target = edit_box;
 	}
 };

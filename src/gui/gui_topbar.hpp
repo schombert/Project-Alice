@@ -373,6 +373,8 @@ public:
 			return make_element_by_type<nation_research_points_text>(state, id);
 		} else if(name == "tech_literacy_value") {
 			return make_element_by_type<nation_literacy_text>(state, id);
+		} else if(name == "politics_party_icon") {
+			return make_element_by_type<nation_ruling_party_ideology_plupp>(state, id);
 		} else if(name == "politics_ruling_party") {
 			return make_element_by_type<nation_ruling_party_text>(state, id);
 		} else if(name == "politics_supressionpoints_value") {

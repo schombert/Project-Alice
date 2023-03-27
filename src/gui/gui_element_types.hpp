@@ -62,6 +62,18 @@ public:
 	void on_create(sys::state& state) noexcept override;
 };
 
+class tinted_image_element_base : public image_element_base {
+private:
+	uint32_t color = 0;
+
+public:
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	virtual uint32_t get_tint_color(sys::state& state) noexcept {
+		return 0;
+	}
+};
+
 class opaque_element_base : public image_element_base {
 public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
