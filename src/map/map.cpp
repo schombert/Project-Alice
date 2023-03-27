@@ -1132,20 +1132,28 @@ void display_data::set_pos(glm::vec2 new_pos) {
 }
 
 void display_data::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount) {
-	constexpr auto zoom_speed_factor = 15.f;
-	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
-	has_zoom_changed = true;
+    constexpr auto zoom_speed_factor = 15.f;
+    constexpr auto max_zoom = 75.f;
+    constexpr auto min_zoom = -2.f; //TODO: Adjust zooming on a scale of 0-100 rather than having negative values.
+    
+	float adj = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
+    float new_zoom = zoom + adj;
+    if (new_zoom < min_zoom || new_zoom > max_zoom) {
+        return; // do not change zoom if it hits the max/min zoom
+    }
+    zoom_change = adj;
+    has_zoom_changed = true;
 
-	auto mouse_pos = glm::vec2(x, y);
-	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-	scroll_pos_velocity = mouse_pos - screen_size * .5f;
-	scroll_pos_velocity /= screen_size;
-	scroll_pos_velocity *= zoom_speed_factor;
-	if(zoom_change > 0) {
-		scroll_pos_velocity /= 3.f;
-	} else if(zoom_change < 0) {
-		scroll_pos_velocity /= 6.f;
-	}
+    auto mouse_pos = glm::vec2(x, y);
+    auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+    scroll_pos_velocity = mouse_pos - screen_size * .5f;
+    scroll_pos_velocity /= screen_size;
+    scroll_pos_velocity *= zoom_speed_factor;
+    if(amount > 0) {
+        scroll_pos_velocity /= 3.f;
+    } else if(amount < 0) {
+        scroll_pos_velocity /= 6.f;
+    }
 }
 
 void display_data::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
