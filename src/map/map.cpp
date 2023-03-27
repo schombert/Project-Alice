@@ -695,22 +695,68 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 	load_shader(line_border_shader);
 	glBindVertexArray(border_vao);
 
-	uint8_t visible_borders =
-		( province::border::national_bit
-		| province::border::coastal_bit
-		| province::border::non_adjacent_bit
-		| province::border::impassible_bit);
-	if (zoom > 5)
-		visible_borders |= province::border::state_bit;
-	std::vector<GLint> first;
-	std::vector<GLsizei> count;
-	for(auto& border : borders) {
-		if ((border.type_flag & visible_borders) || zoom > 8) {
-			first.push_back(border.start_index);
-			count.push_back(border.count);
+
+	if(zoom > 8) {
+		glUniform1f(4, 0.0013f);
+		uint8_t visible_borders =
+			(province::border::national_bit
+			| province::border::coastal_bit
+			| province::border::non_adjacent_bit
+			| province::border::impassible_bit
+			| province::border::state_bit);
+
+		std::vector<GLint> first;
+		std::vector<GLsizei> count;
+		for(auto& border : borders) {
+			if((border.type_flag & visible_borders) == 0) {
+				first.push_back(border.start_index);
+				count.push_back(border.count);
+			}
 		}
+		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
-	glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+
+
+	if(zoom > 3.5f) {
+		glUniform1f(4, 0.0018f);
+		uint8_t visible_borders =
+			(province::border::national_bit
+			| province::border::coastal_bit
+			| province::border::non_adjacent_bit
+			| province::border::impassible_bit);
+
+		std::vector<GLint> first;
+		std::vector<GLsizei> count;
+		for(auto& border : borders) {
+			if((border.type_flag & visible_borders) == 0 && (border.type_flag & province::border::state_bit) != 0) {
+				first.push_back(border.start_index);
+				count.push_back(border.count);
+			}
+		}
+		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+	}
+
+	{
+		glUniform1f(4, 0.0027f);
+		uint8_t visible_borders =
+			(province::border::national_bit
+			| province::border::coastal_bit
+			| province::border::non_adjacent_bit
+			| province::border::impassible_bit);
+
+		std::vector<GLint> first;
+		std::vector<GLsizei> count;
+		for(auto& border : borders) {
+			if(border.type_flag & visible_borders) {
+				first.push_back(border.start_index);
+				count.push_back(border.count);
+			}
+		}
+
+		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
+	}
+	
+	
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);

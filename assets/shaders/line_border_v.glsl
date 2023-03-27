@@ -8,10 +8,11 @@ layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
 layout (location = 2) uniform float zoom;
 layout (location = 3) uniform vec2 map_size;
+layout (location = 4) uniform float border_width;
 
 void main() {
-	float zoom_level = clamp(zoom, 2.f, 10.f);
-	float thickness = 0.002 / zoom_level;
+	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
+	float thickness = border_width / zoom_level;
 	vec2 normal_vector = normalize(normal_direction) * thickness;
 	vec2 extend_vector = -normalize(direction) * thickness / (1 + sqrt(2));
 	vec2 world_pos = vertex_position + vec2(-offset.x, offset.y);
