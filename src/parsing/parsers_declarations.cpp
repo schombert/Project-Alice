@@ -2410,5 +2410,51 @@ void war_history_file::finish(war_history_context& context) {
 	}
 }
 
+void mod_file::name(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
+	context.name = value;
+}
+
+void mod_file::path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
+	context.path = value;
+}
+
+void mod_file::user_dir(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
+	context.user_dir = value;
+}
+
+void mod_file::replace_path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context) {
+	context.replace_paths.push_back(value);
+}
+
+void mod_file::finish(mod_file_context& context) {
+	auto& fs = context.outer_context.state.common_fs;
+	for(const auto& replace_path : context.replace_paths) {
+		const auto& roots = simple_fs::list_roots(fs);
+		// Apply redirection for all roots registered...
+		for(size_t i = roots.size(); i-- > 0; ) {
+			// Path to override
+			native_string replace_path;
+			replace_path += roots[i];
+			replace_path += NATIVE_DIR_SEPARATOR;
+			replace_path += replace_path;
+			// Path to redirect overriden directory into
+			native_string new_path;
+			new_path += roots[i];
+			new_path += NATIVE_DIR_SEPARATOR;
+			new_path += context.path;
+			new_path += NATIVE_DIR_SEPARATOR;
+			new_path += replace_path;
+			simple_fs::add_replace_path_rule(fs, replace_path, new_path);
+		}
+	}
+	
+	// Add root of mod_path
+	native_string mod_path;
+	mod_path += NATIVE_M(GAME_DIR);
+	mod_path += NATIVE_DIR_SEPARATOR;
+	mod_path += context.path;
+	add_root(fs, mod_path);
+}
+
 }
 

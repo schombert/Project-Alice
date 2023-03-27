@@ -126,7 +126,11 @@ namespace simple_fs {
 		std::vector<unopened_file> accumulated_results;
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
-				const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("\\*") + extension;
+				const auto dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+				if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
+					continue;
+				}
+				const auto appended_path = dir_path + NATIVE("\\*") + extension;
 				WIN32_FIND_DATAW find_result;
 				auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 				if(find_handle != INVALID_HANDLE_VALUE) {
@@ -163,7 +167,11 @@ namespace simple_fs {
 		std::vector<directory> accumulated_results;
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
-				const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE("\\*");
+				const auto dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+				if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
+					continue;
+				}
+				const auto appended_path = dir_path + NATIVE("\\*");
 				WIN32_FIND_DATAW find_result;
 				auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 				if(find_handle != INVALID_HANDLE_VALUE) {
@@ -212,7 +220,11 @@ namespace simple_fs {
 	std::optional<file> open_file(directory const& dir, native_string_view file_name) {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
-				native_string full_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('\\') + native_string(file_name);
+				native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+				if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
+					continue;
+				}
+				native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
 				HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 				if(file_handle != INVALID_HANDLE_VALUE) {
 					return std::optional<file>(file(file_handle, full_path));
@@ -231,7 +243,11 @@ namespace simple_fs {
 	std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name) {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
-				native_string full_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('\\') + native_string(file_name);
+				native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+				if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
+					continue;
+				}
+				native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
 				DWORD dwAttrib = GetFileAttributesW(full_path.c_str());
 				if(dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
 					return std::optional<unopened_file>(unopened_file(full_path, file_name));
@@ -247,8 +263,27 @@ namespace simple_fs {
 		return std::optional<unopened_file>{};
 	}
 
+	void add_replace_path_rule(file_system& fs, native_string_view replaced_path, native_string_view new_path) {
+		fs.replace_paths.insert(std::pair{ replaced_path, new_path });
+	}
+
+	std::vector<native_string> list_roots(file_system const& fs) {
+		return fs.ordered_roots;
+	}
+
+	bool is_ignored_path(file_system const& fs, native_string_view path) {
+		for(const auto& replace_path : fs.replace_paths)
+			if(replace_path.first == path)
+				return true;
+		return false;
+	}
+
 	native_string get_full_name(unopened_file const& f) {
 		return f.absolute_path;
+	}
+
+	native_string get_file_name(unopened_file const& f) {
+		return f.file_name;
 	}
 
 	native_string get_full_name(file const& f) {

@@ -8,6 +8,7 @@
 namespace simple_fs {
 	class file_system {
 		std::vector<native_string> ordered_roots;
+		std::map<native_string, native_string> replace_paths; // to-replace, replacement
 
 		void operator=(file_system const& other) = delete;
 		void operator=(file_system&& other) = delete;
@@ -24,6 +25,9 @@ namespace simple_fs {
 		friend std::vector<directory> list_subdirectories(directory const& dir);
 		friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
 		friend std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name);
+		friend void add_replace_path_rule(file_system& fs, native_string_view replaced_path, native_string_view new_path);
+		friend std::vector<native_string> list_roots(file_system const& fs);
+		friend bool is_ignored_path(file_system const& fs, native_string_view path);
 	};
 
 
@@ -54,6 +58,7 @@ namespace simple_fs {
 		friend std::optional<file> open_file(unopened_file const& f);
 		friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
 		friend native_string get_full_name(unopened_file const& f);
+		friend native_string get_file_name(unopened_file const& f);
 	};
 
 

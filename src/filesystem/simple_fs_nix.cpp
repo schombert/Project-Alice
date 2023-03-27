@@ -129,6 +129,9 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
             DIR* d;
             struct dirent* dir_ent;
             const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+            if(simple_fs::is_ignored_path(*dir.parent_system, appended_path)) {
+                continue;
+            }
             d = opendir(appended_path.c_str());
             if (d) {
                 while ((dir_ent = readdir(d)) != nullptr) {
@@ -186,9 +189,12 @@ std::vector<directory> list_subdirectories(directory const& dir) {
     std::vector<directory> accumulated_results;
     if (dir.parent_system) {
         for (size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
-            const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
             DIR* d;
             struct dirent* dir_ent;
+            const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+            if(simple_fs::is_ignored_path(*dir.parent_system, appended_path)) {
+                continue;
+            }
             d = opendir(appended_path.c_str());
             if (d) {
                 while ((dir_ent = readdir(d)) != nullptr) {
@@ -239,6 +245,9 @@ std::optional<file> open_file(directory const& dir, native_string_view file_name
     if (dir.parent_system) {
         for (size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
             native_string full_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('/') + native_string(file_name);
+            if(simple_fs::is_ignored_path(*dir.parent_system, full_path)) {
+                continue;
+            }
             int file_descriptor = open(full_path.c_str(), O_RDONLY | O_NONBLOCK);
             if (file_descriptor != -1) {
                 return std::optional<file>(file(file_descriptor, full_path));
@@ -258,6 +267,9 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
     if (dir.parent_system) {
         for (size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
             native_string full_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('/') + native_string(file_name);
+            if(simple_fs::is_ignored_path(*dir.parent_system, full_path)) {
+                continue;
+            }
             struct stat stat_buf;
             int result = stat(full_path.c_str(), &stat_buf);
             if (result != -1 && S_ISREG(stat_buf.st_mode)) {
@@ -275,8 +287,27 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
     return std::optional<unopened_file>{};
 }
 
+void add_replace_path_rule(file_system& fs, native_string_view replaced_path, native_string_view new_path) {
+    fs.replace_paths.insert(std::pair{ replaced_path, new_path });
+}
+
+std::vector<native_string> list_roots(file_system const& fs) {
+    return fs.ordered_roots;
+}
+
+bool is_ignored_path(file_system const& fs, native_string_view path) {
+    for(const auto& replace_path : fs.replace_paths)
+        if(replace_path.first == path)
+            return true;
+    return false;
+}
+
 native_string get_full_name(unopened_file const& f) {
     return f.absolute_path;
+}
+
+native_string get_file_name(unopened_file const& f) {
+    return f.file_name;
 }
 
 native_string get_full_name(file const& f) {

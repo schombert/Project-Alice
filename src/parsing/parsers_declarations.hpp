@@ -2408,6 +2408,22 @@ namespace parsers {
 	};
 
 	void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context);
+
+	struct mod_file_context {
+		scenario_building_context& outer_context;
+		std::string_view name;
+		std::string_view path;
+		std::string_view user_dir;
+		std::vector<std::string_view> replace_paths;
+		mod_file_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
+	};
+	struct mod_file {
+		void name(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
+		void path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
+		void user_dir(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
+		void replace_path(association_type, std::string_view value, error_handler& err, int32_t line, mod_file_context& context);
+		void finish(mod_file_context& context);
+	};
 }
 
 #include "trigger_parsing.hpp"
