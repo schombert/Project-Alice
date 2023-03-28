@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <vector>
 #include <optional>
+#include <map>
 
 namespace simple_fs {
 	class file;
@@ -53,6 +54,10 @@ namespace simple_fs {
 	std::vector<directory> list_subdirectories(directory const& dir);
 	std::optional<file> open_file(directory const& dir, native_string_view file_name);
 	std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name);
+	void add_replace_path_rule(file_system& fs, native_string_view replaced_path, native_string_view new_path);
+	std::vector<native_string> list_roots(file_system const& fs);
+	bool is_ignored_path(file_system const& fs, native_string_view path);
+
 	directory open_directory(directory const& dir, native_string_view directory_name);
 	native_string get_full_name(directory const& f);
 
@@ -62,6 +67,7 @@ namespace simple_fs {
 	// unopened file functions
 	std::optional<file> open_file(unopened_file const& f);
 	native_string get_full_name(unopened_file const& f);
+	native_string get_file_name(unopened_file const& f);
 
 	// opened file functions
 	file_contents view_contents(file const& f);

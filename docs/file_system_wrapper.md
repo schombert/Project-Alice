@@ -29,6 +29,9 @@ The class `file_system` represents the file system as a whole. There should only
 - `directory get_root(file_system const& fs)` -- Returns a directory object representing the root of our file system (but remember, our file system is a bunch of overlapped roots, not a single place in the file hierarchy). Since you need a directory object to get anything else done, most interaction with the file system will start with this function.
 - `native_string extract_state(file_system const& fs)` -- This function is used to package the collection of roots into a single string (see the next function for more information).
 - `void restore_state(file_system& fs, native_string_view data)` -- This function sets the collection of roots for the files system back to the state it was in when the previous function call was made. The point of these two functions is to be able to save the way that the roots were when a scenario is made from a collection of mods. While we do bundle most of the information into the scenario file, we don't try to stuff in any of the art or sound assets there. Thus to play the scenario correctly we need to recreate the desired state of the file system to find the desired art and music assets.
+- `void add_replace_path_rule(file_system& fs, directory const& dir, native_string_view path)` -- Adds a "replace_path" rule to override a directory, this redirects all accesses of the directory to the given path
+- `std::vector<native_string> list_roots(file_system const& fs)` -- Obtain a list of the root paths registered on this filesystem.
+- `bool is_ignored_path(file_system const& fs, native_string_view path)` -- If this specific instance of a path should be ignored, for example if we have a mod override the folder "map/", then to properly perform the behaviour of ignoring the vanilla files we ignore all the vanilla files and pretend they don't exist, but we do not ignore the mod folder however.
 
 ### The directory object
 
@@ -48,6 +51,7 @@ The class `unopened_file` represents an file that exists in the file system, and
 
 - `std::optional<file> open_file(unopened_file const& f)` -- This function attempts to open the file and load its contents into memory. If successful, the optional will hold the file object, otherwise it will be empty.
 - `native_string get_full_name(unopened_file const& f)` -- This gets the name of the file along with any of the directories that were used to get to it, as well as the particular root that it belongs to. You can use this to send to the file to some other function without reading data form it yourself.
+- `native_string get_file_name(unopened_file const& f)` -- Obtain the filename only
 
 ### The file object
 

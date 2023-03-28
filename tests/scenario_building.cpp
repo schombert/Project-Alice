@@ -33,6 +33,32 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	parsers::scenario_building_context context(*state);
 
+	// This should have no effect whatsoever on the files, and it's only
+	// used so we can test the filesystem state later on
+	{
+		auto content = std::string_view {
+			"name = \"Test\"\n"
+			"path = \"mod/test\"\n"
+			"replace_path = \"non_existing_folder\"\n"
+		};
+		err.file_name = "test.mod";
+		parsers::token_generator gen(content.data(), content.data() + content.length());
+		
+		parsers::mod_file_context mod_file_context(context);
+		parsers::parse_mod_file(gen, err, mod_file_context);
+	}
+	{
+		auto content = std::string_view {
+			"name = \"Test2\"\n"
+			"path = \"mod/test2\"\n"
+			"replace_path = \"non_existing_folder\"\n"
+		};
+		err.file_name = "test2.mod";
+		parsers::token_generator gen(content.data(), content.data() + content.length());
+		
+		parsers::mod_file_context mod_file_context(context);
+		parsers::parse_mod_file(gen, err, mod_file_context);
+	}
 
 	auto map = open_directory(root, NATIVE("map"));
 	{
@@ -1365,6 +1391,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(tag.get_nation_from_identity_holder().get_modifier_values(sys::national_mod_offsets::civilization_progress_modifier) == 0.0f);
 	}
 
+	// Obtain filesystem state just before saving (see test below)
+	const auto fs_str = simple_fs::extract_state(state->common_fs);
 	sys::write_scenario_file(*state, NATIVE("sb_test_file.bin"));
 
 	state = nullptr;
@@ -1376,6 +1404,9 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	state->fill_unsaved_data();
 
 	// now ... retest everything
+
+	// Ensure the filesystem state is properly loaded back
+	REQUIRE(simple_fs::extract_state(state->common_fs) == fs_str);
 
 	{
 		auto tag = fatten(state->world, context.map_of_ident_names.find(nations::tag_to_int('N', 'E', 'J'))->second);
@@ -2035,5 +2066,49 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		});
 	};
 	// ***************************/
+}
+
+TEST_CASE(".mod overrides", "[req-game-files]") {
+	parsers::error_handler err("");
+	REQUIRE(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
+
+	std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
+	add_root(state->common_fs, NATIVE_M(GAME_DIR));
+	auto root = get_root(state->common_fs);
+	parsers::scenario_building_context context(*state);
+
+	// The default map exists, untouched and undisturbed
+	{
+		auto map = open_directory(root, NATIVE("map"));
+		auto def_map_file = open_file(map, NATIVE("default.map"));
+		REQUIRE(def_map_file.has_value() == true);
+	}
+
+	// As it is about to be overriden by a .mod file with no prior notice
+	{
+		auto content = std::string_view {
+			"name = \"Test\"\n"
+			"path = \"mod/test\"\n"
+			"replace_path = \"map\"\n"
+		};
+		err.file_name = "test.mod";
+		parsers::token_generator gen(content.data(), content.data() + content.length());
+		
+		parsers::mod_file_context mod_file_context(context);
+		parsers::parse_mod_file(gen, err, mod_file_context);
+	}
+
+	// Ensure the filesystem state is kept the same
+	const auto fs_str = simple_fs::extract_state(state->common_fs);
+	simple_fs::restore_state(state->common_fs, fs_str);
+	REQUIRE(simple_fs::extract_state(state->common_fs) == fs_str);
+
+	// Now the default.map file shouldn't exist as we override the path
+	// with a non-existing path
+	{
+		auto map = open_directory(root, NATIVE("map"));
+		auto def_map_file = open_file(map, NATIVE("default.map"));
+		REQUIRE(def_map_file.has_value() == false);
+	}
 }
 #endif
