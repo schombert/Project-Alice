@@ -2432,32 +2432,21 @@ void mod_file::finish(mod_file_context& context) {
 		return;
 	
 	auto& fs = context.outer_context.state.common_fs;
-	for(const auto replace_path : context.replace_paths) {
-		const auto& roots = simple_fs::list_roots(fs);
-		// Apply redirection for all roots registered...
-		for(size_t i = roots.size(); i-- > 0; ) {
-			// Path to override
-			native_string full_path;
-			full_path += roots[i];
-			full_path += NATIVE_DIR_SEPARATOR;
-			full_path += simple_fs::utf8_to_native(replace_path);
-			// Path to redirect overriden directory into
-			native_string new_path;
-			new_path += roots[i];
-			new_path += NATIVE_DIR_SEPARATOR;
-			new_path += simple_fs::utf8_to_native(context.path);
-			new_path += NATIVE_DIR_SEPARATOR;
-			new_path += simple_fs::utf8_to_native(replace_path);
-			
-			simple_fs::add_replace_path_rule(fs, full_path, new_path);
-		}
-	}
 	
 	// Add root of mod_path
-	native_string mod_path;
-	mod_path += NATIVE_M(GAME_DIR);
+	for(const auto replace_path : context.replace_paths) {
+		native_string path_block = simple_fs::list_roots(fs)[0];
+		path_block += NATIVE_DIR_SEPARATOR;
+		path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
+		if(path_block.back() != NATIVE_DIR_SEPARATOR)
+			path_block += NATIVE_DIR_SEPARATOR;
+
+		simple_fs::add_ignore_path(fs, path_block);
+	}
+
+	native_string mod_path = simple_fs::list_roots(fs)[0];
 	mod_path += NATIVE_DIR_SEPARATOR;
-	mod_path += simple_fs::utf8_to_native(context.path);
+	mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(context.path));
 	add_root(fs, mod_path);
 }
 

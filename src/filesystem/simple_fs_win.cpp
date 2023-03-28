@@ -81,7 +81,7 @@ namespace simple_fs {
 
 	void reset(file_system& fs) {
 		fs.ordered_roots.clear();
-		fs.replace_paths.clear();
+		fs.ignored_paths.clear();
 	}
 
 	void add_root(file_system& fs, native_string_view root_path) {
@@ -109,18 +109,19 @@ namespace simple_fs {
 			result += NATIVE(";") + str;
 		}
 		result += NATIVE("?");
-		for (auto const& replace_path : fs.replace_paths) {
-			result += replace_path.first + NATIVE("=") + replace_path.second + NATIVE(";");
+		for (auto const& replace_path : fs.ignored_paths) {
+			result += replace_path + NATIVE(";");
 		}
 		return result;
 	}
 
 	void restore_state(file_system& fs, native_string_view data) {
 		simple_fs::reset(fs);
+		auto break_position = std::find(data.data(), data.data() + data.length(), NATIVE('?'));
 		// Parse ordered roots
 		{
-			auto position = std::find(data.data(), data.data() + data.length(), NATIVE(';')) + 1;
-			auto end = std::find(position, data.data() + data.length(), NATIVE('?'));
+			auto position = data.data() + 1;
+			auto end = break_position;
 			while (position < end) {
 				auto next_semicolon = std::find(position, end, NATIVE(';'));
 				fs.ordered_roots.emplace_back(position, next_semicolon);
@@ -129,18 +130,12 @@ namespace simple_fs {
 		}
 		// Replaced paths
 		{
-			auto position = std::find(data.data(), data.data() + data.length(), NATIVE('?')) + 1;
+			auto position = break_position + 1;
 			auto end = data.data() + data.length();
 			while (position < end) {
-				auto next_equal_sign = std::find(position, end, NATIVE('='));
-				if(next_equal_sign >= end)
-					break;
-				native_string replace_path(position, next_equal_sign);
-				position = next_equal_sign + 1;
 				auto next_semicolon = std::find(position, end, NATIVE(';'));
-				native_string new_path(position, next_semicolon);
+				fs.ignored_paths.emplace_back(position, next_semicolon);
 				position = next_semicolon + 1;
-				fs.replace_paths.insert(std::pair{ replace_path, new_path });
 			}
 		}
 	}
@@ -150,10 +145,12 @@ namespace simple_fs {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
 				const auto dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
-				if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
+				const auto appended_path = dir_path + NATIVE("\\*") + extension;
+
+				if(simple_fs::is_ignored_path(*dir.parent_system, appended_path)) {
 					continue;
 				}
-				const auto appended_path = dir_path + NATIVE("\\*") + extension;
+
 				WIN32_FIND_DATAW find_result;
 				auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 				if(find_handle != INVALID_HANDLE_VALUE) {
@@ -191,10 +188,10 @@ namespace simple_fs {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
 				const auto dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
-				if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
+				const auto appended_path = dir_path + NATIVE("\\*");
+				if(simple_fs::is_ignored_path(*dir.parent_system, appended_path)) {
 					continue;
 				}
-				const auto appended_path = dir_path + NATIVE("\\*");
 				WIN32_FIND_DATAW find_result;
 				auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 				if(find_handle != INVALID_HANDLE_VALUE) {
@@ -244,10 +241,10 @@ namespace simple_fs {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
 				native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
-				if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
+				native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
+				if(simple_fs::is_ignored_path(*dir.parent_system, full_path)) {
 					continue;
 				}
-				native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
 				HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 				if(file_handle != INVALID_HANDLE_VALUE) {
 					return std::optional<file>(file(file_handle, full_path));
@@ -267,10 +264,10 @@ namespace simple_fs {
 		if(dir.parent_system) {
 			for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0; ) {
 				native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
-				if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
+				native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
+				if(simple_fs::is_ignored_path(*dir.parent_system, full_path)) {
 					continue;
 				}
-				native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
 				DWORD dwAttrib = GetFileAttributesW(full_path.c_str());
 				if(dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
 					return std::optional<unopened_file>(unopened_file(full_path, file_name));
@@ -286,8 +283,8 @@ namespace simple_fs {
 		return std::optional<unopened_file>{};
 	}
 
-	void add_replace_path_rule(file_system& fs, native_string_view replaced_path, native_string_view new_path) {
-		fs.replace_paths.insert(std::pair{ replaced_path, new_path });
+	void add_ignore_path(file_system& fs, native_string_view replaced_path) {
+		fs.ignored_paths.emplace_back(replaced_path);
 	}
 
 	std::vector<native_string> list_roots(file_system const& fs) {
@@ -295,9 +292,11 @@ namespace simple_fs {
 	}
 
 	bool is_ignored_path(file_system const& fs, native_string_view path) {
-		for(const auto& replace_path : fs.replace_paths)
-			if(replace_path.first == path)
+
+		for(const auto& replace_path : fs.ignored_paths) {
+			if(path.starts_with(replace_path))
 				return true;
+		}
 		return false;
 	}
 
@@ -437,7 +436,7 @@ namespace simple_fs {
 		return res;
 	}
 
-	native_string correct_slashes(native_string path) {
+	native_string correct_slashes(native_string const& path) {
 		std::wstring res;
 		res.reserve(path.size());
 		for(size_t i = 0; i < path.size(); i++) {

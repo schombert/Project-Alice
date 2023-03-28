@@ -54,7 +54,7 @@ namespace simple_fs {
 	std::vector<directory> list_subdirectories(directory const& dir);
 	std::optional<file> open_file(directory const& dir, native_string_view file_name);
 	std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name);
-	void add_replace_path_rule(file_system& fs, native_string_view replaced_path, native_string_view new_path);
+	void add_ignore_path(file_system& fs, native_string_view replaced_path);
 	std::vector<native_string> list_roots(file_system const& fs);
 	bool is_ignored_path(file_system const& fs, native_string_view path);
 
@@ -88,6 +88,6 @@ namespace simple_fs {
 	std::string native_to_utf8(native_string_view data_in);
 
 	std::string remove_double_backslashes(std::string_view data_in); // unfortunately, paradox decided to escape their paths ...
-	native_string correct_slashes(native_string path);
+	native_string correct_slashes(native_string const& path);
 }
 

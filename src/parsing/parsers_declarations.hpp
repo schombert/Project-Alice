@@ -2411,10 +2411,10 @@ namespace parsers {
 
 	struct mod_file_context {
 		scenario_building_context& outer_context;
-		std::string_view name;
-		std::string_view path;
-		std::string_view user_dir;
-		std::vector<std::string_view> replace_paths;
+		std::string name;
+		std::string path;
+		std::string user_dir;
+		std::vector<std::string> replace_paths;
 		mod_file_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
 	};
 	struct mod_file {
