@@ -724,6 +724,21 @@ bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
+std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n) {
+	std::vector<dcon::political_party_id> parties{};
+	auto identity = state.world.nation_get_identity_from_identity_holder(n);
+	auto start = state.world.national_identity_get_political_party_first(identity).id.index();
+	auto end = start + state.world.national_identity_get_political_party_count(identity);
+	parties.clear();
+	for(int32_t i = start; i < end; i++) {
+		auto fat_id = dcon::fatten(state.world, dcon::political_party_id(uint16_t(i)));
+		if((!fat_id.get_start_date() || fat_id.get_start_date() <= state.current_date) && (!fat_id.get_end_date() || fat_id.get_end_date() > state.current_date)) {
+			parties.push_back(fat_id.id);
+		}
+	}
+	return parties;
+}
+
 void update_monthly_points(sys::state& state) {
 	/*
 	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
