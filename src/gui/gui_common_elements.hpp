@@ -526,6 +526,14 @@ public:
 	}
 };
 
+class nation_budget_funds_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto budget = nations::get_treasury(state, nation_id);
+		return text::format_money(budget);
+	}
+};
+
 class nation_literacy_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -542,6 +550,7 @@ public:
 		return text::format_float(fat_id.get_infamy(), 3);
 	}
 };
+
 
 class nation_population_text : public standard_nation_text {
 public:
