@@ -1,5 +1,6 @@
 #pragma once
 #include "native_types_win.hpp"
+#include "unordered_dense.h"
 
 #ifndef UNICODE
 #define UNICODE
@@ -16,7 +17,7 @@
 namespace simple_fs {
 	class file_system {
 		std::vector<native_string> ordered_roots;
-		std::map<native_string, native_string> replace_paths; // to-replace, replacement
+		ankerl::unordered_dense::map<native_string, native_string> replace_paths; // to-replace, replacement
 
 		void operator=(file_system const& other) = delete;
 		void operator=(file_system&& other) = delete;

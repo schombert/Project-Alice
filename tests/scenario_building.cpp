@@ -2073,7 +2073,6 @@ TEST_CASE(".mod overrides", "[req-game-files]") {
 	{
 		auto map = open_directory(root, NATIVE("map"));
 		auto def_map_file = open_file(map, NATIVE("default.map"));
-		printf("%s\n", get_full_name(*def_map_file).c_str());
 		REQUIRE(def_map_file.has_value() == false);
 	}
 }

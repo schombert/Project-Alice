@@ -2440,14 +2440,14 @@ void mod_file::finish(mod_file_context& context) {
 			native_string full_path;
 			full_path += roots[i];
 			full_path += NATIVE_DIR_SEPARATOR;
-			full_path += replace_path;
+			full_path += simple_fs::utf8_to_native(replace_path);
 			// Path to redirect overriden directory into
 			native_string new_path;
 			new_path += roots[i];
 			new_path += NATIVE_DIR_SEPARATOR;
 			new_path += simple_fs::utf8_to_native(context.path);
 			new_path += NATIVE_DIR_SEPARATOR;
-			new_path += replace_path;
+			new_path += simple_fs::utf8_to_native(replace_path);
 			
 			simple_fs::add_replace_path_rule(fs, full_path, new_path);
 		}

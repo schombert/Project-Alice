@@ -1,5 +1,6 @@
 #pragma once
 #include "native_types_nix.hpp"
+#include "unordered_dense.h"
 
 // this file should contain the four class definitions of the types 
 // required for simple fs: file_system, directory, unopened_file, and file
@@ -8,7 +9,7 @@
 namespace simple_fs {
 	class file_system {
 		std::vector<native_string> ordered_roots;
-		std::map<native_string, native_string> replace_paths; // to-replace, replacement
+		ankerl::unordered_dense::map<native_string, native_string> replace_paths; // to-replace, replacement
 
 		void operator=(file_system const& other) = delete;
 		void operator=(file_system&& other) = delete;

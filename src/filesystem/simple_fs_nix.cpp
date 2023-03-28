@@ -105,20 +105,42 @@ directory get_root(file_system const& fs) {
 native_string extract_state(file_system const& fs) {
     native_string result;
     for (auto const& str : fs.ordered_roots) {
-        result += ";" + str;
+        result += NATIVE(';') + str;
+    }
+    result += NATIVE('?');
+    for (auto const& replace_path : fs.replace_paths) {
+        result += replace_path.first + NATIVE('=') + replace_path.second + NATIVE(';');
     }
     return result;
 }
 void restore_state(file_system& fs, native_string_view data) {
-    fs.ordered_roots.clear();
-
-    native_char const* position = data.data();
-    native_char const* end = data.data() + data.length();
-    while (position < end) {
-        auto next_semicolon = std::find(position, end, NATIVE(';'));
-
-        fs.ordered_roots.emplace_back(position, next_semicolon);
-        position = next_semicolon + 1;
+    // Parse ordered roots
+    {
+        fs.ordered_roots.clear();
+        auto position = data.data();
+        auto end = std::find(position, data.data() + data.length(), NATIVE('?'));
+        while (position < end) {
+            auto next_semicolon = std::find(position, end, NATIVE(';'));
+            fs.ordered_roots.emplace_back(position, next_semicolon);
+            position = next_semicolon + 1;
+        }
+    }
+    // Replaced paths
+    {
+        fs.replace_paths.clear();
+        auto position = std::find(data.data(), data.data() + data.length(), NATIVE('?'));
+        auto end = data.data() + data.length();
+        while (position < end) {
+            auto next_equal_sign = std::find(position, end, NATIVE('='));
+            if(next_equal_sign >= end)
+                break;
+            native_string replace_path(position, next_equal_sign);
+            position = next_equal_sign + 1;
+            auto next_semicolon = std::find(position, end, NATIVE(';'));
+            native_string new_path(position, next_semicolon);
+            position = next_semicolon + 1;
+            fs.replace_paths.insert(std::pair{ replace_path, new_path });
+        }
     }
 }
 
