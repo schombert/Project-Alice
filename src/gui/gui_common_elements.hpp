@@ -804,6 +804,30 @@ public:
 	}
 };
 
+class standard_party_button : public button_element_base {
+protected:
+	dcon::political_party_id political_party_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::political_party_id>()) {
+			political_party_id = any_cast<dcon::political_party_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
 class pop_type_icon : public button_element_base {
 protected:
 	dcon::pop_type_id pop_type_id{};
