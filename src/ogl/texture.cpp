@@ -11,36 +11,36 @@ namespace ogl {
 
 // DDS loader taken from SOIL2
 
-#define DDSD_CAPS	0x00000001
-#define DDSD_HEIGHT	0x00000002
-#define DDSD_WIDTH	0x00000004
-#define DDSD_PITCH	0x00000008
-#define DDSD_PIXELFORMAT	0x00001000
-#define DDSD_MIPMAPCOUNT	0x00020000
-#define DDSD_LINEARSIZE	0x00080000
-#define DDSD_DEPTH	0x00800000
+#define ALICE_DDSD_CAPS	0x00000001
+#define ALICE_DDSD_HEIGHT	0x00000002
+#define ALICE_DDSD_WIDTH	0x00000004
+#define ALICE_DDSD_PITCH	0x00000008
+#define ALICE_DDSD_PIXELFORMAT	0x00001000
+#define ALICE_DDSD_MIPMAPCOUNT	0x00020000
+#define ALICE_DDSD_LINEARSIZE	0x00080000
+#define ALICE_DDSD_DEPTH	0x00800000
 
 /*	DirectDraw Pixel Format	*/
-#define DDPF_ALPHAPIXELS	0x00000001
-#define DDPF_FOURCC	0x00000004
-#define DDPF_RGB	0x00000040
+#define ALICE_DDPF_ALPHAPIXELS	0x00000001
+#define ALICE_DDPF_FOURCC	0x00000004
+#define ALICE_DDPF_RGB	0x00000040
 
-/*	The dwCaps1 member of the DDSCAPS2 structure can be
+/*	The dwCaps1 member of the ALICE_DDSCAPS2 structure can be
 	set to one or more of the following values.	*/
-#define DDSCAPS_COMPLEX	0x00000008
-#define DDSCAPS_TEXTURE	0x00001000
-#define DDSCAPS_MIPMAP	0x00400000
+#define ALICE_DDSCAPS_COMPLEX	0x00000008
+#define ALICE_DDSCAPS_TEXTURE	0x00001000
+#define ALICE_DDSCAPS_MIPMAP	0x00400000
 
-	/*	The dwCaps2 member of the DDSCAPS2 structure can be
+	/*	The dwCaps2 member of the ALICE_DDSCAPS2 structure can be
 		set to one or more of the following values.		*/
-#define DDSCAPS2_CUBEMAP	0x00000200
-#define DDSCAPS2_CUBEMAP_POSITIVEX	0x00000400
-#define DDSCAPS2_CUBEMAP_NEGATIVEX	0x00000800
-#define DDSCAPS2_CUBEMAP_POSITIVEY	0x00001000
-#define DDSCAPS2_CUBEMAP_NEGATIVEY	0x00002000
-#define DDSCAPS2_CUBEMAP_POSITIVEZ	0x00004000
-#define DDSCAPS2_CUBEMAP_NEGATIVEZ	0x00008000
-#define DDSCAPS2_VOLUME	0x00200000
+#define ALICE_DDSCAPS2_CUBEMAP	0x00000200
+#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEX	0x00000400
+#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEX	0x00000800
+#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEY	0x00001000
+#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEY	0x00002000
+#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEZ	0x00004000
+#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEZ	0x00008000
+#define ALICE_DDSCAPS2_VOLUME	0x00200000
 
 #define SOIL_GL_SRGB			0x8C40
 #define SOIL_GL_SRGB_ALPHA		0x8C42
@@ -126,27 +126,27 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		goto quick_exit;
 	}
 	/*	I need all of these	*/
-	flag = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
+	flag = ALICE_DDSD_CAPS | ALICE_DDSD_HEIGHT | ALICE_DDSD_WIDTH | ALICE_DDSD_PIXELFORMAT;
 	if((header.dwFlags & flag) != flag) {
 		goto quick_exit;
 	}
 	/*	According to the MSDN spec, the dwFlags should contain
-		DDSD_LINEARSIZE if it's compressed, or DDSD_PITCH if
+		ALICE_DDSD_LINEARSIZE if it's compressed, or ALICE_DDSD_PITCH if
 		uncompressed.  Some DDS writers do not conform to the
 		spec, so I need to make my reader more tolerant	*/
 		/*	I need one of these	*/
-	flag = DDPF_FOURCC | DDPF_RGB;
+	flag = ALICE_DDPF_FOURCC | ALICE_DDPF_RGB;
 	if((header.sPixelFormat.dwFlags & flag) == 0) {
 		goto quick_exit;
 	}
 	if(header.sPixelFormat.dwSize != 32) {
 		goto quick_exit;
 	}
-	if((header.sCaps.dwCaps1 & DDSCAPS_TEXTURE) == 0) {
+	if((header.sCaps.dwCaps1 & ALICE_DDSCAPS_TEXTURE) == 0) {
 		goto quick_exit;
 	}
 	/*	make sure it is a type we can upload	*/
-	if((header.sPixelFormat.dwFlags & DDPF_FOURCC) &&
+	if((header.sPixelFormat.dwFlags & ALICE_DDPF_FOURCC) &&
 		!(
 			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24))) ||
 			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24))) ||
@@ -157,12 +157,12 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	/*	OK, validated the header, let's load the image data	*/
 	width = header.dwWidth;
 	height = header.dwHeight;
-	uncompressed = 1 - (header.sPixelFormat.dwFlags & DDPF_FOURCC) / DDPF_FOURCC;
-	cubemap = (header.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP) / DDSCAPS2_CUBEMAP;
+	uncompressed = 1 - (header.sPixelFormat.dwFlags & ALICE_DDPF_FOURCC) / ALICE_DDPF_FOURCC;
+	cubemap = (header.sCaps.dwCaps2 & ALICE_DDSCAPS2_CUBEMAP) / ALICE_DDSCAPS2_CUBEMAP;
 	if(uncompressed) {
 		S3TC_type = GL_RGB;
 		block_size = 3;
-		if(header.sPixelFormat.dwFlags & DDPF_ALPHAPIXELS) {
+		if(header.sPixelFormat.dwFlags & ALICE_DDPF_ALPHAPIXELS) {
 			S3TC_type = GL_RGBA;
 			block_size = 4;
 		}
@@ -200,7 +200,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		ogl_target_end = GL_TEXTURE_2D;
 		opengl_texture_type = GL_TEXTURE_2D;
 	}
-	if((header.sCaps.dwCaps1 & DDSCAPS_MIPMAP) != 0 && (header.dwMipMapCount > 1)) {
+	if((header.sCaps.dwCaps1 & ALICE_DDSCAPS_MIPMAP) != 0 && (header.dwMipMapCount > 1)) {
 		mipmaps = header.dwMipMapCount - 1;
 		DDS_full_size = DDS_main_size;
 		for(i = 1; i <= mipmaps; ++i) {
