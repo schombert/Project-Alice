@@ -310,8 +310,8 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
     return std::optional<unopened_file>{};
 }
 
-void add_replace_path_rule(file_system& fs, native_string_view replaced_path, native_string_view new_path) {
-    fs.replace_paths.insert(std::pair{ replaced_path, new_path });
+void add_ignore_path(file_system& fs, native_string_view replaced_path) {
+	fs.ignored_paths.emplace_back(replaced_path);
 }
 
 std::vector<native_string> list_roots(file_system const& fs) {
