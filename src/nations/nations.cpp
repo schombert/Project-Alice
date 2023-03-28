@@ -147,6 +147,7 @@ bool global_national_state::is_global_flag_variable_set(dcon::global_flag_id id)
 		return dcon::bit_vector_test(global_flag_variables.data(), id.index());
 	return false;
 }
+
 void global_national_state::set_global_flag_variable(dcon::global_flag_id id, bool state) {
 	if(id)
 		dcon::bit_vector_set(global_flag_variables.data(), id.index(), state);
@@ -196,6 +197,7 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 
 	return (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f);
 }
+
 void update_research_points(sys::state& state) {
 	/*
 	Let pop-sum = for each pop type (research-points-from-type x 1^(fraction of population / optimal fraction))
@@ -255,6 +257,7 @@ void update_industrial_scores(sys::state& state) {
 		state.world.nation_set_industrial_score(n, uint16_t(sum));
 	});
 }
+
 void update_military_scores(sys::state& state) {
 	/*
 	The first part  is complicated enough that I am going to simplify things slightly, and ignore how mobilization can interact with this:
@@ -412,9 +415,11 @@ dcon::technology_id current_research(sys::state const& state, dcon::nation_id n)
 	// TODO
 	return dcon::technology_id{};
 }
+
 float suppression_points(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_suppression_points(n);
 }
+
 float leadership_points(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_leadership_points(n);
 }
@@ -430,6 +435,7 @@ int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
 
 	return std::max(1, std::min(int32_t(relevant_pop / state.defines.national_focus_divider), int32_t(1 + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_national_focus))));
 }
+
 int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
 	// TODO
 	return 0;
@@ -439,11 +445,11 @@ float diplomatic_points(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_diplomatic_points(n);
 }
 
-
 int32_t free_colonial_points(sys::state const& state, dcon::nation_id n) {
 	// TODO
 	return 0;
 }
+
 int32_t max_colonial_points(sys::state const& state, dcon::nation_id n) {
 	return int32_t(state.world.nation_get_colonial_points(n));
 }
@@ -531,6 +537,7 @@ bool can_expand_colony(sys::state& state, dcon::nation_id n) {
 	}
 	return false;
 }
+
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
 	for(auto cols : state.world.nation_get_colonization_as_colonizer(n)) {
 		auto lvl = cols.get_level();
@@ -786,5 +793,9 @@ void update_monthly_points(sys::state& state) {
 	});
 }
 
+float get_treasury(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return 0.0f;
+}
 }
 

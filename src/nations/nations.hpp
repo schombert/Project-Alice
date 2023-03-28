@@ -237,6 +237,7 @@ dcon::technology_id current_research(sys::state const& state, dcon::nation_id n)
 float suppression_points(sys::state const& state, dcon::nation_id n);
 float diplomatic_points(sys::state const& state, dcon::nation_id n);
 float leadership_points(sys::state const& state, dcon::nation_id n);
+float get_treasury(sys::state& state, dcon::nation_id n);
 int32_t free_colonial_points(sys::state const& state, dcon::nation_id n);
 int32_t max_colonial_points(sys::state const& state, dcon::nation_id n);
 

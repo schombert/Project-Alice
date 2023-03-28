@@ -367,6 +367,8 @@ public:
 			return make_element_by_type<topbar_closed_factories_icon>(state, id);
 		} else if(name == "alert_unemployed_workers") {
 			return make_element_by_type<topbar_unemployment_icon>(state, id);
+		} else if(name == "budget_funds") {
+			return make_element_by_type<nation_budget_funds_text>(state, id);
 		} else if(name == "tech_current_research") {
 			return make_element_by_type<nation_current_research_text>(state, id);
 		} else if(name == "topbar_researchpoints_value") {
