@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "gui_element_types.hpp"
+#include "triggers.hpp"
 
 namespace ui {
 
@@ -55,13 +56,18 @@ public:
 class decision_window : public window_element_base {
 private:
   decision_listbox* decision_list{nullptr};
-	std::vector<dcon::decision_id> get_decisions() { 
-		//TODO: actually do this right
-		dcon::decision_id did1{ dcon::decision_id::value_base_t(10) }; // two random ids
-		dcon::decision_id did2{ dcon::decision_id::value_base_t(11) };
-		std::vector<dcon::decision_id> list; 
-		list.push_back(did1);
-		list.push_back(did2);
+	dcon::national_identity_id stored_identity{};
+
+	std::vector<dcon::decision_id> get_decisions(sys::state& state) { 
+		std::vector<dcon::decision_id> list{};
+		auto n = state.local_player_nation;
+		for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
+			dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+			auto lim = state.world.decision_get_potential(did); 
+			//if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) { 
+				list.push_back(did);
+			//}
+		}
 		return list;
 	}
 
@@ -69,11 +75,17 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
-		decision_list->row_contents = get_decisions();
+		
+		decision_list->row_contents = get_decisions(state);
 		decision_list->update(state);
 	}
 
-	//TODO: add when else to call get_decisions. on_update? set? get?
+	void on_update(sys::state& state) noexcept override {
+		decision_list->row_contents = get_decisions(state);
+		decision_list->update(state);
+	}
+
+	//TODO: add whenever else to update the list. set? get?
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "decision_listbox") {
