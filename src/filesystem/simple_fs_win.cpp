@@ -81,6 +81,7 @@ namespace simple_fs {
 
 	void reset(file_system& fs) {
 		fs.ordered_roots.clear();
+		fs.replace_paths.clear();
 	}
 
 	void add_root(file_system& fs, native_string_view root_path) {
@@ -105,19 +106,20 @@ namespace simple_fs {
 	native_string extract_state(file_system const& fs) {
 		native_string result;
 		for (auto const& str : fs.ordered_roots) {
-			result += NATIVE(';') + str;
+			result += NATIVE(";") + str;
 		}
-		result += NATIVE('?');
+		result += NATIVE("?");
 		for (auto const& replace_path : fs.replace_paths) {
-			result += replace_path.first + NATIVE('=') + replace_path.second + NATIVE(';');
+			result += replace_path.first + NATIVE("=") + replace_path.second + NATIVE(";");
 		}
 		return result;
 	}
+
 	void restore_state(file_system& fs, native_string_view data) {
+		simple_fs::reset(fs);
 		// Parse ordered roots
 		{
-			fs.ordered_roots.clear();
-			auto position = data.data();
+			auto position = std::find(data.data(), data.data() + data.length(), NATIVE(';')) + 1;
 			auto end = std::find(position, data.data() + data.length(), NATIVE('?'));
 			while (position < end) {
 				auto next_semicolon = std::find(position, end, NATIVE(';'));
@@ -127,8 +129,7 @@ namespace simple_fs {
 		}
 		// Replaced paths
 		{
-			fs.replace_paths.clear();
-			auto position = std::find(data.data(), data.data() + data.length(), NATIVE('?'));
+			auto position = std::find(data.data(), data.data() + data.length(), NATIVE('?')) + 1;
 			auto end = data.data() + data.length();
 			while (position < end) {
 				auto next_equal_sign = std::find(position, end, NATIVE('='));
