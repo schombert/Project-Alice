@@ -58,4 +58,7 @@ bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon:
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 
+void initialize_economy(sys::state& state);
+void regenerate_unsaved_values(sys::state& state);
+
 }
