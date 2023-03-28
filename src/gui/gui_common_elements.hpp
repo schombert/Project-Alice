@@ -526,6 +526,14 @@ public:
 	}
 };
 
+class nation_budget_funds_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto budget = nations::get_treasury(state, nation_id);
+		return text::format_money(budget);
+	}
+};
+
 class nation_literacy_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -542,6 +550,7 @@ public:
 		return text::format_float(fat_id.get_infamy(), 3);
 	}
 };
+
 
 class nation_population_text : public standard_nation_text {
 public:
@@ -787,6 +796,30 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::ideology_id>()) {
 			ideology_id = any_cast<dcon::ideology_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class standard_party_button : public button_element_base {
+protected:
+	dcon::political_party_id political_party_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::political_party_id>()) {
+			political_party_id = any_cast<dcon::political_party_id>(payload);
 			on_update(state);
 			return message_result::consumed;
 		} else {

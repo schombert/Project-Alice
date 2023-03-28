@@ -711,8 +711,8 @@ namespace text {
 		} else {
 			amount = prettify(int32_t(num));
 		}
-		// TODO: Windows-1250 doesn't have £, need to figure out a way to render it
-		return "$ " + amount;
+		
+		return "\xA4 " + amount;
 	}
 
 	std::string format_ratio(int32_t left, int32_t right) {
