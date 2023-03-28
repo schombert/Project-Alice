@@ -29,7 +29,8 @@ civil_from_days(int64_t z) noexcept {
 }
 
 date::date(year_month_day const& v, absolute_time_point base) noexcept {
-	auto difference = std::max(days_from_civil(v.year, v.month, v.day) - base.to_days(), int64_t(0));
+	auto difference = days_from_civil(v.year, v.month, v.day) - base.to_days();
+	difference = std::clamp(difference, int64_t(0), int64_t(std::numeric_limits<uint16_t>::max()) - 1);
 	value = date::value_base_t(1 + difference);
 }
 

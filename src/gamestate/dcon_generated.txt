@@ -317,6 +317,35 @@ object {
 		type{ uint8_t }
 		tag{ scenario }
 	}
+	property{
+		name{ current_price }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ global_market_pool }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ total_production }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ total_real_demand }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ total_consumption }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ producer_payout_fraction }
+		type{ float }
+	}
 }
 
 object {
@@ -1306,6 +1335,30 @@ object {
 	property{
 		name{ is_owner_core }
 		type{ bitfield }
+	}
+	property{
+		name{ rgo_production_scale }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ artisan_production_scale }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ artisan_actual_production }
+		type{ float }
+	}
+	property{
+		name{ rgo_employment }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ rgo_size }
+		type{ float }
+		tag{ scenario }
 	}
 }
 
@@ -2493,6 +2546,16 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ domestic_market_pool }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ real_demand }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
 		name{ last_production }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -2739,6 +2802,25 @@ object {
 		type{ uint8_t }
 		tag{ save }
 	}
+	property{
+		name{ priority }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property {
+		name{ production_scale }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ actual_production }
+		type{ float }
+	}
+	property {
+		name{ employment }
+		type{ float }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -2843,7 +2925,6 @@ object {
 		type{ national_identity_id }
 		tag{ save }
 	}
-
 	property{
 		name{ primary_culture }
 		type{ culture_id }

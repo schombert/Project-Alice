@@ -2088,7 +2088,7 @@ TEST_CASE(".mod overrides", "[req-game-files]") {
 	{
 		auto content = std::string_view {
 			"name = \"Test\"\n"
-			"path = \"mod/test\"\n"
+			"path = \"mod\\test\"\n"
 			"replace_path = \"map\"\n"
 		};
 		err.file_name = "test.mod";
@@ -2096,6 +2096,14 @@ TEST_CASE(".mod overrides", "[req-game-files]") {
 		
 		parsers::mod_file_context mod_file_context(context);
 		parsers::parse_mod_file(gen, err, mod_file_context);
+
+		REQUIRE(err.accumulated_errors == "");
+	}
+
+	{
+		auto map = open_directory(root, NATIVE("map"));
+		auto def_map_file = open_file(map, NATIVE("default.map"));
+		REQUIRE(def_map_file.has_value() == false);
 	}
 
 	// Ensure the filesystem state is kept the same

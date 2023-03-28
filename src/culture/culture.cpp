@@ -228,9 +228,17 @@ void repopulate_invention_effects(sys::state& state) {
 		for(auto cmod : inv_id.get_rebel_org()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
-				auto old_value = state.world.nation_get_rebel_org_modifier(nation_indices, cmod.type);
-				state.world.nation_set_rebel_org_modifier(nation_indices, cmod.type,
-					ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+				if(cmod.type) {
+					auto old_value = state.world.nation_get_rebel_org_modifier(nation_indices, cmod.type);
+					state.world.nation_set_rebel_org_modifier(nation_indices, cmod.type,
+						ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+				} else if(has_inv_mask.v != 0 ) {
+					state.world.for_each_rebel_type([&](dcon::rebel_type_id rt) {
+						auto old_value = state.world.nation_get_rebel_org_modifier(nation_indices, rt);
+						state.world.nation_set_rebel_org_modifier(nation_indices, rt,
+							ve::select(has_inv_mask, old_value + cmod.amount, old_value));
+					});
+				}
 			});
 		}
 		for(auto& umod : inv_id.get_modified_units()) {
@@ -369,7 +377,13 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 		state.world.nation_get_factory_goods_throughput(target_nation, cmod.type) += cmod.amount;
 	}
 	for(auto cmod : inv_id.get_rebel_org()) {
-		state.world.nation_get_rebel_org_modifier(target_nation, cmod.type) += cmod.amount;
+		if(cmod.type) {
+			state.world.nation_get_rebel_org_modifier(target_nation, cmod.type) += cmod.amount;
+		} else {
+			state.world.for_each_rebel_type([&](dcon::rebel_type_id rt) {
+				state.world.nation_get_rebel_org_modifier(target_nation, rt) += cmod.amount;
+			});
+		}
 	}
 	for(auto& umod : inv_id.get_modified_units()) {
 		if(umod.type == state.military_definitions.base_army_unit) {

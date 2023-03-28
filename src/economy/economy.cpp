@@ -45,5 +45,28 @@ bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
+void initialize_economy(sys::state& state) {
+	// rgo_production_scale
+	// artisan_production_scale
+	// artisan_production
+	// rgo_employment
+	// rgo_size
+	// total_consumption
+	// total_real_demand
+	// total_production
+	// current_price
+	// (factory) production_scale
+	// (factory) employment
+	// (nation) domestic_market_pool
+	// global_market_pool
+	// (pop) savings = income
+	// (pop) needs satisfaction
+	// employment
+}
+
+void regenerate_unsaved_values(sys::state& state) {
+	// payout fraction
+}
+
 }
 
