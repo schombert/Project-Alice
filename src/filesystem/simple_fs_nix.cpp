@@ -244,10 +244,11 @@ directory open_directory(directory const& dir, native_string_view directory_name
 std::optional<file> open_file(directory const& dir, native_string_view file_name) {
     if (dir.parent_system) {
         for (size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
-            native_string full_path = dir.parent_system->ordered_roots[i] + dir.relative_path + NATIVE('/') + native_string(file_name);
-            if(simple_fs::is_ignored_path(*dir.parent_system, full_path)) {
+            native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+            if(simple_fs::is_ignored_path(*dir.parent_system, dir_path)) {
                 continue;
             }
+            native_string full_path = dir_path + NATIVE('/') + native_string(file_name);
             int file_descriptor = open(full_path.c_str(), O_RDONLY | O_NONBLOCK);
             if (file_descriptor != -1) {
                 return std::optional<file>(file(file_descriptor, full_path));

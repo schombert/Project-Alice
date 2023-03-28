@@ -2036,4 +2036,45 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	};
 	// ***************************/
 }
+
+TEST_CASE(".mod overrides", "[req-game-files]") {
+	parsers::error_handler err("");
+	REQUIRE(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
+
+	std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
+	add_root(state->common_fs, NATIVE_M(GAME_DIR));
+	auto root = get_root(state->common_fs);
+	parsers::scenario_building_context context(*state);
+
+	// The default map exists, untouched and undisturbed
+	{
+		auto map = open_directory(root, NATIVE("map"));
+		auto def_map_file = open_file(map, NATIVE("default.map"));
+		REQUIRE(def_map_file.has_value() == true);
+	}
+
+	// As it is about to be overriden by a .mod file with no prior notice
+	{
+		auto content = std::string_view {
+			"name = \"Test\"\n"
+			"path = \"mod/test\"\n"
+			"user_dir = \"mod/test\"\n"
+			"replace_path = \"map\"\n"
+		};
+		err.file_name = "test.mod";
+		parsers::token_generator gen(content.data(), content.data() + content.length());
+		
+		parsers::mod_file_context mod_file_context(context);
+		parsers::parse_mod_file(gen, err, mod_file_context);
+	}
+
+	// Now the default.map file shouldn't exist as we override the path
+	// with a non-existing path
+	{
+		auto map = open_directory(root, NATIVE("map"));
+		auto def_map_file = open_file(map, NATIVE("default.map"));
+		printf("%s\n", get_full_name(*def_map_file).c_str());
+		REQUIRE(def_map_file.has_value() == false);
+	}
+}
 #endif
