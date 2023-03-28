@@ -18,17 +18,11 @@ enum class diplomacy_window_tab : uint8_t {
 
 enum class country_list_filter : uint8_t {
 	all,
-	north_america,
-	south_america,
-	europe,
-	africa,
-	asia,
-	oceania,
-	mena, // Non-vanilla
 	neighbors,
 	sphere,
 	enemies,
-	allies
+	allies,
+	continent
 };
 
 class button_press_notification{};
@@ -178,38 +172,16 @@ private:
 		}
 	}
 
-	void filter_by_continent(sys::state& state, country_list_filter filter) {
-		dcon::modifier_id target_cont{};
-		switch(filter) {
-			case country_list_filter::north_america:
-				target_cont = state.province_definitions.north_america;
-				break;
-			case country_list_filter::south_america:
-				target_cont = state.province_definitions.south_america;
-				break;
-			case country_list_filter::europe:
-				target_cont = state.province_definitions.europe;
-				break;
-			case country_list_filter::africa:
-				target_cont = state.province_definitions.africa;
-				break;
-			case country_list_filter::asia:
-				target_cont = state.province_definitions.asia;
-				break;
-			case country_list_filter::oceania:
-				target_cont = state.province_definitions.oceania;
-				break;
-			case country_list_filter::mena: // Non-vanilla
-				target_cont = state.province_definitions.mena;
-				break;
-			default:
-				break;
+	void filter_by_continent(sys::state& state, province::continent_list filter) {
+		const auto it = state.province_definitions.continents.find(filter);
+		if(it != state.province_definitions.continents.end()) {
+			dcon::modifier_id target_cont = it->second;
+			filter_countries(state, [&](dcon::nation_id id) -> bool {
+				dcon::nation_fat_id fat_id = dcon::fatten(state.world, id);
+				auto cont_id = fat_id.get_capital().get_continent().id;
+				return target_cont == cont_id;
+			});
 		}
-		filter_countries(state, [&](dcon::nation_id id) -> bool {
-			dcon::nation_fat_id fat_id = dcon::fatten(state.world, id);
-			auto cont_id = fat_id.get_capital().get_continent().id;
-			return target_cont == cont_id;
-		});
 	}
 
 public:
@@ -243,33 +215,10 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
 			ptr->target = country_list_filter::all;
 			return ptr;
-		} else if(name == "filter_north_america") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::north_america;
-			return ptr;
-		} else if(name == "filter_south_america") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::south_america;
-			return ptr;
-		} else if(name == "filter_europe") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::europe;
-			return ptr;
-		} else if(name == "filter_africa") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::africa;
-			return ptr;
-		} else if(name == "filter_asia") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::asia;
-			return ptr;
-		} else if(name == "filter_oceania") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::oceania;
-			return ptr;
-		} else if(name == "filter_mena") { // Non-vanilla
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::mena;
+		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
+			const auto filter_name = name.substr(7);
+			auto ptr = make_element_by_type<generic_tab_button<province::continent_list>>(state, id);
+			ptr->target = province::get_continent_id(filter_name);
 			return ptr;
 		} else if(name == "cb_info_win") {
 			auto ptr = make_element_immediate(state, id);
@@ -321,18 +270,12 @@ public:
 				case country_list_filter::all:
 					filter_countries(state, [](auto) { return true; });
 					break;
-				case country_list_filter::north_america:
-				case country_list_filter::south_america:
-				case country_list_filter::europe:
-				case country_list_filter::africa:
-				case country_list_filter::asia:
-				case country_list_filter::oceania:
-				case country_list_filter::mena: // Non-vanilla
-					filter_by_continent(state, filter);
-					break;
 				default:
 					break;
 			}
+		} else if(payload.holds_type<province::continent_list>()) {
+			auto filter = any_cast<province::continent_list>(payload);
+			filter_by_continent(state, filter);
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			return impl_set(state, payload);
 		}

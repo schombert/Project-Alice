@@ -173,21 +173,41 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 	context.state.world.modifier_set_province_values(new_modifier, continent.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, continent.peek_national_mod());
 
-	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "europe")) {
-		context.state.province_definitions.europe = new_modifier;
-	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "asia")) {
-		context.state.province_definitions.asia = new_modifier;
-	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "africa")) {
-		context.state.province_definitions.africa = new_modifier;
-	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "north_america")) {
-		context.state.province_definitions.north_america = new_modifier;
-	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "south_america")) {
-		context.state.province_definitions.south_america = new_modifier;
-	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "oceania")) {
-		context.state.province_definitions.oceania = new_modifier;
+	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "europe")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "asia")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "africa")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "north_america")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "south_america")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "oceania")
 	// Non-vanilla
-	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "mena")) {
-		context.state.province_definitions.mena = new_modifier;
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "mena")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "indochina")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "east_indies")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "central_africa")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "west_africa")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "east_africa")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "south_west_africa")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "australia_new_zealand")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "polynesia")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "isle_of_man")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "lakes")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "greenland")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "gondor")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "forodwaith")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "khand")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "harad")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "rhovanion")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "mordor")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "rhun")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "erebor")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "grey_mountains")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "mirkwood")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "anduin_vale")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "rohan")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "enedwaith")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "misty_mountains")
+	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "eriador")) {
+		context.state.province_definitions.continents.insert_or_assign(province::get_continent_id(name), new_modifier);
 	} else {
 		err.accumulated_errors += "Unknown continent " + std::string(name) + " in file " + err.file_name + "\n";
 	}
