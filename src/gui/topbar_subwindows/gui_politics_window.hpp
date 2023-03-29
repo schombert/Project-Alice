@@ -386,6 +386,8 @@ public:
 			return make_element_by_type<nation_can_do_political_reform_icon>(state, id);
 		} else if(name == "chart_upper_house") {
 			return make_element_by_type<upper_house_piechart>(state, id);
+		} else if(name == "chart_voters_ideologies") {
+			return make_element_by_type<voter_ideology_piechart>(state, id);
 		} else if(name == "chart_people_ideologies") {
 			return make_element_by_type<ideology_piechart<dcon::nation_id>>(state, id);
 		} else if(name == "upperhouse_ideology_listbox") {

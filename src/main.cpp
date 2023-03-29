@@ -34,6 +34,7 @@
 #include "bmfont.cpp"
 #include "rebels.cpp"
 #include "parsers_declarations.cpp"
+#include "politics.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
