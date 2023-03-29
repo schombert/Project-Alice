@@ -41,6 +41,7 @@ void ui::console_window::show_toggle(sys::state& state) {
 	assert(state.ui_state.console_window);
 	if(state.ui_state.console_window->is_visible()) {
 		state.ui_state.console_window->set_visible(state, false);
+		// TODO: Remove focus on console once toggled off--not sure how to do this yet.
     } else {
         state.ui_state.console_window->set_visible(state, true);
         state.ui_state.root->move_child_to_front(state.ui_state.console_window);

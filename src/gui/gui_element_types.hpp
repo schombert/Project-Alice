@@ -149,6 +149,7 @@ public:
 	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept { }
 	virtual void edit_box_update(sys::state& state, std::string_view s) noexcept { }
 	virtual void edit_box_esc(sys::state& state) noexcept { }
+	virtual void edit_box_backtick(sys::state& state) noexcept { }
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
