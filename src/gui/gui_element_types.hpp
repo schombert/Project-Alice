@@ -371,6 +371,7 @@ class piechart_element_base : public element_base {
 protected:
 	static constexpr size_t resolution = 200;
 	static constexpr size_t channels = 3;
+	bool enabled = true;
 	virtual std::vector<uint8_t> get_colors(sys::state& state) noexcept {
 		std::vector<uint8_t> out(resolution * channels);
 		for(size_t i = 0; i < resolution * channels; i += channels) {

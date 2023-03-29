@@ -809,12 +809,14 @@ void piechart_element_base::on_update(sys::state& state) noexcept {
 }
 
 void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	ogl::render_piechart(
-		state,
-		ogl::color_modification::none, 
-		float(x - base_data.size.x), float(y), float(base_data.size.x * 2),
-		data_texture
-	);
+	if(enabled) {
+		ogl::render_piechart(
+			state,
+			ogl::color_modification::none, 
+			float(x - base_data.size.x), float(y), float(base_data.size.x * 2),
+			data_texture
+		);
+	}
 }
 
 template<class SrcT, class DemoT>

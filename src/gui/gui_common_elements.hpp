@@ -6,9 +6,11 @@
 #include "gui_element_types.hpp"
 #include "military.hpp"
 #include "nations.hpp"
+#include "politics.hpp"
 #include "province.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include <vector>
 
 namespace ui {
 
@@ -907,6 +909,53 @@ protected:
 					colors[i] = uint8_t(last_color & 0xFF);
 					colors[i + 1] = uint8_t(last_color >> 8 & 0xFF);
 					colors[i + 2] = uint8_t(last_color >> 16 & 0xFF);
+				}
+			}
+		}
+		return colors;
+	}
+};
+
+class voter_ideology_piechart : public piechart_element_base {
+protected:
+	std::vector<uint8_t> get_colors(sys::state& state) noexcept override {
+		std::vector<uint8_t> colors(resolution * channels);
+		Cyto::Any nat_id_payload = dcon::nation_id{};
+		if(parent) {
+			parent->impl_get(state, nat_id_payload);
+			if(nat_id_payload.holds_type<dcon::nation_id>()) {
+				auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
+				auto total = politics::vote_total(state, nat_id);
+				if(total <= 0.f) {
+					enabled = false;
+					return colors;
+				} else {
+					enabled = true;
+				}
+				auto ideo_pool = std::vector<float>(state.world.ideology_size());
+				state.world.for_each_province([&](dcon::province_id province) {
+					if(nat_id == state.world.province_get_nation_from_province_ownership(province)) {
+						for(auto pop_loc : state.world.province_get_pop_location(province)) {
+							auto pop_id = pop_loc.get_pop();
+							auto vote_size = politics::get_weighted_vote_size(state, nat_id, pop_id.id);
+							state.world.for_each_ideology([&](dcon::ideology_id iid) {
+								auto dkey = pop_demographics::to_key(state, iid);
+								ideo_pool[iid.index()] += state.world.pop_get_demographics(pop_id.id, dkey);
+							});
+						}
+					}
+				});
+				size_t j = 0;
+				for(size_t i = 0; i < ideo_pool.size(); i++) {
+					auto iid = dcon::ideology_id(uint8_t(i));
+					auto color = state.world.ideology_get_color(iid);
+					auto slices = size_t(ideo_pool[i] / total * float(resolution));
+					for(size_t k = 0; k < slices * channels; k += channels) {
+						colors[k + j] = uint8_t(color & 0xFF);
+						colors[k + j + 1] = uint8_t(color >> 8 & 0xFF);
+						colors[k + j + 2] = uint8_t(color >> 16 & 0xFF);
+					}
+					j += slices * channels;
 				}
 			}
 		}
