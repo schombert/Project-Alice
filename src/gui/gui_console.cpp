@@ -74,6 +74,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		case Command::Unknown:
 			log_to_console(state, parent, "Command not found.");
 			break;
+		case Command::NoMessage:
+			break;
 	}
 	log_to_console(state, parent, ""); // space after command
 }
