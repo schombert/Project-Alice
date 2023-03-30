@@ -49,8 +49,6 @@ void initialize(sys::state& state) {
 	state.world.nation_resize_domestic_market_pool(state.world.commodity_size());
 	state.world.nation_resize_real_demand(state.world.commodity_size());
 
-	// employment
-
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		auto fc = fatten(state.world, c);
 		fc.set_current_price(fc.get_cost());
@@ -83,13 +81,18 @@ void initialize(sys::state& state) {
 	state.world.for_each_factory([&](dcon::factory_id f) {
 		auto ff = fatten(state.world, f);
 		ff.set_production_scale(1.0f);
-		//ff.set_employment();
 	});
 
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto fp = fatten(state.world, p);
-		//fp.set_rgo_employment();
-		//fp.set_rgo_size();
+		
+		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
+		
+		auto amount = std::ceil(1.1f * (state.world.province_get_demographics(p, demographics::to_key(state, is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers)) +
+			state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves))) / 40000.0f);
+
+		fp.set_rgo_size(std::max(1.0f, amount));
+
 		fp.set_rgo_production_scale(1.0f);
 		fp.set_artisan_production_scale(1.0f);
 		//fp.set_artisan_production();
@@ -113,6 +116,9 @@ void initialize(sys::state& state) {
 			// set domestic market pool
 		});
 	});
+
+	update_rgo_employement(state);
+	update_factory_employement(state);
 }
 
 float sphere_leader_share_factor(sys::state const& state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
@@ -271,43 +277,110 @@ void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priorit
 	state.world.factory_set_priority_high(f, priority >= 2);
 	state.world.factory_set_priority_low(f, (priority & 1) != 0);
 }
+bool factory_is_profitable(sys::state const& state, dcon::factory_id f) {
+	return state.world.factory_get_unprofitable(f) == false || state.world.factory_get_subsidized(f);
+}
 
-void update_employement(sys::state& state, dcon::nation_id n, float mobilization_impact) {
+void update_rgo_employement(sys::state& state) {
+	province::for_each_land_province(state, [&](dcon::province_id p) {
+		auto owner = state.world.province_get_nation_from_province_ownership(p);
+		auto rgo_max = rgo_max_employment(state, owner, p);
 
-	static auto production_consumption_ratio = state.world.commodity_make_vectorizable_float_buffer();
-	state.world.execute_serial_over_commodity([&](auto ids) {
-		auto consumption = state.world.commodity_get_total_consumption(ids);
-		auto production = state.world.commodity_get_total_production(ids);
-		production_consumption_ratio.set(ids, ve::select(consumption > 0.0f, production / consumption, 1.0f));
+		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
+		float worker_pool = state.world.province_get_demographics(p, demographics::to_key(state, is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers));
+		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
+		float labor_pool = worker_pool + slave_pool;
+
+		state.world.province_set_rgo_employment(p, labor_pool >= rgo_max ? 1.0f : labor_pool / rgo_max);
+
+		auto slave_fraction = (slave_pool > rgo_max) ? rgo_max / slave_pool : 1.0f;
+		auto free_fraction = std::max(0.0f, (worker_pool > rgo_max - slave_pool) ? (rgo_max - slave_pool) / std::max(worker_pool, 0.01f) : 1.0f);
+
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.slaves) {
+				pop.get_pop().set_employment(pop.get_pop().get_size() * slave_fraction);
+			} else if(pop.get_pop().get_poptype() == (is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers)) {
+				pop.get_pop().set_employment(pop.get_pop().get_size() * free_fraction);
+			}
+		}
 	});
+}
 
-	for(auto p : state.world.nation_get_province_ownership(n)) {
-		/*
-		* RGO employment
-		*/
-		{
-			auto rgo_makes = p.get_province().get_rgo();
-			if(rgo_makes.get_is_mine()) {
+float factory_max_employment(sys::state const& state, dcon::factory_id f) {
+	return 10000.0f * state.world.factory_get_level(f);
+}
 
+void update_factory_employement(sys::state& state) {
+	state.world.for_each_state_instance([&](dcon::state_instance_id si) {
+		float primary_pool = state.world.state_instance_get_demographics(si, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+		float secondary_pool = state.world.state_instance_get_demographics(si, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+
+		static std::vector<dcon::factory_id> ordered_factories;
+		ordered_factories.clear();
+
+		province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+			for(auto fac : state.world.province_get_factory_location(p)) {
+				ordered_factories.push_back(fac.get_factory());
 			}
-			if(rgo_makes == economy::money) {
+		});
 
-			} else {
-				
+		std::sort(ordered_factories.begin(), ordered_factories.end(), [&](dcon::factory_id a, dcon::factory_id b) {
+			if(factory_is_profitable(state, a) && !factory_is_profitable(state, b)) {
+				return true;
 			}
+			if(factory_priority(state, a) > factory_priority(state, b)) {
+				return true;
+			}
+			return a.index() < b.index();
+		});
+
+		float primary_pool_copy = primary_pool;
+		float secondary_pool_copy = secondary_pool;
+		for(uint32_t index = 0; index < ordered_factories.size(); ) {
+			uint32_t next_index = index;
+
+			float total_workforce = 0.0f;
+			for(; next_index < ordered_factories.size(); ++next_index) {
+				if(factory_is_profitable(state, ordered_factories[index]) != factory_is_profitable(state, ordered_factories[next_index])
+					|| factory_priority(state, ordered_factories[index]) != factory_priority(state, ordered_factories[next_index])) {
+					break;
+				}
+				total_workforce += factory_max_employment(state, ordered_factories[next_index]) * state.world.factory_get_production_scale(ordered_factories[next_index]);
+			}
+
+			{
+				float type_share = state.economy_definitions.craftsmen_fraction * total_workforce;
+				float scale = primary_pool_copy >= type_share ? 1.0f : primary_pool_copy / type_share;
+				primary_pool_copy = std::max(0.0f, primary_pool_copy - type_share);
+				for(uint32_t i = index; i < next_index; ++i) {
+					state.world.factory_set_primary_employment(ordered_factories[i], scale * state.world.factory_get_production_scale(ordered_factories[i]));
+				}
+			}
+			{
+				float type_share = (1.0f - state.economy_definitions.craftsmen_fraction) * total_workforce;
+				float scale = secondary_pool_copy >= type_share ? 1.0f : secondary_pool_copy / type_share;
+				secondary_pool_copy = std::max(0.0f, secondary_pool_copy - type_share);
+				for(uint32_t i = index; i < next_index; ++i) {
+					state.world.factory_set_primary_employment(ordered_factories[i], scale * state.world.factory_get_production_scale(ordered_factories[i]));
+				}
+			}
+
+			index = next_index;
 		}
-		/*
-		* Factory employment
-		*/
 
-		for(auto f : p.get_province().get_factory_location()) {
+		float prim_employment = 1.0f - primary_pool_copy / primary_pool;
+		float sec_employment = 1.0f - secondary_pool_copy / secondary_pool;
 
-		}
-	}
-	for(auto si : state.world.nation_get_state_ownership(n)) {
-
-	}
-
+		province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+			for(auto pop : state.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype() == state.culture_definitions.primary_factory_worker) {
+					pop.get_pop().set_employment(pop.get_pop().get_size() * prim_employment);
+				} else if(pop.get_pop().get_poptype() == state.culture_definitions.secondary_factory_worker) {
+					pop.get_pop().set_employment(pop.get_pop().get_size() * sec_employment);
+				}
+			}
+		});
+	});
 }
 
 void daily_update(sys::state& state) {
@@ -382,7 +455,7 @@ void daily_update(sys::state& state) {
 
 		float mobilization_impact = state.world.nation_get_is_mobilized(n) ? military::mobilization_impact(state, n) : 1.0f;
 
-		update_employement(state, n, mobilization_impact);
+
 	}
 }
 

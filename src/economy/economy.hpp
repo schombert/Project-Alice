@@ -57,11 +57,15 @@ bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon:
 
 int32_t factory_priority(sys::state const& state, dcon::factory_id f);
 void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority);
+bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
 
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
+
+void update_rgo_employement(sys::state& state);
+void update_factory_employement(sys::state& state);
 
 }

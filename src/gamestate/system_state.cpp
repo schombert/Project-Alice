@@ -1372,9 +1372,10 @@ namespace sys {
 			world.province_set_terrain(id, context.ocean_terrain);
 		}
 
-		economy::initialize(*this);
-
 		fill_unsaved_data(); // we need this to run triggers
+
+		demographics::regenerate_from_pop_data(*this);
+		economy::initialize(*this);
 
 		culture::create_initial_ideology_and_issues_distribution(*this);
 		demographics::regenerate_from_pop_data(*this);
@@ -1509,7 +1510,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 6, [&](int32_t index) {
+					concurrency::parallel_for(0, 8, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1528,6 +1529,12 @@ namespace sys {
 								break;
 							case 5:
 								military::update_naval_supply_points(*this);
+								break;
+							case 6:
+								economy::update_rgo_employement(*this);
+								break;
+							case 7:
+								economy::update_factory_employement(*this);
 								break;
 						}
 
