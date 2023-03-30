@@ -2434,7 +2434,7 @@ void mod_file::finish(mod_file_context& context) {
 	auto& fs = context.outer_context.state.common_fs;
 	
 	// Add root of mod_path
-	for(const auto replace_path : context.replace_paths) {
+	for(auto replace_path : context.replace_paths) {
 		native_string path_block = simple_fs::list_roots(fs)[0];
 		path_block += NATIVE_DIR_SEPARATOR;
 		path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
