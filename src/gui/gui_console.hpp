@@ -78,10 +78,19 @@ public:
 		}
 	}
 
+
+	void clear_list(sys::state& state) noexcept {
+		console_output_list->row_contents.clear();
+		console_output_list->update(state);
+	}
+
 	static void show_toggle(sys::state& state);
 
 	void on_visible(sys::state& state) noexcept override {
 		state.ui_state.edit_target = edit_box;
+	}
+	void on_hide(sys::state& state) noexcept override {
+		state.ui_state.edit_target = nullptr;
 	}
 };
 }
