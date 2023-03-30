@@ -528,6 +528,15 @@ public:
 	}
 };
 
+class nation_colonial_power_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fcp = std::to_string(nations::free_colonial_points(state, nation_id));
+		auto mcp = std::to_string(nations::max_colonial_points(state, nation_id));
+		return fcp + "/" + mcp;
+	}
+};
+
 class nation_budget_funds_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {

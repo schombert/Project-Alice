@@ -351,6 +351,8 @@ public:
 			return make_element_by_type<nation_military_score_text>(state, id);
 		} else if(name == "country_total") {
 			return make_element_by_type<nation_total_score_text>(state, id);
+		} else if(name == "country_colonial_power") {
+			return make_element_by_type<nation_colonial_power_text>(state, id);
 		} else if(name == "selected_prestige_rank") {
 			return make_element_by_type<nation_prestige_rank_text>(state, id);
 		} else if(name == "selected_industry_rank") {

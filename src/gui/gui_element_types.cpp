@@ -292,11 +292,13 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 }
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
-	if(ch >= 32) {
-		auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
-		edit_index++;
-		set_text(state, s);
-		edit_box_update(state, s);
+	if(state.ui_state.console_window->is_visible()) {
+		if(ch >= 32) {
+			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
+			edit_index++;
+			set_text(state, s);
+			edit_box_update(state, s);
+		}
 	}
 }
 
@@ -313,6 +315,9 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 			break;
 		case sys::virtual_key::ESCAPE:
 			edit_box_esc(state);
+			break;
+		case sys::virtual_key::TILDA:
+			edit_box_backtick(state);
 			break;
 		case sys::virtual_key::LEFT:
 			edit_index = std::max<int32_t>(edit_index - 1, 0);
