@@ -1372,6 +1372,8 @@ namespace sys {
 			world.province_set_terrain(id, context.ocean_terrain);
 		}
 
+		economy::initialize(*this);
+
 		fill_unsaved_data(); // we need this to run triggers
 
 		culture::create_initial_ideology_and_issues_distribution(*this);
@@ -1459,6 +1461,8 @@ namespace sys {
 		pop_demographics::regenerate_is_primary_or_accepted(*this);
 
 		rebel::update_movement_values(*this);
+
+		economy::regenerate_unsaved_values(*this);
 
 		military::regenerate_land_unit_average(*this);
 		military::regenerate_ship_scores(*this);

@@ -316,10 +316,10 @@ modifier_base
 	poor_savings_modifier                     value      float            member_fn
 	influence_modifier                        value      float            member_fn
 	diplomatic_points_modifier                value      float            member_fn
-	mobilisation_size                         value      float            member_fn
-	mobilisation_economy_impact               value      float            member_fn
+	mobilisation_size                         value      float            member_fn (mobilization_size)
+	mobilisation_economy_impact               value      float            member_fn (mobilization_impact)
 	mobilization_size                         value      float            member_fn
-	mobilization_economy_impact               value      float            member_fn
+	mobilization_economy_impact               value      float            member_fn (mobilization_impact)
 	global_pop_militancy_modifier             value      float            member_fn
 	global_pop_consciousness_modifier         value      float            member_fn
 	core_pop_militancy_modifier               value      float            member_fn
@@ -328,7 +328,7 @@ modifier_base
 	non_accepted_pop_consciousness_modifier   value      float            member_fn
 	cb_generation_speed_modifier              value      float            member_fn
 	mobilization_impact                       value      float            member_fn
-	mobilisation_impact                       value      float            member_fn
+	mobilisation_impact                       value      float            member_fn (mobilization_impact)
 	suppression_points_modifier               value      float            member_fn
 	education_efficiency_modifier             value      float            member_fn
 	education_efficiency                      value      float            member_fn

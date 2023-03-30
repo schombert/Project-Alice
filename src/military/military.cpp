@@ -179,7 +179,7 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 
 	int32_t total = 0;
 	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
-	auto mobilization_size = fp.get_nation_from_province_ownership().get_modifier_values(sys::national_mod_offsets::mobilisation_size);
+	auto mobilization_size = fp.get_nation_from_province_ownership().get_modifier_values(sys::national_mod_offsets::mobilization_size);
 
 	for(auto pop : state.world.province_get_pop_location(p)) {
 		/*
@@ -322,6 +322,17 @@ void update_naval_supply_points(sys::state& state) {
 		}
 		state.world.nation_set_used_naval_supply_points(n, uint16_t(total));
 	});
+}
+
+float mobilization_size(sys::state const& state, dcon::nation_id n) {
+	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
+	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_size);
+}
+float mobilization_impact(sys::state const& state, dcon::nation_id n) {
+	// Mobilization impact = 1 - mobilization-size x (national-mobilization-economy-impact-modifier + technology-mobilization-impact-modifier), to a minimum of zero.
+	return std::clamp(
+		1.0f - mobilization_size(state, n) * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact),
+		0.0f, 1.0f);
 }
 
 }

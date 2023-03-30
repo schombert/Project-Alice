@@ -2977,7 +2977,7 @@ TRIGGER_FUNCTION(tf_is_mobilised) {
 }
 TRIGGER_FUNCTION(tf_mobilisation_size) {
 	return compare_values(tval[0],
-		ws.world.nation_get_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::mobilisation_size),
+		ws.world.nation_get_modifier_values(to_nation(primary_slot), sys::national_mod_offsets::mobilization_size),
 		read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_crime_higher_than_education_nation) {

@@ -2466,6 +2466,21 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ land_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ naval_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ construction_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
 		name{ poor_tax }
 		type{ int8_t }
 		tag{ save }
@@ -2477,6 +2492,11 @@ object {
 	}
 	property {
 		name{ rich_tax }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ tariffs }
 		type{ int8_t }
 		tag{ save }
 	}
@@ -2558,6 +2578,11 @@ object {
 	property {
 		name{ last_production }
 		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ overseas_penalty }
+		type{ float }
 		tag{ save }
 	}
 	property{
@@ -2803,8 +2828,13 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ priority }
-		type{ uint8_t }
+		name{ priority_low }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ priority_high }
+		type{ bitfield }
 		tag{ save }
 	}
 	property {
@@ -2817,8 +2847,27 @@ object {
 		type{ float }
 	}
 	property {
-		name{ employment }
+		name{ primary_employment }
 		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ secondary_employment }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ triggered_modifiers }
+		type{ float }
+	}
+	property{
+		name{ subsidized }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ unprofitable }
+		type{ bitfield }
 		tag{ save }
 	}
 }

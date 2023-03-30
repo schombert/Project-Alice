@@ -1370,6 +1370,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		state->world.province_set_terrain(id, context.ocean_terrain);
 	}
 
+	economy::initialize(*state);
 	state->fill_unsaved_data(); // we need this to run triggers
 
 	culture::create_initial_ideology_and_issues_distribution(*state);

@@ -317,6 +317,9 @@ void update_rankings(sys::state& state) {
 			return a_score > b_score;
 		return a.index() > b.index();
 	});
+	if(to_sort_count < state.nations_by_rank.size()) {
+		state.nations_by_rank[to_sort_count] = dcon::nation_id{};
+	}
 	for(uint32_t i = 0; i < to_sort_count; ++i) {
 		state.world.nation_set_rank(state.nations_by_rank[i], uint16_t(i + 1));
 	}
@@ -388,12 +391,12 @@ void update_ui_rankings(sys::state& state) {
 	}
 }
 
-bool is_greate_power(sys::state const& state, dcon::nation_id n) {
+bool is_great_power(sys::state const& state, dcon::nation_id n) {
 	return state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count);
 }
 
 status get_status(sys::state& state, dcon::nation_id n) {
-	if(is_greate_power(state, n)) {
+	if(is_great_power(state, n)) {
 		return status::great_power;
 	} else if(state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count + 8)) {
 		return status::secondary_power;
