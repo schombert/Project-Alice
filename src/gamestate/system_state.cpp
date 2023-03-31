@@ -1336,6 +1336,21 @@ namespace sys {
 			}
 		});
 
+		// fix worker types
+		province::for_each_land_province(*this, [&](dcon::province_id p) {
+			bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
+
+			// fix pop types
+			for(auto pop : world.province_get_pop_location(p)) {
+				if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
+					pop.get_pop().set_poptype(culture_definitions.laborers);
+				}
+				if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
+					pop.get_pop().set_poptype(culture_definitions.farmers);
+				}
+			}
+		});
+
 		map_loader.join();
 
 		// touch up adjacencies
