@@ -77,6 +77,37 @@ public:
 	}
 };
 
+class standard_province_progress_bar : public progress_bar {
+protected:
+	dcon::province_id prov_id{};
+
+public:
+	virtual float get_progress(sys::state& state) noexcept {
+		return 0.f;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		progress = get_progress(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
+			prov_id = any_cast<dcon::province_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class province_liferating_progress_bar : public standard_province_progress_bar {
+public:
+	float get_progress(sys::state& state) noexcept override {
+		return state.world.province_get_life_rating(prov_id) / 35.f;
+	}
+};
+
 class standard_province_icon : public opaque_element_base {
 protected:
 	dcon::province_id prov_id{};
@@ -98,6 +129,14 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class province_rgo_employment_progress_icon : public standard_province_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
+		return int32_t(10.f * employment_ratio);
 	}
 };
 
@@ -291,13 +330,7 @@ public:
 class province_rgo_employment_percent_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		auto employed = province::rgo_employment(state, province_id);
-		auto max_employed = province::rgo_maximum_employment(state, province_id);
-		if(max_employed > 0.f) {
-			return text::format_percentage(employed / max_employed, 3);
-		} else {
-			return text::format_percentage(0.f, 3);
-		}
+		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 3);
 	}
 };
 
@@ -716,6 +749,37 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class standard_nation_progress_bar : public progress_bar {
+protected:
+	dcon::nation_id nation_id{};
+
+public:
+	virtual float get_progress(sys::state& state) noexcept {
+		return 0.f;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		progress = get_progress(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class nation_westernization_progress_bar : public standard_nation_progress_bar {
+public:
+	float get_progress(sys::state& state) noexcept override {
+		return state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier);
 	}
 };
 
