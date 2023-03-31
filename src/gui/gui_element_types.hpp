@@ -147,6 +147,12 @@ public:
 	std::string_view get_text(sys::state& state) const {
 		return stored_text;
 	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
 };
 
 class edit_box_element_base : public simple_text_element_base {
