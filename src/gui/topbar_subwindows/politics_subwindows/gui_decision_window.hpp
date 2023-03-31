@@ -8,14 +8,26 @@
 namespace ui {
 
 // TODO: verify these types
-class decision_name : public window_element_base {};
+class decision_name : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::decision_id{};
+		if(parent){
+			parent->impl_get(state, payload);
+			auto id = any_cast<dcon::decision_id>(payload);
+			auto fat_id = dcon::fatten(state.world, id);
+			auto name = text::produce_simple_string(state, fat_id.get_name());
+			set_text(state, name);
+		}
+	}
+};
 class decision_image : public image_element_base {};
 class decision_desc : public window_element_base {};
 class decision_requirements : public image_element_base {};
 class ignore_checkbox : public checkbox_button {};
 class make_decision : public  button_element_base {};
 
-class decision_item : public window_element_base {
+class decision_item : public listbox_row_element_base<dcon::decision_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "decision_name") {
@@ -40,6 +52,15 @@ public:
 			return nullptr;
 		}
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::decision_id>()) {
+			payload.emplace<dcon::decision_id>(content);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
 };
 
 class decision_listbox : public listbox_element_base<decision_item, dcon::decision_id> {
@@ -56,10 +77,9 @@ public:
 class decision_window : public window_element_base {
 private:
   decision_listbox* decision_list{nullptr};
-	dcon::national_identity_id stored_identity{};
 
 	std::vector<dcon::decision_id> get_decisions(sys::state& state) { 
-		std::vector<dcon::decision_id> list{};
+		std::vector<dcon::decision_id> list;
 		auto n = state.local_player_nation;
 		for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
 			dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
