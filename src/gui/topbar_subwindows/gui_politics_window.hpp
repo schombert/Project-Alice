@@ -412,17 +412,6 @@ public:
 			unciv_reforms_win->set_visible(state, true);
 		}
 	}
-	void hide_vector_elements(sys::state& state, std::vector<element_base*>& elements) {
-		for(auto element : elements) {
-			element->set_visible(state, false);
-		}
-	}
-
-	void show_vector_elements(sys::state& state, std::vector<element_base*>& elements) {
-		for(auto element : elements) {
-			element->set_visible(state, true);
-		}
-	}
 	void hide_sub_windows(sys::state& state) {
 		reforms_win->set_visible(state, false);
 		unciv_reforms_win->set_visible(state, false);

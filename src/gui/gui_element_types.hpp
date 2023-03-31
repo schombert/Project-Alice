@@ -62,6 +62,12 @@ public:
 	void on_create(sys::state& state) noexcept override;
 };
 
+class progress_bar : public image_element_base {
+public:
+	float progress = 0.f;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
 class tinted_image_element_base : public image_element_base {
 private:
 	uint32_t color = 0;

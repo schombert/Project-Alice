@@ -220,6 +220,28 @@ void tinted_image_element_base::render(sys::state& state, int32_t x, int32_t y) 
 	}
 }
 
+void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(base_data.get_element_type() == element_type::image) {
+		dcon::gfx_object_id gid = base_data.data.image.gfx_object;
+		if(gid) {
+			auto& gfx_def = state.ui_defs.gfx[gid];
+			auto secondary_texture_handle = dcon::texture_id(gfx_def.type_dependent - 1);
+			if(gfx_def.primary_texture_handle) {
+				ogl::render_progress_bar(
+					state,
+					get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+					progress,
+					float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					ogl::get_texture_handle(state, secondary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(),
+					gfx_def.is_vertically_flipped()
+				);
+			}
+		}
+	}
+}
+
 void tinted_image_element_base::on_update(sys::state& state) noexcept {
 	color = get_tint_color(state);
 }

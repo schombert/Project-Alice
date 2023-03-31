@@ -185,6 +185,8 @@ public:
 			return make_element_by_type<state_admin_efficiency_text>(state, id);
 		} else if(name == "owner_presence") {
 			return make_element_by_type<state_aristocrat_presence_text>(state, id);
+		} else if(name == "liferating") {
+			return make_element_by_type<province_liferating_progress_bar>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -417,6 +419,8 @@ public:
 			return make_element_by_type<province_crime_fighting_text>(state, id);
 		} else if(name == "rebel_percent") {
 			return make_element_by_type<province_rebel_percent_text>(state, id);
+		} else if(name == "employment_ratio") {
+			return make_element_by_type<province_rgo_employment_progress_icon>(state, id);
 		} else if(name == "rgo_population") {
 			return make_element_by_type<province_rgo_workers_text>(state, id);
 		} else if(name == "rgo_percent") {
