@@ -803,14 +803,38 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 	auto gfx = open_directory(root, NATIVE("gfx"));
 	auto pictures = open_directory(gfx, NATIVE("pictures"));
 	auto decisions = open_directory(pictures, NATIVE("decisions"));
-	if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
-		dcon::text_key base_name = context.state.add_to_pool(name);
-		context.state.world.decision_set_image_name(new_decision, base_name);
-	} else {
-		if(!bool(context.noimage)) {
-			context.noimage = context.state.add_to_pool(std::string_view("noimage"));
+
+	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\decisions\\") + [&]() {
+		if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
+			return std::string(name) + ".tga";
+		} else {
+			return std::string("noimage.tga");
 		}
-		context.state.world.decision_set_image_name(new_decision, context.noimage);
+	}());
+
+	if(auto it = context.gfx_context.map_of_names.find(file_name); it != context.gfx_context.map_of_names.end()) {
+		context.state.world.decision_set_image(new_decision, it->second);
+	} else {
+		auto gfxindex = context.state.ui_defs.gfx.size();
+		context.state.ui_defs.gfx.emplace_back();
+		ui::gfx_object& new_obj = context.state.ui_defs.gfx.back();
+		auto new_id = dcon::gfx_object_id(uint16_t(gfxindex));
+
+		context.gfx_context.map_of_names.insert_or_assign(file_name, new_id);
+
+		new_obj.number_of_frames = uint8_t(1);
+
+		if(auto itb = context.gfx_context.map_of_texture_names.find(file_name); itb != context.gfx_context.map_of_texture_names.end()) {
+			new_obj.primary_texture_handle = itb->second;
+		} else {
+			auto index = context.state.ui_defs.textures.size();
+			context.state.ui_defs.textures.emplace_back(context.state.add_to_pool(file_name));
+			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
+			context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+		}
+		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
+
+		context.state.world.decision_set_image(new_decision, new_id);
 	}
 
 	context.state.world.decision_set_name(new_decision, name_id);
@@ -852,7 +876,6 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 		auto fid = fatten(context.state.world, new_id);
 		fid.set_description(event_result.desc_);
 		fid.set_name(event_result.title_);
-		fid.set_image_name(event_result.picture_);
 		fid.set_mtth(event_result.mean_time_to_happen);
 		fid.set_only_once(event_result.fire_only_once);
 		fid.set_trigger(event_result.trigger);
@@ -891,7 +914,7 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 		auto fid = fatten(context.state.world, new_id);
 		fid.set_description(event_result.desc_);
 		fid.set_name(event_result.title_);
-		fid.set_image_name(event_result.picture_);
+		fid.set_image(event_result.picture_);
 		fid.set_immediate_effect(event_result.immediate_);
 		fid.set_is_major(event_result.major);
 		fid.set_mtth(event_result.mean_time_to_happen);
@@ -956,7 +979,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				auto fid = fatten(context.state.world, e.second.id);
 				fid.set_description(event_result.desc_);
 				fid.set_name(event_result.title_);
-				fid.set_image_name(event_result.picture_);
+				fid.set_image(event_result.picture_);
 				fid.set_immediate_effect(event_result.immediate_);
 				fid.set_is_major(event_result.major);
 				fid.get_options() = event_result.options;
@@ -981,7 +1004,6 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				auto fid = fatten(context.state.world, e.second.id);
 				fid.set_description(event_result.desc_);
 				fid.set_name(event_result.title_);
-				fid.set_image_name(event_result.picture_);
 				fid.get_options() = event_result.options;
 
 				if(context.map_of_provincial_events.size() != fixed_size)
