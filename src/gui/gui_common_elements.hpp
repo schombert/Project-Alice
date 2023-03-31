@@ -116,7 +116,7 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 
 			text::substitution_map lr_sub;
-			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place(state.world.province_get_life_rating(prov_id)));
+			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{ float(state.world.province_get_life_rating(prov_id)) });
 
 			text::add_to_layout_box(contents, state, box, k->second, lr_sub);
 			text::close_layout_box(contents, box);
