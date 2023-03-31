@@ -104,8 +104,26 @@ public:
 class province_liferating_progress_bar : public standard_province_progress_bar {
 public:
 	float get_progress(sys::state& state) noexcept override {
-		return state.world.province_get_life_rating(prov_id) / 35.f;
+		return state.world.province_get_life_rating(prov_id) / 100.f;
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_liferating")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+
+			text::substitution_map lr_sub;
+			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place(state.world.province_get_life_rating(prov_id)));
+
+			text::add_to_layout_box(contents, state, box, k->second, lr_sub);
+			text::close_layout_box(contents, box);
+		}
+	}
+
+
 };
 
 class standard_province_icon : public opaque_element_base {
@@ -601,6 +619,7 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
 		return text::prettify(int32_t(total_pop));
+
 	}
 };
 
