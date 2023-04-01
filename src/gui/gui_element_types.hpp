@@ -62,12 +62,6 @@ public:
 	void on_create(sys::state& state) noexcept override;
 };
 
-class progress_bar : public image_element_base {
-public:
-	float progress = 0.f;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-};
-
 class tinted_image_element_base : public image_element_base {
 private:
 	uint32_t color = 0;
@@ -97,6 +91,13 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::no_tooltip;
 	}
+};
+
+class progress_bar : public opaque_element_base {
+public:
+	float progress = 0.f;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
 };
 
 class button_element_base : public opaque_element_base {
@@ -146,6 +147,12 @@ public:
 
 	std::string_view get_text(sys::state& state) const {
 		return stored_text;
+	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
 	}
 };
 

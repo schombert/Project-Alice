@@ -3222,8 +3222,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ image_name }
-		type{ text_key }
+		name{ image }
+		type{ dcon::gfx_object_id }
 		tag{ scenario }
 	}
 	property{
@@ -3252,11 +3252,6 @@ object {
 	property{
 		name{ description }
 		type{ text_sequence_id }
-		tag{ scenario }
-	}
-	property{
-		name{ image_name }
-		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -3293,8 +3288,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ image_name }
-		type{ text_key }
+		name{ image }
+		type{ dcon::gfx_object_id }
 		tag{ scenario }
 	}
 	property{
@@ -3338,11 +3333,6 @@ object {
 	property{
 		name{ only_once }
 		type{ bitfield }
-		tag{ scenario }
-	}
-	property{
-		name{ image_name }
-		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -3442,8 +3432,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ image_name }
-		type{ text_key }
+		name{ image }
+		type{ dcon::gfx_object_id }
 		tag{ scenario }
 	}
 	property{
