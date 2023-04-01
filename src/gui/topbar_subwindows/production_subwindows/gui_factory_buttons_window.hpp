@@ -21,6 +21,12 @@ public:
 		} else if(name == "prod_open_all_factories") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			return ptr;
+		} else if(name == "sort_by_factories") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			return ptr;
+		} else if(name == "sort_by_infra") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			return ptr;
 		} else {
 			return nullptr;
 		}

@@ -4,6 +4,7 @@
 #include "gui_factory_buttons_window.hpp"
 #include "gui_invest_brow_window.hpp"
 #include "gui_invest_buttons_window.hpp"
+#include "gui_pop_sort_buttons_window.hpp"
 #include <vector>
 
 namespace ui {
@@ -92,7 +93,7 @@ public:
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "pop_sort_buttons") {
-			auto ptr = make_element_by_type<factory_buttons_window>(state, id);
+			auto ptr = make_element_by_type<pop_sort_buttons_window>(state, id);
 			factory_elements.push_back(ptr.get());
 			ptr->set_visible(state, true);
 			return ptr;
