@@ -4,6 +4,7 @@
 #include "gui_factory_buttons_window.hpp"
 #include "gui_invest_brow_window.hpp"
 #include "gui_invest_buttons_window.hpp"
+#include "gui_pop_sort_buttons_window.hpp"
 #include <vector>
 
 namespace ui {
@@ -63,13 +64,38 @@ public:
 			return ptr;
 		} else if(name == "investment_browser") {
 			auto ptr = make_element_by_type<invest_brow_window>(state, id);
-			investment_elements.push_back(ptr.get());
+			investment_brow_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "invest_buttons") {
 			auto ptr = make_element_by_type<invest_buttons_window>(state, id);
-			investment_elements.push_back(ptr.get());
+			investment_button_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "sort_by_state") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			project_elements.push_back(ptr.get());
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "sort_by_projects") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			project_elements.push_back(ptr.get());
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "sort_by_completion") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			project_elements.push_back(ptr.get());
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "sort_by_projecteers") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			project_elements.push_back(ptr.get());
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "pop_sort_buttons") {
+			auto ptr = make_element_by_type<pop_sort_buttons_window>(state, id);
+			factory_elements.push_back(ptr.get());
+			ptr->set_visible(state, true);
 			return ptr;
 		} else {
 			return nullptr;
@@ -90,7 +116,8 @@ public:
 
 	void hide_sub_windows(sys::state& state) {
 		hide_vector_elements(state, factory_elements);
-		hide_vector_elements(state, investment_elements);
+		hide_vector_elements(state, investment_brow_elements);
+		hide_vector_elements(state, investment_button_elements);
 		hide_vector_elements(state, project_elements);
 		hide_vector_elements(state, good_elements);
 	}
@@ -104,7 +131,7 @@ public:
 					show_vector_elements(state, factory_elements);
 					break;
 				case production_window_tab::investments:
-					show_vector_elements(state, investment_elements);
+					show_vector_elements(state, investment_brow_elements);
 					break;
 				case production_window_tab::projects:
 					show_vector_elements(state, project_elements);
@@ -120,7 +147,8 @@ public:
 	}
 	
 	std::vector<element_base*> factory_elements;
-	std::vector<element_base*> investment_elements;
+	std::vector<element_base*> investment_brow_elements;
+	std::vector<element_base*> investment_button_elements;
 	std::vector<element_base*> project_elements;
 	std::vector<element_base*> good_elements;
 };
