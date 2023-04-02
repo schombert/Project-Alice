@@ -1546,10 +1546,10 @@ namespace sys {
 								military::update_naval_supply_points(*this);
 								break;
 							case 6:
-								economy::update_rgo_employement(*this);
+								economy::update_rgo_employment(*this);
 								break;
 							case 7:
-								economy::update_factory_employement(*this);
+								economy::update_factory_employment(*this);
 								break;
 						}
 

@@ -318,6 +318,10 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ key_factory }
+		type{ factory_type_id }
+	}
+	property{
 		name{ current_price }
 		type{ float }
 		tag{ save }
@@ -2563,6 +2567,16 @@ object {
 	property {
 		name{ stockpiles }
 		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ stockpile_targets }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ drawing_on_stockpiles }
+		type{ array{commodity_id}{bitfield} }
 		tag{ save }
 	}
 	property {

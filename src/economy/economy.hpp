@@ -73,7 +73,7 @@ bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
 
-void update_rgo_employement(sys::state& state);
-void update_factory_employement(sys::state& state);
+void update_rgo_employment(sys::state& state);
+void update_factory_employment(sys::state& state);
 
 }
