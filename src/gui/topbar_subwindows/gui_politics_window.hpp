@@ -307,36 +307,41 @@ public:
 	}
 };
 
-class nation_government_description_text : public standard_nation_columnar_text {
+class nation_government_description_text : public standard_nation_multiline_text {
 public:
-	void populate_layout(sys::state& state, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
 		
 		if(politics::can_appoint_ruling_party(state, nation_id)) {
 			auto k = state.key_to_text_sequence.find(std::string_view("can_appoint_ruling_party"));
 			if(k != state.key_to_text_sequence.end()) {
+				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
-				text::layout_box_next_line(state, contents, box);
+				text::close_layout_box(contents, box);
 			}
 		}
 		if(!politics::has_elections(state, nation_id)) {
 			auto k = state.key_to_text_sequence.find(std::string_view("term_for_life"));
 			if(k != state.key_to_text_sequence.end()) {
+				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::close_layout_box(contents, box);
 			}
 		} else if(politics::is_election_ongoing(state, nation_id)) {
 			auto k = state.key_to_text_sequence.find(std::string_view("election_info_in_gov"));
 			if(k != state.key_to_text_sequence.end()) {
+				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::close_layout_box(contents, box);
 			}
 		} else {
 			auto k = state.key_to_text_sequence.find(std::string_view("next_election"));
 			if(k != state.key_to_text_sequence.end()) {
 				// TODO: display election start date
+				auto box = text::open_layout_box(contents);
 				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::close_layout_box(contents, box);
 			}
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 

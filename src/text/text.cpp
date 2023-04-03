@@ -768,176 +768,64 @@ namespace text {
 		return nullptr;
 	}
 
-	void create_endless_layout(layout& dest, sys::state& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp) {
+	endless_layout create_endless_layout(layout& dest, layout_parameters const& params) {
 		dest.contents.clear();
 		dest.number_of_lines = 0;
+		return endless_layout{ dest, params };
+	}
 
-		uint32_t line_start = 0;
+	
 
-		auto seq = state.text_sequences[source_text];
-		auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, params.font_id)));
-		auto line_height = text_height + params.leading;
+	namespace impl {
 
-		text::text_color current_color = params.color;
-		float current_x = params.left;
-		int32_t current_y = params.top;
-
-		auto finish_line = [&](bool force = false) {
-			if(!force && line_start == dest.contents.size())
-				return;
-
-			++dest.number_of_lines;
-
-			if(params.align == alignment::left) {
-				auto adjust = params.right - current_x;
-				for(uint32_t i = line_start; i < dest.contents.size(); ++i) {
-					dest.contents[i].x -= adjust;
-				}
-			} else if(params.align == alignment::center) {
-				auto adjust = (params.right - current_x) / 2;
-				for(uint32_t i = line_start; i < dest.contents.size(); ++i) {
-					dest.contents[i].x -= adjust;
-				}
+	void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
+		if(dest.fixed_parameters.align == alignment::center) {
+			auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
+			for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].x += gap;
 			}
-			current_x = params.left;
-			current_y += line_height;
-			line_start = uint32_t(dest.contents.size());
-		};
-
-		auto append_text_chunk = [&](std::string_view txt, substitution source) {
-			size_t str_i = 0;
-			size_t current_len = 0;
-			float extent = 0.0f;
-			float previous_extent = 0.0f;
-			auto tmp_color = current_color;
-			if(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) || std::holds_alternative<dcon::state_instance_id>(source)) {
-				tmp_color = text_color::light_blue;
-			}
-			while(str_i < txt.length()) {
-				auto next_wb = txt.find_first_of(" \r\n\t", str_i + current_len);
-				if(next_wb == std::string_view::npos) {
-					next_wb = txt.length();
-				}
-				next_wb = std::min(next_wb, txt.length()) - str_i;
-				if(next_wb == current_len) {
-					current_len++;
-				} else {
-					std::string_view segment = txt.substr(str_i, next_wb);
-					previous_extent = extent;
-					extent = state.font_collection.text_extent(state, segment.data(), uint32_t(next_wb), params.font_id);
-					if(current_len == 0 && current_x + extent >= params.right) {
-						// the current word is too long for the text box, just let it overflow
-						dest.contents.push_back(text_chunk{ std::string(segment), current_x, source, int16_t(current_y), int16_t(extent), int16_t(text_height), tmp_color });
-						current_x += extent;
-						str_i += next_wb;
-						current_len = 0;
-						finish_line();
-					} else if(current_x + extent >= params.right) {
-						std::string_view section{ segment.data(), current_len };
-						dest.contents.push_back(text_chunk{ std::string(section), current_x, source, int16_t(current_y), int16_t(previous_extent), int16_t(text_height), tmp_color });
-						current_x += previous_extent;
-						current_y += line_height;
-						str_i += current_len;
-						current_len = 0;
-						finish_line();
-					} else if(next_wb == txt.length() - str_i) {
-						// we've reached the end of the text
-						dest.contents.push_back(text_chunk{ std::string(segment), current_x, source, int16_t(current_y), int16_t(extent), int16_t(text_height), tmp_color });
-						current_x += extent;
-						break;
-					} else {
-						current_len = next_wb;
-					}
-				}
-			}
-		};
-
-		auto resolve_substitution = [&](substitution sub) {
-			if(std::holds_alternative<std::string_view>(sub)) {
-				return std::string(std::get<std::string_view>(sub));
-			} else if(std::holds_alternative<dcon::text_key>(sub)) {
-				auto tkey = std::get<dcon::text_key>(sub);
-				return std::string(state.to_string_view(tkey));
-			} else if(std::holds_alternative<dcon::nation_id>(sub)) {
-				dcon::nation_id nid = std::get<dcon::nation_id>(sub);
-				return text::produce_simple_string(state, state.world.nation_get_name(nid));
-			} else if(std::holds_alternative<dcon::state_instance_id>(sub)) {
-				dcon::state_instance_id sid = std::get<dcon::state_instance_id>(sub);
-				return get_dynamic_state_name(state, sid);
-			} else if(std::holds_alternative<dcon::province_id>(sub)) {
-				auto pid = std::get<dcon::province_id>(sub);
-				return text::produce_simple_string(state, state.world.province_get_name(pid));
-			} else if(std::holds_alternative<int64_t>(sub)) {
-				return std::to_string(std::get<int64_t>(sub));
-			} else if(std::holds_alternative<fp_one_place>(sub)) {
-				char buffer[200] = { 0 };
-				snprintf(buffer, 200, "%.1f", std::get<fp_one_place>(sub).value);
-				return std::string(buffer);
-			} else if(std::holds_alternative<fp_two_places>(sub)) {
-				char buffer[200] = { 0 };
-				snprintf(buffer, 200, "%.2f", std::get<fp_two_places>(sub).value);
-				return std::string(buffer);
-			} else if(std::holds_alternative<fp_three_places>(sub)) {
-				char buffer[200] = { 0 };
-				snprintf(buffer, 200, "%.2f", std::get<fp_three_places>(sub).value);
-				return std::string(buffer);
-			} else if(std::holds_alternative<sys::date>(sub)) {
-				return date_to_string(state, std::get<sys::date>(sub));
-			} else {
-				return std::string("?");
-			}
-		};
-
-		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
-			if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
-				auto tkey = std::get<dcon::text_key>(state.text_components[i]);
-				std::string_view text = state.to_string_view(tkey);
-				append_text_chunk(text, std::monostate{});
-			} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
-				finish_line(true);
-			} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
-				current_color = std::get<text::text_color>(state.text_components[i]);
-			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
-				auto var_type = std::get<text::variable_type>(state.text_components[i]);
-				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
-					append_text_chunk(resolve_substitution(it->second), it->second);
-				} else {
-					append_text_chunk("???", std::monostate{});
-				}
+		} else if(dest.fixed_parameters.align == alignment::right) {
+			auto gap = float(dest.fixed_parameters.right) - box.x_position;
+			for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].x += gap;
 			}
 		}
 
-		finish_line();
+		box.x_position = float(box.x_offset);
+		box.y_position += line_height;
+		dest.base_layout.number_of_lines += 1;
+		box.line_start = dest.base_layout.contents.size();
 	}
 
-	void layout_box_next_line(sys::state& state, columnar_layout& dest, layout_box& box) {
+	}
+
+	void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_box& box) {
 		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 		auto& font = state.font_collection.fonts[font_index - 1];
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 		auto line_height = text_height + dest.fixed_parameters.leading;
 
-		box.x_position = float(box.x_offset);
-		box.y_position += line_height;
+		impl::lb_finish_line(dest, box, line_height);
 	}
 
-	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, std::string_view txt, text_color color, substitution source) {
-
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string_view txt, text_color color, substitution source) {
 		auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 		auto line_height = text_height + dest.fixed_parameters.leading;
 
-		auto finish_line = [&](bool force = false) {
-			box.x_position = float(box.x_offset);
-			box.y_position += line_height;
-		};
-
-		
 		size_t str_i = 0;
 		size_t current_len = 0;
 		float extent = 0.0f;
 		float previous_extent = 0.0f;
 		auto tmp_color = color;
-	
+
+		if(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) || std::holds_alternative<dcon::state_instance_id>(source)) {
+			if(color != text_color::black)
+				tmp_color = text_color::light_blue;
+			else
+				tmp_color = text_color::dark_blue;
+		}
+
 		while(str_i < txt.length()) {
 			auto next_wb = txt.find_first_of(" \r\n\t", str_i + current_len);
 			if(next_wb == std::string_view::npos) {
@@ -958,8 +846,9 @@ namespace text {
 
 					box.y_size = std::max(box.y_size, box.y_position + line_height);
 					box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
+					box.x_position += extent;
 					current_len = 0;
-					finish_line();
+					impl::lb_finish_line(dest, box, line_height);
 				} else if(box.x_position + extent >= dest.fixed_parameters.right) {
 					if(current_len > 0) {
 						std::string_view section{ segment.data(), current_len };
@@ -969,8 +858,9 @@ namespace text {
 						box.x_size = std::max(box.x_size, int32_t(box.x_position + previous_extent));
 					}
 					str_i += current_len;
+					box.x_position += previous_extent;
 					current_len = 0;
-					finish_line();
+					impl::lb_finish_line(dest, box, line_height);
 				} else if(next_wb == txt.length() - str_i) {
 					// we've reached the end of the text
 					dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
@@ -987,15 +877,7 @@ namespace text {
 		}
 	}
 
-	/**
-	A method that adds text to a layout_box object based on a given text sequenceand substitution map.
-		@param dest The columnar_layout object to which the text will be added.
-		@param state The sys::state object representing the current state of the system.
-		@param box The layout_box object to which the text will be added.
-		@param source_text The ID of the text sequence containing the text to be added.
-		@param mp The substitution map containing the values to be substituted for placeholders in the text.
-	**/
-	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
 
 		auto current_color = dest.fixed_parameters.color;
 		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
@@ -1047,7 +929,7 @@ namespace text {
 				std::string_view text = state.to_string_view(tkey);
 				add_to_layout_box(dest, state, box, std::string_view(text), current_color, std::monostate{});
 			} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
-				layout_box_next_line(state, dest, box);
+				add_line_break_to_layout_box(dest, state, box);
 			} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
 				current_color = std::get<text::text_color>(state.text_components[i]);
 			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
@@ -1062,10 +944,12 @@ namespace text {
 		}
 	}
 
-	layout_box open_layout_box(columnar_layout& dest, int32_t indent) {
-		return layout_box{ dest.base_layout.contents.size(), indent, 0, 0, float(indent + dest.fixed_parameters.left), 0, dest.fixed_parameters.color };
+	layout_box open_layout_box(layout_base& dest, int32_t indent) {
+		return layout_box{ dest.base_layout.contents.size(), dest.base_layout.contents.size(), indent, 0, 0, float(indent + dest.fixed_parameters.left), 0, dest.fixed_parameters.color };
 	}
-	void close_layout_box(columnar_layout& dest, layout_box const& box) {
+	void close_layout_box(columnar_layout& dest, layout_box& box) {
+		impl::lb_finish_line(dest, box, 0);
+
 		if(box.y_size + dest.y_cursor >= dest.fixed_parameters.bottom) { // make new column
 			++dest.current_column;
 			for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
@@ -1085,6 +969,16 @@ namespace text {
 		dest.used_height = std::max(dest.used_height, dest.y_cursor);
 		dest.used_width = std::max(dest.used_width, box.x_size + dest.column_width * dest.current_column);
 	}
+	void close_layout_box(endless_layout& dest, layout_box& box) {
+		impl::lb_finish_line(dest, box, 0);
+
+		for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
+			dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
+		}
+
+		dest.y_cursor += box.y_size;
+	}
+
 	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width) {
 		dest.contents.clear();
 		dest.number_of_lines = 0;

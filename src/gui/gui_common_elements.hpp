@@ -398,19 +398,18 @@ public:
 	}
 };
 
-class standard_nation_columnar_text : public multiline_text_element_base {
+class standard_nation_multiline_text : public multiline_text_element_base {
 protected:
 	dcon::nation_id nation_id{};
 
 public:
-	virtual void populate_layout(sys::state& state, text::columnar_layout& contents) noexcept { }
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
 
 	void on_update(sys::state& state) noexcept override {
 		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_columnar_layout(
+		auto container = text::create_endless_layout(
 			internal_layout,
-			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color },
-			250
+			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
 		);
 		populate_layout(state, container);
 	}

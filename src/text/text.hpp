@@ -208,10 +208,9 @@ namespace text {
 		text_chunk const* get_chunk_from_position(int32_t x, int32_t y) const;
 	};
 
-	void create_endless_layout(layout& dest, sys::state& state, layout_parameters const& params, dcon::text_sequence_id source_text, substitution_map const& mp);
-
 	struct layout_box {
 		size_t first_chunk = 0;
+		size_t line_start = 0;
 		int32_t x_offset = 0;
 		int32_t x_size = 0;
 		int32_t y_size = 0;
@@ -220,9 +219,13 @@ namespace text {
 		int32_t y_position = 0;
 		text_color color = text_color::white;
 	};
-	struct columnar_layout {
+
+	struct layout_base {
 		layout& base_layout;
 		layout_parameters fixed_parameters;
+	};
+
+	struct columnar_layout : public layout_base {
 		int32_t used_height = 0;
 		int32_t used_width = 0;
 		int32_t y_cursor = 0;
@@ -230,13 +233,22 @@ namespace text {
 		int32_t column_width = 0;
 	};
 
-	layout_box open_layout_box(columnar_layout& dest, int32_t indent);
-	void close_layout_box(columnar_layout& dest, layout_box const& box);
-	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp);
-	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{});
+	struct endless_layout : public layout_base {
+		int32_t y_cursor = 0;
+	};
+
+	endless_layout create_endless_layout(layout& dest, layout_parameters const& params);
+
+	void close_layout_box(endless_layout& dest, layout_box& box);
 
 	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width);
-	void layout_box_next_line(sys::state& state, columnar_layout& dest, layout_box& box);
+
+	layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
+	void close_layout_box(columnar_layout& dest, layout_box& box);
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp);
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{});
+
+	void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
 
 	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
 	
