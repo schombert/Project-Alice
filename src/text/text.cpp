@@ -910,6 +910,16 @@ namespace text {
 		finish_line();
 	}
 
+	void layout_box_next_line(sys::state& state, columnar_layout& dest, layout_box& box) {
+		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+		auto& font = state.font_collection.fonts[font_index - 1];
+		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+		auto line_height = text_height + dest.fixed_parameters.leading;
+
+		box.x_position = float(box.x_offset);
+		box.y_position += line_height;
+	}
 
 	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, std::string_view txt, text_color color, substitution source) {
 
@@ -1037,8 +1047,7 @@ namespace text {
 				std::string_view text = state.to_string_view(tkey);
 				add_to_layout_box(dest, state, box, std::string_view(text), current_color, std::monostate{});
 			} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
-				box.x_position = float(box.x_offset);
-				box.y_position += line_height;
+				layout_box_next_line(state, dest, box);
 			} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
 				current_color = std::get<text::text_color>(state.text_components[i]);
 			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {

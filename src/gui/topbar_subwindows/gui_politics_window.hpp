@@ -11,8 +11,10 @@
 #include "gui_release_nation_window.hpp"
 #include "gui_unciv_reforms_window.hpp"
 #include "nations.hpp"
+#include "politics.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include <string_view>
 #include <vector>
 
 namespace ui {
@@ -305,6 +307,39 @@ public:
 	}
 };
 
+class nation_government_description_text : public standard_nation_columnar_text {
+public:
+	void populate_layout(sys::state& state, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		
+		if(politics::can_appoint_ruling_party(state, nation_id)) {
+			auto k = state.key_to_text_sequence.find(std::string_view("can_appoint_ruling_party"));
+			if(k != state.key_to_text_sequence.end()) {
+				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::layout_box_next_line(state, contents, box);
+			}
+		}
+		if(!politics::has_elections(state, nation_id)) {
+			auto k = state.key_to_text_sequence.find(std::string_view("term_for_life"));
+			if(k != state.key_to_text_sequence.end()) {
+				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			}
+		} else if(politics::is_election_ongoing(state, nation_id)) {
+			auto k = state.key_to_text_sequence.find(std::string_view("election_info_in_gov"));
+			if(k != state.key_to_text_sequence.end()) {
+				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			}
+		} else {
+			auto k = state.key_to_text_sequence.find(std::string_view("next_election"));
+			if(k != state.key_to_text_sequence.end()) {
+				// TODO: display election start date
+				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			}
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 class politics_window : public generic_tabbed_window<politics_window_tab> {
 private:
 	dcon::nation_id nation_id{};
@@ -370,6 +405,8 @@ public:
 			return ptr;
 		} else if(name == "government_name") {
 			return make_element_by_type<nation_government_type_text>(state, id);
+		} else if(name == "government_desc") {
+			return make_element_by_type<nation_government_description_text>(state, id);
 		} else if(name == "national_value") {
 			return make_element_by_type<nation_national_value_icon>(state, id);
 		} else if(name == "plurality_value") {

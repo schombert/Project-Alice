@@ -236,7 +236,7 @@ namespace text {
 	void add_to_layout_box(columnar_layout& dest, sys::state& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{});
 
 	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width);
-
+	void layout_box_next_line(sys::state& state, columnar_layout& dest, layout_box& box);
 
 	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
 	
