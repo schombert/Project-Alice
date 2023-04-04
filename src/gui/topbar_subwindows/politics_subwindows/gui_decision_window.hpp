@@ -49,17 +49,35 @@ public:
 // Decision Description
 // --------------------
 
-class decision_desc : public simple_text_element_base {
+class decision_desc : public multiline_text_element_base {
+private:
+  dcon::text_sequence_id description;
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(contents, state, box, description, text::substitution_map{ });
+		text::close_layout_box(contents, box);
+	}
+
 public:
+
 	void on_update(sys::state& state) noexcept {
 		Cyto::Any payload = dcon::decision_id{};
 		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 			auto fat_id = dcon::fatten(state.world, id);
-			auto name = text::produce_simple_string(state, fat_id.get_description());
-			set_text(state, name);
+			description = fat_id.get_description();
 		}
+		int16_t X_FUDGE_FACTOR = 50; // TODO: why is this necessary? Without it there is horizontal clipping
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, base_data.size.x - X_FUDGE_FACTOR, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
+		);
+		populate_layout(state, container);
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::unseen;
 	}
 };
 
