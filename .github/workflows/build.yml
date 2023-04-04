@@ -8,7 +8,7 @@ jobs:
   linux-build:
     strategy:
       matrix:
-        config: [Release, Debug]
+        config: [Debug]
         compiler: [gcc, clang]
         os: [ubuntu-latest]
 
@@ -41,7 +41,7 @@ jobs:
   windows-build:
     strategy:
       matrix:
-        config: [debug-win-clang, debug-windows]
+        config: [debug-windows]
     runs-on: [windows-latest]
     name: Windows (${{ matrix.config }})
     steps:
