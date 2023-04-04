@@ -771,7 +771,7 @@ namespace text {
 	endless_layout create_endless_layout(layout& dest, layout_parameters const& params) {
 		dest.contents.clear();
 		dest.number_of_lines = 0;
-		return endless_layout{ dest, params };
+		return endless_layout{ {dest, params} };
 	}
 
 	
@@ -982,7 +982,7 @@ namespace text {
 	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width) {
 		dest.contents.clear();
 		dest.number_of_lines = 0;
-		return columnar_layout{ dest, params, 0, 0, params.top, 0, column_width };
+		return columnar_layout{ {dest, params}, 0, 0, params.top, 0, column_width };
 	}
 
 }
