@@ -398,6 +398,33 @@ public:
 	}
 };
 
+class standard_nation_multiline_text : public multiline_text_element_base {
+protected:
+	dcon::nation_id nation_id{};
+
+public:
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
+
+	void on_update(sys::state& state) noexcept override {
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
+		);
+		populate_layout(state, container);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
 class standard_nation_text : public simple_text_element_base {
 protected:
 	dcon::nation_id nation_id{};

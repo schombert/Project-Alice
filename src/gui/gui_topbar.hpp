@@ -12,6 +12,7 @@
 #include "gui_military_window.hpp"
 #include "gui_common_elements.hpp"
 #include "nations.hpp"
+#include "politics.hpp"
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
@@ -206,8 +207,7 @@ public:
 class topbar_ongoing_election_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
-		auto election_end_date = dcon::fatten(state.world, nation_id).get_election_ends();
-		return int32_t(!election_end_date || election_end_date <= state.current_date);
+		return int32_t(!politics::is_election_ongoing(state, nation_id));
 	}
 };
 

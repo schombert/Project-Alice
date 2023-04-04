@@ -22,4 +22,21 @@ float get_weighted_vote_size(sys::state& state, dcon::nation_id nation, dcon::po
     return 1.f * state.world.pop_get_size(pop);
 }
 
+bool can_appoint_ruling_party(sys::state& state, dcon::nation_id nation) {
+    auto fat_id = dcon::fatten(state.world, nation);
+    auto gov_type_id = fat_id.get_government_type();
+    return state.culture_definitions.governments[gov_type_id].can_appoint_ruling_party;
+}
+
+bool is_election_ongoing(sys::state& state, dcon::nation_id nation) {
+    auto election_end_date = dcon::fatten(state.world, nation).get_election_ends();
+    return election_end_date && election_end_date > state.current_date;
+}
+
+bool has_elections(sys::state& state, dcon::nation_id nation) {
+    auto fat_id = dcon::fatten(state.world, nation);
+    auto gov_type_id = fat_id.get_government_type();
+    return state.culture_definitions.governments[gov_type_id].has_elections;
+}
+
 }
