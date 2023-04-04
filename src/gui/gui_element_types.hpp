@@ -389,6 +389,10 @@ public:
 		return dist <= radius ? message_result::consumed : message_result::unseen;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	uint32_t get_ui_color(sys::state& state, dcon::issue_option_id id);
+	uint32_t get_ui_color(sys::state& state, T id) {
+		return dcon::fatten(state.world, id).get_color();
+	}
 };
 
 template<class SrcT, class DemoT>

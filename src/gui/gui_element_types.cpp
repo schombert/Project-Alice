@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include "color.hpp"
 #include "culture.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
@@ -695,8 +696,7 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 		size_t i = 0;
 		for(auto& [index, quant]: distribution) {
 			T t = T(index);
-			auto fat_id = dcon::fatten(state.world, t);
-			uint32_t color = fat_id.get_color();
+			uint32_t color = get_ui_color(state, t);
 			auto slice_count = std::min(size_t(quant * resolution), i + resolution);
 			for(size_t j = 0; j < slice_count; j++) {
 				spread[j + i] = t;
@@ -707,8 +707,7 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 			i += slice_count;
 			last_t = t;
 		}
-		auto last_fat_id = dcon::fatten(state.world, last_t);
-		uint32_t last_color = last_fat_id.get_color();
+		uint32_t last_color = get_ui_color(state, last_t);
 		for(; i < resolution; i++) {
 			spread[i] = last_t;
 			colors[i * channels] = uint8_t(last_color & 0xFF);
@@ -739,6 +738,11 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	text::add_to_layout_box(contents, state, box, std::string_view(": "), text::text_color::white, text::substitution{});
 	text::add_to_layout_box(contents, state, box, std::string_view(text::format_percentage(percentage, 3)), text::text_color::white, text::substitution{});
 	text::close_layout_box(contents, box);
+}
+
+template<class T>
+uint32_t piechart<T>::get_ui_color(sys::state& state, dcon::issue_option_id id) {
+	return ogl::color_from_hash(uint32_t(id.index()));
 }
 
 template<class SrcT, class DemoT>

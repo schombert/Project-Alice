@@ -1,5 +1,6 @@
 #include "map_modes.hpp"
 
+#include "color.hpp"
 #include "demographics.hpp"
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
@@ -33,22 +34,6 @@ void set_political(sys::state& state) {
 	state.map_display.set_province_color(prov_color, mode::political);
 }
 
-// borrowed from http://www.burtleburtle.net/bob/hash/doobs.html
-inline constexpr uint32_t scramble(uint32_t color) {
-	uint32_t m1 = 0x1337CAFE;
-	uint32_t m2 = 0xDEADBEEF;
-	m1 -= m2; m1 -= color; m1 ^= (color >> 13);
-	m2 -= color; m2 -= m1; m2 ^= (m1 << 8);
-	color -= m1; color -= m2; color ^= (m2 >> 13);
-	m1 -= m2; m1 -= color; m1 ^= (color >> 12);
-	m2 -= color; m2 -= m1; m2 ^= (m1 << 16);
-	color -= m1; color -= m2; color ^= (m2 >> 5);
-	m1 -= m2; m1 -= color; m1 ^= (color >> 3);
-	m2 -= color; m2 -= m1; m2 ^= (m1 << 10);
-	color -= m1; color -= m2; color ^= (m2 >> 15);
-	return color;
-}
-
 void set_region(sys::state& state) {
 	uint32_t province_size = state.world.province_size() + 1;
 	uint32_t texture_size = province_size + 256 - province_size % 256;
@@ -58,7 +43,7 @@ void set_region(sys::state& state) {
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto id = fat_id.get_abstract_state_membership();
-		uint32_t color = scramble(id.get_state().id.index());
+		uint32_t color = ogl::color_from_hash(id.get_state().id.index());
 		auto i = province::to_map_id(prov_id);
 		prov_color[i] = color;
 		prov_color[i + texture_size] = color;
