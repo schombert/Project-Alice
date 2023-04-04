@@ -165,9 +165,9 @@ private:
     for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
       dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
       auto lim = state.world.decision_get_potential(did); 
-      //if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) { 
+      if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) { 
         list.push_back(did);
-      //}
+      }
     }
     return list;
   }
