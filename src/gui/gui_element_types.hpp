@@ -7,7 +7,9 @@
 #include "text.hpp"
 #include "texture.hpp"
 #include <functional>
+#include <unordered_map>
 #include <variant>
+#include <vector>
 
 namespace ui {
 
@@ -353,29 +355,35 @@ protected:
 	static constexpr size_t resolution = 200;
 	static constexpr size_t channels = 3;
 	bool enabled = true;
-	virtual std::vector<uint8_t> get_colors(sys::state& state) noexcept {
-		std::vector<uint8_t> out(resolution * channels);
-		for(size_t i = 0; i < resolution * channels; i += channels) {
-			out[i] = 255;
-		}
+	ogl::data_texture data_texture{resolution, channels};
+
+public:
+	void generate_data_texture(sys::state& state, std::vector<uint8_t>& colors);
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+template<class T>
+class piechart : public piechart_element_base {
+protected:
+	virtual std::unordered_map<int32_t, float> get_distribution(sys::state& state) noexcept {
+		std::unordered_map<int32_t, float> out{};
+		out[-1] = 1.f;
 		return out;
 	}
 
 private:
-	ogl::data_texture data_texture{resolution, channels};
-	
-	void generate_data_texture(sys::state& state);
+	std::unordered_map<int32_t, float> distribution{};
+	std::vector<T> spread = std::vector<T>(resolution);
 
 public:
 	void on_create(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
 template<class SrcT, class DemoT>
-class demographic_piechart : public piechart_element_base {
+class demographic_piechart : public piechart<DemoT> {
 protected:
-	std::vector<uint8_t> get_colors(sys::state& state) noexcept override;
+	std::unordered_map<int32_t, float> get_distribution(sys::state& state) noexcept override;
 	virtual void for_each_demo(sys::state& state, std::function<void(DemoT)> fun) { }
 };
 
