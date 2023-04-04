@@ -1,6 +1,10 @@
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
+#include <vector>
 #include "culture.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
@@ -655,20 +659,11 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 	}
 }
 
-void piechart_element_base::generate_data_texture(sys::state& state) {
-	auto colors = get_colors(state);
+void piechart_element_base::generate_data_texture(sys::state& state, std::vector<uint8_t>& colors) {
 	if(!colors.empty()) {
-		memcpy(data_texture.data, get_colors(state).data(), resolution * channels);
+		memcpy(data_texture.data, colors.data(), resolution * channels);
 		data_texture.data_updated = true;
 	}
-}
-
-void piechart_element_base::on_create(sys::state& state) noexcept {
-	generate_data_texture(state);
-}
-
-void piechart_element_base::on_update(sys::state& state) noexcept {
-	generate_data_texture(state);
 }
 
 void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -676,19 +671,83 @@ void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 		ogl::render_piechart(
 			state,
 			ogl::color_modification::none, 
-			float(x - base_data.size.x), float(y), float(base_data.size.x * 2),
+			float(x), float(y), float(base_data.size.x),
 			data_texture
 		);
 	}
 }
 
+template<class T>
+void piechart<T>::on_create(sys::state& state) noexcept {
+	base_data.position.x -= base_data.size.x;
+	radius = float(base_data.size.x);
+	base_data.size.x *= 2;
+	base_data.size.y *= 2;
+	on_update(state);
+}
+
+template<class T>
+void piechart<T>::on_update(sys::state& state) noexcept {
+	get_distribution(state).swap(distribution);
+	std::vector<uint8_t> colors = std::vector<uint8_t>(resolution * channels);
+	{
+		T last_t{};
+		size_t i = 0;
+		for(auto& [index, quant]: distribution) {
+			T t = T(index);
+			auto fat_id = dcon::fatten(state.world, t);
+			uint32_t color = fat_id.get_color();
+			auto slice_count = std::min(size_t(quant * resolution), i + resolution);
+			for(size_t j = 0; j < slice_count; j++) {
+				spread[j + i] = t;
+				colors[(j + i) * channels] = uint8_t(color & 0xFF);
+				colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
+				colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
+			}
+			i += slice_count;
+			last_t = t;
+		}
+		auto last_fat_id = dcon::fatten(state.world, last_t);
+		uint32_t last_color = last_fat_id.get_color();
+		for(; i < resolution; i++) {
+			spread[i] = last_t;
+			colors[i * channels] = uint8_t(last_color & 0xFF);
+			colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
+			colors[i * channels + 2] = uint8_t(last_color >> 16 & 0xFF);
+		}
+	}
+	generate_data_texture(state, colors);
+}
+
+template<class T>
+void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	const float PI = 3.141592653589793238463f;
+	float dx = float(x) - radius;
+	float dy = float(y) - radius;
+	float dist = std::sqrt(dx * dx + dy * dy);
+	float angle = std::acos(-dx / dist);
+	if(dy > 0.f) {
+		angle = PI + (PI - angle);
+	}
+	auto index = size_t(angle / (2.f * PI) * float(resolution));
+	T t = T(spread[index]);
+	auto fat_t = dcon::fatten(state.world, t);
+	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
+	auto box = text::open_layout_box(contents, 0);
+
+	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
+	text::add_to_layout_box(contents, state, box, std::string_view(": "), text::text_color::white, text::substitution{});
+	text::add_to_layout_box(contents, state, box, std::string_view(text::format_percentage(percentage, 3)), text::text_color::white, text::substitution{});
+	text::close_layout_box(contents, box);
+}
+
 template<class SrcT, class DemoT>
-std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& state) noexcept {
-	std::vector<uint8_t> colors(resolution * channels);
+std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(sys::state& state) noexcept {
+	std::unordered_map<typename DemoT::value_base_t, float> distrib;
 	Cyto::Any obj_id_payload = SrcT{};
 	size_t i = 0;
-	if(parent) {
-		parent->impl_get(state, obj_id_payload);
+	if(this->parent) {
+		this->parent->impl_get(state, obj_id_payload);
 		float total_pops = 0.f;
 		if(obj_id_payload.holds_type<dcon::province_id>()) {
 			auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
@@ -699,13 +758,10 @@ std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& s
 		}
 		
 		if(total_pops <= 0) {
-			return std::vector<uint8_t>(0);
+			return distrib;
 		}
-		DemoT last_demo{};
 		for_each_demo(state, [&](DemoT demo_id) {
-			last_demo = demo_id;
-			auto demo_fat_id = dcon::fatten(state.world, demo_id);
-			auto demo_key = demographics::to_key(state, demo_fat_id.id);
+			auto demo_key = demographics::to_key(state, demo_id);
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
 				auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
@@ -714,24 +770,10 @@ std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& s
 				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 				volume = state.world.nation_get_demographics(nat_id, demo_key);
 			}
-			auto slice_count = std::min(size_t(volume / total_pops * resolution), i + resolution * channels);
-			auto color = demo_fat_id.get_color();
-			for(size_t j = 0; j < slice_count * channels; j += channels) {
-				colors[j + i] = uint8_t(color & 0xFF);
-				colors[j + i + 1] = uint8_t(color >> 8 & 0xFF);
-				colors[j + i + 2] = uint8_t(color >> 16 & 0xFF);
-			}
-			i += slice_count * channels;
+			distrib[static_cast<typename DemoT::value_base_t>(demo_id.index())] = volume / total_pops;
 		});
-		auto fat_last_culture = dcon::fatten(state.world, last_demo);
-		auto last_cult_color = fat_last_culture.get_color();
-		for(; i < colors.size(); i += channels) {
-			colors[i] = uint8_t(last_cult_color & 0xFF);
-			colors[i + 1] = uint8_t(last_cult_color >> 8 & 0xFF);
-			colors[i + 2] = uint8_t(last_cult_color >> 16 & 0xFF);
-		}
 	}
-	return colors;
+	return distrib;
 }
 
 template<class RowWinT, class RowConT>

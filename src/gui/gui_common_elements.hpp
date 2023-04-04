@@ -10,6 +10,7 @@
 #include "province.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include <unordered_map>
 #include <vector>
 
 namespace ui {
@@ -998,47 +999,29 @@ public:
 	}
 };
 
-class upper_house_piechart : public piechart_element_base {
+class upper_house_piechart : public piechart<dcon::ideology_id> {
 protected:
-	std::vector<uint8_t> get_colors(sys::state& state) noexcept override {
-		std::vector<uint8_t> colors(resolution * channels);
+	std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {
+		std::unordered_map<uint8_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
-		size_t i = 0;
 		if(parent) {
 			parent->impl_get(state, nat_id_payload);
 			if(nat_id_payload.holds_type<dcon::nation_id>()) {
 				auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
-				dcon::ideology_id last_ideology{};
 				state.world.for_each_ideology([&](dcon::ideology_id ideo_id) {
-					last_ideology = ideo_id;
-					auto ideo_fat_id = dcon::fatten(state.world, ideo_id);
 					auto weight = .01f * state.world.nation_get_upper_house(nat_id, ideo_id);
-					auto slice_count = std::min(size_t(weight * resolution), i + resolution * channels);
-					auto color = ideo_fat_id.get_color();
-					for(size_t j = 0; j < slice_count * channels; j += channels) {
-						colors[j + i] = uint8_t(color & 0xFF);
-						colors[j + i + 1] = uint8_t(color >> 8 & 0xFF);
-						colors[j + i + 2] = uint8_t(color >> 16 & 0xFF);
-					}
-					i += slice_count * channels;
+					distrib[uint8_t(ideo_id.index())] = weight;
 				});
-				auto fat_last_ideology = dcon::fatten(state.world, last_ideology);
-				auto last_color = fat_last_ideology.get_color();
-				for(; i < colors.size(); i += channels) {
-					colors[i] = uint8_t(last_color & 0xFF);
-					colors[i + 1] = uint8_t(last_color >> 8 & 0xFF);
-					colors[i + 2] = uint8_t(last_color >> 16 & 0xFF);
-				}
 			}
 		}
-		return colors;
+		return distrib;
 	}
 };
 
-class voter_ideology_piechart : public piechart_element_base {
+class voter_ideology_piechart : public piechart<dcon::ideology_id> {
 protected:
-	std::vector<uint8_t> get_colors(sys::state& state) noexcept override {
-		std::vector<uint8_t> colors(resolution * channels);
+	std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {
+		std::unordered_map<uint8_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
 		if(parent) {
 			parent->impl_get(state, nat_id_payload);
@@ -1047,7 +1030,7 @@ protected:
 				auto total = politics::vote_total(state, nat_id);
 				if(total <= 0.f) {
 					enabled = false;
-					return colors;
+					return distrib;
 				} else {
 					enabled = true;
 				}
@@ -1064,21 +1047,12 @@ protected:
 						}
 					}
 				});
-				size_t j = 0;
 				for(size_t i = 0; i < ideo_pool.size(); i++) {
-					auto iid = dcon::ideology_id(uint8_t(i));
-					auto color = state.world.ideology_get_color(iid);
-					auto slices = size_t(ideo_pool[i] / total * float(resolution));
-					for(size_t k = 0; k < slices * channels; k += channels) {
-						colors[k + j] = uint8_t(color & 0xFF);
-						colors[k + j + 1] = uint8_t(color >> 8 & 0xFF);
-						colors[k + j + 2] = uint8_t(color >> 16 & 0xFF);
-					}
-					j += slices * channels;
+					distrib[uint8_t(i)] = ideo_pool[i] / total;
 				}
 			}
 		}
-		return colors;
+		return distrib;
 	}
 };
 
