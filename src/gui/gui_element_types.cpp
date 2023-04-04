@@ -661,17 +661,29 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 
 void piechart_element_base::generate_data_texture(sys::state& state, std::vector<uint8_t>& colors) {
 	if(!colors.empty()) {
-		for(size_t i = std::min(colors.size(), resolution * channels); i > 0; i--) {
-			data_texture.data[i - 1] = colors[i];
-		}
+		memcpy(data_texture.data, colors.data(), resolution * channels);
 		data_texture.data_updated = true;
+	}
+}
+
+void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(enabled) {
+		ogl::render_piechart(
+			state,
+			ogl::color_modification::none, 
+			float(x), float(y), float(base_data.size.x),
+			data_texture
+		);
 	}
 }
 
 template<class T>
 void piechart<T>::on_create(sys::state& state) noexcept {
-	//data_texture = {200, 3};
-	// on_update(state);
+	base_data.position.x -= base_data.size.x;
+	radius = float(base_data.size.x);
+	base_data.size.x *= 2;
+	base_data.size.y *= 2;
+	on_update(state);
 }
 
 template<class T>
@@ -682,7 +694,7 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 		T last_t{};
 		size_t i = 0;
 		for(auto& [index, quant]: distribution) {
-			T t = T{static_cast<typename T::value_base_t>(index)};
+			T t = T(index);
 			auto fat_id = dcon::fatten(state.world, t);
 			uint32_t color = fat_id.get_color();
 			auto slice_count = std::min(size_t(quant * resolution), i + resolution);
@@ -695,32 +707,43 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 			i += slice_count;
 			last_t = t;
 		}
-		auto fat_id = dcon::fatten(state.world, last_t);
-		uint32_t color = fat_id.get_color();
-		for(; i < colors.size(); i++) {
+		auto last_fat_id = dcon::fatten(state.world, last_t);
+		uint32_t last_color = last_fat_id.get_color();
+		for(; i < resolution; i++) {
 			spread[i] = last_t;
-			colors[i * channels] = uint8_t(color & 0xFF);
-			colors[i * channels + 1] = uint8_t(color >> 8 & 0xFF);
-			colors[i * channels + 2] = uint8_t(color >> 16 & 0xFF);
+			colors[i * channels] = uint8_t(last_color & 0xFF);
+			colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
+			colors[i * channels + 2] = uint8_t(last_color >> 16 & 0xFF);
 		}
 	}
 	generate_data_texture(state, colors);
 }
 
-void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(enabled) {
-		ogl::render_piechart(
-			state,
-			ogl::color_modification::none, 
-			float(x - base_data.size.x), float(y), float(base_data.size.x * 2),
-			data_texture
-		);
+template<class T>
+void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	const float PI = 3.141592653589793238463f;
+	float dx = float(x) - radius;
+	float dy = float(y) - radius;
+	float dist = std::sqrt(dx * dx + dy * dy);
+	float angle = std::acos(-dx / dist);
+	if(dy > 0.f) {
+		angle = PI + (PI - angle);
 	}
+	auto index = size_t(angle / (2.f * PI) * float(resolution));
+	T t = T(spread[index]);
+	auto fat_t = dcon::fatten(state.world, t);
+	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
+	auto box = text::open_layout_box(contents, 0);
+
+	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
+	text::add_to_layout_box(contents, state, box, std::string_view(": "), text::text_color::white, text::substitution{});
+	text::add_to_layout_box(contents, state, box, std::string_view(text::format_percentage(percentage, 3)), text::text_color::white, text::substitution{});
+	text::close_layout_box(contents, box);
 }
 
 template<class SrcT, class DemoT>
-std::unordered_map<int32_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(sys::state& state) noexcept {
-	std::unordered_map<int32_t, float> distrib;
+std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(sys::state& state) noexcept {
+	std::unordered_map<typename DemoT::value_base_t, float> distrib;
 	Cyto::Any obj_id_payload = SrcT{};
 	size_t i = 0;
 	if(this->parent) {
@@ -747,7 +770,7 @@ std::unordered_map<int32_t, float> demographic_piechart<SrcT, DemoT>::get_distri
 				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 				volume = state.world.nation_get_demographics(nat_id, demo_key);
 			}
-			distrib[int32_t(demo_id.index())] = volume / total_pops;
+			distrib[static_cast<typename DemoT::value_base_t>(demo_id.index())] = volume / total_pops;
 		});
 	}
 	return distrib;

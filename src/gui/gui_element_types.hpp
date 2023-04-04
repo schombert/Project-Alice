@@ -358,6 +358,7 @@ protected:
 	ogl::data_texture data_texture{resolution, channels};
 
 public:
+	float radius = 0.f;
 	void generate_data_texture(sys::state& state, std::vector<uint8_t>& colors);
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
@@ -365,25 +366,35 @@ public:
 template<class T>
 class piechart : public piechart_element_base {
 protected:
-	virtual std::unordered_map<int32_t, float> get_distribution(sys::state& state) noexcept {
-		std::unordered_map<int32_t, float> out{};
-		out[-1] = 1.f;
+	virtual std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept {
+		std::unordered_map<typename T::value_base_t, float> out{};
+		out[static_cast<typename T::value_base_t>(-1)] = 1.f;
 		return out;
 	}
 
 private:
-	std::unordered_map<int32_t, float> distribution{};
+	std::unordered_map<typename T::value_base_t, float> distribution{};
 	std::vector<T> spread = std::vector<T>(resolution);
 
 public:
 	void on_create(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::position_sensitive_tooltip;
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		float dx = float(x) - radius;
+		float dy = float(y) - radius;
+		auto dist = sqrt(dx * dx + dy * dy);
+		return dist <= radius ? message_result::consumed : message_result::unseen;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
 template<class SrcT, class DemoT>
 class demographic_piechart : public piechart<DemoT> {
 protected:
-	std::unordered_map<int32_t, float> get_distribution(sys::state& state) noexcept override;
+	std::unordered_map<typename DemoT::value_base_t, float> get_distribution(sys::state& state) noexcept override;
 	virtual void for_each_demo(sys::state& state, std::function<void(DemoT)> fun) { }
 };
 
