@@ -48,4 +48,8 @@ inline int32_t to_int(float a) {
 	return int32_t(a);
 }
 
+inline bool compress_mask(bool v) {
+	return v;
+}
+
 }
