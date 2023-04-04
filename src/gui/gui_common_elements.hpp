@@ -942,8 +942,30 @@ public:
 		}
 	}
 };
+class religion_type_icon : public button_element_base {
+protected:
+    dcon::religion_id religion_id{};
 
-class nation_ideology_percentage_text : public simple_text_element_base {
+public:
+    void update(sys::state& state) noexcept {
+        auto fat_id = dcon::fatten(state.world, religion_id);
+        frame = int32_t(fat_id.get_icon() - 1);
+    }
+
+    message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::religion_id>()) {
+            religion_id = any_cast<dcon::religion_id>(payload);
+            update(state);
+            return message_result::consumed;
+        } else {
+            return message_result::unseen;
+        }
+    }
+};
+
+
+
+    class nation_ideology_percentage_text : public simple_text_element_base {
 protected:
 	dcon::nation_id nation_id{};
 	dcon::ideology_id ideology_id{};
