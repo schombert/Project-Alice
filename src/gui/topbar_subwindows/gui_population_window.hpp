@@ -89,7 +89,7 @@ public:
         religion->impl_on_update(state);
 
 
-        size->set_text(state, text::format_float(fat_id.get_size()));
+        size->set_text(state, std::to_string(int32_t(fat_id.get_size())));
         nation->set_text(state, text::produce_simple_string(state, cfat_id.get_name()));
         location->set_text(state, text::produce_simple_string(state, lcfat_id.get_name()));
         mil->set_text(state, text::format_float(fat_id.get_militancy()));
@@ -134,7 +134,8 @@ private:
                 dcon::pop_fat_id a_fat_id = dcon::fatten(state.world, a);
                 dcon::pop_fat_id b_fat_id = dcon::fatten(state.world, b);
 
-                bool sortFilter = a_fat_id.get_poptype().id.value > b_fat_id.get_poptype().id.value;
+                //bool sortFilter = a_fat_id.get_poptype().id.value > b_fat_id.get_poptype().id.value;
+                bool sortFilter = a_fat_id.get_size() > b_fat_id.get_size();
                 return sortFilter;
 
             });
