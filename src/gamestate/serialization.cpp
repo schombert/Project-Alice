@@ -1,6 +1,7 @@
 #include "dcon_generated.hpp"
 #include "system_state.hpp"
 #include "serialization.hpp"
+#include <random>
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
@@ -569,6 +570,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = deserialize(ptr_in, state.unit_names);
 	ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
 	ptr_in = memcpy_deserialize(ptr_in, state.current_date);
+	ptr_in = memcpy_deserialize(ptr_in, state.game_seed);
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_state);
 	ptr_in = deserialize(ptr_in, state.crisis_participants);
 	ptr_in = memcpy_deserialize(ptr_in, state.current_crisis);
@@ -595,6 +597,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.unit_names);
 	ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
 	ptr_in = memcpy_serialize(ptr_in, state.current_date);
+	ptr_in = memcpy_serialize(ptr_in, state.game_seed);
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_state);
 	ptr_in = serialize(ptr_in, state.crisis_participants);
 	ptr_in = memcpy_serialize(ptr_in, state.current_crisis);
@@ -622,6 +625,7 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.unit_names);
 	sz += sizeof(state.local_player_nation);
 	sz += sizeof(state.current_date);
+	sz += sizeof(state.game_seed);
 	sz += sizeof(state.crisis_state);
 	sz += serialize_size(state.crisis_participants);
 	sz += sizeof(state.current_crisis);
@@ -732,6 +736,8 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 			read_save_section(ptr_in, ptr_in + length, state);
 		});
 
+		state.game_seed = uint32_t(std::random_device()());
+
 		return true;
 	} else {
 		return false;
@@ -791,23 +797,5 @@ bool try_read_save_file(sys::state& state, native_string_view name) {
 		return false;
 	}
 }
-
-/*
-template<typename T>
-void with_decompressed_section(uint8_t const* ptr_in, T const& function) {
-	uint32_t section_length = 0;
-	uint32_t decompressed_length = 0;
-	memcpy(&section_length, ptr_in, sizeof(uint32_t));
-	memcpy(&decompressed_length, ptr_in + sizeof(uint32_t), sizeof(uint32_t));
-
-	//TODO: allocate memory for decompression and decompress into it
-
-	function(ptr_in + sizeof(uint32_t)*2, decompressed_length);
-
-	//TODO: free memory allocated for decompression
-
-	return ptr_in + sizeof(uint32_t) * 2 + section_length;
-}
-*/
 
 }

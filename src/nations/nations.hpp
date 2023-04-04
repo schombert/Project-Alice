@@ -225,7 +225,7 @@ void update_military_scores(sys::state& state);
 void update_rankings(sys::state& state);
 void update_ui_rankings(sys::state& state);
 
-bool is_greate_power(sys::state const& state, dcon::nation_id n);
+bool is_great_power(sys::state const& state, dcon::nation_id n);
 float prestige_score(sys::state const& state, dcon::nation_id n);
 
 enum class status : uint8_t {

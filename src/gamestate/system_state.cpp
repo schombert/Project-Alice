@@ -1336,6 +1336,21 @@ namespace sys {
 			}
 		});
 
+		// fix worker types
+		province::for_each_land_province(*this, [&](dcon::province_id p) {
+			bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
+
+			// fix pop types
+			for(auto pop : world.province_get_pop_location(p)) {
+				if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
+					pop.get_pop().set_poptype(culture_definitions.laborers);
+				}
+				if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
+					pop.get_pop().set_poptype(culture_definitions.farmers);
+				}
+			}
+		});
+
 		map_loader.join();
 
 		// touch up adjacencies
@@ -1373,6 +1388,9 @@ namespace sys {
 		}
 
 		fill_unsaved_data(); // we need this to run triggers
+
+		demographics::regenerate_from_pop_data(*this);
+		economy::initialize(*this);
 
 		culture::create_initial_ideology_and_issues_distribution(*this);
 		demographics::regenerate_from_pop_data(*this);
@@ -1460,6 +1478,8 @@ namespace sys {
 
 		rebel::update_movement_values(*this);
 
+		economy::regenerate_unsaved_values(*this);
+
 		military::regenerate_land_unit_average(*this);
 		military::regenerate_ship_scores(*this);
 		nations::update_industrial_scores(*this);
@@ -1505,7 +1525,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 6, [&](int32_t index) {
+					concurrency::parallel_for(0, 8, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1524,6 +1544,12 @@ namespace sys {
 								break;
 							case 5:
 								military::update_naval_supply_points(*this);
+								break;
+							case 6:
+								economy::update_rgo_employment(*this);
+								break;
+							case 7:
+								economy::update_factory_employment(*this);
 								break;
 						}
 

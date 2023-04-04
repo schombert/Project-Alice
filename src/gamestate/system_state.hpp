@@ -132,6 +132,7 @@ namespace sys {
 
 		dcon::nation_id local_player_nation;
 		sys::date current_date = sys::date{0};
+		uint32_t game_seed = 0; // do *not* alter this value, ever
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information

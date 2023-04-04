@@ -11,8 +11,10 @@
 #include "gui_release_nation_window.hpp"
 #include "gui_unciv_reforms_window.hpp"
 #include "nations.hpp"
+#include "politics.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include <string_view>
 #include <vector>
 
 namespace ui {
@@ -305,6 +307,44 @@ public:
 	}
 };
 
+class nation_government_description_text : public standard_nation_multiline_text {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+		
+		if(politics::can_appoint_ruling_party(state, nation_id)) {
+			auto k = state.key_to_text_sequence.find(std::string_view("can_appoint_ruling_party"));
+			if(k != state.key_to_text_sequence.end()) {
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::close_layout_box(contents, box);
+			}
+		}
+		if(!politics::has_elections(state, nation_id)) {
+			auto k = state.key_to_text_sequence.find(std::string_view("term_for_life"));
+			if(k != state.key_to_text_sequence.end()) {
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::close_layout_box(contents, box);
+			}
+		} else if(politics::is_election_ongoing(state, nation_id)) {
+			auto k = state.key_to_text_sequence.find(std::string_view("election_info_in_gov"));
+			if(k != state.key_to_text_sequence.end()) {
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::close_layout_box(contents, box);
+			}
+		} else {
+			auto k = state.key_to_text_sequence.find(std::string_view("next_election"));
+			if(k != state.key_to_text_sequence.end()) {
+				// TODO: display election start date
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
+};
+
 class politics_window : public generic_tabbed_window<politics_window_tab> {
 private:
 	dcon::nation_id nation_id{};
@@ -370,6 +410,8 @@ public:
 			return ptr;
 		} else if(name == "government_name") {
 			return make_element_by_type<nation_government_type_text>(state, id);
+		} else if(name == "government_desc") {
+			return make_element_by_type<nation_government_description_text>(state, id);
 		} else if(name == "national_value") {
 			return make_element_by_type<nation_national_value_icon>(state, id);
 		} else if(name == "plurality_value") {
@@ -386,6 +428,8 @@ public:
 			return make_element_by_type<nation_can_do_political_reform_icon>(state, id);
 		} else if(name == "chart_upper_house") {
 			return make_element_by_type<upper_house_piechart>(state, id);
+		} else if(name == "chart_voters_ideologies") {
+			return make_element_by_type<voter_ideology_piechart>(state, id);
 		} else if(name == "chart_people_ideologies") {
 			return make_element_by_type<ideology_piechart<dcon::nation_id>>(state, id);
 		} else if(name == "upperhouse_ideology_listbox") {
@@ -408,17 +452,6 @@ public:
 		} else if(!state.world.nation_get_is_civilized(nation_id) && reforms_win->is_visible()) {
 			reforms_win->set_visible(state, false);
 			unciv_reforms_win->set_visible(state, true);
-		}
-	}
-	void hide_vector_elements(sys::state& state, std::vector<element_base*>& elements) {
-		for(auto element : elements) {
-			element->set_visible(state, false);
-		}
-	}
-
-	void show_vector_elements(sys::state& state, std::vector<element_base*>& elements) {
-		for(auto element : elements) {
-			element->set_visible(state, true);
 		}
 	}
 	void hide_sub_windows(sys::state& state) {

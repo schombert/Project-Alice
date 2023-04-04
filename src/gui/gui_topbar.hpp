@@ -12,6 +12,7 @@
 #include "gui_military_window.hpp"
 #include "gui_common_elements.hpp"
 #include "nations.hpp"
+#include "politics.hpp"
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
@@ -143,7 +144,7 @@ public:
 class topbar_losing_gp_status_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
-		return int32_t(!(nations::is_greate_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
+		return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
 	}
 };
 
@@ -206,8 +207,7 @@ public:
 class topbar_ongoing_election_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
-		auto election_end_date = dcon::fatten(state.world, nation_id).get_election_ends();
-		return int32_t(!election_end_date || election_end_date <= state.current_date);
+		return int32_t(!politics::is_election_ongoing(state, nation_id));
 	}
 };
 
@@ -351,6 +351,8 @@ public:
 			return make_element_by_type<nation_military_score_text>(state, id);
 		} else if(name == "country_total") {
 			return make_element_by_type<nation_total_score_text>(state, id);
+		} else if(name == "country_colonial_power") {
+			return make_element_by_type<nation_colonial_power_text>(state, id);
 		} else if(name == "selected_prestige_rank") {
 			return make_element_by_type<nation_prestige_rank_text>(state, id);
 		} else if(name == "selected_industry_rank") {

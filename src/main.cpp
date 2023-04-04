@@ -34,6 +34,7 @@
 #include "bmfont.cpp"
 #include "rebels.cpp"
 #include "parsers_declarations.cpp"
+#include "politics.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
@@ -64,6 +65,7 @@
 #include "opengl_wrapper.cpp"
 #include "map.cpp"
 #include "map_modes.cpp"
+#include "prng.cpp"
 
 namespace sys {
 	state::~state() {

@@ -10,6 +10,9 @@ public:
 	void edit_box_esc(sys::state& state) noexcept override {
 		state.ui_state.console_window->set_visible(state, false);
 	}
+	void edit_box_backtick(sys::state& state) noexcept override {
+		state.ui_state.console_window->set_visible(state, false);
+	}
 };
 
 class console_list_entry : public listbox_row_element_base<std::string> {
@@ -75,10 +78,19 @@ public:
 		}
 	}
 
+
+	void clear_list(sys::state& state) noexcept {
+		console_output_list->row_contents.clear();
+		console_output_list->update(state);
+	}
+
 	static void show_toggle(sys::state& state);
 
 	void on_visible(sys::state& state) noexcept override {
 		state.ui_state.edit_target = edit_box;
+	}
+	void on_hide(sys::state& state) noexcept override {
+		state.ui_state.edit_target = nullptr;
 	}
 };
 }

@@ -619,28 +619,7 @@ namespace parsers {
 		MOD_NAT_FUNCTION(poor_savings_modifier)
 		MOD_NAT_FUNCTION(influence_modifier)
 		MOD_NAT_FUNCTION(diplomatic_points_modifier)
-		MOD_NAT_FUNCTION(mobilisation_size)
-		MOD_NAT_FUNCTION(mobilisation_economy_impact)
-		template<typename T> \
-		void mobilization_size(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
-					err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
-			} else {
-				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilisation_size;
-				constructed_definition_n.values[next_to_add_n] = v;
-				++next_to_add_n;
-			}
-		}
-		template<typename T>
-		void mobilization_economy_impact(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
-				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
-			} else {
-				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilisation_economy_impact;
-				constructed_definition_n.values[next_to_add_n] = v;
-				++next_to_add_n;
-			}
-		}
+		MOD_NAT_FUNCTION(mobilization_size)
 		MOD_NAT_FUNCTION(global_pop_militancy_modifier)
 		MOD_NAT_FUNCTION(global_pop_consciousness_modifier)
 		MOD_PROV_FUNCTION(movement_cost)
@@ -685,16 +664,6 @@ namespace parsers {
 		MOD_NAT_FUNCTION(non_accepted_pop_consciousness_modifier)
 		MOD_NAT_FUNCTION(cb_generation_speed_modifier)
 		MOD_NAT_FUNCTION(mobilization_impact)
-		template<typename T>
-		void mobilisation_impact(association_type, float v, error_handler& err, int32_t line, T& context) {
-			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
-				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
-			} else {
-				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::mobilization_impact;
-				constructed_definition_n.values[next_to_add_n] = v;
-				++next_to_add_n;
-			}
-		}
 		MOD_NAT_FUNCTION(suppression_points_modifier)
 		MOD_NAT_FUNCTION(education_efficiency_modifier)
 		MOD_NAT_FUNCTION(civilization_progress_modifier)
@@ -2055,7 +2024,6 @@ namespace parsers {
 	};
 
 	struct generic_event {
-		void finish(event_building_context&) { }
 		dcon::trigger_key trigger;
 		dcon::value_modifier_key mean_time_to_happen;
 		std::array<sys::event_option, sys::max_event_options> options;
@@ -2063,7 +2031,7 @@ namespace parsers {
 		dcon::effect_key immediate_;
 		bool major = false;
 		bool fire_only_once = false;
-		dcon::text_key picture_;
+		dcon::gfx_object_id picture_;
 		dcon::text_sequence_id title_;
 		dcon::text_sequence_id desc_;
 
@@ -2075,6 +2043,12 @@ namespace parsers {
 				immediate_ = value;
 		}
 		void picture(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+		void finish(event_building_context& context) {
+			if(!picture_) {
+				error_handler err("");
+				picture(association_type::eq, "", err, 0, context);
+			}
+		}
 	};
 
 	dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, event_building_context& context);

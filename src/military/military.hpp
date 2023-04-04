@@ -113,6 +113,9 @@ void regenerate_ship_scores(sys::state& state);
 int32_t naval_supply_points(sys::state& state, dcon::nation_id n);
 int32_t naval_supply_points_used(sys::state& state, dcon::nation_id n);
 
+float mobilization_size(sys::state const& state, dcon::nation_id n);
+float mobilization_impact(sys::state const& state, dcon::nation_id n);
+
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 
 }
