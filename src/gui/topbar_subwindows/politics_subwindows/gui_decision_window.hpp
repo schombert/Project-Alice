@@ -16,7 +16,7 @@ class make_decision : public  button_element_base {};
 
 class decision_name : public simple_text_element_base {
 public:
-  void on_update(sys::state& state) noexcept {
+  void on_update(sys::state& state) noexcept override {
     Cyto::Any payload = dcon::decision_id{};
     if(parent) {
       parent->impl_get(state, payload);
@@ -34,7 +34,7 @@ public:
 
 class decision_image : public image_element_base {
 public:
-  void on_update(sys::state& state) noexcept {
+  void on_update(sys::state& state) noexcept override {
     Cyto::Any payload = dcon::decision_id{};
     if(parent) {
       parent->impl_get(state, payload);
@@ -59,8 +59,7 @@ private:
   }
 
 public:
-
-  void on_update(sys::state& state) noexcept {
+  void on_update(sys::state& state) noexcept override {
     Cyto::Any payload = dcon::decision_id{};
     if(parent) {
       parent->impl_get(state, payload);
@@ -105,7 +104,7 @@ public:
 
 class decision_item : public listbox_row_element_base<dcon::decision_id> {
 public:
-  std::unique_ptr<ui::element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+  std::unique_ptr<ui::element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
     if(name == "decision_name") {
       return make_element_by_type<decision_name>(state, id);
     } else if (name == "decision_image"){
@@ -174,7 +173,7 @@ private:
   }
 
 public:
-  void on_create(sys::state& state) noexcept {
+  void on_create(sys::state& state) noexcept override {
     window_element_base::on_create(state);
     set_visible(state, false);
     
@@ -182,12 +181,12 @@ public:
     decision_list->update(state);
   }
 
-  void on_update(sys::state& state) noexcept {
+  void on_update(sys::state& state) noexcept override {
     decision_list->row_contents = get_decisions(state);
     decision_list->update(state);
   }
 
-  std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+  std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
     if(name == "decision_listbox") {
       auto ptr = make_element_by_type<decision_listbox>(state, id);
       decision_list = ptr.get();
