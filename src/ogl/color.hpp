@@ -1,5 +1,6 @@
 #pragma once
 
+#include "system_state.hpp"
 #include <cstdint>
 
 namespace ogl {
@@ -18,6 +19,15 @@ inline constexpr uint32_t color_from_hash(uint32_t color) {
 	m2 -= color; m2 -= m1; m2 ^= (m1 << 10);
 	color -= m1; color -= m2; color ^= (m2 >> 15);
 	return color;
+}
+
+uint32_t get_ui_color(sys::state& state, dcon::issue_option_id id){
+	return ogl::color_from_hash(uint32_t(id.index()));
+}
+
+template<class T>
+uint32_t get_ui_color(sys::state& state, T id) {
+	return dcon::fatten(state.world, id).get_color();
 }
 
 }
