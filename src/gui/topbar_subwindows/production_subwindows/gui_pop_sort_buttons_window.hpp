@@ -21,19 +21,19 @@ public:
 
 		if(name == "clerk_sort") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_button_text(state, "Clerks");
+			ptr->set_button_text(state, state.get_text_using_text_key_name(state, "clerks"));
 			ptr->base_data.position.y = 0;
 			ptr->base_data.position.x = 0;
 			return ptr;
 		} else if(name == "craftsman_sort") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_button_text(state, "Craftsmen");
+			ptr->set_button_text(state, state.get_text_using_text_key_name(state, "craftsmen"));
 			ptr->base_data.position.y = 0;
 			ptr->base_data.position.x = 131;
 			return ptr;
 		} else if(name == "capitalist_sort") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_button_text(state, "Capitalists");
+			ptr->set_button_text(state, state.get_text_using_text_key_name(state, "capitalists"));
 			ptr->base_data.position.y = 0;
 			ptr->base_data.position.x = 262;
 			return ptr;

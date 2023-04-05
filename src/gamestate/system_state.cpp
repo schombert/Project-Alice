@@ -286,6 +286,21 @@ namespace sys {
 		return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
 	}
 
+	std::string state::get_text_using_text_key_name(sys::state& state, std::string key_name) const {
+
+		auto charindex = state.key_to_text_sequence.find(key_name)->first.value;
+		std::string backwardstext = "";
+		std::string finaltext = "";
+		for(uint32_t i = 0; state.text_data[charindex - 3 - i] != NULL; i++) {
+			backwardstext.push_back(state.text_data[charindex - 3 - i]);
+		}
+		for(uint32_t i = 0; i < backwardstext.length(); i++) {
+			finaltext.push_back(backwardstext[backwardstext.length() - 1 - i]);
+		}
+
+		return finaltext;
+	}
+
 	dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
 		auto res = add_to_pool(new_text);
 		for(auto i = 0; i < int32_t(new_text.length()); ++i) {
