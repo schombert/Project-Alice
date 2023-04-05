@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include "color.hpp"
 #include "culture.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
@@ -695,8 +696,7 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 		size_t i = 0;
 		for(auto& [index, quant]: distribution) {
 			T t = T(index);
-			auto fat_id = dcon::fatten(state.world, t);
-			uint32_t color = fat_id.get_color();
+			uint32_t color = ogl::get_ui_color(state, t);
 			auto slice_count = std::min(size_t(quant * resolution), i + resolution);
 			for(size_t j = 0; j < slice_count; j++) {
 				spread[j + i] = t;
@@ -707,8 +707,7 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 			i += slice_count;
 			last_t = t;
 		}
-		auto last_fat_id = dcon::fatten(state.world, last_t);
-		uint32_t last_color = last_fat_id.get_color();
+		uint32_t last_color = ogl::get_ui_color(state, last_t);
 		for(; i < resolution; i++) {
 			spread[i] = last_t;
 			colors[i * channels] = uint8_t(last_color & 0xFF);

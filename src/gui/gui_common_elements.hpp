@@ -399,6 +399,49 @@ public:
 	}
 };
 
+class standard_nation_issue_option_text : public simple_text_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::issue_option_id issue_option_id{};
+
+public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_option_id>()) {
+			issue_option_id = any_cast<dcon::issue_option_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class issue_option_popular_support : public standard_nation_issue_option_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(politics::get_popular_support(state, nation_id, issue_option_id), 3);
+	}
+};
+
+class issue_option_voter_support : public standard_nation_issue_option_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(politics::get_voter_support(state, nation_id, issue_option_id), 3);
+	}
+};
+
 class standard_nation_multiline_text : public multiline_text_element_base {
 protected:
 	dcon::nation_id nation_id{};
