@@ -65,6 +65,7 @@
 #include "opengl_wrapper.cpp"
 #include "map.cpp"
 #include "map_modes.cpp"
+#include "prng.cpp"
 
 namespace sys {
 	state::~state() {

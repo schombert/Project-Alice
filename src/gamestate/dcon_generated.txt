@@ -318,6 +318,10 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ key_factory }
+		type{ factory_type_id }
+	}
+	property{
 		name{ current_price }
 		type{ float }
 		tag{ save }
@@ -2566,6 +2570,16 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ stockpile_targets }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ drawing_on_stockpiles }
+		type{ array{commodity_id}{bitfield} }
+		tag{ save }
+	}
+	property {
 		name{ domestic_market_pool }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -3222,8 +3236,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ image_name }
-		type{ text_key }
+		name{ image }
+		type{ dcon::gfx_object_id }
 		tag{ scenario }
 	}
 	property{
@@ -3252,11 +3266,6 @@ object {
 	property{
 		name{ description }
 		type{ text_sequence_id }
-		tag{ scenario }
-	}
-	property{
-		name{ image_name }
-		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -3293,8 +3302,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ image_name }
-		type{ text_key }
+		name{ image }
+		type{ dcon::gfx_object_id }
 		tag{ scenario }
 	}
 	property{
@@ -3338,11 +3347,6 @@ object {
 	property{
 		name{ only_once }
 		type{ bitfield }
-		tag{ scenario }
-	}
-	property{
-		name{ image_name }
-		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -3442,8 +3446,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ image_name }
-		type{ text_key }
+		name{ image }
+		type{ dcon::gfx_object_id }
 		tag{ scenario }
 	}
 	property{

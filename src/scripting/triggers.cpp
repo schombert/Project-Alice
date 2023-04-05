@@ -164,7 +164,7 @@ TRIGGER_FUNCTION(apply_conjuctively) {
 	const auto source_size = 1 + get_trigger_scope_payload_size(tval);
 	auto sub_units_start = tval + 2 + trigger_scope_data_payload(tval[0]);
 
-	return_type result = return_type(false);
+	return_type result = return_type(true);
 	while(sub_units_start < tval + source_size) {
 		result = result & test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot, this_slot, from_slot);
 

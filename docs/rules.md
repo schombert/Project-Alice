@@ -77,7 +77,7 @@ A railway increases:
 
 ### Overseas penalty
 
-For each commodity that has been discovered by *someone*, a nation must pay define:PROVINCE_OVERSEAS_PENALTY x number-of-overseas-provinces per day. The overseas penalty for a nation is then 0.25 x (1 - the average for all discovered commodities of (the-amount-in-stockpile / amount-required)). A nation without overseas provinces has a penalty of 0.
+For each commodity that has been discovered by *someone*, a nation must pay define:PROVINCE_OVERSEAS_PENALTY x number-of-overseas-provinces per day. The overseas penalty for a nation is then 0.25 x (1 - the average for all discovered commodities of (the-amount-in-stockpile / amount-required)). A nation without overseas provinces has a penalty of 0. (A good is discovered if it is marked as active from the start *or* the nation has unlocked the factory that produces it.)
 
 ### Invisible "banking"
 

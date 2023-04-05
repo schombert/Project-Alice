@@ -2024,7 +2024,6 @@ namespace parsers {
 	};
 
 	struct generic_event {
-		void finish(event_building_context&) { }
 		dcon::trigger_key trigger;
 		dcon::value_modifier_key mean_time_to_happen;
 		std::array<sys::event_option, sys::max_event_options> options;
@@ -2032,7 +2031,7 @@ namespace parsers {
 		dcon::effect_key immediate_;
 		bool major = false;
 		bool fire_only_once = false;
-		dcon::text_key picture_;
+		dcon::gfx_object_id picture_;
 		dcon::text_sequence_id title_;
 		dcon::text_sequence_id desc_;
 
@@ -2044,6 +2043,12 @@ namespace parsers {
 				immediate_ = value;
 		}
 		void picture(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+		void finish(event_building_context& context) {
+			if(!picture_) {
+				error_handler err("");
+				picture(association_type::eq, "", err, 0, context);
+			}
+		}
 	};
 
 	dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, event_building_context& context);

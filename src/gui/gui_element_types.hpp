@@ -7,7 +7,9 @@
 #include "text.hpp"
 #include "texture.hpp"
 #include <functional>
+#include <unordered_map>
 #include <variant>
+#include <vector>
 
 namespace ui {
 
@@ -62,12 +64,6 @@ public:
 	void on_create(sys::state& state) noexcept override;
 };
 
-class progress_bar : public image_element_base {
-public:
-	float progress = 0.f;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-};
-
 class tinted_image_element_base : public image_element_base {
 private:
 	uint32_t color = 0;
@@ -97,6 +93,13 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::no_tooltip;
 	}
+};
+
+class progress_bar : public opaque_element_base {
+public:
+	float progress = 0.f;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
 };
 
 class button_element_base : public opaque_element_base {
@@ -147,6 +150,12 @@ public:
 	std::string_view get_text(sys::state& state) const {
 		return stored_text;
 	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
 };
 
 class edit_box_element_base : public simple_text_element_base {
@@ -168,53 +177,20 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
-struct multiline_text_section {
-	std::string_view stored_text;
-	float x_offset = 0.f;
-	float y_offset = 0.f;
-	text::text_color color = text::text_color::black;
-};
-
-using text_substitution = std::variant<std::string_view, dcon::text_key, dcon::nation_id, dcon::province_id, dcon::state_definition_id>;
-
-struct hyperlink {
-	text_substitution link_type;
-	int32_t x = 0;
-	int32_t y = 0;
-	int32_t width = 0;
-	int32_t height = 0;
-};
-
 class multiline_text_element_base : public element_base {
 private:
-	std::vector<multiline_text_section> sections = {};
-	std::vector<hyperlink> hyperlinks = {};
-	std::vector<text_substitution> substitutions = {};
-
-	float vertical_spacing = 0.f;
 	float line_height = 0.f;
-	int32_t line_count = 0;
 	int32_t current_line = 0;
 	int32_t visible_lines = 0;
-
-	void generate_sections(sys::state& state) noexcept;
-	void add_text_section(sys::state& state, std::string_view text, float& current_x, float& current_y,  text::text_color color) noexcept;
-	std::string_view get_substitute(sys::state& state, text::variable_type var_type) noexcept;
+	
 public:
+	bool black_text = true;
+	text::layout internal_layout;
+
 	void on_create(sys::state& state) noexcept override;
-	void update_substitutions(sys::state& state, std::vector<text_substitution> subs);
-	void update_text(sys::state& state, dcon::text_sequence_id seq_id);
-	void on_reset_text(sys::state& state) noexcept override;
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
-	}
-	int32_t get_scroll_width() {
-		return line_count - visible_lines;
-	}
-	void set_scroll_pos(int32_t pos) {
-		current_line = std::min(pos, get_scroll_width());
 	}
 };
 
@@ -379,29 +355,46 @@ protected:
 	static constexpr size_t resolution = 200;
 	static constexpr size_t channels = 3;
 	bool enabled = true;
-	virtual std::vector<uint8_t> get_colors(sys::state& state) noexcept {
-		std::vector<uint8_t> out(resolution * channels);
-		for(size_t i = 0; i < resolution * channels; i += channels) {
-			out[i] = 255;
-		}
+	ogl::data_texture data_texture{resolution, channels};
+
+public:
+	float radius = 0.f;
+	void generate_data_texture(sys::state& state, std::vector<uint8_t>& colors);
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+template<class T>
+class piechart : public piechart_element_base {
+protected:
+	virtual std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept {
+		std::unordered_map<typename T::value_base_t, float> out{};
+		out[static_cast<typename T::value_base_t>(-1)] = 1.f;
 		return out;
 	}
 
 private:
-	ogl::data_texture data_texture{resolution, channels};
-	
-	void generate_data_texture(sys::state& state);
+	std::unordered_map<typename T::value_base_t, float> distribution{};
+	std::vector<T> spread = std::vector<T>(resolution);
 
 public:
 	void on_create(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::position_sensitive_tooltip;
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		float dx = float(x) - radius;
+		float dy = float(y) - radius;
+		auto dist = sqrt(dx * dx + dy * dy);
+		return dist <= radius ? message_result::consumed : message_result::unseen;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
 template<class SrcT, class DemoT>
-class demographic_piechart : public piechart_element_base {
+class demographic_piechart : public piechart<DemoT> {
 protected:
-	std::vector<uint8_t> get_colors(sys::state& state) noexcept override;
+	std::unordered_map<typename DemoT::value_base_t, float> get_distribution(sys::state& state) noexcept override;
 	virtual void for_each_demo(sys::state& state, std::function<void(DemoT)> fun) { }
 };
 

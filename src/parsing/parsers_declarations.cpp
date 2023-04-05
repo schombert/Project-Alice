@@ -2286,8 +2286,45 @@ void generic_event::option(sys::event_option const& value, error_handler& err, i
 	}
 }
 
-void generic_event::picture(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
-	picture_ = context.outer_context.state.add_unique_to_pool(std::string(value));
+void generic_event::picture(association_type, std::string_view name, error_handler& err, int32_t line, event_building_context& context) {
+
+	auto root = get_root(context.outer_context.state.common_fs);
+	auto gfx = open_directory(root, NATIVE("gfx"));
+	auto pictures = open_directory(gfx, NATIVE("pictures"));
+	auto events = open_directory(pictures, NATIVE("events"));
+
+	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\events\\") + [&]() {
+		if(peek_file(events, simple_fs::utf8_to_native(name) + NATIVE(".tga"))) {
+			return std::string(name) + ".tga";
+		} else {
+			return std::string("GFX_event_no_image.tga");
+		}
+	}());
+
+	if(auto it = context.outer_context.gfx_context.map_of_names.find(file_name); it != context.outer_context.gfx_context.map_of_names.end()) {
+		picture_ = it->second;
+	} else {
+		auto gfxindex = context.outer_context.state.ui_defs.gfx.size();
+		context.outer_context.state.ui_defs.gfx.emplace_back();
+		ui::gfx_object& new_obj = context.outer_context.state.ui_defs.gfx.back();
+		auto new_id = dcon::gfx_object_id(uint16_t(gfxindex));
+
+		context.outer_context.gfx_context.map_of_names.insert_or_assign(file_name, new_id);
+
+		new_obj.number_of_frames = uint8_t(1);
+
+		if(auto itb = context.outer_context.gfx_context.map_of_texture_names.find(file_name); itb != context.outer_context.gfx_context.map_of_texture_names.end()) {
+			new_obj.primary_texture_handle = itb->second;
+		} else {
+			auto index = context.outer_context.state.ui_defs.textures.size();
+			context.outer_context.state.ui_defs.textures.emplace_back(context.outer_context.state.add_to_pool(file_name));
+			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
+			context.outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+		}
+		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
+
+		picture_ = new_id;
+	}
 }
 
 

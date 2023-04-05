@@ -1,6 +1,11 @@
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
+#include <vector>
+#include "color.hpp"
 #include "culture.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
@@ -542,193 +547,29 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 	}
 }
 
-bool is_hyperlink_substitution(text_substitution sub) {
-        return std::holds_alternative<dcon::nation_id>(sub) ||
-               std::holds_alternative<dcon::state_definition_id>(sub) ||
-               std::holds_alternative<dcon::province_id>(sub);
-}
-
-void multiline_text_element_base::add_text_section(sys::state& state, std::string_view text, float& current_x, float& current_y, text::text_color color) noexcept {
-
-	size_t str_i = 0;
-	size_t current_len = 0;
-	while(str_i < text.size()) {
-		// FIXME: this approach of finding word breaks does not apply to all languages
-		auto next_wb = text.find_first_of(" \r\n\t", str_i + current_len);
-		if(next_wb == std::string_view::npos) {
-			next_wb = text.size();
-		}
-		next_wb = std::min(next_wb, text.size()) - str_i;
-		if(next_wb == current_len) {
-			current_len++;
-		} else {
-			auto seg_start = std::next(text.begin(), str_i);
-			std::string_view segment{ seg_start, std::next(seg_start, next_wb) };
-			if(current_len == 0 && current_x + state.font_collection.text_extent(state, segment.data(), uint32_t(segment.size()), base_data.data.text.font_handle) >= base_data.size.x) {
-				// the current word is too long for the text box, just let it overflow
-				sections.push_back(multiline_text_section{ segment, current_x, current_y, color });
-				current_x = 0.f;
-				current_y += line_height + vertical_spacing;
-				str_i += next_wb;
-				current_len = 0;
-				line_count++;
-			} else if(current_x + state.font_collection.text_extent(state, segment.data(), uint32_t(segment.size()), base_data.data.text.font_handle) >= base_data.size.x) {
-				std::string_view section{ seg_start, std::next(seg_start, current_len) };
-				sections.push_back(multiline_text_section{ section, current_x, current_y, color });
-				current_x = 0.f;
-				current_y += line_height + vertical_spacing;
-				str_i += current_len;
-				current_len = 0;
-				line_count++;
-			} else if(next_wb == text.size() - str_i) {
-				// we've reached the end of the text
-				std::string_view remaining{ seg_start, text.end() };
-				sections.push_back(multiline_text_section{ remaining, current_x, current_y, color });
-				current_x += state.font_collection.text_extent(state, remaining.data(), uint32_t(remaining.size()), base_data.data.text.font_handle);
-				if(current_x >= base_data.size.x) {
-					current_x = 0.f;
-					current_y += line_height + vertical_spacing;
-					line_count++;
-				}
-				break;
-			} else {
-				current_len = next_wb;
-			}
-		}
-	}
-}
-
-std::string_view multiline_text_element_base::get_substitute(sys::state& state, text::variable_type var_type) noexcept {
-	if(std::holds_alternative<std::string_view>(substitutions[size_t(var_type)])) {
-		return std::get<std::string_view>(substitutions[size_t(var_type)]);
-	} else if(std::holds_alternative<dcon::text_key>(substitutions[size_t(var_type)])) {
-		auto tkey = std::get<dcon::text_key>(substitutions[size_t(var_type)]);
-		return state.to_string_view(tkey);
-	} else if(std::holds_alternative<dcon::nation_id>(substitutions[size_t(var_type)])) {
-		dcon::nation_id nation_id = std::get<dcon::nation_id>(substitutions[size_t(var_type)]);
-		dcon::nation_fat_id fat_id = dcon::fatten(state.world, nation_id);
-		auto name_id = fat_id.get_identity_from_identity_holder().get_name();
-		std::string_view name{ text::produce_simple_string(state, name_id) };
-		return name; 
-	} else if(std::holds_alternative<dcon::state_definition_id>(substitutions[size_t(var_type)])) {
-		dcon::state_definition_id state_id = std::get<dcon::state_definition_id>(substitutions[size_t(var_type)]);
-		dcon::state_definition_fat_id fat_id = dcon::fatten(state.world, state_id);
-		auto name_id = fat_id.get_name();
-		std::string_view name{ text::produce_simple_string(state, name_id) };
-		return name;
-	} else if(std::holds_alternative<dcon::province_id>(substitutions[size_t(var_type)])) {
-		auto province_id = std::get<dcon::province_id>(substitutions[size_t(var_type)]);
-		dcon::province_fat_id fat_id = dcon::fatten(state.world, province_id);
-		auto name_id = fat_id.get_name();
-		std::string_view name{ text::produce_simple_string(state, name_id) };
-		return name;
-	} else {
-		std::string_view unknown{ "?" };
-		return unknown;
-	}
-}
-
-void multiline_text_element_base::generate_sections(sys::state& state) noexcept {
-	auto& seq = state.text_sequences[base_data.data.text.txt];
-
-	line_height = state.font_collection.line_height(state, base_data.data.text.font_handle);
-	text::text_color current_color = text::text_color::black;
-	float current_x = 0.f;
-	float current_y = 0.f;
-
-	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); i++) {
-		if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
-			auto tkey = std::get<dcon::text_key>(state.text_components[i]);
-			std::string_view text = state.to_string_view(tkey);
-			add_text_section(state, text, current_x, current_y, current_color);
-		} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
-			current_x = 0.f;
-			current_y += line_height + vertical_spacing;
-			line_count++;
-		} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
-			current_color = std::get<text::text_color>(state.text_components[i]);
-		} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
-			auto var_type = std::get<text::variable_type>(state.text_components[i]);
-			if(size_t(var_type) < substitutions.size()) {
-				if(is_hyperlink_substitution(substitutions[size_t(var_type)])) {
-					int32_t last_x = int32_t(current_x);
-					int32_t last_y = int32_t(current_y);
-					auto substitute = get_substitute(state, var_type);
-					add_text_section(state, substitute, current_x, current_y, current_color);
-					for(int32_t line = last_y; line <= int32_t(current_y); line += int32_t(line_height + vertical_spacing)) {
-						int32_t x = line == last_y ? last_x : 0;
-						int32_t width = line == int32_t(current_y) ? int32_t(current_x) : base_data.size.x;
-						if(x < width) {
-							hyperlinks.push_back(hyperlink{
-								substitutions[size_t(var_type)], 
-								x, 
-								line, 
-								width, 
-								line + int32_t(line_height + vertical_spacing)
-							});
-						}
-					}
-				} else {
-					auto substitute = get_substitute(state, var_type);
-					add_text_section(state, substitute, current_x, current_y, current_color);
-				}
-			}
-		}
-	}
-	if(current_x) {
-		line_count++;
-	}
-	visible_lines = std::min(line_count, base_data.size.y / int32_t(line_height));
-}
-
 void multiline_text_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
-		generate_sections(state);
-	}
-}
-
-void multiline_text_element_base::on_reset_text(sys::state& state) noexcept {
-	generate_sections(state);
-}
-void multiline_text_element_base::update_text(sys::state& state, dcon::text_sequence_id seq_id) {
-	if(base_data.get_element_type() == element_type::text) {
-		base_data.data.text.txt = seq_id;
-		generate_sections(state);
-		set_scroll_pos(0);
-	}
-}
-
-void multiline_text_element_base::update_substitutions(sys::state& state, std::vector<text_substitution> subs) {
-	substitutions = subs;
-	if(base_data.get_element_type() == element_type::text) {
-		generate_sections(state);
-		set_scroll_pos(current_line);
+		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+		line_height = state.font_collection.line_height(state, base_data.data.text.font_handle);
+		visible_lines = base_data.size.y / int32_t(line_height);
 	}
 }
 
 void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	for(auto& section : sections) {
-		float line_offset = section.y_offset - line_height * float(current_line);
-		if(section.stored_text.size() && 0 <= line_offset && line_offset < base_data.size.y) {
-			ogl::render_text(
-				state, section.stored_text.data(), uint32_t(section.stored_text.size()),
-				ogl::color_modification::none,
-				float(x + section.x_offset), float(y + base_data.size.y + line_offset),
-				get_text_color(section.color),
-				base_data.data.text.font_handle
-			);
+	if(base_data.get_element_type() == element_type::text) {
+		for(auto& t : internal_layout.contents) {
+			float line_offset = t.y - line_height * float(current_line);
+			if(0 <= line_offset && line_offset < base_data.size.y) {
+				ogl::render_text(
+					state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()),
+					ogl::color_modification::none,
+					float(x) + t.x, float(y + t.y),
+					get_text_color(t.color),
+					base_data.data.text.font_handle
+				);
+			}
 		}
 	}
-}
-
-message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	for(auto& link : hyperlinks) {
-		if(link.x <= x && x < link.width && link.y <= y && y < link.height) {
-			// TODO implement hyperlink actions
-			return message_result::consumed;
-		}
-	}
-	return message_result::unseen;
 }
 
 void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
@@ -819,20 +660,11 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 	}
 }
 
-void piechart_element_base::generate_data_texture(sys::state& state) {
-	auto colors = get_colors(state);
+void piechart_element_base::generate_data_texture(sys::state& state, std::vector<uint8_t>& colors) {
 	if(!colors.empty()) {
-		memcpy(data_texture.data, get_colors(state).data(), resolution * channels);
+		memcpy(data_texture.data, colors.data(), resolution * channels);
 		data_texture.data_updated = true;
 	}
-}
-
-void piechart_element_base::on_create(sys::state& state) noexcept {
-	generate_data_texture(state);
-}
-
-void piechart_element_base::on_update(sys::state& state) noexcept {
-	generate_data_texture(state);
 }
 
 void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -840,19 +672,81 @@ void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 		ogl::render_piechart(
 			state,
 			ogl::color_modification::none, 
-			float(x - base_data.size.x), float(y), float(base_data.size.x * 2),
+			float(x), float(y), float(base_data.size.x),
 			data_texture
 		);
 	}
 }
 
+template<class T>
+void piechart<T>::on_create(sys::state& state) noexcept {
+	base_data.position.x -= base_data.size.x;
+	radius = float(base_data.size.x);
+	base_data.size.x *= 2;
+	base_data.size.y *= 2;
+	on_update(state);
+}
+
+template<class T>
+void piechart<T>::on_update(sys::state& state) noexcept {
+	get_distribution(state).swap(distribution);
+	std::vector<uint8_t> colors = std::vector<uint8_t>(resolution * channels);
+	{
+		T last_t{};
+		size_t i = 0;
+		for(auto& [index, quant]: distribution) {
+			T t = T(index);
+			uint32_t color = ogl::get_ui_color(state, t);
+			auto slice_count = std::min(size_t(quant * resolution), i + resolution);
+			for(size_t j = 0; j < slice_count; j++) {
+				spread[j + i] = t;
+				colors[(j + i) * channels] = uint8_t(color & 0xFF);
+				colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
+				colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
+			}
+			i += slice_count;
+			last_t = t;
+		}
+		uint32_t last_color = ogl::get_ui_color(state, last_t);
+		for(; i < resolution; i++) {
+			spread[i] = last_t;
+			colors[i * channels] = uint8_t(last_color & 0xFF);
+			colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
+			colors[i * channels + 2] = uint8_t(last_color >> 16 & 0xFF);
+		}
+	}
+	generate_data_texture(state, colors);
+}
+
+template<class T>
+void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	const float PI = 3.141592653589793238463f;
+	float dx = float(x) - radius;
+	float dy = float(y) - radius;
+	float dist = std::sqrt(dx * dx + dy * dy);
+	float angle = std::acos(-dx / dist);
+	if(dy > 0.f) {
+		angle = PI + (PI - angle);
+	}
+	auto index = size_t(angle / (2.f * PI) * float(resolution));
+	T t = T(spread[index]);
+	auto fat_t = dcon::fatten(state.world, t);
+	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
+	auto box = text::open_layout_box(contents, 0);
+
+	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
+	text::add_to_layout_box(contents, state, box, std::string_view(": "), text::text_color::white, text::substitution{});
+	text::add_to_layout_box(contents, state, box, std::string_view(text::format_percentage(percentage, 3)), text::text_color::white, text::substitution{});
+	text::close_layout_box(contents, box);
+}
+
 template<class SrcT, class DemoT>
-std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& state) noexcept {
-	std::vector<uint8_t> colors(resolution * channels);
+std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(sys::state& state) noexcept {
+	std::unordered_map<typename DemoT::value_base_t, float> distrib;
 	Cyto::Any obj_id_payload = SrcT{};
 	size_t i = 0;
-	if(parent) {
-		parent->impl_get(state, obj_id_payload);
+	if(this->parent) {
+		this->parent->impl_get(state, obj_id_payload);
 		float total_pops = 0.f;
 		if(obj_id_payload.holds_type<dcon::province_id>()) {
 			auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
@@ -863,13 +757,10 @@ std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& s
 		}
 		
 		if(total_pops <= 0) {
-			return std::vector<uint8_t>(0);
+			return distrib;
 		}
-		DemoT last_demo{};
 		for_each_demo(state, [&](DemoT demo_id) {
-			last_demo = demo_id;
-			auto demo_fat_id = dcon::fatten(state.world, demo_id);
-			auto demo_key = demographics::to_key(state, demo_fat_id.id);
+			auto demo_key = demographics::to_key(state, demo_id);
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
 				auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
@@ -878,24 +769,10 @@ std::vector<uint8_t> demographic_piechart<SrcT, DemoT>::get_colors(sys::state& s
 				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 				volume = state.world.nation_get_demographics(nat_id, demo_key);
 			}
-			auto slice_count = std::min(size_t(volume / total_pops * resolution), i + resolution * channels);
-			auto color = demo_fat_id.get_color();
-			for(size_t j = 0; j < slice_count * channels; j += channels) {
-				colors[j + i] = uint8_t(color & 0xFF);
-				colors[j + i + 1] = uint8_t(color >> 8 & 0xFF);
-				colors[j + i + 2] = uint8_t(color >> 16 & 0xFF);
-			}
-			i += slice_count * channels;
+			distrib[static_cast<typename DemoT::value_base_t>(demo_id.index())] = volume / total_pops;
 		});
-		auto fat_last_culture = dcon::fatten(state.world, last_demo);
-		auto last_cult_color = fat_last_culture.get_color();
-		for(; i < colors.size(); i += channels) {
-			colors[i] = uint8_t(last_cult_color & 0xFF);
-			colors[i + 1] = uint8_t(last_cult_color >> 8 & 0xFF);
-			colors[i + 2] = uint8_t(last_cult_color >> 16 & 0xFF);
-		}
 	}
-	return colors;
+	return distrib;
 }
 
 template<class RowWinT, class RowConT>
