@@ -188,7 +188,6 @@ namespace sys {
 		// the following function are for interacting with the string pool
 
 		std::string_view to_string_view(dcon::text_key tag) const; // takes a stored tag and give you the text
-		std::string get_text_using_text_key_name(sys::state& state, std::string key_name) const; // returns the english text for a key with the given key name
 
 		dcon::text_key add_to_pool(std::string const& text); // returns the newly added text
 		dcon::text_key add_to_pool(std::string_view text);
