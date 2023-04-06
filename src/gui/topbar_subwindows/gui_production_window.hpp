@@ -5,6 +5,7 @@
 #include "gui_invest_brow_window.hpp"
 #include "gui_invest_buttons_window.hpp"
 #include "gui_pop_sort_buttons_window.hpp"
+#include "gui_goods_filter_window.hpp"
 #include <vector>
 
 namespace ui {
@@ -20,6 +21,8 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
+		auto ptr = make_child(state, "goods_filter_template", dcon::gui_def_id(1380));
+		this->add_child_to_front(std::move(ptr));
 		set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -94,6 +97,11 @@ public:
 			return ptr;
 		} else if(name == "pop_sort_buttons") {
 			auto ptr = make_element_by_type<pop_sort_buttons_window>(state, id);
+			factory_elements.push_back(ptr.get());
+			ptr->set_visible(state, true);
+			return ptr;
+		} else if(name == "goods_filter_template") {
+			auto ptr = make_element_by_type<goods_filter_window>(state, id);
 			factory_elements.push_back(ptr.get());
 			ptr->set_visible(state, true);
 			return ptr;
