@@ -327,8 +327,12 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	return 0.0f;
 }
 float revolt_risk(sys::state& state, dcon::province_id id) {
-	auto militancy = state.world.province_get_demographics(id, demographics::militancy);
 	auto total_pop = state.world.province_get_demographics(id, demographics::total);
+	if(total_pop == 0) {
+		return 0;
+	}
+
+	auto militancy = state.world.province_get_demographics(id, demographics::militancy);
 	return militancy / total_pop;
 }
 }
