@@ -8,11 +8,11 @@ class pop_sort_buttons_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		auto ptr = make_child(state, "clerk_sort", dcon::gui_def_id(1369));
+		auto ptr = make_child(state, "clerk_sort", state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
 		this->add_child_to_back(std::move(ptr));
-		auto ptr2 = make_child(state, "craftsman_sort", dcon::gui_def_id(1369));
+		auto ptr2 = make_child(state, "craftsman_sort", state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
 		this->add_child_to_back(std::move(ptr2));
-		auto ptr3 = make_child(state, "capitalist_sort", dcon::gui_def_id(1369));
+		auto ptr3 = make_child(state, "capitalist_sort", state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
 		this->add_child_to_back(std::move(ptr3));
 		set_visible(state, false);
 	}
