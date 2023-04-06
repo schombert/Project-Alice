@@ -21,26 +21,25 @@ public:
 
 		if(name == "clerk_sort") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_button_text(state, text::produce_simple_string(state, state.key_to_text_sequence.find(std::string("clerks"))->second));
+			ptr->set_button_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker)));
 			ptr->base_data.position.y = 0;
 			ptr->base_data.position.x = 0;
 			return ptr;
 		} else if(name == "craftsman_sort") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_button_text(state, text::produce_simple_string(state, state.key_to_text_sequence.find(std::string("craftsmen"))->second));
+			ptr->set_button_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)));
 			ptr->base_data.position.y = 0;
 			ptr->base_data.position.x = 131;
 			return ptr;
 		} else if(name == "capitalist_sort") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->set_button_text(state, text::produce_simple_string(state, state.key_to_text_sequence.find(std::string("capitalists"))->second));
+			ptr->set_button_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.capitalists)));
 			ptr->base_data.position.y = 0;
 			ptr->base_data.position.x = 262;
 			return ptr;
 		} else {
 			return nullptr;
 		}
-
 	}
 };
 
