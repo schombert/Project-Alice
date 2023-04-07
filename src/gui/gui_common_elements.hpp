@@ -545,6 +545,64 @@ public:
 	}
 };
 
+class standard_nation_reform_option_button : public button_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::reform_option_id reform_option_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::reform_option_id>()) {
+			reform_option_id = any_cast<dcon::reform_option_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class standard_nation_issue_option_button : public button_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::issue_option_id issue_option_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_option_id>()) {
+			issue_option_id = any_cast<dcon::issue_option_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
 class standard_nation_multiline_text : public multiline_text_element_base {
 protected:
 	dcon::nation_id nation_id{};
