@@ -74,6 +74,7 @@ void set_map_mode(sys::state& state, mode mode) {
 			break;
 		case mode::revolt:
 			prov_color = revolt_map_from(state);
+			break;
 		case mode::party_loyalty:
 			prov_color = party_loyalty_map_from(state);
 			break;
