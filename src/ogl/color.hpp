@@ -25,6 +25,15 @@ uint32_t get_ui_color(sys::state& state, dcon::issue_option_id id){
 	return ogl::color_from_hash(uint32_t(id.index()));
 }
 
+uint32_t color_gradient(float percent, uint32_t top_color, uint32_t bot_color) {
+	uint32_t color = 0;
+	for(uint32_t i = 0; i <= 16; i += 8) {
+		auto diff = int32_t(top_color >> i & 0xFF) - int32_t(bot_color >> i & 0xFF);
+		color |= uint32_t(int32_t(bot_color >> i & 0xFF) + diff * percent) << i;
+	}
+	return color;
+}
+
 template<class T>
 uint32_t get_ui_color(sys::state& state, T id) {
 	return dcon::fatten(state.world, id).get_color();
