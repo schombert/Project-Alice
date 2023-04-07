@@ -23,6 +23,7 @@
 #include "modes/infrastructure.hpp"
 #include "modes/revolt.hpp"
 #include "modes/party_loyalty.hpp"
+#include "modes/admin.hpp"
 
 namespace map_mode {
 
@@ -77,6 +78,9 @@ void set_map_mode(sys::state& state, mode mode) {
 			break;
 		case mode::party_loyalty:
 			prov_color = party_loyalty_map_from(state);
+			break;
+		case mode::admin:
+			prov_color = admin_map_from(state);
 			break;
 		default:
 			return;
