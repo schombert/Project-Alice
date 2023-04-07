@@ -1,5 +1,6 @@
 #pragma once
 
+#include "culture.hpp"
 #include "cyto_any.hpp"
 #include "dcon_generated.hpp"
 #include "gui_common_elements.hpp"
@@ -145,7 +146,7 @@ public:
 			row_contents.clear();
 			state.world.for_each_issue([&](dcon::issue_id issue) {
 				auto issue_option = state.world.political_party_get_party_issues(party, issue);
-				if(row_contents.size() < 5) {
+				if(issue_option && issue_option.get_parent_issue().get_issue_type() == uint8_t(culture::issue_type::party)) {
 					row_contents.push_back(issue_option.id);
 				}
 			});
@@ -341,9 +342,11 @@ public:
 		} else {
 			auto k = state.key_to_text_sequence.find(std::string_view("next_election"));
 			if(k != state.key_to_text_sequence.end()) {
-				// TODO: display election start date
 				auto box = text::open_layout_box(contents);
+				auto election_start_date = politics::next_election_date(state, nation_id);
 				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::add_to_layout_box(contents, state, box, std::string_view(": "), text::text_color::black, text::substitution{});
+				text::add_to_layout_box(contents, state, box, std::string_view(text::date_to_string(state, election_start_date)), text::text_color::black, text::substitution{});
 				text::close_layout_box(contents, box);
 			}
 		}
