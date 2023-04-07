@@ -21,5 +21,9 @@ dcon::reform_id get_reform_by_name(sys::state& state, std::string_view name);
 dcon::issue_id get_issue_by_name(sys::state& state, std::string_view name);
 bool reform_is_selected(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option);
 bool issue_is_selected(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option);
+bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option);
+bool can_enact_social_reform(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option);
+bool can_enact_military_reform(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option);
+bool can_enact_economic_reform(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option);
 
 }

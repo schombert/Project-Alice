@@ -2,6 +2,7 @@
 #include "politics.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
+#include "triggers.hpp"
 
 namespace politics {
 
@@ -109,6 +110,116 @@ bool reform_is_selected(sys::state& state, dcon::nation_id nation, dcon::reform_
 bool issue_is_selected(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
     auto issue = state.world.issue_option_get_parent_issue(issue_option);
     return issue_option == state.world.nation_get_issues(nation, issue.id).id;
+}
+
+bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
+    auto issue = state.world.issue_option_get_parent_issue(issue_option);
+    auto allow = state.world.issue_option_get_allow(issue_option);
+    if(
+        (!state.world.issue_get_is_next_step_only(issue.id) || issue.id.index() + 1 == issue_option.index() || issue.id.index() - 1 == issue_option.index())
+        &&
+        (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))
+        ) {
+
+        float total = 0.0f;
+        for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+            dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+            auto condition = allow.index() > issue.id.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
+            auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(nation, iid);
+            if(condition && upperhouse_weight > 0.0f)
+                total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(nation), trigger::to_generic(nation), 0);
+            if(total > 0.5f)
+                return true;
+        }
+    }
+    return false;
+}
+
+bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_option_id o) {
+    auto issue = state.world.issue_option_get_parent_issue(o);
+    auto allow = state.world.issue_option_get_allow(o);
+    if(
+        (!state.world.issue_get_is_next_step_only(issue.id) || issue.id.index() + 1 == o.index() || issue.id.index() - 1 == o.index())
+        &&
+        (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+        ) {
+
+        float total = 0.0f;
+        for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+            dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+            auto condition = o.index() > issue.id.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
+            auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+            if(condition && upperhouse_weight > 0.0f)
+                total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+            if(total > 0.5f)
+                return true;
+        }
+    }
+    return false;
+}
+
+bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::reform_option_id o) {
+    auto reform = state.world.reform_option_get_parent_reform(o);
+    auto allow = state.world.reform_option_get_allow(o);
+    auto stored_rp = state.world.nation_get_research_points(n);
+    if(
+        o.index() > reform.id.index()
+        &&
+        (!state.world.reform_get_is_next_step_only(reform.id) || reform.id.index() + 1 == o.index())
+        &&
+        (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+        ) {
+
+        float base_cost = float(state.world.reform_option_get_technology_cost(o));
+        float reform_factor =
+            1.0f
+            + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_military_modifier)
+            + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_military_modifier);
+
+        for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+            dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+            auto condition = state.world.ideology_get_add_military_reform(iid);
+            auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+            if(condition && upperhouse_weight > 0.0f)
+                reform_factor += state.defines.military_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+        }
+
+        if(base_cost * reform_factor < stored_rp)
+            return true;
+    }
+    return false;
+}
+
+bool can_enact_economic_reform(sys::state& state, dcon::nation_id n, dcon::reform_option_id o) {
+    auto reform = state.world.reform_option_get_parent_reform(o);
+    auto allow = state.world.reform_option_get_allow(o);
+    auto stored_rp = state.world.nation_get_research_points(n);
+    if(
+        o.index() > reform.id.index()
+        &&
+        (!state.world.reform_get_is_next_step_only(reform.id) || reform.id.index() + 1 == o.index())
+        &&
+        (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+        ) {
+
+        float base_cost = float(state.world.reform_option_get_technology_cost(o));
+        float reform_factor =
+            1.0f
+            + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_economic_modifier)
+            + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_economic_modifier);
+
+        for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+            dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+            auto condition = state.world.ideology_get_add_economic_reform(iid);
+            auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+            if(condition && upperhouse_weight > 0.0f)
+                reform_factor += state.defines.economic_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+        }
+
+        if(base_cost * reform_factor < stored_rp)
+            return true;
+    }
+    return false;
 }
 
 }

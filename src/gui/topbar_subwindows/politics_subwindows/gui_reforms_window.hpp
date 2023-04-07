@@ -6,6 +6,19 @@
 
 namespace ui {
 
+class reforms_reform_button : public standard_nation_issue_option_button {
+public:
+	void on_update(sys::state& state) noexcept override {
+		standard_nation_issue_option_button::on_update(state);
+		auto issue_type = state.world.issue_option_get_parent_issue(issue_option_id).get_issue_type();
+		if(issue_type == uint8_t(culture::issue_type::political)) {
+			disabled = !politics::can_enact_political_reform(state, nation_id, issue_option_id);
+		} else {
+			disabled = !politics::can_enact_social_reform(state, nation_id, issue_option_id);
+		}
+	}
+};
+
 class reforms_option : public listbox_row_element_base<dcon::issue_option_id> {
 public:
 	void update(sys::state& state) noexcept override {
@@ -18,6 +31,8 @@ public:
 			return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
 		} else if(name == "selected") {
 			return make_element_by_type<issue_selected_icon>(state, id);
+		} else if(name == "reform_option") {
+			return make_element_by_type<reforms_reform_button>(state, id);
 		} else {
 			return nullptr;
 		}

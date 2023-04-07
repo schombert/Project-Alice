@@ -1,10 +1,12 @@
 #pragma once
 
+#include "culture.hpp"
 #include "dcon_generated.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
+#include <cstdint>
 
 namespace ui {
 
@@ -20,6 +22,19 @@ public:
 	}
 };
 
+class unciv_reforms_reform_button : public standard_nation_reform_option_button {
+public:
+	void on_update(sys::state& state) noexcept override {
+		standard_nation_reform_option_button::on_update(state);
+		auto reform_type = state.world.reform_option_get_parent_reform(reform_option_id).get_reform_type();
+		if(reform_type == uint8_t(culture::issue_type::military)) {
+			disabled = !politics::can_enact_military_reform(state, nation_id, reform_option_id);
+		} else {
+			disabled = !politics::can_enact_economic_reform(state, nation_id, reform_option_id);
+		}
+	}
+};
+
 class unciv_reforms_option : public listbox_row_element_base<dcon::reform_option_id> {
 public:
 	void update(sys::state& state) noexcept override {
@@ -32,6 +47,8 @@ public:
 			return make_element_by_type<generic_name_text<dcon::reform_option_id>>(state, id);
 		} else if(name == "selected") {
 			return make_element_by_type<reform_selected_icon>(state, id);
+		} else if(name == "reform_option") {
+			return make_element_by_type<unciv_reforms_reform_button>(state, id);
 		} else {
 			return nullptr;
 		}
