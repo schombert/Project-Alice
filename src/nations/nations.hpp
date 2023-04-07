@@ -247,6 +247,7 @@ bool has_reform_available(sys::state& state, dcon::nation_id n);
 bool has_decision_available(sys::state& state, dcon::nation_id n);
 int32_t max_national_focuses(sys::state& state, dcon::nation_id n);
 int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n);
+bool is_great_power(dcon::nation_fat_id);
 bool can_expand_colony(sys::state& state, dcon::nation_id n);
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
