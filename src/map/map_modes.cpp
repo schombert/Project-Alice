@@ -27,9 +27,7 @@
 namespace map_mode {
 
 void set_map_mode(sys::state& state, mode mode) {
-	uint32_t province_size = state.world.province_size();
-	uint32_t texture_size = province_size + 256 - province_size % 256;
-	std::vector<uint32_t> prov_color(texture_size * 2);
+	std::vector<uint32_t> prov_color;
 
 	switch(mode) {
 		case mode::terrain:
