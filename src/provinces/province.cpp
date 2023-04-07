@@ -247,6 +247,10 @@ bool can_build_railroads(sys::state& state, dcon::province_id id) {
 
 	return !has_railroads_being_built(state, id) && (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0);
 }
+bool has_an_owner(sys::state& state, dcon::province_id id) {
+	// TODO: not sure if this is the most efficient way
+	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
+}
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	// TODO
 	return 0.0f;
