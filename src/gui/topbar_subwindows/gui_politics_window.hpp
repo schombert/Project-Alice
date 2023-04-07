@@ -144,12 +144,12 @@ public:
 		if(payload.holds_type<dcon::political_party_id>()) {
 			auto party = any_cast<dcon::political_party_id>(payload);
 			row_contents.clear();
-			state.world.for_each_issue([&](dcon::issue_id issue) {
+			for(auto& issue : state.culture_definitions.party_issues) {
 				auto issue_option = state.world.political_party_get_party_issues(party, issue);
-				if(issue_option && issue_option.get_parent_issue().get_issue_type() == uint8_t(culture::issue_type::party)) {
+				if(issue_option) {
 					row_contents.push_back(issue_option.id);
 				}
-			});
+			}
 			update(state);
 			return message_result::consumed;
 		} else {
