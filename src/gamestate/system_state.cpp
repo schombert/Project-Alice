@@ -457,19 +457,6 @@ namespace sys {
 
 		parsers::scenario_building_context context(*this);
 
-		/*{
-			auto content = std::string_view {
-				"name = \"UWU\"\n"
-				"path = \"mod/UWU\"\n"
-				"replace_path = \"localisation\"\n"
-			};
-			err.file_name = "UWU.mod";
-			parsers::token_generator gen(content.data(), content.data() + content.length());
-			
-			parsers::mod_file_context mod_file_context(context);
-			parsers::parse_mod_file(gen, err, mod_file_context);
-		}*/
-
 		text::load_text_data(*this, 2); // 2 = English
 		ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
