@@ -42,6 +42,10 @@ struct global_national_state {
 	std::vector<dcon::bitfield_type> global_flag_variables;
 	std::vector<dcon::nation_id> nations_by_rank;
 
+	tagged_vector<dcon::text_sequence_id, dcon::national_flag_id> flag_variable_names;
+	tagged_vector<dcon::text_sequence_id, dcon::global_flag_id> global_flag_variable_names;
+	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
+
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;
 	dcon::modifier_id hard_player;
@@ -247,7 +251,6 @@ bool has_reform_available(sys::state& state, dcon::nation_id n);
 bool has_decision_available(sys::state& state, dcon::nation_id n);
 int32_t max_national_focuses(sys::state& state, dcon::nation_id n);
 int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n);
-bool is_great_power(dcon::nation_fat_id);
 bool can_expand_colony(sys::state& state, dcon::nation_id n);
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
