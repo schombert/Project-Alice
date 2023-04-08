@@ -6599,7 +6599,7 @@ void make_trigger_description(
 	}
 }
 
-/**/
+*/
 
 }
 

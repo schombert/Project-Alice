@@ -7,19 +7,13 @@ struct party_info {
 	uint32_t color;
 };
 
-uint32_t get_ideology_color(dcon::ideology_id ideology) {
-	// TODO
-	return 0;
-}
-
 std::vector<party_info> get_sorted_parties_info(sys::state& state, dcon::province_id prov_id) {
 	std::vector<party_info> result;
 
 	state.world.for_each_ideology([&](dcon::ideology_id ideology) {
 		int8_t loyalty = state.world.province_get_party_loyalty(prov_id, ideology);
-		uint32_t color = get_ideology_color(ideology);
 		if(loyalty > 0) {
-			result.push_back({ ideology, loyalty, color });
+			result.push_back({ ideology, loyalty, state.world.ideology_get_color(ideology) });
 		}
 	});
 
