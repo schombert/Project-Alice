@@ -218,15 +218,12 @@ public:
 			ptr->target = ([&]() {
 				dcon::modifier_id filter_mod_id{ 0 };
 				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
-				if(it != state.key_to_text_sequence.end()) {
-					auto filter_mod_name = text::produce_simple_string(state, it->second);
+				if(it != state.key_to_text_sequence.end())
 					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
 						auto fat_id = dcon::fatten(state.world, mod_id);
-						auto mod_name = text::produce_simple_string(state, fat_id.get_name());
-						if(filter_mod_name == mod_name)
+						if(it->second == fat_id.get_name())
 							filter_mod_id = mod_id;
 					});
-				}
 				return filter_mod_id;
 			})();
 			return ptr;
