@@ -1,5 +1,6 @@
 #pragma once
 
+#include "culture.hpp"
 #include "cyto_any.hpp"
 #include "dcon_generated.hpp"
 #include "gui_common_elements.hpp"
@@ -14,6 +15,7 @@
 #include "politics.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include <cstdint>
 #include <string_view>
 #include <vector>
 
@@ -24,6 +26,10 @@ enum class politics_window_tab : uint8_t {
 	movements = 0x1,
 	decisions = 0x2,
 	releasables = 0x3
+};
+
+enum class politics_issue_sort_order : uint8_t {
+	name, popular_support, voter_support
 };
 
 class politics_unciv_overlay : public standard_nation_icon {
@@ -138,12 +144,12 @@ public:
 		if(payload.holds_type<dcon::political_party_id>()) {
 			auto party = any_cast<dcon::political_party_id>(payload);
 			row_contents.clear();
-			state.world.for_each_issue([&](dcon::issue_id issue) {
+			for(auto& issue : state.culture_definitions.party_issues) {
 				auto issue_option = state.world.political_party_get_party_issues(party, issue);
-				if(row_contents.size() < 5) {
+				if(issue_option) {
 					row_contents.push_back(issue_option.id);
 				}
-			});
+			}
 			update(state);
 			return message_result::consumed;
 		} else {
@@ -336,11 +342,61 @@ public:
 		} else {
 			auto k = state.key_to_text_sequence.find(std::string_view("next_election"));
 			if(k != state.key_to_text_sequence.end()) {
-				// TODO: display election start date
 				auto box = text::open_layout_box(contents);
+				auto election_start_date = politics::next_election_date(state, nation_id);
 				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+				text::add_to_layout_box(contents, state, box, std::string_view(": "), text::text_color::black, text::substitution{});
+				text::add_to_layout_box(contents, state, box, std::string_view(text::date_to_string(state, election_start_date)), text::text_color::black, text::substitution{});
 				text::close_layout_box(contents, box);
 			}
+		}
+	}
+};
+
+class politics_issue_support_item : public listbox_row_element_base<dcon::issue_option_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "issue_name") {
+			return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
+		} else if(name == "people_perc") {
+			return make_element_by_type<issue_option_popular_support>(state, id);
+		} else if(name == "voters_perc") {
+			return make_element_by_type<issue_option_voter_support>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	void update(sys::state& state) noexcept override {
+		Cyto::Any issue_option_payload = content;
+		impl_set(state, issue_option_payload);
+	}
+};
+
+class politics_issue_support_listbox : public listbox_element_base<politics_issue_support_item, dcon::issue_option_id> {
+protected:
+	std::string_view get_row_element_name() override {
+        return "issue_option_window";
+    }
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base<politics_issue_support_item, dcon::issue_option_id>::on_create(state);
+		state.world.for_each_issue_option([&](dcon::issue_option_id io_id) {
+			row_contents.push_back(io_id);
+		});
+		update(state);
+	}
+};
+
+class politics_issue_sort_button : public button_element_base {
+public:
+	politics_issue_sort_order order = politics_issue_sort_order::name;
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = order;
+			parent->impl_get(state, payload);
 		}
 	}
 };
@@ -353,6 +409,7 @@ private:
 	movements_window* movements_win = nullptr;
 	decision_window* decision_win = nullptr;
 	release_nation_window* release_nation_win = nullptr;
+	politics_issue_support_listbox* issues_listbox = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -436,6 +493,22 @@ public:
 			return make_element_by_type<politics_upper_house_listbox>(state, id);
 		} else if(name == "unciv_overlay") {
 			return make_element_by_type<politics_unciv_overlay>(state, id);
+		} else if(name == "issue_listbox") {
+			auto ptr = make_element_by_type<politics_issue_support_listbox>(state, id);
+			issues_listbox = ptr.get();
+			return ptr;
+		} else if(name == "sort_by_issue_name") {
+			auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
+			ptr->order = politics_issue_sort_order::name;
+			return ptr;
+		} else if(name == "sort_by_people") {
+			auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
+			ptr->order = politics_issue_sort_order::popular_support;
+			return ptr;
+		} else if(name == "sort_by_voters") {
+			auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
+			ptr->order = politics_issue_sort_order::voter_support;
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -487,6 +560,35 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(nation_id);
+			return message_result::consumed;
+		} else if(payload.holds_type<politics_issue_sort_order>()) {
+			auto enum_val = any_cast<politics_issue_sort_order>(payload);
+			switch(enum_val) {
+				case politics_issue_sort_order::name:
+					std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(), [&](dcon::issue_option_id a, dcon::issue_option_id b) {
+						auto a_name = text::get_name_as_string(state, dcon::fatten(state.world, a));
+						auto b_name = text::get_name_as_string(state, dcon::fatten(state.world, b));
+						return a_name < b_name;
+					});
+					issues_listbox->update(state);
+					break;
+				case politics_issue_sort_order::popular_support:
+					std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(), [&](dcon::issue_option_id a, dcon::issue_option_id b) {
+						auto a_support = politics::get_popular_support(state, nation_id, a);
+						auto b_support = politics::get_popular_support(state, nation_id, b);
+						return a_support > b_support;
+					});
+					issues_listbox->update(state);
+					break;
+				case politics_issue_sort_order::voter_support:
+					std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(), [&](dcon::issue_option_id a, dcon::issue_option_id b) {
+						auto a_support = politics::get_voter_support(state, nation_id, a);
+						auto b_support = politics::get_voter_support(state, nation_id, b);
+						return a_support > b_support;
+					});
+					issues_listbox->update(state);
+					break;
+			}
 			return message_result::consumed;
 		}
 		return message_result::unseen;

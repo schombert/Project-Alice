@@ -37,6 +37,35 @@ public:
 	}
 };
 
+template<class T>
+class generic_multiline_name_text : public multiline_text_element_base {
+protected:
+	T obj_id{};
+
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
+		);
+		auto fat_id = dcon::fatten(state.world, obj_id);
+		auto box = text::open_layout_box(container);
+		text::add_to_layout_box(container, state, box, fat_id.get_name(), text::substitution_map{ });
+		text::close_layout_box(container, box);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<T>()) {
+			obj_id = any_cast<T>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
 class standard_state_instance_text : public simple_text_element_base {
 protected:
 	dcon::state_instance_id state_id{};
@@ -64,7 +93,7 @@ public:
 class state_admin_efficiency_text : public standard_state_instance_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(province::state_admin_efficiency(state, state_id), 3);
+		return text::format_percentage(province::state_admin_efficiency(state, state_id), 1);
 	}
 };
 
@@ -74,7 +103,7 @@ public:
 		auto total_pop = state.world.state_instance_get_demographics(state_id, demographics::total);
 		auto aristocrat_key = demographics::to_key(state, state.culture_definitions.aristocrat);
 		auto aristocrat_amount = state.world.state_instance_get_demographics(state_id, aristocrat_key);
-		return text::format_percentage(aristocrat_amount / total_pop, 3);
+		return text::format_percentage(aristocrat_amount / total_pop, 1);
 	}
 };
 
@@ -288,7 +317,7 @@ public:
 class province_crime_fighting_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 3);
+		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -349,7 +378,7 @@ public:
 class province_rgo_employment_percent_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 3);
+		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 1);
 	}
 };
 
@@ -396,6 +425,181 @@ class province_state_name_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		return text::get_province_state_name(state, province_id);
+	}
+};
+
+class standard_nation_issue_option_text : public simple_text_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::issue_option_id issue_option_id{};
+
+public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_option_id>()) {
+			issue_option_id = any_cast<dcon::issue_option_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class issue_option_popular_support : public standard_nation_issue_option_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(politics::get_popular_support(state, nation_id, issue_option_id), 1);
+	}
+};
+
+class issue_option_voter_support : public standard_nation_issue_option_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(politics::get_voter_support(state, nation_id, issue_option_id), 1);
+	}
+};
+
+class standard_nation_reform_option_icon : public image_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::reform_option_id reform_option_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::reform_option_id>()) {
+			reform_option_id = any_cast<dcon::reform_option_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class reform_selected_icon : public standard_nation_reform_option_icon {
+public:
+	void on_update(sys::state& state) noexcept override {
+		standard_nation_reform_option_icon::on_update(state);
+		set_visible(state, politics::reform_is_selected(state, nation_id, reform_option_id));
+	}
+};
+
+class standard_nation_issue_option_icon : public image_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::issue_option_id issue_option_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_option_id>()) {
+			issue_option_id = any_cast<dcon::issue_option_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class issue_selected_icon : public standard_nation_issue_option_icon {
+public:
+	void on_update(sys::state& state) noexcept override {
+		standard_nation_issue_option_icon::on_update(state);
+		set_visible(state, politics::issue_is_selected(state, nation_id, issue_option_id));
+	}
+};
+
+class standard_nation_reform_option_button : public button_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::reform_option_id reform_option_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::reform_option_id>()) {
+			reform_option_id = any_cast<dcon::reform_option_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class standard_nation_issue_option_button : public button_element_base {
+protected:
+	dcon::nation_id nation_id{};
+	dcon::issue_option_id issue_option_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_option_id>()) {
+			issue_option_id = any_cast<dcon::issue_option_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
 	}
 };
 
@@ -629,7 +833,7 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto literacy = state.world.nation_get_demographics(nation_id, demographics::literacy);
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
-		return text::format_percentage(literacy / total_pop, 3);
+		return text::format_percentage(literacy / total_pop, 1);
 	}
 };
 
@@ -663,11 +867,19 @@ public:
 	}
 };
 
-class nation_research_points_text : public standard_nation_text {
+class nation_daily_research_points_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::daily_research_points(state, nation_id);
 		return text::format_float(points, 3);
+	}
+};
+
+class nation_research_points_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto points = state.world.nation_get_research_points(nation_id);
+		return std::to_string(int32_t(points));
 	}
 };
 
@@ -970,6 +1182,28 @@ public:
 		}
 	}
 };
+class religion_type_icon : public button_element_base {
+protected:
+    dcon::religion_id religion_id{};
+
+public:
+    void update(sys::state& state) noexcept {
+        auto fat_id = dcon::fatten(state.world, religion_id);
+        frame = int32_t(fat_id.get_icon() - 1);
+    }
+
+    message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::religion_id>()) {
+            religion_id = any_cast<dcon::religion_id>(payload);
+            update(state);
+            return message_result::consumed;
+        } else {
+            return message_result::unseen;
+        }
+    }
+};
+
+
 
 class nation_ideology_percentage_text : public simple_text_element_base {
 protected:
@@ -980,7 +1214,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(nation_id && ideology_id) {
 			auto percentage = .01f * state.world.nation_get_upper_house(nation_id, ideology_id);
-			set_text(state, text::format_percentage(percentage, 3));
+			set_text(state, text::format_percentage(percentage, 1));
 		}
 	}
 

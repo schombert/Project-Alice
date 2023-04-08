@@ -100,6 +100,10 @@ void good::available_from_start(association_type, bool b, error_handler& err, in
 	context.outer_context.state.world.commodity_set_is_available_from_start(context.id, b);
 }
 
+void good::overseas_penalty(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
+	context.outer_context.state.world.commodity_set_overseas_penalty(context.id, b);
+}
+
 void good::finish(good_context& context) {
 	++context.outer_context.number_of_commodities_seen;
 	context.outer_context.state.world.commodity_set_icon(context.id, uint8_t(context.outer_context.number_of_commodities_seen));

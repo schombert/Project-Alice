@@ -374,7 +374,7 @@ public:
 		} else if(name == "tech_current_research") {
 			return make_element_by_type<nation_current_research_text>(state, id);
 		} else if(name == "topbar_researchpoints_value") {
-			return make_element_by_type<nation_research_points_text>(state, id);
+			return make_element_by_type<nation_daily_research_points_text>(state, id);
 		} else if(name == "tech_literacy_value") {
 			return make_element_by_type<nation_literacy_text>(state, id);
 		} else if(name == "politics_party_icon") {

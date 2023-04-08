@@ -145,8 +145,10 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_great_war);
 	}
 	{ // national definitions
+		ptr_in = deserialize(ptr_in, state.national_definitions.flag_variable_names);
+		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variable_names);
+		ptr_in = deserialize(ptr_in, state.national_definitions.variable_names);
 		ptr_in = deserialize(ptr_in, state.national_definitions.triggered_modifiers);
-		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.very_easy_player);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.easy_player);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.hard_player);
@@ -308,8 +310,10 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_great_war);
 	}
 	{ // national definitions
+		ptr_in = serialize(ptr_in, state.national_definitions.flag_variable_names);
+		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variable_names);
+		ptr_in = serialize(ptr_in, state.national_definitions.variable_names);
 		ptr_in = serialize(ptr_in, state.national_definitions.triggered_modifiers);
-		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.very_easy_player);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.easy_player);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.hard_player);
@@ -469,8 +473,10 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.military_definitions.standard_great_war);
 	}
 	{ // national definitions
+		sz += serialize_size(state.national_definitions.flag_variable_names);
+		sz += serialize_size(state.national_definitions.global_flag_variable_names);
+		sz += serialize_size(state.national_definitions.variable_names);
 		sz += serialize_size(state.national_definitions.triggered_modifiers);
-		sz += serialize_size(state.national_definitions.global_flag_variables);
 		sz += sizeof(state.national_definitions.very_easy_player);
 		sz += sizeof(state.national_definitions.easy_player);
 		sz += sizeof(state.national_definitions.hard_player);
@@ -578,6 +584,10 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_defender);
 
+	{ // national definitions
+		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
+	}
+
 	{ // military definitions
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
@@ -605,6 +615,9 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_defender);
 
+	{ // national definitions
+		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
+	}
 	{ // military definitions
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.world_wars_enabled);
@@ -633,6 +646,9 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += sizeof(state.primary_crisis_attacker);
 	sz += sizeof(state.primary_crisis_defender);
 
+	{ // national definitions
+		sz += serialize_size(state.national_definitions.global_flag_variables);
+	}
 	{ // military definitions
 		sz += sizeof(state.military_definitions.great_wars_enabled);
 		sz += sizeof(state.military_definitions.world_wars_enabled);

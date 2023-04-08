@@ -715,6 +715,7 @@ dcon::national_variable_id scenario_building_context::get_national_variable(std:
 		dcon::national_variable_id new_id = dcon::national_variable_id(dcon::national_variable_id::value_base_t(state.national_definitions.num_allocated_national_variables));
 		++state.national_definitions.num_allocated_national_variables;
 		map_of_national_variables.insert_or_assign(name, new_id);
+		state.national_definitions.variable_names.safe_get(new_id) = text::find_or_add_key(state, name);
 		return new_id;
 	}
 }
@@ -726,6 +727,7 @@ dcon::national_flag_id scenario_building_context::get_national_flag(std::string 
 		dcon::national_flag_id new_id = dcon::national_flag_id(dcon::national_flag_id::value_base_t(state.national_definitions.num_allocated_national_flags));
 		++state.national_definitions.num_allocated_national_flags;
 		map_of_national_flags.insert_or_assign(name, new_id);
+		state.national_definitions.flag_variable_names.safe_get(new_id) = text::find_or_add_key(state, name);
 		return new_id;
 	}
 }
@@ -737,6 +739,7 @@ dcon::global_flag_id scenario_building_context::get_global_flag(std::string cons
 		dcon::global_flag_id new_id = dcon::global_flag_id(dcon::global_flag_id::value_base_t(state.national_definitions.num_allocated_global_flags));
 		++state.national_definitions.num_allocated_global_flags;
 		map_of_global_flags.insert_or_assign(name, new_id);
+		state.national_definitions.global_flag_variable_names.safe_get(new_id) = text::find_or_add_key(state, name);
 		return new_id;
 	}
 }

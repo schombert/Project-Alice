@@ -2360,4 +2360,17 @@ uint16_t* recurse_over_triggers(uint16_t* source, const T& f) {
 	}
 }
 
+inline uint32_t count_subtriggers(uint16_t const* source) {
+	uint32_t count = 0;
+	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
+		const auto source_size = 1 + get_trigger_scope_payload_size(source);
+		auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
+		while(sub_units_start < source + source_size) {
+			++count;
+			sub_units_start += 1 + get_trigger_payload_size(sub_units_start);
+		}
+	}
+	return count;
+}
+
 }
