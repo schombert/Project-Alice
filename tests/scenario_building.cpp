@@ -396,8 +396,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto nvit = context.map_of_modifiers.find(std::string("nv_liberty"));
 		REQUIRE(nvit != context.map_of_modifiers.end());
 		auto id = nvit->second;
-		REQUIRE(state->world.modifier_get_national_values(id).offsets[0] == sys::national_mod_offsets::mobilisation_size);
-		REQUIRE(state->world.modifier_get_national_values(id).offsets[1] == sys::national_mod_offsets::mobilisation_economy_impact);
+		REQUIRE(state->world.modifier_get_national_values(id).offsets[0] == sys::national_mod_offsets::mobilization_size);
+		REQUIRE(state->world.modifier_get_national_values(id).offsets[1] == sys::national_mod_offsets::mobilization_impact);
 		REQUIRE(bool(state->world.modifier_get_national_values(id).offsets[2]) == false);
 
 		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(0.02f));
@@ -1370,8 +1370,10 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		state->world.province_set_terrain(id, context.ocean_terrain);
 	}
 
-	economy::initialize(*state);
 	state->fill_unsaved_data(); // we need this to run triggers
+
+	demographics::regenerate_from_pop_data(*state);
+	economy::initialize(*state);
 
 	culture::create_initial_ideology_and_issues_distribution(*state);
 	demographics::regenerate_from_pop_data(*state);
@@ -1585,8 +1587,8 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		auto nvit = context.map_of_modifiers.find(std::string("nv_liberty"));
 		REQUIRE(nvit != context.map_of_modifiers.end());
 		auto id = nvit->second;
-		REQUIRE(state->world.modifier_get_national_values(id).offsets[0] == sys::national_mod_offsets::mobilisation_size);
-		REQUIRE(state->world.modifier_get_national_values(id).offsets[1] == sys::national_mod_offsets::mobilisation_economy_impact);
+		REQUIRE(state->world.modifier_get_national_values(id).offsets[0] == sys::national_mod_offsets::mobilization_size);
+		REQUIRE(state->world.modifier_get_national_values(id).offsets[1] == sys::national_mod_offsets::mobilization_impact);
 		REQUIRE(bool(state->world.modifier_get_national_values(id).offsets[2]) == false);
 
 		REQUIRE(state->world.modifier_get_national_values(id).values[0] == Approx(0.02f));

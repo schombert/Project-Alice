@@ -56,3 +56,5 @@ People with high-resolution monitors will probably want to stick with the new fo
 In terms of making the game actually *run*, an important first step was made this month by collecting a--mostly complete--description of the rules of the game. Not only is this description useful as a target to program towards, it is probably independently useful for players of Victoria 2 who simply want to know how the game actually works. Please feel free to share any corrections or fill in any omissions.
 
 [Rules document](https://github.com/schombert/Project-Alice/blob/main/docs/rules.md)
+
+See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))
