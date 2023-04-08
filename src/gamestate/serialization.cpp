@@ -221,7 +221,6 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.north_america);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.south_america);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.oceania);
-		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.mena); // Non-vanilla
 	}
 	ptr_in = memcpy_deserialize(ptr_in, state.start_date);
 	ptr_in = memcpy_deserialize(ptr_in, state.end_date);
@@ -261,7 +260,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);
 		uint32_t length = uint32_t(fs_str.length());
-		memcpy(ptr_in , &length, sizeof(uint32_t));
+		memcpy(ptr_in, &length, sizeof(uint32_t));
 		ptr_in += sizeof(uint32_t);
 		memcpy(ptr_in, fs_str.c_str(), length * sizeof(native_char));
 		ptr_in += length * sizeof(native_char);
@@ -392,7 +391,6 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.north_america);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.south_america);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.oceania);
-		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.mena); // Non-vanilla
 	}
 	ptr_in = memcpy_serialize(ptr_in, state.start_date);
 	ptr_in = memcpy_serialize(ptr_in, state.end_date);
@@ -561,7 +559,6 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.province_definitions.north_america);
 		sz += sizeof(state.province_definitions.south_america);
 		sz += sizeof(state.province_definitions.oceania);
-		sz += sizeof(state.province_definitions.mena); // Non-vanilla
 	}
 	sz += sizeof(state.start_date);
 	sz += sizeof(state.end_date);

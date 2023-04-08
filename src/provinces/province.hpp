@@ -13,21 +13,18 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 	else
 		return dcon::province_id(id - 1);
 }
+
 struct global_provincial_state {
 	std::vector<dcon::province_adjacency_id> canals;
 	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
 
 	dcon::province_id first_sea_province;
-
-	// NOTE: these should not be referred to directly by the game mechanics
-	//       they are, however, useful for the ui to filter provinces / nations by continent
 	dcon::modifier_id europe;
 	dcon::modifier_id asia;
 	dcon::modifier_id africa;
 	dcon::modifier_id north_america;
 	dcon::modifier_id south_america;
 	dcon::modifier_id oceania;
-	dcon::modifier_id mena; // Non-vanila
 };
 
 template<typename F>
