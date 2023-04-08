@@ -225,7 +225,7 @@ public:
 						if(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
 							ch = '_';
 						else
-							ch = static_cast<decltype(ch)>(tolower(ch));
+							ch = static_cast<char>(tolower(ch));
 
 					if(name == filter_name)
 						filter_mod_id = mod_id;
