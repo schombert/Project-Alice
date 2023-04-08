@@ -247,6 +247,10 @@ bool can_build_railroads(sys::state& state, dcon::province_id id) {
 
 	return !has_railroads_being_built(state, id) && (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0);
 }
+bool has_an_owner(sys::state& state, dcon::province_id id) {
+	// TODO: not sure if this is the most efficient way
+	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
+}
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
 	// TODO
 	return 0.0f;
@@ -327,8 +331,12 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	return 0.0f;
 }
 float revolt_risk(sys::state& state, dcon::province_id id) {
-	auto militancy = state.world.province_get_demographics(id, demographics::militancy);
 	auto total_pop = state.world.province_get_demographics(id, demographics::total);
+	if(total_pop == 0) {
+		return 0;
+	}
+
+	auto militancy = state.world.province_get_demographics(id, demographics::militancy);
 	return militancy / total_pop;
 }
 }
