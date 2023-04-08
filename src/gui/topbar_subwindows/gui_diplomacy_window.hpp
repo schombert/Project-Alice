@@ -4,6 +4,7 @@
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
 #include "text.hpp"
+#include "parsers.hpp"
 #include <algorithm>
 #include <functional>
 
@@ -216,20 +217,16 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
 			ptr->target = ([&]() {
 				dcon::modifier_id filter_mod_id{ 0 };
-				state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
-					auto fat_id = dcon::fatten(state.world, mod_id);
-					auto name = text::produce_simple_string(state, fat_id.get_name());
-
-					// Canonicalize name
-					for(auto& ch : name)
-						if(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
-							ch = '_';
-						else
-							ch = static_cast<char>(tolower(ch));
-
-					if(name == filter_name)
-						filter_mod_id = mod_id;
-				});
+				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
+				if(it != state.key_to_text_sequence.end()) {
+					auto filter_mod_name = text::produce_simple_string(state, it->second);
+					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
+						auto fat_id = dcon::fatten(state.world, mod_id);
+						auto mod_name = text::produce_simple_string(state, fat_id.get_name());
+						if(filter_mod_name == mod_name)
+							filter_mod_id = mod_id;
+					});
+				}
 				return filter_mod_id;
 			})();
 			return ptr;
