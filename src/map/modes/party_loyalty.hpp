@@ -18,7 +18,7 @@ std::vector<party_info> get_sorted_parties_info(sys::state& state, dcon::provinc
 	});
 
 	std::sort(result.begin(), result.end(), [&](party_info a, party_info b) { return a.loyalty > b.loyalty; });
-	
+
 
 	return result;
 }
