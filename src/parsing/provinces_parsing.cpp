@@ -173,6 +173,22 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 	context.state.world.modifier_set_province_values(new_modifier, continent.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, continent.peek_national_mod());
 
+	/* [...] "The game has special logic concerning which nations automatically count as
+	   interested in a crisis that references the existing continents" [...] */
+	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "europe")) {
+		context.state.province_definitions.europe = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "asia")) {
+		context.state.province_definitions.asia = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "africa")) {
+		context.state.province_definitions.africa = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "north_america")) {
+		context.state.province_definitions.north_america = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "south_america")) {
+		context.state.province_definitions.south_america = new_modifier;
+	} else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "oceania")) {
+		context.state.province_definitions.oceania = new_modifier;
+	}
+
 	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "europe")
 	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "asia")
 	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "africa")
@@ -207,7 +223,7 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "enedwaith")
 	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "misty_mountains")
 	|| is_fixed_token_ci(name.data(), name.data() + name.length(), "eriador")) {
-		context.state.province_definitions.continents.insert_or_assign(province::get_continent_id(name), new_modifier);
+		// Valid continents...
 	} else {
 		err.accumulated_errors += "Unknown continent " + std::string(name) + " in file " + err.file_name + "\n";
 	}

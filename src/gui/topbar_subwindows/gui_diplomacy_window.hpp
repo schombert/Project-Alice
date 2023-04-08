@@ -172,16 +172,12 @@ private:
 		}
 	}
 
-	void filter_by_continent(sys::state& state, province::continent_list filter) {
-		const auto it = state.province_definitions.continents.find(filter);
-		if(it != state.province_definitions.continents.end()) {
-			dcon::modifier_id target_cont = it->second;
-			filter_countries(state, [&](dcon::nation_id id) -> bool {
-				dcon::nation_fat_id fat_id = dcon::fatten(state.world, id);
-				auto cont_id = fat_id.get_capital().get_continent().id;
-				return target_cont == cont_id;
-			});
-		}
+	void filter_by_continent(sys::state& state, dcon::modifier_id mod_id) {
+		filter_countries(state, [&](dcon::nation_id id) -> bool {
+			dcon::nation_fat_id fat_id = dcon::fatten(state.world, id);
+			auto cont_id = fat_id.get_capital().get_continent().id;
+			return mod_id == cont_id;
+		});
 	}
 
 public:
@@ -217,8 +213,25 @@ public:
 			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
 			const auto filter_name = name.substr(7);
-			auto ptr = make_element_by_type<generic_tab_button<province::continent_list>>(state, id);
-			ptr->target = province::get_continent_id(filter_name);
+			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
+			ptr->target = ([&]() {
+				dcon::modifier_id filter_mod_id{ 0 };
+				state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
+					auto fat_id = dcon::fatten(state.world, mod_id);
+					auto name = text::produce_simple_string(state, fat_id.get_name());
+
+					// Canonicalize name
+					for(auto& ch : name)
+						if(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
+							ch = '_';
+						else
+							ch = tolower(ch);
+
+					if(name == filter_name)
+						filter_mod_id = mod_id;
+				});
+				return filter_mod_id;
+			})();
 			return ptr;
 		} else if(name == "cb_info_win") {
 			auto ptr = make_element_immediate(state, id);
@@ -273,9 +286,9 @@ public:
 				default:
 					break;
 			}
-		} else if(payload.holds_type<province::continent_list>()) {
-			auto filter = any_cast<province::continent_list>(payload);
-			filter_by_continent(state, filter);
+		} else if(payload.holds_type<dcon::modifier_id>()) {
+			auto mod_id = any_cast<dcon::modifier_id>(payload);
+			filter_by_continent(state, mod_id);
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			return impl_set(state, payload);
 		}
