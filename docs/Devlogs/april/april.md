@@ -5,13 +5,20 @@ Hello Alices! As April begins, we are still here, plugging away.
 ## New team members
 
 In March we added (Schombert kidnapped) four new programmers to the team. In order of appearance, they are Bruno who has added the diplomatic map mode:
+
 ![Diplomatic map mode](Diplomatic_Map_Mode.png)
+
 Cap, who has added the infrastructure, civilization level, recruitment, supply, relations, rank, and revolt risk map modes (and maybe some others I am forgetting at this point)
+
 ![Civilization level map mode](Civilization_Level_Map_Mode.png)
 ![Rank map mode](Rank_Map_Mode.png)
+
 Nick, who has added some improvements to the console as well as making a start on the population window
+
 ![Population window](Population_Window_Start.png)
+
 and Landau who has populated the contents of the decisions tab
+
 ![Decision tab](Populated_Decision_Tab_Landau.png)
 
 New programmers, artists, or people with other talents to contribute are always welcome to join the team.
