@@ -509,14 +509,6 @@ void update_colonial_points(sys::state& state) {
 	});
 }
 
-bool is_great_power(dcon::nation_fat_id nation) {
-	bool is_great_power = false;
-	nation.for_each_gp_relationship_as_great_power([&](dcon::gp_relationship_id rel_id) {
-		if(!is_great_power) is_great_power = true;
-	});
-	return is_great_power;
-}
-
 bool can_expand_colony(sys::state& state, dcon::nation_id n) {
 	for(auto cols : state.world.nation_get_colonization_as_colonizer(n)) {
 		auto state_colonization = state.world.state_definition_get_colonization(cols.get_state());

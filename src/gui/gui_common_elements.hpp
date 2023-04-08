@@ -93,7 +93,7 @@ public:
 class state_admin_efficiency_text : public standard_state_instance_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(province::state_admin_efficiency(state, state_id), 3);
+		return text::format_percentage(province::state_admin_efficiency(state, state_id), 1);
 	}
 };
 
@@ -103,7 +103,7 @@ public:
 		auto total_pop = state.world.state_instance_get_demographics(state_id, demographics::total);
 		auto aristocrat_key = demographics::to_key(state, state.culture_definitions.aristocrat);
 		auto aristocrat_amount = state.world.state_instance_get_demographics(state_id, aristocrat_key);
-		return text::format_percentage(aristocrat_amount / total_pop, 3);
+		return text::format_percentage(aristocrat_amount / total_pop, 1);
 	}
 };
 
@@ -317,7 +317,7 @@ public:
 class province_crime_fighting_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 3);
+		return text::format_percentage(province::crime_fighting_efficiency(state, province_id), 1);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -378,7 +378,7 @@ public:
 class province_rgo_employment_percent_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 3);
+		return text::format_percentage(state.world.province_get_rgo_employment(province_id), 1);
 	}
 };
 
@@ -460,14 +460,14 @@ public:
 class issue_option_popular_support : public standard_nation_issue_option_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(politics::get_popular_support(state, nation_id, issue_option_id), 3);
+		return text::format_percentage(politics::get_popular_support(state, nation_id, issue_option_id), 1);
 	}
 };
 
 class issue_option_voter_support : public standard_nation_issue_option_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_percentage(politics::get_voter_support(state, nation_id, issue_option_id), 3);
+		return text::format_percentage(politics::get_voter_support(state, nation_id, issue_option_id), 1);
 	}
 };
 
@@ -833,7 +833,7 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto literacy = state.world.nation_get_demographics(nation_id, demographics::literacy);
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
-		return text::format_percentage(literacy / total_pop, 3);
+		return text::format_percentage(literacy / total_pop, 1);
 	}
 };
 
@@ -1205,7 +1205,7 @@ public:
 
 
 
-    class nation_ideology_percentage_text : public simple_text_element_base {
+class nation_ideology_percentage_text : public simple_text_element_base {
 protected:
 	dcon::nation_id nation_id{};
 	dcon::ideology_id ideology_id{};
@@ -1214,7 +1214,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(nation_id && ideology_id) {
 			auto percentage = .01f * state.world.nation_get_upper_house(nation_id, ideology_id);
-			set_text(state, text::format_percentage(percentage, 3));
+			set_text(state, text::format_percentage(percentage, 1));
 		}
 	}
 

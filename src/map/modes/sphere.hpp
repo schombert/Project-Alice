@@ -72,7 +72,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 
 	// Get sphere master if exists
 	auto master = selected_nation.get_in_sphere_of();
-	if(!bool(master) && nations::is_great_power(selected_nation)) {
+	if(!bool(master) && nations::is_great_power(state, selected_nation)) {
 		master = selected_nation;
 	}
 

@@ -5,6 +5,7 @@
 #include "system_state.hpp"
 #include "parsers.hpp"
 #include "simple_fs.hpp"
+#include <type_traits>
 
 namespace text {
 	text_color char_to_color(char in) {
@@ -630,22 +631,20 @@ namespace text {
 	}
 
 	std::string prettify(int64_t num) {
-		if(num < 1000) {
-			return std::to_string(num);
-		}
-		size_t i = 0;
-		while(num >= 1'000'000) {
-			num /= 1000;
-			i++;
+		char buffer[200] = { 0 };
+		double dval = double(num);
+
+		constexpr static double mag[] = { 0.0, 1'000.0, 1'000'000'000.0, 1'000'000'000'000.0, 1'000'000'000'000'000.0, 1'000'000'000'000'000'000.0, 1'000'000'000'000'000'000'000.0 };
+		constexpr static char const* sufx[] = { "%.0f", "%.2fK", "%.2fM", "%.2fB", "%.2fT", "%.2fP", "%.2fZ" };
+
+		for(size_t i = std::extent_v<decltype(mag)>; i-- > 0; ) {
+			if(std::abs(dval) > mag[i]) {
+				snprintf(buffer, 200, sufx[i], num / mag[i]);
+				return std::string(buffer);
+			}
 		}
 
-		std::string pretty_num = std::to_string(num / 10);
-		pretty_num.insert(pretty_num.size() - 2, ".");
-
-		const std::string unit_palette = "KMBTPZ";
-		pretty_num += unit_palette[std::min(unit_palette.size() - 1, i)];
-		
-		return pretty_num;
+		return std::string("#inf");
 	}
 
 	template<class T>
@@ -845,8 +844,9 @@ namespace text {
 			auto next_wb = txt.find_first_of(" \r\n\t", end_position);
 			auto next_word = txt.find_first_not_of(" \r\n\t", next_wb);
 
-			std::string_view segment = txt.substr(start_position, next_wb - start_position);
-			float extent = state.font_collection.text_extent(state, txt.data() + start_position, uint32_t(next_wb - start_position), dest.fixed_parameters.font_id);
+			auto num_chars = uint32_t(std::min(next_wb, txt.length()) - start_position);
+			std::string_view segment = txt.substr(start_position, num_chars);
+			float extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
 
 			if(first_in_line && int32_t(box.x_position) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
 				// the current word is too long for the text box, just let it overflow
