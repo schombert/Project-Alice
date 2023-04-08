@@ -629,7 +629,7 @@ namespace text {
 		}
 	}
 
-	std::string prettify(int32_t num) {
+	std::string prettify(int64_t num) {
 		if(num < 1000) {
 			return std::to_string(num);
 		}
@@ -699,8 +699,23 @@ namespace text {
 	}
 
 	std::string format_float(float num, size_t digits) {
-		auto formatted = std::to_string(num);
-		return formatted.substr(0, digits + size_t(formatted[digits] != '.'));
+		char buffer[200] = { 0 };
+		switch(digits) {
+			default:
+				// fallthrough
+			case 3:
+				snprintf(buffer, 200, "%.3f", num);
+				break;
+			case 2:
+				snprintf(buffer, 200, "%.2f", num);
+				break;
+			case 1:
+				snprintf(buffer, 200, "%.1f", num);
+				break;
+			case 0:
+				return std::to_string(int64_t(num));
+		}
+		return std::string(buffer);
 	}
 
 	std::string format_money(float num) {
@@ -813,10 +828,6 @@ namespace text {
 		auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 		auto line_height = text_height + dest.fixed_parameters.leading;
 
-		size_t str_i = 0;
-		size_t current_len = 0;
-		float extent = 0.0f;
-		float previous_extent = 0.0f;
 		auto tmp_color = color;
 
 		if(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) || std::holds_alternative<dcon::state_instance_id>(source)) {
@@ -826,55 +837,116 @@ namespace text {
 				tmp_color = text_color::dark_blue;
 		}
 
-		while(str_i < txt.length()) {
-			auto next_wb = txt.find_first_of(" \r\n\t", str_i + current_len);
-			if(next_wb == std::string_view::npos) {
-				next_wb = txt.length();
-			}
-			next_wb = std::min(next_wb, txt.length()) - str_i;
-			if(next_wb == current_len) {
-				current_len++;
-			} else {
-				std::string_view segment = txt.substr(str_i, next_wb);
-				previous_extent = extent;
-				extent = state.font_collection.text_extent(state, segment.data(), uint32_t(next_wb), dest.fixed_parameters.font_id);
-				if(int32_t(box.x_position) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
-					// the current word is too long for the text box, just let it overflow
-					dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+		size_t start_position = 0;
+		size_t end_position = 0;
+		bool first_in_line = true;
 
-					str_i += next_wb;
+		while(end_position < txt.length()) {
+			auto next_wb = txt.find_first_of(" \r\n\t", end_position);
+			auto next_word = txt.find_first_not_of(" \r\n\t", next_wb);
 
-					box.y_size = std::max(box.y_size, box.y_position + line_height);
-					box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
-					box.x_position += extent;
-					current_len = 0;
-					impl::lb_finish_line(dest, box, line_height);
-				} else if(box.x_position + extent >= dest.fixed_parameters.right) {
-					if(current_len > 0) {
-						std::string_view section{ segment.data(), current_len };
-						dest.base_layout.contents.push_back(text_chunk{ std::string(section), box.x_position, source, int16_t(box.y_position), int16_t(previous_extent), int16_t(text_height), tmp_color });
+			std::string_view segment = txt.substr(start_position, next_wb - start_position);
+			float extent = state.font_collection.text_extent(state, txt.data() + start_position, uint32_t(next_wb - start_position), dest.fixed_parameters.font_id);
 
-						box.y_size = std::max(box.y_size, box.y_position + line_height);
-						box.x_size = std::max(box.x_size, int32_t(box.x_position + previous_extent));
-					}
-					str_i += current_len;
-					box.x_position += previous_extent;
-					current_len = 0;
-					impl::lb_finish_line(dest, box, line_height);
-				} else if(next_wb == txt.length() - str_i) {
-					// we've reached the end of the text
-					dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+			if(first_in_line && int32_t(box.x_position) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
+				// the current word is too long for the text box, just let it overflow
+				dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+
+
+				box.y_size = std::max(box.y_size, box.y_position + line_height);
+				box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
+				box.x_position += extent;
+				impl::lb_finish_line(dest, box, line_height);
+
+				start_position = next_word;
+				end_position = next_word;
+			} else if(box.x_position + extent >= dest.fixed_parameters.right) {
+				if(end_position != start_position) {
+					std::string_view section{ segment.data(), end_position - start_position };
+					float prev_extent = state.font_collection.text_extent(state, txt.data() + start_position, uint32_t(end_position - start_position), dest.fixed_parameters.font_id);
+					dest.base_layout.contents.push_back(text_chunk{ std::string(section), box.x_position, source, int16_t(box.y_position), int16_t(prev_extent), int16_t(text_height), tmp_color });
 
 					box.y_size = std::max(box.y_size, box.y_position + line_height);
-					box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
+					box.x_size = std::max(box.x_size, int32_t(box.x_position + prev_extent));
 
-					box.x_position += extent;
-					break;
-				} else {
-					current_len = next_wb;
+					box.x_position += prev_extent;
 				}
+				impl::lb_finish_line(dest, box, line_height);
+
+				start_position = end_position;
+				first_in_line = true;
+			} else if(next_word >= txt.length()) {
+				// we've reached the end of the text
+				dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+
+				box.y_size = std::max(box.y_size, box.y_position + line_height);
+				box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
+
+				box.x_position += extent;
+				break;
+			} else {
+				end_position = next_word;
+				first_in_line = false;
 			}
+			
 		}
+	}
+
+	namespace impl {
+
+	std::string lb_resolve_substitution(sys::state& state, substitution sub) {
+		if(std::holds_alternative<std::string_view>(sub)) {
+			return std::string(std::get<std::string_view>(sub));
+		} else if(std::holds_alternative<dcon::text_key>(sub)) {
+			auto tkey = std::get<dcon::text_key>(sub);
+			return std::string(state.to_string_view(tkey));
+		} else if(std::holds_alternative<dcon::nation_id>(sub)) {
+			dcon::nation_id nid = std::get<dcon::nation_id>(sub);
+			return text::produce_simple_string(state, state.world.nation_get_name(nid));
+		} else if(std::holds_alternative<dcon::state_instance_id>(sub)) {
+			dcon::state_instance_id sid = std::get<dcon::state_instance_id>(sub);
+			return get_dynamic_state_name(state, sid);
+		} else if(std::holds_alternative<dcon::province_id>(sub)) {
+			auto pid = std::get<dcon::province_id>(sub);
+			return text::produce_simple_string(state, state.world.province_get_name(pid));
+		} else if(std::holds_alternative<dcon::national_identity_id>(sub)) {
+			auto t = std::get<dcon::national_identity_id>(sub);
+			auto h = state.world.national_identity_get_nation_from_identity_holder(t);
+			return text::produce_simple_string(state, h ? state.world.nation_get_name(h) : state.world.national_identity_get_name(t));
+		} else if(std::holds_alternative<int64_t>(sub)) {
+			return std::to_string(std::get<int64_t>(sub));
+		} else if(std::holds_alternative<fp_one_place>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "%.1f", std::get<fp_one_place>(sub).value);
+			return std::string(buffer);
+		} else if(std::holds_alternative<fp_two_places>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "%.2f", std::get<fp_two_places>(sub).value);
+			return std::string(buffer);
+		} else if(std::holds_alternative<fp_three_places>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "%.2f", std::get<fp_three_places>(sub).value);
+			return std::string(buffer);
+		} else if(std::holds_alternative<sys::date>(sub)) {
+			return date_to_string(state, std::get<sys::date>(sub));
+			///fp_currency, pretty_integer, fp_percentage, int_percentage
+		} else if(std::holds_alternative<fp_currency>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "\xA4 %.2f", std::get<fp_currency>(sub).value);
+			return std::string(buffer);
+		} else if(std::holds_alternative<pretty_integer>(sub)) {
+			return prettify(std::get<pretty_integer>(sub).value);
+		} else if(std::holds_alternative<fp_percentage>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "%.0f%%", std::get<fp_percentage>(sub).value * 100.0f);
+			return std::string(buffer);
+		} else if(std::holds_alternative<int_percentage>(sub)) {
+			return std::to_string(std::get<int_percentage>(sub).value) + "%";
+		} else {
+			return std::string("?");
+		}
+	};
+
 	}
 
 	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
@@ -886,41 +958,6 @@ namespace text {
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 		auto line_height = text_height + dest.fixed_parameters.leading;
 
-		auto resolve_substitution = [&](substitution sub) {
-			if(std::holds_alternative<std::string_view>(sub)) {
-				return std::string(std::get<std::string_view>(sub));
-			} else if(std::holds_alternative<dcon::text_key>(sub)) {
-				auto tkey = std::get<dcon::text_key>(sub);
-				return std::string(state.to_string_view(tkey));
-			} else if(std::holds_alternative<dcon::nation_id>(sub)) {
-				dcon::nation_id nid = std::get<dcon::nation_id>(sub);
-				return text::produce_simple_string(state, state.world.nation_get_name(nid));
-			} else if(std::holds_alternative<dcon::state_instance_id>(sub)) {
-				dcon::state_instance_id sid = std::get<dcon::state_instance_id>(sub);
-				return get_dynamic_state_name(state, sid);
-			} else if(std::holds_alternative<dcon::province_id>(sub)) {
-				auto pid = std::get<dcon::province_id>(sub);
-				return text::produce_simple_string(state, state.world.province_get_name(pid));
-			} else if(std::holds_alternative<int64_t>(sub)) {
-				return std::to_string(std::get<int64_t>(sub));
-			} else if(std::holds_alternative<fp_one_place>(sub)) {
-				char buffer[200] = { 0 };
-				snprintf(buffer, 200, "%.1f", std::get<fp_one_place>(sub).value);
-				return std::string(buffer);
-			} else if(std::holds_alternative<fp_two_places>(sub)) {
-				char buffer[200] = { 0 };
-				snprintf(buffer, 200, "%.2f", std::get<fp_two_places>(sub).value);
-				return std::string(buffer);
-			} else if(std::holds_alternative<fp_three_places>(sub)) {
-				char buffer[200] = { 0 };
-				snprintf(buffer, 200, "%.2f", std::get<fp_three_places>(sub).value);
-				return std::string(buffer);
-			} else if(std::holds_alternative<sys::date>(sub)) {
-				return date_to_string(state, std::get<sys::date>(sub));
-			} else {
-				return std::string("?");
-			}
-		};
 
 		auto seq = state.text_sequences[source_text];
 		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
@@ -935,13 +972,25 @@ namespace text {
 			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
 				auto var_type = std::get<text::variable_type>(state.text_components[i]);
 				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
-					auto txt = resolve_substitution(it->second);
+					auto txt = impl::lb_resolve_substitution(state, it->second);
 					add_to_layout_box(dest, state, box, std::string_view(txt), current_color, it->second);
 				} else {
 					add_to_layout_box(dest, state, box, std::string_view("???"), current_color, std::monostate{});
 				}
 			}
 		}
+	}
+
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, substitution val, text_color color) {
+		auto txt = impl::lb_resolve_substitution(state, val);
+		add_to_layout_box(dest, state, box, std::string_view(txt), color, val);
+	}
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string const& val, text_color color) {
+		add_to_layout_box(dest, state, box, std::string_view(val), color, std::monostate{});
+	}
+	void add_space_to_layout_box(layout_base& dest, sys::state& state, layout_box& box) {
+		auto amount = state.font_collection.text_extent(state, " ", uint32_t(1), dest.fixed_parameters.font_id);
+		box.x_position += amount;
 	}
 
 	layout_box open_layout_box(layout_base& dest, int32_t indent) {

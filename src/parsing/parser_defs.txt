@@ -209,7 +209,7 @@ good
 	color          group      color_from_3i    member_fn
 	available_from_start      value    bool    member_fn
 	tradeable      value      none             discard
-	overseas_penalty  value   none             discard
+	overseas_penalty  value   bool             member_fn
 	money          value      bool             member_fn
 
 goods_group

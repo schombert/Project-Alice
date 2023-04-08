@@ -667,7 +667,7 @@ float update_national_consumption(sys::state& state, dcon::nation_id n, ve::vect
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 
 			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+			if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				total += overseas_factor * effective_prices.get(cid);
 			}
 		}

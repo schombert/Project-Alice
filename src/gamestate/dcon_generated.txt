@@ -293,6 +293,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ overseas_penalty }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ rgo_amount }
 		type{ float }
 		tag{ scenario }

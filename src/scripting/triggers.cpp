@@ -946,7 +946,6 @@ TRIGGER_FUNCTION(tf_from_scope) {
 TRIGGER_FUNCTION(tf_sea_zone_scope) {
 	auto sea_zones = ve::apply([&ws](int32_t p_slot, int32_t, int32_t) {
 		auto pid = fatten(ws.world, to_prov(p_slot));
-		dcon::province_id sea_zone;
 		for(auto adj : pid.get_province_adjacency()) {
 			if(adj.get_connected_provinces(0).id.index() >= ws.province_definitions.first_sea_province.index()) {
 				return adj.get_connected_provinces(0).id;
@@ -5416,6 +5415,9 @@ float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key mod
 
 bool evaluate_trigger(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	return test_trigger_generic<bool>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
+}
+bool evaluate_trigger(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot) {
+	return test_trigger_generic<bool>(data, state, primary, this_slot, from_slot);
 }
 
 }

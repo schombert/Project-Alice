@@ -42,6 +42,10 @@ struct global_national_state {
 	std::vector<dcon::bitfield_type> global_flag_variables;
 	std::vector<dcon::nation_id> nations_by_rank;
 
+	tagged_vector<dcon::text_sequence_id, dcon::national_flag_id> flag_variable_names;
+	tagged_vector<dcon::text_sequence_id, dcon::global_flag_id> global_flag_variable_names;
+	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
+
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;
 	dcon::modifier_id hard_player;

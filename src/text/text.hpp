@@ -180,7 +180,19 @@ namespace text {
 	struct fp_three_places {
 		float value = 0.0f;
 	};
-	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places>;
+	struct fp_currency {
+		float value = 0.0f;
+	};
+	struct pretty_integer {
+		int64_t value = 0;
+	};
+	struct fp_percentage {
+		float value = 0.0f;
+	};
+	struct int_percentage {
+		int32_t value = 0;
+	};
+	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_currency, pretty_integer, fp_percentage, int_percentage>;
 	using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 	struct text_chunk {
@@ -245,9 +257,11 @@ namespace text {
 
 	layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 	void close_layout_box(columnar_layout& dest, layout_box& box);
-	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp);
-	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{});
-
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp = substitution_map{});
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string_view, text_color color = text_color::white, substitution source = std::monostate{});
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, substitution val, text_color color = text_color::white);
+	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string const& val, text_color color = text_color::white);
+	void add_space_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
 	void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
 
 	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
@@ -261,7 +275,7 @@ namespace text {
 	dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
 	std::string date_to_string(sys::state const& state, sys::date date);
 
-	std::string prettify(int32_t num);
+	std::string prettify(int64_t num);
 	std::string format_money(float num);
 	std::string format_percentage(float num, size_t digits = 2);
 	std::string format_float(float num, size_t digits = 2);

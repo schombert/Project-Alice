@@ -67,10 +67,9 @@ public:
       auto fat_id = dcon::fatten(state.world, id);
       description = fat_id.get_description();
     }
-    int16_t X_FUDGE_FACTOR = 50; // TODO: why is this necessary? Without it there is horizontal clipping
     auto container = text::create_endless_layout(
       internal_layout,
-      text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - X_FUDGE_FACTOR), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
+      text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
     );
     populate_layout(state, container);
   }
