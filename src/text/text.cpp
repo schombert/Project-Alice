@@ -631,14 +631,17 @@ namespace text {
 	}
 
 	std::string prettify(int64_t num) {
+		if(num == 0)
+			return std::string("0");
+
 		char buffer[200] = { 0 };
 		double dval = double(num);
 
-		constexpr static double mag[] = { 0.0, 1'000.0, 1'000'000'000.0, 1'000'000'000'000.0, 1'000'000'000'000'000.0, 1'000'000'000'000'000'000.0, 1'000'000'000'000'000'000'000.0 };
+		constexpr static double mag[] = { 1.0, 1'000.0, 1'000'000'000.0, 1'000'000'000'000.0, 1'000'000'000'000'000.0, 1'000'000'000'000'000'000.0, 1'000'000'000'000'000'000'000.0 };
 		constexpr static char const* sufx[] = { "%.0f", "%.2fK", "%.2fM", "%.2fB", "%.2fT", "%.2fP", "%.2fZ" };
 
 		for(size_t i = std::extent_v<decltype(mag)>; i-- > 0; ) {
-			if(std::abs(dval) > mag[i]) {
+			if(std::abs(dval) >= mag[i]) {
 				snprintf(buffer, 200, sufx[i], num / mag[i]);
 				return std::string(buffer);
 			}
