@@ -129,8 +129,20 @@ void generate_initial_state_instances(sys::state& state) {
 }
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
-	// TODO: implement function
-	return false;
+	// if(state.world.national_identity_get_is_releasable(releasable) && !identity_has_holder(state, releasable)) {
+	// TODO -- handle releasable signal when available
+	if(!identity_has_holder(state, releasable)) {
+		bool owns_a_core = false;
+		bool not_on_capital = true;
+		state.world.national_identity_for_each_core(releasable, [&](dcon::core_id core) {
+			auto province = state.world.core_get_province(core);
+			owns_a_core |= state.world.province_get_nation_from_province_ownership(province) == n;
+			not_on_capital &= state.world.nation_get_capital(n) != province;
+		});
+		return owns_a_core && not_on_capital;
+	} else {
+		return false;
+	}
 }
 
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident) {
