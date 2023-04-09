@@ -283,19 +283,19 @@ float rgo_production_quantity(sys::state& state, dcon::province_id id) {
 	// TODO
 	return 0.0f;
 }
-float internal_get_state_admin_efficiency(sys::state& state, dcon::state_instance_id si) {
-	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
+float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
 	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency);
 
 	float issue_sum = 0.0f;
 	for(auto i : state.culture_definitions.social_issues) {
-		issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner, i));
+		issue_sum += state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(owner, i));
 	}
 	auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
 	float non_core_effect = 0.0f;
 	float bsum = 0.0f;
-	for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+	for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {
 		if(!state.world.province_get_is_owner_core(p)) {
 			non_core_effect += state.defines.noncore_tax_penalty;
 		}
@@ -305,7 +305,7 @@ float internal_get_state_admin_efficiency(sys::state& state, dcon::state_instanc
 			}
 		}
 	});
-	auto total_pop = state.world.state_instance_get_demographics(si, demographics::total);
+	auto total_pop = state.world.state_instance_get_demographics(id, demographics::total);
 	auto total = total_pop > 0 ? std::clamp((non_core_effect + state.culture_definitions.bureaucrat_tax_efficiency * bsum / total_pop) / from_issues, 0.0f, 1.0f) : 0.0f;
 
 	return total;
@@ -322,13 +322,9 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id) {
 	auto si = state.world.province_get_state_membership(id);
 	auto owner = state.world.province_get_nation_from_province_ownership(id);
 	if(si && owner)
-		return (internal_get_state_admin_efficiency(state, si) * state.defines.admin_efficiency_crimefight_percent + (1 - state.defines.admin_efficiency_crimefight_percent) * state.world.nation_get_administrative_efficiency(owner)) * (state.defines.max_crimefight_percent - state.defines.min_crimefight_percent) + state.defines.min_crimefight_percent;
+		return (state_admin_efficiency(state, si) * state.defines.admin_efficiency_crimefight_percent + (1 - state.defines.admin_efficiency_crimefight_percent) * state.world.nation_get_administrative_efficiency(owner)) * (state.defines.max_crimefight_percent - state.defines.min_crimefight_percent) + state.defines.min_crimefight_percent;
 	else
 		return 0.0f;
-}
-float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
-	// TODO
-	return 0.0f;
 }
 float revolt_risk(sys::state& state, dcon::province_id id) {
 	auto total_pop = state.world.province_get_demographics(id, demographics::total);
