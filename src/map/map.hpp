@@ -127,7 +127,6 @@ private:
 	GLuint terrain_political_close_shader = 0;
 	GLuint water_shader = 0;
 	GLuint water_political_shader = 0;
-	GLuint vic2_border_shader = 0;
 	GLuint line_border_shader = 0;
 
 	// Position and movement

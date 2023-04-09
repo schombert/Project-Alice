@@ -570,8 +570,6 @@ display_data::~display_data() {
 		glDeleteProgram(water_political_shader);
 	if(line_border_shader)
 		glDeleteProgram(line_border_shader);
-	if(vic2_border_shader)
-		glDeleteProgram(vic2_border_shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -612,11 +610,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto line_border_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
 	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
 
-	auto vic2_border_vshader = try_load_shader(root, NATIVE("assets/shaders/vic2_border_v.glsl"));
-	auto vic2_border_fshader = try_load_shader(root, NATIVE("assets/shaders/vic2_border_f.glsl"));
-
 	line_border_shader = create_program(*line_border_vshader, *line_border_fshader);
-	vic2_border_shader = create_program(*vic2_border_vshader, *vic2_border_fshader);
 }
 
 void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
@@ -755,8 +749,8 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 
 		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
-	
-	
+
+
 
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
@@ -899,7 +893,11 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 		tiles_number[prov_id]++;
 	}
 	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
-		auto tile_pos = accumulated_tile_positions[i] / tiles_number[i];
+		glm::ivec2 tile_pos;
+		if (tiles_number[i] == 0)
+			tile_pos = glm::ivec2(0, 0);
+		else
+			tile_pos = accumulated_tile_positions[i] / tiles_number[i];
 		context.state.world.province_set_mid_point(province::from_map_id(uint16_t(i)), tile_pos);
 	}
 }
@@ -1134,7 +1132,7 @@ void display_data::set_pos(glm::vec2 new_pos) {
 
 void display_data::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount) {
     constexpr auto zoom_speed_factor = 15.f;
-    
+
 	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
     has_zoom_changed = true;
 
@@ -1144,7 +1142,7 @@ void display_data::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, i
     scroll_pos_velocity /= screen_size;
     scroll_pos_velocity *= zoom_speed_factor;
     if(amount > 0) {
-        scroll_pos_velocity /= 3.f;	
+        scroll_pos_velocity /= 3.f;
     } else if(amount < 0) {
         scroll_pos_velocity /= 6.f;
     }
