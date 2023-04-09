@@ -114,9 +114,10 @@ bool issue_is_selected(sys::state& state, dcon::nation_id nation, dcon::issue_op
 
 bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
     auto issue = state.world.issue_option_get_parent_issue(issue_option);
+    auto current = state.world.nation_get_issues(nation, issue.id).id;
     auto allow = state.world.issue_option_get_allow(issue_option);
     if(
-        (!state.world.issue_get_is_next_step_only(issue.id) || issue.id.index() + 1 == issue_option.index() || issue.id.index() - 1 == issue_option.index())
+        (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() || current.index() - 1 == issue_option.index())
         &&
         (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))
         ) {
@@ -124,7 +125,7 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
         float total = 0.0f;
         for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
             dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-            auto condition = allow.index() > issue.id.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
+            auto condition = issue_option.index() > current.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
             auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(nation, iid);
             if(condition && upperhouse_weight > 0.0f)
                 total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(nation), trigger::to_generic(nation), 0);
@@ -137,9 +138,10 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 
 bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_option_id o) {
     auto issue = state.world.issue_option_get_parent_issue(o);
+    auto current = state.world.nation_get_issues(n, issue.id).id;
     auto allow = state.world.issue_option_get_allow(o);
     if(
-        (!state.world.issue_get_is_next_step_only(issue.id) || issue.id.index() + 1 == o.index() || issue.id.index() - 1 == o.index())
+        (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() || current.index() - 1 == o.index())
         &&
         (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
         ) {
@@ -147,7 +149,7 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
         float total = 0.0f;
         for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
             dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-            auto condition = o.index() > issue.id.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
+            auto condition = o.index() > current.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
             auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
             if(condition && upperhouse_weight > 0.0f)
                 total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
@@ -160,12 +162,13 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
 
 bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::reform_option_id o) {
     auto reform = state.world.reform_option_get_parent_reform(o);
+    auto current = state.world.nation_get_reforms(n, reform.id).id;
     auto allow = state.world.reform_option_get_allow(o);
     auto stored_rp = state.world.nation_get_research_points(n);
     if(
-        o.index() > reform.id.index()
+        o.index() > current.index()
         &&
-        (!state.world.reform_get_is_next_step_only(reform.id) || reform.id.index() + 1 == o.index())
+        (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == o.index())
         &&
         (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
         ) {
@@ -192,12 +195,13 @@ bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::refor
 
 bool can_enact_economic_reform(sys::state& state, dcon::nation_id n, dcon::reform_option_id o) {
     auto reform = state.world.reform_option_get_parent_reform(o);
+    auto current = state.world.nation_get_reforms(n, reform.id).id;
     auto allow = state.world.reform_option_get_allow(o);
     auto stored_rp = state.world.nation_get_research_points(n);
     if(
-        o.index() > reform.id.index()
+        o.index() > current.index()
         &&
-        (!state.world.reform_get_is_next_step_only(reform.id) || reform.id.index() + 1 == o.index())
+        (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == o.index())
         &&
         (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
         ) {

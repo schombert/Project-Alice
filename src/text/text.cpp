@@ -637,7 +637,7 @@ namespace text {
 		char buffer[200] = { 0 };
 		double dval = double(num);
 
-		constexpr static double mag[] = { 1.0, 1'000.0, 1'000'000'000.0, 1'000'000'000'000.0, 1'000'000'000'000'000.0, 1'000'000'000'000'000'000.0, 1'000'000'000'000'000'000'000.0 };
+		constexpr static double mag[] = { 1.0, 1'000.0, 1'000'000.0, 1'000'000'000.0, 1'000'000'000'000.0, 1'000'000'000'000'000.0, 1'000'000'000'000'000'000.0 };
 		constexpr static char const* sufx[] = { "%.0f", "%.2fK", "%.2fM", "%.2fB", "%.2fT", "%.2fP", "%.2fZ" };
 
 		for(size_t i = std::extent_v<decltype(mag)>; i-- > 0; ) {

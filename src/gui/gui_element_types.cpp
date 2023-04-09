@@ -704,8 +704,10 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 				colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
 				colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
 			}
-			i += slice_count;
-			last_t = t;
+			if(slice_count) {
+				i += slice_count;
+				last_t = t;
+			}
 		}
 		uint32_t last_color = ogl::get_ui_color(state, last_t);
 		for(; i < resolution; i++) {
@@ -735,8 +737,9 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	auto box = text::open_layout_box(contents, 0);
 
 	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
-	text::add_to_layout_box(contents, state, box, std::string_view(": "), text::text_color::white, text::substitution{});
-	text::add_to_layout_box(contents, state, box, std::string_view(text::format_percentage(percentage, 3)), text::text_color::white, text::substitution{});
+	text::add_to_layout_box(contents, state, box, std::string(":"), text::text_color::white);
+	text::add_space_to_layout_box(contents, state, box);
+	text::add_to_layout_box(contents, state, box, text::format_percentage(percentage, 1), text::text_color::white);
 	text::close_layout_box(contents, box);
 }
 

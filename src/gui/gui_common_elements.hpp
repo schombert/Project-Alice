@@ -841,7 +841,7 @@ class nation_infamy_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
-		return text::format_float(fat_id.get_infamy(), 3);
+		return text::format_float(fat_id.get_infamy(), 2);
 	}
 };
 
@@ -871,7 +871,7 @@ class nation_daily_research_points_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::daily_research_points(state, nation_id);
-		return text::format_float(points, 3);
+		return text::format_float(points, 2);
 	}
 };
 
@@ -879,7 +879,7 @@ class nation_research_points_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = state.world.nation_get_research_points(nation_id);
-		return std::to_string(int32_t(points));
+		return text::format_float(points, 1);
 	}
 };
 
@@ -887,7 +887,7 @@ class nation_suppression_points_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::suppression_points(state, nation_id);
-		return text::format_float(points, 3);
+		return text::format_float(points, 2);
 	}
 };
 
@@ -904,7 +904,7 @@ class nation_diplomatic_points_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::diplomatic_points(state, nation_id);
-		return text::format_float(points, 1);
+		return text::format_float(points, 0);
 	}
 };
 
@@ -943,7 +943,7 @@ class nation_leadership_points_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::leadership_points(state, nation_id);
-		return text::format_float(points, 2);
+		return text::format_float(points, 1);
 	}
 };
 
