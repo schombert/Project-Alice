@@ -345,8 +345,9 @@ public:
 				auto box = text::open_layout_box(contents);
 				auto election_start_date = politics::next_election_date(state, nation_id);
 				text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
-				text::add_to_layout_box(contents, state, box, std::string_view(": "), text::text_color::black, text::substitution{});
-				text::add_to_layout_box(contents, state, box, std::string_view(text::date_to_string(state, election_start_date)), text::text_color::black, text::substitution{});
+				text::add_to_layout_box(contents, state, box, std::string(":"), text::text_color::black);
+				text::add_space_to_layout_box(contents, state, box);
+				text::add_to_layout_box(contents, state, box, text::date_to_string(state, election_start_date), text::text_color::black);
 				text::close_layout_box(contents, box);
 			}
 		}
