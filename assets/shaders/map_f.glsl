@@ -16,32 +16,37 @@ float xx = 1 / map_size.x;
 float yy = 1 / map_size.y;
 vec2 pix = vec2(xx, yy);
 
-vec4 get_terrain(vec2 tex_coords, vec2 corner, vec2 offset) {
-	float index = texture(terrain_texture_sampler, tex_coords + 0.5 * pix * corner).r;
+// The terrain color from the current texture coordinate offset with one pixel in the "corner" direction
+vec4 get_terrain(vec2 corner, vec2 offset) {
+	float index = texture(terrain_texture_sampler, tex_coord + 0.5 * pix * corner).r;
 	index = floor(index * 256);
 	float is_water = step(64, index);
 	vec4 colour = texture(terrainsheet_texture_sampler, vec3(offset, index));
 	return mix(colour, vec4(0.), is_water);
 }
 
-vec4 get_terrain_mix(vec2 tex_coords) {
+vec4 get_terrain_mix() {
 	// Pixel size on map texture
 	vec2 scaling = mod(tex_coord + 0.5 * pix, pix) / pix;
 
 	vec2 offset = tex_coord / (16. * pix);
 
-	vec4 colourlu = get_terrain(tex_coord, vec2(-1, -1), offset);
-	vec4 colourld = get_terrain(tex_coord, vec2(-1, +1), offset);
-	vec4 colourru = get_terrain(tex_coord, vec2(+1, -1), offset);
-	vec4 colourrd = get_terrain(tex_coord, vec2(+1, +1), offset);
+	vec4 colourlu = get_terrain(vec2(-1, -1), offset);
+	vec4 colourld = get_terrain(vec2(-1, +1), offset);
+	vec4 colourru = get_terrain(vec2(+1, -1), offset);
+	vec4 colourrd = get_terrain(vec2(+1, +1), offset);
 
+	// Mix together the terrains based on close they are to the current texture coordinate
 	vec4 colour_u = mix(colourlu, colourru, scaling.x);
 	vec4 colour_d = mix(colourld, colourrd, scaling.x);
 	return mix(colour_u, colour_d, scaling.y);
 }
 
+// The terrain map
+// No province color is used here
 void main() {
 	vec4 terrain_background = texture(colormap_terrain, tex_coord);
-	vec4 terrain = get_terrain_mix(tex_coord);
+	vec4 terrain = get_terrain_mix();
+	// Mixes the terrains from "texturesheet.tga" with the "colormap.dds" background color.
 	frag_color = (terrain * 2. + terrain_background) / 3.;
 }

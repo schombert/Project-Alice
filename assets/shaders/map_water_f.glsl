@@ -26,6 +26,7 @@ const float SpecValueTwo = 2.0;
 const float vWaterTransparens = 1.0; //more transparance lets you see more of background
 const float vColorMapFactor = 1.0f; //how much colormap
 
+// The water effect
 vec4 get_water(vec2 tex_coord)
 {
 	vec3 WorldColorColor = texture(colormap_water, tex_coord).rgb;
@@ -67,13 +68,13 @@ vec4 get_water(vec2 tex_coord)
 	specular = clamp(specular, 0.0, 1.0);
 
 	specular = pow(specular, SpecValueOne);
-	specular = mix(specular, 0.0, 0.0);
 	OutColor += (specular / SpecValueTwo);
 	OutColor *= 1.5;
 
 	return vec4(OutColor, vWaterTransparens);
 }
 
+// Will look "real" water
 void main() {
 	frag_color = get_water(tex_coord);
 }
