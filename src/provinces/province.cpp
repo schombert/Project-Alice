@@ -300,13 +300,17 @@ float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 			non_core_effect += state.defines.noncore_tax_penalty;
 		}
 		for(auto po : state.world.province_get_pop_location(p)) {
-			if(po.get_pop().get_is_primary_or_accepted_culture()) {
+			if(po.get_pop().get_is_primary_or_accepted_culture() && po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
 				bsum += po.get_pop().get_size();
 			}
 		}
 	});
 	auto total_pop = state.world.state_instance_get_demographics(id, demographics::total);
-	auto total = total_pop > 0 ? std::clamp((non_core_effect + state.culture_definitions.bureaucrat_tax_efficiency * bsum / total_pop) / from_issues, 0.0f, 1.0f) : 0.0f;
+	auto total = total_pop > 0 ? std::clamp(
+		admin_mod +
+		non_core_effect +
+		state.defines.base_country_admin_efficiency +
+		std::min(state.culture_definitions.bureaucrat_tax_efficiency * bsum / total_pop, 1.0f) / from_issues, 0.0f, 1.0f) : 0.0f;
 
 	return total;
 }
