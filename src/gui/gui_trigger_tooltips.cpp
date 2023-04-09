@@ -142,7 +142,7 @@ void tf_none(TRIGGER_DISPLAY_PARAMS) {
 }
 
 /*
-* 
+
 void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
 		//evaluate_trigger(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot)
@@ -3745,136 +3745,138 @@ void tf_industrial_score_value(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_industrial_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::industrial_score, ws.s.fixed_ui_text[scenario::fixed_ui::industrial_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"), text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(from_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_industrial_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::industrial_score, ws.s.fixed_ui_text[scenario::fixed_ui::industrial_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"), text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(this_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_industrial_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::industrial_score, ws.s.fixed_ui_text[scenario::fixed_ui::industrial_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"), text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, nations::owner_of_pop(ws, trigger::to_pop(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_industrial_score_this_state(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::industrial_score, ws.s.fixed_ui_text[scenario::fixed_ui::industrial_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"), text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_industrial_score_this_province(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::industrial_score, ws.s.fixed_ui_text[scenario::fixed_ui::industrial_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"), text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_military_score_value(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::military_score, trigger_payload(tval[2]).signed_value, display_type::integer,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"), int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::military_score, ws.s.fixed_ui_text[scenario::fixed_ui::military_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"), text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(from_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::military_score, ws.s.fixed_ui_text[scenario::fixed_ui::military_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"), text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(this_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::military_score, ws.s.fixed_ui_text[scenario::fixed_ui::military_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"), text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, nations::owner_of_pop(ws, trigger::to_pop(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::military_score, ws.s.fixed_ui_text[scenario::fixed_ui::military_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"), text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_military_score_this_province(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::military_score, ws.s.fixed_ui_text[scenario::fixed_ui::military_score_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"), text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_civilized_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::civilized],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "civilized"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_civilized_pop(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::civilized],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "civilized"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_civilized_province(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::civilized],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "civilized"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_national_provinces_occupied(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
@@ -3883,176 +3885,220 @@ void tf_national_provinces_occupied(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_is_greater_power_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::great_power],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "great_power"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_is_greater_power_pop(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::great_power],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "great_power"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_is_greater_power_province(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::great_power],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "great_power"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_rich_tax(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::rich_tax, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_tax"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_middle_tax(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::middle_tax, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_tax"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_poor_tax(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::poor_tax, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_tax"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_social_spending_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::social_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_social_spending_pop(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::social_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_social_spending_province(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::social_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_military_spending_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::mil_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_military_spending_pop(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::mil_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "mil_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_military_spending_province(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::mil_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "mil_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_military_spending_state(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::mil_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "mil_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_administration_spending_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::admin_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_administration_spending_pop(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::admin_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_administration_spending_province(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::admin_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_administration_spending_state(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::admin_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_education_spending_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::edu_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "edu_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_education_spending_pop(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::edu_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "edu_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_education_spending_province(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::edu_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "edu_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_education_spending_state(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::edu_spending, float(trigger_payload(tval[2]).signed_value) / 100.0f, display_type::percent,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "edu_spending"), text::int_percentage{ trigger::payload(tval[1]).signed_value }, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_colonial_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_has_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::colonies],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "colonies"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_religion_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto rel = trigger_payload(tval[2]).small.values.religion;
-	return display_with_comparison(tval[0],
-		ws.s.culture_m.religions[rel].name, scenario::fixed_ui::dominant_religion,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"), ws.world.religion_get_name(trigger::payload(tval[1]).rel_id),  ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_religion_state(TRIGGER_DISPLAY_PARAMS) {
-	auto rel = trigger_payload(tval[2]).small.values.religion;
-	return display_with_comparison(tval[0],
-		ws.s.culture_m.religions[rel].name, scenario::fixed_ui::dominant_religion,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"), ws.world.religion_get_name(trigger::payload(tval[1]).rel_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_religion_province(TRIGGER_DISPLAY_PARAMS) {
-	auto rel = trigger_payload(tval[2]).small.values.religion;
-	return display_with_comparison(tval[0],
-		ws.s.culture_m.religions[rel].name, scenario::fixed_ui::dominant_religion,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"), ws.world.religion_get_name(trigger::payload(tval[1]).rel_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_culture_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).culture;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_culture, ws.s.culture_m.culture_container[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"), ws.world.culture_get_name(trigger::payload(tval[1]).cul_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_culture_state(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).culture;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_culture, ws.s.culture_m.culture_container[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"), ws.world.culture_get_name(trigger::payload(tval[1]).cul_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_culture_province(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).culture;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_culture, ws.s.culture_m.culture_container[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"), ws.world.culture_get_name(trigger::payload(tval[1]).cul_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_issue_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).small.values.option;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_issue, ws.s.issues_m.options[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_issue"), ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_issue_state(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).small.values.option;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_issue, ws.s.issues_m.options[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_issue"), ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_issue_province(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).small.values.option;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_issue, ws.s.issues_m.options[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_issue"), ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_issue_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).small.values.option;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_issue, ws.s.issues_m.options[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_issue"), ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_ideology_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).small.values.ideology;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_issue, ws.s.ideologies_m.ideology_container[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_ideology"), ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_ideology_state(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).small.values.ideology;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_issue, ws.s.ideologies_m.ideology_container[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_ideology"), ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_ideology_province(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).small.values.ideology;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_issue, ws.s.ideologies_m.ideology_container[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_ideology"), ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_ideology_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto c = trigger_payload(tval[2]).small.values.ideology;
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::dominant_issue, ws.s.ideologies_m.ideology_container[c].name,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_ideology"), ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_militancy_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
@@ -4127,117 +4173,136 @@ void tf_rich_strata_militancy_pop(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_rich_tax_above_poor(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::rich_tax, ws.s.fixed_ui_text[scenario::fixed_ui::gt_poor_tax],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_tax"), text::produce_simple_string(ws, "gt_poor_tax"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_culture_has_union_tag_pop(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_has_comparison(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::a_cultural_union],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_cultural_union"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_culture_has_union_tag_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_has_comparison(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::a_cultural_union],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_cultural_union"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_tag(TRIGGER_DISPLAY_PARAMS) {
-	auto tag = trigger_payload(tval[2]).tag;
-	auto holder = ws.w.culture_s.tags_to_holders[tag];
-	auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
-
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::cultural_union, name, ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), trigger::payload(tval[1]).tag_id, ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_from(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::cultural_union, tname, ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(from_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), trigger::to_nation(from_slot), ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), text::produce_simple_string(ws, "from_nation"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_this_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::cultural_union, tname, ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), trigger::to_nation(this_slot), ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_this_province(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::cultural_union, tname, ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)), ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_this_state(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::cultural_union, tname, ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)), ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_this_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-	return display_with_comparison(tval[0],
-		scenario::fixed_ui::cultural_union, tname, ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), nations::owner_of_pop(ws, trigger::to_pop(this_slot)), ws, layout, box);
+	else
+		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_this_union_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_cultural_union"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(this_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::cultural_union, ws.s.fixed_ui_text[scenario::fixed_ui::same_cultural_union], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
 }
 void tf_this_culture_union_this_union_province(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::cultural_union, ws.s.fixed_ui_text[scenario::fixed_ui::same_cultural_union], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_cultural_union"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_this_union_state(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::cultural_union, ws.s.fixed_ui_text[scenario::fixed_ui::same_cultural_union], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_cultural_union"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_this_union_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::cultural_union, ws.s.fixed_ui_text[scenario::fixed_ui::same_cultural_union], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_cultural_union"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, nations::owner_of_pop(ws, trigger::to_pop(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_minorities_nation(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_has_comparison(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::non_accepted_pops],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_accepted_pops"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_minorities_state(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_has_comparison(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::non_accepted_pops],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_accepted_pops"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_minorities_province(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_has_comparison(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::non_accepted_pops],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_accepted_pops"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_revanchism_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
@@ -4252,119 +4317,116 @@ void tf_revanchism_pop(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_has_crime(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_has_comparison(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::crime],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "crime"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_num_of_substates(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::num_substates, tval[2], display_type::integer,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_substates"), int64_t(tval[1]).ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_num_of_vassals_no_substates(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0], scenario::fixed_ui::num_vassals_no_substates, tval[2], display_type::integer,
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_vassals_no_substates"), int64_t(tval[1]).ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_brigades_compare_this(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::num_regiments, ws.s.fixed_ui_text[scenario::fixed_ui::num_regiments_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_regiments"), text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(this_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_brigades_compare_from(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		scenario::fixed_ui::num_regiments, ws.s.fixed_ui_text[scenario::fixed_ui::num_regiments_of], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_regiments"), text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(from_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_tag(TRIGGER_DISPLAY_PARAMS) {
-	auto tag = trigger_payload(tval[2]).tag;
-	auto holder = ws.w.culture_s.tags_to_holders[tag];
-	auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::fabricating_on], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, name, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, ws, box, trigger::payload(tval[1]).tag_id);
+	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_from(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::fabricating_on], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(from_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(from_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "from_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_this_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::fabricating_on], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, trigger::to_nation(this_slot));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_this_province(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::fabricating_on], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_this_state(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::fabricating_on], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_this_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::fabricating_on], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, tname, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	if(this_slot != -1)
+		text::add_to_layout_box(layout, ws, box, nations::owner_of_pop(ws, trigger::to_pop(this_slot)));
+	else
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "this_nation"));
+	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_discovered(TRIGGER_DISPLAY_PARAMS) {
-	if((tval[0] & trigger_codes::association_mask) == trigger_codes::association_eq)
-		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::cb_discovered], fmt, ws, container, lm);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if((tval[0] & trigger::association_mask) == trigger::association_eq)
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "cb_discovered"));
 	else
-		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::cb_not_discovered], fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "cb_not_discovered"));
+	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_progress(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
@@ -4379,122 +4441,107 @@ void tf_civilization_progress(TRIGGER_DISPLAY_PARAMS) {
 	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_type(TRIGGER_DISPLAY_PARAMS) {
-	auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::constructing_a], ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, ws.s.military_m.cb_types[type].name, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::casus_belli], fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "constructing_a"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, ws, box, ws.world.cb_type.get_name(trigger::payload(tval[1]).cb_id));
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "casus_belli"));
+	text::close_layout_box(layout, box);
 }
 void tf_is_our_vassal_tag(TRIGGER_DISPLAY_PARAMS) {
-	auto tag = trigger_payload(tval[2]).tag;
-	auto holder = ws.w.culture_s.tags_to_holders[tag];
-	auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
-	auto scope_name = bool(to_nation(primary_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::nation_in_scope];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		name, scenario::fixed_ui::a_vassal_of, ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, scope_name, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_has_comparison(tval[0], trigger::payload(tval[1]).tag_id, ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
 }
 void tf_is_our_vassal_from(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-	auto scope_name = bool(to_nation(primary_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::nation_in_scope];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		tname, scenario::fixed_ui::a_vassal_of, ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, scope_name, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(from_slot != -1)
+		display_has_comparison(tval[0], trigger::to_nation(from_slot), ws, layout, box);
+	else
+		display_has_comparison(tval[0], text::produce_simple_string(ws, "from_nation"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
 }
 void tf_is_our_vassal_this_nation(TRIGGER_DISPLAY_PARAMS) {
-	auto tname = bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-	auto scope_name = bool(to_nation(primary_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::nation_in_scope];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		tname, scenario::fixed_ui::a_vassal_of, ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, scope_name, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_has_comparison(tval[0], trigger::to_nation(this_slot), ws, layout, box);
+	else
+		display_has_comparison(tval[0], text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
 }
 void tf_is_our_vassal_this_province(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-	auto scope_name = bool(to_nation(primary_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::nation_in_scope];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		tname, scenario::fixed_ui::a_vassal_of, ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, scope_name, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_has_comparison(tval[0], ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)), ws, layout, box);
+	else
+		display_has_comparison(tval[0], text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
 }
 void tf_is_our_vassal_this_state(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-	auto scope_name = bool(to_nation(primary_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::nation_in_scope];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		tname, scenario::fixed_ui::a_vassal_of, ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, scope_name, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_has_comparison(tval[0], ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)), ws, layout, box);
+	else
+		display_has_comparison(tval[0], text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
 }
 void tf_is_our_vassal_this_pop(TRIGGER_DISPLAY_PARAMS) {
-	auto owner = bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag();
-	auto tname = bool(owner) ? ws.w.nation_s.nations.get<nation::name>(owner) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-	auto scope_name = bool(to_nation(primary_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::nation_in_scope];
-
-	cursor_in = display_with_comparison_no_newline(tval[0],
-		tname, scenario::fixed_ui::a_vassal_of, ws, container, cursor_in, lm, fmt);
-	cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-	cursor_in = ui::add_text(cursor_in, scope_name, fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if(this_slot != -1)
+		display_has_comparison(tval[0], nations::owner_of_pop(ws, trigger::to_pop(this_slot)), ws, layout, box);
+	else
+		display_has_comparison(tval[0], text::produce_simple_string(ws, "this_nation"), ws, layout, box);
+	text::add_space_to_layout_box(layout, ws, box);
+	text::add_to_layout_box(layout, text::produce_simple_string(ws, "as_a_vassal"));
+	text::close_layout_box(layout, box);
 }
 void tf_is_substate(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::a_substate],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_substate"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_great_wars_enabled(TRIGGER_DISPLAY_PARAMS) {
-	if((tval[0] & trigger_codes::association_mask) == trigger_codes::association_eq)
-		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::gw_enabled], fmt, ws, container, lm);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if((tval[0] & trigger::association_mask) == trigger::association_eq)
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "gw_enabled"));
 	else
-		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::gw_not_enabled], fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "gw_not_enabled"));
+	text::close_layout_box(layout, box);
 }
 void tf_can_nationalize(TRIGGER_DISPLAY_PARAMS) {
-	if((tval[0] & trigger_codes::association_mask) == trigger_codes::association_eq)
-		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::can_perform_nationalization], fmt, ws, container, lm);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	if((tval[0] & trigger::association_mask) == trigger::association_eq)
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "can_perform_nationalization"));
 	else
-		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_perform_nationalization], fmt, ws, container, lm);
-	cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-	lm.finish_current_line();
-	return cursor_in;
+		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "cannot_perform_nationalization"));
+	text::close_layout_box(layout, box);
 }
 void tf_part_of_sphere(TRIGGER_DISPLAY_PARAMS) {
-	return display_with_comparison(tval[0],
-		ws.s.fixed_ui_text[scenario::fixed_ui::in_sphere],
-		ws, container, cursor_in, lm, fmt);
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_sphere"), ws, layout, box);
+	text::close_layout_box(layout, box);
 }
 void tf_is_sphere_leader_of_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto tag = trigger_payload(tval[2]).tag;
