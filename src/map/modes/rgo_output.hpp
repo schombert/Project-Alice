@@ -9,14 +9,14 @@ std::vector<uint32_t> rgo_output_map_from(sys::state& state) {
 
 	if(selected_province) {
 		auto searched_rgo = state.world.province_get_rgo(selected_province);
-		float max_production = 0;
+		float max_rgo_size = 0;
 
 		state.world.for_each_province([&](dcon::province_id prov_id) {
 			auto prov_rgo = state.world.province_get_rgo(prov_id);
 
 			if(searched_rgo == prov_rgo) {
 				
-				max_production = std::max(max_production, province::rgo_production_quantity(state, prov_id));
+				max_rgo_size = std::max(max_rgo_size, province::rgo_size(state, prov_id));
 			}
 		});
 
@@ -25,7 +25,7 @@ std::vector<uint32_t> rgo_output_map_from(sys::state& state) {
 
 			if(searched_rgo == prov_rgo) {
 				uint32_t color = ogl::color_gradient(
-					province::rgo_production_quantity(state, prov_id) /max_production,
+					province::rgo_size(state, prov_id) /max_rgo_size,
 					sys::pack_color(46, 247, 15), // red
 					sys::pack_color(247, 15, 15) // green
 				);

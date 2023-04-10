@@ -283,6 +283,18 @@ float rgo_production_quantity(sys::state& state, dcon::province_id id) {
 	// TODO
 	return 0.0f;
 }
+float rgo_size(sys::state& state, dcon::province_id prov_id) {
+	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
+	auto sz = state.world.province_get_rgo_size(prov_id);
+
+
+	auto n = dcon::fatten(state.world, prov_id).get_nation_from_province_ownership();
+	auto bonus = state.world.province_get_modifier_values(prov_id, is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size)
+		+ state.world.nation_get_modifier_values(n, is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size)
+		+ state.world.nation_get_rgo_size(n, state.world.province_get_rgo(prov_id))
+		+ 1.0f;
+	return sz * bonus;
+}
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
