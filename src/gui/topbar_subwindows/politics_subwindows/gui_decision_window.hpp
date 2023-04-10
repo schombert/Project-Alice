@@ -108,16 +108,26 @@ public:
 // ---------------
 
 class ignore_checkbox : public checkbox_button {
-private:
-  bool checked{false};
-
 public:
   void button_action(sys::state& state) noexcept override {
-    checked = !checked;
+	  Cyto::Any payload = dcon::decision_id{};
+	  if(parent) {
+		  parent->impl_get(state, payload);
+		  auto id = any_cast<dcon::decision_id>(payload);
+		  state.world.decision_set_hide_notification(id, !state.world.decision_get_hide_notification(id));
+		  state.game_state_updated.store(true, std::memory_order_release);
+	  }
   }
 
   bool is_active(sys::state& state) noexcept override {
-    return checked;
+	  Cyto::Any payload = dcon::decision_id{};
+	  if(parent) {
+		  parent->impl_get(state, payload);
+		  auto id = any_cast<dcon::decision_id>(payload);
+		  return state.world.decision_get_hide_notification(id);
+	  }
+
+    return false;
   }
 };
 

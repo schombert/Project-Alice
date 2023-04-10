@@ -3475,6 +3475,11 @@ object {
 		type{ value_modifier_key }
 		tag{ scenario }
 	}
+	property{
+		name{ hide_notification }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 

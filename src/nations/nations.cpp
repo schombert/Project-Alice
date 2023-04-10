@@ -645,11 +645,13 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
 		dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
-		auto lim = state.world.decision_get_potential(did);
-		if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
-			auto allow = state.world.decision_get_allow(did);
-			if(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
-				return true;
+		if(!state.world.decision_get_hide_notification(did)) {
+			auto lim = state.world.decision_get_potential(did);
+			if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+				auto allow = state.world.decision_get_allow(did);
+				if(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+					return true;
+				}
 			}
 		}
 	}
