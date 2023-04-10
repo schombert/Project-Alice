@@ -94,7 +94,7 @@ object{
 		tag{ scenario }
 	}
 	property{
-		name{ is_releasable }
+		name{ is_not_releasable }
 		type{ bitfield }
 		tag{ scenario }
 	}

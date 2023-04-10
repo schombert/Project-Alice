@@ -3736,11 +3736,11 @@ TRIGGER_FUNCTION(tf_war_score) {
 }
 TRIGGER_FUNCTION(tf_is_releasable_vassal_from) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(to_nation(from_slot));
-	return compare_to_true(tval[0], ws.world.national_identity_get_is_releasable(tag));
+	return compare_to_true(tval[0], !ws.world.national_identity_get_is_not_releasable(tag));
 }
 TRIGGER_FUNCTION(tf_is_releasable_vassal_other) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(to_nation(from_slot));
-	return compare_to_true(tval[0], ws.world.national_identity_get_is_releasable(tag));
+	return compare_to_true(tval[0], !ws.world.national_identity_get_is_not_releasable(tag));
 }
 TRIGGER_FUNCTION(tf_has_recent_imigration) {
 	return compare_values(tval[0],

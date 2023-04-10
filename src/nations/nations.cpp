@@ -129,9 +129,7 @@ void generate_initial_state_instances(sys::state& state) {
 }
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
-	// if(state.world.national_identity_get_is_releasable(releasable) && !identity_has_holder(state, releasable)) {
-	// TODO -- handle releasable signal when available
-	if(!identity_has_holder(state, releasable)) {
+	if(!state.world.national_identity_get_is_not_releasable(releasable) && !identity_has_holder(state, releasable)) {
 		bool owns_a_core = false;
 		bool not_on_capital = true;
 		state.world.national_identity_for_each_core(releasable, [&](dcon::core_id core) {
