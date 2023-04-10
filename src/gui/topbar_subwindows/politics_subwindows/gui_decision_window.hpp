@@ -8,7 +8,31 @@
 namespace ui {
 
 class decision_requirements : public image_element_base {};
-class make_decision : public  button_element_base {};
+class make_decision : public  button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::decision_id{};
+		if(parent) {
+			parent->impl_get(state, payload);
+			auto id = any_cast<dcon::decision_id>(payload);
+
+			auto condition = state.world.decision_get_allow(id);
+			disabled = condition && !trigger::evaluate_trigger(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		Cyto::Any payload = dcon::decision_id{};
+		if(parent) {
+			parent->impl_get(state, payload);
+			auto id = any_cast<dcon::decision_id>(payload);
+			auto condition = state.world.decision_get_allow(id);
+			if(condition)
+				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+		}
+	}
+};
 
 // -------------
 // Decision Name
