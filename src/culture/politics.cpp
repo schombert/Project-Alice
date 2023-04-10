@@ -109,7 +109,7 @@ bool reform_is_selected(sys::state& state, dcon::nation_id nation, dcon::reform_
 
 bool issue_is_selected(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
     auto issue = state.world.issue_option_get_parent_issue(issue_option);
-    return issue_option == state.world.nation_get_issues(nation, issue.id).id;
+    return issue && issue_option == state.world.nation_get_issues(nation, issue);
 }
 
 bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {

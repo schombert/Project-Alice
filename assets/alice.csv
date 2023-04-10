@@ -16,3 +16,428 @@ alice_mode_window;Windowed;;;;;;;;;;;;x
 alice_mode_fullscreen;Fullscreen;;;;;;;;;;;;x
 use_standard_fonts;Use Standard Fonts;;;;;;;;;;;;x
 use_classic_fonts;Use Classic Fonts;;;;;;;;;;;;x
+EVERY;Every
+ANY;Any
+RANDOM;A random
+neighboring_province;neighboring province
+WHERE;Where: ;
+neighboring_nation;neighboring nation
+NATION;nation
+continent;Continent
+same_continent;on the same continent as
+empty_neighboring_province;empty neighboring province
+poor_strata_pop;poor strata pop
+middle_strata_pop;middle strata pop
+rich_strata_pop;rich strata pop
+pop;pop
+owned_province;province belonging to
+singular_nation;that nation
+singular_state;that state
+singular_province;that province
+singular_pop;that pop
+core_of;core of
+state_of;state of
+one_of_the_following;One of the following effects:
+chance_of;chance of:
+owner_of;Owner of
+controller_of;Controller of
+location_of_pop;Location of that pop
+nation_of_pop;Nation containing that pop
+capital_of;Capital of
+this_nation;this nation
+this_state;this state
+this_province;this province
+this_pop;this pop
+from_nation;from nation
+from_state;from state
+from_province;from province
+from_pop;from pop
+adjacent_sea;Adjacent sea zone
+cultural_union_of;Cultural union of
+overlord_of;Liege of
+sphere_leader_of;sphere leader of
+crisis_state;Crisis state
+containing_state;State containing
+province_in;province in
+reb_independence_nation;Rebel independence nation
+flashpoint_nation;Flashpoint nation
+move_capital_to;move capital to
+add_x_core;add $adj$ core
+add_core_to;add core to
+rebel;rebel
+remove_x_core;remove $adj$ core
+remove_core_from;remove core from
+change_name_to;change name to $text$
+change_rgo_production_to;change rgo production to $text$
+make_accepted_culture;$text$ becomes an accepted culture
+primary_culture_changes_to;primary culture changes to $text$
+union_culture_accepted;all cultures in the nation's primary culture group become accepted
+this_nation_culture;the primary culture of this nation
+from_nation_culture;the primary culture of the from nation
+remove_accepted_culture;$text$ stops being an accepted culture
+life_rating;life rating
+make_national_religion;$text$ becomes the national religion
+make_slave_state;becomes a slave state
+make_slave_pop;becomes a slave
+research_points;research points
+change_tech_school;technology school changes to $text$
+change_government_to;government changes to $text$
+add_to_treasury;added to treasury
+war_exhaustion;war exhaustion
+become_blank;becomes $text$
+cultural_union_nation;the cultural union nation for its primary culture
+player_control_change;player control changes to $text$
+set_national_flag;$text$ is set for this nation
+remove_national_flag;$text$ is unset for this nation
+infamy;infamy
+change_province_owner;change province owner to $text$
+annex_effect:annex $text$
+annexed_by_effect:is annexed by $text$
+core_return:$adj$ cores are returned to $text$
+core_return_short:$adj$ cores are returned
+change_province_controller;change province controller to $text$
+railroad_level;railroad level
+pop_savings;pop savings
+leadership_points;leadership points
+release_as_vassal;release $text$ as a vassal
+end_alliance;end alliance with $text$
+end_war_with;end war with $text$
+enable_blank;enable $text$
+change_ruling_party;change ruling party to $text$
+remove_prov_mod;remove provincial modifier $text$
+remove_nat_mod;remove national modifier $text$
+make_alliance;enter into an alliance with $text$
+become_independent;$text$ becomes an independent nation
+release_as_independent;release $text$ as an independent nation
+enable_canal;enable the $text$
+set_global_flag;set $text$ globally
+remove_global_flag;unset $text$ globally
+change_national_value;change national value to $text$
+become_civ;becomes a civilized nation
+become_unciv;becomes an uncivilized nation
+free_slave_state;becomes a free state
+free_slave_pop;is freed from slavery
+hold_election;hold election
+issue_change;$issue$ changes to $text$
+add_relative_income;times last income added to treasury
+make_neutral;all alliances ended and all vassals released
+pop_size;pop size
+move_pop_to;move pop to $text$
+change_pop_type;change pop type to $text$
+years_of_research;years of research
+remove_mil_reforms;remove $value$ military reforms
+remove_econ_reforms;remove $value$ economic reforms
+add_crime;add crime $text$
+remove_crime;remove active crime
+perform_nationalization;perform nationalization
+build_factory_in_capital;build $text$ in capital state
+enable_great_wars;great wars are enabled
+enable_world_wars;world wars are enabled
+disable_great_wars;great wars are no longer possible
+disable_world_wars;world wars are no longer possible
+assimilate_pop;change culture to $text$
+assimilate_province;change the culture of all pops to $text$
+owner_primary_culture;its owner's primary culture
+literacy;literacy
+add_crisis_interest;becomes interested in current crisis
+crisis_temperature_plain;crisis temperature
+militancy;militancy
+consciousness;consciousness
+fort_level;fort level
+naval_base_level;naval base level
+rgo_size;rgo size
+trigger_every_revolt;trigger a revolt of every rebel faction
+where_ideology_is;where its ideology is $text$
+where_culture_is;where its culture is $text$
+where_religion_is;where its religion is $text$
+of_type;of type $text$
+diplomatic_influence_with;diplomatic influence with $text$
+relations_with;relationship with $text$
+add_modifier_until;gets $text$ until $date$
+add_modifier;gets $text$
+add_cb_months;gets a $name$ casus belli against $text$ for $value$ months
+add_cb_no_months;gets a $name$ casus belli against $text$
+add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope for $value$ months
+add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope
+remove_cb_reversed;loses any $name$ casus bellis against $text$
+remove_cb;$text$ loses any $name$ casus bellis against the nation in scope
+no_nation;no nation
+declare_war_on;declare war on $text$
+attacker_wg_label;attacker war goal: $text$
+defender_wg_label;defender war goal: $text$
+for_text; for $text$
+attacker_no_allies;attacker's allies will not be called in
+attacker_yes_allies;attacker's allies will be called in
+event_fires;event $text$ is triggered
+event_fires_in_days;event $text$ is triggered in $value$ days
+support_for_blank;support for $text$
+up_to;up to ;
+scaled_support; proportional to support of $text$
+scaled_unemployment; proportional to unemployment
+stockpile_of;to national stockpile of ;
+create_general;a new general is created
+create_admiral;a new admiral is created
+add_war_goal;a $text$ war goal is added against $nation$
+blank_loyalty;$text$ loyalty
+in_blank;in $text$
+railroad_in_capital;+1 railroad level in capital
+railroad_in_capital_state;+1 railroad level in capital state
+fort_in_capital;+1 fort level in capital
+fort_in_capital_state;+1 fort level in capital state
+set_national_variable_to;set national variable $text$ to ;
+increase_national_variable_by;increase national variable $text$ by ;
+decrease_national_variable_by;decrease national variable $text$ by ;
+cmp_ge;is at least
+cmp_le;is at most
+cmp_gt;is greater than
+cmp_lt;is less than
+cmp_eq;is
+cmp_ne;is not
+cmp_has_eq;has
+cmp_has_ne;does not have
+cmp_has_lt;has less than
+cmp_has_gt;has greater than
+cmp_has_ge;has at least
+cmp_has_le;has at most
+all_of_the_following;all of the following:
+any_of_the_following;any of the following:
+nation_at_war_against;nation at war against
+core_in;core in
+substate_of;substate of
+nation_in_sphere;nation in the sphere of
+year;year
+month;month
+a_port;a port
+national_rank;national rank
+technology;technology
+strata;strata
+rich;rich
+poor;poor
+middle;middle
+minimum_state_life_raing;minimum life rating in state
+an_empy_adj_prov;an empty adjacent province
+belongs_to_same_state;belongs to the same state as $text$
+does_not_belong_to_same_state;does not belong to the same state as $text$
+contains_blank;contains $text$
+does_not_contain_blank;does not contain $text$
+times_target_needs_spending;times desired needs spending
+unemployment;unemployment
+slavery;slavery
+allowed;allowed
+a_slave_state;a slave state
+a_slave;a slave
+an_independent_nation;an independent nation
+non_prim_culture_pops;non primary-culture pops
+government;government
+capital;capital
+technology_school;technology school
+primary_culture;primary culture
+an_accepted_culture;an accepted culture
+culture;culture
+dominant_culture;dominant culture
+a_primary_or_accepted;a primary or accepted culture
+rebel_culture;rebel culture
+this_nation_prim_culture;the primary culture or an accepted culture of this nation
+from_nation_prim_culture;the primary culture or an accepted culture of the from nation
+culture_group;culture group
+rebel_culture_group;rebel cultural group
+this_nation_culture_group;the same as the culture group of this nation 
+from_nation_culture_group;the same as the culture group of the from nation
+rebel_religion;the rebel religion
+this_nation_religion;the national religion of this nation
+from_nation_religion;the national religion of the from nation
+province_terrain;province terrain
+rgo_production;rgo production
+a_secondary_power;a colonial power
+owner;owner
+an_active_rebel;an active rebel faction
+a_member_of;a member of
+unclaimed_cores;unclaimed cores
+a_cultural_union;a cultural union
+union_for_pop;the cultural union for the pop
+union_for_nation;the cultural union for the nation
+the_rebel_ind_nation;the rebel independence nation
+capitalists_can_build;capitalists are allowed to build factories
+capitalists_cannot_build;capitalists are not allowed to build factories
+at_war;at war
+total_blockade;total blockade
+owns;owns
+does_not_own;does not own
+controls;controls
+does_not_control;does not control
+a_core_in;a core in
+a_core_of;a core of
+percentage_reb_control;percentage of rebel controlled provinces
+num_of_reb_control;number of rebel controlled provinces
+num_owned_provinces;number of owned provinces
+num_provinces_owned_by;the number of provinces owned by
+num_of_ports;number of ports
+num_of_allies;number of allies
+num_of_vassals;number of vassals
+owned_by;owned by
+exists;exists
+does_not_exist;does not exist
+set;set
+in;in
+a_casus_belli_against;a casus belli against
+military_access_with;military access with
+prestige_of;the prestige of
+a_railroad;a railroad
+a_fort;a fort
+a_naval_base;a naval base
+a_factory;a factory
+empty;unowned
+blockaded;blockaded
+national_modifier;national modifier
+provincial_modifier;provincial modifier
+part_of;part of
+a_border_with;a border with
+units_in_province;units in province
+at_war_against;at war against
+num_of_divisions;a number of divisions
+an_ongoing_battle;an ongoing battle
+treasury;treasury
+percentage_unowned_cores;percentage of unowned cores
+a_vassal;a vassal
+ruling_party_ideology;ruling party ideology
+ruling_party;ruling party
+enabled;enabled
+political_reform_desire;political reform desire
+social_reform_desire;social reform desire
+num_of_ships;number of ships
+crime_percent;percentage of provinces with crime
+national_religion;the national_religion
+member_of_nat_religion;a member of the national religion
+dominant_religion;the dominant religion
+this_pop_culture;the culture of this pop
+this_nation_primary_culture;the primary culture of this nation
+coastal;coastal
+in_sphere_of;in the sphere of
+a_producer_of;a producer of
+next_reform;next reform
+always;always
+never;never
+percentage_recruited;percentage of recruited pops
+in_cultural_core_prov;in a province with a core of the same culture
+nationalism;nationalism
+overseas;overseas
+controlled_by_rebel;controlled by rebels
+controlled_by;controlled by
+state_capital;state capital
+a_truce_with;a truce with
+population;population
+size;size
+pops_of_type;pops of type
+of_type_plain;of type
+ai_controlled;ai controlled
+a_leader_named;a leader named
+a_possible_vassal;a possible vassal
+a_vassal_of;a vassal of
+a_substate_of;a substate of
+allied_to;allied to
+has_recently_lost_war;has recently lost a war
+has_not_recently_lost_war;has not recently lost a war
+mobilized;mobilized
+mobilization_size;mobilization size
+admin_spending;administration spending
+greater_than_edu_spending;greater than education spending
+support_for_rp;support for ruling party
+colonial;colonial
+in_default_to;in default to
+num_of_ports_connected;number of ports connected to capital
+holding_an_election;holding an election
+set_globally;set globally
+national_value;national value
+industrial_score;industrial score
+industrial_score_of;the industrial score of
+military_score;military score
+military_score_of;the military score of
+civilized;civilized
+percent_occupied;percentage of occupied provinces
+rich_tax;rich tax
+middle_tax;middle tax
+poor_tax;poor tax
+soc_spending;social spending
+edu_spending;education spending
+mil_spending;military spending
+colonies;colonies
+dominant_ideology;dominant ideology
+dominant_issue;dominant issue
+poor_militancy;poor strata militancy
+middle_militancy;middle strata militancy
+rich_militancy;rich strata militancy
+gt_poor_tax;greater than poor tax
+cultural_union;cultural union
+same_cultural_union;the same as the cultural union of
+non_accepted_pops;non accepted pops
+crime;crime
+num_substates;number of substates
+num_vassals_no_substates;number of non-substate vassals
+num_regiments;number of regiments
+num_regiments_of;the number of regiments belonging to
+fabricating_on;fabricating a casus belli on
+cb_discovered;casus belli fabrication has been discovered
+cb_not_discovered;casus belli fabrication has not been discovered
+cb_progress;casus belli fabrication progress
+civ_progress;civilization progress
+constructing_a;fabricating a
+casus_belli;casus belli
+nation_in_scope;the nation in scope
+a_substate;a substate
+gw_enabled;great wars are enabled
+gw_not_enabled;great wars are not enabled
+ww_enabled;world wars are enabled
+ww_not_enabled;world wars are not enabled
+can_perform_nationalization;can perform nationalization
+cannot_perform_nationalization;cannot perform nationalization
+in_sphere;in a sphere of influence
+num_states;number of states
+a_releasable_vassal;a releasable vassal
+recent_immigration;recent immigration
+num_control_days;number of days under current control
+disarmed;disarmed
+social_mov_support;social movement support
+political_mov_support;political movement support
+a_member_of_social_mov;a member of a social movement
+a_member_of_political_mov;a member of a political movement
+cultural_sphere_members;sphere members in the same cultural group
+pops;pops
+this_pop_religion;the religion of this pop
+pops_with;pops with
+life_needs_satisfaction;life-needs satisfaction
+everyday_needs_satisfaction;everyday-needs satisfaction
+luxury_needs_satisfaction;luxury-needs satisfaction
+present_in_state;present in state
+flashpoint;flashpoint
+an_ongoing_crisis;an ongoing crisis
+there;there
+current_crisis;current crisis
+liberation_crisis;a liberation crisis
+claim_crisis;a claim crisis
+involved_in_crisis;involved in crisis
+poor_life_needs_satisfaction;poor-strata life-needs satisfaction
+poor_everyday_needs_satisfaction;poor-strata everyday-needs satisfaction
+poor_luxury_needs_satisfaction;poor-strata luxury-needs satisfaction
+middle_life_needs_satisfaction;middle-strata life-needs satisfaction
+middle_everyday_needs_satisfaction;middle-strata everyday-needs satisfaction
+middle_luxury_needs_satisfaction;middle-strata luxury-needs satisfaction
+rich_life_needs_satisfaction;rich-strata life-needs satisfaction
+rich_everyday_needs_satisfaction;rich-strata everyday-needs satisfaction
+rich_luxury_needs_satisfaction;rich-strata luxury-needs satisfaction
+dip_influence_over;diplomatic influence over
+relationship_with;relationship with
+this_pop_type;this pop type
+nat_variable;national variable
+support_in_uh;support in upper house
+support_in;loyalty in
+scope_province;province in scope
+able_build_rr;able to build a railroad in this province
+able_build_fort;able to build a fort in this province
+able_build_naval_base;able to build a naval base in this province
+work;work
+available_for;available for:
+support;support
+percentage;percentage
+stockpile;stockpile
+this_nat_religion;the national religion of this country
+from_nat_religion;the national religion of the from country

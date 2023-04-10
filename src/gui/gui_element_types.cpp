@@ -281,9 +281,9 @@ ogl::color3f get_text_color(text::text_color text_color) {
 		case text::text_color::yellow:
 			return ogl::color3f{ 0.9f, 0.9f, 0.1f };
 		case text::text_color::light_blue:
-			return ogl::color3f{ 0.3f, 0.3f, 1.0f };
+			return ogl::color3f{ 0.5f, 0.5f, 1.0f };
 		case text::text_color::dark_blue:
-			return ogl::color3f{ 0.1f, 0.1f, 0.6f };
+			return ogl::color3f{ 0.2f, 0.2f, 0.8f };
 		default:
 			return ogl::color3f{ 0.f, 0.f, 0.f };
 	}
