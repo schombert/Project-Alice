@@ -282,6 +282,8 @@ namespace text {
 	std::string format_ratio(int32_t left, int32_t right);
 	template<class T>
 	std::string get_name_as_string(sys::state const& state, T t);
+	template<class T>
+	std::string get_adjective_as_string(sys::state const& state, T t);
 	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 	std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 	std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
