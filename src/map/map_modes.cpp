@@ -25,6 +25,10 @@
 #include "modes/party_loyalty.hpp"
 #include "modes/admin.hpp"
 #include "modes/naval.hpp"
+#include "modes/national_focus.hpp"
+#include "modes/crisis.hpp"
+#include "modes/colonial.hpp"
+#include "modes/rgo_output.hpp"
 
 namespace map_mode {
 
@@ -85,6 +89,22 @@ void set_map_mode(sys::state& state, mode mode) {
 			break;
 		case mode::naval:
 			prov_color = naval_map_from(state);
+			break;
+		case mode::national_focus:
+			// TODO
+			prov_color = national_focus_map_from(state);
+			break;
+		case mode::crisis:
+			// TODO
+			prov_color = crisis_map_from(state);
+			break;
+		case mode::colonial:
+			// TODO
+			prov_color = colonial_map_from(state);
+			break;
+		case mode::rgo_output:
+			// TODO
+			prov_color = rgo_output_map_from(state);
 			break;
 		default:
 			return;

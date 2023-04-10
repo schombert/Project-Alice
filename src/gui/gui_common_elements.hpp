@@ -8,6 +8,7 @@
 #include "nations.hpp"
 #include "politics.hpp"
 #include "province.hpp"
+#include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
 #include <unordered_map>
@@ -229,6 +230,156 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_crime().index();
+	}
+};
+
+class standard_rebel_type_icon : public opaque_element_base {
+protected:
+	dcon::rebel_type_id rebel_type_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::rebel_type_id>()) {
+			rebel_type_id = any_cast<dcon::rebel_type_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class rebel_type_icon : public standard_rebel_type_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(state.world.rebel_type_get_icon(rebel_type_id) - 1);
+	}
+};
+
+class standard_rebel_faction_text : public simple_text_element_base {
+protected:
+	dcon::rebel_faction_id rebel_faction_id{};
+
+public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::rebel_faction_id>()) {
+			rebel_faction_id = any_cast<dcon::rebel_faction_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class rebel_faction_size_text : public standard_rebel_faction_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		float total = 0.f;
+		for(auto member : state.world.rebel_faction_get_pop_rebellion_membership(rebel_faction_id)) {
+			total += member.get_pop().get_size();
+		}
+		return text::prettify(int64_t(total));
+	}
+};
+
+class rebel_faction_active_brigade_count_text : public standard_rebel_faction_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto count = rebel::get_faction_brigades_active(state, rebel_faction_id);
+		return text::prettify(count);
+	}
+};
+
+class rebel_faction_ready_brigade_count_text : public standard_rebel_faction_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto count = rebel::get_faction_brigades_ready(state, rebel_faction_id);
+		return text::prettify(count);
+	}
+};
+
+class rebel_faction_organization_text : public standard_rebel_faction_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto org = rebel::get_faction_organization(state, rebel_faction_id);
+		return text::format_percentage(org, 1);
+	}
+};
+
+class rebel_faction_revolt_risk_text : public standard_rebel_faction_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto risk = rebel::get_faction_revolt_risk(state, rebel_faction_id);
+		return text::format_percentage(risk, 1);
+	}
+};
+
+class standard_rebel_faction_multiline_text : public multiline_text_element_base {
+protected:
+	dcon::rebel_faction_id rebel_faction_id{};
+
+public:
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
+
+	void on_update(sys::state& state) noexcept override {
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
+		);
+		populate_layout(state, container);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::rebel_faction_id>()) {
+			rebel_faction_id = any_cast<dcon::rebel_faction_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class rebel_faction_name_text : public standard_rebel_faction_multiline_text {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+			auto fat_id = dcon::fatten(state.world, rebel_faction_id);
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within()));
+			auto culture = fat_id.get_primary_culture();
+			auto defection_target = fat_id.get_defection_target();
+			if(culture.id) {
+				text::add_to_substitution_map(sub, text::variable_type::culture, text::get_name_as_string(state, culture));
+			} else if(defection_target.id) {
+				auto adjective = text::get_adjective_as_string(state, defection_target);
+				text::add_to_substitution_map(sub, text::variable_type::indep, adjective);
+				text::add_to_substitution_map(sub, text::variable_type::union_adj, adjective);
+			}
+			text::add_to_layout_box(contents, state, box, fat_id.get_type().get_name(), sub);
+			text::close_layout_box(contents, box);
 	}
 };
 
@@ -1353,5 +1504,7 @@ protected:
 		return distrib;
 	}
 };
+
+void trigger_description(sys::state& state, text::columnar_layout& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
 
 }

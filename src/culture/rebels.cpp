@@ -283,4 +283,24 @@ bool sphere_member_has_ongoing_revolt(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
+int32_t get_faction_brigades_ready(sys::state& state, dcon::rebel_faction_id r) {
+	// TODO
+	return 0;
+}
+
+int32_t get_faction_brigades_active(sys::state& state, dcon::rebel_faction_id r) {
+	// TODO
+	return 0;
+}
+
+float get_faction_organization(sys::state& state, dcon::rebel_faction_id r) {
+	// TODO
+	return 0.f;
+}
+
+float get_faction_revolt_risk(sys::state& state, dcon::rebel_faction_id r) {
+	// TODO
+	return 0.f;
+}
+
 }

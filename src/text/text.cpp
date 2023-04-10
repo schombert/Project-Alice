@@ -655,6 +655,11 @@ namespace text {
 		return text::produce_simple_string(state, t.get_name());
 	}
 
+	template<class T>
+	std::string get_adjective_as_string(sys::state const& state, T t) {
+		return text::produce_simple_string(state, t.get_adjective());
+	}
+
 	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
 		auto fat_id = dcon::fatten(state.world, state_id);
 		for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
@@ -808,7 +813,7 @@ namespace text {
 			}
 		}
 
-		box.x_position = float(box.x_offset);
+		box.x_position = float(box.x_offset + dest.fixed_parameters.left);
 		box.y_position += line_height;
 		dest.base_layout.number_of_lines += 1;
 		box.line_start = dest.base_layout.contents.size();
@@ -851,7 +856,7 @@ namespace text {
 			std::string_view segment = txt.substr(start_position, num_chars);
 			float extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
 
-			if(first_in_line && int32_t(box.x_position) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
+			if(first_in_line && int32_t(box.x_position + dest.fixed_parameters.left) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
 				// the current word is too long for the text box, just let it overflow
 				dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
@@ -880,12 +885,15 @@ namespace text {
 				first_in_line = true;
 			} else if(next_word >= txt.length()) {
 				// we've reached the end of the text
-				dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+				std::string_view remainder = txt.substr(start_position);
+				float rem_extent = state.font_collection.text_extent(state, remainder.data(), uint32_t(remainder.length()), dest.fixed_parameters.font_id);
+
+				dest.base_layout.contents.push_back(text_chunk{ std::string(remainder), box.x_position, source, int16_t(box.y_position), int16_t(rem_extent), int16_t(text_height), tmp_color });
 
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
-				box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
+				box.x_size = std::max(box.x_size, int32_t(box.x_position + rem_extent));
 
-				box.x_position += extent;
+				box.x_position += rem_extent;
 				break;
 			} else {
 				end_position = next_word;
