@@ -171,7 +171,7 @@ namespace sys {
 				if(type != ui::tooltip_behavior::no_tooltip) {
 
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
+						text::layout_parameters{ 16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
 					ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -188,7 +188,7 @@ namespace sys {
 			}
 		} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
+						text::layout_parameters{ 16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
 			ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
