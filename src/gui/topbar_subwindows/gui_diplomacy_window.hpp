@@ -88,21 +88,21 @@ public:
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_gp0") {
-			return make_element_by_type<nation_gp_opinion_text<1>>(state, id);
+			return make_element_by_type<nation_gp_opinion_text<0>>(state, id);
 		} else if(name == "country_gp1") {
-			return make_element_by_type<nation_gp_opinion_text<2>>(state, id);
+			return make_element_by_type<nation_gp_opinion_text<1>>(state, id);
 		} else if(name == "country_gp2") {
-			return make_element_by_type<nation_gp_opinion_text<3>>(state, id);
+			return make_element_by_type<nation_gp_opinion_text<2>>(state, id);
 		} else if(name == "country_gp3") {
-			return make_element_by_type<nation_gp_opinion_text<4>>(state, id);
+			return make_element_by_type<nation_gp_opinion_text<3>>(state, id);
 		} else if(name == "country_gp4") {
-			return make_element_by_type<nation_gp_opinion_text<5>>(state, id);
+			return make_element_by_type<nation_gp_opinion_text<4>>(state, id);
 		} else if(name == "country_gp5") {
-			return make_element_by_type<nation_gp_opinion_text<6>>(state, id);
+			return make_element_by_type<nation_gp_opinion_text<5>>(state, id);
 		} else if(name == "country_gp6") {
-			return make_element_by_type<nation_gp_opinion_text<7>>(state, id);
+			return make_element_by_type<nation_gp_opinion_text<6>>(state, id);
 		} else if(name == "country_gp7") {
-			return make_element_by_type<nation_gp_opinion_text<8>>(state, id);
+			return make_element_by_type<nation_gp_opinion_text<7>>(state, id);
 		} else if(name == "country_boss_flag") {
 			return make_element_by_type<nation_overlord_flag>(state, id);
 		} else if(name == "country_prestige") {
@@ -478,21 +478,21 @@ public:
 			ptr->target = country_list_filter::all;
 			return ptr;
 		} else if(name == "sort_by_gpflag0") {
-			return make_element_by_type<nation_gp_flag<1>>(state, id);
+			return make_element_by_type<nation_gp_flag<0>>(state, id);
 		} else if(name == "sort_by_gpflag1") {
-			return make_element_by_type<nation_gp_flag<2>>(state, id);
+			return make_element_by_type<nation_gp_flag<1>>(state, id);
 		} else if(name == "sort_by_gpflag2") {
-			return make_element_by_type<nation_gp_flag<3>>(state, id);
+			return make_element_by_type<nation_gp_flag<2>>(state, id);
 		} else if(name == "sort_by_gpflag3") {
-			return make_element_by_type<nation_gp_flag<4>>(state, id);
+			return make_element_by_type<nation_gp_flag<3>>(state, id);
 		} else if(name == "sort_by_gpflag4") {
-			return make_element_by_type<nation_gp_flag<5>>(state, id);
+			return make_element_by_type<nation_gp_flag<4>>(state, id);
 		} else if(name == "sort_by_gpflag5") {
-			return make_element_by_type<nation_gp_flag<6>>(state, id);
+			return make_element_by_type<nation_gp_flag<5>>(state, id);
 		} else if(name == "sort_by_gpflag6") {
-			return make_element_by_type<nation_gp_flag<7>>(state, id);
+			return make_element_by_type<nation_gp_flag<6>>(state, id);
 		} else if(name == "sort_by_gpflag7") {
-			return make_element_by_type<nation_gp_flag<8>>(state, id);
+			return make_element_by_type<nation_gp_flag<7>>(state, id);
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
 			const auto filter_name = name.substr(7);
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
