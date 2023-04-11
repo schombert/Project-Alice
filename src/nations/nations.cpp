@@ -424,7 +424,8 @@ bool is_great_power(sys::state const& state, dcon::nation_id id) {
 	fat_id.for_each_gp_relationship_as_great_power([&](dcon::gp_relationship_id) {
 		is_great_power = true;
 	});
-	return is_great_power;
+	return is_great_power ? true
+		: state.world.nation_get_rank(id) <= uint16_t(state.defines.great_nations_count);
 }
 
 status get_status(sys::state& state, dcon::nation_id n) {
