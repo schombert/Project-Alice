@@ -129,9 +129,7 @@ void generate_initial_state_instances(sys::state& state) {
 }
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
-	// if(state.world.national_identity_get_is_releasable(releasable) && !identity_has_holder(state, releasable)) {
-	// TODO -- handle releasable signal when available
-	if(!identity_has_holder(state, releasable)) {
+	if(!state.world.national_identity_get_is_not_releasable(releasable) && !identity_has_holder(state, releasable)) {
 		bool owns_a_core = false;
 		bool not_on_capital = true;
 		state.world.national_identity_for_each_core(releasable, [&](dcon::core_id core) {
@@ -647,11 +645,13 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
 		dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
-		auto lim = state.world.decision_get_potential(did);
-		if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
-			auto allow = state.world.decision_get_allow(did);
-			if(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
-				return true;
+		if(!state.world.decision_get_hide_notification(did)) {
+			auto lim = state.world.decision_get_potential(did);
+			if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+				auto allow = state.world.decision_get_allow(did);
+				if(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+					return true;
+				}
 			}
 		}
 	}

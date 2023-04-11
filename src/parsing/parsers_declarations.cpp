@@ -2175,7 +2175,7 @@ void country_history_file::civilized(association_type, bool value, error_handler
 }
 
 void country_history_file::is_releasable_vassal(association_type, bool value, error_handler& err, int32_t line, country_history_context& context) {
-	context.outer_context.state.world.national_identity_set_is_releasable(context.nat_ident, value);
+	context.outer_context.state.world.national_identity_set_is_not_releasable(context.nat_ident, !value);
 }
 
 void country_history_file::literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {

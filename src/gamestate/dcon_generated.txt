@@ -94,7 +94,7 @@ object{
 		tag{ scenario }
 	}
 	property{
-		name{ is_releasable }
+		name{ is_not_releasable }
 		type{ bitfield }
 		tag{ scenario }
 	}
@@ -3474,6 +3474,11 @@ object {
 		name{ ai_will_do }
 		type{ value_modifier_key }
 		tag{ scenario }
+	}
+	property{
+		name{ hide_notification }
+		type{ bitfield }
+		tag{ save }
 	}
 }
 
