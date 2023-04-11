@@ -725,12 +725,15 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	const float PI = 3.141592653589793238463f;
 	float dx = float(x) - radius;
 	float dy = float(y) - radius;
-	float dist = std::sqrt(dx * dx + dy * dy);
-	float angle = std::acos(-dx / dist);
-	if(dy > 0.f) {
-		angle = PI + (PI - angle);
+	size_t index = 0;
+	if(dx || dy) {
+		float dist = std::sqrt(dx * dx + dy * dy);
+		float angle = std::acos(-dx / dist);
+		if(dy > 0.f) {
+			angle = PI + (PI - angle);
+		}
+		index = size_t(angle / (2.f * PI) * float(resolution));
 	}
-	auto index = size_t(angle / (2.f * PI) * float(resolution));
 	T t = T(spread[index]);
 	auto fat_t = dcon::fatten(state.world, t);
 	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
