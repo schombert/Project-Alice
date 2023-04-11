@@ -9,7 +9,7 @@ namespace nations {
 
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
 	uint16_t count = 0;
-	for(auto i = 0; i < state.nations_by_rank.size(); ++i) {
+	for(uint16_t i = 0; i < uint16_t(state.nations_by_rank.size()); ++i) {
 		if(is_great_power(state, state.nations_by_rank[i])) {
 			++count;
 			if(count == n)
