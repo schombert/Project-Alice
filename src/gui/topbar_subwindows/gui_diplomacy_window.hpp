@@ -71,7 +71,6 @@ public:
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
 private:
 	flag_button* country_flag = nullptr;
-	simple_text_element_base* country_opinion = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<dcon::nation_id>::on_create(state);
@@ -115,9 +114,7 @@ public:
 		} else if(name == "country_total") {
 			return make_element_by_type<nation_rank_text>(state, id);
 		} else if(name == "country_opinion") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			country_opinion = ptr.get();
-			return ptr;
+			return make_element_by_type<nation_player_opinion_text>(state, id);
 		} else if(name == "country_relation") {
 			return make_element_by_type<nation_player_relations_text>(state, id);
 		} else {

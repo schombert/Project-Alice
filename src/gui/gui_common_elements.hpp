@@ -1013,6 +1013,36 @@ public:
 	}
 };
 
+class nation_player_opinion_text : public standard_nation_text {
+	std::string_view get_level_str(uint8_t v) {
+		switch(v & nations::influence::level_mask) {
+		case nations::influence::level_neutral:
+			return "REL_NEUTRAL";
+		case nations::influence::level_opposed:
+			return "REL_OPPOSED";
+		case nations::influence::level_hostile:
+			return "REL_HOSTILE";
+		case nations::influence::level_cordial:
+			return "REL_CORDIAL";
+		case nations::influence::level_friendly:
+			return "REL_FRIENDLY";
+		case nations::influence::level_in_sphere:
+			return "REL_IN_SPHERE";
+		default:
+			return "?";
+		}
+	}
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto gp_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
+		if(bool(gp_rel_id)) {
+			const auto status = state.world.gp_relationship_get_status(gp_rel_id);
+			return text::produce_simple_string(state, get_level_str(status));
+		}
+		return "-";
+	}
+};
+
 class nation_player_relations_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
