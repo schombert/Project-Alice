@@ -192,6 +192,8 @@ inline uint8_t decrease_priority(uint8_t v) {
 
 }
 
+dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
+
 // returns whether a culture is on the accepted list OR is the primary culture
 template<typename T, typename U>
 auto nation_accepts_culture(sys::state const& state, T ids, U c);

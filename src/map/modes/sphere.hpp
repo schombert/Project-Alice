@@ -17,13 +17,7 @@ std::vector<uint32_t> get_global_sphere_color(sys::state& state) {
 		uint32_t color = 0x222222;
 
 		if(bool(owner)) {
-			// Currently there's no simple way to check if a nation is a great power.
-			bool is_great_power = false;
-			owner.for_each_gp_relationship_as_great_power([&](dcon::gp_relationship_id rel_id) {
-				if(!is_great_power) is_great_power = true;
-			});
-
-			if(is_great_power) {
+			if(nations::is_great_power(state, owner.id)) {
 				color = owner.get_color();
 			} else {
 				auto master = owner.get_in_sphere_of();

@@ -10,6 +10,7 @@ public:
 	bool is_active(sys::state& state) noexcept final;
 	void button_action(sys::state& state) noexcept final;
 };
+
 class technology_folder_tab_button : public window_element_base {
 	image_element_base* folder_icon = nullptr;
 	simple_text_element_base* folder_name = nullptr;
@@ -69,16 +70,10 @@ public:
 	}
 };
 
-class technology_admin_type_text : public simple_text_element_base {
+class technology_research_progress : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto mod_id = state.world.nation_get_tech_school(state.local_player_nation);
-		if(mod_id) {
-			auto name = text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
-			set_text(state, name);
-		} else {
-			set_text(state, text::produce_simple_string(state, "traditional_academic"));
-		}
+		progress = 0.f;
 	}
 };
 
@@ -137,11 +132,17 @@ public:
 	}
 };
 
+class technology_item_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept final;
+};
+
 class technology_item_window : public window_element_base {
 	simple_text_element_base* tech_name = nullptr;
-	dcon::technology_id tech_id;
 	culture::tech_category category;
 public:
+	dcon::technology_id tech_id;
+
 	void set_technology(sys::state& state, dcon::technology_id id) {
 		tech_id = id;
 
@@ -153,7 +154,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "start_research") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<technology_item_button>(state, id);
 		} else if(name == "tech_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			tech_name = ptr.get();
@@ -169,6 +170,8 @@ public:
 class technology_selected_tech_window : public window_element_base {
 	image_element_base* tech_picture = nullptr;
 	simple_text_element_base* tech_name = nullptr;
+	simple_text_element_base* tech_year = nullptr;
+	simple_text_element_base* tech_research_points = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "picture") {
@@ -188,20 +191,40 @@ public:
 		} else if(name == "diff_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "diff") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			tech_research_points = ptr.get();
+			return ptr;
 		} else if(name == "year_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "year") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			tech_year = ptr.get();
+			return ptr;
 		} else if(name == "start") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::technology_id>()) {
+			auto tech_id = any_cast<dcon::technology_id>(payload);
+			auto tech = dcon::fatten(state.world, tech_id);
+
+			auto name = text::produce_simple_string(state, tech.get_name());
+			tech_name->set_text(state, name);
+			tech_year->set_text(state, std::to_string(tech.get_year()));
+			tech_research_points->set_text(state, std::to_string(tech.get_cost()));
+
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
 class technology_window : public generic_tabbed_window<culture::tech_category> {
+	technology_selected_tech_window* selected_tech_win = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
@@ -272,13 +295,20 @@ public:
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "administration_type") {
-			return make_element_by_type<technology_admin_type_text>(state, id);
+			auto ptr = make_element_by_type<nation_technology_admin_type_text>(state, id);
+			Cyto::Any payload = state.local_player_nation;
+			ptr->set(state, payload);
+			return ptr;
+		} else if(name == "research_progress") {
+			return make_element_by_type<technology_research_progress>(state, id);
 		} else if(name == "research_progress_name") {
 			return make_element_by_type<technology_research_progress_name_text>(state, id);
 		} else if(name == "research_progress_category") {
 			return make_element_by_type<technology_research_progress_category_text>(state, id);
 		} else if(name == "selected_tech_window") {
-			return make_element_by_type<technology_selected_tech_window>(state, id);
+			auto ptr = make_element_by_type<technology_selected_tech_window>(state, id);
+			selected_tech_win = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -291,6 +321,13 @@ public:
 			for(auto& c : children)
 				c->impl_set(state, payload);
 			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::technology_id>()) {
+			return selected_tech_win->impl_get(state, payload);
 		}
 		return message_result::unseen;
 	}

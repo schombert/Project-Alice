@@ -1050,6 +1050,44 @@ void overlapping_enemy_flags::populate_flags(sys::state& state) {
 	}
 }
 
+void overlapping_protected_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_truce_until()) {
+				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
+				auto fat_id = dcon::fatten(state.world, nat_id);
+				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+			}
+		}
+
+		for(auto gpr : state.world.nation_get_gp_relationship_as_great_power(current_nation)) {
+			if((nations::influence::level_mask & gpr.get_status()) == nations::influence::level_in_sphere) {
+				if(gpr.get_influence_target().id == current_nation) {
+					auto nat_id = gpr.get_great_power();
+					auto fat_id = dcon::fatten(state.world, nat_id);
+					contents.push_back(fat_id.get_identity_from_identity_holder().id);
+				}
+			}
+		}
+		update(state);
+	}
+}
+
+void overlapping_truce_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_truce_until()) {
+				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
+				auto fat_id = dcon::fatten(state.world, nat_id);
+				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+			}
+		}
+		update(state);
+	}
+}
+
 dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
 	Cyto::Any payload = dcon::nation_id{};
 	if(parent != nullptr) {
