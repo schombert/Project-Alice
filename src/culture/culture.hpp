@@ -74,7 +74,7 @@ struct crime_info {
 };
 
 enum class tech_category : uint8_t {
-	army, navy, commerce, culture, industry
+	army, navy, commerce, culture, industry, count
 };
 
 struct folder_info {
