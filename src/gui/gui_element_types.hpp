@@ -234,6 +234,8 @@ public:
 	virtual bool is_active(sys::state& state) noexcept {
 		return false;
 	}
+
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		frame = int32_t(is_active(state));
 		button_element_base::render(state, x, y);
@@ -347,8 +349,30 @@ public:
 		}
 	}
 
+    void on_create(sys::state& state) noexcept final {};
+
 	TabT target = TabT();
 };
+
+template<class TabT>
+class generic_image_checkbox_button : public checkbox_button {
+public:
+    bool is_active(sys::state& state) noexcept final {
+        return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
+    }
+
+    void button_action(sys::state& state) noexcept final {
+        if(parent) {
+            Cyto::Any payload = target;
+            parent->impl_get(state, payload);
+        }
+    }
+
+    void on_create(sys::state& state) noexcept final {};
+
+    TabT target = TabT();
+};
+
 
 class piechart_element_base : public element_base {
 protected:

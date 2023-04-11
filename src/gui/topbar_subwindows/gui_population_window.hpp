@@ -158,7 +158,16 @@ public:
             country_pop_listbox = ptr.get();
             return ptr;
         } else if (name == "external_scroll_slider") {
-            auto ptr = make_element_by_type<opaque_element_base>(state,id);
+            auto ptr = make_element_by_type<opaque_element_base>(state, id);
+            return ptr;
+        } else if(name == "sortby_size_button" ||
+                 name == "sortby_type_button" ||
+                 name == "sortby_nationality_button" ||
+                 name == "sortby_religion_button" ||
+                 name == "sortby_location_button")
+        { return nullptr;
+        } else if(name.substr(0, 4) == "sort") {
+            auto ptr = make_element_by_type<generic_image_checkbox_button<dcon::nation_id>>(state, id);
             return ptr;
         } else {
 			return nullptr;
