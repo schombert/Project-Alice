@@ -8,19 +8,15 @@
 namespace nations {
 
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
-	for(auto i = int32_t(n); i >= 0; --i) {
-		if(!is_great_power(state, state.nations_by_rank[i])) {
-			uint16_t count = 0;
-			for(const auto nat_id : state.nations_by_rank)
-				if(is_great_power(state, nat_id)) {
-					++count;
-					if(count == n)
-						return nat_id;
-				}
-			return dcon::nation_id{};
+	uint16_t count = 0;
+	for(auto i = 0; i < state.nations_by_rank.size(); ++i) {
+		if(is_great_power(state, state.nations_by_rank[i])) {
+			++count;
+			if(count == n)
+				return state.nations_by_rank[i];
 		}
 	}
-	return state.nations_by_rank[size_t(n)];
+	return dcon::nation_id{};
 }
 
 // returns whether a culture is on the accepted list OR is the primary culture
@@ -419,13 +415,7 @@ void update_ui_rankings(sys::state& state) {
 }
 
 bool is_great_power(sys::state const& state, dcon::nation_id id) {
-	bool is_great_power = false;
-	auto fat_id = dcon::fatten(state.world, id);
-	fat_id.for_each_gp_relationship_as_great_power([&](dcon::gp_relationship_id) {
-		is_great_power = true;
-	});
-	return is_great_power ? true
-		: state.world.nation_get_rank(id) <= uint16_t(state.defines.great_nations_count);
+	return state.world.nation_get_rank(id) <= uint16_t(state.defines.great_nations_count);
 }
 
 status get_status(sys::state& state, dcon::nation_id n) {
