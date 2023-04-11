@@ -1764,6 +1764,11 @@ object {
 		type{ sys::date }
 		tag{ save }
 	}
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ save }
+	}
 }
 object {
 	name{ wargoal }

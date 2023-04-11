@@ -869,6 +869,27 @@ public:
 	}
 };
 
+template<uint16_t Rank>
+class nation_gp_opinion_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		dcon::nation_id gp_id{};
+		state.world.for_each_nation([&](dcon::nation_id id) {
+			auto fat_id = dcon::fatten(state.world, id);
+			if(fat_id.get_rank() == Rank)
+				gp_id = id;
+		});
+		float influence = 0.f;
+		state.world.for_each_gp_relationship([&](dcon::gp_relationship_id id) {
+			auto fat_id = dcon::fatten(state.world, id);
+			if(fat_id.get_great_power() == gp_id)
+				if(fat_id.get_influence_target() == nation_id)
+					influence += fat_id.get_influence();
+		});
+		return std::to_string(int32_t(influence));
+	}
+};
+
 class nation_prestige_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -1060,6 +1081,13 @@ public:
 	}
 };
 
+class nation_war_exhaustion_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return text::format_float(fat_id.get_war_exhaustion(), 2);
+	}
+};
 
 class nation_population_text : public standard_nation_text {
 public:
@@ -1120,6 +1148,27 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::diplomatic_points(state, nation_id);
 		return text::format_float(points, 0);
+	}
+};
+
+class nation_brigades_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return std::to_string(fat_id.get_active_regiments());
+	}
+};
+
+class nation_ships_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+
+		int32_t total = 0;
+		for(auto nv : fat_id.get_navy_control())
+			for(auto shp : nv.get_navy().get_navy_membership())
+				total++;
+		return std::to_string(total);
 	}
 };
 
@@ -1198,6 +1247,19 @@ public:
 			return text::produce_simple_string(state, "politics_can_do_political_refroms");
 		} else {
 			return text::produce_simple_string(state, "politics_can_not_do_political_refroms");
+		}
+	}
+};
+
+class nation_technology_admin_type_text : public standard_nation_text {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto mod_id = state.world.nation_get_tech_school(nation_id);
+		if(mod_id) {
+			auto name = text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
+			set_text(state, name);
+		} else {
+			set_text(state, text::produce_simple_string(state, "traditional_academic"));
 		}
 	}
 };
@@ -1330,6 +1392,29 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+template<uint16_t Rank>
+class nation_gp_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		dcon::nation_id nation_id{};
+		state.world.for_each_nation([&](dcon::nation_id id) {
+			auto fat_id = dcon::fatten(state.world, id);
+			if(fat_id.get_rank() == Rank)
+				nation_id = id;
+		});
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return fat_id.get_identity_from_identity_holder();
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		state.world.for_each_nation([&](dcon::nation_id id) {
+			auto fat_id = dcon::fatten(state.world, id);
+			if(fat_id.get_rank() == Rank)
+				flag_button::set_current_nation(state, fat_id.get_identity_from_identity_holder());
+		});
 	}
 };
 

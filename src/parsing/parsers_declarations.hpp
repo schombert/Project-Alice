@@ -2362,6 +2362,7 @@ namespace parsers {
 		std::vector<history_war_goal> wargoals;
 		std::vector<dcon::nation_id> attackers;
 		std::vector<dcon::nation_id> defenders;
+		std::string name;
 
 		war_history_context(scenario_building_context& outer_context) : outer_context(outer_context) { }
 	};
@@ -2379,6 +2380,7 @@ namespace parsers {
 	};
 
 	struct war_history_file {
+		void name(association_type, std::string_view name, error_handler& err, int32_t line, war_history_context& context);
 		void finish(war_history_context&);
 	};
 
