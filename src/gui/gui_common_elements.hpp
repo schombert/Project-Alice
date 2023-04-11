@@ -875,7 +875,7 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		const auto great_power_id = nations::get_nth_great_power(state, Rank - 1);
 		if(!bool(great_power_id))
-			return dcon::national_identity_id{};
+			return "-";
 		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, great_power_rel);
 		auto influence = fat_id.get_influence();

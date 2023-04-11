@@ -155,6 +155,8 @@ class diplomacy_country_facts : public window_element_base {
 private:
 	dcon::nation_id active_nation{};
 	flag_button* country_flag = nullptr;
+	nation_player_relations_text* country_relation = nullptr;
+	image_element_base* country_relation_icon = nullptr;
 	simple_text_element_base* country_primary_cultures = nullptr;
 	simple_text_element_base* country_accepted_cultures = nullptr;
 public:
@@ -188,9 +190,13 @@ public:
 		} else if(name == "country_tech") {
 			return make_element_by_type<nation_technology_admin_type_text>(state, id);
 		} else if(name == "our_relation_icon") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			country_relation_icon = ptr.get();
+			return ptr;
 		} else if(name == "our_relation") {
-			return make_element_by_type<nation_player_relations_text>(state, id);
+			auto ptr = make_element_by_type<nation_player_relations_text>(state, id);
+			country_relation = ptr.get();
+			return ptr;
 		} else if(name == "country_prestige") {
 			return make_element_by_type<nation_prestige_text>(state, id);
 		} else if(name == "selected_prestige_rank") {
@@ -279,6 +285,10 @@ public:
 		if(payload.holds_type<dcon::nation_id>()) {
 			active_nation = any_cast<dcon::nation_id>(payload);
 			country_flag->on_update(state);
+
+			country_relation->set_visible(state, active_nation != state.local_player_nation);
+			country_relation_icon->set_visible(state, active_nation != state.local_player_nation);
+			
 			on_update(state);
 			return message_result::consumed;
 		} else {
