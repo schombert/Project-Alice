@@ -873,19 +873,12 @@ template<uint16_t Rank>
 class nation_gp_opinion_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		dcon::nation_id gp_id{};
-		state.world.for_each_nation([&](dcon::nation_id id) {
-			auto fat_id = dcon::fatten(state.world, id);
-			if(fat_id.get_rank() == Rank)
-				gp_id = id;
-		});
-		float influence = 0.f;
-		state.world.for_each_gp_relationship([&](dcon::gp_relationship_id id) {
-			auto fat_id = dcon::fatten(state.world, id);
-			if(fat_id.get_great_power() == gp_id)
-				if(fat_id.get_influence_target() == nation_id)
-					influence += fat_id.get_influence();
-		});
+		const auto great_power_id = nations::get_nth_great_power(state, Rank - 1);
+		if(!bool(great_power_id))
+			return dcon::national_identity_id{};
+		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
+		auto fat_id = dcon::fatten(state.world, great_power_rel);
+		auto influence = fat_id.get_influence();
 		return std::to_string(int32_t(influence));
 	}
 };
@@ -1399,22 +1392,11 @@ template<uint16_t Rank>
 class nation_gp_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		dcon::nation_id nation_id{};
-		state.world.for_each_nation([&](dcon::nation_id id) {
-			auto fat_id = dcon::fatten(state.world, id);
-			if(fat_id.get_rank() == Rank)
-				nation_id = id;
-		});
-		auto fat_id = dcon::fatten(state.world, nation_id);
+		const auto nat_id = nations::get_nth_great_power(state, Rank - 1);
+		if(!bool(nat_id))
+			return dcon::national_identity_id{};
+		auto fat_id = dcon::fatten(state.world, nat_id);
 		return fat_id.get_identity_from_identity_holder();
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		state.world.for_each_nation([&](dcon::nation_id id) {
-			auto fat_id = dcon::fatten(state.world, id);
-			if(fat_id.get_rank() == Rank)
-				flag_button::set_current_nation(state, fat_id.get_identity_from_identity_holder());
-		});
 	}
 };
 
