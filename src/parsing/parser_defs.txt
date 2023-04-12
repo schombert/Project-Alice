@@ -48,6 +48,8 @@ gui_element_common
 	rotation     value      text          member_fn
 	name         value      text          member_fn
 	orientation  value      text          member_fn
+	maxheight    value      int           member_fn
+	maxwidth     value      int           member_fn
 
 button
 	#base                 gui_element_common
@@ -76,8 +78,6 @@ textbox
 	fixedsize            value     bool          member_fn
 	font                 value     text          member_fn
 	format               value     text          member_fn
-	maxheight            value     int           member_fn
-	maxwidth             value     int           member_fn
 	text                 value     text          member_fn
 	texturefile          value     text          member_fn
 	bordersize           group     gfx_xy_pair   member_fn
