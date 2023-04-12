@@ -906,7 +906,7 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
 		auto fat_id = dcon::fatten(state.world, uni_rel);
-		return text::prettify(fat_id.get_foreign_investment());
+		return text::prettify(int64_t(fat_id.get_foreign_investment()));
 	}
 };
 
