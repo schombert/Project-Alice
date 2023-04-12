@@ -322,12 +322,12 @@ public:
 		} else if(name == "attackers") {
 			auto ptr = make_element_by_type<overlapping_attacker_flags>(state, id);
 			attackers_flags = ptr.get();
-			attackers_flags->base_data.position.y -= 8;
+			attackers_flags->base_data.position.y -= 8 - 2;
 			return ptr;
 		} else if(name == "defenders") {
 			auto ptr = make_element_by_type<overlapping_defender_flags>(state, id);
 			defenders_flags = ptr.get();
-			defenders_flags->base_data.position.y -= 8;
+			defenders_flags->base_data.position.y -= 8 - 2;
 			return ptr;
 		} else if(name == "join_attackers") {
 			return make_element_by_type<button_element_base>(state, id);
