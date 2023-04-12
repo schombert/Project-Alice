@@ -901,7 +901,6 @@ public:
 	}
 };
 
-template<uint16_t Rank>
 class nation_player_investment_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
