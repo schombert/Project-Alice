@@ -36,10 +36,14 @@ public:
             parent->impl_get(state, pop_id_payload);
             if (pop_id_payload.holds_type<dcon::pop_id>()) {
                 pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+				auto pfat_id = dcon::fatten(state.world, pop_id);
+				if(state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(pop_id)))
+					return (1 - pfat_id.get_employment() / pfat_id.get_size());
+				else
+					return 0.0f;
             }
         }
-        auto pfat_id = dcon::fatten(state.world, pop_id);
-        return (1 - pfat_id.get_employment() / pfat_id.get_size());
+		return 0.0f;
     }
 
     tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -51,9 +55,8 @@ public:
             auto box = text::open_layout_box(contents, 0);
 
             auto pfat_id = dcon::fatten(state.world, pop_id);
-            float empl = (1 - pfat_id.get_employment() / pfat_id.get_size());
-            empl = pfat_id.get_employment() / pfat_id.get_size();
-            std::string unemployment = "Unemployment: " + std::to_string(empl);
+            float un_empl = state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(pop_id)) ? (1 - pfat_id.get_employment() / pfat_id.get_size()) : 0.0f;
+            std::string unemployment = "Unemployment: " + std::to_string(un_empl);
             text::add_to_layout_box(contents, state, box, unemployment);
             text::close_layout_box(contents, box);
         }

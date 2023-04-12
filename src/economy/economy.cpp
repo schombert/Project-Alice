@@ -643,7 +643,7 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 	}
 }
 
-void update_province_artisan_production(sys::state& state, dcon::province_id p, dcon::nation_id n, dcon::state_instance_id s) {
+void update_province_artisan_production(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 
 	auto production = state.world.province_get_artisan_actual_production(p);
 	if(production > 0) {
