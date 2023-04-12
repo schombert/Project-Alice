@@ -100,6 +100,8 @@ namespace parsers {
 		void orientation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 		void name(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 		void rotation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
+		void maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
+		void maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 		void finish(building_gfx_context& context) {
 		}
 	};
@@ -125,8 +127,6 @@ namespace parsers {
 		textbox();
 		void bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 		void fixedsize(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
-		void maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
-		void maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 		void font(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 		void format(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 		void text(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
@@ -707,6 +707,12 @@ namespace parsers {
 		MOD_NAT_FUNCTION(seperatism)
 		MOD_NAT_FUNCTION(plurality)
 		MOD_NAT_FUNCTION(colonial_prestige)
+
+		template<typename T>
+		void unit_start_experience(association_type type, float v, error_handler& err, int32_t line, T& context) {
+			land_unit_start_experience(type, v, err, line, context);
+			naval_unit_start_experience(type, v, err, line, context);
+		}
 
 		template<typename T>
 		void finish(T& context) { }
@@ -1321,6 +1327,7 @@ namespace parsers {
 	struct country_file {
 		void color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context);
 		unit_names_collection unit_names;
+		void any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line, country_file_context& context);
 		void finish(country_file_context&) { }
 	};
 

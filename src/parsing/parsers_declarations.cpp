@@ -2274,6 +2274,15 @@ void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line,
 	context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);
 }
 
+void country_file::any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line, country_file_context& context) {
+	if(auto it = context.outer_context.map_of_governments.find(std::string(name)); it != context.outer_context.map_of_governments.end()) {
+		// TODO: Do something with country government types stuff
+		// I assume this is used to change colours of countries?
+	} else {
+		err.accumulated_errors += "Invalid government type " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
 void generic_event::title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
 	title_ = text::find_or_add_key(context.outer_context.state, value);
 }

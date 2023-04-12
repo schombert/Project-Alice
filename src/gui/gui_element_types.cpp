@@ -7,6 +7,7 @@
 #include <vector>
 #include "color.hpp"
 #include "culture.hpp"
+#include "cyto_any.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
 #include "gui_element_types.hpp"
@@ -739,6 +740,7 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
 	auto box = text::open_layout_box(contents, 0);
 
+
 	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
 	text::add_to_layout_box(contents, state, box, std::string(":"), text::text_color::white);
 	text::add_space_to_layout_box(contents, state, box);
@@ -1089,12 +1091,18 @@ void overlapping_truce_flags::populate_flags(sys::state& state) {
 }
 
 dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
-	Cyto::Any payload = dcon::nation_id{};
 	if(parent != nullptr) {
-		parent->impl_get(state, payload);
-		auto nation = any_cast<dcon::nation_id>(payload);
-		auto fat_nation = dcon::fatten(state.world, nation);
-		return fat_nation.get_identity_from_identity_holder().id;
+		Cyto::Any identity_payload = dcon::national_identity_id{};
+		parent->impl_get(state, identity_payload);
+		auto identity = any_cast<dcon::national_identity_id>(identity_payload);
+		if(identity) {
+			return identity;
+		} else {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation = any_cast<dcon::nation_id>(payload);
+			return state.world.nation_get_identity_from_identity_holder(nation);
+		}
 	} else {
 		return dcon::national_identity_id{};
 	}

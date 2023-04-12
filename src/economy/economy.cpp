@@ -5,6 +5,10 @@
 
 namespace economy {
 
+float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c) {
+	return 0.f;
+}
+
 bool has_factory(sys::state const& state, dcon::state_instance_id si) {
 	auto sdef = state.world.state_instance_get_definition(si);
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);

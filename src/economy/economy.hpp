@@ -59,6 +59,8 @@ constexpr inline dcon::commodity_id money(0);
 // 1'200'000. Assuming that grain is slightly more prevalent, we arrive at the factor below as a nice round number
 constexpr inline float needs_scaling_factor = 1'000'000.0f;
 
+float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
+
 bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);

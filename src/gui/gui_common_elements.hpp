@@ -150,6 +150,41 @@ public:
 	}
 };
 
+class standard_pop_progress_bar : public progress_bar {
+public:
+    virtual float get_progress(sys::state& state) noexcept {
+        return 0.f;
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        progress = get_progress(state);
+    }
+
+    void on_create(sys::state& state) noexcept override {
+        base_data.position.x -= 14;
+        base_data.position.y -= 12;
+        base_data.size.y = 25;
+        base_data.size.x = 13;
+    }
+};
+class standard_pop_needs_progress_bar : public progress_bar {
+public:
+    virtual float get_progress(sys::state& state) noexcept {
+        return 0.f;
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        progress = get_progress(state);
+    }
+
+    void on_create(sys::state& state) noexcept override {
+        base_data.position.x -= 15;
+        base_data.position.y -= 4;
+        base_data.size.y = 20;
+        base_data.size.x = 15;
+    }
+};
+
 class province_liferating_progress_bar : public standard_province_progress_bar {
 public:
 	float get_progress(sys::state& state) noexcept override {
@@ -166,7 +201,6 @@ public:
 
 			text::substitution_map lr_sub;
 			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{ float(state.world.province_get_life_rating(prov_id)) });
-
 			text::add_to_layout_box(contents, state, box, k->second, lr_sub);
 			text::close_layout_box(contents, box);
 		}
@@ -248,6 +282,105 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_crime().index();
+	}
+};
+
+class standard_movement_text : public simple_text_element_base {
+protected:
+	dcon::movement_id movement_id{};
+
+public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::movement_id>()) {
+			movement_id = any_cast<dcon::movement_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class movement_size_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto size = state.world.movement_get_pop_support(movement_id);
+		return text::prettify(int64_t(size));
+	}
+};
+
+class movement_radicalism_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto radicalism = state.world.movement_get_radicalism(movement_id);
+		return text::format_float(radicalism, 1);
+	}
+};
+
+class movement_issue_name_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto issue = state.world.movement_get_associated_issue_option(movement_id);
+		return text::produce_simple_string(state, issue.get_movement_name());
+	}
+};
+
+class standard_movement_multiline_text : public multiline_text_element_base {
+protected:
+	dcon::movement_id movement_id{};
+
+public:
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
+
+	void on_update(sys::state& state) noexcept override {
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
+		);
+		populate_layout(state, container);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::movement_id>()) {
+			movement_id = any_cast<dcon::movement_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class movement_nationalist_name_text : public standard_movement_multiline_text {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, movement_id);
+		auto independence_target = fat_id.get_associated_independence();
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		if(independence_target.get_cultural_union_of().id) {
+			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_union_movement"));
+			text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective_as_string(state, independence_target));
+			text::add_to_layout_box(contents, state, box, k->second, sub);
+		} else {
+			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_liberation_movement"));
+			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective_as_string(state, independence_target));
+			text::add_to_layout_box(contents, state, box, k->second, sub);
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1493,6 +1626,20 @@ public:
 	}
 };
 
+class nation_military_reform_multiplier_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(politics::get_military_reform_multiplier(state, nation_id) <= 0.f);
+	}
+};
+
+class nation_economic_reform_multiplier_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(politics::get_economic_reform_multiplier(state, nation_id) <= 0.f);
+	}
+};
+
 class nation_ruling_party_ideology_plupp : public tinted_image_element_base {
 protected:
 	dcon::nation_id nation_id{};
@@ -1648,6 +1795,66 @@ public:
 			return message_result::unseen;
 		}
 	}
+};
+
+class pop_issues_piechart : public piechart<dcon::issue_option_id>{
+protected:
+    std::unordered_map<uint16_t, float> get_distribution(sys::state& state) noexcept override {
+        std::unordered_map<uint16_t, float> distrib = {};
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if(parent) {
+            parent->impl_get(state, pop_id_payload);
+            if(pop_id_payload.holds_type<dcon::pop_id>()) {
+                auto pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+                auto fat_id = dcon::fatten(state.world, pop_id);
+                state.world.for_each_issue_option([&](dcon::issue_option_id issue_id) {
+                    auto pop_size = fat_id.get_size();
+                    auto weight =
+                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, issue_id)) /
+                            pop_size;
+                    distrib[uint16_t(issue_id.index())] = weight;
+                });
+            }
+        }
+        return distrib;
+    }
+public:
+    void on_create(sys::state &state) noexcept override{
+        base_data.size.x = 28;
+        base_data.size.y = 28;
+        base_data.position.x -= 13;
+        radius = 13;
+    }
+};
+
+class pop_ideology_piechart : public piechart<dcon::ideology_id>{
+protected:
+    std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {
+        std::unordered_map<uint8_t, float> distrib = {};
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if(parent) {
+            parent->impl_get(state, pop_id_payload);
+            if(pop_id_payload.holds_type<dcon::pop_id>()) {
+                auto pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+                dcon::pop_fat_id pfat_id = dcon::fatten(state.world, pop_id);
+                state.world.for_each_ideology([&](dcon::ideology_id ideo_id) {
+                    auto pop_size = pfat_id.get_size();
+                    auto weight =
+                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, ideo_id)) /
+                            pop_size;
+                    distrib[uint8_t(ideo_id.index())] = weight;
+                });
+            }
+        }
+        return distrib;
+    }
+public:
+    void on_create(sys::state &state) noexcept override{
+        base_data.size.x = 28;
+        base_data.size.y = 28;
+        base_data.position.x -= 13;
+        radius = 13;
+    }
 };
 
 class upper_house_piechart : public piechart<dcon::ideology_id> {
