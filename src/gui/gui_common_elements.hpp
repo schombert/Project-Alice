@@ -150,6 +150,41 @@ public:
 	}
 };
 
+class standard_pop_progress_bar : public progress_bar {
+public:
+    virtual float get_progress(sys::state& state) noexcept {
+        return 0.f;
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        progress = get_progress(state);
+    }
+
+    void on_create(sys::state& state) noexcept override {
+        base_data.position.x -= 14;
+        base_data.position.y -= 12;
+        base_data.size.y = 25;
+        base_data.size.x = 13;
+    }
+};
+class standard_pop_needs_progress_bar : public progress_bar {
+public:
+    virtual float get_progress(sys::state& state) noexcept {
+        return 0.f;
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        progress = get_progress(state);
+    }
+
+    void on_create(sys::state& state) noexcept override {
+        base_data.position.x -= 15;
+        base_data.position.y -= 4;
+        base_data.size.y = 20;
+        base_data.size.x = 15;
+    }
+};
+
 class province_liferating_progress_bar : public standard_province_progress_bar {
 public:
 	float get_progress(sys::state& state) noexcept override {
@@ -166,7 +201,6 @@ public:
 
 			text::substitution_map lr_sub;
 			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{ float(state.world.province_get_life_rating(prov_id)) });
-
 			text::add_to_layout_box(contents, state, box, k->second, lr_sub);
 			text::close_layout_box(contents, box);
 		}

@@ -26,6 +26,88 @@ enum class pop_list_filter : uint8_t {
     literacy
 };
 
+class pop_unemployment_progress_bar : public standard_pop_progress_bar {
+protected:
+    dcon::pop_id pop_id{};
+public:
+    float get_progress(sys::state& state) noexcept override {
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if (parent) {
+            parent->impl_get(state, pop_id_payload);
+            if (pop_id_payload.holds_type<dcon::pop_id>()) {
+                pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+            }
+        }
+        auto pfat_id = dcon::fatten(state.world, pop_id);
+        return (1 - pfat_id.get_employment() / pfat_id.get_size());
+    }
+
+    tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+        return tooltip_behavior::variable_tooltip;
+    }
+
+    void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+        if(auto k = state.key_to_text_sequence.find(std::string_view("unemployment")); k != state.key_to_text_sequence.end()) {
+            auto box = text::open_layout_box(contents, 0);
+
+            auto pfat_id = dcon::fatten(state.world, pop_id);
+            float empl = (1 - pfat_id.get_employment() / pfat_id.get_size());
+            empl = pfat_id.get_employment() / pfat_id.get_size();
+            std::string unemployment = "Unemployment: " + std::to_string(empl);
+            text::add_to_layout_box(contents, state, box, unemployment);
+            text::close_layout_box(contents, box);
+        }
+    }
+};
+class pop_life_needs_progress_bar : public standard_pop_needs_progress_bar {
+protected:
+    dcon::pop_id pop_id{};
+public:
+    float get_progress(sys::state& state) noexcept override {
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if (parent) {
+            parent->impl_get(state, pop_id_payload);
+            if (pop_id_payload.holds_type<dcon::pop_id>()) {
+                pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+            }
+        }
+        auto pfat_id = dcon::fatten(state.world, pop_id);
+        return pfat_id.get_life_needs_satisfaction();
+    }
+};
+class pop_everyday_needs_progress_bar : public standard_pop_needs_progress_bar {
+protected:
+    dcon::pop_id pop_id{};
+public:
+    float get_progress(sys::state& state) noexcept override {
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if (parent) {
+            parent->impl_get(state, pop_id_payload);
+            if (pop_id_payload.holds_type<dcon::pop_id>()) {
+                pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+            }
+        }
+        auto pfat_id = dcon::fatten(state.world, pop_id);
+        return pfat_id.get_everyday_needs_satisfaction();
+    }
+};
+class pop_luxury_needs_progress_bar : public standard_pop_needs_progress_bar {
+protected:
+    dcon::pop_id pop_id{};
+public:
+    float get_progress(sys::state& state) noexcept override {
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if (parent) {
+            parent->impl_get(state, pop_id_payload);
+            if (pop_id_payload.holds_type<dcon::pop_id>()) {
+                pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+            }
+        }
+        auto pfat_id = dcon::fatten(state.world, pop_id);
+        return pfat_id.get_luxury_needs_satisfaction();
+    }
+};
+
 class pop_legend_info : public listbox_row_element_base<dcon::pop_id> {
 private:
     simple_text_element_base *size = nullptr;
@@ -37,6 +119,12 @@ private:
     simple_text_element_base *con = nullptr;
     pop_ideology_piechart *ideology = nullptr;
     pop_issues_piechart *issues = nullptr;
+    pop_unemployment_progress_bar *unemployment = nullptr;
+    simple_text_element_base *cash = nullptr;
+    pop_life_needs_progress_bar *life_needs = nullptr;
+    pop_everyday_needs_progress_bar *everyday_needs = nullptr;
+    pop_luxury_needs_progress_bar *luxury_needs = nullptr;
+
 
 public:
     void on_create(sys::state &state) noexcept override {
@@ -80,10 +168,31 @@ public:
             auto ptr = make_element_by_type<pop_issues_piechart>(state, id);
             issues = ptr.get();
             return ptr;
+        } else if (name == "pop_unemployment_bar"){
+            auto ptr = make_element_by_type<pop_unemployment_progress_bar>(state, id);
+            unemployment = ptr.get();
+            return ptr;
+        } else if (name == "pop_cash") {
+            auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+            cash = ptr.get();
+            return ptr;
+        } else if (name == "lifeneed_progress"){
+            auto ptr = make_element_by_type<pop_life_needs_progress_bar>(state, id);
+            life_needs = ptr.get();
+            return ptr;
+        } else if (name == "eveneed_progress"){
+            auto ptr = make_element_by_type<pop_everyday_needs_progress_bar>(state, id);
+            everyday_needs = ptr.get();
+            return ptr;
+        } else if (name == "luxneed_progress"){
+            auto ptr = make_element_by_type<pop_luxury_needs_progress_bar>(state, id);
+            luxury_needs = ptr.get();
+            return ptr;
         } else {
             return nullptr;
         }
     };
+
 
     void update(sys::state& state) noexcept override {
         dcon::pop_fat_id fat_id = dcon::fatten(state.world, content);
@@ -103,9 +212,14 @@ public:
         location->set_text(state, text::produce_simple_string(state, lcfat_id.get_name()));
         mil->set_text(state, text::format_float(fat_id.get_militancy()));
         con->set_text(state, text::format_float(fat_id.get_consciousness()));
+        cash->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
 
         ideology->impl_on_update(state); // Necessary so that piecharts will update as you scroll.
         issues->impl_on_update(state);
+        unemployment->impl_on_update(state);
+        life_needs->impl_on_update(state);
+        everyday_needs->impl_on_update(state);
+        luxury_needs->impl_on_update(state);
     }
 
     message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -119,7 +233,6 @@ public:
 
 
 };
-
 class pop_legend_listbox : public listbox_element_base<pop_legend_info, dcon::pop_id>{
 protected:
     std::string_view get_row_element_name() override {
