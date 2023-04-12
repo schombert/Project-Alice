@@ -1095,7 +1095,7 @@ class nation_player_opinion_text : public standard_nation_text {
 		case nations::influence::level_friendly:
 			return "REL_FRIENDLY";
 		case nations::influence::level_in_sphere:
-			return "REL_IN_SPHERE";
+			return "REL_SPHERE_OF_INFLUENCE";
 		default:
 			return "?";
 		}
