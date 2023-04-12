@@ -13,24 +13,6 @@
 
 namespace parsers {
 
-std::string slot_contents_to_string(trigger::slot_contents v) {
-	switch(v) {
-	case trigger::slot_contents::empty:
-		return "empty";
-	case trigger::slot_contents::province:
-		return "province";
-	case trigger::slot_contents::state:
-		return "state";
-	case trigger::slot_contents::pop:
-		return "pop";
-	case trigger::slot_contents::nation:
-		return "nation";
-	case trigger::slot_contents::rebel:
-		return "rebel";
-	}
-	return "unknown";
-}
-
 struct trigger_building_context {
 	scenario_building_context& outer_context;
 	std::vector<uint16_t> compiled_trigger;
@@ -72,6 +54,24 @@ struct trigger_building_context {
 		compiled_trigger.push_back(pack_int.v.high);
 	}
 };
+
+inline std::string slot_contents_to_string(trigger::slot_contents v) {
+	switch(v) {
+	case trigger::slot_contents::empty:
+		return "empty";
+	case trigger::slot_contents::province:
+		return "province";
+	case trigger::slot_contents::state:
+		return "state";
+	case trigger::slot_contents::pop:
+		return "pop";
+	case trigger::slot_contents::nation:
+		return "nation";
+	case trigger::slot_contents::rebel:
+		return "rebel";
+	}
+	return "unknown";
+}
 
 inline uint16_t association_to_trigger_code(association_type a) {
 	switch(a) {
