@@ -16,6 +16,17 @@
 
 namespace ui {
 
+// Filters used on both production and diplomacy tabs for the country lists
+enum class country_list_filter : uint8_t {
+	all,
+	neighbors,
+	sphere,
+	enemies,
+	allies,
+	continent
+};
+class button_press_notification{};
+
 template<class T>
 class generic_name_text : public simple_text_element_base {
 protected:
@@ -88,6 +99,13 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class state_name_text : public standard_state_instance_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::get_dynamic_state_name(state, state_id);
 	}
 };
 
@@ -883,6 +901,56 @@ public:
 	}
 };
 
+class nation_player_investment_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
+		auto fat_id = dcon::fatten(state.world, uni_rel);
+		return text::prettify(int64_t(fat_id.get_foreign_investment()));
+	}
+};
+
+template<uint16_t Rank>
+class nation_gp_investment_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		const auto great_power_id = nations::get_nth_great_power(state, Rank);
+		if(!bool(great_power_id))
+			return "-";
+		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
+		auto fat_id = dcon::fatten(state.world, uni_rel);
+		return text::prettify(int64_t(fat_id.get_foreign_investment()));
+	}
+};
+
+class nation_overlord_flag : public flag_button {
+	dcon::nation_id sphereling_id{};
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
+		if(bool(ovr_id)) {
+			auto fat_id = dcon::fatten(state.world, ovr_id);
+			return fat_id.get_identity_from_identity_holder();
+		}
+		return dcon::national_identity_id{};
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		// Only show if there is any overlord
+		set_visible(state, bool(get_current_nation(state)));
+		set_current_nation(state, get_current_nation(state));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			sphereling_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
 class nation_prestige_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -1027,7 +1095,7 @@ class nation_player_opinion_text : public standard_nation_text {
 		case nations::influence::level_friendly:
 			return "REL_FRIENDLY";
 		case nations::influence::level_in_sphere:
-			return "REL_IN_SPHERE";
+			return "REL_SPHERE_OF_INFLUENCE";
 		default:
 			return "?";
 		}
@@ -1040,6 +1108,19 @@ public:
 			return text::produce_simple_string(state, get_level_str(status));
 		}
 		return "-";
+	}
+};
+
+class nation_industries_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		size_t num_factories = 0;
+		for(auto si : state.world.nation_get_state_ownership(nation_id))
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				for(auto f : state.world.province_get_factory_location(p))
+					++num_factories;
+			});
+		return std::to_string(num_factories);
 	}
 };
 
@@ -1083,6 +1164,22 @@ class nation_budget_funds_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto budget = nations::get_treasury(state, nation_id);
+		return text::format_money(budget);
+	}
+};
+
+class nation_budget_bank_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto budget = nations::get_bank_funds(state, nation_id);
+		return text::format_money(budget);
+	}
+};
+
+class nation_budget_debt_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto budget = nations::get_debt(state, nation_id);
 		return text::format_money(budget);
 	}
 };
@@ -1415,6 +1512,14 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class nation_player_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, state.local_player_nation);
+		return fat_id.get_identity_from_identity_holder();
 	}
 };
 
