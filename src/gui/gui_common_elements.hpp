@@ -1168,6 +1168,22 @@ public:
 	}
 };
 
+class nation_budget_bank_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto budget = nations::get_bank_funds(state, nation_id);
+		return text::format_money(budget);
+	}
+};
+
+class nation_budget_debt_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto budget = nations::get_debt(state, nation_id);
+		return text::format_money(budget);
+	}
+};
+
 class nation_literacy_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {

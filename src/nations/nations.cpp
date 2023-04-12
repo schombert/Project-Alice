@@ -752,5 +752,13 @@ float get_treasury(sys::state& state, dcon::nation_id n) {
 	// TODO
 	return 0.0f;
 }
+
+float get_bank_funds(sys::state& state, dcon::nation_id n) {
+	return 0.0f;
+}
+
+float get_debt(sys::state& state, dcon::nation_id n) {
+	return 0.0f;
+}
 }
 
