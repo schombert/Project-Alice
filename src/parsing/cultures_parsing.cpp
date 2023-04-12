@@ -174,8 +174,15 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 	dcon::issue_option_id new_id = context.outer_context.state.world.create_issue_option();
 	auto name_id = text::find_or_add_key(context.outer_context.state, name);
 
+	auto movement_name_id = text::find_or_add_key(context.outer_context.state, name);
+
 	context.outer_context.state.world.issue_option_set_name(new_id, name_id);
 	context.outer_context.map_of_ioptions.insert_or_assign(std::string(name), pending_option_content{ gen, new_id });
+
+	auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(std::string("movement_") + std::string(name)));
+	if(it != context.outer_context.state.key_to_text_sequence.end()) {
+		context.outer_context.state.world.issue_option_set_movement_name(new_id, it->second);
+	}
 
 	bool assigned = false;
 	auto& existing_options = context.outer_context.state.world.issue_get_options(context.id);
