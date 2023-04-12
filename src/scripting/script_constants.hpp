@@ -2139,24 +2139,6 @@ enum class slot_contents {
 	rebel = 5
 };
 
-std::string to_string(slot_contents v) {
-	switch(v) {
-	case slot_contents::empty:
-		return "empty";
-	case slot_contents::province:
-		return "province";
-	case slot_contents::state:
-		return "state";
-	case slot_contents::pop:
-		return "pop";
-	case slot_contents::nation:
-		return "nation";
-	case slot_contents::rebel:
-		return "rebel";
-	}
-	return "unknown";
-}
-
 union payload {
 
 	uint16_t value;

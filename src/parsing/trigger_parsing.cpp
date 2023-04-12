@@ -4,6 +4,23 @@
 #include <algorithm>
 
 namespace parsers {
+std::string to_string(slot_contents v) {
+	switch(v) {
+	case slot_contents::empty:
+		return "empty";
+	case slot_contents::province:
+		return "province";
+	case slot_contents::state:
+		return "state";
+	case slot_contents::pop:
+		return "pop";
+	case slot_contents::nation:
+		return "nation";
+	case slot_contents::rebel:
+		return "rebel";
+	}
+	return "unknown";
+}
 
 void tr_scope_and(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	context.compiled_trigger.push_back(uint16_t(trigger::generic_scope));
