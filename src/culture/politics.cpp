@@ -174,18 +174,7 @@ bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::refor
         ) {
 
         float base_cost = float(state.world.reform_option_get_technology_cost(o));
-        float reform_factor =
-            1.0f
-            + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_military_modifier)
-            + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_military_modifier);
-
-        for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
-            dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-            auto condition = state.world.ideology_get_add_military_reform(iid);
-            auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
-            if(condition && upperhouse_weight > 0.0f)
-                reform_factor += state.defines.military_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
-        }
+        float reform_factor = politics::get_military_reform_multiplier(state, n);
 
         if(base_cost * reform_factor < stored_rp)
             return true;
@@ -207,23 +196,44 @@ bool can_enact_economic_reform(sys::state& state, dcon::nation_id n, dcon::refor
         ) {
 
         float base_cost = float(state.world.reform_option_get_technology_cost(o));
-        float reform_factor =
-            1.0f
-            + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_economic_modifier)
-            + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_economic_modifier);
-
-        for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
-            dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-            auto condition = state.world.ideology_get_add_economic_reform(iid);
-            auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
-            if(condition && upperhouse_weight > 0.0f)
-                reform_factor += state.defines.economic_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
-        }
+        float reform_factor = politics::get_economic_reform_multiplier(state, n);
 
         if(base_cost * reform_factor < stored_rp)
             return true;
     }
     return false;
+}
+
+float get_military_reform_multiplier(sys::state& state, dcon::nation_id n) {
+    float reform_factor =
+        1.0f
+        + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_military_modifier)
+        + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_military_modifier);
+
+    for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+        dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+        auto condition = state.world.ideology_get_add_military_reform(iid);
+        auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+        if(condition && upperhouse_weight > 0.0f)
+            reform_factor += state.defines.military_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+    }
+    return reform_factor;
+}
+
+float get_economic_reform_multiplier(sys::state& state, dcon::nation_id n) {
+    float reform_factor =
+        1.0f
+        + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_economic_modifier)
+        + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_economic_modifier);
+
+    for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+        dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
+        auto condition = state.world.ideology_get_add_economic_reform(iid);
+        auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+        if(condition && upperhouse_weight > 0.0f)
+            reform_factor += state.defines.economic_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+    }
+    return reform_factor;
 }
 
 }

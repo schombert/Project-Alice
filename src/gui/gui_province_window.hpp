@@ -112,7 +112,6 @@ public:
 		flag_size.y /= 2;
 		flag_position.x += base_data.size.x / 7;
 		flag_position.y += base_data.size.y / 4;
-		flag_position.y += 4; // Revert flag-button 2px offset...
 	}
 
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
