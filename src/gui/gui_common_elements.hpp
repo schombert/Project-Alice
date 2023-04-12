@@ -919,7 +919,7 @@ public:
 			return "-";
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, uni_rel);
-		return text::prettify(fat_id.get_foreign_investment());
+		return text::prettify(int64_t(fat_id.get_foreign_investment()));
 	}
 };
 
