@@ -5943,6 +5943,16 @@ void tf_variable_reform_group_name_province(TRIGGER_DISPLAY_PARAMS) {
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.reform_get_name(trigger::payload(tval[1]).ref_id)), text::produce_simple_string(ws, ws.world.reform_option_get_name(trigger::payload(tval[2]).ropt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+//
+// non-vanilla
+//
+void tf_is_accepted_culture_nation(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"), text::produce_simple_string(ws, "an_accepted"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
+
 void tf_variable_pop_type_name_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -6676,6 +6686,8 @@ constexpr inline void(* trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_variable_reform_group_name_state, //constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
 		tf_variable_reform_group_name_province, //constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 		tf_variable_reform_group_name_pop, //constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
+		// non-vanilla triggers
+		tf_is_accepted_culture_nation, //constexpr inline uint16_t is_accepted_culture_nation = 0x0276;
 
 		//
 		// scopes

@@ -1419,8 +1419,10 @@ constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
 constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
 constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
+// non-vanilla triggers
+constexpr inline uint16_t is_accepted_culture_nation = 0x0276;
 
-constexpr inline uint16_t first_scope_code = 0x0276;
+constexpr inline uint16_t first_scope_code = 0x0277;
 
 //technology name -- payload 1
 //ideology name -- 4 variants payload 2
@@ -2126,6 +2128,8 @@ inline constexpr int32_t data_sizes[] = {
 	2, //constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
 	2, //constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
 
+	// non-vanilla triggers
+	0, //constexpr inline uint16_t is_accepted_culture_nation = 0x0276;
 };
 
 enum class slot_contents {
