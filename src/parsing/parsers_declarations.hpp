@@ -100,6 +100,8 @@ namespace parsers {
 		void orientation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 		void name(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 		void rotation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
+		void maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
+		void maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 		void finish(building_gfx_context& context) {
 		}
 	};
@@ -125,8 +127,6 @@ namespace parsers {
 		textbox();
 		void bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 		void fixedsize(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
-		void maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
-		void maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 		void font(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 		void format(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 		void text(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
