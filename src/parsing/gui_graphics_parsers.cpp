@@ -461,12 +461,6 @@ namespace parsers {
 			target.data.text.flags |= ui::text_data::is_fixed_size_mask;
 		}
 	}
-	void textbox::maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
-		target.size.x = int16_t(v);
-	}
-	void textbox::maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
-		target.size.y = int16_t(v);
-	}
 	void textbox::font(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 		target.data.text.font_handle = text::name_into_font_id(context.full_state, txt);
 	}
