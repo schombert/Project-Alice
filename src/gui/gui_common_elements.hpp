@@ -251,6 +251,105 @@ public:
 	}
 };
 
+class standard_movement_text : public simple_text_element_base {
+protected:
+	dcon::movement_id movement_id{};
+
+public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::movement_id>()) {
+			movement_id = any_cast<dcon::movement_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class movement_size_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto size = state.world.movement_get_pop_support(movement_id);
+		return text::prettify(int64_t(size));
+	}
+};
+
+class movement_radicalism_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto radicalism = state.world.movement_get_radicalism(movement_id);
+		return text::format_float(radicalism, 1);
+	}
+};
+
+class movement_issue_name_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto issue = state.world.movement_get_associated_issue_option(movement_id);
+		return text::produce_simple_string(state, issue.get_movement_name());
+	}
+};
+
+class standard_movement_multiline_text : public multiline_text_element_base {
+protected:
+	dcon::movement_id movement_id{};
+
+public:
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
+
+	void on_update(sys::state& state) noexcept override {
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
+		);
+		populate_layout(state, container);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::movement_id>()) {
+			movement_id = any_cast<dcon::movement_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class movement_nationalist_name_text : public standard_movement_multiline_text {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, movement_id);
+		auto independence_target = fat_id.get_associated_independence();
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		if(independence_target.get_cultural_union_of().id) {
+			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_union_movement"));
+			text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective_as_string(state, independence_target));
+			text::add_to_layout_box(contents, state, box, k->second, sub);
+		} else {
+			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_liberation_movement"));
+			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective_as_string(state, independence_target));
+			text::add_to_layout_box(contents, state, box, k->second, sub);
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 class standard_rebel_type_icon : public opaque_element_base {
 protected:
 	dcon::rebel_type_id rebel_type_id{};
@@ -1490,6 +1589,20 @@ class nation_can_do_political_reform_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!nations::has_political_reform_available(state, nation_id));
+	}
+};
+
+class nation_military_reform_multiplier_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(politics::get_military_reform_multiplier(state, nation_id) <= 0.f);
+	}
+};
+
+class nation_economic_reform_multiplier_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(politics::get_economic_reform_multiplier(state, nation_id) <= 0.f);
 	}
 };
 
