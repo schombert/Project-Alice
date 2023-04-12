@@ -740,6 +740,7 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
 	auto box = text::open_layout_box(contents, 0);
 
+
 	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
 	text::add_to_layout_box(contents, state, box, std::string(":"), text::text_color::white);
 	text::add_space_to_layout_box(contents, state, box);
