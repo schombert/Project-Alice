@@ -4618,11 +4618,7 @@ TRIGGER_FUNCTION(tf_variable_reform_group_name_pop) {
 //
 // non-vanilla triggers
 //
-TRIGGER_FUNCTION(tf_is_accepted_culture_nation) {
-	// stub: virtually unused
-	auto is_accepted = true;//ws.world.nation_get_accepted_cultures(to_nation(primary_slot), to_cul);
-	return compare_to_true(tval[0], is_accepted);
-}
+
 TRIGGER_FUNCTION(tf_variable_pop_type_name_nation) {
 	auto total_pop = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
 	auto type = demographics::to_key(ws, payload(tval[1]).popt_id);
@@ -5334,7 +5330,6 @@ struct trigger_container {
 		//
 		// non-vanilla triggers
 		//
-		tf_is_accepted_culture_nation<return_type, primary_type, this_type, from_type>, //constexpr inline uint16_t is_accepted_culture_nation = 0x0276;
 
 		//
 		// scopes

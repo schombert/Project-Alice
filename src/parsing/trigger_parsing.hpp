@@ -2844,8 +2844,6 @@ struct trigger_body {
 			context.compiled_trigger.push_back(uint16_t(trigger::is_accepted_culture_state | trigger::no_payload | association_to_bool_code(a, value)));
 		} else if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_trigger.push_back(uint16_t(trigger::is_accepted_culture_province | trigger::no_payload | association_to_bool_code(a, value)));
-		} else if(context.main_slot == trigger::slot_contents::nation) {
-			context.compiled_trigger.push_back(uint16_t(trigger::is_accepted_culture_nation | trigger::no_payload | association_to_bool_code(a, value)));
 		} else if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_trigger.push_back(uint16_t(trigger::is_accepted_culture_pop | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
