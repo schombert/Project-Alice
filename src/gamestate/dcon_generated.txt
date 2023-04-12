@@ -2051,6 +2051,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ image }
+		type{ dcon::gfx_object_id }
+		tag{ scenario }
+	}
+	property{
 		name{folder_index}
 		type{uint8_t}
 		tag{ scenario }

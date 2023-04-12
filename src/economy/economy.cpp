@@ -543,7 +543,7 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, ve:
 		state.world.factory_set_actual_production(f, amount);
 		state.world.nation_get_domestic_market_pool(n, fac_type.get_output()) += amount;
 
-		auto money_made = (0.75f + 0.25 * min_efficiency_input) * min_input * state.world.factory_get_full_profit(f);
+		auto money_made = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_full_profit(f);
 		state.world.factory_set_full_profit(f, money_made);
 
 		// pay wages
