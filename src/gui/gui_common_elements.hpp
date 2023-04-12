@@ -1772,10 +1772,9 @@ protected:
             parent->impl_get(state, pop_id_payload);
             if(pop_id_payload.holds_type<dcon::pop_id>()) {
                 auto pop_id = any_cast<dcon::pop_id>(pop_id_payload);
-                dcon::pop_fat_id pfat_id = dcon::fatten(state.world, pop_id);
+                auto fat_id = dcon::fatten(state.world, pop_id);
                 state.world.for_each_issue_option([&](dcon::issue_option_id issue_id) {
-                    auto ifat_id = dcon::fatten(state.world, issue_id);
-                    auto pop_size = pfat_id.get_size();
+                    auto pop_size = fat_id.get_size();
                     auto weight =
                             state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, issue_id)) /
                             pop_size;
