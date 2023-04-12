@@ -707,6 +707,7 @@ namespace parsers {
 		MOD_NAT_FUNCTION(seperatism)
 		MOD_NAT_FUNCTION(plurality)
 		MOD_NAT_FUNCTION(colonial_prestige)
+		MOD_NAT_FUNCTION(unit_start_experience)
 
 		template<typename T>
 		void finish(T& context) { }
@@ -1321,6 +1322,7 @@ namespace parsers {
 	struct country_file {
 		void color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context);
 		unit_names_collection unit_names;
+		void any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line, country_file_context& context);
 		void finish(country_file_context&) { }
 	};
 
