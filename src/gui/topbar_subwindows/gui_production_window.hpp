@@ -42,6 +42,12 @@ protected:
         return "state_info";
     }
 public:
+	void on_create(sys::state& state) noexcept override {
+		// Clear "center" property of object...
+		state.ui_defs.gui[state.ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~element_data::orientation_mask;
+		listbox_element_base::on_create(state);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_state_instance([&](dcon::state_instance_id id) {
