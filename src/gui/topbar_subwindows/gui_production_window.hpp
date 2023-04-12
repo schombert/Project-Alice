@@ -193,7 +193,7 @@ public:
 			commodity_offset.y += ptr->base_data.size.y;
 			add_child_to_front(std::move(ptr));
 
-			auto cell_height = 0;
+			int16_t cell_height = 0;
 			// Place infoboxes for each of the goods...
 			state.world.for_each_commodity([&](dcon::commodity_id id) {
 				if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != curr_commodity_group
@@ -202,7 +202,7 @@ public:
 
 				auto info_ptr = make_child(state, "production_info", state.ui_state.defs_by_name.find("production_info")->second.definition);
 
-				auto cell_width = info_ptr->base_data.size.x;
+				int16_t cell_width = info_ptr->base_data.size.x;
 				cell_height = info_ptr->base_data.size.y;
 
 				commodity_offset.x += cell_width;
