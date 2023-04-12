@@ -17,17 +17,6 @@ enum class diplomacy_window_tab : uint8_t {
 	crisis = 0x3
 };
 
-enum class country_list_filter : uint8_t {
-	all,
-	neighbors,
-	sphere,
-	enemies,
-	allies,
-	continent
-};
-
-class button_press_notification{};
-
 class diplomacy_country_select : public button_element_base {
 public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
@@ -37,34 +26,6 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		Cyto::Any payload = button_press_notification{};
 		parent->impl_get(state, payload);
-	}
-};
-
-class nation_overlord_flag : public flag_button {
-	dcon::nation_id sphereling_id{};
-public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
-		if(bool(ovr_id)) {
-			auto fat_id = dcon::fatten(state.world, ovr_id);
-			return fat_id.get_identity_from_identity_holder();
-		}
-		return dcon::national_identity_id{};
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		// Only show if there is any overlord
-		set_visible(state, bool(get_current_nation(state)));
-		set_current_nation(state, get_current_nation(state));
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			sphereling_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
 	}
 };
 
@@ -570,9 +531,11 @@ public:
 				default:
 					break;
 			}
+			return message_result::consumed;
 		} else if(payload.holds_type<dcon::modifier_id>()) {
 			auto mod_id = any_cast<dcon::modifier_id>(payload);
 			filter_by_continent(state, mod_id);
+			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			return country_facts->impl_set(state, payload);
 		}

@@ -16,6 +16,17 @@
 
 namespace ui {
 
+// Filters used on both production and diplomacy tabs for the country lists
+enum class country_list_filter : uint8_t {
+	all,
+	neighbors,
+	sphere,
+	enemies,
+	allies,
+	continent
+};
+class button_press_notification{};
+
 template<class T>
 class generic_name_text : public simple_text_element_base {
 protected:
@@ -88,6 +99,13 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class state_name_text : public standard_state_instance_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::get_dynamic_state_name(state, state_id);
 	}
 };
 
@@ -880,6 +898,47 @@ public:
 		auto fat_id = dcon::fatten(state.world, great_power_rel);
 		auto influence = fat_id.get_influence();
 		return std::to_string(int32_t(influence));
+	}
+};
+
+template<uint16_t Rank>
+class nation_gp_investment_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		const auto great_power_id = nations::get_nth_great_power(state, Rank);
+		if(!bool(great_power_id))
+			return "-";
+		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
+		auto fat_id = dcon::fatten(state.world, uni_rel);
+		return text::prettify(fat_id.get_foreign_investment());
+	}
+};
+
+class nation_overlord_flag : public flag_button {
+	dcon::nation_id sphereling_id{};
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
+		if(bool(ovr_id)) {
+			auto fat_id = dcon::fatten(state.world, ovr_id);
+			return fat_id.get_identity_from_identity_holder();
+		}
+		return dcon::national_identity_id{};
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		// Only show if there is any overlord
+		set_visible(state, bool(get_current_nation(state)));
+		set_current_nation(state, get_current_nation(state));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			sphereling_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 

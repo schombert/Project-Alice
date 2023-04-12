@@ -17,7 +17,44 @@ enum class production_window_tab : uint8_t {
 	goods = 0x3
 };
 
+class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "state_focus") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "state_name") {
+			return make_element_by_type<state_name_text>(state, id);
+		} else if(name == "factory_count") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "build_new_factory") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "avg_infra_text") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class production_state_listbox : public listbox_element_base<production_state_info, dcon::state_instance_id> {
+protected:
+	std::string_view get_row_element_name() override {
+        return "state_info";
+    }
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		state.world.for_each_state_instance([&](dcon::state_instance_id id) {
+			auto nation_id = state.world.state_instance_get_nation_from_state_ownership(id);
+			if(state.local_player_nation == nation_id)
+				row_contents.push_back(id);
+		});
+		update(state);
+	}
+};
+
 class production_window : public generic_tabbed_window<production_window_tab> {
+	production_state_listbox* state_listbox = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
@@ -62,6 +99,12 @@ public:
 			return ptr;
 		} else if(name == "factory_buttons") {
 			auto ptr = make_element_by_type<factory_buttons_window>(state, id);
+			factory_elements.push_back(ptr.get());
+			ptr->set_visible(state, true);
+			return ptr;
+		} else if(name == "state_listbox") {
+			auto ptr = make_element_by_type<production_state_listbox>(state, id);
+			state_listbox = ptr.get();
 			factory_elements.push_back(ptr.get());
 			ptr->set_visible(state, true);
 			return ptr;
