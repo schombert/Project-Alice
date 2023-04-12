@@ -16,6 +16,17 @@
 
 namespace ui {
 
+// Filters used on both production and diplomacy tabs for the country lists
+enum class country_list_filter : uint8_t {
+	all,
+	neighbors,
+	sphere,
+	enemies,
+	allies,
+	continent
+};
+class button_press_notification{};
+
 template<class T>
 class generic_name_text : public simple_text_element_base {
 protected:
@@ -88,6 +99,13 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class state_name_text : public standard_state_instance_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::get_dynamic_state_name(state, state_id);
 	}
 };
 
@@ -230,6 +248,105 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_crime().index();
+	}
+};
+
+class standard_movement_text : public simple_text_element_base {
+protected:
+	dcon::movement_id movement_id{};
+
+public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::movement_id>()) {
+			movement_id = any_cast<dcon::movement_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class movement_size_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto size = state.world.movement_get_pop_support(movement_id);
+		return text::prettify(int64_t(size));
+	}
+};
+
+class movement_radicalism_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto radicalism = state.world.movement_get_radicalism(movement_id);
+		return text::format_float(radicalism, 1);
+	}
+};
+
+class movement_issue_name_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto issue = state.world.movement_get_associated_issue_option(movement_id);
+		return text::produce_simple_string(state, issue.get_movement_name());
+	}
+};
+
+class standard_movement_multiline_text : public multiline_text_element_base {
+protected:
+	dcon::movement_id movement_id{};
+
+public:
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
+
+	void on_update(sys::state& state) noexcept override {
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
+		);
+		populate_layout(state, container);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::movement_id>()) {
+			movement_id = any_cast<dcon::movement_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class movement_nationalist_name_text : public standard_movement_multiline_text {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, movement_id);
+		auto independence_target = fat_id.get_associated_independence();
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		if(independence_target.get_cultural_union_of().id) {
+			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_union_movement"));
+			text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective_as_string(state, independence_target));
+			text::add_to_layout_box(contents, state, box, k->second, sub);
+		} else {
+			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_liberation_movement"));
+			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective_as_string(state, independence_target));
+			text::add_to_layout_box(contents, state, box, k->second, sub);
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -869,6 +986,70 @@ public:
 	}
 };
 
+template<uint16_t Rank>
+class nation_gp_opinion_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		const auto great_power_id = nations::get_nth_great_power(state, Rank);
+		if(!bool(great_power_id))
+			return "-";
+		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
+		auto fat_id = dcon::fatten(state.world, great_power_rel);
+		auto influence = fat_id.get_influence();
+		return std::to_string(int32_t(influence));
+	}
+};
+
+class nation_player_investment_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
+		auto fat_id = dcon::fatten(state.world, uni_rel);
+		return text::prettify(int64_t(fat_id.get_foreign_investment()));
+	}
+};
+
+template<uint16_t Rank>
+class nation_gp_investment_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		const auto great_power_id = nations::get_nth_great_power(state, Rank);
+		if(!bool(great_power_id))
+			return "-";
+		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
+		auto fat_id = dcon::fatten(state.world, uni_rel);
+		return text::prettify(int64_t(fat_id.get_foreign_investment()));
+	}
+};
+
+class nation_overlord_flag : public flag_button {
+	dcon::nation_id sphereling_id{};
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
+		if(bool(ovr_id)) {
+			auto fat_id = dcon::fatten(state.world, ovr_id);
+			return fat_id.get_identity_from_identity_holder();
+		}
+		return dcon::national_identity_id{};
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		// Only show if there is any overlord
+		set_visible(state, bool(get_current_nation(state)));
+		set_current_nation(state, get_current_nation(state));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			sphereling_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
 class nation_prestige_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -999,6 +1180,49 @@ public:
 	}
 };
 
+class nation_player_opinion_text : public standard_nation_text {
+	std::string_view get_level_str(uint8_t v) {
+		switch(v & nations::influence::level_mask) {
+		case nations::influence::level_neutral:
+			return "REL_NEUTRAL";
+		case nations::influence::level_opposed:
+			return "REL_OPPOSED";
+		case nations::influence::level_hostile:
+			return "REL_HOSTILE";
+		case nations::influence::level_cordial:
+			return "REL_CORDIAL";
+		case nations::influence::level_friendly:
+			return "REL_FRIENDLY";
+		case nations::influence::level_in_sphere:
+			return "REL_SPHERE_OF_INFLUENCE";
+		default:
+			return "?";
+		}
+	}
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto gp_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
+		if(bool(gp_rel_id)) {
+			const auto status = state.world.gp_relationship_get_status(gp_rel_id);
+			return text::produce_simple_string(state, get_level_str(status));
+		}
+		return "-";
+	}
+};
+
+class nation_industries_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		size_t num_factories = 0;
+		for(auto si : state.world.nation_get_state_ownership(nation_id))
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				for(auto f : state.world.province_get_factory_location(p))
+					++num_factories;
+			});
+		return std::to_string(num_factories);
+	}
+};
+
 class nation_player_relations_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -1043,6 +1267,22 @@ public:
 	}
 };
 
+class nation_budget_bank_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto budget = nations::get_bank_funds(state, nation_id);
+		return text::format_money(budget);
+	}
+};
+
+class nation_budget_debt_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto budget = nations::get_debt(state, nation_id);
+		return text::format_money(budget);
+	}
+};
+
 class nation_literacy_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -1060,6 +1300,13 @@ public:
 	}
 };
 
+class nation_war_exhaustion_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return text::format_float(fat_id.get_war_exhaustion(), 2);
+	}
+};
 
 class nation_population_text : public standard_nation_text {
 public:
@@ -1120,6 +1367,27 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::diplomatic_points(state, nation_id);
 		return text::format_float(points, 0);
+	}
+};
+
+class nation_brigades_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return std::to_string(fat_id.get_active_regiments());
+	}
+};
+
+class nation_ships_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+
+		int32_t total = 0;
+		for(auto nv : fat_id.get_navy_control())
+			for(auto shp : nv.get_navy().get_navy_membership())
+				total++;
+		return std::to_string(total);
 	}
 };
 
@@ -1198,6 +1466,19 @@ public:
 			return text::produce_simple_string(state, "politics_can_do_political_refroms");
 		} else {
 			return text::produce_simple_string(state, "politics_can_not_do_political_refroms");
+		}
+	}
+};
+
+class nation_technology_admin_type_text : public standard_nation_text {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto mod_id = state.world.nation_get_tech_school(nation_id);
+		if(mod_id) {
+			auto name = text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
+			set_text(state, name);
+		} else {
+			set_text(state, text::produce_simple_string(state, "traditional_academic"));
 		}
 	}
 };
@@ -1311,6 +1592,20 @@ public:
 	}
 };
 
+class nation_military_reform_multiplier_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(politics::get_military_reform_multiplier(state, nation_id) <= 0.f);
+	}
+};
+
+class nation_economic_reform_multiplier_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept override {
+		return int32_t(politics::get_economic_reform_multiplier(state, nation_id) <= 0.f);
+	}
+};
+
 class nation_ruling_party_ideology_plupp : public tinted_image_element_base {
 protected:
 	dcon::nation_id nation_id{};
@@ -1330,6 +1625,26 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class nation_player_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, state.local_player_nation);
+		return fat_id.get_identity_from_identity_holder();
+	}
+};
+
+template<uint16_t Rank>
+class nation_gp_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		const auto nat_id = nations::get_nth_great_power(state, Rank);
+		if(!bool(nat_id))
+			return dcon::national_identity_id{};
+		auto fat_id = dcon::fatten(state.world, nat_id);
+		return fat_id.get_identity_from_identity_holder();
 	}
 };
 

@@ -120,6 +120,14 @@ public:
 			Cyto::Any payload = reform_id;
 			ptr->impl_set(state, payload);
 			return ptr;
+		} else if(name == "mil_plusminus_icon") {
+			return make_element_by_type<nation_military_reform_multiplier_icon>(state, id);
+		} else if(name == "eco_plusminus_icon") {
+			return make_element_by_type<nation_economic_reform_multiplier_icon>(state, id);
+		} else if(name == "eco_main_icon" || name == "mil_main_icon") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->frame -= 1;
+			return ptr;
 		} else {
 			return nullptr;
 		}

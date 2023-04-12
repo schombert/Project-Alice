@@ -335,6 +335,16 @@ protected:
 	void populate_flags(sys::state& state) override;
 };
 
+class overlapping_protected_flags : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) override;
+};
+
+class overlapping_truce_flags : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) override;
+};
+
 template<class TabT>
 class generic_tab_button : public checkbox_button {
 public:
