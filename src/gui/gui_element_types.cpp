@@ -1125,6 +1125,8 @@ void flag_button::on_update(sys::state& state) noexcept {
 
 void flag_button::on_create(sys::state& state) noexcept {
 	button_element_base::on_create(state);
+	// This a pixel-perfect fix for avoiding ugly-looking flags...
+	base_data.position.y -= 2;
 	flag_size = base_data.size;
 	on_update(state);
 }
