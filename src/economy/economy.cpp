@@ -512,7 +512,7 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 	}
 }
 
-void update_single_factory_production(sys::state& state, dcon::factory_id f, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, dcon::nation_id n, dcon::state_instance_id s, float expected_min_wage) {
+void update_single_factory_production(sys::state& state, dcon::factory_id f, dcon::nation_id n) {
 
 	auto production = state.world.factory_get_actual_production(f);
 	if(production > 0) {
@@ -546,9 +546,9 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, ve:
 		auto money_made = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_full_profit(f);
 		state.world.factory_set_full_profit(f, money_made);
 
-		// pay wages
+		// pay wages ?
 	} else {
-		state.world.factory_set_actual_production(f, 0.0f);
+
 	}
 }
 
@@ -630,10 +630,43 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 		}
 
 		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) * throughput_multiplier * output_multiplier * max_production_scale);
+		state.world.province_set_artisan_full_profit(p, (output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier);
 	} else {
 		// switch production type
 		randomly_assign_artisan_production(state, p);
 		state.world.province_set_artisan_actual_production(p, 0.0f);
+		state.world.province_set_artisan_full_profit(p, 0.0f);
+	}
+}
+
+void update_province_artisan_production(sys::state& state, dcon::province_id p, dcon::nation_id n, dcon::state_instance_id s) {
+
+	auto production = state.world.province_get_artisan_actual_production(p);
+	if(production > 0) {
+
+		auto artisan_prod_type = state.world.province_get_artisan_production(p);
+		auto& inputs = state.world.commodity_get_artisan_inputs(artisan_prod_type);
+
+		float min_input = 1.0f;
+		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+			if(inputs.commodity_type[i]) {
+				min_input = std::min(min_input, state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]));
+			} else {
+				break;
+			}
+		}
+
+
+		auto amount = min_input * production;
+		state.world.province_set_artisan_actual_production(p, amount);
+		state.world.nation_get_domestic_market_pool(n, artisan_prod_type) += amount;
+
+		auto money_made = min_input * state.world.province_get_artisan_full_profit(p);
+		state.world.province_set_artisan_full_profit(p, money_made);
+
+		// pay wages ?
+	} else {
+		
 	}
 }
 
@@ -1104,6 +1137,19 @@ void daily_update(sys::state& state) {
 		/*
 		perform production
 		*/
+
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto f : state.world.province_get_factory_location(p.get_province())) {
+				// factory
+				update_single_factory_production(state, f.get_factory(), n);
+			}
+
+			// artisan
+			update_province_artisan_production(state, p.get_province(), n);
+
+			// rgo
+			update_province_rgo_production(state, p.get_province(), n);
+		}
 
 		/*
 		adjust pop satisfaction based on consumption
