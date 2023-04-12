@@ -183,19 +183,19 @@ public:
 			return ptr;
 		} else if(name == "country_wars") {
 			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
-			ptr->base_data.position.y -= 8 - 2;
+			ptr->base_data.position.y -= 8 - 1;
 			return ptr;
 		} else if(name == "country_allies") {
 			auto ptr = make_element_by_type<overlapping_ally_flags>(state, id);
-			ptr->base_data.position.y -= 8 - 2;
+			ptr->base_data.position.y -= 8 - 1;
 			return ptr;
 		} else if(name == "country_protected") {
 			auto ptr = make_element_by_type<overlapping_protected_flags>(state, id);
-			ptr->base_data.position.y -= 8 - 2;
+			ptr->base_data.position.y -= 8 - 1;
 			return ptr;
 		} else if(name == "country_truce") {
 			auto ptr = make_element_by_type<overlapping_truce_flags>(state, id);
-			ptr->base_data.position.y -= 8 - 2;
+			ptr->base_data.position.y -= 8 - 1;
 			return ptr;
 		} else if(name == "infamy_text") {
 			return make_element_by_type<nation_infamy_text>(state, id);
