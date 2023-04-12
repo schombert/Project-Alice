@@ -707,7 +707,11 @@ namespace parsers {
 		MOD_NAT_FUNCTION(seperatism)
 		MOD_NAT_FUNCTION(plurality)
 		MOD_NAT_FUNCTION(colonial_prestige)
-		MOD_NAT_FUNCTION(unit_start_experience)
+
+		void unit_start_experience(association_type type, float v, error_handler& err, int32_t line, T& context) {
+			land_unit_start_experience(type, v, err, line, context);
+			naval_unit_start_experience(type, v, err, line, context);
+		}
 
 		template<typename T>
 		void finish(T& context) { }

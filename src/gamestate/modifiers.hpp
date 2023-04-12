@@ -184,9 +184,8 @@ constexpr inline dcon::national_modifier_value plurality{121};
 constexpr inline dcon::national_modifier_value colonial_prestige{122};
 constexpr inline dcon::national_modifier_value permanent_prestige{123};
 constexpr inline dcon::national_modifier_value prestige_modifier{124};
-constexpr inline dcon::national_modifier_value unit_start_experience{125};
 
-constexpr inline uint32_t count = 127;
+constexpr inline uint32_t count = 126;
 }
 
 
