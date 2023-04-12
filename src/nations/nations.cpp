@@ -7,6 +7,18 @@
 
 namespace nations {
 
+dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
+	uint16_t count = 0;
+	for(uint16_t i = 0; i < uint16_t(state.nations_by_rank.size()); ++i) {
+		if(is_great_power(state, state.nations_by_rank[i])) {
+			if(count == n)
+				return state.nations_by_rank[i];
+			++count;
+		}
+	}
+	return dcon::nation_id{};
+}
+
 // returns whether a culture is on the accepted list OR is the primary culture
 template<typename T, typename U>
 auto nation_accepts_culture(sys::state const& state, T ids, U cul_ids) {
@@ -404,8 +416,8 @@ void update_ui_rankings(sys::state& state) {
 	}
 }
 
-bool is_great_power(sys::state const& state, dcon::nation_id n) {
-	return state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count);
+bool is_great_power(sys::state const& state, dcon::nation_id id) {
+	return state.world.nation_get_rank(id) <= uint16_t(state.defines.great_nations_count);
 }
 
 status get_status(sys::state& state, dcon::nation_id n) {
@@ -740,6 +752,14 @@ void update_monthly_points(sys::state& state) {
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
 	// TODO
+	return 0.0f;
+}
+
+float get_bank_funds(sys::state& state, dcon::nation_id n) {
+	return 0.0f;
+}
+
+float get_debt(sys::state& state, dcon::nation_id n) {
 	return 0.0f;
 }
 }

@@ -1898,7 +1898,7 @@ war_block
 	war_goal                        group      history_war_goal                  member_fn
 
 war_history_file
-	name                            value      text                              discard
+	name                            value      text                              member_fn
 	#any                            extern     enter_war_dated_block             discard
 
 mod_file

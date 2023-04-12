@@ -725,12 +725,15 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	const float PI = 3.141592653589793238463f;
 	float dx = float(x) - radius;
 	float dy = float(y) - radius;
-	float dist = std::sqrt(dx * dx + dy * dy);
-	float angle = std::acos(-dx / dist);
-	if(dy > 0.f) {
-		angle = PI + (PI - angle);
+	size_t index = 0;
+	if(dx || dy) {
+		float dist = std::sqrt(dx * dx + dy * dy);
+		float angle = std::acos(-dx / dist);
+		if(dy > 0.f) {
+			angle = PI + (PI - angle);
+		}
+		index = size_t(angle / (2.f * PI) * float(resolution));
 	}
-	auto index = size_t(angle / (2.f * PI) * float(resolution));
 	T t = T(spread[index]);
 	auto fat_t = dcon::fatten(state.world, t);
 	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
@@ -1047,6 +1050,44 @@ void overlapping_enemy_flags::populate_flags(sys::state& state) {
 	}
 }
 
+void overlapping_protected_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_truce_until()) {
+				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
+				auto fat_id = dcon::fatten(state.world, nat_id);
+				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+			}
+		}
+
+		for(auto gpr : state.world.nation_get_gp_relationship_as_great_power(current_nation)) {
+			if((nations::influence::level_mask & gpr.get_status()) == nations::influence::level_in_sphere) {
+				if(gpr.get_influence_target().id == current_nation) {
+					auto nat_id = gpr.get_great_power();
+					auto fat_id = dcon::fatten(state.world, nat_id);
+					contents.push_back(fat_id.get_identity_from_identity_holder().id);
+				}
+			}
+		}
+		update(state);
+	}
+}
+
+void overlapping_truce_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_truce_until()) {
+				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
+				auto fat_id = dcon::fatten(state.world, nat_id);
+				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+			}
+		}
+		update(state);
+	}
+}
+
 dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
 	Cyto::Any payload = dcon::nation_id{};
 	if(parent != nullptr) {
@@ -1088,6 +1129,7 @@ void flag_button::on_update(sys::state& state) noexcept {
 void flag_button::on_create(sys::state& state) noexcept {
 	button_element_base::on_create(state);
 	flag_size = base_data.size;
+	base_data.position.y -= 2; // This a pixel-perfect fix for avoiding ugly-looking flags...
 	on_update(state);
 }
 
