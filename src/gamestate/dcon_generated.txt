@@ -3411,7 +3411,7 @@ object {
 	storage_type{ contiguous }
 	size{ 64 }
 	tag{ scenario }
-
+	
 	property{
 		name{ name }
 		type{ text_sequence_id }
@@ -3465,6 +3465,11 @@ object {
 	property{
 		name{ production_focus }
 		type{array{commodity_id}{float}}
+		tag{ scenario }
+	}
+	property{
+		name{ modifier }
+		type{ modifier_id }
 		tag{ scenario }
 	}
 }

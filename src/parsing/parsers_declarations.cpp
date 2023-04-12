@@ -1213,6 +1213,10 @@ void national_focus::any_value(std::string_view label, association_type, float v
 	}
 }
 
+void national_focus::finish(national_focus_context&) {
+	
+}
+
 void main_pop_type_file::promotion_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, scenario_building_context& context) {
 	context.state.culture_definitions.promotion_chance = value;
 }

@@ -1693,8 +1693,7 @@ namespace parsers {
 		::nations::focus_type type = ::nations::focus_type::unknown;
 	};
 
-	struct national_focus {
-		void finish(national_focus_context&) { }
+	struct national_focus : public modifier_base {
 		void railroads(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
 		void icon(association_type, int32_t value, error_handler& err, int32_t line, national_focus_context& context);
 		void limit(dcon::trigger_key value, error_handler& err, int32_t line, national_focus_context& context);
@@ -1704,6 +1703,7 @@ namespace parsers {
 		void loyalty_value(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
 		void immigrant_attract(association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
 		void any_value(std::string_view label, association_type, float value, error_handler& err, int32_t line, national_focus_context& context);
+		void finish(national_focus_context&);
 	};
 
 	struct focus_group {
