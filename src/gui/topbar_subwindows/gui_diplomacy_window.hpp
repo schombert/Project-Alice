@@ -183,19 +183,19 @@ public:
 			return ptr;
 		} else if(name == "country_wars") {
 			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1;
 			return ptr;
 		} else if(name == "country_allies") {
 			auto ptr = make_element_by_type<overlapping_ally_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1;
 			return ptr;
 		} else if(name == "country_protected") {
 			auto ptr = make_element_by_type<overlapping_protected_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1;
 			return ptr;
 		} else if(name == "country_truce") {
 			auto ptr = make_element_by_type<overlapping_truce_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1;
 			return ptr;
 		} else if(name == "infamy_text") {
 			return make_element_by_type<nation_infamy_text>(state, id);
@@ -322,12 +322,12 @@ public:
 		} else if(name == "attackers") {
 			auto ptr = make_element_by_type<overlapping_attacker_flags>(state, id);
 			attackers_flags = ptr.get();
-			attackers_flags->base_data.position.y -= 8 - 2;
+			attackers_flags->base_data.position.y -= 8 - 4;
 			return ptr;
 		} else if(name == "defenders") {
 			auto ptr = make_element_by_type<overlapping_defender_flags>(state, id);
 			defenders_flags = ptr.get();
-			defenders_flags->base_data.position.y -= 8 - 2;
+			defenders_flags->base_data.position.y -= 8 - 4;
 			return ptr;
 		} else if(name == "join_attackers") {
 			return make_element_by_type<button_element_base>(state, id);
