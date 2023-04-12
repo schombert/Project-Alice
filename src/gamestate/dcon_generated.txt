@@ -1356,7 +1356,19 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ rgo_actual_production }
+		type{ float }
+	}
+	property{
 		name{ artisan_actual_production }
+		type{ float }
+	}
+	property {
+		name{ rgo_full_profit }
+		type{ float }
+	}
+	property {
+		name{ artisan_full_profit }
 		type{ float }
 	}
 	property{
@@ -2600,6 +2612,10 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ demand_satisfaction }
+		type{ array{commodity_id}{float} }
+	}
+	property {
 		name{ overseas_penalty }
 		type{ float }
 		tag{ save }
@@ -2877,6 +2893,10 @@ object {
 	}
 	property {
 		name{ triggered_modifiers }
+		type{ float }
+	}
+	property {
+		name{ full_profit }
 		type{ float }
 	}
 	property{
