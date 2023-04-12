@@ -709,6 +709,12 @@ namespace parsers {
 		MOD_NAT_FUNCTION(colonial_prestige)
 
 		template<typename T>
+		void unit_start_experience(association_type type, float v, error_handler& err, int32_t line, T& context) {
+			land_unit_start_experience(type, v, err, line, context);
+			naval_unit_start_experience(type, v, err, line, context);
+		}
+
+		template<typename T>
 		void finish(T& context) { }
 
 		sys::provincial_modifier_definition const& peek_province_mod() const {
@@ -1321,6 +1327,7 @@ namespace parsers {
 	struct country_file {
 		void color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context);
 		unit_names_collection unit_names;
+		void any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line, country_file_context& context);
 		void finish(country_file_context&) { }
 	};
 

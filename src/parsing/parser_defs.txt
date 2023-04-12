@@ -384,6 +384,7 @@ modifier_base
 	seperatism                                value      float            member_fn
 	plurality                                 value      float            member_fn
 	colonial_prestige                         value      float            member_fn
+	unit_start_experience                     value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn
@@ -691,8 +692,7 @@ country_file
 	graphical_culture   value     none                  discard
 	party          extern     make_party                discard
 	unit_names     group      unit_names_collection     member
-	proletarian_dictatorship  group      none           discard
-	fascist_dictatorship      group      none           discard
+	#any           group      color_from_3i             member_fn
 
 pv_party_loyalty
 	ideology          value          text               member_fn
