@@ -611,6 +611,11 @@ object {
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
+	property{
+		name{ movement_name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
 
 	property{
 		name{ rules }
@@ -1356,7 +1361,19 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ rgo_actual_production }
+		type{ float }
+	}
+	property{
 		name{ artisan_actual_production }
+		type{ float }
+	}
+	property {
+		name{ rgo_full_profit }
+		type{ float }
+	}
+	property {
+		name{ artisan_full_profit }
 		type{ float }
 	}
 	property{
@@ -1764,6 +1781,11 @@ object {
 		type{ sys::date }
 		tag{ save }
 	}
+	property{
+		name{ name }
+		type{ text_sequence_id }
+		tag{ save }
+	}
 }
 object {
 	name{ wargoal }
@@ -2034,6 +2056,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ image }
+		type{ dcon::gfx_object_id }
+		tag{ scenario }
+	}
+	property{
 		name{folder_index}
 		type{uint8_t}
 		tag{ scenario }
@@ -2085,17 +2112,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1000}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1000}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ rgo_size }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1000}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2168,17 +2195,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1000}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1000}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_throughput }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1000}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2600,6 +2627,10 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ demand_satisfaction }
+		type{ array{commodity_id}{float} }
+	}
+	property {
 		name{ overseas_penalty }
 		type{ float }
 		tag{ save }
@@ -2877,6 +2908,10 @@ object {
 	}
 	property {
 		name{ triggered_modifiers }
+		type{ float }
+	}
+	property {
+		name{ full_profit }
 		type{ float }
 	}
 	property{

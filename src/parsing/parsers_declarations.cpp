@@ -2425,12 +2425,17 @@ void enter_war_dated_block(std::string_view label, token_generator& gen, error_h
 	}
 }
 
+void war_history_file::name(association_type, std::string_view name, error_handler& err, int32_t line, war_history_context& context) {
+	context.name = std::string(name);
+}
+
 void war_history_file::finish(war_history_context& context) {
 	if(context.attackers.size() > 0 && context.defenders.size() > 0 && context.wargoals.size() > 0) {
 		auto new_war = fatten(context.outer_context.state.world, context.outer_context.state.world.create_war());
 		new_war.set_start_date(sys::date(0));
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
+		new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
 		for(auto n : context.attackers) {
 			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);

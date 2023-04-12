@@ -174,8 +174,15 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 	dcon::issue_option_id new_id = context.outer_context.state.world.create_issue_option();
 	auto name_id = text::find_or_add_key(context.outer_context.state, name);
 
+	auto movement_name_id = text::find_or_add_key(context.outer_context.state, name);
+
 	context.outer_context.state.world.issue_option_set_name(new_id, name_id);
 	context.outer_context.map_of_ioptions.insert_or_assign(std::string(name), pending_option_content{ gen, new_id });
+
+	auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(std::string("movement_") + std::string(name)));
+	if(it != context.outer_context.state.key_to_text_sequence.end()) {
+		context.outer_context.state.world.issue_option_set_movement_name(new_id, it->second);
+	}
 
 	bool assigned = false;
 	auto& existing_options = context.outer_context.state.world.issue_get_options(context.id);
@@ -310,6 +317,45 @@ void register_technology(std::string_view name, token_generator& gen, error_hand
 	context.state.world.technology_set_name(new_id, name_id);
 
 	context.map_of_technologies.insert_or_assign(std::string(name), pending_tech_content{ gen, new_id });
+
+	auto root = get_root(context.state.common_fs);
+	auto gfx = open_directory(root, NATIVE("gfx"));
+	auto pictures = open_directory(gfx, NATIVE("pictures"));
+	auto tech = open_directory(pictures, NATIVE("tech"));
+
+	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\tech\\") + [&]() {
+		if(peek_file(tech, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
+			return std::string(name) + ".tga";
+		} else {
+			return std::string("noimage.tga");
+		}
+	}());
+
+	if(auto it = context.gfx_context.map_of_names.find(file_name); it != context.gfx_context.map_of_names.end()) {
+		context.state.world.technology_set_image(new_id, it->second);
+	} else {
+		auto gfxindex = context.state.ui_defs.gfx.size();
+		context.state.ui_defs.gfx.emplace_back();
+		ui::gfx_object& new_obj = context.state.ui_defs.gfx.back();
+		auto new_gfx_id = dcon::gfx_object_id(uint16_t(gfxindex));
+
+		context.gfx_context.map_of_names.insert_or_assign(file_name, new_gfx_id);
+
+		new_obj.number_of_frames = uint8_t(1);
+
+		if(auto itb = context.gfx_context.map_of_texture_names.find(file_name); itb != context.gfx_context.map_of_texture_names.end()) {
+			new_obj.primary_texture_handle = itb->second;
+		} else {
+			auto index = context.state.ui_defs.textures.size();
+			context.state.ui_defs.textures.emplace_back(context.state.add_to_pool(file_name));
+			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
+			context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+		}
+		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
+
+		context.state.world.technology_set_image(new_id, new_gfx_id);
+	}
+
 	gen.discard_group();
 }
 

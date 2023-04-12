@@ -7,6 +7,18 @@
 
 namespace nations {
 
+dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
+	uint16_t count = 0;
+	for(uint16_t i = 0; i < uint16_t(state.nations_by_rank.size()); ++i) {
+		if(is_great_power(state, state.nations_by_rank[i])) {
+			if(count == n)
+				return state.nations_by_rank[i];
+			++count;
+		}
+	}
+	return dcon::nation_id{};
+}
+
 // returns whether a culture is on the accepted list OR is the primary culture
 template<typename T, typename U>
 auto nation_accepts_culture(sys::state const& state, T ids, U cul_ids) {
@@ -60,6 +72,8 @@ auto occupied_provinces_fraction(sys::state const& state, T ids) {
 }
 
 void restore_unsaved_values(sys::state& state) {
+	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
+
 	state.world.for_each_gp_relationship([&](dcon::gp_relationship_id rel) {
 		if((influence::level_mask & state.world.gp_relationship_get_status(rel)) == influence::level_in_sphere) {
 			auto t = state.world.gp_relationship_get_influence_target(rel);
@@ -402,8 +416,8 @@ void update_ui_rankings(sys::state& state) {
 	}
 }
 
-bool is_great_power(sys::state const& state, dcon::nation_id n) {
-	return state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count);
+bool is_great_power(sys::state const& state, dcon::nation_id id) {
+	return state.world.nation_get_rank(id) <= uint16_t(state.defines.great_nations_count);
 }
 
 status get_status(sys::state& state, dcon::nation_id n) {
@@ -645,7 +659,7 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
 		dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
-		if(!state.world.decision_get_hide_notification(did)) {
+		if(n != state.local_player_nation || !state.world.decision_get_hide_notification(did)) {
 			auto lim = state.world.decision_get_potential(did);
 			if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
 				auto allow = state.world.decision_get_allow(did);
@@ -738,6 +752,14 @@ void update_monthly_points(sys::state& state) {
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
 	// TODO
+	return 0.0f;
+}
+
+float get_bank_funds(sys::state& state, dcon::nation_id n) {
+	return 0.0f;
+}
+
+float get_debt(sys::state& state, dcon::nation_id n) {
 	return 0.0f;
 }
 }

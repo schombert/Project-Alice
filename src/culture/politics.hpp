@@ -25,5 +25,7 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 bool can_enact_social_reform(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option);
 bool can_enact_military_reform(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option);
 bool can_enact_economic_reform(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option);
+float get_military_reform_multiplier(sys::state& state, dcon::nation_id nation);
+float get_economic_reform_multiplier(sys::state& state, dcon::nation_id nation);
 
 }

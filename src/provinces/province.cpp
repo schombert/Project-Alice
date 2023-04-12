@@ -252,8 +252,39 @@ bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
+	auto nation = state.world.province_get_nation_from_province_ownership(id);
+	float total_pops = state.world.province_get_demographics(id, demographics::total);
+
+
+	float life_rating = state.world.province_get_life_rating(id)
+						* (1 + state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::life_rating));
+	life_rating = std::clamp(life_rating, 0.f, 40.f);
+
+	if(life_rating > state.defines.min_life_rating_for_growth) {
+		life_rating -= state.defines.min_life_rating_for_growth;
+		life_rating *= state.defines.life_rating_growth_bonus;
+	} else {
+		life_rating = 0;
+	}
+
+	float growth_factor = life_rating + state.defines.base_popgrowth;
+
+	float life_needs = state.world.province_get_demographics(id, demographics::poor_everyday_needs)
+		+ state.world.province_get_demographics(id, demographics::middle_everyday_needs)
+		+ state.world.province_get_demographics(id, demographics::rich_everyday_needs);
+
+	life_needs /= total_pops;
+
+	
+
+	float growth_modifier_sum = ((life_needs - state.defines.life_need_starvation_limit) * growth_factor * 4
+		+ state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth)
+		+ state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::pop_growth) * 0.1f
+		); // /state.defines.slave_growth_divisor;
+
+	// TODO: slaves growth
+
+	return growth_modifier_sum * total_pops;
 }
 float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id) {
 	// TODO

@@ -160,6 +160,13 @@ namespace parsers {
 			err.accumulated_errors += "tried to parse  " + std::string(txt) + " as a rotation on line " + std::to_string(line) + " of file " + err.file_name + "\n";
 		}
 	}
+	void gui_element_common::maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
+		target.size.x = int16_t(v);
+	}
+	void gui_element_common::maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
+		target.size.y = int16_t(v);
+	}
+
 	button::button() {
 		target.data.button = ui::button_data{};
 		target.flags = uint8_t(ui::element_type::button);
@@ -453,12 +460,6 @@ namespace parsers {
 		if(v) {
 			target.data.text.flags |= ui::text_data::is_fixed_size_mask;
 		}
-	}
-	void textbox::maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
-		target.size.x = int16_t(v);
-	}
-	void textbox::maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
-		target.size.y = int16_t(v);
 	}
 	void textbox::font(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 		target.data.text.font_handle = text::name_into_font_id(context.full_state, txt);
