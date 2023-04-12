@@ -1448,6 +1448,67 @@ public:
 	}
 };
 
+class pop_issues_piechart : public piechart<dcon::issue_option_id>{
+protected:
+    std::unordered_map<uint16_t, float> get_distribution(sys::state& state) noexcept override {
+        std::unordered_map<uint16_t, float> distrib = {};
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if(parent) {
+            parent->impl_get(state, pop_id_payload);
+            if(pop_id_payload.holds_type<dcon::pop_id>()) {
+                auto pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+                dcon::pop_fat_id pfat_id = dcon::fatten(state.world, pop_id);
+                state.world.for_each_issue_option([&](dcon::issue_option_id issue_id) {
+                    auto ifat_id = dcon::fatten(state.world, issue_id);
+                    auto pop_size = pfat_id.get_size();
+                    auto weight =
+                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, issue_id)) /
+                            pop_size;
+                    distrib[uint16_t(issue_id.index())] = weight;
+                });
+            }
+        }
+        return distrib;
+    }
+public:
+    void on_create(sys::state &state) noexcept override{
+        base_data.size.x = 28;
+        base_data.size.y = 28;
+        base_data.position.x -= 13;
+        radius = 13;
+    }
+};
+
+class pop_ideology_piechart : public piechart<dcon::ideology_id>{
+protected:
+    std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {
+        std::unordered_map<uint8_t, float> distrib = {};
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if(parent) {
+            parent->impl_get(state, pop_id_payload);
+            if(pop_id_payload.holds_type<dcon::pop_id>()) {
+                auto pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+                dcon::pop_fat_id pfat_id = dcon::fatten(state.world, pop_id);
+                state.world.for_each_ideology([&](dcon::ideology_id ideo_id) {
+                    auto pop_size = pfat_id.get_size();
+                    auto weight =
+                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, ideo_id)) /
+                            pop_size;
+                    distrib[uint8_t(ideo_id.index())] = weight;
+                });
+            }
+        }
+        return distrib;
+    }
+public:
+    void on_create(sys::state &state) noexcept override{
+        base_data.size.x = 28;
+        base_data.size.y = 28;
+        base_data.position.x -= 13;
+        radius = 13;
+    }
+};
+
 class upper_house_piechart : public piechart<dcon::ideology_id> {
 protected:
 	std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {

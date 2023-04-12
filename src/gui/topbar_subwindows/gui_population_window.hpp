@@ -35,6 +35,8 @@ private:
     simple_text_element_base *location = nullptr;
     simple_text_element_base *mil = nullptr;
     simple_text_element_base *con = nullptr;
+    pop_ideology_piechart *ideology = nullptr;
+    pop_issues_piechart *issues = nullptr;
 
 public:
     void on_create(sys::state &state) noexcept override {
@@ -70,7 +72,15 @@ public:
             auto ptr = make_element_by_type<religion_type_icon>(state, id);
             religion = ptr.get();
             return ptr;
-        }  else {
+        } else if (name == "pop_ideology") {
+            auto ptr = make_element_by_type<pop_ideology_piechart>(state, id);
+            ideology = ptr.get();
+            return ptr;
+        } else if (name == "pop_issues") {
+            auto ptr = make_element_by_type<pop_issues_piechart>(state, id);
+            issues = ptr.get();
+            return ptr;
+        } else {
             return nullptr;
         }
     };
@@ -88,25 +98,26 @@ public:
         religion->impl_set(state, rpayload);
         religion->impl_on_update(state);
 
-
         size->set_text(state, std::to_string(int32_t(fat_id.get_size())));
         nation->set_text(state, text::produce_simple_string(state, cfat_id.get_name()));
         location->set_text(state, text::produce_simple_string(state, lcfat_id.get_name()));
         mil->set_text(state, text::format_float(fat_id.get_militancy()));
         con->set_text(state, text::format_float(fat_id.get_consciousness()));
+
+        ideology->impl_on_update(state); // Necessary so that piecharts will update as you scroll.
+        issues->impl_on_update(state);
     }
 
     message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-        if(payload.holds_type<dcon::nation_id>()) {
+        if(payload.holds_type<dcon::pop_id>()) {
             payload.emplace<dcon::pop_id>(content);
             return message_result::consumed;
-        } else if(payload.holds_type<button_press_notification>()) {
-            Cyto::Any new_payload = content;
-            return parent->impl_get(state, new_payload);
         } else {
             return listbox_row_element_base<dcon::pop_id>::get(state, payload);
         }
     }
+
+
 };
 
 class pop_legend_listbox : public listbox_element_base<pop_legend_info, dcon::pop_id>{
@@ -128,6 +139,9 @@ private:
                 dcon::pop_fat_id fat_id = dcon::fatten(state.world, id);
                 if(fat_id.get_pop_location().get_province().get_province_ownership().get_nation() == state.local_player_nation) {
                     country_pop_listbox->row_contents.push_back(id);
+
+                    Cyto::Any payload = id;
+                    country_pop_listbox->impl_set(state, payload);
                 }
             });
             std::sort(country_pop_listbox->row_contents.begin(), country_pop_listbox->row_contents.end(), [&](auto a, auto b) {
@@ -167,7 +181,7 @@ public:
                  name == "sortby_location_button")
         { return nullptr;
         } else if(name.substr(0, 4) == "sort") {
-            auto ptr = make_element_by_type<generic_image_checkbox_button<dcon::nation_id>>(state, id);
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
             return ptr;
         } else {
 			return nullptr;

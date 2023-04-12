@@ -355,7 +355,7 @@ public:
 };
 
 template<class TabT>
-class generic_image_checkbox_button : public checkbox_button {
+class generic_opaque_checkbox_button : public checkbox_button {
 public:
     bool is_active(sys::state& state) noexcept final {
         return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
@@ -388,7 +388,7 @@ public:
 };
 
 template<class T>
-class piechart : public piechart_element_base {
+    class piechart : public piechart_element_base {
 protected:
 	virtual std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept {
 		std::unordered_map<typename T::value_base_t, float> out{};
