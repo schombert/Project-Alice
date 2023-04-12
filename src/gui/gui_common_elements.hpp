@@ -902,6 +902,16 @@ public:
 };
 
 template<uint16_t Rank>
+class nation_player_investment_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
+		auto fat_id = dcon::fatten(state.world, uni_rel);
+		return text::prettify(fat_id.get_foreign_investment());
+	}
+};
+
+template<uint16_t Rank>
 class nation_gp_investment_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -1099,6 +1109,19 @@ public:
 			return text::produce_simple_string(state, get_level_str(status));
 		}
 		return "-";
+	}
+};
+
+class nation_industries_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		size_t num_factories = 0;
+		for(auto si : state.world.nation_get_state_ownership(nation_id))
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				for(auto f : state.world.province_get_factory_location(p))
+					++num_factories;
+			});
+		return std::to_string(num_factories);
 	}
 };
 
@@ -1474,6 +1497,14 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+};
+
+class nation_player_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, state.local_player_nation);
+		return fat_id.get_identity_from_identity_holder();
 	}
 };
 

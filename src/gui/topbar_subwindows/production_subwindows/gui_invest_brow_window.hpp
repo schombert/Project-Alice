@@ -29,6 +29,8 @@ public:
 			return ptr;
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+		} else if(name == "invest") {
+			return make_element_by_type<nation_player_investment_text>(state, id);
 		} else if(name == "country_gp0") {
 			return make_element_by_type<nation_gp_investment_text<0>>(state, id);
 		} else if(name == "country_gp1") {
@@ -59,6 +61,8 @@ public:
 			return make_element_by_type<nation_player_opinion_text>(state, id);
 		} else if(name == "country_relation") {
 			return make_element_by_type<nation_player_relations_text>(state, id);
+		} else if(name == "factories") {
+			return make_element_by_type<nation_industries_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -147,6 +151,8 @@ public:
 				return filter_mod_id;
 			})();
 			return ptr;
+		} else if(name == "sort_by_my_flag") {
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "sort_by_gpflag0") {
 			return make_element_by_type<nation_gp_flag<0>>(state, id);
 		} else if(name == "sort_by_gpflag1") {
