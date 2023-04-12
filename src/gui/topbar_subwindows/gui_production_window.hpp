@@ -58,7 +58,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
-		auto ptr = make_child(state, "goods_filter_template", dcon::gui_def_id(1380));
+		auto ptr = make_child(state, "goods_filter_template", state.ui_state.defs_by_name.find("goods_filter_template")->second.definition);
 		this->add_child_to_front(std::move(ptr));
 		set_visible(state, false);
 	}
