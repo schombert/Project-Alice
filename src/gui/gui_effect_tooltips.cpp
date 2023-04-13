@@ -17,6 +17,7 @@ enum effect_tp_flags {
     integer,
     modifier,
     modifier_no_duration,
+    fp_to_integer,
     payload_type_mask = 0x0F,
     // Display flags
     negative = 0x10,
@@ -77,7 +78,7 @@ enum effect_tp_flags {
     EFFECT_STATMENT(military_access_this_province, 0x0033, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(military_access_from_nation, 0x0034, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(military_access_from_province, 0x0035, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(badboy, 0x0036, effect_tp_flags::integer | effect_tp_flags::negative) \
+    EFFECT_STATMENT(badboy, 0x0036, effect_tp_flags::fp_to_integer | effect_tp_flags::negative) \
     EFFECT_STATMENT(secede_province, 0x0037, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(secede_province_this_nation, 0x0038, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(secede_province_this_state, 0x0039, effect_tp_flags::fp_two_places) \
@@ -190,10 +191,10 @@ enum effect_tp_flags {
     EFFECT_STATMENT(assimilate_pop, 0x00A4, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(literacy, 0x00A5, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(add_crisis_interest, 0x00A6, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(flashpoint_tension, 0x00A7, effect_tp_flags::fp_two_places) \
+    EFFECT_STATMENT(flashpoint_tension, 0x00A7, effect_tp_flags::fp_two_places | effect_tp_flags::negative) \
     EFFECT_STATMENT(add_crisis_temperature, 0x00A8, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(consciousness, 0x00A9, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(militancy, 0x00AA, effect_tp_flags::fp_two_places) \
+    EFFECT_STATMENT(consciousness, 0x00A9, effect_tp_flags::fp_two_places | effect_tp_flags::negative) \
+    EFFECT_STATMENT(militancy, 0x00AA, effect_tp_flags::fp_two_places | effect_tp_flags::negative) \
     EFFECT_STATMENT(rgo_size, 0x00AB, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(fort, 0x00AC, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(naval_base, 0x00AD, effect_tp_flags::fp_two_places) \
@@ -395,7 +396,7 @@ constexpr inline void(* effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
         auto sub_units_start = eval + 2 + effect::effect_scope_data_payload(eval[0]);
         while(sub_units_start < eval + source_size) {
             make_effect_description(state, layout, sub_units_start, primary_slot, this_slot, from_slot, indentation + 1);
-            sub_units_start += 1 + effect::get_effect_non_scope_payload_size(sub_units_start) + effect::get_effect_scope_payload_size(sub_units_start);
+            sub_units_start += 1 + effect::get_generic_effect_payload_size(sub_units_start);
         }
     }
 
@@ -413,12 +414,20 @@ constexpr inline void(* effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
         auto value_p = eval + 1; \
         /* if scope, skip [scope size] and the scope's associated payload */ \
         if((eval[0] & effect::is_scope) != 0) \
-            value_p += effect::get_effect_scope_payload_size(eval) + 1; \
+            value_p += effect::get_effect_scope_payload_size(eval) - effect::get_effect_non_scope_payload_size(eval) + 1; \
         text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, #x), text::text_color::white); \
         text::add_space_to_layout_box(layout, state, box); \
         /* Constants */ \
         if(effect::get_effect_non_scope_payload_size(eval) != 0) { \
             switch((f) & effect_tp_flags::payload_type_mask) { \
+            case effect_tp_flags::fp_to_integer: { \
+                auto v = int32_t(trigger::read_float_from_payload(value_p)); \
+                auto color = (f & effect_tp_flags::negative) \
+                    ? (v > 0 ? text::text_color::red : text::text_color::green) \
+                    : (v > 0 ? text::text_color::green : text::text_color::red); \
+                auto s = std::to_string(v); \
+                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
+            } break; \
             case effect_tp_flags::integer: { \
                 auto v = value_p[0];\
                 auto color = (f & effect_tp_flags::negative) \
@@ -443,6 +452,18 @@ constexpr inline void(* effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
                 auto s = text::format_float(v, 2); \
                 text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
             } break; \
+            /* modifier names */ \
+            case effect_tp_flags::modifier: { \
+                auto mid = dcon::modifier_id(value_p[0]); \
+                auto duration = value_p[1]; \
+                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, state.world.modifier_get_name(mid)), text::text_color::light_blue); \
+                text::add_space_to_layout_box(layout, state, box); \
+                text::add_to_layout_box(layout, state, box, std::to_string(duration), text::text_color::yellow); \
+            } break; \
+            case effect_tp_flags::modifier_no_duration: { \
+                auto mid = dcon::modifier_id(value_p[0]); \
+                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, state.world.modifier_get_name(mid)), text::text_color::light_blue); \
+            } break; \
             default: \
                 break; \
             } \
@@ -451,20 +472,10 @@ constexpr inline void(* effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
         /* Modifiers */ \
         if(effect::get_effect_non_scope_payload_size(eval) != 0) { \
             switch((f) & effect_tp_flags::payload_type_mask) { \
-            case effect_tp_flags::modifier: { \
-                auto mid = dcon::modifier_id(value_p[0]); \
-                auto duration = value_p[1]; \
-                box = text::open_layout_box(layout, indentation); \
-                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, state.world.modifier_get_name(mid)), text::text_color::light_blue); \
-                text::add_space_to_layout_box(layout, state, box); \
-                text::add_to_layout_box(layout, state, box, std::to_string(duration), text::text_color::yellow); \
-                text::close_layout_box(layout, box); \
-            } break; \
+            case effect_tp_flags::modifier: \
             case effect_tp_flags::modifier_no_duration: { \
                 auto mid = dcon::modifier_id(value_p[0]); \
-                box = text::open_layout_box(layout, indentation); \
-                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, state.world.modifier_get_name(mid)), text::text_color::light_blue); \
-                text::close_layout_box(layout, box); \
+                /* todo: modifier tooltip here */ \
             } break; \
             default: \
                 break; \
