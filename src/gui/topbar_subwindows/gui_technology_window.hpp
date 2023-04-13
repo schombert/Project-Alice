@@ -133,8 +133,36 @@ public:
 };
 
 class technology_item_button : public button_element_base {
+	dcon::technology_id technology_id{};
 public:
 	void button_action(sys::state& state) noexcept final;
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, technology_id);
+		auto name = fat_id.get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		auto mod_id = fat_id.get_modifier();
+		if(bool(mod_id)) {
+			modifier_description(state, contents, mod_id);
+		}
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::technology_id>()) {
+			technology_id = any_cast<dcon::technology_id>(payload);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
 };
 
 class technology_item_window : public window_element_base {
@@ -160,24 +188,6 @@ public:
 			tech_button->frame = 1;
 		} else {
 			tech_button->frame = 2;
-		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, tech_id);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
-		}
-		auto mod_id = fat_id.get_modifier();
-		if(bool(mod_id)) {
-			modifier_description(state, contents, mod_id);
 		}
 	}
 
