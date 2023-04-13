@@ -25,30 +25,19 @@ public:
 			return make_element_by_type<production_investment_country_select>(state, id);
 		} else if(name == "country_flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
+			ptr->base_data.position.y -= 2; // Nudge
 			country_flag = ptr.get();
 			return ptr;
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "invest") {
 			return make_element_by_type<nation_player_investment_text>(state, id);
-		} else if(name == "country_gp0") {
-			return make_element_by_type<nation_gp_investment_text<0>>(state, id);
-		} else if(name == "country_gp1") {
-			return make_element_by_type<nation_gp_investment_text<1>>(state, id);
-		} else if(name == "country_gp2") {
-			return make_element_by_type<nation_gp_investment_text<2>>(state, id);
-		} else if(name == "country_gp3") {
-			return make_element_by_type<nation_gp_investment_text<3>>(state, id);
-		} else if(name == "country_gp4") {
-			return make_element_by_type<nation_gp_investment_text<4>>(state, id);
-		} else if(name == "country_gp5") {
-			return make_element_by_type<nation_gp_investment_text<5>>(state, id);
-		} else if(name == "country_gp6") {
-			return make_element_by_type<nation_gp_investment_text<6>>(state, id);
-		} else if(name == "country_gp7") {
-			return make_element_by_type<nation_gp_investment_text<7>>(state, id);
+		} else if(name == "factories") {
+			return make_element_by_type<nation_industries_text>(state, id);
 		} else if(name == "country_boss_flag") {
-			return make_element_by_type<nation_overlord_flag>(state, id);
+			auto ptr = make_element_by_type<nation_overlord_flag>(state, id);
+			ptr->base_data.position.y -= 2; // Nudge
+			return ptr;
 		} else if(name == "country_prestige") {
 			return make_element_by_type<nation_prestige_rank_text>(state, id);
 		} else if(name == "country_economic") {
@@ -61,8 +50,10 @@ public:
 			return make_element_by_type<nation_player_opinion_text>(state, id);
 		} else if(name == "country_relation") {
 			return make_element_by_type<nation_player_relations_text>(state, id);
-		} else if(name == "factories") {
-			return make_element_by_type<nation_industries_text>(state, id);
+		} else if(name.substr(0, 10) == "country_gp") {
+			auto ptr = make_element_by_type<nation_gp_investment_text>(state, id);
+			ptr->rank = uint16_t(std::stoi(std::string{ name.substr(10) }));
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -151,27 +142,47 @@ public:
 				return filter_mod_id;
 			})();
 			return ptr;
-		} else if(name == "sort_by_my_flag") {
-			return make_element_by_type<nation_player_flag>(state, id);
-		} else if(name == "sort_by_gpflag0") {
-			return make_element_by_type<nation_gp_flag<0>>(state, id);
-		} else if(name == "sort_by_gpflag1") {
-			return make_element_by_type<nation_gp_flag<1>>(state, id);
-		} else if(name == "sort_by_gpflag2") {
-			return make_element_by_type<nation_gp_flag<2>>(state, id);
-		} else if(name == "sort_by_gpflag3") {
-			return make_element_by_type<nation_gp_flag<3>>(state, id);
-		} else if(name == "sort_by_gpflag4") {
-			return make_element_by_type<nation_gp_flag<4>>(state, id);
-		} else if(name == "sort_by_gpflag5") {
-			return make_element_by_type<nation_gp_flag<5>>(state, id);
-		} else if(name == "sort_by_gpflag6") {
-			return make_element_by_type<nation_gp_flag<6>>(state, id);
-		} else if(name == "sort_by_gpflag7") {
-			return make_element_by_type<nation_gp_flag<7>>(state, id);
 		} else if(name == "country_listbox") {
 			auto ptr = make_element_by_type<production_country_listbox>(state, id);
+			ptr->base_data.position.x -= 8 + 5; // Nudge
 			country_listbox = ptr.get();
+			return ptr;
+		} else if(name == "sort_by_my_flag") {
+			auto ptr = make_element_by_type<nation_player_flag>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_boss") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_prestige") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_economic") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_military") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_total") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_relation") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_invest_factories") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name.substr(0, 14) == "sort_by_gpflag") {
+			auto ptr = make_element_by_type<nation_gp_flag>(state, id);
+			ptr->rank = uint16_t(std::stoi(std::string{ name.substr(14) }));
+			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name.substr(0, 10) == "sort_by_gp") {
 			auto gp_nth = std::stoi(std::string{ name.substr(10) });

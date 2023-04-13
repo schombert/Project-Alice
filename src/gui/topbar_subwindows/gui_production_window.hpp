@@ -169,8 +169,8 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	production_state_listbox* state_listbox = nullptr;
 
 	sys::commodity_group curr_commodity_group{};
-	xy_pair base_commodity_offset{ 33, 65 };
-	xy_pair commodity_offset{ 33, 65 };
+	xy_pair base_commodity_offset{ 33, 50 };
+	xy_pair commodity_offset{ 33, 50 };
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);

@@ -290,14 +290,68 @@ public:
         } else if (name == "external_scroll_slider") {
             auto ptr = make_element_by_type<opaque_element_base>(state, id);
             return ptr;
-        } else if(name == "sortby_size_button" ||
-                 name == "sortby_type_button" ||
-                 name == "sortby_nationality_button" ||
-                 name == "sortby_religion_button" ||
-                 name == "sortby_location_button")
-        { return nullptr;
-        } else if(name.substr(0, 4) == "sort") {
+        } else if (name == "sortby_size_button") {
+            auto ptr = make_element_by_type<button_element_base>(state, id);
+            return ptr;
+        } else if (name == "sortby_type_button") {
+            auto ptr = make_element_by_type<button_element_base>(state, id);
+            return ptr;
+        } else if (name == "sortby_nationality_button") {
+            auto ptr = make_element_by_type<button_element_base>(state, id);
+            return ptr;
+        } else if (name == "sortby_religion_button") {
+            auto ptr = make_element_by_type<button_element_base>(state, id);
+            return ptr;
+        } else if (name == "sortby_location_button") {
+            auto ptr = make_element_by_type<button_element_base>(state, id);
+            return ptr;
+        } else if (name == "sortby_mil_button") {
             auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_con_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_ideology_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_issues_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_unemployment_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_cash_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_subsistence_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_eve_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_luxury_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_revoltrisk_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_change_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
+            return ptr;
+        } else if (name == "sortby_literacy_button") {
+            auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+            ptr->base_data.position.y -= 1; // Nudge
             return ptr;
         } else {
 			return nullptr;

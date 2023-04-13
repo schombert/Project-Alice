@@ -139,28 +139,30 @@ public:
 
 class technology_item_window : public window_element_base {
 	simple_text_element_base* tech_name = nullptr;
+	technology_item_button* tech_button = nullptr;
 	culture::tech_category category;
 public:
 	dcon::technology_id tech_id;
 
-	void set_technology(sys::state& state, dcon::technology_id id) {
-		tech_id = id;
-
-		auto tech = dcon::fatten(state.world, tech_id);
-		category = state.culture_definitions.tech_folders[tech.get_folder_index()].category;
-		auto name = text::produce_simple_string(state, tech.get_name());
-		tech_name->set_text(state, name);
-	}
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "start_research") {
-			return make_element_by_type<technology_item_button>(state, id);
+			auto ptr = make_element_by_type<technology_item_button>(state, id);
+			tech_button = ptr.get();
+			return ptr;
 		} else if(name == "tech_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			tech_name = ptr.get();
 			return ptr;
 		} else {
 			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
+			tech_button->frame = 1;
+		} else {
+			tech_button->frame = 2;
 		}
 	}
 
@@ -211,12 +213,39 @@ public:
 		if(payload.holds_type<dcon::technology_id>()) {
 			auto tech_id = any_cast<dcon::technology_id>(payload);
 			auto tech = dcon::fatten(state.world, tech_id);
-
 			auto name = text::produce_simple_string(state, tech.get_name());
 			tech_name->set_text(state, name);
 			tech_year->set_text(state, std::to_string(tech.get_year()));
 			tech_research_points->set_text(state, std::to_string(tech.get_cost()));
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
 
+class technology_tech_group_window : public window_element_base {
+	simple_text_element_base* group_name = nullptr;
+public:
+	culture::tech_category category{};
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "group_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			group_name = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<culture::folder_info>()) {
+			auto folder = any_cast<culture::folder_info>(payload);
+			group_name->set_text(state, text::produce_simple_string(state, folder.name));
+			return message_result::consumed;
+		} else if(payload.holds_type<culture::tech_category>()) {
+			auto enum_val = any_cast<culture::tech_category>(payload);
+			set_visible(state, category == enum_val);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -266,21 +295,42 @@ public:
 			cat != culture::tech_category::count;
 			cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1))
 		{
+			// Add tech group names
+			int16_t group_count = 0;
+			for(const auto& folder : state.culture_definitions.tech_folders) {
+				if(folder.category != cat)
+					continue;
+				
+				auto ptr = make_element_by_type<technology_tech_group_window>(state, state.ui_state.defs_by_name.find("tech_group")->second.definition);
+
+				ptr->category = cat;
+				Cyto::Any payload = culture::folder_info(folder);
+				ptr->impl_set(state, payload);
+
+				ptr->base_data.position.x = static_cast<int16_t>(28 + (group_count * ptr->base_data.size.x));
+				ptr->base_data.position.y = 109;
+				++group_count;
+				add_child_to_front(std::move(ptr));
+			}
+
+			// Add technologies
 			state.world.for_each_technology([&](dcon::technology_id tech_id) {
 				auto tech = dcon::fatten(state.world, tech_id);
 				size_t folder_id = static_cast<size_t>(tech.get_folder_index());
 				const auto& folder = state.culture_definitions.tech_folders[folder_id];
-				if(folder.category == cat) {
-					auto ptr = make_element_by_type<technology_item_window>(state, state.ui_state.defs_by_name.find("tech_window")->second.definition);
-					ptr->set_technology(state, tech_id);
+				if(folder.category != cat)
+					return;
+				
+				auto ptr = make_element_by_type<technology_item_window>(state, state.ui_state.defs_by_name.find("tech_window")->second.definition);
 
-					ptr->base_data.position.x = static_cast<int16_t>(28 + (folder_x_offset[folder_id] * ptr->base_data.size.x));
-					// 16px spacing between tech items, 109+16 base offset
-					ptr->base_data.position.y = static_cast<int16_t>(109 + 16 + (items_per_folder[folder_id] * ptr->base_data.size.y));
-					items_per_folder[folder_id]++;
+				Cyto::Any payload = tech_id;
+				ptr->impl_set(state, payload);
 
-					add_child_to_front(std::move(ptr));
-				}
+				ptr->base_data.position.x = static_cast<int16_t>(28 + (folder_x_offset[folder_id] * ptr->base_data.size.x));
+				// 16px spacing between tech items, 109+16 base offset
+				ptr->base_data.position.y = static_cast<int16_t>(109 + 16 + (items_per_folder[folder_id] * ptr->base_data.size.y));
+				items_per_folder[folder_id]++;
+				add_child_to_front(std::move(ptr));
 			});
 		}
 
@@ -308,6 +358,14 @@ public:
 		} else if(name == "selected_tech_window") {
 			auto ptr = make_element_by_type<technology_selected_tech_window>(state, id);
 			selected_tech_win = ptr.get();
+			return ptr;
+		} else if(name == "sort_by_type") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_percent") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else {
 			return nullptr;

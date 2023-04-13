@@ -21,7 +21,13 @@ void technology_item_button::button_action(sys::state& state) noexcept {
 }
 
 message_result technology_item_window::set(sys::state& state, Cyto::Any& payload) noexcept {
-    if(payload.holds_type<culture::tech_category>()) {
+	if(payload.holds_type<dcon::technology_id>()) {
+    	tech_id = any_cast<dcon::technology_id>(payload);
+		auto tech = dcon::fatten(state.world, tech_id);
+		category = state.culture_definitions.tech_folders[tech.get_folder_index()].category;
+		auto name = text::produce_simple_string(state, tech.get_name());
+		tech_name->set_text(state, name);
+    } else if(payload.holds_type<culture::tech_category>()) {
         auto enum_val = any_cast<culture::tech_category>(payload);
         set_visible(state, category == enum_val);
         return message_result::consumed;

@@ -1020,11 +1020,11 @@ public:
 	}
 };
 
-template<uint16_t Rank>
 class nation_gp_opinion_text : public standard_nation_text {
 public:
+	uint16_t rank = 0;
 	std::string get_text(sys::state& state) noexcept override {
-		const auto great_power_id = nations::get_nth_great_power(state, Rank);
+		const auto great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
 			return "-";
 		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
@@ -1043,11 +1043,11 @@ public:
 	}
 };
 
-template<uint16_t Rank>
 class nation_gp_investment_text : public standard_nation_text {
 public:
+	uint16_t rank = 0;
 	std::string get_text(sys::state& state) noexcept override {
-		const auto great_power_id = nations::get_nth_great_power(state, Rank);
+		const auto great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
 			return "-";
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
@@ -1670,11 +1670,12 @@ public:
 	}
 };
 
-template<uint16_t Rank>
 class nation_gp_flag : public flag_button {
 public:
+	uint16_t rank = 0;
+	
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		const auto nat_id = nations::get_nth_great_power(state, Rank);
+		const auto nat_id = nations::get_nth_great_power(state, rank);
 		if(!bool(nat_id))
 			return dcon::national_identity_id{};
 		auto fat_id = dcon::fatten(state.world, nat_id);
