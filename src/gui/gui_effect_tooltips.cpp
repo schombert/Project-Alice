@@ -139,8 +139,8 @@ enum effect_tp_flags {
     EFFECT_STATMENT(enable_ideology, 0x0070, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(ruling_party_ideology, 0x0071, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(plurality, 0x0072, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(remove_province_modifier, 0x0073, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(remove_country_modifier, 0x0074, effect_tp_flags::fp_two_places) \
+    EFFECT_STATMENT(remove_province_modifier, 0x0073, effect_tp_flags::modifier) \
+    EFFECT_STATMENT(remove_country_modifier, 0x0074, effect_tp_flags::modifier) \
     EFFECT_STATMENT(create_alliance, 0x0075, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(create_alliance_this_nation, 0x0076, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(create_alliance_this_province, 0x0077, effect_tp_flags::fp_two_places) \
@@ -306,8 +306,8 @@ enum effect_tp_flags {
     EFFECT_STATMENT(variable_good_name, 0x0115, effect_tp_flags::fp_two_places) \
 /* misplaced */ \
     EFFECT_STATMENT(set_country_flag_province, 0x0116, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(add_country_modifier_province, 0x0117, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(add_country_modifier_province_no_duration, 0x0118, effect_tp_flags::fp_two_places) \
+    EFFECT_STATMENT(add_country_modifier_province, 0x0117, effect_tp_flags::modifier) \
+    EFFECT_STATMENT(add_country_modifier_province_no_duration, 0x0118, effect_tp_flags::modifier_no_duration) \
     EFFECT_STATMENT(dominant_issue_nation, 0x0119, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(relation_province, 0x011A, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(relation_province_this_nation, 0x011B, effect_tp_flags::fp_two_places) \
@@ -375,115 +375,148 @@ constexpr inline void(* effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 #undef EFFECT_STATMENT
 };
 
-    void display_subeffects(EFFECT_DISPLAY_PARAMS);
+inline constexpr int32_t indentation_amount = 15;
 
-    void make_effect_description(EFFECT_DISPLAY_PARAMS) {
-        if((*eval & effect::code_mask) >= sizeof(effect_functions) / sizeof(effect_functions[0])) {
-            auto box = text::open_layout_box(layout, indentation);
-            text::add_to_layout_box(layout, state, box, std::string{"OUT_OF_BOUNDS"}, text::text_color::light_blue);
-            text::close_layout_box(layout, box);
-            display_subeffects(state, layout, eval, primary_slot, this_slot, from_slot, indentation);
-            return;
-        }
-        effect_tooltip::effect_functions[*eval & effect::code_mask](state, layout, eval, primary_slot, this_slot, from_slot, 0);
-    }
+void display_subeffects(EFFECT_DISPLAY_PARAMS);
 
-    void display_subeffects(EFFECT_DISPLAY_PARAMS) {
-        if((eval[0] & effect::is_scope) == 0)
-            return;
-        const auto source_size = 1 + effect::get_generic_effect_payload_size(eval);
-        // [code+scope] [payload size] [...]
-        auto sub_units_start = eval + 2 + effect::effect_scope_data_payload(eval[0]);
-        while(sub_units_start < eval + source_size) {
-            make_effect_description(state, layout, sub_units_start, primary_slot, this_slot, from_slot, indentation + 1);
-            sub_units_start += 1 + effect::get_generic_effect_payload_size(sub_units_start);
-        }
-    }
-
-    void ef_none(EFFECT_DISPLAY_PARAMS) {
+void make_effect_description(EFFECT_DISPLAY_PARAMS) {
+    if((*eval & effect::code_mask) >= sizeof(effect_functions) / sizeof(effect_functions[0])) {
+        auto box = text::open_layout_box(layout, indentation);
+        text::add_to_layout_box(layout, state, box, std::string{"OUT_OF_BOUNDS"}, text::text_color::light_blue);
+        text::close_layout_box(layout, box);
         display_subeffects(state, layout, eval, primary_slot, this_slot, from_slot, indentation);
+        return;
     }
+    effect_tooltip::effect_functions[*eval & effect::code_mask](state, layout, eval, primary_slot, this_slot, from_slot, 0);
+}
+
+void display_subeffects(EFFECT_DISPLAY_PARAMS) {
+    if((eval[0] & effect::is_scope) == 0)
+        return;
+    const auto source_size = 1 + effect::get_generic_effect_payload_size(eval);
+    // [code+scope] [payload size] [...]
+    auto sub_units_start = eval + 2 + effect::effect_scope_data_payload(eval[0]);
+    while(sub_units_start < eval + source_size) {
+        make_effect_description(state, layout, sub_units_start, primary_slot, this_slot, from_slot, indentation + indentation_amount);
+        sub_units_start += 1 + effect::get_generic_effect_payload_size(sub_units_start);
+    }
+}
+
+void ef_none(EFFECT_DISPLAY_PARAMS) {
+    display_subeffects(state, layout, eval, primary_slot, this_slot, from_slot, indentation);
+}
 
 #define EFFECT_STATMENT(x, n, f) \
-    void ef_##x (EFFECT_DISPLAY_PARAMS) { \
-        auto box = text::open_layout_box(layout, indentation); \
-        /* value_p points to the value corresponding to this statment, \
-           for example if militancy is a scope, with 4 cells after it, \
-           value_p will point to [base + 4] so we can properly retrieve the \
-           value for display. */ \
-        auto value_p = eval + 1; \
-        /* if scope, skip [scope size] and the scope's associated payload */ \
-        if((eval[0] & effect::is_scope) != 0) \
-            value_p += effect::get_effect_scope_payload_size(eval) - effect::get_effect_non_scope_payload_size(eval) + 1; \
+void ef_##x (EFFECT_DISPLAY_PARAMS) { \
+    auto box = text::open_layout_box(layout, indentation); \
+    /* value_p points to the value corresponding to this statment, \
+        for example if militancy is a scope, with 4 cells after it, \
+        value_p will point to [base + 4] so we can properly retrieve the \
+        value for display. */ \
+    auto value_p = eval + 1; \
+    /* if scope, skip [scope size] and the scope's associated payload */ \
+    if(eval[0] & effect::is_scope) { \
+        value_p += effect::get_effect_scope_payload_size(eval) - effect::get_effect_non_scope_payload_size(eval) + 1; \
+        switch(eval[0]) { \
+        case effect::tag_scope: \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, "tag_scope"), text::text_color::white); \
+            break; \
+        case effect::integer_scope: \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, "integer_scope"), text::text_color::white); \
+            break; \
+        case effect::pop_type_scope_nation: \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, "pop_type_scope_nation"), text::text_color::white); \
+            break; \
+        case effect::pop_type_scope_state: \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, "pop_type_scope_state"), text::text_color::white); \
+            break; \
+        case effect::pop_type_scope_province: \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, "pop_type_scope_province"), text::text_color::white); \
+            break; \
+        case effect::region_scope: \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, "region_scope"), text::text_color::white); \
+            break; \
+        default: \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, #x), text::text_color::white); \
+            break; \
+        } \
+    } else { \
         text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, #x), text::text_color::white); \
+    } \
+    text::add_space_to_layout_box(layout, state, box); \
+    /* Constants */ \
+    if(effect::get_effect_non_scope_payload_size(eval) != 0) { \
+        switch((f) & effect_tp_flags::payload_type_mask) { \
+        case effect_tp_flags::fp_to_integer: { \
+            auto v = int32_t(trigger::read_float_from_payload(value_p)); \
+            auto color = (f & effect_tp_flags::negative) \
+                ? (v > 0 ? text::text_color::red : text::text_color::green) \
+                : (v > 0 ? text::text_color::green : text::text_color::red); \
+            auto s = std::to_string(v); \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
+        } break; \
+        case effect_tp_flags::integer: { \
+            auto v = value_p[0];\
+            auto color = (f & effect_tp_flags::negative) \
+                ? (v > 0 ? text::text_color::red : text::text_color::green) \
+                : (v > 0 ? text::text_color::green : text::text_color::red); \
+            auto s = std::to_string(v); \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
+        } break; \
+        case effect_tp_flags::fp_one_place: { \
+            auto v = trigger::read_float_from_payload(value_p); \
+            auto color = (f & effect_tp_flags::negative) \
+                ? (v > 0.f ? text::text_color::red : text::text_color::green) \
+                : (v > 0.f ? text::text_color::green : text::text_color::red); \
+            auto s = text::format_float(v, 1); \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
+        } break; \
+        case effect_tp_flags::fp_two_places: { \
+            auto v = trigger::read_float_from_payload(value_p); \
+            auto color = (f & effect_tp_flags::negative) \
+                ? (v > 0.f ? text::text_color::red : text::text_color::green) \
+                : (v > 0.f ? text::text_color::green : text::text_color::red); \
+            auto s = text::format_float(v, 2); \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
+        } break; \
+        /* modifier names */ \
+        case effect_tp_flags::modifier: { \
+            auto mid = dcon::modifier_id(value_p[0] - 1); \
+            auto duration = value_p[1]; \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, state.world.modifier_get_name(mid)), text::text_color::light_blue); \
+            text::add_space_to_layout_box(layout, state, box); \
+            text::add_to_layout_box(layout, state, box, std::to_string(duration), text::text_color::yellow); \
+        } break; \
+        case effect_tp_flags::modifier_no_duration: { \
+            auto mid = dcon::modifier_id(value_p[0] - 1); \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, state.world.modifier_get_name(mid)), text::text_color::light_blue); \
+        } break; \
+        default: \
+            break; \
+        } \
+    } \
+    /*text::add_to_layout_box(layout, state, box, std::string{"("}, text::text_color::yellow); \
+    for(int32_t i = 0; i < effect::get_effect_non_scope_payload_size(eval); i++) { \
+        text::add_to_layout_box(layout, state, box, std::to_string(eval[i]), text::text_color::yellow); \
         text::add_space_to_layout_box(layout, state, box); \
-        /* Constants */ \
-        if(effect::get_effect_non_scope_payload_size(eval) != 0) { \
-            switch((f) & effect_tp_flags::payload_type_mask) { \
-            case effect_tp_flags::fp_to_integer: { \
-                auto v = int32_t(trigger::read_float_from_payload(value_p)); \
-                auto color = (f & effect_tp_flags::negative) \
-                    ? (v > 0 ? text::text_color::red : text::text_color::green) \
-                    : (v > 0 ? text::text_color::green : text::text_color::red); \
-                auto s = std::to_string(v); \
-                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
-            } break; \
-            case effect_tp_flags::integer: { \
-                auto v = value_p[0];\
-                auto color = (f & effect_tp_flags::negative) \
-                    ? (v > 0 ? text::text_color::red : text::text_color::green) \
-                    : (v > 0 ? text::text_color::green : text::text_color::red); \
-                auto s = std::to_string(v); \
-                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
-            } break; \
-            case effect_tp_flags::fp_one_place: { \
-                auto v = trigger::read_float_from_payload(value_p); \
-                auto color = (f & effect_tp_flags::negative) \
-                    ? (v > 0.f ? text::text_color::red : text::text_color::green) \
-                    : (v > 0.f ? text::text_color::green : text::text_color::red); \
-                auto s = text::format_float(v, 1); \
-                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
-            } break; \
-            case effect_tp_flags::fp_two_places: { \
-                auto v = trigger::read_float_from_payload(value_p); \
-                auto color = (f & effect_tp_flags::negative) \
-                    ? (v > 0.f ? text::text_color::red : text::text_color::green) \
-                    : (v > 0.f ? text::text_color::green : text::text_color::red); \
-                auto s = text::format_float(v, 2); \
-                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
-            } break; \
-            /* modifier names */ \
-            case effect_tp_flags::modifier: { \
-                auto mid = dcon::modifier_id(value_p[0]); \
-                auto duration = value_p[1]; \
-                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, state.world.modifier_get_name(mid)), text::text_color::light_blue); \
-                text::add_space_to_layout_box(layout, state, box); \
-                text::add_to_layout_box(layout, state, box, std::to_string(duration), text::text_color::yellow); \
-            } break; \
-            case effect_tp_flags::modifier_no_duration: { \
-                auto mid = dcon::modifier_id(value_p[0]); \
-                text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, state.world.modifier_get_name(mid)), text::text_color::light_blue); \
-            } break; \
-            default: \
-                break; \
-            } \
+    }*/ \
+    text::add_to_layout_box(layout, state, box, std::string{")"}, text::text_color::yellow); \
+    text::close_layout_box(layout, box); \
+    /* Modifiers */ \
+    if(effect::get_effect_non_scope_payload_size(eval) != 0) { \
+        switch((f) & effect_tp_flags::payload_type_mask) { \
+        case effect_tp_flags::modifier: \
+        case effect_tp_flags::modifier_no_duration: { \
+            auto mid = dcon::modifier_id(value_p[0] - 1); \
+            modifier_description(state, layout, mid); \
+        } break; \
+        default: \
+            break; \
         } \
-        text::close_layout_box(layout, box); \
-        /* Modifiers */ \
-        if(effect::get_effect_non_scope_payload_size(eval) != 0) { \
-            switch((f) & effect_tp_flags::payload_type_mask) { \
-            case effect_tp_flags::modifier: \
-            case effect_tp_flags::modifier_no_duration: { \
-                auto mid = dcon::modifier_id(value_p[0]); \
-                /* todo: modifier tooltip here */ \
-            } break; \
-            default: \
-                break; \
-            } \
-        } \
-        display_subeffects(state, layout, eval, primary_slot, this_slot, from_slot, indentation); \
-    }
-    EFFECT_STATMENTS
+    } \
+    display_subeffects(state, layout, eval, primary_slot, this_slot, from_slot, indentation); \
+}
+EFFECT_STATMENTS
 #undef EFFECT_STATMENT
 
 #undef EFFECT_STATMENTS
