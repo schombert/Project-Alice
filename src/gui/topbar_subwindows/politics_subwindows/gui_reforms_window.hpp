@@ -50,9 +50,9 @@ public:
 			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
-		auto mid = fat_id.get_modifier();
-		if(bool(mid)) {
-			modifier_description(state, contents, mid);
+		auto mod_id = fat_id.get_modifier();
+		if(bool(mod_id)) {
+			modifier_description(state, contents, mod_id);
 		}
 	}
 };
