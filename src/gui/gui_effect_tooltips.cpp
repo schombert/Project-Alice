@@ -499,8 +499,8 @@ void ef_##x (EFFECT_DISPLAY_PARAMS) { \
     for(int32_t i = 0; i < effect::get_effect_non_scope_payload_size(eval); i++) { \
         text::add_to_layout_box(layout, state, box, std::to_string(eval[i]), text::text_color::yellow); \
         text::add_space_to_layout_box(layout, state, box); \
-    }*/ \
-    text::add_to_layout_box(layout, state, box, std::string{")"}, text::text_color::yellow); \
+    } \
+    text::add_to_layout_box(layout, state, box, std::string{")"}, text::text_color::yellow);*/ \
     text::close_layout_box(layout, box); \
     /* Modifiers */ \
     if(effect::get_effect_non_scope_payload_size(eval) != 0) { \
