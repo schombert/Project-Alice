@@ -18,6 +18,7 @@ enum effect_tp_flags {
     modifier,
     modifier_no_duration,
     fp_to_integer,
+    percent,
     payload_type_mask = 0x0F,
     // Display flags
     negative = 0x10,
@@ -274,22 +275,22 @@ enum effect_tp_flags {
     EFFECT_STATMENT(change_variable, 0x00F6, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(ideology, 0x00F7, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(upper_house, 0x00F8, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(scaled_militancy_issue, 0x00F9, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(scaled_militancy_ideology, 0x00FA, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(scaled_militancy_unemployment, 0x00FB, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(scaled_consciousness_issue, 0x00FC, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(scaled_consciousness_ideology, 0x00FD, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(scaled_consciousness_unemployment, 0x00FE, effect_tp_flags::fp_two_places) \
+    EFFECT_STATMENT(scaled_militancy_issue, 0x00F9, effect_tp_flags::percent) \
+    EFFECT_STATMENT(scaled_militancy_ideology, 0x00FA, effect_tp_flags::percent) \
+    EFFECT_STATMENT(scaled_militancy_unemployment, 0x00FB, effect_tp_flags::percent) \
+    EFFECT_STATMENT(scaled_consciousness_issue, 0x00FC, effect_tp_flags::percent) \
+    EFFECT_STATMENT(scaled_consciousness_ideology, 0x00FD, effect_tp_flags::percent) \
+    EFFECT_STATMENT(scaled_consciousness_unemployment, 0x00FE, effect_tp_flags::percent) \
     EFFECT_STATMENT(define_general, 0x00FF, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(define_admiral, 0x0100, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(dominant_issue, 0x0101, effect_tp_flags::fp_two_places) \
+    EFFECT_STATMENT(dominant_issue, 0x0101, effect_tp_flags::percent) \
     EFFECT_STATMENT(add_war_goal, 0x0102, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(move_issue_percentage_nation, 0x0103, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(move_issue_percentage_state, 0x0104, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(move_issue_percentage_province, 0x0105, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(move_issue_percentage_pop, 0x0106, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(party_loyalty, 0x0107, effect_tp_flags::fp_two_places) \
-    EFFECT_STATMENT(party_loyalty_province, 0x0108, effect_tp_flags::fp_two_places) \
+    EFFECT_STATMENT(move_issue_percentage_nation, 0x0103, effect_tp_flags::percent) \
+    EFFECT_STATMENT(move_issue_percentage_state, 0x0104, effect_tp_flags::percent) \
+    EFFECT_STATMENT(move_issue_percentage_province, 0x0105, effect_tp_flags::percent) \
+    EFFECT_STATMENT(move_issue_percentage_pop, 0x0106, effect_tp_flags::percent) \
+    EFFECT_STATMENT(party_loyalty, 0x0107, effect_tp_flags::percent) \
+    EFFECT_STATMENT(party_loyalty_province, 0x0108, effect_tp_flags::percent) \
     EFFECT_STATMENT(variable_tech_name_no, 0x0109, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(variable_invention_name_yes, 0x010A, effect_tp_flags::fp_two_places) \
     EFFECT_STATMENT(build_railway_in_capital_yes_whole_state_yes_limit, 0x010B, effect_tp_flags::fp_two_places) \
@@ -453,6 +454,14 @@ void ef_##x (EFFECT_DISPLAY_PARAMS) { \
                 ? (v > 0 ? text::text_color::red : text::text_color::green) \
                 : (v > 0 ? text::text_color::green : text::text_color::red); \
             auto s = std::to_string(v); \
+            text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
+        } break; \
+        case effect_tp_flags::percent: { \
+            auto v = trigger::read_float_from_payload(value_p); \
+            auto color = (f & effect_tp_flags::negative) \
+                ? (v > 0.f ? text::text_color::red : text::text_color::green) \
+                : (v > 0.f ? text::text_color::green : text::text_color::red); \
+            auto s = text::format_percentage(v, 1); \
             text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, s), color); \
         } break; \
         case effect_tp_flags::integer: { \
