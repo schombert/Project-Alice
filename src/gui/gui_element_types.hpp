@@ -359,8 +359,6 @@ public:
 		}
 	}
 
-    void on_create(sys::state& state) noexcept final {};
-
 	TabT target = TabT();
 };
 

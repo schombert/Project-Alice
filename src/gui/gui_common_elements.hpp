@@ -109,6 +109,20 @@ public:
 	}
 };
 
+class state_factory_count_text : public standard_state_instance_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		uint8_t count = 0;
+		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {
+			auto fat_id = dcon::fatten(state.world, pid);
+			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+				++count;
+			});
+		});
+		return std::to_string(count);
+	}
+};
+
 class state_admin_efficiency_text : public standard_state_instance_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -205,8 +219,6 @@ public:
 			text::close_layout_box(contents, box);
 		}
 	}
-
-
 };
 
 class standard_province_icon : public opaque_element_base {
@@ -563,7 +575,6 @@ public:
 };
 
 class province_population_text : public standard_province_text {
-
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
@@ -1912,6 +1923,54 @@ protected:
 			}
 		}
 		return distrib;
+	}
+};
+
+class commodity_factory_image : public image_element_base {
+	dcon::commodity_id commodity_id{};
+public:
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			commodity_id = any_cast<dcon::commodity_id>(payload);
+			frame = static_cast<int32_t>(commodity_id.index());
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+class commodity_cost_text : public simple_text_element_base {
+	dcon::commodity_id commodity_id{};
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::prettify(state.world.commodity_get_cost(commodity_id)));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			commodity_id = any_cast<dcon::commodity_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+class commodity_national_player_stockpile_text : public simple_text_element_base {
+	dcon::commodity_id commodity_id{};
+public:
+	void on_update(sys::state& state) noexcept override {
+		float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
+		set_text(state, text::format_float(stockpile, 2));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			commodity_id = any_cast<dcon::commodity_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 

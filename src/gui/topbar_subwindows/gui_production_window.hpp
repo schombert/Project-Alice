@@ -17,22 +17,91 @@ enum class production_window_tab : uint8_t {
 	goods = 0x3
 };
 
-class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
+class production_factory_info : public window_element_base {
+	image_element_base* in_progress_bg = nullptr;
 public:
+	dcon::state_instance_id state_id{};
+	uint8_t index = 0; // from 0 to 8
+
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		set_visible(state, false);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		std::vector<dcon::factory_id> factories{};
+		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {
+			auto fat_id = dcon::fatten(state.world, pid);
+			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+				factories.push_back(state.world.factory_location_get_factory(flid));
+			});
+		});
+
+		if(index >= factories.size()) {
+			set_visible(state, false);
+		} else {
+			set_visible(state, true);
+		}
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "prod_factory_inprogress_bg") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			in_progress_bg = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::state_instance_id>()) {
+			state_id = any_cast<dcon::state_instance_id>(payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
+	uint8_t factory_index = 0;
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base::on_create(state);
+		// Create factory slots for each of the provinces
+		for(factory_index = 0; factory_index < 8; ++factory_index) {
+			auto ptr = make_child(state, "factory_info", state.ui_state.defs_by_name.find("factory_info")->second.definition);
+			add_child_to_front(std::move(ptr));
+		}
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_focus") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "state_name") {
 			return make_element_by_type<state_name_text>(state, id);
 		} else if(name == "factory_count") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<state_factory_count_text>(state, id);
 		} else if(name == "build_new_factory") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "avg_infra_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "factory_info") {
+			auto ptr = make_element_by_type<production_factory_info>(state, id);
+			ptr->index = factory_index;
+			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
+			return ptr;
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::state_instance_id>()) {
+			impl_set(state, payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
@@ -42,23 +111,13 @@ protected:
         return "state_info";
     }
 public:
-	void on_create(sys::state& state) noexcept override {
-		// Clear "center" property of object...
-		state.ui_defs.gui[state.ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~element_data::orientation_mask;
-		listbox_element_base::on_create(state);
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_state_instance([&](dcon::state_instance_id id) {
-			auto nation_id = state.world.state_instance_get_nation_from_state_ownership(id);
-			if(state.local_player_nation == nation_id)
-				row_contents.push_back(id);
-		});
+		for(const auto fat_id : state.world.nation_get_state_ownership(state.local_player_nation))
+			row_contents.push_back(fat_id.get_state());
 		update(state);
 	}
 };
-
 
 class production_goods_category_name : public window_element_base {
 	simple_text_element_base* goods_cat_name = nullptr;
@@ -109,19 +168,6 @@ public:
 		if(payload.holds_type<dcon::commodity_id>()) {
 			commodity_id = any_cast<dcon::commodity_id>(payload);
 			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-
-class commodity_factory_image : public image_element_base {
-	dcon::commodity_id commodity_id{};
-public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			frame = static_cast<int32_t>(commodity_id.index());
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -180,8 +226,6 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 
-		// Clear "center" property so they don't look messed up!
-		state.ui_defs.gui[state.ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &= ~element_data::orientation_mask;
 		for(curr_commodity_group = sys::commodity_group::military_goods;
 			curr_commodity_group != sys::commodity_group::count;
 			curr_commodity_group = static_cast<sys::commodity_group>(uint8_t(curr_commodity_group) + 1))
