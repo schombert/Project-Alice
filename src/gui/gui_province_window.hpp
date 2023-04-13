@@ -53,7 +53,7 @@ public:
 		auto name = fat_id.get_terrain().get_name();
 		if(name) {
 			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, name, text::substitution_map{});
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 
 			modifier_description(state, contents, fat_id.get_terrain().id);

@@ -37,6 +37,24 @@ public:
 			return nullptr;
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, content);
+		auto name = fat_id.get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		auto mid = fat_id.get_modifier();
+		if(bool(mid)) {
+			modifier_description(state, contents, mid);
+		}
+	}
 };
 
 class reforms_listbox : public listbox_element_base<reforms_option, dcon::issue_option_id> {

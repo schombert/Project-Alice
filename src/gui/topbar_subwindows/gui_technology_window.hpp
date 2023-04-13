@@ -163,10 +163,20 @@ public:
 		}
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto mod_id = state.world.technology_get_modifier(tech_id).id;
-		if(bool(mod_id))
-			modifier_description(state, contents, mod_id);
+		auto fat_id = dcon::fatten(state.world, tech_id);
+		auto name = fat_id.get_name();
+		if(name) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+
+			modifier_description(state, contents, state.world.technology_get_modifier(tech_id).id);
+		}
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
