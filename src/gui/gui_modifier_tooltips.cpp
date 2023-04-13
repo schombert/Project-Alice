@@ -197,7 +197,7 @@ void modifier_description(sys::state& state, text::columnar_layout& layout, dcon
 
         auto box = text::open_layout_box(layout, 0);
         text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
-        text::add_to_layout_box(layout, state, box, ":", text::substitution_map{});
+        text::add_to_layout_box(layout, state, box, std::string_view{ ":" }, text::text_color::white);
         text::add_space_to_layout_box(layout, state, box);
         auto color = data.positive_is_green
             ? (prov_def.values[i] > 0.f ? text::text_color::green : text::text_color::red)
@@ -216,7 +216,7 @@ void modifier_description(sys::state& state, text::columnar_layout& layout, dcon
 
         auto box = text::open_layout_box(layout, 0);
         text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
-        text::add_to_layout_box(layout, state, box, ":", text::substitution_map{});
+        text::add_to_layout_box(layout, state, box, std::string_view{ ":" }, text::text_color::white);
         text::add_space_to_layout_box(layout, state, box);
         auto color = data.positive_is_green
             ? (nat_def.values[i] > 0.f ? text::text_color::green : text::text_color::red)
