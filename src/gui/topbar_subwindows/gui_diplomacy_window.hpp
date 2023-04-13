@@ -402,6 +402,9 @@ public:
 		set_visible(state, false);
 		filter_countries(state, [](dcon::nation_id) { return true; });
 		state.ui_state.diplomacy_subwindow = this;
+
+		Cyto::Any payload = state.local_player_nation;
+		impl_get(state, payload);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

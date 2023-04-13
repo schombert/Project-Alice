@@ -123,26 +123,7 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "filter_all") {
-			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
-			ptr->target = country_list_filter::all;
-			return ptr;
-		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
-			const auto filter_name = name.substr(7);
-			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
-			ptr->target = ([&]() {
-				dcon::modifier_id filter_mod_id{ 0 };
-				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
-				if(it != state.key_to_text_sequence.end())
-					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
-						auto fat_id = dcon::fatten(state.world, mod_id);
-						if(it->second == fat_id.get_name())
-							filter_mod_id = mod_id;
-					});
-				return filter_mod_id;
-			})();
-			return ptr;
-		} else if(name == "country_listbox") {
+		if(name == "country_listbox") {
 			auto ptr = make_element_by_type<production_country_listbox>(state, id);
 			ptr->base_data.position.x -= 8 + 5; // Nudge
 			country_listbox = ptr.get();
@@ -178,6 +159,25 @@ public:
 		} else if(name == "sort_by_invest_factories") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "filter_all") {
+			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
+			ptr->target = country_list_filter::all;
+			return ptr;
+		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
+			const auto filter_name = name.substr(7);
+			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
+			ptr->target = ([&]() {
+				dcon::modifier_id filter_mod_id{ 0 };
+				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
+				if(it != state.key_to_text_sequence.end())
+					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
+						auto fat_id = dcon::fatten(state.world, mod_id);
+						if(it->second == fat_id.get_name())
+							filter_mod_id = mod_id;
+					});
+				return filter_mod_id;
+			})();
 			return ptr;
 		} else if(name.substr(0, 14) == "sort_by_gpflag") {
 			auto ptr = make_element_by_type<nation_gp_flag>(state, id);
