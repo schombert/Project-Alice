@@ -138,7 +138,6 @@ public:
 };
 
 class technology_item_window : public window_element_base {
-	simple_text_element_base* tech_name = nullptr;
 	technology_item_button* tech_button = nullptr;
 	culture::tech_category category;
 public:
@@ -150,9 +149,7 @@ public:
 			tech_button = ptr.get();
 			return ptr;
 		} else if(name == "tech_name") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			tech_name = ptr.get();
-			return ptr;
+			return make_element_by_type<generic_name_text<dcon::technology_id>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -169,21 +166,50 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
+class technology_image : public image_element_base {
+public:
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::technology_id>()) {
+			auto id = any_cast<dcon::technology_id>(payload);
+			auto fat_id = dcon::fatten(state.world, id);
+			base_data.data.image.gfx_object = fat_id.get_image();
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+class technology_year_text : public simple_text_element_base {
+public:
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::technology_id>()) {
+			auto id = any_cast<dcon::technology_id>(payload);
+			set_text(state, std::to_string(state.world.technology_get_year(id)));
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+class technology_research_points_text : public simple_text_element_base {
+public:
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::technology_id>()) {
+			auto id = any_cast<dcon::technology_id>(payload);
+			set_text(state, std::to_string(state.world.technology_get_cost(id)));
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
 class technology_selected_tech_window : public window_element_base {
-	image_element_base* tech_picture = nullptr;
-	simple_text_element_base* tech_name = nullptr;
-	simple_text_element_base* tech_year = nullptr;
-	simple_text_element_base* tech_research_points = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "picture") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			tech_picture = ptr.get();
-			return ptr;
+			return make_element_by_type<technology_image>(state, id);
 		} else if(name == "title") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			tech_name = ptr.get();
-			return ptr;
+			return make_element_by_type<generic_name_text<dcon::technology_id>>(state, id);
 		} else if(name == "effect") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "desc") {
@@ -193,15 +219,11 @@ public:
 		} else if(name == "diff_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "diff") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			tech_research_points = ptr.get();
-			return ptr;
+			return make_element_by_type<technology_research_points_text>(state, id);
 		} else if(name == "year_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "year") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			tech_year = ptr.get();
-			return ptr;
+			return make_element_by_type<technology_year_text>(state, id);
 		} else if(name == "start") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else {
@@ -211,12 +233,7 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::technology_id>()) {
-			auto tech_id = any_cast<dcon::technology_id>(payload);
-			auto tech = dcon::fatten(state.world, tech_id);
-			auto name = text::produce_simple_string(state, tech.get_name());
-			tech_name->set_text(state, name);
-			tech_year->set_text(state, std::to_string(tech.get_year()));
-			tech_research_points->set_text(state, std::to_string(tech.get_cost()));
+			impl_set(state, payload);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
