@@ -1975,5 +1975,6 @@ public:
 };
 
 void trigger_description(sys::state& state, text::columnar_layout& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
+void modifier_description(sys::state& state, text::columnar_layout& layout, dcon::modifier_id mid);
 
 }

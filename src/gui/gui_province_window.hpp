@@ -49,13 +49,14 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
-		// TODO: display terrain modifier values
 		auto fat_id = dcon::fatten(state.world, province_id);
 		auto name = fat_id.get_terrain().get_name();
 		if(name) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(contents, state, box, name, text::substitution_map{});
 			text::close_layout_box(contents, box);
+
+			modifier_description(state, contents, fat_id.get_terrain().id);
 		}
 	}
 };

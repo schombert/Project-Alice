@@ -141,7 +141,7 @@ class technology_item_window : public window_element_base {
 	technology_item_button* tech_button = nullptr;
 	culture::tech_category category;
 public:
-	dcon::technology_id tech_id;
+	dcon::technology_id tech_id{};
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "start_research") {
@@ -161,6 +161,12 @@ public:
 		} else {
 			tech_button->frame = 2;
 		}
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mod_id = state.world.technology_get_modifier(tech_id).id;
+		if(bool(mod_id))
+			modifier_description(state, contents, mod_id);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
