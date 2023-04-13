@@ -508,7 +508,7 @@ void ef_##x (EFFECT_DISPLAY_PARAMS) { \
         case effect_tp_flags::modifier: \
         case effect_tp_flags::modifier_no_duration: { \
             auto mid = dcon::modifier_id(value_p[0] - 1); \
-            modifier_description(state, layout, mid); \
+            modifier_description(state, layout, mid, indentation + indentation_amount); \
         } break; \
         default: \
             break; \

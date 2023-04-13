@@ -184,7 +184,7 @@ std::string format_modifier_value(sys::state& state, float value, modifier_displ
     return "x%";
 }
 
-void modifier_description(sys::state& state, text::columnar_layout& layout, dcon::modifier_id mid) {
+void modifier_description(sys::state& state, text::columnar_layout& layout, dcon::modifier_id mid, int32_t indentation) {
     auto fat_id = dcon::fatten(state.world, mid);
 
     const auto prov_def = fat_id.get_province_values();
@@ -195,7 +195,7 @@ void modifier_description(sys::state& state, text::columnar_layout& layout, dcon
         auto offset = uint32_t(prov_def.offsets[i].index());
         auto data = province_modifier_names[offset];
 
-        auto box = text::open_layout_box(layout, 0);
+        auto box = text::open_layout_box(layout, indentation);
         text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
         text::add_to_layout_box(layout, state, box, std::string_view{ ":" }, text::text_color::white);
         text::add_space_to_layout_box(layout, state, box);
@@ -214,7 +214,7 @@ void modifier_description(sys::state& state, text::columnar_layout& layout, dcon
         auto offset = uint32_t(nat_def.offsets[i].index());
         auto data = national_modifier_names[offset];
 
-        auto box = text::open_layout_box(layout, 0);
+        auto box = text::open_layout_box(layout, indentation);
         text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
         text::add_to_layout_box(layout, state, box, std::string_view{ ":" }, text::text_color::white);
         text::add_space_to_layout_box(layout, state, box);
