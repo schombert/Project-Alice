@@ -23,11 +23,6 @@ public:
 	dcon::state_instance_id state_id{};
 	uint8_t index = 0; // from 0 to 8
 
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		std::vector<dcon::factory_id> factories{};
 		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {

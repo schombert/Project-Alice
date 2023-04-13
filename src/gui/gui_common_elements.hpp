@@ -1939,11 +1939,11 @@ public:
 	}
 };
 
-class commodity_cost_text : public simple_text_element_base {
+class commodity_price_text : public simple_text_element_base {
 	dcon::commodity_id commodity_id{};
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::prettify(state.world.commodity_get_cost(commodity_id)));
+		set_text(state, text::money(state.world.commodity_get_current_price(commodity_id)));
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {

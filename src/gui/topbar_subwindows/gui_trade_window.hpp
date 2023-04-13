@@ -9,7 +9,7 @@ public:
 		if(name == "goods_type") {
 			return make_element_by_type<commodity_factory_image>(state, id);
 		} else if(name == "cost") {
-			return make_element_by_type<commodity_cost_text>(state, id);
+			return make_element_by_type<commodity_price_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -119,8 +119,8 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
 			return make_element_by_type<commodity_factory_image>(state, id);
-		} else if(name == "cost") {
-			return make_element_by_type<commodity_cost_text>(state, id);
+		} else if(name == "price") {
+			return make_element_by_type<commodity_price_text>(state, id);
 		} else {
 			return nullptr;
 		}
