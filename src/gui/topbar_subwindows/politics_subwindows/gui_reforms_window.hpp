@@ -7,6 +7,7 @@
 namespace ui {
 
 class reforms_reform_button : public standard_nation_issue_option_button {
+	dcon::issue_option_id issue_option_id{};
 public:
 	void on_update(sys::state& state) noexcept override {
 		standard_nation_issue_option_button::on_update(state);
@@ -15,6 +16,33 @@ public:
 			disabled = !politics::can_enact_political_reform(state, nation_id, issue_option_id);
 		} else {
 			disabled = !politics::can_enact_social_reform(state, nation_id, issue_option_id);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, issue_option_id);
+		auto name = fat_id.get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		auto mod_id = fat_id.get_modifier();
+		if(bool(mod_id)) {
+			modifier_description(state, contents, mod_id);
+		}
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_option_id>()) {
+			issue_option_id = any_cast<dcon::issue_option_id>(payload);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
 		}
 	}
 };
@@ -35,24 +63,6 @@ public:
 			return make_element_by_type<reforms_reform_button>(state, id);
 		} else {
 			return nullptr;
-		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
-		}
-		auto mod_id = fat_id.get_modifier();
-		if(bool(mod_id)) {
-			modifier_description(state, contents, mod_id);
 		}
 	}
 };
