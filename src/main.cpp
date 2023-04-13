@@ -38,6 +38,7 @@
 #include "parsers_declarations.cpp"
 #include "politics.cpp"
 #include "gui_trigger_tooltips.cpp"
+#include "gui_modifier_tooltips.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

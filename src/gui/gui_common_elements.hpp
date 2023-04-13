@@ -16,6 +16,9 @@
 
 namespace ui {
 
+void trigger_description(sys::state& state, text::columnar_layout& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
+void modifier_description(sys::state& state, text::columnar_layout& layout, dcon::modifier_id mid);
+
 // Filters used on both production and diplomacy tabs for the country lists
 enum class country_list_filter : uint8_t {
 	all,
@@ -1519,11 +1522,29 @@ class nation_technology_admin_type_text : public standard_nation_text {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto mod_id = state.world.nation_get_tech_school(nation_id);
-		if(mod_id) {
+		if(bool(mod_id)) {
 			auto name = text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
 			set_text(state, name);
 		} else {
 			set_text(state, text::produce_simple_string(state, "traditional_academic"));
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		auto name = fat_id.get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		auto mod_id = fat_id.get_tech_school().id;
+		if(bool(mod_id)) {
+			modifier_description(state, contents, mod_id);
 		}
 	}
 };
@@ -1620,6 +1641,24 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		auto nat_val = state.world.nation_get_national_value(nation_id);
 		return nat_val.get_icon();
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		auto name = fat_id.get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		auto mod_id = fat_id.get_national_value().id;
+		if(bool(mod_id)) {
+			modifier_description(state, contents, mod_id);
+		}
 	}
 };
 
@@ -1973,7 +2012,5 @@ public:
 		return message_result::unseen;
 	}
 };
-
-void trigger_description(sys::state& state, text::columnar_layout& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
 
 }
