@@ -1520,14 +1520,22 @@ public:
 
 class nation_technology_admin_type_text : public standard_nation_text {
 public:
-	void on_update(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state) noexcept override {
 		auto mod_id = state.world.nation_get_tech_school(nation_id);
 		if(bool(mod_id)) {
-			auto name = text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
-			set_text(state, name);
+			return text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
 		} else {
-			set_text(state, text::produce_simple_string(state, "traditional_academic"));
+			return text::produce_simple_string(state, "traditional_academic");
 		}
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			nation_id = any_cast<dcon::nation_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
