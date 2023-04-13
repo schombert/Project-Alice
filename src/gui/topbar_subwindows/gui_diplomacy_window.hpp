@@ -44,26 +44,11 @@ public:
 			return make_element_by_type<diplomacy_country_select>(state, id);
 		} else if(name == "country_flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
+			ptr->base_data.position.y -= 2; // Nudge
 			country_flag = ptr.get();
 			return ptr;
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
-		} else if(name == "country_gp0") {
-			return make_element_by_type<nation_gp_opinion_text<0>>(state, id);
-		} else if(name == "country_gp1") {
-			return make_element_by_type<nation_gp_opinion_text<1>>(state, id);
-		} else if(name == "country_gp2") {
-			return make_element_by_type<nation_gp_opinion_text<2>>(state, id);
-		} else if(name == "country_gp3") {
-			return make_element_by_type<nation_gp_opinion_text<3>>(state, id);
-		} else if(name == "country_gp4") {
-			return make_element_by_type<nation_gp_opinion_text<4>>(state, id);
-		} else if(name == "country_gp5") {
-			return make_element_by_type<nation_gp_opinion_text<5>>(state, id);
-		} else if(name == "country_gp6") {
-			return make_element_by_type<nation_gp_opinion_text<6>>(state, id);
-		} else if(name == "country_gp7") {
-			return make_element_by_type<nation_gp_opinion_text<7>>(state, id);
 		} else if(name == "country_boss_flag") {
 			return make_element_by_type<nation_overlord_flag>(state, id);
 		} else if(name == "country_prestige") {
@@ -78,6 +63,10 @@ public:
 			return make_element_by_type<nation_player_opinion_text>(state, id);
 		} else if(name == "country_relation") {
 			return make_element_by_type<nation_player_relations_text>(state, id);
+		} else if(name.substr(0, 10) == "country_gp") {
+			auto ptr = make_element_by_type<nation_gp_opinion_text>(state, id);
+			ptr->rank = uint16_t(std::stoi(std::string{ name.substr(10) }));
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -183,19 +172,19 @@ public:
 			return ptr;
 		} else if(name == "country_wars") {
 			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
-			ptr->base_data.position.y -= 8 - 1;
+			ptr->base_data.position.y -= 8;
 			return ptr;
 		} else if(name == "country_allies") {
 			auto ptr = make_element_by_type<overlapping_ally_flags>(state, id);
-			ptr->base_data.position.y -= 8 - 1;
+			ptr->base_data.position.y -= 8;
 			return ptr;
 		} else if(name == "country_protected") {
 			auto ptr = make_element_by_type<overlapping_protected_flags>(state, id);
-			ptr->base_data.position.y -= 8 - 1;
+			ptr->base_data.position.y -= 8;
 			return ptr;
 		} else if(name == "country_truce") {
 			auto ptr = make_element_by_type<overlapping_truce_flags>(state, id);
-			ptr->base_data.position.y -= 8 - 1;
+			ptr->base_data.position.y -= 8;
 			return ptr;
 		} else if(name == "infamy_text") {
 			return make_element_by_type<nation_infamy_text>(state, id);
@@ -322,12 +311,12 @@ public:
 		} else if(name == "attackers") {
 			auto ptr = make_element_by_type<overlapping_attacker_flags>(state, id);
 			attackers_flags = ptr.get();
-			attackers_flags->base_data.position.y -= 8 - 4;
+			attackers_flags->base_data.position.y -= 8 - 2;
 			return ptr;
 		} else if(name == "defenders") {
 			auto ptr = make_element_by_type<overlapping_defender_flags>(state, id);
 			defenders_flags = ptr.get();
-			defenders_flags->base_data.position.y -= 8 - 4;
+			defenders_flags->base_data.position.y -= 8 - 2;
 			return ptr;
 		} else if(name == "join_attackers") {
 			return make_element_by_type<button_element_base>(state, id);
@@ -438,37 +427,6 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
 			ptr->target = country_list_filter::all;
 			return ptr;
-		} else if(name == "sort_by_gpflag0") {
-			return make_element_by_type<nation_gp_flag<0>>(state, id);
-		} else if(name == "sort_by_gpflag1") {
-			return make_element_by_type<nation_gp_flag<1>>(state, id);
-		} else if(name == "sort_by_gpflag2") {
-			return make_element_by_type<nation_gp_flag<2>>(state, id);
-		} else if(name == "sort_by_gpflag3") {
-			return make_element_by_type<nation_gp_flag<3>>(state, id);
-		} else if(name == "sort_by_gpflag4") {
-			return make_element_by_type<nation_gp_flag<4>>(state, id);
-		} else if(name == "sort_by_gpflag5") {
-			return make_element_by_type<nation_gp_flag<5>>(state, id);
-		} else if(name == "sort_by_gpflag6") {
-			return make_element_by_type<nation_gp_flag<6>>(state, id);
-		} else if(name == "sort_by_gpflag7") {
-			return make_element_by_type<nation_gp_flag<7>>(state, id);
-		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
-			const auto filter_name = name.substr(7);
-			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
-			ptr->target = ([&]() {
-				dcon::modifier_id filter_mod_id{ 0 };
-				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
-				if(it != state.key_to_text_sequence.end())
-					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
-						auto fat_id = dcon::fatten(state.world, mod_id);
-						if(it->second == fat_id.get_name())
-							filter_mod_id = mod_id;
-					});
-				return filter_mod_id;
-			})();
-			return ptr;
 		} else if(name == "cb_info_win") {
 			auto ptr = make_element_immediate(state, id);
 			casus_belli_window = ptr.get();
@@ -491,6 +449,50 @@ public:
 		} else if(name == "diplomacy_country_facts") {
 			auto ptr = make_element_by_type<diplomacy_country_facts>(state, id);
 			country_facts = ptr.get();
+			return ptr;
+		} else if(name == "sort_by_boss") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_prestige") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_economic") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_military") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_total") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name == "sort_by_relation") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
+		} else if(name.substr(0, 14) == "sort_by_gpflag") {
+			auto ptr = make_element_by_type<nation_gp_flag>(state, id);
+			ptr->rank = uint16_t(std::stoi(std::string{ name.substr(14) }));
+			ptr->base_data.position.y -= 2; // Nudge
+			return ptr;
+		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
+			const auto filter_name = name.substr(7);
+			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
+			ptr->target = ([&]() {
+				dcon::modifier_id filter_mod_id{ 0 };
+				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
+				if(it != state.key_to_text_sequence.end())
+					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
+						auto fat_id = dcon::fatten(state.world, mod_id);
+						if(it->second == fat_id.get_name())
+							filter_mod_id = mod_id;
+					});
+				return filter_mod_id;
+			})();
 			return ptr;
 		} else {
 			return nullptr;
