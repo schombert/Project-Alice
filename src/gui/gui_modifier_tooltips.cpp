@@ -173,9 +173,9 @@ static const modifier_display_info national_modifier_names[101 + 1] = {
 std::string format_modifier_value(sys::state& state, float value, modifier_display_type type) {
     switch(type) {
     case modifier_display_type::integer:
-        return (value > 0.f ? "+" : "-") + text::prettify(int64_t(value));
+        return (value > 0.f ? "+" : "") + text::prettify(int64_t(value));
     case modifier_display_type::percent:
-        return (value > 0.f ? "+" : "-") + text::format_percentage(value, 1);
+        return (value > 0.f ? "+" : "") + text::format_percentage(value, 1);
     case modifier_display_type::fp_two_places:
         return text::format_float(value, 2);
     case modifier_display_type::fp_three_places:
