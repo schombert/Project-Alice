@@ -184,7 +184,7 @@ std::string format_modifier_value(sys::state& state, float value, modifier_displ
     return "x%";
 }
 
-void modifier_description(sys::state& state, text::columnar_layout& layout, dcon::modifier_id mid, int32_t indentation) {
+void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation) {
     auto fat_id = dcon::fatten(state.world, mid);
 
     const auto prov_def = fat_id.get_province_values();
