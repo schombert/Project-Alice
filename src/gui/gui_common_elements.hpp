@@ -16,8 +16,8 @@
 
 namespace ui {
 
-void trigger_description(sys::state& state, text::columnar_layout& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
-void modifier_description(sys::state& state, text::columnar_layout& layout, dcon::modifier_id mid);
+void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
+void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid);
 
 // Filters used on both production and diplomacy tabs for the country lists
 enum class country_list_filter : uint8_t {
