@@ -330,10 +330,8 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
             }
 		}
 		// Move the border_direction rows a step down
-		for(uint32_t x = 0; x < size_x; x++) {
-            std::swap(last_row, current_row);
-            std::fill(current_row.begin(), current_row.end(), BorderDirection());
-		}
+		std::swap(last_row, current_row);
+        std::fill(current_row.begin(), current_row.end(), BorderDirection{});
 	}
 
 	borders.resize(borders_list_vertices.size());
