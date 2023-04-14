@@ -173,24 +173,22 @@ static const modifier_display_info national_modifier_names[sys::national_mod_off
     modifier_display_info{ true, modifier_display_type::percent, "cb_creation_speed"}, //cb_creation_speed{104
     modifier_display_info{ true, modifier_display_type::percent, "edu_eff_tech"}, //education_efficiency{105
     modifier_display_info{ true, modifier_display_type::percent, "reinforce_tech"}, //reinforce_rate{106
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_tax_efficiency"}, //tax_eff{107
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_administrative_efficiency"}, //admin_eff{108
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_greatpower_influence_gain"}, //influence{109
-    modifier_display_info{ true, modifier_display_type::percent, "digin_from_tech"}, //dig_in_cap{110
-    modifier_display_info{ true, modifier_display_type::percent, "combat_width_tech"}, //combat_width{111
-    modifier_display_info{ true, modifier_display_type::percent, "mil_tactics_tech"}, //military_tactics{112
-    modifier_display_info{ true, modifier_display_type::percent, "supply_range_tech"}, //supply_range{113
-    modifier_display_info{ true, modifier_display_type::percent, "regular_exp_tech"}, //regular_experience_level{114
-    modifier_display_info{ true, modifier_display_type::percent, "soldier_to_pop_loss_tech"}, //soldier_to_pop_loss{115
-    modifier_display_info{ true, modifier_display_type::percent, "naval_attrition_tech"}, //naval_attrition{116
-    modifier_display_info{ true, modifier_display_type::percent, "land_attrition_tech"}, //land_attrition{117
-    modifier_display_info{ true, modifier_display_type::percent, "tech_pop_growth"}, //pop_growth{118
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_life_rating"}, //colonial_life_rating{119
-    modifier_display_info{ true, modifier_display_type::percent, "seperatism_tech"}, //seperatism{120
-    modifier_display_info{ true, modifier_display_type::percent, "tech_plurality"}, //plurality{121
-    modifier_display_info{ true, modifier_display_type::percent, "colonial_prestige_modifier_tech"}, //colonial_prestige{122
-    modifier_display_info{ true, modifier_display_type::percent, "permanent_prestige_tech"}, //permanent_prestige{123
-    modifier_display_info{ true, modifier_display_type::percent, "prestige_modifier_tech"}, //prestige_modifier{124
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_greatpower_influence_gain"}, //influence{107
+    modifier_display_info{ true, modifier_display_type::percent, "digin_from_tech"}, //dig_in_cap{108
+    modifier_display_info{ true, modifier_display_type::percent, "combat_width_tech"}, //combat_width{109
+    modifier_display_info{ true, modifier_display_type::percent, "mil_tactics_tech"}, //military_tactics{110
+    modifier_display_info{ true, modifier_display_type::percent, "supply_range_tech"}, //supply_range{111
+    modifier_display_info{ true, modifier_display_type::percent, "regular_exp_tech"}, //regular_experience_level{112
+    modifier_display_info{ true, modifier_display_type::percent, "soldier_to_pop_loss_tech"}, //soldier_to_pop_loss{113
+    modifier_display_info{ true, modifier_display_type::percent, "naval_attrition_tech"}, //naval_attrition{114
+    modifier_display_info{ true, modifier_display_type::percent, "land_attrition_tech"}, //land_attrition{115
+    modifier_display_info{ true, modifier_display_type::percent, "tech_pop_growth"}, //pop_growth{116
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_life_rating"}, //colonial_life_rating{117
+    modifier_display_info{ true, modifier_display_type::percent, "seperatism_tech"}, //seperatism{118
+    modifier_display_info{ true, modifier_display_type::percent, "tech_plurality"}, //plurality{119
+    modifier_display_info{ true, modifier_display_type::percent, "colonial_prestige_modifier_tech"}, //colonial_prestige{120
+    modifier_display_info{ true, modifier_display_type::percent, "permanent_prestige_tech"}, //permanent_prestige{121
+    modifier_display_info{ true, modifier_display_type::percent, "prestige_modifier_tech"}, //prestige_modifier{122
 };
 
 std::string format_modifier_value(sys::state& state, float value, modifier_display_type type) {

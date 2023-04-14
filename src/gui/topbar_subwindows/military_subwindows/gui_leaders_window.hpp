@@ -28,7 +28,9 @@ public:
 	}
 
 	void update_name(sys::state& state) {
-		leader_name->set_text(state, std::string(state.to_string_view(state.world.general_get_name(this->leader_id))));
+		auto name_id = state.world.general_get_name(this->leader_id);
+		auto name_content = state.to_string_view(name_id);
+		leader_name->set_text(state, std::string(name_content));
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {

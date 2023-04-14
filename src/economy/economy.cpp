@@ -1246,8 +1246,8 @@ void daily_update(sys::state& state) {
 			float max_sp = 0.0f;
 			float total = 0.0f;
 
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+			for(uint32_t k = 1; k < total_commodities; ++k) {
+				dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 
 				auto sat = state.world.nation_get_demand_satisfaction(n, c);
 				auto val = navy_costs.get(n, c);
@@ -1263,8 +1263,8 @@ void daily_update(sys::state& state) {
 			float max_sp = 0.0f;
 			float total = 0.0f;
 
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+			for(uint32_t k = 1; k < total_commodities; ++k) {
+				dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 
 				auto sat = state.world.nation_get_demand_satisfaction(n, c);
 				auto val = army_costs.get(n, c);
@@ -1280,8 +1280,8 @@ void daily_update(sys::state& state) {
 			float max_sp = 0.0f;
 			float total = 0.0f;
 
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+			for(uint32_t k = 1; k < total_commodities; ++k) {
+				dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 
 				auto sat = state.world.nation_get_demand_satisfaction(n, c);
 				auto val = construction_costs.get(n, c);
@@ -1297,10 +1297,8 @@ void daily_update(sys::state& state) {
 		fill stockpiles
 		*/
 
-		uint32_t total_commodities = state.world.commodity_size();
-		
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+		for(uint32_t k = 1; k < total_commodities; ++k) {
+			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
 			auto difference = state.world.nation_get_stockpile_targets(n, cid) - state.world.nation_get_stockpiles(n, cid);
 			if(difference > 0 && state.world.nation_get_drawing_on_stockpiles(n, cid) == false) {
 				state.world.nation_get_stockpiles(n, cid) += difference * nations_commodity_spending * state.world.nation_get_demand_satisfaction(n, cid);
@@ -1312,18 +1310,21 @@ void daily_update(sys::state& state) {
 		calculate overseas penalty
 		*/
 
-		auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
-
-		if(overseas_factor > 0) {
-			for(uint32_t i = 1; i < total_commodities; ++i) {
-				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+		{
+			float count = 0.0f;
+			float total = 0.0f;
+			for(uint32_t k = 1; k < total_commodities; ++k) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
 
 				auto kf = state.world.commodity_get_key_factory(cid);
 				if(state.world.commodity_get_overseas_penalty(cid) && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
-					total += overseas_factor * effective_prices.get(cid);
+					total += state.world.nation_get_demand_satisfaction(n, cid);
+					count += 1.0f;
 				}
 			}
+			state.world.nation_set_overseas_penalty(n, 0.25f * (1.0f - nations_commodity_spending * total / count));
 		}
+		
 
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			/*

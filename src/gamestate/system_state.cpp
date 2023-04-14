@@ -343,22 +343,34 @@ namespace sys {
 		auto length = text.length();
 		if(length == 0)
 			return dcon::unit_name_id();
-		unit_names.resize(start + length + 1, char(0));
+
+		/*
+		std::string new_text(text);
+
+		auto search_result = std::search(unit_names.data(), unit_names.data() + unit_names.size(), std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
+
+		if(search_result != unit_names.data() + unit_names.size()) {
+			return dcon::unit_name_id(dcon::unit_name_id::value_base_t(uint32_t(search_result - unit_names.data()) >> 4));
+		}*/
+
+		unit_names.resize(start + length + (16 - length % 16), char(0));
 		std::copy_n(text.data(), length, unit_names.data() + start);
 		unit_names.back() = 0;
-		return dcon::unit_name_id(uint16_t(start));
+		start = start >> 4;
+		assert(start < std::numeric_limits<dcon::unit_name_id::value_base_t>::max());
+		return dcon::unit_name_id(dcon::unit_name_id::value_base_t(start));
 	}
 	std::string_view state::to_string_view(dcon::unit_name_id tag) const {
 		if(!tag)
 			return std::string_view();
-		auto start_position = unit_names.data() + tag.index();
+		auto start_position = unit_names.data() + (tag.index() << 4);
 		auto data_size = unit_names.size();
 		auto end_position = start_position;
 		for(; end_position < unit_names.data() + data_size; ++end_position) {
 			if(*end_position == 0)
 				break;
 		}
-		return std::string_view(unit_names.data() + tag.index(), size_t(end_position - start_position));
+		return std::string_view(unit_names.data() + (tag.index() << 4), size_t(end_position - start_position));
 	}
 
 	dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
