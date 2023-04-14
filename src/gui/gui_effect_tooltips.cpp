@@ -8,7 +8,7 @@ namespace ui {
 
 namespace effect_tooltip {
 #define EFFECT_DISPLAY_PARAMS \
-    sys::state& state, text::columnar_layout& layout, uint16_t const* eval, int32_t primary_slot, int32_t this_slot, int32_t from_slot, int32_t indentation
+    sys::state& state, text::layout_base& layout, uint16_t const* eval, int32_t primary_slot, int32_t this_slot, int32_t from_slot, int32_t indentation
 
 enum effect_tp_flags {
     // Payload type
@@ -532,7 +532,7 @@ EFFECT_STATMENTS
 #undef EFFECT_DISPLAY_PARAMS
 }
 
-void effect_description(sys::state& state, text::columnar_layout& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
+void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
     effect_tooltip::make_effect_description(state, layout, state.effect_data.data() + k.index(), primary_slot, this_slot, from_slot, 0);
 }
 
