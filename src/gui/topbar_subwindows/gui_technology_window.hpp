@@ -135,7 +135,12 @@ public:
 class technology_item_button : public button_element_base {
 	dcon::technology_id tech_id{};
 public:
-	void button_action(sys::state& state) noexcept final;
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = tech_id;
+			parent->impl_get(state, payload);
+		}
+	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
