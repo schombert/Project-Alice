@@ -150,7 +150,6 @@ static const modifier_display_info national_modifier_names[101 + 1] = {
     modifier_display_info{ true, modifier_display_type::percent, "modifier_suppression_point_gain" },// suppression_points_modifier 81
     modifier_display_info{ true, modifier_display_type::percent, "modifier_education_efficiency" },// education_efficiency_modifier 82
     modifier_display_info{ true, modifier_display_type::percent, "modifier_civilization_progress" },// civilization_progress_modifier 83
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_administrative_efficiency" },// administrative_efficiency_modifier 84
     modifier_display_info{ true, modifier_display_type::percent, "modifier_land_unit_start_experience" },// land_unit_start_experience 85
     modifier_display_info{ true, modifier_display_type::percent, "modifier_naval_unit_start_experience" },// naval_unit_start_experience 86
     modifier_display_info{ true, modifier_display_type::percent, "modifier_naval_attack" },// naval_attack_modifier 87

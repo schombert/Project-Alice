@@ -167,25 +167,24 @@ constexpr inline dcon::national_modifier_value cb_creation_speed{104};
 constexpr inline dcon::national_modifier_value education_efficiency{105};
 constexpr inline dcon::national_modifier_value reinforce_rate{106};
 constexpr inline dcon::national_modifier_value tax_eff{107};
-constexpr inline dcon::national_modifier_value administrative_efficiency{108};
-constexpr inline dcon::national_modifier_value influence{109};
-constexpr inline dcon::national_modifier_value dig_in_cap{110};
-constexpr inline dcon::national_modifier_value combat_width{111};
-constexpr inline dcon::national_modifier_value military_tactics{112};
-constexpr inline dcon::national_modifier_value supply_range{113};
-constexpr inline dcon::national_modifier_value regular_experience_level{114};
-constexpr inline dcon::national_modifier_value soldier_to_pop_loss{115};
-constexpr inline dcon::national_modifier_value naval_attrition{116};
-constexpr inline dcon::national_modifier_value land_attrition{117};
-constexpr inline dcon::national_modifier_value pop_growth{118};
-constexpr inline dcon::national_modifier_value colonial_life_rating{119};
-constexpr inline dcon::national_modifier_value seperatism{120};
-constexpr inline dcon::national_modifier_value plurality{121};
-constexpr inline dcon::national_modifier_value colonial_prestige{122};
-constexpr inline dcon::national_modifier_value permanent_prestige{123};
-constexpr inline dcon::national_modifier_value prestige_modifier{124};
+constexpr inline dcon::national_modifier_value influence{108};
+constexpr inline dcon::national_modifier_value dig_in_cap{109};
+constexpr inline dcon::national_modifier_value combat_width{110};
+constexpr inline dcon::national_modifier_value military_tactics{111};
+constexpr inline dcon::national_modifier_value supply_range{112};
+constexpr inline dcon::national_modifier_value regular_experience_level{113};
+constexpr inline dcon::national_modifier_value soldier_to_pop_loss{114};
+constexpr inline dcon::national_modifier_value naval_attrition{115};
+constexpr inline dcon::national_modifier_value land_attrition{116};
+constexpr inline dcon::national_modifier_value pop_growth{117};
+constexpr inline dcon::national_modifier_value colonial_life_rating{118};
+constexpr inline dcon::national_modifier_value seperatism{119};
+constexpr inline dcon::national_modifier_value plurality{120};
+constexpr inline dcon::national_modifier_value colonial_prestige{121};
+constexpr inline dcon::national_modifier_value permanent_prestige{122};
+constexpr inline dcon::national_modifier_value prestige_modifier{123};
 
-constexpr inline uint32_t count = 126;
+constexpr inline uint32_t count = 124;
 }
 
 

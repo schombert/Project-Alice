@@ -329,7 +329,7 @@ float rgo_size(sys::state& state, dcon::province_id prov_id) {
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
-	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency);
+	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
 
 	float issue_sum = 0.0f;
 	for(auto i : state.culture_definitions.social_issues) {
