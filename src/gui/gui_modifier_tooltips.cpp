@@ -15,7 +15,7 @@ struct modifier_display_info {
     std::string_view name;
 };
 
-static const modifier_display_info province_modifier_names[47 + 1] = {
+static const modifier_display_info province_modifier_names[sys::provincial_mod_offsets::count] = {
     modifier_display_info{ true, modifier_display_type::integer, "modifier_supply_limit" },// supply_limit 0
     modifier_display_info{ false, modifier_display_type::percent, "modifier_attrition" },// attrition 1
     modifier_display_info{ false, modifier_display_type::integer, "modifier_max_attrition" },// max_attrition 2
@@ -65,7 +65,7 @@ static const modifier_display_info province_modifier_names[47 + 1] = {
     modifier_display_info{ false, modifier_display_type::integer, "railroad_level" },// min_build_railroad 46
     modifier_display_info{ false, modifier_display_type::integer, "fort_level" },// min_build_fort 47
 };
-static const modifier_display_info national_modifier_names[101 + 1] = {
+static const modifier_display_info national_modifier_names[sys::national_mod_offsets::count] = {
     modifier_display_info{ false, modifier_display_type::fp_two_places, "war_exhaustion" },// war_exhaustion 0
     modifier_display_info{ true, modifier_display_type::integer, "max_war_exhaustion" },// max_war_exhaustion 1
     modifier_display_info{ true, modifier_display_type::integer, "leadership" },// leadership 2
@@ -79,7 +79,7 @@ static const modifier_display_info national_modifier_names[101 + 1] = {
     modifier_display_info{ true, modifier_display_type::percent, "modifier_research_points_modifier" },// research_points_modifier 10
     modifier_display_info{ true, modifier_display_type::percent, "modifier_research_points_on_conquer" },// research_points_on_conquer 11
     modifier_display_info{ false, modifier_display_type::percent, "modifier_import_cost" },// import_cost 12
-    modifier_display_info{ false, modifier_display_type::percent, "modifier_loan_interest" },// loan_interest 13
+    modifier_display_info{ false, modifier_display_type::percent, "loan_interest_tech" },// loan_interest 13
     modifier_display_info{ true, modifier_display_type::percent, "modifier_tax_efficiency" },// tax_efficiency 14
     modifier_display_info{ true, modifier_display_type::percent, "modifier_min_tax" },// min_tax 15
     modifier_display_info{ true, modifier_display_type::percent, "modifier_max_tax" },// max_tax 16
@@ -138,44 +138,67 @@ static const modifier_display_info national_modifier_names[101 + 1] = {
     modifier_display_info{ true, modifier_display_type::percent, "modifier_greatpower_influence_gain" },// influence_modifier 69
     modifier_display_info{ true, modifier_display_type::fp_two_places, "modifier_diplopoints_gain" },// diplomatic_points_modifier 70
     modifier_display_info{ true, modifier_display_type::percent, "modifier_mobilisation_size" },// mobilisation_size 71
-    modifier_display_info{ false, modifier_display_type::percent, "modifier_mobilisation_economy_impact" },// mobilisation_economy_impact 72
-    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_global_pop_militancy_modifier" },// global_pop_militancy_modifier 73
-    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_global_pop_consciousness_modifier" },// global_pop_consciousness_modifier 74
-    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_core_pop_militancy_modifier" },// core_pop_militancy_modifier 75
-    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_core_pop_consciousness_modifier" },// core_pop_consciousness_modifier 76
-    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_non_accepted_pop_militancy_modifier" },// non_accepted_pop_militancy_modifier 77
-    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_non_accepted_pop_consciousness_modifier" },// non_accepted_pop_consciousness_modifier 78
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_cb_generation_speed_modifier" },// cb_generation_speed_modifier 79
-    modifier_display_info{ false, modifier_display_type::percent, "modifier_mobilization_impact" },// mobilization_impact 80
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_suppression_point_gain" },// suppression_points_modifier 81
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_education_efficiency" },// education_efficiency_modifier 82
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_civilization_progress" },// civilization_progress_modifier 83
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_administrative_efficiency" },// administrative_efficiency_modifier 84
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_land_unit_start_experience" },// land_unit_start_experience 85
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_naval_unit_start_experience" },// naval_unit_start_experience 86
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_naval_attack" },// naval_attack_modifier 87
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_naval_defense" },// naval_defense_modifier 88
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_land_attack" },// land_attack_modifier 89
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_land_defense" },// land_defense_modifier 90
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_tariff_efficiency" },// tariff_efficiency_modifier 91
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_max_loan_amount" },// max_loan_modifier 92
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_unciv_economic" },// unciv_economic_modifier 93
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_unciv_military" },// unciv_military_modifier 94
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_self_unciv_economic" },// self_unciv_economic_modifier 95
-    modifier_display_info{ true, modifier_display_type::percent, "modifier_self_unciv_military" },// self_unciv_military_modifier 96
-    modifier_display_info{ true, modifier_display_type::percent, "commerce_tech_research_bonus" },// commerce_tech_research_bonus 97
-    modifier_display_info{ true, modifier_display_type::percent, "army_tech_research_bonus" },// army_tech_research_bonus 98
-    modifier_display_info{ true, modifier_display_type::percent, "industry_tech_research_bonus" },// industry_tech_research_bonus 99
-    modifier_display_info{ true, modifier_display_type::percent, "navy_tech_research_bonus" },// navy_tech_research_bonus 100
-    modifier_display_info{ true, modifier_display_type::percent, "culture_tech_research_bonus" },// culture_tech_research_bonus 101
+    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_global_pop_militancy_modifier" },// global_pop_militancy_modifier 72
+    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_global_pop_consciousness_modifier" },// global_pop_consciousness_modifier 73
+    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_core_pop_militancy_modifier" },// core_pop_militancy_modifier 74
+    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_core_pop_consciousness_modifier" },// core_pop_consciousness_modifier 75
+    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_non_accepted_pop_militancy_modifier" },// non_accepted_pop_militancy_modifier 76
+    modifier_display_info{ false, modifier_display_type::fp_three_places, "modifier_non_accepted_pop_consciousness_modifier" },// non_accepted_pop_consciousness_modifier 77
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_cb_generation_speed_modifier" },// cb_generation_speed_modifier 78
+    modifier_display_info{ false, modifier_display_type::percent, "modifier_mobilization_impact" },// mobilization_impact 79
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_suppression_point_gain" },// suppression_points_modifier 80
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_education_efficiency" },// education_efficiency_modifier 81
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_civilization_progress" },// civilization_progress_modifier 82
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_administrative_efficiency" },// administrative_efficiency_modifier 83
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_land_unit_start_experience" },// land_unit_start_experience 84
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_naval_unit_start_experience" },// naval_unit_start_experience 85
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_naval_attack" },// naval_attack_modifier 86
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_naval_defense" },// naval_defense_modifier 87
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_land_attack" },// land_attack_modifier 88
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_land_defense" },// land_defense_modifier 89
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_tariff_efficiency" },// tariff_efficiency_modifier 90
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_max_loan_amount" },// max_loan_modifier 91
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_unciv_economic" },// unciv_economic_modifier 92
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_unciv_military" },// unciv_military_modifier 93
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_self_unciv_economic" },// self_unciv_economic_modifier 94
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_self_unciv_military" },// self_unciv_military_modifier 95
+    modifier_display_info{ true, modifier_display_type::percent, "commerce_tech_research_bonus" },// commerce_tech_research_bonus 96
+    modifier_display_info{ true, modifier_display_type::percent, "army_tech_research_bonus" },// army_tech_research_bonus 97
+    modifier_display_info{ true, modifier_display_type::percent, "industry_tech_research_bonus" },// industry_tech_research_bonus 98
+    modifier_display_info{ true, modifier_display_type::percent, "navy_tech_research_bonus" },// navy_tech_research_bonus 99
+    modifier_display_info{ true, modifier_display_type::percent, "culture_tech_research_bonus" },// culture_tech_research_bonus 100
+    modifier_display_info{ true, modifier_display_type::percent, "supply_limit_tech"}, //supply_limit{101
+    modifier_display_info{ true, modifier_display_type::percent, "colonial_migration_tech"}, //colonial_migration{102
+    modifier_display_info{ true, modifier_display_type::integer, "tech_max_focus"}, //max_national_focus{103
+    modifier_display_info{ true, modifier_display_type::percent, "cb_creation_speed"}, //cb_creation_speed{104
+    modifier_display_info{ true, modifier_display_type::percent, "edu_eff_tech"}, //education_efficiency{105
+    modifier_display_info{ true, modifier_display_type::percent, "reinforce_tech"}, //reinforce_rate{106
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_tax_efficiency"}, //tax_eff{107
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_administrative_efficiency"}, //admin_eff{108
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_greatpower_influence_gain"}, //influence{109
+    modifier_display_info{ true, modifier_display_type::percent, "digin_from_tech"}, //dig_in_cap{110
+    modifier_display_info{ true, modifier_display_type::percent, "combat_width_tech"}, //combat_width{111
+    modifier_display_info{ true, modifier_display_type::percent, "mil_tactics_tech"}, //military_tactics{112
+    modifier_display_info{ true, modifier_display_type::percent, "supply_range_tech"}, //supply_range{113
+    modifier_display_info{ true, modifier_display_type::percent, "regular_exp_tech"}, //regular_experience_level{114
+    modifier_display_info{ true, modifier_display_type::percent, "soldier_to_pop_loss_tech"}, //soldier_to_pop_loss{115
+    modifier_display_info{ true, modifier_display_type::percent, "naval_attrition_tech"}, //naval_attrition{116
+    modifier_display_info{ true, modifier_display_type::percent, "land_attrition_tech"}, //land_attrition{117
+    modifier_display_info{ true, modifier_display_type::percent, "tech_pop_growth"}, //pop_growth{118
+    modifier_display_info{ true, modifier_display_type::percent, "modifier_life_rating"}, //colonial_life_rating{119
+    modifier_display_info{ true, modifier_display_type::percent, "seperatism_tech"}, //seperatism{120
+    modifier_display_info{ true, modifier_display_type::percent, "tech_plurality"}, //plurality{121
+    modifier_display_info{ true, modifier_display_type::percent, "colonial_prestige_modifier_tech"}, //colonial_prestige{122
+    modifier_display_info{ true, modifier_display_type::percent, "permanent_prestige_tech"}, //permanent_prestige{123
+    modifier_display_info{ true, modifier_display_type::percent, "prestige_modifier_tech"}, //prestige_modifier{124
 };
 
 std::string format_modifier_value(sys::state& state, float value, modifier_display_type type) {
     switch(type) {
     case modifier_display_type::integer:
-        return (value > 0.f ? "+" : "-") + text::prettify(int64_t(value));
+        return (value > 0.f ? "+" : "") + text::prettify(int64_t(value));
     case modifier_display_type::percent:
-        return (value > 0.f ? "+" : "-") + text::format_percentage(value, 1);
+        return (value > 0.f ? "+" : "") + text::format_percentage(value, 1);
     case modifier_display_type::fp_two_places:
         return text::format_float(value, 2);
     case modifier_display_type::fp_three_places:
@@ -184,7 +207,7 @@ std::string format_modifier_value(sys::state& state, float value, modifier_displ
     return "x%";
 }
 
-void modifier_description(sys::state& state, text::columnar_layout& layout, dcon::modifier_id mid) {
+void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation) {
     auto fat_id = dcon::fatten(state.world, mid);
 
     const auto prov_def = fat_id.get_province_values();
@@ -195,7 +218,7 @@ void modifier_description(sys::state& state, text::columnar_layout& layout, dcon
         auto offset = uint32_t(prov_def.offsets[i].index());
         auto data = province_modifier_names[offset];
 
-        auto box = text::open_layout_box(layout, 0);
+        auto box = text::open_layout_box(layout, indentation);
         text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
         text::add_to_layout_box(layout, state, box, std::string_view{ ":" }, text::text_color::white);
         text::add_space_to_layout_box(layout, state, box);
@@ -214,7 +237,7 @@ void modifier_description(sys::state& state, text::columnar_layout& layout, dcon
         auto offset = uint32_t(nat_def.offsets[i].index());
         auto data = national_modifier_names[offset];
 
-        auto box = text::open_layout_box(layout, 0);
+        auto box = text::open_layout_box(layout, indentation);
         text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
         text::add_to_layout_box(layout, state, box, std::string_view{ ":" }, text::text_color::white);
         text::add_space_to_layout_box(layout, state, box);
