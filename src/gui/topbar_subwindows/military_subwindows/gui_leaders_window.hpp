@@ -4,16 +4,12 @@
 
 namespace ui {
 
-class military_leaders : public listbox_row_element_base<dcon::admiral_id> {
-	//uint8_t factory_index = 0;
+class military_leaders : public listbox_row_element_base<dcon::general_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
-		// Create factory slots for each of the provinces
-		//for(factory_index = 0; factory_index < 8; ++factory_index) {
-			//auto ptr = make_child(state, "factory_info", state.ui_state.defs_by_name.find("factory_info")->second.definition);
-			//add_child_to_front(std::move(ptr));
-		//}
+		this->base_data.position.y = 0;
+		this->base_data.position.x = 0;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -35,7 +31,7 @@ public:
 	//}
 };
 
-class military_leaders_listbox : public listbox_element_base<military_leaders, dcon::admiral_id> {
+class military_leaders_listbox : public listbox_element_base<military_leaders, dcon::general_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "milview_leader_entry";
@@ -43,7 +39,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(const auto fat_id : state.world.nation_get_admiral_loyalty(state.local_player_nation))
+		for(const auto fat_id : state.world.nation_get_general_loyalty(state.local_player_nation))
 			row_contents.push_back(fat_id.get_leader());
 		update(state);
 	}
