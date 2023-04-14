@@ -1980,7 +1980,7 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
 			commodity_id = any_cast<dcon::commodity_id>(payload);
-			frame = static_cast<int32_t>(commodity_id.index());
+			frame = int32_t(commodity_id.index());
 			return message_result::consumed;
 		}
 		return message_result::unseen;
