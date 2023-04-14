@@ -43,6 +43,7 @@ protected:
 class province_search_window : public window_element_base {
 private:
     province_search_list* search_listbox = nullptr;
+    province_search_edit* edit_box = nullptr;
 
     std::vector<dcon::province_id> search_provinces(sys::state& state, std::string_view search_term) noexcept {
         std::vector<dcon::province_id> results{};
@@ -71,7 +72,9 @@ public:
         if(name == "cancel") {
             return make_element_by_type<generic_close_button>(state, id);
         } else if(name == "goto_edit") {
-            return make_element_by_type<province_search_edit>(state, id);
+            auto ptr = make_element_by_type<province_search_edit>(state, id);
+            edit_box = ptr.get();
+            return ptr;
         } else if(name == "provinces") {
             auto ptr = make_element_by_type<province_search_list>(state, id);
             search_listbox = ptr.get();
@@ -90,6 +93,14 @@ public:
 		} else {
 			return message_result::unseen;
 		}
+	}
+
+	void on_visible(sys::state& state) noexcept override {
+		state.ui_state.edit_target = edit_box;
+	}
+    
+	void on_hide(sys::state& state) noexcept override {
+		state.ui_state.edit_target = nullptr;
 	}
 };
 
