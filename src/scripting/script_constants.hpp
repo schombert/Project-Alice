@@ -760,6 +760,32 @@ inline constexpr int32_t data_sizes[] = {
 	0, //constexpr inline uint16_t assimilate_state = 0x014D;
 };
 
+inline int32_t get_effect_non_scope_payload_size(const uint16_t* data) {
+	return effect::data_sizes[data[0] & effect::code_mask];
+}
+inline int32_t get_effect_scope_payload_size(const uint16_t* data) {
+	return data[1];
+}
+inline int32_t get_generic_effect_payload_size(const uint16_t* data) {
+	return (data[0] & effect::is_scope) != 0 ? get_effect_scope_payload_size(data) : get_effect_non_scope_payload_size(data);
+}
+inline int32_t effect_scope_data_payload(uint16_t code) {
+	const auto masked_code = code & effect::code_mask;
+	if((masked_code == effect::tag_scope) ||
+		(masked_code == effect::integer_scope) ||
+		(masked_code == effect::pop_type_scope_nation) ||
+		(masked_code == effect::pop_type_scope_state) ||
+		(masked_code == effect::pop_type_scope_province) ||
+		(masked_code == effect::region_scope) ||
+		(masked_code == effect::random_scope))
+		return 1 + ((code & effect::scope_has_limit) != 0);
+	return 0 + ((code & effect::scope_has_limit) != 0);
+}
+inline bool effect_scope_has_single_member(const uint16_t* source) { //precondition: scope known to not be empty
+	const auto data_offset = 2 + effect_scope_data_payload(source[0]);
+	return get_effect_scope_payload_size(source) == data_offset + get_generic_effect_payload_size(source + data_offset);
+}
+
 }
 
 //

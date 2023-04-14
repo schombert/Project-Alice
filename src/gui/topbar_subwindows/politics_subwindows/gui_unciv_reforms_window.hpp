@@ -47,7 +47,7 @@ public:
 			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
-		auto mod_id = fat_id.get_modifier();
+		auto mod_id = fat_id.get_modifier().id;
 		if(bool(mod_id)) {
 			modifier_description(state, contents, mod_id);
 		}
