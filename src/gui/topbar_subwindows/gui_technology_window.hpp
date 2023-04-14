@@ -279,15 +279,34 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
-class invention_image : public image_element_base {
+class invention_image : public opaque_element_base {
+	dcon::invention_id invention_id{};
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::invention_id>()) {
-			auto id = any_cast<dcon::invention_id>(payload);
-			frame = int32_t(state.world.invention_get_technology_type(id));
+			invention_id = any_cast<dcon::invention_id>(payload);
+			frame = int32_t(state.world.invention_get_technology_type(invention_id));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, invention_id);
+		auto name = fat_id.get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		// Evaluate limit condition
+		auto limit_condition = fat_id.get_limit();
+		if(bool(limit_condition))
+			trigger_description(state, contents, limit_condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 	}
 };
 class invention_chance_percent_text : public simple_text_element_base {
@@ -296,13 +315,14 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		// TODO: evaluate modifiers of chances for inventions
 		auto mod_k = state.world.invention_get_chance(invention_id);
-		auto chances = trigger::evaluate_multiplicative_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
-		set_text(state, text::format_percentage(chances, 1));
+		auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+		set_text(state, text::format_percentage(chances / 100.f, 1));
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::invention_id>()) {
 			invention_id = any_cast<dcon::invention_id>(payload);
+			on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -321,13 +341,10 @@ public:
 			return nullptr;
 		}
 	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::state_instance_id>()) {
-			impl_set(state, payload);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+	
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		impl_set(state, payload);
 	}
 };
 class technology_possible_invention_listbox : public listbox_element_base<technology_possible_invention, dcon::invention_id> {
@@ -337,11 +354,10 @@ protected:
     }
 public:
 	void on_update(sys::state& state) noexcept override {
-		// TODO: evaluate modifiers of chances for inventions
 		row_contents.clear();
 		state.world.for_each_invention([&](dcon::invention_id id) {
-			auto mod_k = state.world.invention_get_chance(id);
-			if(trigger::evaluate_multiplicative_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0) > 0.f)
+			auto lim_trigger_k = state.world.invention_get_limit(id);
+			if(trigger::evaluate_trigger(state, lim_trigger_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1))
 				row_contents.push_back(id);
 		});
 		update(state);
