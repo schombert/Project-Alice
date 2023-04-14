@@ -5,187 +5,199 @@
 
 namespace sys {
 
-namespace provincial_mod_offsets {
-constexpr inline dcon::provincial_modifier_value supply_limit{ 0 };
-constexpr inline dcon::provincial_modifier_value attrition{ 1 };
-constexpr inline dcon::provincial_modifier_value max_attrition{ 2 };
-constexpr inline dcon::provincial_modifier_value local_ruling_party_support{ 3 };
-constexpr inline dcon::provincial_modifier_value poor_life_needs{ 4 };
-constexpr inline dcon::provincial_modifier_value rich_life_needs{ 5 };
-constexpr inline dcon::provincial_modifier_value middle_life_needs{ 6 };
-constexpr inline dcon::provincial_modifier_value poor_everyday_needs{ 7 };
-constexpr inline dcon::provincial_modifier_value rich_everyday_needs{ 8 };
-constexpr inline dcon::provincial_modifier_value middle_everyday_needs{ 9 };
-constexpr inline dcon::provincial_modifier_value poor_luxury_needs{ 10 };
-constexpr inline dcon::provincial_modifier_value middle_luxury_needs{ 11 };
-constexpr inline dcon::provincial_modifier_value rich_luxury_needs{ 12 };
-constexpr inline dcon::provincial_modifier_value population_growth{ 13 };
-constexpr inline dcon::provincial_modifier_value local_factory_input{ 14 };
-constexpr inline dcon::provincial_modifier_value local_factory_output{ 15 };
-constexpr inline dcon::provincial_modifier_value local_factory_throughput{ 16 };
-constexpr inline dcon::provincial_modifier_value local_rgo_input{ 17 };
-constexpr inline dcon::provincial_modifier_value local_rgo_output{ 18 };
-constexpr inline dcon::provincial_modifier_value local_rgo_throughput{ 19 };
-constexpr inline dcon::provincial_modifier_value local_artisan_input{ 20 };
-constexpr inline dcon::provincial_modifier_value local_artisan_output{ 21 };
-constexpr inline dcon::provincial_modifier_value local_artisan_throughput{ 22 };
-constexpr inline dcon::provincial_modifier_value number_of_voters{ 23 };
-constexpr inline dcon::provincial_modifier_value goods_demand{ 24 };
-constexpr inline dcon::provincial_modifier_value assimilation_rate{ 25 };
-constexpr inline dcon::provincial_modifier_value life_rating{ 26 };
-constexpr inline dcon::provincial_modifier_value farm_rgo_eff{ 27 };
-constexpr inline dcon::provincial_modifier_value mine_rgo_eff{ 28 };
-constexpr inline dcon::provincial_modifier_value farm_rgo_size{ 29 };
-constexpr inline dcon::provincial_modifier_value mine_rgo_size{ 30 };
-constexpr inline dcon::provincial_modifier_value pop_militancy_modifier{ 31 };
-constexpr inline dcon::provincial_modifier_value pop_consciousness_modifier{ 32 };
-constexpr inline dcon::provincial_modifier_value rich_income_modifier{ 33 };
-constexpr inline dcon::provincial_modifier_value middle_income_modifier{ 34 };
-constexpr inline dcon::provincial_modifier_value poor_income_modifier{ 35 };
-constexpr inline dcon::provincial_modifier_value boost_strongest_party{ 36 };
-constexpr inline dcon::provincial_modifier_value immigrant_attract{ 37 };
-constexpr inline dcon::provincial_modifier_value immigrant_push{ 38 };
-constexpr inline dcon::provincial_modifier_value local_repair{ 39 };
-constexpr inline dcon::provincial_modifier_value local_ship_build{ 40 };
-constexpr inline dcon::provincial_modifier_value movement_cost{ 41 };
-constexpr inline dcon::provincial_modifier_value defense{ 42 };
-constexpr inline dcon::provincial_modifier_value attack{ 43 };
-constexpr inline dcon::provincial_modifier_value combat_width{ 44 };
-constexpr inline dcon::provincial_modifier_value min_build_naval_base{ 45 };
-constexpr inline dcon::provincial_modifier_value min_build_railroad{ 46 };
-constexpr inline dcon::provincial_modifier_value min_build_fort{ 47 };
+// cat t.cpp | awk '{print $1 $6 ", " $5 ", " $2 " " $3 " " $4}' >t2.cpp
+#define MOD_PROV_LIST \
+    MOD_LIST_ELEMENT(0, supply_limit, true, modifier_display_type::integer, "modifier_supply_limit") \
+    MOD_LIST_ELEMENT(1, attrition, false, modifier_display_type::percent, "modifier_attrition") \
+    MOD_LIST_ELEMENT(2, max_attrition, false, modifier_display_type::integer, "modifier_max_attrition") \
+    MOD_LIST_ELEMENT(3, local_ruling_party_support, true, modifier_display_type::percent, "modifier_local_ruling_party_support") \
+    MOD_LIST_ELEMENT(4, poor_life_needs, false, modifier_display_type::percent, "modifier_poor_life_needs") \
+    MOD_LIST_ELEMENT(5, rich_life_needs, false, modifier_display_type::percent, "modifier_rich_life_needs") \
+    MOD_LIST_ELEMENT(6, middle_life_needs, false, modifier_display_type::percent, "modifier_middle_life_needs") \
+    MOD_LIST_ELEMENT(7, poor_everyday_needs, false, modifier_display_type::percent, "modifier_poor_everyday_needs") \
+    MOD_LIST_ELEMENT(8, rich_everyday_needs, false, modifier_display_type::percent, "modifier_rich_everyday_needs") \
+    MOD_LIST_ELEMENT(9, middle_everyday_needs, false, modifier_display_type::percent, "modifier_middle_everyday_needs") \
+    MOD_LIST_ELEMENT(10, poor_luxury_needs, false, modifier_display_type::percent, "modifier_poor_luxury_needs") \
+    MOD_LIST_ELEMENT(11, middle_luxury_needs, false, modifier_display_type::percent, "modifier_middle_luxury_needs") \
+    MOD_LIST_ELEMENT(12, rich_luxury_needs, false, modifier_display_type::percent, "modifier_rich_luxury_needs") \
+    MOD_LIST_ELEMENT(13, population_growth, true, modifier_display_type::fp_three_places, "modifier_population_growth") \
+    MOD_LIST_ELEMENT(14, local_factory_input, false, modifier_display_type::percent, "modifier_local_factory_input") \
+    MOD_LIST_ELEMENT(15, local_factory_output, true, modifier_display_type::percent, "modifier_local_factory_output") \
+    MOD_LIST_ELEMENT(16, local_factory_throughput, true, modifier_display_type::percent, "modifier_local_factory_throughput") \
+    MOD_LIST_ELEMENT(17, local_rgo_input, true, modifier_display_type::percent, "modifier_local_rgo_input") \
+    MOD_LIST_ELEMENT(18, local_rgo_output, true, modifier_display_type::percent, "modifier_local_rgo_output") \
+    MOD_LIST_ELEMENT(19, local_rgo_throughput, true, modifier_display_type::percent, "modifier_local_rgo_throughput") \
+    MOD_LIST_ELEMENT(20, local_artisan_input, false, modifier_display_type::percent, "modifier_local_artisan_input") \
+    MOD_LIST_ELEMENT(21, local_artisan_output, true, modifier_display_type::percent, "modifier_local_artisan_output") \
+    MOD_LIST_ELEMENT(22, local_artisan_throughput, true, modifier_display_type::percent, "modifier_local_artisan_throughput") \
+    MOD_LIST_ELEMENT(23, number_of_voters, true, modifier_display_type::percent, "modifier_number_of_voters") \
+    MOD_LIST_ELEMENT(24, goods_demand, true, modifier_display_type::percent, "modifier_goods_demand") \
+    MOD_LIST_ELEMENT(25, assimilation_rate, true, modifier_display_type::percent, "modifier_assimilation_rate") \
+    MOD_LIST_ELEMENT(26, life_rating, true, modifier_display_type::percent, "modifier_life_rating") \
+    MOD_LIST_ELEMENT(27, farm_rgo_eff, true, modifier_display_type::percent, "modifier_farm_efficiency") \
+    MOD_LIST_ELEMENT(28, mine_rgo_eff, true, modifier_display_type::percent, "modifier_mine_efficiency") \
+    MOD_LIST_ELEMENT(29, farm_rgo_size, true, modifier_display_type::percent, "modifier_farm_size") \
+    MOD_LIST_ELEMENT(30, mine_rgo_size, true, modifier_display_type::percent, "modifier_mine_size") \
+    MOD_LIST_ELEMENT(31, pop_militancy_modifier, false, modifier_display_type::fp_three_places, "modifier_pop_militancy_modifier") \
+    MOD_LIST_ELEMENT(32, pop_consciousness_modifier, false, modifier_display_type::fp_three_places, "modifier_pop_consciousness_modifier") \
+    MOD_LIST_ELEMENT(33, rich_income_modifier, true, modifier_display_type::percent, "modifier_rich_income_modifier") \
+    MOD_LIST_ELEMENT(34, middle_income_modifier, true, modifier_display_type::percent, "modifier_middle_income_modifier") \
+    MOD_LIST_ELEMENT(35, poor_income_modifier, true, modifier_display_type::percent, "modifier_poor_income_modifier") \
+    MOD_LIST_ELEMENT(36, boost_strongest_party, true, modifier_display_type::percent, "modifier_boost_strongest_party") \
+    MOD_LIST_ELEMENT(37, immigrant_attract, true, modifier_display_type::percent, "modifier_immigrant_attract") \
+    MOD_LIST_ELEMENT(38, immigrant_push, true, modifier_display_type::percent, "modifier_immigrant_push") \
+    MOD_LIST_ELEMENT(39, local_repair, true, modifier_display_type::percent, "modifier_local_repair") \
+    MOD_LIST_ELEMENT(40, local_ship_build, false, modifier_display_type::percent, "modifier_local_ship_build") \
+    MOD_LIST_ELEMENT(41, movement_cost, false, modifier_display_type::percent, "modifier_movement_cost") \
+    MOD_LIST_ELEMENT(42, defense, true, modifier_display_type::integer, "defence") \
+    MOD_LIST_ELEMENT(43, attack, true, modifier_display_type::integer, "attack") \
+    MOD_LIST_ELEMENT(44, combat_width, false, modifier_display_type::percent, "modifier_combat_width") \
+    MOD_LIST_ELEMENT(45, min_build_naval_base, false, modifier_display_type::integer, "naval_base_level") \
+    MOD_LIST_ELEMENT(46, min_build_railroad, false, modifier_display_type::integer, "railroad_level") \
+    MOD_LIST_ELEMENT(47, min_build_fort, false, modifier_display_type::integer, "fort_level")
+#define MOD_PROV_LIST_COUNT 48
 
-constexpr inline uint32_t count = 48;
+#define MOD_NAT_LIST \
+    MOD_LIST_ELEMENT(0, war_exhaustion, false, modifier_display_type::fp_two_places, "war_exhaustion") \
+    MOD_LIST_ELEMENT(1, max_war_exhaustion, true, modifier_display_type::integer, "max_war_exhaustion") \
+    MOD_LIST_ELEMENT(2, leadership, true, modifier_display_type::integer, "leadership") \
+    MOD_LIST_ELEMENT(3, leadership_modifier, true, modifier_display_type::percent, "modifier_global_leadership_modifier") \
+    MOD_LIST_ELEMENT(4, supply_consumption, false, modifier_display_type::percent, "modifier_supply_consumption") \
+    MOD_LIST_ELEMENT(5, org_regain, true, modifier_display_type::percent, "modifier_org_regain") \
+    MOD_LIST_ELEMENT(6, reinforce_speed, true, modifier_display_type::percent, "modifier_reinforce_speed") \
+    MOD_LIST_ELEMENT(7, land_organisation, true, modifier_display_type::percent, "modifier_land_organisation") \
+    MOD_LIST_ELEMENT(8, naval_organisation, true, modifier_display_type::percent, "modifier_naval_organisation") \
+    MOD_LIST_ELEMENT(9, research_points, true, modifier_display_type::fp_two_places, "modifier_research_points") \
+    MOD_LIST_ELEMENT(10, research_points_modifier, true, modifier_display_type::percent, "modifier_research_points_modifier") \
+    MOD_LIST_ELEMENT(11, research_points_on_conquer, true, modifier_display_type::percent, "modifier_research_points_on_conquer") \
+    MOD_LIST_ELEMENT(12, import_cost, false, modifier_display_type::percent, "modifier_import_cost") \
+    MOD_LIST_ELEMENT(13, loan_interest, false, modifier_display_type::percent, "loan_interest_tech") \
+    MOD_LIST_ELEMENT(14, tax_efficiency, true, modifier_display_type::percent, "modifier_tax_efficiency") \
+    MOD_LIST_ELEMENT(15, min_tax, true, modifier_display_type::percent, "modifier_min_tax") \
+    MOD_LIST_ELEMENT(16, max_tax, true, modifier_display_type::percent, "modifier_max_tax") \
+    MOD_LIST_ELEMENT(17, min_military_spending, true, modifier_display_type::percent, "modifier_min_military_spending") \
+    MOD_LIST_ELEMENT(18, max_military_spending, true, modifier_display_type::percent, "modifier_max_military_spending") \
+    MOD_LIST_ELEMENT(19, min_social_spending, true, modifier_display_type::percent, "modifier_min_social_spending") \
+    MOD_LIST_ELEMENT(20, max_social_spending, true, modifier_display_type::percent, "modifier_max_social_spending") \
+    MOD_LIST_ELEMENT(21, factory_owner_cost, false, modifier_display_type::percent, "modifier_factory_owner_cost") \
+    MOD_LIST_ELEMENT(22, min_tariff, true, modifier_display_type::percent, "modifier_min_tariff") \
+    MOD_LIST_ELEMENT(23, max_tariff, true, modifier_display_type::percent, "modifier_max_tariff") \
+    MOD_LIST_ELEMENT(24, ruling_party_support, true, modifier_display_type::percent, "modifier_ruling_party_support") \
+    MOD_LIST_ELEMENT(25, rich_vote, true, modifier_display_type::percent, "modifier_rich_vote") \
+    MOD_LIST_ELEMENT(26, middle_vote, true, modifier_display_type::percent, "modifier_middle_vote") \
+    MOD_LIST_ELEMENT(27, poor_vote, true, modifier_display_type::percent, "modifier_poor_vote") \
+    MOD_LIST_ELEMENT(28, minimum_wage, true, modifier_display_type::percent, "modifier_minimum_wage") \
+    MOD_LIST_ELEMENT(29, factory_maintenance, false, modifier_display_type::percent, "modifier_factory_maintenance") \
+    MOD_LIST_ELEMENT(30, poor_life_needs, false, modifier_display_type::percent, "modifier_poor_life_needs") \
+    MOD_LIST_ELEMENT(31, rich_life_needs, false, modifier_display_type::percent, "modifier_rich_life_needs") \
+    MOD_LIST_ELEMENT(32, middle_life_needs, false, modifier_display_type::percent, "modifier_middle_life_needs") \
+    MOD_LIST_ELEMENT(33, poor_everyday_needs, false, modifier_display_type::percent, "modifier_poor_everyday_needs") \
+    MOD_LIST_ELEMENT(34, rich_everyday_needs, false, modifier_display_type::percent, "modifier_rich_everyday_needs") \
+    MOD_LIST_ELEMENT(35, middle_everyday_needs, false, modifier_display_type::percent, "modifier_middle_everyday_needs") \
+    MOD_LIST_ELEMENT(36, poor_luxury_needs, false, modifier_display_type::percent, "modifier_poor_luxury_needs") \
+    MOD_LIST_ELEMENT(37, middle_luxury_needs, false, modifier_display_type::percent, "modifier_middle_luxury_needs") \
+    MOD_LIST_ELEMENT(38, rich_luxury_needs, false, modifier_display_type::percent, "modifier_rich_luxury_needs") \
+    MOD_LIST_ELEMENT(39, unemployment_benefit, true, modifier_display_type::percent, "modifier_unemployment_benefit") \
+    MOD_LIST_ELEMENT(40, pension_level, true, modifier_display_type::percent, "modifier_pension_level") \
+    MOD_LIST_ELEMENT(41, global_population_growth, true, modifier_display_type::fp_two_places, "modifier_global_population_growth") \
+    MOD_LIST_ELEMENT(42, factory_input, false, modifier_display_type::percent, "modifier_factory_input") \
+    MOD_LIST_ELEMENT(43, factory_output, true, modifier_display_type::percent, "modifier_factory_output") \
+    MOD_LIST_ELEMENT(44, factory_throughput, true, modifier_display_type::percent, "modifier_factory_throughput") \
+    MOD_LIST_ELEMENT(45, rgo_input, true, modifier_display_type::percent, "modifier_rgo_input") \
+    MOD_LIST_ELEMENT(46, rgo_output, true, modifier_display_type::percent, "modifier_rgo_output") \
+    MOD_LIST_ELEMENT(47, rgo_throughput, true, modifier_display_type::percent, "modifier_rgo_throughput") \
+    MOD_LIST_ELEMENT(48, artisan_input, false, modifier_display_type::percent, "modifier_artisan_input") \
+    MOD_LIST_ELEMENT(49, artisan_output, true, modifier_display_type::percent, "modifier_artisan_output") \
+    MOD_LIST_ELEMENT(50, artisan_throughput, true, modifier_display_type::percent, "modifier_artisan_throughput") \
+    MOD_LIST_ELEMENT(51, goods_demand, true, modifier_display_type::percent, "modifier_goods_demand") \
+    MOD_LIST_ELEMENT(52, badboy, false, modifier_display_type::fp_two_places, "modifier_badboy") \
+    MOD_LIST_ELEMENT(53, global_assimilation_rate, true, modifier_display_type::percent, "modifier_global_assimilation_rate") \
+    MOD_LIST_ELEMENT(54, prestige, true, modifier_display_type::percent, "modifier_prestige") \
+    MOD_LIST_ELEMENT(55, factory_cost, false, modifier_display_type::percent, "modifier_factory_cost") \
+    MOD_LIST_ELEMENT(56, farm_rgo_eff, true, modifier_display_type::percent, "modifier_farm_rgo_eff") \
+    MOD_LIST_ELEMENT(57, mine_rgo_eff, true, modifier_display_type::percent, "modifier_mine_rgo_eff") \
+    MOD_LIST_ELEMENT(58, farm_rgo_size, true, modifier_display_type::percent, "modifier_farm_rgo_size") \
+    MOD_LIST_ELEMENT(59, mine_rgo_size, true, modifier_display_type::percent, "modifier_mine_rgo_size") \
+    MOD_LIST_ELEMENT(60, issue_change_speed, true, modifier_display_type::percent, "modifier_issue_change_speed") \
+    MOD_LIST_ELEMENT(61, social_reform_desire, false, modifier_display_type::fp_three_places, "modifier_social_reform_desire") \
+    MOD_LIST_ELEMENT(62, political_reform_desire, false, modifier_display_type::fp_three_places, "modifier_political_reform_desire") \
+    MOD_LIST_ELEMENT(63, literacy_con_impact, true, modifier_display_type::percent, "modifier_literacy_con_impact") \
+    MOD_LIST_ELEMENT(64, rich_income_modifier, true, modifier_display_type::percent, "modifier_rich_income_modifier") \
+    MOD_LIST_ELEMENT(65, middle_income_modifier, true, modifier_display_type::percent, "modifier_middle_income_modifier") \
+    MOD_LIST_ELEMENT(66, poor_income_modifier, true, modifier_display_type::percent, "modifier_poor_income_modifier") \
+    MOD_LIST_ELEMENT(67, global_immigrant_attract, true, modifier_display_type::percent, "modifier_global_immigrant_attract") \
+    MOD_LIST_ELEMENT(68, poor_savings_modifier, true, modifier_display_type::percent, "modifier_poor_savings_modifier") \
+    MOD_LIST_ELEMENT(69, influence_modifier, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \
+    MOD_LIST_ELEMENT(70, diplomatic_points_modifier, true, modifier_display_type::fp_two_places, "modifier_diplopoints_gain") \
+    MOD_LIST_ELEMENT(71, mobilization_size, true, modifier_display_type::percent, "modifier_mobilisation_size") \
+    MOD_LIST_ELEMENT(72, global_pop_militancy_modifier, false, modifier_display_type::fp_three_places, "modifier_global_pop_militancy_modifier") \
+    MOD_LIST_ELEMENT(73, global_pop_consciousness_modifier, false, modifier_display_type::fp_three_places, "modifier_global_pop_consciousness_modifier") \
+    MOD_LIST_ELEMENT(74, core_pop_militancy_modifier, false, modifier_display_type::fp_three_places, "modifier_core_pop_militancy_modifier") \
+    MOD_LIST_ELEMENT(75, core_pop_consciousness_modifier, false, modifier_display_type::fp_three_places, "modifier_core_pop_consciousness_modifier") \
+    MOD_LIST_ELEMENT(76, non_accepted_pop_militancy_modifier, false, modifier_display_type::fp_three_places, "modifier_non_accepted_pop_militancy_modifier") \
+    MOD_LIST_ELEMENT(77, non_accepted_pop_consciousness_modifier, false, modifier_display_type::fp_three_places, "modifier_non_accepted_pop_consciousness_modifier") \
+    MOD_LIST_ELEMENT(78, cb_generation_speed_modifier, true, modifier_display_type::percent, "modifier_cb_generation_speed_modifier") \
+    MOD_LIST_ELEMENT(79, mobilization_impact, false, modifier_display_type::percent, "modifier_mobilization_impact") \
+    MOD_LIST_ELEMENT(80, suppression_points_modifier, true, modifier_display_type::percent, "modifier_suppression_point_gain") \
+    MOD_LIST_ELEMENT(81, education_efficiency_modifier, true, modifier_display_type::percent, "modifier_education_efficiency") \
+    MOD_LIST_ELEMENT(82, civilization_progress_modifier, true, modifier_display_type::percent, "modifier_civilization_progress") \
+    MOD_LIST_ELEMENT(83, administrative_efficiency_modifier, true, modifier_display_type::percent, "modifier_administrative_efficiency") \
+    MOD_LIST_ELEMENT(84, land_unit_start_experience, true, modifier_display_type::percent, "modifier_land_unit_start_experience") \
+    MOD_LIST_ELEMENT(85, naval_unit_start_experience, true, modifier_display_type::percent, "modifier_naval_unit_start_experience") \
+    MOD_LIST_ELEMENT(86, naval_attack_modifier, true, modifier_display_type::percent, "modifier_naval_attack") \
+    MOD_LIST_ELEMENT(87, naval_defense_modifier, true, modifier_display_type::percent, "modifier_naval_defense") \
+    MOD_LIST_ELEMENT(88, land_attack_modifier, true, modifier_display_type::percent, "modifier_land_attack") \
+    MOD_LIST_ELEMENT(89, land_defense_modifier, true, modifier_display_type::percent, "modifier_land_defense") \
+    MOD_LIST_ELEMENT(90, tariff_efficiency_modifier, true, modifier_display_type::percent, "modifier_tariff_efficiency") \
+    MOD_LIST_ELEMENT(91, max_loan_modifier, true, modifier_display_type::percent, "modifier_max_loan_amount") \
+    MOD_LIST_ELEMENT(92, unciv_economic_modifier, true, modifier_display_type::percent, "modifier_unciv_economic") \
+    MOD_LIST_ELEMENT(93, unciv_military_modifier, true, modifier_display_type::percent, "modifier_unciv_military") \
+    MOD_LIST_ELEMENT(94, self_unciv_economic_modifier, true, modifier_display_type::percent, "modifier_self_unciv_economic") \
+    MOD_LIST_ELEMENT(95, self_unciv_military_modifier, true, modifier_display_type::percent, "modifier_self_unciv_military") \
+    MOD_LIST_ELEMENT(96, commerce_tech_research_bonus, true, modifier_display_type::percent, "commerce_tech_research_bonus") \
+    MOD_LIST_ELEMENT(97, army_tech_research_bonus, true, modifier_display_type::percent, "army_tech_research_bonus") \
+    MOD_LIST_ELEMENT(98, industry_tech_research_bonus, true, modifier_display_type::percent, "industry_tech_research_bonus") \
+    MOD_LIST_ELEMENT(99, navy_tech_research_bonus, true, modifier_display_type::percent, "navy_tech_research_bonus") \
+    MOD_LIST_ELEMENT(100, culture_tech_research_bonus, true, modifier_display_type::percent, "culture_tech_research_bonus") \
+    MOD_LIST_ELEMENT(101, supply_limit, true, modifier_display_type::percent, "supply_limit_tech") \
+    MOD_LIST_ELEMENT(102, colonial_migration, true, modifier_display_type::percent, "colonial_migration_tech") \
+    MOD_LIST_ELEMENT(103, max_national_focus, true, modifier_display_type::integer, "tech_max_focus") \
+    MOD_LIST_ELEMENT(104, cb_creation_speed, true, modifier_display_type::percent, "cb_creation_speed") \
+    MOD_LIST_ELEMENT(105, education_efficiency, true, modifier_display_type::percent, "edu_eff_tech") \
+    MOD_LIST_ELEMENT(106, reinforce_rate, true, modifier_display_type::percent, "reinforce_tech") \
+    MOD_LIST_ELEMENT(107, administrative_efficiency, true, modifier_display_type::percent, "modifier_administrative_efficiency") \
+    MOD_LIST_ELEMENT(108, influence, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \
+    MOD_LIST_ELEMENT(109, dig_in_cap, true, modifier_display_type::percent, "digin_from_tech") \
+    MOD_LIST_ELEMENT(110, combat_width, true, modifier_display_type::percent, "combat_width_tech") \
+    MOD_LIST_ELEMENT(111, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech") \
+    MOD_LIST_ELEMENT(112, supply_range, true, modifier_display_type::percent, "supply_range_tech") \
+    MOD_LIST_ELEMENT(113, regular_experience_level, true, modifier_display_type::percent, "regular_exp_tech") \
+    MOD_LIST_ELEMENT(114, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech") \
+    MOD_LIST_ELEMENT(115, naval_attrition, true, modifier_display_type::percent, "naval_attrition_tech") \
+    MOD_LIST_ELEMENT(116, land_attrition, true, modifier_display_type::percent, "land_attrition_tech") \
+    MOD_LIST_ELEMENT(117, pop_growth, true, modifier_display_type::percent, "tech_pop_growth") \
+    MOD_LIST_ELEMENT(118, colonial_life_rating, true, modifier_display_type::percent, "modifier_life_rating") \
+    MOD_LIST_ELEMENT(119, seperatism, true, modifier_display_type::percent, "seperatism_tech") \
+    MOD_LIST_ELEMENT(120, plurality, true, modifier_display_type::percent, "tech_plurality") \
+    MOD_LIST_ELEMENT(121, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech") \
+    MOD_LIST_ELEMENT(122, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech") \
+    MOD_LIST_ELEMENT(123, prestige_modifier, true, modifier_display_type::percent, "prestige_modifier_tech")
+#define MOD_NAT_LIST_COUNT 124
+
+namespace provincial_mod_offsets {
+#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \
+	constexpr inline dcon::provincial_modifier_value name{num};
+MOD_PROV_LIST
+#undef MOD_LIST_ELEMENT
+constexpr inline uint32_t count = MOD_PROV_LIST_COUNT;
 } 
 
 namespace national_mod_offsets {
-constexpr inline dcon::national_modifier_value war_exhaustion{0};
-constexpr inline dcon::national_modifier_value max_war_exhaustion{1};
-constexpr inline dcon::national_modifier_value leadership{2};
-constexpr inline dcon::national_modifier_value leadership_modifier{3};
-constexpr inline dcon::national_modifier_value supply_consumption{4};
-constexpr inline dcon::national_modifier_value org_regain{5};
-constexpr inline dcon::national_modifier_value reinforce_speed{6};
-constexpr inline dcon::national_modifier_value land_organisation{7};
-constexpr inline dcon::national_modifier_value naval_organisation{8};
-constexpr inline dcon::national_modifier_value research_points{9};
-constexpr inline dcon::national_modifier_value research_points_modifier{10};
-constexpr inline dcon::national_modifier_value research_points_on_conquer{11};
-constexpr inline dcon::national_modifier_value import_cost{12};
-constexpr inline dcon::national_modifier_value loan_interest{13};
-constexpr inline dcon::national_modifier_value tax_efficiency{14};
-constexpr inline dcon::national_modifier_value min_tax{15};
-constexpr inline dcon::national_modifier_value max_tax{16};
-constexpr inline dcon::national_modifier_value min_military_spending{17};
-constexpr inline dcon::national_modifier_value max_military_spending{18};
-constexpr inline dcon::national_modifier_value min_social_spending{19};
-constexpr inline dcon::national_modifier_value max_social_spending{20};
-constexpr inline dcon::national_modifier_value factory_owner_cost{21};
-constexpr inline dcon::national_modifier_value min_tariff{22};
-constexpr inline dcon::national_modifier_value max_tariff{23};
-constexpr inline dcon::national_modifier_value ruling_party_support{24};
-constexpr inline dcon::national_modifier_value rich_vote{25};
-constexpr inline dcon::national_modifier_value middle_vote{26};
-constexpr inline dcon::national_modifier_value poor_vote{27};
-constexpr inline dcon::national_modifier_value minimum_wage{28};
-constexpr inline dcon::national_modifier_value factory_maintenance{29};
-constexpr inline dcon::national_modifier_value poor_life_needs{30};
-constexpr inline dcon::national_modifier_value rich_life_needs{31};
-constexpr inline dcon::national_modifier_value middle_life_needs{32};
-constexpr inline dcon::national_modifier_value poor_everyday_needs{33};
-constexpr inline dcon::national_modifier_value rich_everyday_needs{34};
-constexpr inline dcon::national_modifier_value middle_everyday_needs{35};
-constexpr inline dcon::national_modifier_value poor_luxury_needs{36};
-constexpr inline dcon::national_modifier_value middle_luxury_needs{37};
-constexpr inline dcon::national_modifier_value rich_luxury_needs{38};
-constexpr inline dcon::national_modifier_value unemployment_benefit{39};
-constexpr inline dcon::national_modifier_value pension_level{40};
-constexpr inline dcon::national_modifier_value global_population_growth{41};
-constexpr inline dcon::national_modifier_value factory_input{42};
-constexpr inline dcon::national_modifier_value factory_output{43};
-constexpr inline dcon::national_modifier_value factory_throughput{44};
-constexpr inline dcon::national_modifier_value rgo_input{45};
-constexpr inline dcon::national_modifier_value rgo_output{46};
-constexpr inline dcon::national_modifier_value rgo_throughput{47};
-constexpr inline dcon::national_modifier_value artisan_input{48};
-constexpr inline dcon::national_modifier_value artisan_output{49};
-constexpr inline dcon::national_modifier_value artisan_throughput{50};
-constexpr inline dcon::national_modifier_value goods_demand{51};
-constexpr inline dcon::national_modifier_value badboy{52};
-constexpr inline dcon::national_modifier_value global_assimilation_rate{53};
-constexpr inline dcon::national_modifier_value prestige{54};
-constexpr inline dcon::national_modifier_value factory_cost{55};
-constexpr inline dcon::national_modifier_value farm_rgo_eff{56};
-constexpr inline dcon::national_modifier_value mine_rgo_eff{57};
-constexpr inline dcon::national_modifier_value farm_rgo_size{58};
-constexpr inline dcon::national_modifier_value mine_rgo_size{59};
-constexpr inline dcon::national_modifier_value issue_change_speed{60};
-constexpr inline dcon::national_modifier_value social_reform_desire{61};
-constexpr inline dcon::national_modifier_value political_reform_desire{62};
-constexpr inline dcon::national_modifier_value literacy_con_impact{63};
-constexpr inline dcon::national_modifier_value rich_income_modifier{64};
-constexpr inline dcon::national_modifier_value middle_income_modifier{65};
-constexpr inline dcon::national_modifier_value poor_income_modifier{66};
-constexpr inline dcon::national_modifier_value global_immigrant_attract{67};
-constexpr inline dcon::national_modifier_value poor_savings_modifier{68};
-constexpr inline dcon::national_modifier_value influence_modifier{69};
-constexpr inline dcon::national_modifier_value diplomatic_points_modifier{70};
-constexpr inline dcon::national_modifier_value mobilization_size{71};
-constexpr inline dcon::national_modifier_value global_pop_militancy_modifier{72};
-constexpr inline dcon::national_modifier_value global_pop_consciousness_modifier{73};
-constexpr inline dcon::national_modifier_value core_pop_militancy_modifier{74};
-constexpr inline dcon::national_modifier_value core_pop_consciousness_modifier{75};
-constexpr inline dcon::national_modifier_value non_accepted_pop_militancy_modifier{76};
-constexpr inline dcon::national_modifier_value non_accepted_pop_consciousness_modifier{77};
-constexpr inline dcon::national_modifier_value cb_generation_speed_modifier{78};
-constexpr inline dcon::national_modifier_value mobilization_impact{79};
-constexpr inline dcon::national_modifier_value suppression_points_modifier{80};
-constexpr inline dcon::national_modifier_value education_efficiency_modifier{81};
-constexpr inline dcon::national_modifier_value civilization_progress_modifier{82};
-constexpr inline dcon::national_modifier_value administrative_efficiency_modifier{83};
-constexpr inline dcon::national_modifier_value land_unit_start_experience{84};
-constexpr inline dcon::national_modifier_value naval_unit_start_experience{85};
-constexpr inline dcon::national_modifier_value naval_attack_modifier{86};
-constexpr inline dcon::national_modifier_value naval_defense_modifier{87};
-constexpr inline dcon::national_modifier_value land_attack_modifier{88};
-constexpr inline dcon::national_modifier_value land_defense_modifier{89};
-constexpr inline dcon::national_modifier_value tariff_efficiency_modifier{90};
-constexpr inline dcon::national_modifier_value max_loan_modifier{91};
-constexpr inline dcon::national_modifier_value unciv_economic_modifier{92};
-constexpr inline dcon::national_modifier_value unciv_military_modifier{93};
-constexpr inline dcon::national_modifier_value self_unciv_economic_modifier{94};
-constexpr inline dcon::national_modifier_value self_unciv_military_modifier{95};
-constexpr inline dcon::national_modifier_value commerce_tech_research_bonus{96};
-constexpr inline dcon::national_modifier_value army_tech_research_bonus{97};
-constexpr inline dcon::national_modifier_value industry_tech_research_bonus{98};
-constexpr inline dcon::national_modifier_value navy_tech_research_bonus{99};
-constexpr inline dcon::national_modifier_value culture_tech_research_bonus{100};
-constexpr inline dcon::national_modifier_value supply_limit{101};
-constexpr inline dcon::national_modifier_value colonial_migration{102};
-constexpr inline dcon::national_modifier_value max_national_focus{103};
-constexpr inline dcon::national_modifier_value cb_creation_speed{104};
-constexpr inline dcon::national_modifier_value education_efficiency{105};
-constexpr inline dcon::national_modifier_value reinforce_rate{106};
-constexpr inline dcon::national_modifier_value tax_eff{107};
-constexpr inline dcon::national_modifier_value administrative_efficiency{108};
-constexpr inline dcon::national_modifier_value influence{109};
-constexpr inline dcon::national_modifier_value dig_in_cap{110};
-constexpr inline dcon::national_modifier_value combat_width{111};
-constexpr inline dcon::national_modifier_value military_tactics{112};
-constexpr inline dcon::national_modifier_value supply_range{113};
-constexpr inline dcon::national_modifier_value regular_experience_level{114};
-constexpr inline dcon::national_modifier_value soldier_to_pop_loss{115};
-constexpr inline dcon::national_modifier_value naval_attrition{116};
-constexpr inline dcon::national_modifier_value land_attrition{117};
-constexpr inline dcon::national_modifier_value pop_growth{118};
-constexpr inline dcon::national_modifier_value colonial_life_rating{119};
-constexpr inline dcon::national_modifier_value seperatism{120};
-constexpr inline dcon::national_modifier_value plurality{121};
-constexpr inline dcon::national_modifier_value colonial_prestige{122};
-constexpr inline dcon::national_modifier_value permanent_prestige{123};
-constexpr inline dcon::national_modifier_value prestige_modifier{124};
-
-constexpr inline uint32_t count = 126;
+#define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \
+	constexpr inline dcon::national_modifier_value name{num};
+MOD_NAT_LIST
+#undef MOD_LIST_ELEMENT
+constexpr inline uint32_t count = MOD_NAT_LIST_COUNT;
 }
 
 

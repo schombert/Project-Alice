@@ -366,7 +366,7 @@ modifier_base
 	cb_creation_speed                         value      float            member_fn
 	diplomatic_points                         value      float            member_fn  (diplomatic_points_modifier)
 	reinforce_rate                            value      float            member_fn
-	tax_eff                                   value      float            member_fn
+	tax_eff                                   value      float            member_fn  (tax_efficiency)
 	administrative_efficiency                 value      float            member_fn
 	influence                                 value      float            member_fn
 	dig_in_cap                                value      float            member_fn

@@ -691,7 +691,6 @@ namespace parsers {
 		MOD_NAT_FUNCTION(cb_creation_speed)
 		MOD_NAT_FUNCTION(education_efficiency)
 		MOD_NAT_FUNCTION(reinforce_rate)
-		MOD_NAT_FUNCTION(tax_eff)
 		MOD_NAT_FUNCTION(administrative_efficiency)
 		MOD_NAT_FUNCTION(influence)
 		MOD_NAT_FUNCTION(dig_in_cap)
