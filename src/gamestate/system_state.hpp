@@ -117,6 +117,7 @@ namespace sys {
 		                              // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
 									  // ordinary game text, partly because I envision the possibility that we may stick dynamic names into this
 		                              // We also may push this into the save game if we handle unit renaming using this
+		std::vector<char> war_names; // Same as above, but for Wars :3
 
 		ui::definitions ui_defs; // definitions for graphics and ui
 
@@ -201,6 +202,8 @@ namespace sys {
 
 		dcon::unit_name_id add_unit_name(std::string_view text); // returns the newly added text
 		std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
+		dcon::war_name_id add_war_name(std::string_view text);
+		std::string_view to_string_view(dcon::war_name_id tag) const;
 
 		dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 		dcon::effect_key commit_effect_data(std::vector<uint16_t> data);

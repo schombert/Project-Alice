@@ -2445,7 +2445,7 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_start_date(sys::date(0));
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
-		new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
+		new_war.set_name(context.outer_context.state.add_war_name(context.name));
 
 		for(auto n : context.attackers) {
 			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);

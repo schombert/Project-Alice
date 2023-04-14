@@ -14,6 +14,7 @@ make_index{government_type_id}{uint8_t}
 make_index{crime_id}{uint8_t}
 make_index{unit_type_id}{uint8_t}
 make_index{unit_name_id}{uint16_t}
+make_index{war_name_id}{uint16_t}
 make_index{national_variable_id}{uint16_t}
 make_index{national_flag_id}{uint16_t}
 make_index{global_flag_id}{uint16_t}
@@ -1783,7 +1784,7 @@ object {
 	}
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ war_name_id }
 		tag{ save }
 	}
 }

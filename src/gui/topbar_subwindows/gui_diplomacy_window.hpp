@@ -331,7 +331,7 @@ public:
 		attackers_flags->war_id = defenders_flags->war_id = content;
 
 		auto war = dcon::fatten(state.world, content);
-		war_name->set_text(state, text::produce_simple_string(state, war.get_name()));
+		war_name->set_text(state, std::string{ state.to_string_view(war.get_name()) });
 
 		//fat_id.get_military_score()
 		int32_t attackers_strenght = 0;

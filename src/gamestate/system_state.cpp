@@ -361,6 +361,29 @@ namespace sys {
 		return std::string_view(unit_names.data() + tag.index(), size_t(end_position - start_position));
 	}
 
+	dcon::war_name_id state::add_war_name(std::string_view text) {
+		auto start = war_names.size();
+		auto length = text.length();
+		if(length == 0)
+			return dcon::war_name_id();
+		war_names.resize(start + length + 1, char(0));
+		std::copy_n(text.data(), length, war_names.data() + start);
+		war_names.back() = 0;
+		return dcon::war_name_id(uint16_t(start));
+	}
+	std::string_view state::to_string_view(dcon::war_name_id tag) const {
+		if(!tag)
+			return std::string_view();
+		auto start_position = war_names.data() + tag.index();
+		auto data_size = war_names.size();
+		auto end_position = start_position;
+		for(; end_position < war_names.data() + data_size; ++end_position) {
+			if(*end_position == 0)
+				break;
+		}
+		return std::string_view(war_names.data() + tag.index(), size_t(end_position - start_position));
+	}
+
 	dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 		if(data.size() == 0)
 			return dcon::trigger_key();
