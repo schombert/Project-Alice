@@ -13,13 +13,6 @@ void technology_folder_tab_sub_button::button_action(sys::state& state) noexcept
     }
 }
 
-void technology_item_button::button_action(sys::state& state) noexcept {
-    if(parent) {
-        Cyto::Any payload = static_cast<technology_item_window*>(parent)->tech_id;
-        parent->impl_get(state, payload);
-    }
-}
-
 message_result technology_item_window::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<dcon::technology_id>()) {
     	tech_id = any_cast<dcon::technology_id>(payload);

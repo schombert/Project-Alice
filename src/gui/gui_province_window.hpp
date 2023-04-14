@@ -57,9 +57,8 @@ public:
 			text::close_layout_box(contents, box);
 		}
 		auto mod_id = fat_id.get_terrain().id;
-		if(bool(mod_id)) {
+		if(bool(mod_id))
 			modifier_description(state, contents, mod_id);
-		}
 	}
 };
 

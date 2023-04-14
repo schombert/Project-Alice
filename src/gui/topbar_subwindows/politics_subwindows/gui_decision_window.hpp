@@ -7,8 +7,35 @@
 
 namespace ui {
 
-class decision_requirements : public image_element_base {};
+class decision_requirements : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		Cyto::Any payload = dcon::decision_id{};
+		if(parent) {
+			parent->impl_get(state, payload);
+			auto id = any_cast<dcon::decision_id>(payload);
+
+            auto fat_id = dcon::fatten(state.world, id);
+            auto name = fat_id.get_name();
+            if(bool(name)) {
+                auto box = text::open_layout_box(contents, 0);
+                text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+                text::close_layout_box(contents, box);
+            }
+
+			auto ef = fat_id.get_effect();
+			if(bool(ef))
+				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+		}
+	}
+};
+
 class make_decision : public  button_element_base {
+public:
 	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
 		if(parent) {

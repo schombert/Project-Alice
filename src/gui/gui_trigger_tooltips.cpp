@@ -52,7 +52,7 @@ void display_with_comparison(
 	text::substitution left_label,
 	text::substitution value,
 	sys::state& ws,
-	text::columnar_layout& layout,
+	text::layout_base& layout,
 	text::layout_box& box) {
 
 
@@ -68,7 +68,7 @@ void display_with_has_comparison(
 	text::substitution left_label,
 	text::substitution value,
 	sys::state& ws,
-	text::columnar_layout& layout,
+	text::layout_base& layout,
 	text::layout_box& box) {
 
 	text::add_to_layout_box(layout, ws, box, left_label, text::text_color::white);
@@ -82,7 +82,7 @@ void display_with_comparison(
 	uint16_t trigger_code,
 	text::substitution value,
 	sys::state& ws,
-	text::columnar_layout& layout,
+	text::layout_base& layout,
 	text::layout_box& box) {
 
 	text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, cmp_code_to_fixed_ui(trigger_code)), text::text_color::white);
@@ -94,7 +94,7 @@ void display_with_has_comparison(
 	uint16_t trigger_code,
 	text::substitution value,
 	sys::state& ws,
-	text::columnar_layout& layout,
+	text::layout_base& layout,
 	text::layout_box& box) {
 
 	text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, cmp_has_code_to_fixed_ui(trigger_code)), text::text_color::white);
@@ -104,7 +104,7 @@ void display_with_has_comparison(
 
 void make_trigger_description(
 	sys::state& ws,
-	text::columnar_layout& layout,
+	text::layout_base& layout,
 	uint16_t const* tval,
 	int32_t primary_slot,
 	int32_t this_slot,
@@ -118,7 +118,7 @@ inline constexpr int32_t indentation_amount = 15;
 inline void display_subtriggers(
 	uint16_t const* source,
 	sys::state& ws,
-	text::columnar_layout& layout,
+	text::layout_base& layout,
 	int32_t primary_slot,
 	int32_t this_slot,
 	int32_t from_slot,
@@ -134,7 +134,7 @@ inline void display_subtriggers(
 	}
 }
 
-#define TRIGGER_DISPLAY_PARAMS uint16_t const* tval, sys::state& ws, text::columnar_layout& layout, \
+#define TRIGGER_DISPLAY_PARAMS uint16_t const* tval, sys::state& ws, text::layout_base& layout, \
 			int32_t primary_slot, int32_t this_slot, int32_t from_slot, int32_t indentation, bool show_condition
 
 
@@ -6735,7 +6735,7 @@ constexpr inline void(* trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 
 void make_trigger_description(
 	sys::state& ws,
-	text::columnar_layout& layout,
+	text::layout_base& layout,
 	uint16_t const* tval,
 	int32_t primary_slot,
 	int32_t this_slot,
@@ -6750,7 +6750,7 @@ void make_trigger_description(
 
 }
 
-void trigger_description(sys::state& state, text::columnar_layout& layout, dcon::trigger_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
+void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
 	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + k.index(), primary_slot, this_slot, from_slot, 0, true);
 }
 
