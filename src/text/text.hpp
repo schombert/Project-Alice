@@ -235,6 +235,10 @@ namespace text {
 	struct layout_base {
 		layout& base_layout;
 		layout_parameters fixed_parameters;
+
+		layout_base(layout& base_layout, layout_parameters const& fixed_parameters) : base_layout(base_layout), fixed_parameters(fixed_parameters) { }
+
+		virtual void internal_close_box(layout_box& box) = 0;
 	};
 
 	struct columnar_layout : public layout_base {
@@ -243,14 +247,21 @@ namespace text {
 		int32_t y_cursor = 0;
 		int32_t current_column = 0;
 		int32_t column_width = 0;
+
+		columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t current_column = 0, int32_t column_width = 0) : layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor), current_column(current_column), column_width(column_width) { }
+
+		void internal_close_box(layout_box& box) final;
 	};
 
 	struct endless_layout : public layout_base {
 		int32_t y_cursor = 0;
+
+		endless_layout(layout& base_layout, layout_parameters const& fixed_parameters, int32_t y_cursor = 0) : layout_base(base_layout, fixed_parameters), y_cursor(y_cursor) { }
+
+		void internal_close_box(layout_box& box) final;
 	};
 
 	endless_layout create_endless_layout(layout& dest, layout_parameters const& params);
-
 	void close_layout_box(endless_layout& dest, layout_box& box);
 
 	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width);
@@ -263,6 +274,8 @@ namespace text {
 	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string const& val, text_color color = text_color::white);
 	void add_space_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
 	void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
+
+	void close_layout_box(layout_base& dest, layout_box& box);
 
 	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
 	
