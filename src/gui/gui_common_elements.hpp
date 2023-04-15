@@ -149,8 +149,7 @@ public:
     void on_create(sys::state& state) noexcept override {
         std::swap(base_data.size.x, base_data.size.y);
         base_data.position.x -= base_data.size.x;
-		base_data.position.y -= base_data.size.y;
-		base_data.position.y += 4; // Nudge-inplace
+		base_data.position.y -= (base_data.size.y - base_data.size.x);
     }
 };
 
