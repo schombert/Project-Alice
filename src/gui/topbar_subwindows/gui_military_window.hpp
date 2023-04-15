@@ -38,7 +38,9 @@ public:
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "leaders") {
-			return make_element_by_type<leaders_window>(state, id);
+			auto ptr = make_element_by_type<leaders_window>(state, id);
+			ptr->set_visible(state, true);
+			return ptr;
 		} else {
 			return nullptr;
 		}

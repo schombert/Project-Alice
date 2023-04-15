@@ -10,6 +10,7 @@ public:
 	ui::simple_text_element_base* background = nullptr;
 	ui::simple_text_element_base* personality = nullptr;
 	ui::simple_text_element_base* army = nullptr;
+	ui::simple_text_element_base* location = nullptr;
 
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
@@ -36,6 +37,10 @@ public:
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			army = ptr.get();
 			return ptr;
+		} else if(name == "location") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			location = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -55,8 +60,16 @@ public:
 		personality->set_text(state, personality_content);
 
 		auto army_id = state.world.general_get_army_from_army_leadership(content);
-		auto army_content = state.to_string_view(state.world.army_get_name(army_id));
-		army->set_text(state, std::string(army_content));
+		if(army_id.value == 0) {
+			army->set_text(state, "Unassigned");
+			location->set_text(state, "");
+		} else {
+			auto army_content = state.to_string_view(state.world.army_get_name(army_id));
+			army->set_text(state, std::string(army_content));
+
+			auto location_content = text::produce_simple_string(state, state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
+			location->set_text(state, std::string(location_content));
+		}
 
 		Cyto::Any payload = content;
 		impl_set(state, payload);
