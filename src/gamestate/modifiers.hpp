@@ -165,24 +165,23 @@ namespace sys {
     MOD_LIST_ELEMENT(104, cb_creation_speed, true, modifier_display_type::percent, "cb_creation_speed") \
     MOD_LIST_ELEMENT(105, education_efficiency, true, modifier_display_type::percent, "edu_eff_tech") \
     MOD_LIST_ELEMENT(106, reinforce_rate, true, modifier_display_type::percent, "reinforce_tech") \
-    MOD_LIST_ELEMENT(107, administrative_efficiency, true, modifier_display_type::percent, "modifier_administrative_efficiency") \
-    MOD_LIST_ELEMENT(108, influence, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \
-    MOD_LIST_ELEMENT(109, dig_in_cap, true, modifier_display_type::percent, "digin_from_tech") \
-    MOD_LIST_ELEMENT(110, combat_width, true, modifier_display_type::percent, "combat_width_tech") \
-    MOD_LIST_ELEMENT(111, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech") \
-    MOD_LIST_ELEMENT(112, supply_range, true, modifier_display_type::percent, "supply_range_tech") \
-    MOD_LIST_ELEMENT(113, regular_experience_level, true, modifier_display_type::percent, "regular_exp_tech") \
-    MOD_LIST_ELEMENT(114, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech") \
-    MOD_LIST_ELEMENT(115, naval_attrition, true, modifier_display_type::percent, "naval_attrition_tech") \
-    MOD_LIST_ELEMENT(116, land_attrition, true, modifier_display_type::percent, "land_attrition_tech") \
-    MOD_LIST_ELEMENT(117, pop_growth, true, modifier_display_type::percent, "tech_pop_growth") \
-    MOD_LIST_ELEMENT(118, colonial_life_rating, true, modifier_display_type::percent, "modifier_life_rating") \
-    MOD_LIST_ELEMENT(119, seperatism, true, modifier_display_type::percent, "seperatism_tech") \
-    MOD_LIST_ELEMENT(120, plurality, true, modifier_display_type::percent, "tech_plurality") \
-    MOD_LIST_ELEMENT(121, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech") \
-    MOD_LIST_ELEMENT(122, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech") \
-    MOD_LIST_ELEMENT(123, prestige_modifier, true, modifier_display_type::percent, "prestige_modifier_tech")
-#define MOD_NAT_LIST_COUNT 124
+    MOD_LIST_ELEMENT(107, influence, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \
+    MOD_LIST_ELEMENT(108, dig_in_cap, true, modifier_display_type::percent, "digin_from_tech") \
+    MOD_LIST_ELEMENT(109, combat_width, true, modifier_display_type::percent, "combat_width_tech") \
+    MOD_LIST_ELEMENT(110, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech") \
+    MOD_LIST_ELEMENT(111, supply_range, true, modifier_display_type::percent, "supply_range_tech") \
+    MOD_LIST_ELEMENT(112, regular_experience_level, true, modifier_display_type::percent, "regular_exp_tech") \
+    MOD_LIST_ELEMENT(113, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech") \
+    MOD_LIST_ELEMENT(114, naval_attrition, true, modifier_display_type::percent, "naval_attrition_tech") \
+    MOD_LIST_ELEMENT(115, land_attrition, true, modifier_display_type::percent, "land_attrition_tech") \
+    MOD_LIST_ELEMENT(116, pop_growth, true, modifier_display_type::percent, "tech_pop_growth") \
+    MOD_LIST_ELEMENT(117, colonial_life_rating, true, modifier_display_type::percent, "modifier_life_rating") \
+    MOD_LIST_ELEMENT(118, seperatism, true, modifier_display_type::percent, "seperatism_tech") \
+    MOD_LIST_ELEMENT(119, plurality, true, modifier_display_type::percent, "tech_plurality") \
+    MOD_LIST_ELEMENT(120, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech") \
+    MOD_LIST_ELEMENT(121, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech") \
+    MOD_LIST_ELEMENT(122, prestige_modifier, true, modifier_display_type::percent, "prestige_modifier_tech")
+#define MOD_NAT_LIST_COUNT 123
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \

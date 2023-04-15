@@ -364,17 +364,17 @@ modifier_base
 	colonial_migration                        value      float            member_fn
 	max_national_focus                        value      float            member_fn
 	cb_creation_speed                         value      float            member_fn
-	diplomatic_points                         value      float            member_fn  (diplomatic_points_modifier)
+	diplomatic_points                         value      float            member_fn (diplomatic_points_modifier)
 	reinforce_rate                            value      float            member_fn
-	tax_eff                                   value      float            member_fn  (tax_efficiency)
-	administrative_efficiency                 value      float            member_fn
+	tax_eff                                   value      float            member_fn (tax_efficiency)
+	administrative_efficiency                 value      float            member_fn (administrative_efficiency_modifier)
 	influence                                 value      float            member_fn
 	dig_in_cap                                value      float            member_fn
-	morale                                    value      float            member_fn   (org_regain)
+	morale                                    value      float            member_fn (org_regain)
 	military_tactics                          value      float            member_fn
 	supply_range                              value      float            member_fn
 	regular_experience_level                  value      float            member_fn
-	increase_research                         value      float            member_fn   (research_points_modifier)
+	increase_research                         value      float            member_fn (research_points_modifier)
 	permanent_prestige                        value      float            member_fn
 	soldier_to_pop_loss                       value      float            member_fn
 	naval_attrition                           value      float            member_fn

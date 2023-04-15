@@ -1980,7 +1980,7 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
 			commodity_id = any_cast<dcon::commodity_id>(payload);
-			frame = static_cast<int32_t>(commodity_id.index());
+			frame = int32_t(commodity_id.index());
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -2008,8 +2008,10 @@ class commodity_national_player_stockpile_text : public simple_text_element_base
 	dcon::commodity_id commodity_id{};
 public:
 	void on_update(sys::state& state) noexcept override {
-		float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
-		set_text(state, text::format_float(stockpile, 2));
+		if(commodity_id) {
+			float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
+			set_text(state, text::format_float(stockpile, 2));
+		}
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
