@@ -1,5 +1,7 @@
 #include "province.hpp"
 #include "dcon_generated.hpp"
+#include "demographics.hpp"
+#include "nations.hpp"
 #include "system_state.hpp"
 #include <vector>
 
@@ -326,6 +328,19 @@ float rgo_size(sys::state& state, dcon::province_id prov_id) {
 		+ 1.0f;
 	return sz * bonus;
 }
+
+float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id id) {
+	float bsum = 0.f;
+	for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {
+		for(auto po : state.world.province_get_pop_location(p)) {
+			if(po.get_pop().get_is_primary_or_accepted_culture() && po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+				bsum += po.get_pop().get_size();
+			}
+		}
+	});
+	return bsum;
+}
+
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
@@ -382,4 +397,52 @@ float revolt_risk(sys::state& state, dcon::province_id id) {
 	auto militancy = state.world.province_get_demographics(id, demographics::militancy);
 	return militancy / total_pop;
 }
+
+dcon::province_id get_connected_province(sys::state& state, dcon::province_adjacency_id adj, dcon::province_id curr) {
+	auto first = state.world.province_adjacency_get_connected_provinces(adj, 0);
+	if(first == curr) {
+		return state.world.province_adjacency_get_connected_provinces(adj, 1);
+	} else {
+		return first;
+	}
+}
+
+struct queue_node {
+	float priority;
+	dcon::province_id prov_id;
+};
+
+float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id) {
+	// TODO
+	return 1.f;
+}
+
+bool can_integrate_colony(sys::state& state, dcon::state_instance_id id) {
+	auto dkey = demographics::to_key(state, state.culture_definitions.bureaucrat);
+	auto bureaucrat_size = state_accepted_bureaucrat_size(state, id);
+	auto total_size = state.world.state_instance_get_demographics(id, demographics::total);
+	if(bureaucrat_size / total_size >= state.defines.state_creation_admin_limit) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
+		return colony_integration_cost(state, id) <= nations::free_colonial_points(state, owner);
+	} else {
+		return false;
+	}
+}
+
+float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
+	bool entirely_overseas = true;
+	float prov_count = 0.f;
+	for_each_province_in_state_instance(state, id, [&](dcon::province_id prov) {
+		entirely_overseas &= is_overseas(state, prov);
+		prov_count++;
+	});
+	if(entirely_overseas) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
+		float distance = state_distance(state, id, state.world.nation_get_capital(owner).id);
+		return state.defines.colonization_create_state_cost * prov_count * std::max(distance / state.defines.colonization_colony_state_distance, 1.f);
+	} else {
+		return 0.f;
+	}
+}
+
 }
