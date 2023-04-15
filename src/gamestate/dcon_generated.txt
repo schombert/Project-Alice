@@ -2517,6 +2517,34 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ effective_education_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_military_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_administrative_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_social_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_land_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_naval_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_construction_spending }
+		type{ float }
+	}
+	property {
 		name{ poor_tax }
 		type{ int8_t }
 		tag{ save }

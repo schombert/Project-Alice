@@ -320,7 +320,7 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 }
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
-	if(state.ui_state.console_window->is_visible()) {
+	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
 		if(ch >= 32) {
 			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
 			edit_index++;
@@ -331,7 +331,7 @@ void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
 }
 
 message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
-	if(state.ui_state.edit_target == this) {
+	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
 		// Typable keys are handled by on_text callback, we only handle control keys
 		auto s = std::string(get_text(state));
 		switch(key) {

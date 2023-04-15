@@ -1613,6 +1613,30 @@ public:
 	}
 };
 
+class standard_state_instance_button : public button_element_base {
+protected:
+	dcon::state_instance_id state_instance_id{};
+
+public:
+	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::state_instance_id>()) {
+			state_instance_id = any_cast<dcon::state_instance_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
 class standard_nation_button : public button_element_base {
 protected:
 	dcon::nation_id nation_id{};
@@ -1980,7 +2004,7 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
 			commodity_id = any_cast<dcon::commodity_id>(payload);
-			frame = static_cast<int32_t>(commodity_id.index());
+			frame = int32_t(state.world.commodity_get_icon(commodity_id));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -2008,8 +2032,10 @@ class commodity_national_player_stockpile_text : public simple_text_element_base
 	dcon::commodity_id commodity_id{};
 public:
 	void on_update(sys::state& state) noexcept override {
-		float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
-		set_text(state, text::format_float(stockpile, 2));
+		if(commodity_id) {
+			float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
+			set_text(state, text::format_float(stockpile, 2));
+		}
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
