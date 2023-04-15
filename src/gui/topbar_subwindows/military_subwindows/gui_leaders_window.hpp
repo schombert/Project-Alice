@@ -4,7 +4,7 @@
 
 namespace ui {
 
-class military_leaders : public listbox_row_element_base<dcon::general_id> {
+class military_leaders : public listbox_row_element_base<dcon::leader_id> {
 public:
 	ui::simple_text_element_base* leader_name = nullptr;
 	ui::simple_text_element_base* background = nullptr;
@@ -47,19 +47,19 @@ public:
 	}
 
 	void update(sys::state& state) noexcept override {
-		auto name_id = state.world.general_get_name(content);
+		auto name_id = state.world.leader_get_name(content);
 		auto name_content = state.to_string_view(name_id);
 		leader_name->set_text(state, std::string(name_content));
 
-		auto background_id = state.world.general_get_background(content).get_name();
+		auto background_id = state.world.leader_get_background(content).get_name();
 		auto background_content = text::produce_simple_string(state, background_id);
 		background->set_text(state, background_content);
 
-		auto personality_id = state.world.general_get_personality(content).get_name();
+		auto personality_id = state.world.leader_get_personality(content).get_name();
 		auto personality_content = text::produce_simple_string(state, personality_id);
 		personality->set_text(state, personality_content);
 
-		auto army_id = state.world.general_get_army_from_army_leadership(content);
+		auto army_id = state.world.leader_get_army_from_army_leadership(content);
 		if(army_id.value == 0) {
 			army->set_text(state, "Unassigned");
 			location->set_text(state, "");
@@ -76,7 +76,7 @@ public:
 	}
 };
 
-class military_leaders_listbox : public listbox_element_base<military_leaders, dcon::general_id> {
+class military_leaders_listbox : public listbox_element_base<military_leaders, dcon::leader_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "milview_leader_entry";
@@ -84,7 +84,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(const auto fat_id : state.world.nation_get_general_loyalty(state.local_player_nation))
+		for(const auto fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
 			row_contents.push_back(fat_id.get_leader());
 		update(state);
 	}

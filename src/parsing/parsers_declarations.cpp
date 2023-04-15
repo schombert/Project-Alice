@@ -1819,13 +1819,14 @@ void oob_army::location(association_type, int32_t value, error_handler& err, int
 
 void oob_army::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_army_context& context) {
 	if(value.is_general) {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_general());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_general_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(false);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 		context.outer_context.state.world.force_create_army_leadership(context.id, l_id);
 	} else {
 		err.accumulated_errors += "Cannot attach an admiral to an army (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -1928,21 +1929,23 @@ void oob_relationship::influence_value(association_type, float v, error_handler&
 
 void oob_file::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_context& context) {
 	if(value.is_general) {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_general());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_general_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(false);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 	} else {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_admiral());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_admiral_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(true);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 	}
 }
 

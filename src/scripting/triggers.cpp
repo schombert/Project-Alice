@@ -2816,12 +2816,7 @@ TRIGGER_FUNCTION(tf_has_empty_adjacent_province) {
 TRIGGER_FUNCTION(tf_has_leader) {
 	auto name = payload(tval[1]).unam_id;
 	auto result = ve::apply([&ws, name](dcon::nation_id n) {
-		for(auto l : ws.world.nation_get_general_loyalty(n)) {
-			auto lname = l.get_leader().get_name();
-			if(ws.to_string_view(lname) == ws.to_string_view(name))
-				return true;
-		}
-		for(auto l : ws.world.nation_get_admiral_loyalty(n)) {
+		for(auto l : ws.world.nation_get_leader_loyalty(n)) {
 			auto lname = l.get_leader().get_name();
 			if(ws.to_string_view(lname) == ws.to_string_view(name))
 				return true;

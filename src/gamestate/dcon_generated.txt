@@ -1632,7 +1632,7 @@ relationship{
 }
 
 object {
-	name{ general }
+	name{ leader }
 	storage_type{ erasable }
 	size{ 3000 }
 	tag{ save }
@@ -1662,37 +1662,9 @@ object {
 		type{ float }
 		tag{ save }
 	}
-}
-
-object {
-	name{ admiral }
-	storage_type{ erasable }
-	size{ 3000 }
-	tag{ save }
-
 	property{
-		name{ name }
-		type{ unit_name_id }
-		tag{ save }
-	}
-	property{
-		name{ personality }
-		type{ leader_trait_id }
-		tag{ save }
-	}
-	property{
-		name{ background }
-		type{ leader_trait_id }
-		tag{ save }
-	}
-	property{
-		name{ since }
-		type{ sys::date }
-		tag{ save }
-	}
-	property{
-		name{ prestige }
-		type{ float }
+		name{ is_admiral }
+		type{ bitfield }
 		tag{ save }
 	}
 }
@@ -1707,8 +1679,8 @@ relationship{
 		type{unique}
 	}
 	link{
-		object{general}
-		name{leader}
+		object{leader}
+		name{general}
 		type{unique}
 	}
 }
@@ -1722,14 +1694,14 @@ relationship{
 		type{unique}
 	}
 	link{
-		object{admiral}
-		name{leader}
+		object{leader}
+		name{admiral}
 		type{unique}
 	}
 }
 
 relationship{
-	name{ general_loyalty }
+	name{ leader_loyalty }
 	tag{ save }
 
 	link{
@@ -1739,23 +1711,7 @@ relationship{
 		index_storage{array}
 	}
 	link{
-		object{general}
-		name{leader}
-		type{unique}
-	}
-}
-relationship{
-	name{ admiral_loyalty }
-	tag{ save }
-
-	link{
-		object{nation}
-		name{nation}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{admiral}
+		object{leader}
 		name{leader}
 		type{unique}
 	}

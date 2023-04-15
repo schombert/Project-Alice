@@ -303,9 +303,8 @@ void update_military_scores(sys::state& state) {
 		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto num_leaders = ve::apply([&](dcon::nation_id i) {
-			auto gen_range = state.world.nation_get_general_loyalty(i);
-			auto ad_range = state.world.nation_get_admiral_loyalty(i);
-			return float((gen_range.end() - gen_range.begin()) + (ad_range.end() - ad_range.begin()));
+			auto gen_range = state.world.nation_get_leader_loyalty(i);
+			return float((gen_range.end() - gen_range.begin()));
 		}, n);
 		state.world.nation_set_military_score(n, ve::to_int(
 			(ve::min(recruitable, active_regs * 4.0f) * avg_land_score) * ((disarm_factor * supply_mod) / 7.0f)
