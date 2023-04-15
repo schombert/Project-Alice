@@ -113,6 +113,7 @@ namespace sys {
 		dcon::nation_id primary_crisis_attacker;
 		dcon::nation_id primary_crisis_defender;
 
+		std::vector<int32_t> unit_names_indices; // indices for the names
 		std::vector<char> unit_names; // a second text buffer, this time for just the unit names
 		                              // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
 									  // ordinary game text, partly because I envision the possibility that we may stick dynamic names into this

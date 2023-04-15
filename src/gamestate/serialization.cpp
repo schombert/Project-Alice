@@ -589,6 +589,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
 	ptr_in = deserialize(ptr_in, state.unit_names);
+	ptr_in = deserialize(ptr_in, state.unit_names_indices);
 	ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
 	ptr_in = memcpy_deserialize(ptr_in, state.current_date);
 	ptr_in = memcpy_deserialize(ptr_in, state.game_seed);
@@ -620,6 +621,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
 	ptr_in = serialize(ptr_in, state.unit_names);
+	ptr_in = serialize(ptr_in, state.unit_names_indices);
 	ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
 	ptr_in = memcpy_serialize(ptr_in, state.current_date);
 	ptr_in = memcpy_serialize(ptr_in, state.game_seed);
@@ -651,6 +653,7 @@ size_t sizeof_save_section(sys::state& state) {
 	// hand-written contribution
 
 	sz += serialize_size(state.unit_names);
+	sz += serialize_size(state.unit_names_indices);
 	sz += sizeof(state.local_player_nation);
 	sz += sizeof(state.current_date);
 	sz += sizeof(state.game_seed);
