@@ -342,7 +342,7 @@ public:
 		}
 	}
 	
-	void on_update(sys::state& state) noexcept override {
+	void update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
 	}
