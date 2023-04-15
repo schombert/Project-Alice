@@ -91,7 +91,6 @@ public:
 };
 
 class leaders_window : public window_element_base {
-	military_leaders_listbox* leaders_listbox = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -110,7 +109,6 @@ public:
 			return ptr;
 		} else if(name == "leader_listbox") {
 			auto ptr = make_element_by_type<military_leaders_listbox>(state, id);
-			leaders_listbox = ptr.get();
 			return ptr;
 		} else {
 			return nullptr;
