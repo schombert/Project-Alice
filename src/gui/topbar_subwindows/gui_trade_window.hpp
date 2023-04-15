@@ -15,12 +15,9 @@ public:
 		}
 	}
 
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			impl_set(state, payload);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+	void update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		impl_set(state, payload);
 	}
 };
 class trade_market_activity_listbox : public listbox_element_base<trade_market_activity_entry, dcon::commodity_id> {
@@ -52,12 +49,9 @@ public:
 		}
 	}
 
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			impl_set(state, payload);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+	void update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		impl_set(state, payload);
 	}
 };
 class trade_stockpile_listbox : public listbox_element_base<trade_stockpile_entry, dcon::commodity_id> {
@@ -87,12 +81,9 @@ public:
 		}
 	}
 
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			impl_set(state, payload);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+	void update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		impl_set(state, payload);
 	}
 };
 class trade_common_market_listbox : public listbox_element_base<trade_common_market_entry, dcon::commodity_id> {
@@ -157,26 +148,119 @@ class trade_flow_data {
 public:
 	enum class type : uint8_t {
 		factory,
-		pop
+		province,
+		pop,
+		military_army,
+		military_navy,
 	} type{};
+	enum class value_type : uint8_t {
+		used_by,
+		produced_by,
+		may_be_used_by
+	} value_type{};
 	union {
 		dcon::factory_id factory_id; // factory
-		dcon::province_id province_id; // pop
+		dcon::province_id province_id; // province
+		dcon::province_id pop_province_id; // pop
+		dcon::army_id army_id; // army
+		dcon::navy_id navy_id; // navy
 	} data{};
 };
 class trade_flow_entry : public listbox_row_element_base<trade_flow_data> {
+	image_element_base* icon = nullptr;
+	simple_text_element_base* title = nullptr;
+	simple_text_element_base* value = nullptr;
+	image_element_base* output_icon = nullptr;
+	dcon::commodity_id commodity_id{};
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "icon") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			icon = ptr.get();
+			return ptr;
+		} else if(name == "title") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			title = ptr.get();
+			return ptr;
+		} else if(name == "value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			value = ptr.get();
+			return ptr;
+		} else if(name == "output_icon") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			output_icon = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
 		}
 	}
 
 	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
+		icon->frame = int32_t(content.type);
+		if(content.type == trade_flow_data::type::military_navy)
+			icon->frame = int32_t(trade_flow_data::type::military_army);
+		
+		output_icon->set_visible(state, content.value_type != trade_flow_data::value_type::produced_by);
+		value->set_visible(state, content.value_type != trade_flow_data::value_type::may_be_used_by);
+		float amount = 0.f;
+		switch(content.type) {
+		case trade_flow_data::type::factory: {
+			auto fid = content.data.factory_id;
+			auto ftid = state.world.factory_get_building_type(fid);
+			switch(content.value_type) {
+			case trade_flow_data::value_type::produced_by: {
+				amount += state.world.factory_get_actual_production(fid);
+			} break;
+			case trade_flow_data::value_type::used_by: {
+				auto& inputs = state.world.factory_type_get_inputs(ftid);
+				for(auto i = 0; i < inputs.set_size; ++i)
+					if(inputs.commodity_type[i] == commodity_id)
+						amount += inputs.commodity_amounts[i];
+				output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
+			} break;
+			case trade_flow_data::value_type::may_be_used_by: {
+				auto& inputs = state.world.factory_type_get_inputs(ftid);
+				output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
+			} break;
+			default:
+				break;
+			}
+			auto name = state.world.factory_type_get_name(ftid);
+			title->set_text(state, text::produce_simple_string(state, name));
+		} break;
+		case trade_flow_data::type::province: {
+			auto pid = content.data.province_id;
+			switch(content.value_type) {
+			case trade_flow_data::value_type::produced_by: {
+				amount += state.world.province_get_rgo_actual_production(pid);
+			} break;
+			case trade_flow_data::value_type::used_by:
+			case trade_flow_data::value_type::may_be_used_by:
+			default:
+				break;
+			}
+			auto name = state.world.province_get_name(pid);
+			title->set_text(state, text::produce_simple_string(state, name));
+		} break;
+		case trade_flow_data::type::pop:
+			break;
+		case trade_flow_data::type::military_army:
+			break;
+		case trade_flow_data::type::military_navy:
+			break;
+		default:
+			break;
+		}
+		if(value->is_visible())
+			value->set_text(state, text::format_float(amount, 2));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			commodity_id = any_cast<dcon::commodity_id>(payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 class trade_flow_listbox_base : public listbox_element_base<trade_flow_entry, trade_flow_data> {
@@ -185,10 +269,38 @@ protected:
 	std::string_view get_row_element_name() override {
         return "trade_flow_entry";
     }
+
+	template<typename F>
+	void populate_rows(sys::state& state, F&& factory_func, enum trade_flow_data::value_type vt) {
+		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
+				auto fat_id = dcon::fatten(state.world, pid);
+				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+					auto fid = state.world.factory_location_get_factory(flid);
+					if(factory_func(fid)) {
+						trade_flow_data td{};
+						td.type = trade_flow_data::type::factory;
+						td.value_type = vt;
+						td.data.factory_id = fid;
+						row_contents.push_back(td);
+					}
+				});
+				if(vt == trade_flow_data::value_type::produced_by)
+					if(state.world.province_get_rgo(pid) == commodity_id) {
+						trade_flow_data td{};
+						td.type = trade_flow_data::type::province;
+						td.value_type = vt;
+						td.data.province_id = pid;
+						row_contents.push_back(td);
+					}
+			});
+		}
+	}
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
 			commodity_id = any_cast<dcon::commodity_id>(payload);
+			on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -199,17 +311,10 @@ class trade_flow_produced_by_listbox : public trade_flow_listbox_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
-				auto fat_id = dcon::fatten(state.world, pid);
-				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-					auto fid = state.world.factory_location_get_factory(flid);
-					auto btid = state.world.factory_get_building_type(fid);
-					if(state.world.factory_type_get_output(btid) == commodity_id)
-						row_contents.push_back(trade_flow_data{ trade_flow_data::type::factory, fid });
-				});
-			});
-		}
+		populate_rows(state, [&](dcon::factory_id fid) -> bool {
+			auto ftid = state.world.factory_get_building_type(fid);
+			return state.world.factory_type_get_output(ftid) == commodity_id;
+		}, trade_flow_data::value_type::produced_by);
 		update(state);
 	}
 };
@@ -217,19 +322,14 @@ class trade_flow_used_by_listbox : public trade_flow_listbox_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
-				auto fat_id = dcon::fatten(state.world, pid);
-				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-					auto fid = state.world.factory_location_get_factory(flid);
-					auto btid = state.world.factory_get_building_type(fid);
-					auto& outputs = state.world.factory_type_get_inputs(btid);
-					for(const auto comm_type : outputs.commodity_type)
-						if(comm_type == commodity_id)
-							row_contents.push_back(trade_flow_data{ trade_flow_data::type::factory, fid });
-				});
-			});
-		}
+		populate_rows(state, [&](dcon::factory_id fid) -> bool {
+			auto ftid = state.world.factory_get_building_type(fid);
+			auto& inputs = state.world.factory_type_get_inputs(ftid);
+			for(auto i = 0; i < inputs.set_size; ++i)
+				if(inputs.commodity_type[i] == commodity_id)
+					return inputs.commodity_amounts[i] > 0.f; // Some inputs taken
+			return false;
+		}, trade_flow_data::value_type::used_by);
 		update(state);
 	}
 };
@@ -237,7 +337,81 @@ class trade_flow_may_be_used_by_listbox : public trade_flow_listbox_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
+		populate_rows(state, [&](dcon::factory_id fid) -> bool {
+			auto ftid = state.world.factory_get_building_type(fid);
+			auto& inputs = state.world.factory_type_get_inputs(ftid);
+			for(auto i = 0; i < inputs.set_size; ++i)
+				if(inputs.commodity_type[i] == commodity_id)
+					return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
+			return false;
+		}, trade_flow_data::value_type::may_be_used_by);
 		update(state);
+	}
+};
+
+class trade_flow_price_graph_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "current_price_value") {
+			return make_element_by_type<commodity_price_text>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class standard_commodity_text : public simple_text_element_base {
+protected:
+	dcon::commodity_id commodity_id{};
+public:
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			commodity_id = any_cast<dcon::commodity_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+class trade_flow_total_produced_text : public standard_commodity_text {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto amount = 0.f;
+		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
+				auto fat_id = dcon::fatten(state.world, pid);
+				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+					auto fid = state.world.factory_location_get_factory(flid);
+					auto ftid = state.world.factory_get_building_type(fid);
+					if(state.world.factory_type_get_output(ftid) == commodity_id)
+						amount += state.world.factory_get_actual_production(fid);
+				});
+				if(state.world.province_get_rgo(pid) == commodity_id)
+					amount += state.world.province_get_rgo_actual_production(pid);
+			});
+		}
+		set_text(state, text::format_float(amount, 3));
+	}
+};
+class trade_flow_total_used_text : public standard_commodity_text {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto amount = 0.f;
+		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
+				auto fat_id = dcon::fatten(state.world, pid);
+				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+					auto fid = state.world.factory_location_get_factory(flid);
+					auto ftid = state.world.factory_get_building_type(fid);
+					auto& inputs = state.world.factory_type_get_inputs(ftid);
+					for(auto i = 0; i < inputs.set_size; ++i)
+						if(inputs.commodity_type[i] == commodity_id)
+							amount += inputs.commodity_amounts[i];
+				});
+			});
+		}
+		set_text(state, text::format_float(amount, 3));
 	}
 };
 
@@ -275,8 +449,12 @@ public:
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
 			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_used");
 			return ptr;
-		} else if(name == "current_price_value") {
-			return make_element_by_type<commodity_price_text>(state, id);
+		} else if(name == "total_produced_value") {
+			return make_element_by_type<trade_flow_total_produced_text>(state, id);
+		} else if(name == "total_used_value") {
+			return make_element_by_type<trade_flow_total_used_text>(state, id);
+		} else if(name == "price_graph") {
+			return make_element_by_type<trade_flow_price_graph_window>(state, id);
 		} else if(name == "produced_by_listbox") {
 			return make_element_by_type<trade_flow_produced_by_listbox>(state, id);
 		} else if(name == "used_by_listbox") {
