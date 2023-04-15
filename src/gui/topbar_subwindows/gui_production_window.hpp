@@ -17,6 +17,23 @@ enum class production_window_tab : uint8_t {
 	goods = 0x3
 };
 
+class factory_level_text : public simple_text_element_base {
+	dcon::factory_id factory_id{};
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, std::to_string(state.world.factory_get_level(factory_id)));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::factory_id>()) {
+			factory_id = any_cast<dcon::factory_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
 class production_factory_info : public window_element_base {
 	image_element_base* in_progress_bg = nullptr;
 public:
@@ -24,19 +41,23 @@ public:
 	uint8_t index = 0; // from 0 to 8
 
 	void on_update(sys::state& state) noexcept override {
-		std::vector<dcon::factory_id> factories{};
+		dcon::factory_id fid{};
+		uint8_t count = index;
+		bool is_display = false;
 		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {
 			auto fat_id = dcon::fatten(state.world, pid);
 			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-				factories.push_back(state.world.factory_location_get_factory(flid));
+				if(count == 0) {
+					fid = state.world.factory_location_get_factory(flid);
+					is_display = true;
+				}
+				--count;
 			});
 		});
+		set_visible(state, is_display);
 
-		if(index >= factories.size()) {
-			set_visible(state, false);
-		} else {
-			set_visible(state, true);
-		}
+		Cyto::Any payload = fid;
+		impl_set(state, payload);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -44,6 +65,8 @@ public:
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			in_progress_bg = ptr.get();
 			return ptr;
+		} else if(name == "level") {
+			return make_element_by_type<factory_level_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -52,6 +75,7 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::state_instance_id>()) {
 			state_id = any_cast<dcon::state_instance_id>(payload);
+			on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -85,18 +109,16 @@ public:
 			auto ptr = make_element_by_type<production_factory_info>(state, id);
 			ptr->index = factory_index;
 			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
+			ptr->base_data.position.y += 8 + 4; // Nudging-inator 3000
 			return ptr;
 		} else {
 			return nullptr;
 		}
 	}
 
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::state_instance_id>()) {
-			impl_set(state, payload);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+	void update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		impl_set(state, payload);
 	}
 };
 
