@@ -194,6 +194,21 @@ public:
 	}
 };
 
+class single_multiline_text_element_base : public multiline_text_element_base {
+public:
+	dcon::text_sequence_id text_id{};
+
+	void on_update(sys::state& state) noexcept override {
+		auto layout = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
+		);
+		auto box = text::open_layout_box(layout, 0);
+		text::add_to_layout_box(layout, state, box, text_id);
+		text::close_layout_box(layout, box);
+	}
+};
+
 class tool_tip : public element_base {
 public:
 	text::layout internal_layout;
