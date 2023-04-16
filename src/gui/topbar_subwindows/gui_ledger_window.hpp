@@ -140,7 +140,7 @@ public:
         auto cell_width = (972 - cell_offset.x) / 8;
         auto apply_offset = [&](auto& ptr) {
             ptr->base_data.position = cell_offset;
-            ptr->base_data.size.x = cell_width;
+            ptr->base_data.size.x = int16_t(cell_width);
             cell_offset.x += ptr->base_data.size.x;
         };
         // Country name
@@ -235,7 +235,7 @@ public:
         auto cell_width = (972 - cell_offset.x) / 5;
         auto apply_offset = [&](auto& ptr) {
             ptr->base_data.position = cell_offset;
-            ptr->base_data.size.x = cell_width;
+            ptr->base_data.size.x = int16_t(cell_width);
             cell_offset.x += ptr->base_data.size.x;
         };
         // Country name
@@ -340,7 +340,7 @@ public:
         auto cell_width = (972 - cell_offset.x) / (1 + num_issues);
         auto apply_offset = [&](auto& ptr) {
             ptr->base_data.position = cell_offset;
-            ptr->base_data.size.x = cell_width;
+            ptr->base_data.size.x = int16_t(cell_width);
             cell_offset.x += ptr->base_data.size.x;
         };
         // Country name
@@ -444,7 +444,7 @@ public:
         auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
         auto apply_offset = [&](auto& ptr) {
             ptr->base_data.position = cell_offset;
-            ptr->base_data.size.x = cell_width;
+            ptr->base_data.size.x = int16_t(cell_width);
             cell_offset.x += ptr->base_data.size.x;
         };
         // Country name
@@ -499,7 +499,7 @@ public:
         auto cell_width = (972 - cell_offset.x) / 9;
         auto apply_offset = [&](auto& ptr) {
             ptr->base_data.position = cell_offset;
-            ptr->base_data.size.x = cell_width;
+            ptr->base_data.size.x = int16_t(cell_width);
             cell_offset.x += ptr->base_data.size.x;
         };
         // Province name
@@ -604,7 +604,7 @@ public:
         auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
         auto apply_offset = [&](auto& ptr) {
             ptr->base_data.position = cell_offset;
-            ptr->base_data.size.x = cell_width;
+            ptr->base_data.size.x = int16_t(cell_width);
             cell_offset.x += ptr->base_data.size.x;
         };
         // Province name
