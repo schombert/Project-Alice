@@ -57,7 +57,7 @@ public:
         auto cell_width = (972 - cell_offset.x) / 6;
         auto apply_offset = [&](auto& ptr) {
             ptr->base_data.position = cell_offset;
-            ptr->base_data.size.x = cell_width;
+            ptr->base_data.size.x = int16_t(cell_width);
             cell_offset.x += ptr->base_data.size.x;
         };
         // Country name
@@ -215,7 +215,84 @@ public:
 };
 
 //
-// Nation comparison
+// Nation political systems
+//
+class ledger_nation_political_systems_entry : public listbox_row_element_base<dcon::nation_id> {
+    flag_button* country_flag = nullptr;
+public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base::on_create(state);
+        // Country flag
+        {
+            auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+            country_flag = ptr.get();
+            add_child_to_front(std::move(ptr));
+        }
+        xy_pair cell_offset{
+            int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
+            0
+        };
+        auto cell_width = (972 - cell_offset.x) / 5;
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = cell_width;
+            cell_offset.x += ptr->base_data.size.x;
+        };
+        // Country name
+        {
+            auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Government
+        {
+            auto ptr = make_element_by_type<nation_government_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // National value
+        {
+            auto ptr = make_element_by_type<nation_national_value_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Ruling party
+        {
+            auto ptr = make_element_by_type<nation_ruling_party_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Party ideology
+        {
+            auto ptr = make_element_by_type<nation_ruling_party_ideology_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+    }
+
+    void update(sys::state& state) noexcept override {
+        country_flag->on_update(state);
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_nation_political_systems_listbox : public listbox_element_base<ledger_nation_political_systems_entry, dcon::nation_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        state.world.for_each_nation([&](dcon::nation_id id) {
+            row_contents.push_back(id);
+        });
+        update(state);
+    }
+};
+
+//
+// Social & Political reforms
 //
 class nation_selected_issue_text : public standard_nation_text {
     dcon::issue_id issue_id{};
@@ -464,7 +541,7 @@ class ledger_window : public window_element_base {
 
     ledger_nation_ranking_listbox* nation_ranking_listbox = nullptr;
     ledger_nation_comparison_listbox* nation_compare_listbox = nullptr;
-    ledger_nation_ranking_listbox* nation_party_listbox = nullptr;
+    ledger_nation_political_systems_listbox* nation_party_listbox = nullptr;
     ledger_nation_political_reforms_listbox* nation_political_reforms_listbox = nullptr;
     ledger_nation_social_reforms_listbox* nation_social_reforms_listbox = nullptr;
     ledger_nation_population_listbox* nation_pops_listbox = nullptr;
@@ -505,7 +582,7 @@ public:
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
+            auto ptr = make_element_by_type<ledger_nation_political_systems_listbox>(state, listbox_def_id);
             nation_party_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }

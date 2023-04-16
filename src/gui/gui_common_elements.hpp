@@ -1210,6 +1210,16 @@ public:
 	}
 };
 
+class nation_ruling_party_ideology_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto ruling_party = state.world.nation_get_ruling_party(nation_id);
+		auto ideology = state.world.political_party_get_ideology(ruling_party);
+		auto name = state.world.ideology_get_name(ideology);
+		return text::get_name_as_string(state, name);
+	}
+};
+
 class nation_ruling_party_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -1553,6 +1563,14 @@ public:
 		} else {
 			return text::produce_simple_string(state, "politics_can_not_do_political_refroms");
 		}
+	}
+};
+
+class nation_national_value_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		return text::produce_simple_string(fat_id.get_national_value().get_name());
 	}
 };
 
