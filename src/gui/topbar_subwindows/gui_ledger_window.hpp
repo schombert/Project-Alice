@@ -36,24 +36,30 @@ public:
     }
 };
 
+//
+// Nation ranking
+//
 class ledger_nation_ranking_entry : public listbox_row_element_base<dcon::nation_id> {
     flag_button* country_flag = nullptr;
 public:
     void on_create(sys::state& state) noexcept override {
         listbox_row_element_base::on_create(state);
-
-        xy_pair cell_offset{ 0, 0 };
-        auto apply_offset = [&](auto& ptr) {
-            ptr->base_data.position = cell_offset;
-            cell_offset.x += ptr->base_data.size.x;
-        };
         // Country flag
         {
             auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
             country_flag = ptr.get();
-            apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         }
+        xy_pair cell_offset{
+            int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
+            0
+        };
+        auto cell_width = (972 - cell_offset.x) / 6;
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = cell_width;
+            cell_offset.x += ptr->base_data.size.x;
+        };
         // Country name
         {
             auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
@@ -113,20 +119,355 @@ public:
     }
 };
 
+//
+// Nation comparison
+//
+class ledger_nation_comparison_entry : public listbox_row_element_base<dcon::nation_id> {
+    flag_button* country_flag = nullptr;
+public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base::on_create(state);
+        // Country flag
+        {
+            auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+            country_flag = ptr.get();
+            add_child_to_front(std::move(ptr));
+        }
+        xy_pair cell_offset{
+            int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
+            0
+        };
+        auto cell_width = (972 - cell_offset.x) / 8;
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = cell_width;
+            cell_offset.x += ptr->base_data.size.x;
+        };
+        // Country name
+        {
+            auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Total population
+        {
+            auto ptr = make_element_by_type<nation_population_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Provinces count
+        {
+            auto ptr = make_element_by_type<nation_provinces_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Factories count
+        {
+            auto ptr = make_element_by_type<nation_industries_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Literacy
+        {
+            auto ptr = make_element_by_type<nation_literacy_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Leadership
+        {
+            auto ptr = make_element_by_type<nation_leadership_points_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Brigades
+        {
+            auto ptr = make_element_by_type<nation_brigades_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Ships
+        {
+            auto ptr = make_element_by_type<nation_ships_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+    }
+
+    void update(sys::state& state) noexcept override {
+        country_flag->on_update(state);
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_nation_comparison_listbox : public listbox_element_base<ledger_nation_comparison_entry, dcon::nation_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        state.world.for_each_nation([&](dcon::nation_id id) {
+            row_contents.push_back(id);
+        });
+        update(state);
+    }
+};
+
+//
+// Nation comparison
+//
+class nation_selected_issue_text : public standard_nation_text {
+    dcon::issue_id issue_id{};
+public:
+	std::string get_text(sys::state& state) noexcept override {
+        // Obtain the active issue option for this issue id
+        auto active_issue_option = state.world.nation_get_issues(nation_id, issue_id);
+        return text::produce_simple_string(state, active_issue_option.get_name());
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_id>()) {
+			issue_id = any_cast<dcon::issue_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+        return standard_nation_text::set(state, payload);
+	}
+};
+template<bool IsPolitical>
+class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
+    flag_button* country_flag = nullptr;
+public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base::on_create(state);
+        // Country flag
+        {
+            auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+            country_flag = ptr.get();
+            add_child_to_front(std::move(ptr));
+        }
+        xy_pair cell_offset{
+            int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
+            0
+        };
+
+        auto num_issues = 0;
+        state.world.for_each_issue([&](dcon::issue_id id) {
+            if((state.world.issue_get_issue_type(id) == uint8_t(culture::issue_type::political)) != IsPolitical)
+                return;
+            ++num_issues;
+        });
+
+        // 1 for the country name
+        auto cell_width = (972 - cell_offset.x) / (1 + num_issues);
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = cell_width;
+            cell_offset.x += ptr->base_data.size.x;
+        };
+        // Country name
+        {
+            auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // For each (political) issue generate
+        state.world.for_each_issue([&](dcon::issue_id id) {
+            if((state.world.issue_get_issue_type(id) == uint8_t(culture::issue_type::political)) != IsPolitical)
+                return;
+
+            auto ptr = make_element_by_type<nation_selected_issue_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+
+            Cyto::Any payload = id;
+            ptr->impl_set(state, payload);
+
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        });
+    }
+
+    void update(sys::state& state) noexcept override {
+        country_flag->on_update(state);
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_nation_political_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<true>, dcon::nation_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        state.world.for_each_nation([&](dcon::nation_id id) {
+            row_contents.push_back(id);
+        });
+        update(state);
+    }
+};
+class ledger_nation_social_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<false>, dcon::nation_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        state.world.for_each_nation([&](dcon::nation_id id) {
+            row_contents.push_back(id);
+        });
+        update(state);
+    }
+};
+
+//
+// Nation population per strata
+//
+class nation_population_per_pop_type_text : public standard_nation_text {
+    dcon::pop_type_id pop_type_id{};
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, pop_type_id));
+		return text::prettify(int32_t(total_pop));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_type_id>()) {
+			pop_type_id = any_cast<dcon::pop_type_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+        return standard_nation_text::set(state, payload);
+	}
+};
+class ledger_nation_population_entry : public listbox_row_element_base<dcon::nation_id> {
+    flag_button* country_flag = nullptr;
+public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base::on_create(state);
+        // Country flag
+        {
+            auto ptr = make_element_by_type<flag_button>(state, state.ui_state.defs_by_name.find("ledger_default_flag")->second.definition);
+            country_flag = ptr.get();
+            add_child_to_front(std::move(ptr));
+        }
+        xy_pair cell_offset{
+            int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
+            0
+        };
+
+        auto num_pop_types = 0;
+        state.world.for_each_pop_type([&](dcon::pop_type_id id) {
+            ++num_pop_types;
+        });
+
+        // 1 for the country name
+        auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = cell_width;
+            cell_offset.x += ptr->base_data.size.x;
+        };
+        // Country name
+        {
+            auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // For each pop type generate
+        state.world.for_each_pop_type([&](dcon::pop_type_id id) {
+            auto ptr = make_element_by_type<nation_population_per_pop_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+
+            Cyto::Any payload = id;
+            ptr->impl_set(state, payload);
+
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        });
+    }
+
+    void update(sys::state& state) noexcept override {
+        country_flag->on_update(state);
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_nation_population_listbox : public listbox_element_base<ledger_nation_population_entry, dcon::nation_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        state.world.for_each_nation([&](dcon::nation_id id) {
+            row_contents.push_back(id);
+        });
+        update(state);
+    }
+};
+
+//
+// Commodity price
+//
+class ledger_commodity_price_entry : public listbox_row_element_base<dcon::commodity_id> {
+public:
+    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+        if(name == "ledger_default_textbox") {
+            return make_element_by_type<generic_name_text<dcon::commodity_id>>(state, id);
+        } else {
+            return nullptr;
+        }
+    }
+
+    void update(sys::state& state) noexcept override {
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_commodity_price_listbox : public listbox_element_base<ledger_commodity_price_entry, dcon::commodity_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "ledger_legend_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        state.world.for_each_commodity([&](dcon::commodity_id id) {
+            row_contents.push_back(id);
+        });
+        update(state);
+    }
+};
+class commodity_linegraph_legend_window : public window_element_base {
+public:
+    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+        if(name == "legend_list") {
+            return make_element_by_type<ledger_commodity_price_listbox>(state, id);
+        } else {
+            return nullptr;
+        }
+    }
+};
+
 class ledger_window : public window_element_base {
+    dcon::gui_def_id listbox_def_id{};
+
     window_element_base* commodity_linegraph = nullptr;
-    window_element_base* commodity_linegraph_legend = nullptr;
+    commodity_linegraph_legend_window* commodity_linegraph_legend = nullptr;
     image_element_base* commodity_linegraph_image = nullptr;
     simple_text_element_base* page_number_text = nullptr;
     simple_text_element_base* ledger_header_text = nullptr;
     ledger_page_number page_num{ int8_t(1) };
 
     ledger_nation_ranking_listbox* nation_ranking_listbox = nullptr;
-    ledger_nation_ranking_listbox* nation_compare_listbox = nullptr;
+    ledger_nation_comparison_listbox* nation_compare_listbox = nullptr;
     ledger_nation_ranking_listbox* nation_party_listbox = nullptr;
-    ledger_nation_ranking_listbox* nation_political_reforms_listbox = nullptr;
-    ledger_nation_ranking_listbox* nation_social_reforms_listbox = nullptr;
-    ledger_nation_ranking_listbox* nation_pops_listbox = nullptr;
+    ledger_nation_political_reforms_listbox* nation_political_reforms_listbox = nullptr;
+    ledger_nation_social_reforms_listbox* nation_social_reforms_listbox = nullptr;
+    ledger_nation_population_listbox* nation_pops_listbox = nullptr;
     ledger_nation_ranking_listbox* provinces_listbox = nullptr;
     ledger_nation_ranking_listbox* provinces_pops_listbox = nullptr;
     ledger_nation_ranking_listbox* provinces_production_listbox = nullptr;
@@ -152,54 +493,54 @@ class ledger_window : public window_element_base {
 public:
     void on_create(sys::state& state) noexcept override {
         window_element_base::on_create(state);
-        
+
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
             nation_ranking_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_comparison_listbox>(state, listbox_def_id);
             nation_compare_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
             nation_party_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_political_reforms_listbox>(state, listbox_def_id);
             nation_political_reforms_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_social_reforms_listbox>(state, listbox_def_id);
             nation_social_reforms_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_population_listbox>(state, listbox_def_id);
             nation_pops_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
             provinces_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
             provinces_pops_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
             provinces_production_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, state.ui_state.defs_by_name.find("default_listbox")->second.definition);
+            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
             factory_production_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
@@ -216,7 +557,7 @@ public:
             commodity_linegraph = ptr.get();
             return ptr;
         } else if(name == "ledger_linegraph_legend") {
-            auto ptr = make_element_by_type<window_element_base>(state, id);
+            auto ptr = make_element_by_type<commodity_linegraph_legend_window>(state, id);
             commodity_linegraph_legend = ptr.get();
             return ptr;
         } else if(name == "ledger_linegraph_bg") {
@@ -235,6 +576,9 @@ public:
             return make_element_by_type<ledger_prev_button>(state, id);
         } else if(name == "next") {
             return make_element_by_type<ledger_next_button>(state, id);
+        } else if(name == "default_listbox") {
+            listbox_def_id = id;
+            return nullptr;
         } else {
             return nullptr;
         }

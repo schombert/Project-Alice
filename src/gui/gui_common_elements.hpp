@@ -1298,6 +1298,18 @@ public:
 	}
 };
 
+class nation_provinces_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		size_t num_provinces = 0;
+		for(auto si : state.world.nation_get_state_ownership(nation_id))
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				++num_provinces;
+			});
+		return std::to_string(num_provinces);
+	}
+};
+
 class nation_player_relations_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -1388,7 +1400,6 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
 		return text::prettify(int32_t(total_pop));
-
 	}
 };
 
