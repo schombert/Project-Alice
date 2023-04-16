@@ -624,6 +624,64 @@ public:
 	}
 };
 
+class province_militancy_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto militancy = state.world.province_get_demographics(province_id, demographics::militancy);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::format_float(militancy / total_pop);
+	}
+};
+
+class province_consciousness_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto consciousness = state.world.province_get_demographics(province_id, demographics::consciousness);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::format_float(consciousness / total_pop);
+	}
+};
+
+class province_literacy_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto literacy = state.world.province_get_demographics(province_id, demographics::literacy);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		return text::format_percentage(literacy / total_pop, 1);
+	}
+};
+
+class province_dominant_culture_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		dcon::culture_id last_culture{};
+		float last_culture_amount = 0.f;
+		state.world.for_each_culture([&](dcon::culture_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_culture_amount) {
+				last_culture_amount = amount;
+				last_culture = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_culture));
+	}
+};
+class province_dominant_religion_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		dcon::religion_id last_religion{};
+		float last_religion_amount = 0.f;
+		state.world.for_each_religion([&](dcon::religion_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_religion_amount) {
+				last_religion_amount = amount;
+				last_religion = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_religion));
+	}
+};
+
 class province_supply_limit_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -1215,8 +1273,7 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto ruling_party = state.world.nation_get_ruling_party(nation_id);
 		auto ideology = state.world.political_party_get_ideology(ruling_party);
-		auto name = state.world.ideology_get_name(ideology);
-		return text::get_name_as_string(state, name);
+		return text::get_name_as_string(state, ideology);
 	}
 };
 
@@ -1570,7 +1627,7 @@ class nation_national_value_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
-		return text::produce_simple_string(fat_id.get_national_value().get_name());
+		return text::produce_simple_string(state, fat_id.get_national_value().get_name());
 	}
 };
 

@@ -487,6 +487,166 @@ public:
 };
 
 //
+// Nation population per strata
+//
+class ledger_province_entry : public listbox_row_element_base<dcon::province_id> {
+public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base::on_create(state);
+
+        xy_pair cell_offset{ 0, 0 };
+
+        auto cell_width = (972 - cell_offset.x) / 9;
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = cell_width;
+            cell_offset.x += ptr->base_data.size.x;
+        };
+        // Province name
+        {
+            auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Total population
+        {
+            auto ptr = make_element_by_type<province_population_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Average militancy
+        {
+            auto ptr = make_element_by_type<province_militancy_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Average conciousness
+        {
+            auto ptr = make_element_by_type<province_consciousness_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Average literacy
+        {
+            auto ptr = make_element_by_type<province_literacy_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Religion
+        {
+            auto ptr = make_element_by_type<province_dominant_religion_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Culture
+        {
+            auto ptr = make_element_by_type<province_dominant_culture_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // TODO: Issues
+        // TODO: Ideology
+    }
+
+    void update(sys::state& state) noexcept override {
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_province_listbox : public listbox_element_base<ledger_province_entry, dcon::province_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				row_contents.push_back(p);
+			});
+        update(state);
+    }
+};
+
+//
+// Nation population per strata
+//
+class province_population_per_pop_type_text : public standard_province_text {
+    dcon::pop_type_id pop_type_id{};
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::to_key(state, pop_type_id));
+		return text::prettify(int32_t(total_pop));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_type_id>()) {
+			pop_type_id = any_cast<dcon::pop_type_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+        return standard_province_text::set(state, payload);
+	}
+};
+class ledger_province_population_entry : public listbox_row_element_base<dcon::province_id> {
+public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base::on_create(state);
+
+        xy_pair cell_offset{ 0, 0 };
+
+        auto num_pop_types = 0;
+        state.world.for_each_pop_type([&](dcon::pop_type_id id) {
+            ++num_pop_types;
+        });
+
+        auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = cell_width;
+            cell_offset.x += ptr->base_data.size.x;
+        };
+        // Province name
+        {
+            auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // For each pop type generate
+        state.world.for_each_pop_type([&](dcon::pop_type_id id) {
+            auto ptr = make_element_by_type<province_population_per_pop_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+
+            Cyto::Any payload = id;
+            ptr->impl_set(state, payload);
+
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        });
+    }
+
+    void update(sys::state& state) noexcept override {
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_province_population_listbox : public listbox_element_base<ledger_province_population_entry, dcon::province_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				row_contents.push_back(p);
+			});
+        update(state);
+    }
+};
+
+//
 // Commodity price
 //
 class ledger_commodity_price_entry : public listbox_row_element_base<dcon::commodity_id> {
@@ -545,8 +705,8 @@ class ledger_window : public window_element_base {
     ledger_nation_political_reforms_listbox* nation_political_reforms_listbox = nullptr;
     ledger_nation_social_reforms_listbox* nation_social_reforms_listbox = nullptr;
     ledger_nation_population_listbox* nation_pops_listbox = nullptr;
-    ledger_nation_ranking_listbox* provinces_listbox = nullptr;
-    ledger_nation_ranking_listbox* provinces_pops_listbox = nullptr;
+    ledger_province_listbox* provinces_listbox = nullptr;
+    ledger_province_population_listbox* provinces_pops_listbox = nullptr;
     ledger_nation_ranking_listbox* provinces_production_listbox = nullptr;
     ledger_nation_ranking_listbox* factory_production_listbox = nullptr;
 
@@ -602,12 +762,12 @@ public:
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
+            auto ptr = make_element_by_type<ledger_province_listbox>(state, listbox_def_id);
             provinces_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
+            auto ptr = make_element_by_type<ledger_province_population_listbox>(state, listbox_def_id);
             provinces_pops_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
@@ -696,7 +856,7 @@ public:
             break;
         case 8:
             ledger_header_text->set_text(state, text::produce_simple_string(state, "ledger_header_province_pops"));
-            provinces_listbox->set_visible(state, true);
+            provinces_pops_listbox->set_visible(state, true);
             break;
         case 9:
             ledger_header_text->set_text(state, text::produce_simple_string(state, "ledger_header_provinceproduction"));
