@@ -5,6 +5,36 @@
 
 namespace ui {
 
+static void technology_description(element_base& element, sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::technology_id tech_id) noexcept {
+	auto fat_id = dcon::fatten(state.world, tech_id);
+	auto name = fat_id.get_name();
+	if(bool(name)) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+		text::close_layout_box(contents, box);
+	}
+	auto mod_id = fat_id.get_modifier().id;
+	if(bool(mod_id))
+		modifier_description(state, contents, mod_id);
+	// Commodity modifiers description in addendum to the modifier description
+#define COMMODITY_MOD_DESCRIPTION(fn, locale_base_name, locale_farm_base_name) \
+	for(const auto mod : fat_id.fn()) { \
+		auto box = text::open_layout_box(contents, 0); \
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_name(mod.type)), text::text_color::white); \
+		text::add_space_to_layout_box(contents, state, box); \
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white); \
+		text::add_to_layout_box(contents, state, box, std::string{ ":" }, text::text_color::white); \
+		text::add_space_to_layout_box(contents, state, box); \
+		auto color = mod.amount > 0.f ? text::text_color::green : text::text_color::red; \
+		text::add_to_layout_box(contents, state, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color); \
+		text::close_layout_box(contents, box); \
+	}
+	COMMODITY_MOD_DESCRIPTION(get_factory_goods_output, "tech_output", "tech_output");
+	COMMODITY_MOD_DESCRIPTION(get_rgo_goods_output, "tech_mine_output", "tech_farm_output");
+	COMMODITY_MOD_DESCRIPTION(get_rgo_size, "tech_mine_size", "tech_farm_size");
+#undef COMMODITY_MOD_DESCRIPTION
+}
+
 class technology_folder_tab_sub_button : public checkbox_button {
 public:
 	culture::tech_category category{};
@@ -196,12 +226,11 @@ public:
 	}
 };
 
-class technology_item_button : public button_element_base {
-	dcon::technology_id tech_id{};
+class technology_item_button : public generic_settable_element<button_element_base, dcon::technology_id>  {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = tech_id;
+			Cyto::Any payload = content;
 			parent->impl_get(state, payload);
 		}
 	}
@@ -211,42 +240,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, tech_id);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
-		}
-		auto mod_id = fat_id.get_modifier().id;
-		if(bool(mod_id))
-			modifier_description(state, contents, mod_id);
-		
-		// Commodity modifiers description in addendum to the modifier description
-#define COMMODITY_MOD_DESCRIPTION(fn, locale_base_name, locale_farm_base_name) \
-		for(const auto mod : fat_id.fn()) { \
-			auto box = text::open_layout_box(contents, 0); \
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_name(mod.type)), text::text_color::white); \
-			text::add_space_to_layout_box(contents, state, box); \
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white); \
-			text::add_to_layout_box(contents, state, box, std::string{ ":" }, text::text_color::white); \
-			text::add_space_to_layout_box(contents, state, box); \
-			auto color = mod.amount > 0.f ? text::text_color::green : text::text_color::red; \
-			text::add_to_layout_box(contents, state, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color); \
-			text::close_layout_box(contents, box); \
-		}
-		COMMODITY_MOD_DESCRIPTION(get_factory_goods_output, "tech_output", "tech_output");
-		COMMODITY_MOD_DESCRIPTION(get_rgo_goods_output, "tech_mine_output", "tech_farm_output");
-		COMMODITY_MOD_DESCRIPTION(get_rgo_size, "tech_mine_size", "tech_farm_size");
-#undef COMMODITY_MOD_DESCRIPTION
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::technology_id>()) {
-			tech_id = any_cast<dcon::technology_id>(payload);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+		technology_description(*this, state, x, y, contents, content);
 	}
 };
 
@@ -279,16 +273,10 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
-class invention_image : public opaque_element_base {
-	dcon::invention_id invention_id{};
+class invention_image : public generic_settable_element<opaque_element_base, dcon::invention_id> {
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::invention_id>()) {
-			invention_id = any_cast<dcon::invention_id>(payload);
-			frame = int32_t(state.world.invention_get_technology_type(invention_id));
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+	void on_update(sys::state& state) noexcept override {
+		frame = int32_t(state.world.invention_get_technology_type(content));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -296,7 +284,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, invention_id);
+		auto fat_id = dcon::fatten(state.world, content);
 		auto name = fat_id.get_name();
 		if(bool(name)) {
 			auto box = text::open_layout_box(contents, 0);
@@ -309,23 +297,13 @@ public:
 			trigger_description(state, contents, limit_condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 	}
 };
-class invention_chance_percent_text : public simple_text_element_base {
-	dcon::invention_id invention_id{};
+class invention_chance_percent_text : public generic_settable_element<simple_text_element_base, dcon::invention_id> {
 public:
 	void on_update(sys::state& state) noexcept override {
 		// TODO: evaluate modifiers of chances for inventions
-		auto mod_k = state.world.invention_get_chance(invention_id);
+		auto mod_k = state.world.invention_get_chance(content);
 		auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 		set_text(state, text::format_percentage(chances / 100.f, 1));
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::invention_id>()) {
-			invention_id = any_cast<dcon::invention_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
 	}
 };
 class technology_possible_invention : public listbox_row_element_base<dcon::invention_id> {
@@ -364,39 +342,102 @@ public:
 	}
 };
 
-class technology_image : public image_element_base {
+class technology_selected_invention_image : public generic_settable_element<image_element_base, dcon::invention_id> {
+	dcon::invention_id i_id{};
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+	void on_update(sys::state& state) noexcept override {
+		frame = 0; // inactive
+		if(state.world.nation_get_active_inventions(state.local_player_nation, i_id))
+			frame = 2; // This invention's been discovered
+		else {
+			Cyto::Any payload = dcon::technology_id{};
+			impl_get(state, payload);
+			auto tech_id = any_cast<dcon::technology_id>(payload);
+			if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
+				frame = 1; // Active technology but not invention
+		} 
+	}
+};
+class technology_selected_invention : public listbox_row_element_base<dcon::invention_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "invention_icon") {
+			return make_element_by_type<technology_selected_invention_image>(state, id);
+		} else if(name == "i_invention_name") {
+			return make_element_by_type<generic_name_text<dcon::invention_id>>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+	
+	void update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		impl_set(state, payload);
+	}
+};
+class technology_selected_inventions_listbox : public generic_settable_element<listbox_element_base<technology_selected_invention, dcon::invention_id>, dcon::technology_id> {
+protected:
+	std::string_view get_row_element_name() override {
+        return "invention_icon_window";
+    }
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		state.world.for_each_invention([&](dcon::invention_id id) {
+			auto lim_trigger_k = state.world.invention_get_limit(id);
+			bool activable_by_this_tech = false;
+			trigger::recurse_over_triggers(state.trigger_data.data() + lim_trigger_k.index(), [&](uint16_t* tval) {
+				if((tval[0] & trigger::code_mask) == trigger::technology && trigger::payload(tval[1]).tech_id == content)
+					activable_by_this_tech = true;
+			});
+			if(activable_by_this_tech)
+				row_contents.push_back(id);
+		});
+		update(state);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::technology_id>()) {
-			auto id = any_cast<dcon::technology_id>(payload);
-			auto fat_id = dcon::fatten(state.world, id);
-			base_data.data.image.gfx_object = fat_id.get_image();
+			payload.emplace<dcon::technology_id>(content);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
 };
 
-class technology_year_text : public simple_text_element_base {
+class technology_image : public generic_settable_element<image_element_base, dcon::technology_id> {
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::technology_id>()) {
-			auto id = any_cast<dcon::technology_id>(payload);
-			set_text(state, std::to_string(state.world.technology_get_year(id)));
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+	void on_update(sys::state& state) noexcept override {
+		base_data.data.image.gfx_object = state.world.technology_get_image(content);
 	}
 };
 
-class technology_research_points_text : public simple_text_element_base {
+class technology_year_text : public generic_settable_element<simple_text_element_base, dcon::technology_id>  {
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::technology_id>()) {
-			auto id = any_cast<dcon::technology_id>(payload);
-			set_text(state, std::to_string(state.world.technology_get_cost(id)));
-			return message_result::consumed;
-		}
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, std::to_string(state.world.technology_get_year(content)));
+	}
+};
+
+class technology_research_points_text : public generic_settable_element<simple_text_element_base, dcon::technology_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, std::to_string(state.world.technology_get_cost(content)));
+	}
+};
+
+class technology_selected_effect_text : public generic_settable_element<multiline_text_element_base, dcon::technology_id>  {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto contents = text::create_columnar_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black },
+			250
+		);
+		technology_description(*this, state, 0, 0, contents, content);
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::unseen;
 	}
 };
@@ -409,9 +450,7 @@ public:
 		} else if(name == "title") {
 			return make_element_by_type<generic_name_text<dcon::technology_id>>(state, id);
 		} else if(name == "effect") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "desc") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<technology_selected_effect_text>(state, id);
 		} else if(name == "diff_icon") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "diff_label") {
@@ -424,6 +463,8 @@ public:
 			return make_element_by_type<technology_year_text>(state, id);
 		} else if(name == "start") {
 			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "inventions") {
+			return make_element_by_type<technology_selected_inventions_listbox>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -591,8 +632,7 @@ public:
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<culture::tech_category>()) {
-			auto enum_val = any_cast<culture::tech_category>(payload);
-			active_tab = enum_val;
+			active_tab = any_cast<culture::tech_category>(payload);
 			for(auto& c : children)
 				c->impl_set(state, payload);
 			return message_result::consumed;

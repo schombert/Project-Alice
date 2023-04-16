@@ -559,6 +559,23 @@ public:
 	}
 };
 
+template<class T, class K>
+class generic_settable_element : public T {
+protected:
+	K content{};
+public:
+	virtual void on_update(sys::state& state) noexcept override {}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<K>()) {
+			content = any_cast<K>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
 class standard_province_text : public simple_text_element_base {
 protected:
 	dcon::province_id province_id{};
