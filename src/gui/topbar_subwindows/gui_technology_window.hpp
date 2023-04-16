@@ -32,7 +32,7 @@ static void technology_description(element_base& element, sys::state& state, int
 			text::add_to_layout_box(contents, state, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color);
 			text::close_layout_box(contents, box);
 		}
-	}
+	};
 	commodity_mod_description(fat_id.get_factory_goods_output(), "tech_output", "tech_output");
 	commodity_mod_description(fat_id.get_rgo_goods_output(), "tech_mine_output", "tech_farm_output");
 	commodity_mod_description(fat_id.get_rgo_size(), "tech_mine_size", "tech_farm_size");
