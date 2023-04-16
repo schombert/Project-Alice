@@ -5,6 +5,21 @@
 
 namespace ui {
 
+template<class T, class U>
+static void commodity_mod_description(sys::state& state, const T& list, const U& fat_id, text::columnar_layout& contents, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
+	for(const auto mod : list) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_name(mod.type)), text::text_color::white);
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white);
+		text::add_to_layout_box(contents, state, box, std::string{ ":" }, text::text_color::white);
+		text::add_space_to_layout_box(contents, state, box);
+		auto color = mod.amount > 0.f ? text::text_color::green : text::text_color::red;
+		text::add_to_layout_box(contents, state, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color);
+		text::close_layout_box(contents, box);
+	}
+}
+
 static void technology_description(element_base& element, sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::technology_id tech_id) noexcept {
 	auto fat_id = dcon::fatten(state.world, tech_id);
 	auto name = fat_id.get_name();
@@ -17,22 +32,9 @@ static void technology_description(element_base& element, sys::state& state, int
 	if(bool(mod_id))
 		modifier_description(state, contents, mod_id);
 	// Commodity modifiers description in addendum to the modifier description
-#define COMMODITY_MOD_DESCRIPTION(fn, locale_base_name, locale_farm_base_name) \
-	for(const auto mod : fat_id.fn()) { \
-		auto box = text::open_layout_box(contents, 0); \
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_name(mod.type)), text::text_color::white); \
-		text::add_space_to_layout_box(contents, state, box); \
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white); \
-		text::add_to_layout_box(contents, state, box, std::string{ ":" }, text::text_color::white); \
-		text::add_space_to_layout_box(contents, state, box); \
-		auto color = mod.amount > 0.f ? text::text_color::green : text::text_color::red; \
-		text::add_to_layout_box(contents, state, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color); \
-		text::close_layout_box(contents, box); \
-	}
-	COMMODITY_MOD_DESCRIPTION(get_factory_goods_output, "tech_output", "tech_output");
-	COMMODITY_MOD_DESCRIPTION(get_rgo_goods_output, "tech_mine_output", "tech_farm_output");
-	COMMODITY_MOD_DESCRIPTION(get_rgo_size, "tech_mine_size", "tech_farm_size");
-#undef COMMODITY_MOD_DESCRIPTION
+	commodity_mod_description(state, fat_id.get_factory_goods_output(), fat_id, contents, "tech_output", "tech_output");
+	commodity_mod_description(state, fat_id.get_rgo_goods_output(), fat_id, contents, "tech_mine_output", "tech_farm_output");
+	commodity_mod_description(state, fat_id.get_rgo_size(), fat_id, contents, "tech_mine_size", "tech_farm_size");
 }
 
 class technology_folder_tab_sub_button : public checkbox_button {
