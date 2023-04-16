@@ -344,7 +344,7 @@ namespace sys {
 		if(length == 0)
 			return dcon::unit_name_id();
 
-		unit_names.resize(start + length, char(0));
+		unit_names.resize(start + length + 1, char(0));
 		std::copy_n(text.data(), length, unit_names.data() + start);
 		unit_names.back() = 0;
 		unit_names_indices.push_back(int32_t(start));
