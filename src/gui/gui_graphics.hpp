@@ -363,6 +363,7 @@ namespace ui {
 		element_base* topbar_subwindow = nullptr; // current tab window
 		element_base* province_window = nullptr;
 		element_base* search_window = nullptr;
+		element_base* ledger_window = nullptr;
 		element_base* diplomacy_subwindow = nullptr;
 
 		int32_t held_game_speed = 1; // used to keep track of speed while paused

@@ -2,6 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
+#include "gui_ledger_window.hpp"
 #include "gui_search_window.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
@@ -138,6 +139,22 @@ public:
 	}
 };
 
+class minimap_ledger_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(!state.ui_state.ledger_window) {
+			auto window = make_element_by_type<ledger_window>(state, "ledger");
+			state.ui_state.ledger_window = window.get();
+			state.ui_state.root->add_child_to_front(std::move(window));
+		} else if(state.ui_state.ledger_window->is_visible()) {
+			state.ui_state.ledger_window->set_visible(state, false);
+		} else {
+			state.ui_state.ledger_window->set_visible(state, true);
+			state.ui_state.root->move_child_to_front(state.ui_state.ledger_window);
+		}
+	}
+};
+
 class minimap_container_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -152,6 +169,8 @@ public:
 			return ptr;
 		} else if(name == "button_goto") {
 			return make_element_by_type<minimap_goto_button>(state, id);
+		} else if(name == "ledger_button") {
+			return make_element_by_type<minimap_ledger_button>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);
 			size_t num_index = name.rfind("_") + 1;
