@@ -182,13 +182,40 @@ public:
 	}
 };
 
+class military_armies_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+        int32_t count = 0;
+		state.world.nation_for_each_army_control_as_controller(state.local_player_nation, [&](dcon::army_control_id acid) {
+			++count;
+		});
+		set_text(state, std::to_string(count));
+	}
+};
+
+class military_navies_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+        int32_t count = 0;
+		state.world.nation_for_each_navy_control_as_controller(state.local_player_nation, [&](dcon::navy_control_id acid) {
+			++count;
+		});
+		set_text(state, std::to_string(count));
+	}
+};
+
 template<class TypeId>
 class military_units_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unit_listbox") {
             return make_element_by_type<military_units_listbox<TypeId>>(state, id);
-		} else {
+		} else if(name == "current_count") {
+            if constexpr(std::is_same_v<TypeId, dcon::army_id>)
+                return make_element_by_type<military_armies_text>(state, id);
+            else
+                return make_element_by_type<military_navies_text>(state, id);
+        } else {
 			return nullptr;
 		}
 	}
