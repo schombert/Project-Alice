@@ -17,23 +17,6 @@ enum class production_window_tab : uint8_t {
 	goods = 0x3
 };
 
-class factory_level_text : public simple_text_element_base {
-	dcon::factory_id factory_id{};
-public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, std::to_string(state.world.factory_get_level(factory_id)));
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::factory_id>()) {
-			factory_id = any_cast<dcon::factory_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-
 class production_factory_info : public window_element_base {
 	image_element_base* in_progress_bg = nullptr;
 public:
@@ -82,18 +65,31 @@ public:
 	}
 };
 
-class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
-	uint8_t factory_index = 0;
+class production_factory_info_bounds_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base::on_create(state);
+		window_element_base::on_create(state);
 		// Create factory slots for each of the provinces
-		for(factory_index = 0; factory_index < 8; ++factory_index) {
-			auto ptr = make_child(state, "factory_info", state.ui_state.defs_by_name.find("factory_info")->second.definition);
+		for(uint8_t factory_index = 0; factory_index < 8; ++factory_index) {
+			auto ptr = make_element_by_type<production_factory_info>(state, state.ui_state.defs_by_name.find("factory_info")->second.definition);
+			ptr->index = factory_index;
+			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
 			add_child_to_front(std::move(ptr));
 		}
 	}
 
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::state_instance_id>()) {
+			for(auto& child : children)
+				child->impl_set(state, payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_focus") {
 			return make_element_by_type<button_element_base>(state, id);
@@ -105,12 +101,8 @@ public:
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "avg_infra_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "factory_info") {
-			auto ptr = make_element_by_type<production_factory_info>(state, id);
-			ptr->index = factory_index;
-			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
-			ptr->base_data.position.y += 8 + 4; // Nudging-inator 3000
-			return ptr;
+		} else if(name == "factory_info_bounds") {
+			return make_element_by_type<production_factory_info_bounds_window>(state, id);
 		} else {
 			return nullptr;
 		}

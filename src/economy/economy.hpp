@@ -61,10 +61,13 @@ constexpr inline float needs_scaling_factor = 1'000'000.0f;
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
+float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p);
+
 bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
+float factory_total_employment(sys::state const& state, dcon::factory_id f);
 int32_t factory_priority(sys::state const& state, dcon::factory_id f);
 void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority);
 bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
