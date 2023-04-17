@@ -314,6 +314,13 @@ float factory_max_employment(sys::state const& state, dcon::factory_id f) {
 	return factory_per_level_employment * state.world.factory_get_level(f);
 }
 
+float factory_total_employment(sys::state const& state, dcon::factory_id f) {
+	// TODO: Document this, also is this a stub?
+	auto primary_employment = state.world.factory_get_primary_employment(f);
+	auto secondary_employment = state.world.factory_get_secondary_employment(f);
+	return factory_max_employment(state, f) * (state.economy_definitions.craftsmen_fraction * primary_employment + (1 - state.economy_definitions.craftsmen_fraction) * secondary_employment);
+}
+
 void update_factory_employment(sys::state& state) {
 	state.world.for_each_state_instance([&](dcon::state_instance_id si) {
 		float primary_pool = state.world.state_instance_get_demographics(si, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
