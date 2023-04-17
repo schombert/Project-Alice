@@ -2491,22 +2491,24 @@ void mod_file::finish(mod_file_context& context) {
 		return;
 	
 	auto& fs = context.outer_context.state.common_fs;
-	
-	// Add root of mod_path
-	for(auto replace_path : context.replace_paths) {
-		native_string path_block = simple_fs::list_roots(fs)[0];
-		path_block += NATIVE_DIR_SEPARATOR;
-		path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
-		if(path_block.back() != NATIVE_DIR_SEPARATOR)
+	const auto roots = simple_fs::list_roots(fs);
+	for(const auto& root : roots) {
+		// Add root of mod_path
+		for(auto replace_path : context.replace_paths) {
+			native_string path_block = root;
 			path_block += NATIVE_DIR_SEPARATOR;
+			path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
+			if(path_block.back() != NATIVE_DIR_SEPARATOR)
+				path_block += NATIVE_DIR_SEPARATOR;
 
-		simple_fs::add_ignore_path(fs, path_block);
+			simple_fs::add_ignore_path(fs, path_block);
+		}
+
+		native_string mod_path = root;
+		mod_path += NATIVE_DIR_SEPARATOR;
+		mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(context.path));
+		add_root(fs, mod_path);
 	}
-
-	native_string mod_path = simple_fs::list_roots(fs)[0];
-	mod_path += NATIVE_DIR_SEPARATOR;
-	mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(context.path));
-	add_root(fs, mod_path);
 }
 
 }
