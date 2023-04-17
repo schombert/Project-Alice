@@ -5,14 +5,8 @@
 
 namespace ui {
 
-static void technology_description(element_base& element, sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::technology_id tech_id) noexcept {
+static void technology_description(element_base& element, sys::state& state, text::layout_base& contents, dcon::technology_id tech_id) noexcept {
 	auto fat_id = dcon::fatten(state.world, tech_id);
-	auto name = fat_id.get_name();
-	if(bool(name)) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-		text::close_layout_box(contents, box);
-	}
 	auto mod_id = fat_id.get_modifier().id;
 	if(bool(mod_id))
 		modifier_description(state, contents, mod_id);
@@ -243,7 +237,14 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		technology_description(*this, state, x, y, contents, content);
+		auto fat_id = dcon::fatten(state.world, content);
+		auto name = fat_id.get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		technology_description(*this, state, contents, content);
 	}
 };
 
@@ -431,13 +432,18 @@ public:
 
 class technology_selected_effect_text : public generic_settable_element<multiline_text_element_base, dcon::technology_id>  {
 public:
+	void on_create(sys::state& state) noexcept override {
+		generic_settable_element::on_create(state);
+		base_data.size.y *= 2; // Nudge fix for technology descriptions
+		base_data.size.y -= 24;
+	}
+
 	void on_update(sys::state& state) noexcept override {
-		auto contents = text::create_columnar_layout(
+		auto layout = text::create_endless_layout(
 			internal_layout,
-			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black },
-			250
+			text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
 		);
-		technology_description(*this, state, 0, 0, contents, content);
+		technology_description(*this, state, layout, content);
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
