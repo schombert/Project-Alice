@@ -182,41 +182,25 @@ public:
 	}
 };
 
-class military_armies_text : public multiline_text_element_base {
+class military_armies_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
         int32_t count = 0;
 		state.world.nation_for_each_army_control_as_controller(state.local_player_nation, [&](dcon::army_control_id acid) {
 			++count;
 		});
-		auto contents = text::create_endless_layout(
-			internal_layout,
-			text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
-		);
-        auto box = text::open_layout_box(contents);
-        text::substitution_map sub{};
-        text::add_to_substitution_map(sub, text::variable_type::value, std::to_string(count));
-        text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "military_army_count_tooltip"), text::text_color::white);
-		text::close_layout_box(contents, box);
+		set_text(state, std::to_string(count));
 	}
 };
 
-class military_navies_text : public multiline_text_element_base {
+class military_navies_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
         int32_t count = 0;
 		state.world.nation_for_each_navy_control_as_controller(state.local_player_nation, [&](dcon::navy_control_id acid) {
 			++count;
 		});
-		auto contents = text::create_endless_layout(
-			internal_layout,
-			text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
-		);
-        auto box = text::open_layout_box(contents);
-        text::substitution_map sub{};
-        text::add_to_substitution_map(sub, text::variable_type::value, std::to_string(count));
-        text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "military_navy_count_tooltip"), text::text_color::white);
-		text::close_layout_box(contents, box);
+		set_text(state, std::to_string(count));
 	}
 };
 
