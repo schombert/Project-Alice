@@ -254,8 +254,16 @@ protected:
 				contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
-public:
 	dcon::war_id war_id{};
+public:
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::war_id>()) {
+			war_id = any_cast<dcon::war_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return overlapping_flags_box::set(state, payload);
+	}
 };
 class overlapping_defender_flags : public overlapping_flags_box {
 protected:
@@ -267,8 +275,48 @@ protected:
 				contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
-public:
 	dcon::war_id war_id{};
+public:
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::war_id>()) {
+			war_id = any_cast<dcon::war_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return overlapping_flags_box::set(state, payload);
+	}
+};
+
+template<bool IsAttacker>
+class war_side_strength_text : public generic_settable_element<button_element_base, dcon::war_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, content);
+		int32_t strength = 0;
+		for(auto o : fat_id.get_war_participant())
+			if(o.get_is_attacker() == IsAttacker)
+				strength += int32_t(o.get_nation().get_military_score());
+		set_button_text(state, std::to_string(strength));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fat_id = dcon::fatten(state.world, content);
+		for(auto o : fat_id.get_war_participant())
+			if(o.get_is_attacker() == IsAttacker) {
+				auto name = o.get_nation().get_name();
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::add_to_layout_box(contents, state, box, std::string{ ":" }, text::text_color::yellow);
+				text::add_space_to_layout_box(contents, state, box);
+				auto strength = int32_t(o.get_nation().get_military_score());
+				text::add_to_layout_box(contents, state, box, std::to_string(strength), text::text_color::white);
+				text::close_layout_box(contents, box);
+			}
+	}
 };
 
 class diplomacy_war_info : public listbox_row_element_base<dcon::war_id> {
@@ -291,12 +339,12 @@ public:
 			war_name = ptr.get();
 			return ptr;
 		} else if(name == "attackers_mil_strength") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			attackers_strength_text = ptr.get();
+			auto ptr = make_element_by_type<war_side_strength_text<true>>(state, id);
+			ptr->base_data.position.y -= 4; // Nudge
 			return ptr;
 		} else if(name == "defenders_mil_strength") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			defenders_strength_text = ptr.get();
+			auto ptr = make_element_by_type<war_side_strength_text<false>>(state, id);
+			ptr->base_data.position.y -= 4; // Nudge
 			return ptr;
 		} else if(name == "warscore") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -328,22 +376,11 @@ public:
 	}
 
 	void update(sys::state& state) noexcept override {
-		attackers_flags->war_id = defenders_flags->war_id = content;
+		Cyto::Any payload = content;
+		impl_set(state, payload);
 
 		auto war = dcon::fatten(state.world, content);
 		war_name->set_text(state, text::produce_simple_string(state, war.get_name()));
-
-		//fat_id.get_military_score()
-		int32_t attackers_strenght = 0;
-		int32_t defenders_strenght = 0;
-		for(auto o : war.get_war_participant()) {
-			if(o.get_is_attacker())
-				attackers_strenght += o.get_nation().get_military_score();
-			else
-				defenders_strenght += o.get_nation().get_military_score();
-		}
-		attackers_strength_text->set_text(state, std::to_string(attackers_strenght));
-		defenders_strength_text->set_text(state, std::to_string(defenders_strenght));
 	}
 };
 
