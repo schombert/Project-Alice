@@ -1161,7 +1161,7 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
 		auto fat_id = dcon::fatten(state.world, uni_rel);
-		return text::prettify(int64_t(fat_id.get_foreign_investment()));
+		return text::format_money(float(fat_id.get_foreign_investment()));
 	}
 };
 
@@ -1174,7 +1174,7 @@ public:
 			return "-";
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, uni_rel);
-		return text::prettify(int64_t(fat_id.get_foreign_investment()));
+		return text::format_money(int64_t(fat_id.get_foreign_investment()));
 	}
 };
 
