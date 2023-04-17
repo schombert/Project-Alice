@@ -7,7 +7,7 @@
 
 namespace ui {
 
-    enum class pop_list_filter : uint8_t {
+    enum class pop_list_sort : uint8_t {
         size,
         type,
         nationality,
@@ -314,8 +314,6 @@ namespace ui {
             nation_id = state.local_player_nation;
             window_element_base::on_create(state);
             set_visible(state, false);
-            populate_owned_states(state);
-            filter_pop(state, [](dcon::nation_id) { return true; });
         }
 
 
@@ -405,6 +403,32 @@ namespace ui {
                 populate_owned_states(state);
                 filter_pop(state, [](dcon::nation_id) { return true; });
             }
+        }
+
+        message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+            if(payload.holds_type<demographics_pop_filter>()){
+                auto pv = any_cast<demographics_pop_filter>(payload);
+                country_pop_listbox->row_contents.clear();
+                province_list.clear();
+                province_list.push_back(pv.province);
+                fill_pop_list(state);
+                filter_pop(state, [](dcon::nation_id) { return true; });
+                return message_result::consumed;
+            }
+            // If payload holds enum
+            if(payload.holds_type<pop_list_filter>()){
+                auto filter = any_cast<pop_list_filter>(payload);
+                switch(filter) {
+                    case pop_list_filter::all:
+                        populate_owned_states(state);
+                        filter_pop(state, [](dcon::nation_id) { return true; });
+                        break;
+                    default:
+                        break;
+                }
+                return message_result::consumed;
+            }
+            return message_result::unseen;
         }
     };
 }

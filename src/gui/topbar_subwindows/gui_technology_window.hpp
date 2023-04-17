@@ -523,7 +523,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 
-		xy_pair folder_offset{ 32, 55 };
+		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("folder_offset")->second.definition].position;
 		for(auto curr_folder = culture::tech_category::army;
 			curr_folder != culture::tech_category::count;
 			curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1))
@@ -556,6 +556,9 @@ public:
 		// Technologies per folder (used for positioning!!!)
 		std::vector<size_t> items_per_folder(state.culture_definitions.tech_folders.size(), 0);
 
+		xy_pair base_group_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_group_offset")->second.definition].position;
+		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_offset")->second.definition].position;
+
 		for(auto cat = culture::tech_category::army;
 			cat != culture::tech_category::count;
 			cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1))
@@ -572,8 +575,8 @@ public:
 				Cyto::Any payload = culture::folder_info(folder);
 				ptr->impl_set(state, payload);
 
-				ptr->base_data.position.x = static_cast<int16_t>(28 + (group_count * ptr->base_data.size.x));
-				ptr->base_data.position.y = 109;
+				ptr->base_data.position.x = static_cast<int16_t>(base_group_offset.x + (group_count * ptr->base_data.size.x));
+				ptr->base_data.position.y = base_group_offset.y;
 				++group_count;
 				add_child_to_front(std::move(ptr));
 			}
@@ -591,9 +594,9 @@ public:
 				Cyto::Any payload = tech_id;
 				ptr->impl_set(state, payload);
 
-				ptr->base_data.position.x = static_cast<int16_t>(28 + (folder_x_offset[folder_id] * ptr->base_data.size.x));
+				ptr->base_data.position.x = static_cast<int16_t>(base_group_offset.x + (folder_x_offset[folder_id] * ptr->base_data.size.x));
 				// 16px spacing between tech items, 109+16 base offset
-				ptr->base_data.position.y = static_cast<int16_t>(109 + 16 + (items_per_folder[folder_id] * ptr->base_data.size.y));
+				ptr->base_data.position.y = static_cast<int16_t>(base_group_offset.y + base_tech_offset.y + (items_per_folder[folder_id] * ptr->base_data.size.y));
 				items_per_folder[folder_id]++;
 				add_child_to_front(std::move(ptr));
 			});

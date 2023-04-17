@@ -273,8 +273,7 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		base_data.position.x = 37;
-		base_data.position.y = 236;
+		base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("ruling_party_pos")->second.definition].position;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
