@@ -2137,6 +2137,22 @@ public:
 	}
 };
 
+class commodity_plupp : public tinted_image_element_base {
+	dcon::commodity_id commodity_id{};
+public:
+	uint32_t get_tint_color(sys::state& state) noexcept override {
+		return state.world.commodity_get_color(commodity_id);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			commodity_id = any_cast<dcon::commodity_id>(payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
 class commodity_price_text : public simple_text_element_base {
 	dcon::commodity_id commodity_id{};
 public:

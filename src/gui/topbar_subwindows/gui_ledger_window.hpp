@@ -813,6 +813,8 @@ public:
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "ledger_default_textbox") {
             return make_element_by_type<generic_name_text<dcon::commodity_id>>(state, id);
+        } else if(name == "ledger_legend_plupp") {
+            return make_element_by_type<commodity_plupp>(state, id);
         } else {
             return nullptr;
         }
