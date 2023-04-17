@@ -516,17 +516,17 @@ void poptype_file::luxury_needs(commodity_array const& value, error_handler& err
 }
 
 void poptype_file::life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_life_needs_income_type(context.id, uint8_t(value.itype));
 }
 
 void poptype_file::everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_everyday_needs_income_type(context.id, uint8_t(value.itype));
 }
 
 void poptype_file::luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_luxury_needs_income_type(context.id, uint8_t(value.itype));
 }
 

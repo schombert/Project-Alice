@@ -997,21 +997,6 @@ object {
 		type{ uint8_t }
 		tag{ scenario }
 	}
-	property{
-		name{ everyday_needs_income_weight }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ luxury_needs_income_weight }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ life_needs_income_weight }
-		type{ float }
-		tag{ scenario }
-	}
 
 	property{
 		name{ research_optimum }
@@ -2473,22 +2458,6 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ effective_education_spending }
-		type{ float }
-	}
-	property {
-		name{ effective_military_spending }
-		type{ float }
-	}
-	property {
-		name{ effective_administrative_spending }
-		type{ float }
-	}
-	property {
-		name{ effective_social_spending }
-		type{ float }
-	}
-	property {
 		name{ effective_land_spending }
 		type{ float }
 	}
@@ -2498,6 +2467,10 @@ object {
 	}
 	property {
 		name{ effective_construction_spending }
+		type{ float }
+	}
+	property {
+		name{ total_citizen_money }
 		type{ float }
 	}
 	property {
