@@ -229,7 +229,8 @@ public:
 		} else if(name == "current_count") {
             if constexpr(std::is_same_v<TypeId, dcon::army_id>) {
                 return make_element_by_type<military_armies_text>(state, id);
-            } else if constexpr(std::is_same_v<TypeId, dcon::navy_id>) {
+            }
+            if constexpr(std::is_same_v<TypeId, dcon::navy_id>) {
                 return make_element_by_type<military_navies_text>(state, id);
             }
             return nullptr;
