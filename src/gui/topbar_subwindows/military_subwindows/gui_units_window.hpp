@@ -195,8 +195,8 @@ public:
 		);
         auto box = text::open_layout_box(contents);
         text::substitution_map sub{};
-        text::add_to_substitution_map(sub, text::variable_type::value, count);
-        text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "military_navy_count_tooltip"), text::text_color::black);
+        text::add_to_substitution_map(sub, text::variable_type::value, std::to_string(count));
+        text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "military_army_count_tooltip"), text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -214,8 +214,8 @@ public:
 		);
         auto box = text::open_layout_box(contents);
         text::substitution_map sub{};
-        text::add_to_substitution_map(sub, text::variable_type::value, count);
-        text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "military_navy_count_tooltip"), text::text_color::black);
+        text::add_to_substitution_map(sub, text::variable_type::value, std::to_string(count));
+        text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "military_navy_count_tooltip"), text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -227,13 +227,10 @@ public:
 		if(name == "unit_listbox") {
             return make_element_by_type<military_units_listbox<TypeId>>(state, id);
 		} else if(name == "current_count") {
-            if constexpr(std::is_same_v<TypeId, dcon::army_id>) {
+            if constexpr(std::is_same_v<TypeId, dcon::army_id>)
                 return make_element_by_type<military_armies_text>(state, id);
-            }
-            if constexpr(std::is_same_v<TypeId, dcon::navy_id>) {
+            else
                 return make_element_by_type<military_navies_text>(state, id);
-            }
-            return nullptr;
         } else {
 			return nullptr;
 		}
