@@ -399,11 +399,50 @@ public:
 	}
 };
 
+class diplomacy_greatpower_info : public window_element_base {
+public:
+	uint8_t rank = 0;
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "country_name") {
+			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+		} else if(name == "country_flag") {
+			return make_element_by_type<flag_button>(state, id);
+		} else if(name == "country_puppets") {
+			return make_element_by_type<overlapping_protected_flags>(state, id);
+		} else if(name == "gp_prestige") {
+			return make_element_by_type<nation_prestige_text>(state, id);
+		} else if(name == "gp_economic") {
+			return make_element_by_type<nation_industry_score_text>(state, id);
+		} else if(name == "gp_military") {
+			return make_element_by_type<nation_military_score_text>(state, id);
+		} else if(name == "gp_total") {
+			return make_element_by_type<nation_total_score_text>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::nation_id>()) {
+            payload.emplace<dcon::nation_id>(nations::get_nth_great_power(state, rank));
+            return message_result::consumed;
+        }
+        return window_element_base::get(state, payload);
+    }
+
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = nations::get_nth_great_power(state, rank);
+		impl_set(state, payload);
+	}
+};
+
 class diplomacy_window : public generic_tabbed_window<diplomacy_window_tab> {
 private:
 	diplomacy_country_listbox* country_listbox = nullptr;
 	diplomacy_war_listbox* war_listbox = nullptr;
 	diplomacy_country_facts* country_facts = nullptr;
+	std::vector<diplomacy_greatpower_info*> gp_infos{};
 
 	void filter_countries(sys::state& state, std::function<bool(dcon::nation_id)> filter_fun) {
 		if(country_listbox) {
@@ -439,6 +478,22 @@ public:
 		set_visible(state, false);
 		filter_countries(state, [](dcon::nation_id) { return true; });
 		state.ui_state.diplomacy_subwindow = this;
+
+		xy_pair base_gp_info_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_greatpower_pos")->second.definition].position;
+		xy_pair gp_info_offset = base_gp_info_offset;
+		for(uint8_t i = 0; i < uint8_t(state.defines.great_nations_count); i++) {
+			auto ptr = make_element_by_type<diplomacy_greatpower_info>(state, state.ui_state.defs_by_name.find("diplomacy_greatpower_info")->second.definition);
+			ptr->base_data.position = gp_info_offset;
+			ptr->rank = i;
+			// Increment gp offset
+			gp_info_offset.y += ptr->base_data.size.y;
+			if(i + 1 == uint8_t(state.defines.great_nations_count) / 2) {
+				gp_info_offset.y = base_gp_info_offset.y;
+				gp_info_offset.x += (ptr->base_data.size.x / 2) + 62; // Nudge
+			}
+			gp_infos.push_back(ptr.get());
+			add_child_to_front(std::move(ptr));
+		}
 
 		Cyto::Any payload = state.local_player_nation;
 		impl_get(state, payload);
@@ -543,6 +598,8 @@ public:
 		war_listbox->set_visible(state, false);
 		casus_belli_window->set_visible(state, false);
 		crisis_window->set_visible(state, false);
+		for(auto e : gp_infos)
+			e->set_visible(state, false);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -551,6 +608,8 @@ public:
 			hide_tabs(state);
 			switch(enum_val) {
 				case diplomacy_window_tab::great_powers:
+					for(auto e : gp_infos)
+						e->set_visible(state, true);
 					break;
 				case diplomacy_window_tab::wars:
 					war_listbox->set_visible(state, true);
