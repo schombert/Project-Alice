@@ -98,6 +98,14 @@ public:
         }
     }
 
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::nation_id>()) {
+            payload.emplace<dcon::nation_id>(content);
+            return message_result::consumed;
+        }
+        return listbox_row_element_base::get(state, payload);
+    }
+
     void update(sys::state& state) noexcept override {
         country_flag->on_update(state);
         Cyto::Any payload = content;
@@ -193,6 +201,14 @@ public:
         }
     }
 
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::nation_id>()) {
+            payload.emplace<dcon::nation_id>(content);
+            return message_result::consumed;
+        }
+        return listbox_row_element_base::get(state, payload);
+    }
+
     void update(sys::state& state) noexcept override {
         country_flag->on_update(state);
         Cyto::Any payload = content;
@@ -268,6 +284,14 @@ public:
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         }
+    }
+
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::nation_id>()) {
+            payload.emplace<dcon::nation_id>(content);
+            return message_result::consumed;
+        }
+        return listbox_row_element_base::get(state, payload);
     }
 
     void update(sys::state& state) noexcept override {
@@ -362,6 +386,14 @@ public:
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         });
+    }
+
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::nation_id>()) {
+            payload.emplace<dcon::nation_id>(content);
+            return message_result::consumed;
+        }
+        return listbox_row_element_base::get(state, payload);
     }
 
     void update(sys::state& state) noexcept override {
@@ -463,6 +495,14 @@ public:
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         });
+    }
+
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::nation_id>()) {
+            payload.emplace<dcon::nation_id>(content);
+            return message_result::consumed;
+        }
+        return listbox_row_element_base::get(state, payload);
     }
 
     void update(sys::state& state) noexcept override {
