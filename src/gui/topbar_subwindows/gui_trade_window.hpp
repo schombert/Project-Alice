@@ -473,11 +473,8 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		// TODO: use goods_entry_offset instead of hardcoding
-		xy_pair cell_size{ 99, 33 };
-
+		xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("goods_entry_offset")->second.definition].position;
 		xy_pair offset{ 0, 0 };
-		xy_pair base_offset = offset;
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != Group)
 				return;
@@ -486,8 +483,12 @@ public:
 			ptr->base_data.position = offset;
 			offset.x += cell_size.x;
 			if(offset.x + cell_size.x >= base_data.size.x) {
-				offset.x = base_offset.x;
+				offset.x = 0;
 				offset.y += cell_size.y;
+				if(offset.y + cell_size.y >= base_data.size.y) {
+					offset.x += cell_size.x;
+					offset.y = 0;
+				}
 			}
 
 			Cyto::Any payload = id;
