@@ -783,6 +783,20 @@ public:
 	}
 };
 
+class province_rgo_name_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::get_name_as_string(state, state.world.province_get_rgo(province_id));
+	}
+};
+
+class province_player_rgo_size_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_float(economy::rgo_effective_size(state, state.local_player_nation, province_id), 2);
+	}
+};
+
 class province_goods_produced_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
@@ -2157,6 +2171,74 @@ public:
 			return message_result::consumed;
 		}
 		return message_result::unseen;
+	}
+};
+
+class standard_factory_text : public simple_text_element_base {
+protected:
+	dcon::factory_id factory_id{};
+public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::factory_id>()) {
+			factory_id = any_cast<dcon::factory_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+class factory_state_name_text : public standard_factory_text {
+public:
+    std::string get_text(sys::state& state) noexcept override {
+        auto flid = state.world.factory_get_factory_location_as_factory(factory_id);
+        auto pid = state.world.factory_location_get_province(flid);
+        auto sdef = state.world.province_get_state_from_abstract_state_membership(pid);
+        dcon::state_instance_id sid{};
+        state.world.for_each_state_instance([&](dcon::state_instance_id id) {
+            if(state.world.state_instance_get_definition(id) == sdef)
+                sid = id;
+        });
+		return text::get_dynamic_state_name(state, sid);
+	}
+};
+class factory_output_name_text : public standard_factory_text {
+public:
+    std::string get_text(sys::state& state) noexcept override {
+        auto cid = state.world.factory_get_building_type(factory_id).get_output();
+		return text::get_name_as_string(state, cid);
+	}
+};
+class factory_produced_text : public standard_factory_text {
+public:
+    std::string get_text(sys::state& state) noexcept override {
+		return text::format_float(state.world.factory_get_actual_production(factory_id), 2);
+	}
+};
+class factory_income_text : public standard_factory_text {
+public:
+    std::string get_text(sys::state& state) noexcept override {
+		return text::format_float(state.world.factory_get_full_profit(factory_id), 2);
+	}
+};
+class factory_workers_text : public standard_factory_text {
+public:
+    std::string get_text(sys::state& state) noexcept override {
+        return text::format_float(economy::factory_total_employment(state, factory_id), 2);
+	}
+};
+class factory_level_text : public standard_factory_text {
+public:
+    std::string get_text(sys::state& state) noexcept override {
+        return text::format_float(state.world.factory_get_level(factory_id), 2);
 	}
 };
 

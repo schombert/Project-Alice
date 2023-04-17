@@ -487,7 +487,7 @@ public:
 };
 
 //
-// Nation population per strata
+// Provinces
 //
 class ledger_province_entry : public listbox_row_element_base<dcon::province_id> {
 public:
@@ -570,7 +570,7 @@ public:
 };
 
 //
-// Nation population per strata
+// Province population per strata
 //
 class province_population_per_pop_type_text : public standard_province_text {
     dcon::pop_type_id pop_type_id{};
@@ -647,6 +647,165 @@ public:
 };
 
 //
+// Provinces production
+//
+class ledger_provinces_production_entry : public listbox_row_element_base<dcon::province_id> {
+public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base::on_create(state);
+
+        xy_pair cell_offset{ 0, 0 };
+
+        auto cell_width = (972 - cell_offset.x) / 7;
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = int16_t(cell_width);
+            cell_offset.x += ptr->base_data.size.x;
+        };
+        // Province name
+        {
+            auto ptr = make_element_by_type<generic_name_text<dcon::province_id>>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // State name
+        {
+            auto ptr = make_element_by_type<province_state_name_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Goods
+        {
+            auto ptr = make_element_by_type<province_rgo_name_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Output
+        {
+            auto ptr = make_element_by_type<province_goods_produced_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Income
+        {
+            auto ptr = make_element_by_type<province_income_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Employed
+        {
+            auto ptr = make_element_by_type<province_rgo_workers_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Level
+        {
+            auto ptr = make_element_by_type<province_player_rgo_size_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+    }
+
+    void update(sys::state& state) noexcept override {
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_provinces_production_listbox : public listbox_element_base<ledger_provinces_production_entry, dcon::province_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				row_contents.push_back(p);
+			});
+        update(state);
+    }
+};
+
+//
+// Factory production
+//
+class ledger_factories_production_entry : public listbox_row_element_base<dcon::factory_id> {
+public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base::on_create(state);
+
+        xy_pair cell_offset{ 0, 0 };
+
+        auto cell_width = (972 - cell_offset.x) / 6;
+        auto apply_offset = [&](auto& ptr) {
+            ptr->base_data.position = cell_offset;
+            ptr->base_data.size.x = int16_t(cell_width);
+            cell_offset.x += ptr->base_data.size.x;
+        };
+        // State name
+        {
+            auto ptr = make_element_by_type<factory_state_name_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Goods
+        {
+            auto ptr = make_element_by_type<factory_output_name_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Output
+        {
+            auto ptr = make_element_by_type<factory_produced_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Income
+        {
+            auto ptr = make_element_by_type<factory_income_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Employed
+        {
+            auto ptr = make_element_by_type<factory_workers_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Level
+        {
+            auto ptr = make_element_by_type<factory_level_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+    }
+
+    void update(sys::state& state) noexcept override {
+        Cyto::Any payload = content;
+        impl_set(state, payload);
+    }
+};
+class ledger_factories_production_listbox : public listbox_element_base<ledger_factories_production_entry, dcon::factory_id> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "default_listbox_entry";
+    }
+public:
+    void on_update(sys::state& state) noexcept override {
+        row_contents.clear();
+        for(const auto fat_smemb_id : state.world.nation_get_state_ownership(state.local_player_nation))
+            province::for_each_province_in_state_instance(state, fat_smemb_id.get_state(), [&](dcon::province_id pid) {
+                auto fat_id = dcon::fatten(state.world, pid);
+                fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+                    row_contents.push_back(state.world.factory_location_get_factory(flid));
+                });
+            });
+        update(state);
+    }
+};
+
+//
 // Commodity price
 //
 class ledger_commodity_price_entry : public listbox_row_element_base<dcon::commodity_id> {
@@ -707,8 +866,8 @@ class ledger_window : public window_element_base {
     ledger_nation_population_listbox* nation_pops_listbox = nullptr;
     ledger_province_listbox* provinces_listbox = nullptr;
     ledger_province_population_listbox* provinces_pops_listbox = nullptr;
-    ledger_nation_ranking_listbox* provinces_production_listbox = nullptr;
-    ledger_nation_ranking_listbox* factory_production_listbox = nullptr;
+    ledger_provinces_production_listbox* provinces_production_listbox = nullptr;
+    ledger_factories_production_listbox* factory_production_listbox = nullptr;
 
     void hide_sub_windows(sys::state& state) noexcept {
         nation_ranking_listbox->set_visible(state, false);
@@ -772,12 +931,12 @@ public:
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
+            auto ptr = make_element_by_type<ledger_provinces_production_listbox>(state, listbox_def_id);
             provinces_production_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }
         {
-            auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
+            auto ptr = make_element_by_type<ledger_factories_production_listbox>(state, listbox_def_id);
             factory_production_listbox = ptr.get();
             add_child_to_front(std::move(ptr));
         }

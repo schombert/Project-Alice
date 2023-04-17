@@ -17,23 +17,6 @@ enum class production_window_tab : uint8_t {
 	goods = 0x3
 };
 
-class factory_level_text : public simple_text_element_base {
-	dcon::factory_id factory_id{};
-public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, std::to_string(state.world.factory_get_level(factory_id)));
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::factory_id>()) {
-			factory_id = any_cast<dcon::factory_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-
 class production_factory_info : public window_element_base {
 	image_element_base* in_progress_bg = nullptr;
 public:
