@@ -1092,6 +1092,11 @@ void recurse_over_effects(uint16_t* source, const T& f) {
 dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_building_context& context) {
 	ef_scope_hidden_tooltip(gen, err, context);
 
+	if(context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
+		err.accumulated_errors += "effect is " + std::to_string(context.compiled_effect.size()) + " cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
+		return dcon::effect_key{0};
+	}
+
 	const auto new_size = simplify_effect(context.compiled_effect.data());
 	context.compiled_effect.resize(static_cast<size_t>(new_size));
 
