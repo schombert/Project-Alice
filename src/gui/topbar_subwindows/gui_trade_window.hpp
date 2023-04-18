@@ -1,5 +1,8 @@
 #pragma once
 
+#include "dcon_generated.hpp"
+#include "economy.hpp"
+#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 
 namespace ui {
@@ -44,6 +47,8 @@ public:
 			return make_element_by_type<commodity_factory_image>(state, id);
 		} else if(name == "value") {
 			return make_element_by_type<commodity_national_player_stockpile_text>(state, id);
+		} else if(name == "change") {
+			return make_element_by_type<commodity_player_stockpile_increase_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -76,6 +81,12 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
 			return make_element_by_type<commodity_factory_image>(state, id);
+		} else if(name == "total") {
+			return make_element_by_type<commodity_global_market_text>(state, id);
+		} else if(name == "produce_change") {
+			return make_element_by_type<commodity_market_increase_text>(state, id);
+		} else if(name == "exported") {
+			return make_element_by_type<commodity_player_domestic_market_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -98,6 +109,88 @@ public:
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			row_contents.push_back(id);
+		});
+		update(state);
+	}
+};
+
+template<class T>
+class trade_goods_needs_entry : public listbox_row_element_base<dcon::commodity_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "goods_type") {
+			return make_element_by_type<commodity_factory_image>(state, id);
+		} else if(name == "value") {
+			return make_element_by_type<T>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	void update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		impl_set(state, payload);
+	}
+};
+
+class trade_government_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_government_needs_text>, dcon::commodity_id> {
+protected:
+	std::string_view get_row_element_name() override {
+        return "goods_needs_entry";
+    }
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base::on_create(state);
+		on_update(state);
+	}
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		state.world.for_each_commodity([&](dcon::commodity_id id) {
+			if(economy::government_consumption(state, state.local_player_nation, id) > 0.f) {
+				row_contents.push_back(id);
+			}
+		});
+		update(state);
+	}
+};
+
+class trade_factory_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_factory_needs_text>, dcon::commodity_id> {
+protected:
+	std::string_view get_row_element_name() override {
+        return "goods_needs_entry";
+    }
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base::on_create(state);
+		on_update(state);
+	}
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		state.world.for_each_commodity([&](dcon::commodity_id id) {
+			if(economy::nation_factory_consumption(state, state.local_player_nation, id) > 0.f) {
+				row_contents.push_back(id);
+			}
+		});
+		update(state);
+	}
+};
+
+class trade_pop_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_pop_needs_text>, dcon::commodity_id> {
+protected:
+	std::string_view get_row_element_name() override {
+        return "goods_needs_entry";
+    }
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base::on_create(state);
+		on_update(state);
+	}
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		state.world.for_each_commodity([&](dcon::commodity_id id) {
+			if(economy::nation_pop_consumption(state, state.local_player_nation, id) > 0.f) {
+				row_contents.push_back(id);
+			}
 		});
 		update(state);
 	}
@@ -360,23 +453,9 @@ public:
 	}
 };
 
-class standard_commodity_text : public simple_text_element_base {
-protected:
-	dcon::commodity_id commodity_id{};
-public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-
 class trade_flow_total_produced_text : public standard_commodity_text {
 public:
-	void on_update(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state) noexcept override {
 		auto amount = 0.f;
 		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
 			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
@@ -391,27 +470,14 @@ public:
 					amount += state.world.province_get_rgo_actual_production(pid);
 			});
 		}
-		set_text(state, text::format_float(amount, 3));
+		return text::format_float(amount, 3);
 	}
 };
 class trade_flow_total_used_text : public standard_commodity_text {
 public:
-	void on_update(sys::state& state) noexcept override {
-		auto amount = 0.f;
-		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
-				auto fat_id = dcon::fatten(state.world, pid);
-				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-					auto fid = state.world.factory_location_get_factory(flid);
-					auto ftid = state.world.factory_get_building_type(fid);
-					auto& inputs = state.world.factory_type_get_inputs(ftid);
-					for(auto i = 0; i < inputs.set_size; ++i)
-						if(inputs.commodity_type[i] == commodity_id)
-							amount += inputs.commodity_amounts[i];
-				});
-			});
-		}
-		set_text(state, text::format_float(amount, 3));
+	std::string get_text(sys::state& state) noexcept override {
+		auto amount = economy::nation_factory_consumption(state, state.local_player_nation, commodity_id);
+		return text::format_float(amount, 3);
 	}
 };
 
@@ -575,6 +641,12 @@ public:
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::consumer_goods>>(state, id);
 		} else if(name == "group_military_goods") {
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::military_goods>>(state, id);
+		} else if(name == "government_needs_list") {
+			return make_element_by_type<trade_government_needs_listbox>(state, id);
+		} else if(name == "factory_needs_list") {
+			return make_element_by_type<trade_factory_needs_listbox>(state, id);
+		} else if(name == "pop_needs_list") {
+			return make_element_by_type<trade_pop_needs_listbox>(state, id);
 		} else if(name == "trade_details") {
 			auto ptr = make_element_by_type<trade_details_window>(state, id);
 			details_win = ptr.get();

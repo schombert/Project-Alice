@@ -81,4 +81,10 @@ void regenerate_unsaved_values(sys::state& state);
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
 
+float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
+float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
+float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+
 }
