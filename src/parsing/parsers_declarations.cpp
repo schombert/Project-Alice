@@ -479,11 +479,11 @@ void poptype_file::can_reduce_consciousness(association_type, bool value, error_
 }
 
 void poptype_file::workplace_input(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_workplace_input(context.id, value);
+	// discard
 }
 
 void poptype_file::workplace_output(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_workplace_output(context.id, value);
+	// discard
 }
 
 void poptype_file::equivalent(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {

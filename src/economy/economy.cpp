@@ -1835,59 +1835,29 @@ void regenerate_unsaved_values(sys::state& state) {
 }
 
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	static commodity_by_nation_array army_costs(state);
-	static commodity_by_nation_array navy_costs(state);
-	static commodity_by_nation_array construction_costs(state);
+	auto overseas_factor = state.defines.province_overseas_penalty * float(state.world.nation_get_owned_province_count(n) - state.world.nation_get_central_province_count(n));
+	auto o_adjust = 0.0f;
+	if(overseas_factor > 0) {
+		auto kf = state.world.commodity_get_key_factory(c);
+		if(state.world.commodity_get_overseas_penalty(c) && (state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
+			o_adjust = overseas_factor;
+		}
+	}
 
-	army_costs.prepare(state);
-	navy_costs.prepare(state);
-	construction_costs.prepare(state);
-
-	populate_army_consumption(state, army_costs);
-	populate_navy_consumption(state, navy_costs);
-	populate_constuction_consumption(state, construction_costs);
-
-	float amount = 0.f;
-	amount += army_costs.get(n, c);
-	amount += navy_costs.get(n, c);
-	amount += construction_costs.get(n, c);
-	return amount;
+	return (state.world.nation_get_army_demand(n, c) + state.world.nation_get_navy_demand(n, c) + state.world.nation_get_construction_demand(n, c) + o_adjust);
 }
 
 float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
 	auto amount = 0.f;
-	for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
-		province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
-			auto fat_id = dcon::fatten(state.world, pid);
-			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-				auto fid = state.world.factory_location_get_factory(flid);
-				auto ftid = state.world.factory_get_building_type(fid);
-				auto& inputs = state.world.factory_type_get_inputs(ftid);
-				for(auto i = 0; i < inputs.set_size; ++i)
-					if(inputs.commodity_type[i] == c)
-						amount += inputs.commodity_amounts[i];
-			});
-		});
-	}
 	return amount;
 }
 
 float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
 	auto amount = 0.f;
-	for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
-		province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
-			auto fat_id = dcon::fatten(state.world, pid);
-			fat_id.for_each_pop_location_as_province([&](dcon::pop_location_id plid) {
-				auto pid = state.world.pop_location_get_pop(plid);
-				auto ptid = state.world.pop_get_poptype(pid).id;
-				amount += state.world.pop_type_get_life_needs(ptid, c);
-				amount += state.world.pop_type_get_everyday_needs(ptid, c);
-				amount += state.world.pop_type_get_luxury_needs(ptid, c);
-				state.world.pop_type_get_workplace_input(ptid);
-			});
-		});
-	}
-	return amount;
+	state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+		amount += (state.world.pop_type_get_life_needs(pt, c) + state.world.pop_type_get_everyday_needs(pt, c) + state.world.pop_type_get_luxury_needs(pt, c)) * state.world.nation_get_demographics(n, demographics::to_key(state, pt)) / needs_scaling_factor;
+	});
+	return 0.0f;
 }
 
 }

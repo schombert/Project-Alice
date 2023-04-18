@@ -1010,16 +1010,6 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ workplace_input }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ workplace_output }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
 		name{ has_unemployment }
 		type{ bitfield }
 		tag{ scenario }
