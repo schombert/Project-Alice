@@ -1861,11 +1861,6 @@ object {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
 	}
-	property {
-		name{ last_production }
-		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
 }
 relationship{
 	name{ colonization }
@@ -2579,9 +2574,8 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ last_production }
+		name{ imports }
 		type{ array{commodity_id}{float} }
-		tag{ save }
 	}
 	property {
 		name{ demand_satisfaction }
