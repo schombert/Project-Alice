@@ -546,10 +546,11 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 
 		// register real demand : input_multiplier * throughput_multiplier * level * primary_employment
 		float input_scale = input_multiplier * throughput_multiplier * effective_production_scale;
+		auto& inputs = fac_type.get_inputs();
 		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(fac_type.get_inputs().commodity_type[i]) {
-				state.world.nation_get_real_demand(n, fac_type.get_inputs().commodity_type[i]) += input_scale * fac_type.get_inputs().commodity_amounts[i];
-				assert(!std::isnan(state.world.nation_get_real_demand(n, fac_type.get_inputs().commodity_type[i])));
+			if(inputs.commodity_type[i]) {
+				state.world.nation_get_real_demand(n, inputs.commodity_type[i]) += input_scale * inputs.commodity_amounts[i];
+				assert(!std::isnan(state.world.nation_get_real_demand(n, inputs.commodity_type[i])));
 			} else {
 				break;
 			}
@@ -558,10 +559,11 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 		// and for efficiency inputs
 		//  the consumption of efficiency inputs is (national-factory-maintenance-modifier + 1) x input-multiplier x throughput-multiplier x factory level
 		auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(fac_type.get_efficiency_inputs().commodity_type[i]) {
-				state.world.nation_get_real_demand(n, fac_type.get_efficiency_inputs().commodity_type[i]) += mfactor * input_scale * fac_type.get_efficiency_inputs().commodity_amounts[i];
-				assert(!std::isnan(state.world.nation_get_real_demand(n, fac_type.get_efficiency_inputs().commodity_type[i])));
+		auto& e_inputs = fac_type.get_efficiency_inputs();
+		for(uint32_t i = 0; i < small_commodity_set::set_size; ++i) {
+			if(e_inputs.commodity_type[i]) {
+				state.world.nation_get_real_demand(n, e_inputs.commodity_type[i]) += mfactor * input_scale * e_inputs.commodity_amounts[i];
+				assert(!std::isnan(state.world.nation_get_real_demand(n, e_inputs.commodity_type[i])));
 			} else {
 				break;
 			}
@@ -595,7 +597,7 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 		}
 
 		// and for efficiency inputs
-		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+		for(uint32_t i = 0; i < small_commodity_set::set_size; ++i) {
 			if(fac_type.get_efficiency_inputs().commodity_type[i]) {
 				min_efficiency_input = std::min(min_efficiency_input, state.world.nation_get_demand_satisfaction(n, fac_type.get_efficiency_inputs().commodity_type[i]));
 			} else {
@@ -1773,7 +1775,7 @@ void daily_update(sys::state& state) {
 			current_price -= 0.01f;
 		}
 
-		state.world.commodity_set_current_price(cid, std::clamp(total_r_demand, base_price * 0.2f, base_price * 5.0f));
+		state.world.commodity_set_current_price(cid, std::clamp(current_price, base_price * 0.2f, base_price * 5.0f));
 	});
 
 	/*
