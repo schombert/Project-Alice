@@ -2,6 +2,7 @@
 
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
+#include "economy.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_types.hpp"
 #include "military.hpp"
@@ -2162,11 +2163,16 @@ public:
 	}
 };
 
-class commodity_price_text : public simple_text_element_base {
+class standard_commodity_text : public simple_text_element_base {
+protected:
 	dcon::commodity_id commodity_id{};
 public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_money(state.world.commodity_get_current_price(commodity_id)));
+		set_text(state, get_text(state));
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -2174,28 +2180,85 @@ public:
 			commodity_id = any_cast<dcon::commodity_id>(payload);
 			on_update(state);
 			return message_result::consumed;
+		} else {
+			return message_result::unseen;
 		}
-		return message_result::unseen;
 	}
 };
 
-class commodity_national_player_stockpile_text : public simple_text_element_base {
-	dcon::commodity_id commodity_id{};
+class commodity_price_text : public standard_commodity_text {
 public:
-	void on_update(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_money(state.world.commodity_get_current_price(commodity_id));
+	}
+};
+
+class commodity_national_player_stockpile_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
 		if(commodity_id) {
 			float stockpile = state.world.nation_get_stockpiles(state.local_player_nation, commodity_id);
-			set_text(state, text::format_float(stockpile, 2));
+			return text::format_float(stockpile, 2);
+		} else {
+			return "";
 		}
 	}
+};
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+class commodity_player_stockpile_increase_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		float amount = economy::stockpile_commodity_daily_increase(state, commodity_id, state.local_player_nation);
+
+		return std::string(amount >= 0.f ? "+" : "") + text::format_float(amount, 2);
+	}
+};
+
+class commodity_market_increase_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		float amount = economy::global_market_commodity_daily_increase(state, commodity_id);
+		return std::string("(") + text::format_float(amount, 0) + ")";
+	}
+};
+
+class commodity_global_market_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		float amount = state.world.commodity_get_global_market_pool(commodity_id);
+		return text::format_float(amount, 2);
+	}
+};
+
+class commodity_player_domestic_market_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		float amount = state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id);
+		return text::format_float(amount, 1);
+	}
+};
+
+class commodity_player_factory_needs_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto amount = economy::nation_factory_consumption(state, state.local_player_nation, commodity_id);
+		return text::format_float(amount, 3);
+	}
+};
+
+class commodity_player_pop_needs_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto amount = economy::nation_pop_consumption(state, state.local_player_nation, commodity_id);
+		return text::format_float(amount, 3);
+	}
+};
+
+class commodity_player_government_needs_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto amount = economy::government_consumption(state, state.local_player_nation, commodity_id);
+		return text::format_float(amount, 3);
 	}
 };
 
