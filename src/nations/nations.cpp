@@ -750,8 +750,7 @@ void update_monthly_points(sys::state& state) {
 }
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
-	// TODO
-	return 0.0f;
+	return state.world.nation_get_stockpiles(n, economy::money);
 }
 
 float get_bank_funds(sys::state& state, dcon::nation_id n) {

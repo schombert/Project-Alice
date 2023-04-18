@@ -1578,6 +1578,8 @@ namespace sys {
 							break;
 					}
 
+					economy::daily_update(*this);
+
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));

@@ -775,6 +775,8 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 
 		state.game_seed = uint32_t(std::random_device()());
 
+		float g1price = state.world.commodity_get_current_price(dcon::commodity_id(1));
+
 		return true;
 	} else {
 		return false;

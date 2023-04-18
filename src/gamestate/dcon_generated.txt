@@ -260,6 +260,7 @@ object {
 	storage_type{ contiguous }
 	size{ 126 }
 	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
@@ -2575,6 +2576,18 @@ object {
 	}
 	property {
 		name{ imports }
+		type{ array{commodity_id}{float} }
+	}
+	property {
+		name{ army_demand }
+		type{ array{commodity_id}{float} }
+	}
+	property {
+		name{ navy_demand }
+		type{ array{commodity_id}{float} }
+	}
+	property {
+		name{ construction_demand }
 		type{ array{commodity_id}{float} }
 	}
 	property {
