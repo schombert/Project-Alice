@@ -367,6 +367,11 @@ namespace ui {
 		element_base* diplomacy_subwindow = nullptr;
         element_base* population_subwindow = nullptr;
 
+		// Event windows that are reused
+		std::vector<element_base*> major_event_subwindows;
+		std::vector<element_base*> national_event_subwindows;
+		std::vector<element_base*> provincial_event_subwindows;
+
 		int32_t held_game_speed = 1; // used to keep track of speed while paused
 
 		uint16_t tooltip_font = 0;
@@ -392,4 +397,9 @@ namespace ui {
 	void show_main_menu(sys::state& state);
 	int32_t ui_width(sys::state const& state);
 	int32_t ui_height(sys::state const& state);
+
+	void fire_event(sys::state& state, const dcon::national_event_id event_id);
+	void fire_event(sys::state& state, const dcon::free_national_event_id event_id);
+	void fire_event(sys::state& state, const dcon::provincial_event_id event_id);
+	void fire_event(sys::state& state, const dcon::free_provincial_event_id event_id);
 }

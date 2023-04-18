@@ -28,6 +28,16 @@ public:
             set_visible(state, false);
         }
     }
+
+    void button_action(sys::state& state) noexcept override {
+        sys::event_option option{};
+        if(std::holds_alternative<dcon::national_event_id>(content))
+            option = state.world.national_event_get_options(std::get<dcon::national_event_id>(content))[index];
+        else if(std::holds_alternative<dcon::free_national_event_id>(content))
+            option = state.world.free_national_event_get_options(std::get<dcon::free_national_event_id>(content))[index];
+        Cyto::Any payload = option;
+        parent->impl_set(state, payload);
+    }
 };
 class national_event_image : public generic_settable_element<image_element_base, national_event_data_wrapper> {
 public:
@@ -96,6 +106,7 @@ public:
             cur_offset.x += offset.x;
             cur_offset.y += offset.y;
         }
+        set_visible(state, false);
     }
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "title") {
@@ -132,9 +143,15 @@ public:
     message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
         if(payload.holds_type<national_event_data_wrapper>()) {
             content = any_cast<national_event_data_wrapper>(payload);
+            set_visible(state, true);
             for(auto& child : children)
                 child->impl_set(state, payload);
             on_update(state);
+            return message_result::consumed;
+        } else if(payload.holds_type<sys::event_option>()) {
+            //any_cast<sys::event_option>(payload);
+            // TODO: Perform the event after choosing the option
+            set_visible(state, false);
             return message_result::consumed;
         }
         return message_result::unseen;
@@ -170,6 +187,16 @@ public:
         } else {
             set_visible(state, false);
         }
+    }
+
+    void button_action(sys::state& state) noexcept override {
+        sys::event_option option{};
+        if(std::holds_alternative<dcon::provincial_event_id>(content))
+            option = state.world.provincial_event_get_options(std::get<dcon::provincial_event_id>(content))[index];
+        else if(std::holds_alternative<dcon::free_provincial_event_id>(content))
+            option = state.world.free_provincial_event_get_options(std::get<dcon::free_provincial_event_id>(content))[index];
+        Cyto::Any payload = option;
+        parent->impl_set(state, payload);
     }
 };
 class provincial_event_desc_text : public generic_settable_element<multiline_text_element_base, provincial_event_data_wrapper> {
@@ -227,6 +254,7 @@ public:
             cur_offset.x += offset.x;
             cur_offset.y += offset.y;
         }
+        set_visible(state, false);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -244,11 +272,17 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<provincial_event_data_wrapper>()) {
 			content = any_cast<provincial_event_data_wrapper>(payload);
+            set_visible(state, true);
 			for(auto& child : children)
                 child->impl_set(state, payload);
             on_update(state);
 			return message_result::consumed;
-		}
+		} else if(payload.holds_type<sys::event_option>()) {
+            //any_cast<sys::event_option>(payload);
+            // TODO: Perform the event after choosing the option
+            set_visible(state, false);
+            return message_result::consumed;
+        }
 		return message_result::unseen;
 	}
 };
