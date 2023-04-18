@@ -277,10 +277,8 @@ public:
 };
 
 class flag_button : public button_element_base {
-private:
-	GLuint flag_texture_handle = 0;
-
 protected:
+	GLuint flag_texture_handle = 0;
 	xy_pair flag_position{};
 	xy_pair flag_size{};
 
