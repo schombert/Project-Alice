@@ -1610,7 +1610,7 @@ void daily_update(sys::state& state) {
 				float num_workers = state.world.province_get_demographics(p.get_province(), demographics::to_key(state, worker));
 				float num_owners = state.world.province_get_demographics(p.get_province(), demographics::to_key(state, owner));
 
-				if(total_min_to_workers >= total_rgo_profit && num_owners > 0) {
+				if(total_min_to_workers <= total_rgo_profit && num_owners > 0) {
 					total_worker_wage = total_min_to_workers + (total_rgo_profit - total_min_to_workers) * 0.2f;
 					total_owner_wage = (total_rgo_profit - total_min_to_workers) * 0.8f;
 				} else {
@@ -1658,16 +1658,16 @@ void daily_update(sys::state& state) {
 			auto per_sworker_profit = 0.0f;
 			auto per_owner_profit = 0.0f;
 
-			if(total_min_to_pworkers + total_min_to_sworkers >= total_profit && num_owners > 0) {
+			if(total_min_to_pworkers + total_min_to_sworkers <= total_profit && num_owners > 0) {
 				auto surplus = total_profit - (total_min_to_pworkers + total_min_to_sworkers);
 				per_pworker_profit = (total_min_to_pworkers + surplus * 0.1f) / num_pworkers;
 				per_sworker_profit = (total_min_to_sworkers + surplus * 0.2f) / num_sworkers;
 				per_owner_profit = (surplus * 0.7f) / num_owners;
-			} else if(total_min_to_pworkers + total_min_to_sworkers >= total_profit && num_sworkers > 0) {
+			} else if(total_min_to_pworkers + total_min_to_sworkers <= total_profit && num_sworkers > 0) {
 				auto surplus = total_profit - (total_min_to_pworkers + total_min_to_sworkers);
 				per_pworker_profit = (total_min_to_pworkers + surplus * 0.5f) / num_pworkers;
 				per_sworker_profit = (total_min_to_sworkers + surplus * 0.5f) / num_sworkers;
-			} else if(total_min_to_pworkers + total_min_to_sworkers >= total_profit) {
+			} else if(total_min_to_pworkers + total_min_to_sworkers <= total_profit) {
 				per_pworker_profit = total_profit / num_pworkers;
 			} else {
 				per_pworker_profit = total_profit / (num_pworkers + num_sworkers);
