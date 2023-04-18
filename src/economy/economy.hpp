@@ -62,6 +62,8 @@ constexpr inline float needs_scaling_factor = 1'000'000.0f;
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
 float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p);
+float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, dcon::province_id p);
+float rgo_max_employment(sys::state const& state, dcon::nation_id n, dcon::province_id p);
 
 bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
@@ -80,5 +82,12 @@ void regenerate_unsaved_values(sys::state& state);
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
+void daily_update(sys::state& state);
+
+float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
+float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
+float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 
 }

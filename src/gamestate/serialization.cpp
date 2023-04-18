@@ -599,6 +599,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_temperature);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_defender);
+	ptr_in = memcpy_deserialize(ptr_in, state.inflation);
 
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -631,6 +632,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_temperature);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_defender);
+	ptr_in = memcpy_serialize(ptr_in, state.inflation);
 
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -663,6 +665,7 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += sizeof(state.crisis_temperature);
 	sz += sizeof(state.primary_crisis_attacker);
 	sz += sizeof(state.primary_crisis_defender);
+	sz += sizeof(state.inflation);
 
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.global_flag_variables);
@@ -771,6 +774,8 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 		});
 
 		state.game_seed = uint32_t(std::random_device()());
+
+		float g1price = state.world.commodity_get_current_price(dcon::commodity_id(1));
 
 		return true;
 	} else {

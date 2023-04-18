@@ -479,11 +479,11 @@ void poptype_file::can_reduce_consciousness(association_type, bool value, error_
 }
 
 void poptype_file::workplace_input(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_workplace_input(context.id, value);
+	// discard
 }
 
 void poptype_file::workplace_output(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_workplace_output(context.id, value);
+	// discard
 }
 
 void poptype_file::equivalent(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
@@ -516,17 +516,17 @@ void poptype_file::luxury_needs(commodity_array const& value, error_handler& err
 }
 
 void poptype_file::life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_life_needs_income_type(context.id, uint8_t(value.itype));
 }
 
 void poptype_file::everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_everyday_needs_income_type(context.id, uint8_t(value.itype));
 }
 
 void poptype_file::luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_luxury_needs_income_type(context.id, uint8_t(value.itype));
 }
 

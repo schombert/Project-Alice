@@ -1334,8 +1334,6 @@ namespace sys {
 		world.nation_resize_stockpiles(world.commodity_size());
 		world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 		world.pop_resize_demographics(pop_demographics::size(*this));
-		world.nation_resize_last_production(world.commodity_size());
-		world.state_instance_resize_last_production(world.commodity_size());
 		national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{0});
 
 		world.for_each_ideology([&](dcon::ideology_id id) {
@@ -1579,6 +1577,8 @@ namespace sys {
 						default:
 							break;
 					}
+
+					economy::daily_update(*this);
 
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
