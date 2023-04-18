@@ -2048,17 +2048,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ rgo_size }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2131,17 +2131,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_throughput }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{

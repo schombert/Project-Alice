@@ -130,7 +130,7 @@ public:
 			return ptr;
 		} else if(name == "sort_by_my_flag") {
 			auto ptr = make_element_by_type<nation_player_flag>(state, id);
-			ptr->base_data.position.y -= 1; // Nudge
+			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name == "sort_by_boss") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);

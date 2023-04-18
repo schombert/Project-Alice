@@ -136,9 +136,9 @@ namespace sys {
     MOD_LIST_ELEMENT(75, core_pop_consciousness_modifier, false, modifier_display_type::fp_three_places, "modifier_core_pop_consciousness_modifier") \
     MOD_LIST_ELEMENT(76, non_accepted_pop_militancy_modifier, false, modifier_display_type::fp_three_places, "modifier_non_accepted_pop_militancy_modifier") \
     MOD_LIST_ELEMENT(77, non_accepted_pop_consciousness_modifier, false, modifier_display_type::fp_three_places, "modifier_non_accepted_pop_consciousness_modifier") \
-    MOD_LIST_ELEMENT(78, cb_generation_speed_modifier, true, modifier_display_type::percent, "modifier_cb_generation_speed_modifier") \
+    MOD_LIST_ELEMENT(78, cb_generation_speed_modifier, true, modifier_display_type::percent, "cb_manufacture_tech") \
     MOD_LIST_ELEMENT(79, mobilization_impact, false, modifier_display_type::percent, "modifier_mobilization_impact") \
-    MOD_LIST_ELEMENT(80, suppression_points_modifier, true, modifier_display_type::percent, "modifier_suppression_point_gain") \
+    MOD_LIST_ELEMENT(80, suppression_points_modifier, true, modifier_display_type::percent, "suppression_tech") \
     MOD_LIST_ELEMENT(81, education_efficiency_modifier, true, modifier_display_type::percent, "modifier_education_efficiency") \
     MOD_LIST_ELEMENT(82, civilization_progress_modifier, true, modifier_display_type::percent, "modifier_civilization_progress") \
     MOD_LIST_ELEMENT(83, administrative_efficiency_modifier, true, modifier_display_type::percent, "modifier_administrative_efficiency") \
@@ -162,7 +162,7 @@ namespace sys {
     MOD_LIST_ELEMENT(101, supply_limit, true, modifier_display_type::percent, "supply_limit_tech") \
     MOD_LIST_ELEMENT(102, colonial_migration, true, modifier_display_type::percent, "colonial_migration_tech") \
     MOD_LIST_ELEMENT(103, max_national_focus, true, modifier_display_type::integer, "tech_max_focus") \
-    MOD_LIST_ELEMENT(104, cb_creation_speed, true, modifier_display_type::percent, "cb_creation_speed") \
+    MOD_LIST_ELEMENT(104, cb_creation_speed, true, modifier_display_type::percent, "cb_manufacture_tech") \
     MOD_LIST_ELEMENT(105, education_efficiency, true, modifier_display_type::percent, "edu_eff_tech") \
     MOD_LIST_ELEMENT(106, reinforce_rate, true, modifier_display_type::percent, "reinforce_tech") \
     MOD_LIST_ELEMENT(107, influence, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \

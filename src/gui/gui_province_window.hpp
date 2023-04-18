@@ -5,6 +5,7 @@
 #include "gui_element_types.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_graphics.hpp"
+#include "gui_population_window.hpp"
 #include "nations.hpp"
 #include "province.hpp"
 #include "system_state.hpp"
@@ -19,6 +20,36 @@ public:
 		state.map_display.set_selected_province(dcon::province_id{});
         generic_close_button::button_action(state);
 	}
+};
+
+class province_pop_button : public button_element_base {
+protected:
+    dcon::province_id province_id;
+public:
+    void button_action(sys::state& state) noexcept override {
+        if(state.ui_state.population_subwindow != nullptr) {
+            struct demographics_pop_filter filter;
+            filter.province = province_id;
+            Cyto::Any payload = filter;
+            state.ui_state.population_subwindow->impl_set(state,payload);
+            if(state.ui_state.topbar_subwindow != nullptr) {
+               state.ui_state.topbar_subwindow->set_visible(state, false);
+            }
+            state.ui_state.topbar_subwindow = state.ui_state.population_subwindow;
+            state.ui_state.population_subwindow->set_visible(state, true);
+            state.ui_state.root->move_child_to_front(state.ui_state.population_subwindow);
+            //ui_state.population_subwindow->impl_get(*this, payload);
+        }
+    }
+    message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::province_id>()) {
+            province_id = any_cast<dcon::province_id>(payload);
+            on_update(state);
+            return message_result::consumed;
+        } else {
+            return message_result::unseen;
+        }
+    }
 };
 
 class province_terrain_image : public opaque_element_base {
@@ -440,7 +471,9 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
 			return make_element_by_type<province_rgo_icon>(state, id);
-		} else if(name == "total_population") {
+		}  else if(name == "open_popscreen"){
+            return make_element_by_type<province_pop_button>(state, id);
+        } else if(name == "total_population") {
 			return make_element_by_type<province_population_text>(state, id);
 		} else if(name == "workforce_chart") {
 			auto ptr = make_element_by_type<workforce_piechart<dcon::province_id>>(state, id);
