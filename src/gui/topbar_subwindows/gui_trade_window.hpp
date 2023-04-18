@@ -12,7 +12,7 @@ public:
 		if(name == "goods_type") {
 			return make_element_by_type<commodity_factory_image>(state, id);
 		} else if(name == "cost") {
-			return make_element_by_type<commodity_price_text>(state, id);
+			return make_element_by_type<commodity_player_availability_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -84,7 +84,7 @@ public:
 		} else if(name == "total") {
 			return make_element_by_type<commodity_global_market_text>(state, id);
 		} else if(name == "produce_change") {
-			return make_element_by_type<commodity_market_increase_text>(state, id);
+			return make_element_by_type<commodity_player_real_demand_text>(state, id);
 		} else if(name == "exported") {
 			return make_element_by_type<commodity_player_domestic_market_text>(state, id);
 		} else {
