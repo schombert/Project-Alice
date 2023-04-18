@@ -324,7 +324,7 @@ void register_technology(std::string_view name, token_generator& gen, error_hand
 	auto tech = open_directory(pictures, NATIVE("tech"));
 
 	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\tech\\") + [&]() {
-		if(peek_file(tech, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
+		if(peek_file(tech, simple_fs::utf8_to_native(name) + NATIVE(".tga"))) {
 			return std::string(name) + ".tga";
 		} else {
 			return std::string("noimage.tga");

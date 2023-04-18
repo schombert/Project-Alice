@@ -76,6 +76,7 @@ void good::money(association_type, bool v, error_handler& err, int32_t line, goo
 	if(v) {
 		context.outer_context.state.world.commodity_set_color(economy::money, context.outer_context.state.world.commodity_get_color(context.id));
 		context.outer_context.state.world.commodity_set_cost(economy::money, context.outer_context.state.world.commodity_get_cost(context.id));
+		context.outer_context.state.world.commodity_set_commodity_group(economy::money, context.outer_context.state.world.commodity_get_commodity_group(context.id));
 
 		for(auto& pr : context.outer_context.map_of_commodity_names) {
 			if(pr.second == context.id) {
@@ -1818,13 +1819,14 @@ void oob_army::location(association_type, int32_t value, error_handler& err, int
 
 void oob_army::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_army_context& context) {
 	if(value.is_general) {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_general());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_general_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(false);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 		context.outer_context.state.world.force_create_army_leadership(context.id, l_id);
 	} else {
 		err.accumulated_errors += "Cannot attach an admiral to an army (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -1927,21 +1929,23 @@ void oob_relationship::influence_value(association_type, float v, error_handler&
 
 void oob_file::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_context& context) {
 	if(value.is_general) {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_general());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_general_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(false);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 	} else {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_admiral());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_admiral_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(true);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 	}
 }
 
@@ -2271,6 +2275,15 @@ void commodity_array::finish(scenario_building_context& context) {
 
 void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {
 	context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);
+}
+
+void country_file::any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line, country_file_context& context) {
+	if(auto it = context.outer_context.map_of_governments.find(std::string(name)); it != context.outer_context.map_of_governments.end()) {
+		// TODO: Do something with country government types stuff
+		// I assume this is used to change colours of countries?
+	} else {
+		err.accumulated_errors += "Invalid government type " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
 }
 
 void generic_event::title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {

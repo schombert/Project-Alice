@@ -13,7 +13,7 @@ public:
 	dcon::gfx_object_id goods_gfx_id;
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		for(uint8_t i = 0; i < state.ui_defs.gfx[goods_gfx_id].number_of_frames-1; i++) {
+		for(uint8_t i = 0; i < state.ui_defs.gfx[goods_gfx_id].number_of_frames - 1; i++) {
 			auto ptr = make_child(state, "goods_type", goods_type_id);
 			this->add_child_to_back(std::move(ptr));
 			auto ptr2 = make_child(state, "filter_enabled", filter_enabled_id);
@@ -35,7 +35,7 @@ public:
 				return ptr;
 			}
 			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->base_data.position.y = int16_t(55+(30*(currgood/24)));
+			ptr->base_data.position.y = int16_t(55 + (30 * (currgood/24)));
 			int rowlimiter = currgood - (24 * (currgood / 24));
 			if(rowlimiter == 0) {
 				ptr->base_data.position.x = int16_t(33 * (1 + rowlimiter));

@@ -1632,7 +1632,7 @@ relationship{
 }
 
 object {
-	name{ general }
+	name{ leader }
 	storage_type{ erasable }
 	size{ 3000 }
 	tag{ save }
@@ -1662,37 +1662,9 @@ object {
 		type{ float }
 		tag{ save }
 	}
-}
-
-object {
-	name{ admiral }
-	storage_type{ erasable }
-	size{ 3000 }
-	tag{ save }
-
 	property{
-		name{ name }
-		type{ unit_name_id }
-		tag{ save }
-	}
-	property{
-		name{ personality }
-		type{ leader_trait_id }
-		tag{ save }
-	}
-	property{
-		name{ background }
-		type{ leader_trait_id }
-		tag{ save }
-	}
-	property{
-		name{ since }
-		type{ sys::date }
-		tag{ save }
-	}
-	property{
-		name{ prestige }
-		type{ float }
+		name{ is_admiral }
+		type{ bitfield }
 		tag{ save }
 	}
 }
@@ -1707,8 +1679,8 @@ relationship{
 		type{unique}
 	}
 	link{
-		object{general}
-		name{leader}
+		object{leader}
+		name{general}
 		type{unique}
 	}
 }
@@ -1722,14 +1694,14 @@ relationship{
 		type{unique}
 	}
 	link{
-		object{admiral}
-		name{leader}
+		object{leader}
+		name{admiral}
 		type{unique}
 	}
 }
 
 relationship{
-	name{ general_loyalty }
+	name{ leader_loyalty }
 	tag{ save }
 
 	link{
@@ -1739,23 +1711,7 @@ relationship{
 		index_storage{array}
 	}
 	link{
-		object{general}
-		name{leader}
-		type{unique}
-	}
-}
-relationship{
-	name{ admiral_loyalty }
-	tag{ save }
-
-	link{
-		object{nation}
-		name{nation}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{admiral}
+		object{leader}
 		name{leader}
 		type{unique}
 	}
@@ -2112,17 +2068,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ rgo_size }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2195,17 +2151,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_throughput }
-		type{vector_pool{1000}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2517,6 +2473,34 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ effective_education_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_military_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_administrative_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_social_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_land_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_naval_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_construction_spending }
+		type{ float }
+	}
+	property {
 		name{ poor_tax }
 		type{ int8_t }
 		tag{ save }
@@ -2629,6 +2613,18 @@ object {
 	property {
 		name{ demand_satisfaction }
 		type{ array{commodity_id}{float} }
+	}
+	property{
+		name{ life_needs_costs }
+		type{ array{pop_type_id}{float} }
+	}
+	property{
+		name{ everyday_needs_costs }
+		type{ array{pop_type_id}{float} }
+	}
+	property{
+		name{ luxury_needs_costs }
+		type{ array{pop_type_id}{float} }
 	}
 	property {
 		name{ overseas_penalty }

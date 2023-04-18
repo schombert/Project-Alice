@@ -181,10 +181,12 @@ public:
 		if(name == "sortby_size_button") {
 			auto ptr = make_element_by_type<movements_sort_order_button>(state, id);
 			ptr->order = movements_sort_order::size;
+			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_radical_button") {
 			auto ptr = make_element_by_type<movements_sort_order_button>(state, id);
 			ptr->order = movements_sort_order::radicalism;
+			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_name_button") {
 			auto ptr = make_element_by_type<movements_sort_order_button>(state, id);

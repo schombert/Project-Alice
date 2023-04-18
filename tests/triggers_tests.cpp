@@ -52,11 +52,11 @@ TEST_CASE("effect scope recursion", "[effect_tests]") {
 		REQUIRE(6 == total);
 
 		int32_t no_payload_count = 0;
-		parsers::recurse_over_effects(t.data(), [&no_payload_count](uint16_t* v) { if(parsers::get_generic_effect_payload_size(v) == 0) ++no_payload_count; });
+		parsers::recurse_over_effects(t.data(), [&no_payload_count](uint16_t* v) { if(effect::get_generic_effect_payload_size(v) == 0) ++no_payload_count; });
 		REQUIRE(2 == no_payload_count);
 
 		int32_t total_payload = 0;
-		parsers::recurse_over_effects(t.data(), [&total_payload](uint16_t* v) { total_payload += parsers::get_generic_effect_payload_size(v); });
+		parsers::recurse_over_effects(t.data(), [&total_payload](uint16_t* v) { total_payload += effect::get_generic_effect_payload_size(v); });
 		REQUIRE(23 == total_payload);
 	}
 	{
@@ -83,11 +83,11 @@ TEST_CASE("effect scope recursion", "[effect_tests]") {
 		REQUIRE(6 == total);
 
 		int32_t no_payload_count = 0;
-		parsers::recurse_over_effects(t.data(), [&no_payload_count](uint16_t* v) { if(parsers::get_generic_effect_payload_size(v) == 0) ++no_payload_count; });
+		parsers::recurse_over_effects(t.data(), [&no_payload_count](uint16_t* v) { if(effect::get_generic_effect_payload_size(v) == 0) ++no_payload_count; });
 		REQUIRE(2 == no_payload_count);
 
 		int32_t total_payload = 0;
-		parsers::recurse_over_effects(t.data(), [&total_payload](uint16_t* v) { total_payload += parsers::get_generic_effect_payload_size(v); });
+		parsers::recurse_over_effects(t.data(), [&total_payload](uint16_t* v) { total_payload += effect::get_generic_effect_payload_size(v); });
 		REQUIRE(30 == total_payload);
 	}
 }
@@ -219,7 +219,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 		t.push_back(uint16_t(effect::add_accepted_culture));
 		t.push_back(uint16_t(2));
 
-		REQUIRE(true == parsers::effect_scope_has_single_member(t.data()));
+		REQUIRE(true == effect::effect_scope_has_single_member(t.data()));
 	}
 
 	{
@@ -232,7 +232,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 		t.push_back(uint16_t(effect::add_accepted_culture));
 		t.push_back(uint16_t(1));
 
-		REQUIRE(false == parsers::effect_scope_has_single_member(t.data()));
+		REQUIRE(false == effect::effect_scope_has_single_member(t.data()));
 	}
 
 	{
@@ -244,7 +244,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 		t.push_back(uint16_t(effect::add_accepted_culture));
 		t.push_back(uint16_t(4));
 
-		REQUIRE(true == parsers::effect_scope_has_single_member(t.data()));
+		REQUIRE(true == effect::effect_scope_has_single_member(t.data()));
 	}
 
 	{
@@ -257,7 +257,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 		t.push_back(uint16_t(effect::add_accepted_culture));
 		t.push_back(uint16_t(4));
 
-		REQUIRE(false == parsers::effect_scope_has_single_member(t.data()));
+		REQUIRE(false == effect::effect_scope_has_single_member(t.data()));
 	}
 
 	{
@@ -270,7 +270,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 		t.push_back(uint16_t(effect::add_accepted_culture));
 		t.push_back(uint16_t(400));
 
-		REQUIRE(true == parsers::effect_scope_has_single_member(t.data()));
+		REQUIRE(true == effect::effect_scope_has_single_member(t.data()));
 	}
 
 	{
@@ -285,7 +285,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 		t.push_back(uint16_t(effect::no_payload | effect::add_accepted_culture));
 		t.push_back(uint16_t(0));
 
-		REQUIRE(false == parsers::effect_scope_has_single_member(t.data()));
+		REQUIRE(false == effect::effect_scope_has_single_member(t.data()));
 	}
 }
 

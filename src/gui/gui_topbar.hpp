@@ -63,6 +63,31 @@ public:
 	element_base* topbar_subwindow = nullptr;
 };
 
+class population_view_button : public topbar_tab_button {
+public:
+    void button_action(sys::state& state) noexcept override {
+        const auto override_and_show_tab = [&]() {
+            topbar_subwindow->set_visible(state, true);
+            topbar_subwindow->impl_on_update(state);
+
+            Cyto::Any payload = pop_list_filter::all;
+            topbar_subwindow->impl_set(state,payload);
+
+            state.ui_state.root->move_child_to_front(topbar_subwindow);
+            state.ui_state.topbar_subwindow = topbar_subwindow;
+        };
+
+        if(state.ui_state.topbar_subwindow->is_visible()) {
+            state.ui_state.topbar_subwindow->set_visible(state, false);
+            if(state.ui_state.topbar_subwindow != topbar_subwindow) {
+                override_and_show_tab();
+            }
+        } else {
+            override_and_show_tab();
+        }
+    }
+};
+
 class topbar_date_text : public simple_text_element_base {
 
 public:
@@ -302,10 +327,11 @@ public:
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_pops") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
-
+			auto btn = make_element_by_type<population_view_button>(state, id);
 			auto tab = make_element_by_type<population_window>(state, "country_pop");
 			btn->topbar_subwindow = tab.get();
+
+            state.ui_state.population_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_trade") {

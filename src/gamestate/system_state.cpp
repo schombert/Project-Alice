@@ -245,6 +245,12 @@ namespace sys {
 	}
 	void state::on_create() {
 		local_player_nation = dcon::nation_id{42};
+		// Clear "center" property so they don't look messed up!
+		ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
+
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
@@ -338,22 +344,24 @@ namespace sys {
 		auto length = text.length();
 		if(length == 0)
 			return dcon::unit_name_id();
+
 		unit_names.resize(start + length + 1, char(0));
 		std::copy_n(text.data(), length, unit_names.data() + start);
 		unit_names.back() = 0;
-		return dcon::unit_name_id(uint16_t(start));
+		unit_names_indices.push_back(int32_t(start));
+		return dcon::unit_name_id(dcon::unit_name_id::value_base_t(unit_names_indices.size() - 1));
 	}
 	std::string_view state::to_string_view(dcon::unit_name_id tag) const {
 		if(!tag)
 			return std::string_view();
-		auto start_position = unit_names.data() + tag.index();
+		auto start_position = unit_names.data() + unit_names_indices[tag.index()];
 		auto data_size = unit_names.size();
 		auto end_position = start_position;
 		for(; end_position < unit_names.data() + data_size; ++end_position) {
 			if(*end_position == 0)
 				break;
 		}
-		return std::string_view(unit_names.data() + tag.index(), size_t(end_position - start_position));
+		return std::string_view(unit_names.data() + unit_names_indices[tag.index()], size_t(end_position - start_position));
 	}
 
 	dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {

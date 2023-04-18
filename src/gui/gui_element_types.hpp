@@ -194,6 +194,21 @@ public:
 	}
 };
 
+class single_multiline_text_element_base : public multiline_text_element_base {
+public:
+	dcon::text_sequence_id text_id{};
+
+	void on_update(sys::state& state) noexcept override {
+		auto layout = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
+		);
+		auto box = text::open_layout_box(layout, 0);
+		text::add_to_layout_box(layout, state, box, text_id);
+		text::close_layout_box(layout, box);
+	}
+};
+
 class tool_tip : public element_base {
 public:
 	text::layout internal_layout;
@@ -234,6 +249,8 @@ public:
 	virtual bool is_active(sys::state& state) noexcept {
 		return false;
 	}
+
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		frame = int32_t(is_active(state));
 		button_element_base::render(state, x, y);
@@ -360,6 +377,26 @@ public:
 	TabT target = TabT();
 };
 
+template<class TabT>
+class generic_opaque_checkbox_button : public checkbox_button {
+public:
+    bool is_active(sys::state& state) noexcept final {
+        return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
+    }
+
+    void button_action(sys::state& state) noexcept final {
+        if(parent) {
+            Cyto::Any payload = target;
+            parent->impl_get(state, payload);
+        }
+    }
+
+    void on_create(sys::state& state) noexcept final {};
+
+    TabT target = TabT();
+};
+
+
 class piechart_element_base : public element_base {
 protected:
 	static constexpr size_t resolution = 200;
@@ -374,7 +411,7 @@ public:
 };
 
 template<class T>
-class piechart : public piechart_element_base {
+    class piechart : public piechart_element_base {
 protected:
 	virtual std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept {
 		std::unordered_map<typename T::value_base_t, float> out{};

@@ -191,7 +191,7 @@ void update_administrative_efficiency(sys::state& state) {
 	- national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 	*/
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency);
+		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency_modifier);
 		ve::fp_vector issue_sum;
 		for(auto i : state.culture_definitions.social_issues) {
 			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(ids, i));
@@ -303,9 +303,8 @@ void update_military_scores(sys::state& state) {
 		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto num_leaders = ve::apply([&](dcon::nation_id i) {
-			auto gen_range = state.world.nation_get_general_loyalty(i);
-			auto ad_range = state.world.nation_get_admiral_loyalty(i);
-			return float((gen_range.end() - gen_range.begin()) + (ad_range.end() - ad_range.begin()));
+			auto gen_range = state.world.nation_get_leader_loyalty(i);
+			return float((gen_range.end() - gen_range.begin()));
 		}, n);
 		state.world.nation_set_military_score(n, ve::to_int(
 			(ve::min(recruitable, active_regs * 4.0f) * avg_land_score) * ((disarm_factor * supply_mod) / 7.0f)
