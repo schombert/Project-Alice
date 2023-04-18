@@ -287,6 +287,10 @@ public:
 	}
 };
 
+void fire_event(sys::state& state, const dcon::national_event_id event_id);
+void fire_event(sys::state& state, const dcon::free_national_event_id event_id);
+void fire_event(sys::state& state, const dcon::provincial_event_id event_id);
+void fire_event(sys::state& state, const dcon::free_provincial_event_id event_id);
 
 }
 
