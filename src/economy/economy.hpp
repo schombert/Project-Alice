@@ -89,5 +89,7 @@ float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float nation_total_imports(sys::state& state, dcon::nation_id n);
+float pop_income(sys::state& state, dcon::pop_id p);
 
 }
