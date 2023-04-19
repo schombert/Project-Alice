@@ -107,9 +107,9 @@ static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 		return uint32_t(s1.empty() ? s2.size() : s1.size());
 	std::vector<std::vector<uint32_t>> dist(s1.size(), std::vector<uint32_t>(s2.size(), 0));
 	for(size_t i = 0; i < s1.size(); ++i)
-		dist[i][0] = i;
+		dist[i][0] = uint32_t(i);
 	for(size_t j = 0; j < s2.size(); ++j)
-		dist[0][j] = j;
+		dist[0][j] = uint32_t(j);
 	for(size_t j = 1; j < s2.size(); ++j)
 		for(size_t i = 1; i < s1.size(); ++i) {
 			auto cost = s1[i] == s2[j] ? 0 : 1;
