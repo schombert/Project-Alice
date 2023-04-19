@@ -149,8 +149,8 @@ public:
             on_update(state);
             return message_result::consumed;
         } else if(payload.holds_type<sys::event_option>()) {
-            //any_cast<sys::event_option>(payload);
-            // TODO: Perform the event after choosing the option
+            const auto opt = any_cast<sys::event_option>(payload);
+            select_event_option(state, *this, opt);
             set_visible(state, false);
             return message_result::consumed;
         }
@@ -278,8 +278,8 @@ public:
             on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<sys::event_option>()) {
-            //any_cast<sys::event_option>(payload);
-            // TODO: Perform the event after choosing the option
+            const auto opt = any_cast<sys::event_option>(payload);
+            select_event_option(state, *this, opt);
             set_visible(state, false);
             return message_result::consumed;
         }
@@ -291,6 +291,10 @@ void fire_event(sys::state& state, const dcon::national_event_id event_id);
 void fire_event(sys::state& state, const dcon::free_national_event_id event_id);
 void fire_event(sys::state& state, const dcon::provincial_event_id event_id);
 void fire_event(sys::state& state, const dcon::free_provincial_event_id event_id);
+
+void select_event_option(sys::state& state, const ui::national_event_window<true>& elm, const sys::event_option opt);
+void select_event_option(sys::state& state, const ui::national_event_window<false>& elm, const sys::event_option opt);
+void select_event_option(sys::state& state, const ui::provincial_event_window& elm, const sys::event_option opt);
 
 }
 
