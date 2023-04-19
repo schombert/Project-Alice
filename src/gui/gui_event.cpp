@@ -7,7 +7,7 @@ static bool find_usable_window(sys::state& state, V& v, Cyto::Any& payload) {
 	for(auto it = v.begin(); it != v.end(); it++) {
 		(*it)->impl_set(state, payload);
 		state.ui_state.root->add_child_to_front(std::move(*it));
-		v.erase(std::remove(v.begin(), v.end(), it), v.end());
+		v.erase(it);
 		return true;
 	}
 	return false;
@@ -52,18 +52,5 @@ void fire_event(sys::state& state, const dcon::provincial_event_id event_id) {
 }
 void fire_event(sys::state& state, const dcon::free_provincial_event_id event_id) {
 	fire_event_provincial_internal(state, dcon::fatten(state.world, event_id));
-}
-
-void select_event_option(sys::state& state, const ui::national_event_window<true>& elm, const sys::event_option opt) {
-	auto ptr = state.ui_state.root->remove_child(&elm);
-	state.ui_state.spare_major_event_subwindows.push_back(std::move(ptr));
-}
-void select_event_option(sys::state& state, const ui::national_event_window<false>& elm, const sys::event_option opt) {
-	auto ptr = state.ui_state.root->remove_child(&elm);
-	state.ui_state.spare_national_event_subwindows.push_back(std::move(ptr));
-}
-void select_event_option(sys::state& state, const ui::provincial_event_window& elm, const sys::event_option opt) {
-	auto ptr = state.ui_state.root->remove_child(&elm);
-	state.ui_state.spare_provincial_event_subwindows.push_back(std::move(ptr));
 }
 }

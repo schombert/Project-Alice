@@ -89,6 +89,13 @@ public:
 template<bool IsMajor>
 class national_event_window : public window_element_base {
     national_event_data_wrapper content{};
+    void select_event_option(sys::state& state, const sys::event_option opt) {
+        auto ptr = state.ui_state.root->remove_child(this);
+        if(IsMajor)
+            state.ui_state.spare_major_event_subwindows.push_back(std::move(ptr));
+        else
+            state.ui_state.spare_national_event_subwindows.push_back(std::move(ptr));
+    }
 public:
     void on_create(sys::state& state) noexcept override {
         window_element_base::on_create(state);
@@ -150,7 +157,7 @@ public:
             return message_result::consumed;
         } else if(payload.holds_type<sys::event_option>()) {
             const auto opt = any_cast<sys::event_option>(payload);
-            select_event_option(state, *this, opt);
+            select_event_option(state, opt);
             set_visible(state, false);
             return message_result::consumed;
         }
@@ -239,9 +246,13 @@ public:
 };
 class provincial_event_window : public window_element_base {
     provincial_event_data_wrapper content{};
+    void select_event_option(sys::state& state, const sys::event_option opt) {
+        auto ptr = state.ui_state.root->remove_child(this);
+        state.ui_state.spare_provincial_event_subwindows.push_back(std::move(ptr));
+    }
 public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
+    void on_create(sys::state& state) noexcept override {
+        window_element_base::on_create(state);
 
         xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
         xy_pair offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_offset")->second.definition].position;
@@ -255,46 +266,40 @@ public:
             cur_offset.y += offset.y;
         }
         set_visible(state, false);
-	}
-
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "title") {
-			return make_element_by_type<provincial_event_name_text>(state, id);
-		} else if(name == "description") {
-			return make_element_by_type<provincial_event_desc_text>(state, id);
-		} else if(name == "date") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<provincial_event_data_wrapper>()) {
-			content = any_cast<provincial_event_data_wrapper>(payload);
+    }
+    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+        if(name == "title") {
+            return make_element_by_type<provincial_event_name_text>(state, id);
+        } else if(name == "description") {
+            return make_element_by_type<provincial_event_desc_text>(state, id);
+        } else if(name == "date") {
+            return make_element_by_type<simple_text_element_base>(state, id);
+        } else {
+            return nullptr;
+        }
+    }
+    message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<provincial_event_data_wrapper>()) {
+            content = any_cast<provincial_event_data_wrapper>(payload);
             set_visible(state, true);
-			for(auto& child : children)
+            for(auto& child : children)
                 child->impl_set(state, payload);
             on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<sys::event_option>()) {
+            return message_result::consumed;
+        } else if(payload.holds_type<sys::event_option>()) {
             const auto opt = any_cast<sys::event_option>(payload);
-            select_event_option(state, *this, opt);
+            select_event_option(state, opt);
             set_visible(state, false);
             return message_result::consumed;
         }
-		return message_result::unseen;
-	}
+        return message_result::unseen;
+    }
 };
 
 void fire_event(sys::state& state, const dcon::national_event_id event_id);
 void fire_event(sys::state& state, const dcon::free_national_event_id event_id);
 void fire_event(sys::state& state, const dcon::provincial_event_id event_id);
 void fire_event(sys::state& state, const dcon::free_provincial_event_id event_id);
-
-void select_event_option(sys::state& state, const ui::national_event_window<true>& elm, const sys::event_option opt);
-void select_event_option(sys::state& state, const ui::national_event_window<false>& elm, const sys::event_option opt);
-void select_event_option(sys::state& state, const ui::provincial_event_window& elm, const sys::event_option opt);
 
 }
 

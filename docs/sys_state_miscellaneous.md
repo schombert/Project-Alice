@@ -21,3 +21,6 @@ Finally, the convenience function `bool is_playable_date(date d, absolute_time_p
 - `void ui::fire_event(sys::state& state, const dcon::free_provincial_event_id event_id);` - as above.
 
 Once the user selects an option on the event window, it will be hidden from view and pass the option choosen to the game state. All event windows are placed on a pool, distinguished by 3 types: major, national and provincial. Once a window is hidden, it is available to be grabbed by another upcoming event, otherwise a new window will need to be created and added to the pool.
+
+- `void national_event_window<bool IsMajor>::select_event_option(sys::state& state, const sys::event_option opt);` - Selects the option `opt` for the event window `elm` - this will hide the window from the main user view and temporarily move it away from the root element, until it needs to be added again.
+- `void provincial_event_window::select_event_option(sys::state& state, const sys::event_option opt);` - as above.
