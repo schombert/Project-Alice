@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include "culture.hpp"
 #include "dcon_generated.hpp"
 
 namespace nations {
@@ -246,6 +247,8 @@ float leadership_points(sys::state const& state, dcon::nation_id n);
 float get_treasury(sys::state& state, dcon::nation_id n);
 float get_bank_funds(sys::state& state, dcon::nation_id n);
 float get_debt(sys::state& state, dcon::nation_id n);
+float tariff_efficiency(sys::state& state, dcon::nation_id n);
+float tax_efficiency(sys::state& state, dcon::nation_id n);
 int32_t free_colonial_points(sys::state const& state, dcon::nation_id n);
 int32_t max_colonial_points(sys::state const& state, dcon::nation_id n);
 
@@ -262,6 +265,15 @@ bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // ca
 std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
 
 void update_monthly_points(sys::state& state);
+
+float estimate_gold_income(sys::state& state, dcon::nation_id n);
+float estimate_tariff_income(sys::state& state, dcon::nation_id n);
+float estimate_social_spending(sys::state& state, dcon::nation_id n);
+float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
+float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
+float estimate_loan_payments(sys::state& state, dcon::nation_id n);
+float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
+float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 
 }
 

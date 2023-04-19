@@ -1863,4 +1863,14 @@ float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodi
 	return 0.0f;
 }
 
+float nation_total_imports(sys::state& state, dcon::nation_id n) {
+	// TODO
+	return 1.f;
+}
+
+float pop_income(sys::state& state, dcon::pop_id p) {
+	// TODO
+	return 1.f;
+}
+
 }
