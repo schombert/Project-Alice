@@ -1227,28 +1227,28 @@ public:
 class nation_gold_income_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_money(nations::estimate_gold_income(state, nation_id));
+		return text::format_money(economy::estimate_gold_income(state, nation_id));
 	}
 };
 
 class nation_loan_spending_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_money(nations::estimate_loan_payments(state, nation_id));
+		return text::format_money(economy::estimate_loan_payments(state, nation_id));
 	}
 };
 
 class nation_diplomatic_balance_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_money(nations::estimate_diplomatic_balance(state, nation_id));
+		return text::format_money(economy::estimate_diplomatic_balance(state, nation_id));
 	}
 };
 
 class nation_subsidy_spending_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::format_money(nations::estimate_subsidy_spending(state, nation_id));
+		return text::format_money(economy::estimate_subsidy_spending(state, nation_id));
 	}
 };
 

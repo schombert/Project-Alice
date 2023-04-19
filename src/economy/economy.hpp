@@ -92,4 +92,17 @@ float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodi
 float nation_total_imports(sys::state& state, dcon::nation_id n);
 float pop_income(sys::state& state, dcon::pop_id p);
 
+float estimate_gold_income(sys::state& state, dcon::nation_id n);
+float estimate_tariff_income(sys::state& state, dcon::nation_id n);
+float estimate_social_spending(sys::state& state, dcon::nation_id n);
+float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
+float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
+float estimate_loan_payments(sys::state& state, dcon::nation_id n);
+float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
+float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
+
+float estimate_land_spending(sys::state& state, dcon::nation_id n);
+float estimate_naval_spending(sys::state& state, dcon::nation_id n);
+float estimate_construction_spending(sys::state& state, dcon::nation_id n);
+
 }
