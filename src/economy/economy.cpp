@@ -124,7 +124,7 @@ void initialize(sys::state& state) {
 		auto ft = fatten(state.world, t);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			savings_buffer.get(t) += state.world.commodity_get_is_available_from_start(c)
-				? state.world.commodity_get_cost(c) * ft.get_life_needs(c)
+				? state.world.commodity_get_cost(c) * ft.get_life_needs(c) + 0.5f * state.world.commodity_get_cost(c) * ft.get_everyday_needs(c)
 				: 0.0f;
 		});
 		auto strata = (ft.get_strata() * 2) + 1;
@@ -135,7 +135,7 @@ void initialize(sys::state& state) {
 		auto fp = fatten(state.world, p);
 		fp.set_life_needs_satisfaction(1.0f);
 		fp.set_everyday_needs_satisfaction(0.5f);
-		fp.set_savings(savings_buffer.get(fp.get_poptype()));
+		fp.set_savings(savings_buffer.get(fp.get_poptype()) * fp.get_size() / economy::needs_scaling_factor);
 	});
 
 	state.world.for_each_factory([&](dcon::factory_id f) {
@@ -161,8 +161,8 @@ void initialize(sys::state& state) {
 
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		auto fn = fatten(state.world, n);
-		fn.set_administrative_spending(int8_t(100));
-		fn.set_military_spending(int8_t(100));
+		fn.set_administrative_spending(int8_t(80));
+		fn.set_military_spending(int8_t(60));
 		fn.set_education_spending(int8_t(100));
 		fn.set_social_spending(int8_t(100));
 		fn.set_land_spending(int8_t(30));
@@ -1610,7 +1610,7 @@ void daily_update(sys::state& state) {
 				float num_workers = state.world.province_get_demographics(p.get_province(), demographics::to_key(state, worker));
 				float num_owners = state.world.province_get_demographics(p.get_province(), demographics::to_key(state, owner));
 
-				if(total_min_to_workers >= total_rgo_profit && num_owners > 0) {
+				if(total_min_to_workers <= total_rgo_profit && num_owners > 0) {
 					total_worker_wage = total_min_to_workers + (total_rgo_profit - total_min_to_workers) * 0.2f;
 					total_owner_wage = (total_rgo_profit - total_min_to_workers) * 0.8f;
 				} else {
@@ -1658,16 +1658,16 @@ void daily_update(sys::state& state) {
 			auto per_sworker_profit = 0.0f;
 			auto per_owner_profit = 0.0f;
 
-			if(total_min_to_pworkers + total_min_to_sworkers >= total_profit && num_owners > 0) {
+			if(total_min_to_pworkers + total_min_to_sworkers <= total_profit && num_owners > 0) {
 				auto surplus = total_profit - (total_min_to_pworkers + total_min_to_sworkers);
 				per_pworker_profit = (total_min_to_pworkers + surplus * 0.1f) / num_pworkers;
 				per_sworker_profit = (total_min_to_sworkers + surplus * 0.2f) / num_sworkers;
 				per_owner_profit = (surplus * 0.7f) / num_owners;
-			} else if(total_min_to_pworkers + total_min_to_sworkers >= total_profit && num_sworkers > 0) {
+			} else if(total_min_to_pworkers + total_min_to_sworkers <= total_profit && num_sworkers > 0) {
 				auto surplus = total_profit - (total_min_to_pworkers + total_min_to_sworkers);
 				per_pworker_profit = (total_min_to_pworkers + surplus * 0.5f) / num_pworkers;
 				per_sworker_profit = (total_min_to_sworkers + surplus * 0.5f) / num_sworkers;
-			} else if(total_min_to_pworkers + total_min_to_sworkers >= total_profit) {
+			} else if(total_min_to_pworkers + total_min_to_sworkers <= total_profit) {
 				per_pworker_profit = total_profit / num_pworkers;
 			} else {
 				per_pworker_profit = total_profit / (num_pworkers + num_sworkers);
@@ -1726,6 +1726,7 @@ void daily_update(sys::state& state) {
 		auto collected_tax = total_poor_tax_base * tax_eff * float(state.world.nation_get_poor_tax(n)) / 100.0f
 			+ total_mid_tax_base * tax_eff * float(state.world.nation_get_middle_tax(n)) / 100.0f
 			+ total_rich_tax_base * tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f;
+		state.world.nation_get_stockpiles(n, money) += collected_tax;
 
 		{
 			/*

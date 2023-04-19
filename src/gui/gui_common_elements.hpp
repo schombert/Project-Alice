@@ -1965,6 +1965,19 @@ public:
 			return message_result::unseen;
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto name = state.world.pop_type_get_name(pop_type_id);
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, name);
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 class religion_type_icon : public button_element_base {
 protected:
@@ -1985,6 +1998,19 @@ public:
             return message_result::unseen;
         }
     }
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto name = state.world.religion_get_name(religion_id);
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, name);
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 
@@ -2190,6 +2216,27 @@ class commodity_price_text : public standard_commodity_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		return text::format_money(state.world.commodity_get_current_price(commodity_id));
+	}
+};
+
+class commodity_player_availability_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
+	}
+};
+
+class commodity_player_real_demand_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1);
+	}
+};
+
+class commodity_player_production_text : public standard_commodity_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1);
 	}
 };
 
