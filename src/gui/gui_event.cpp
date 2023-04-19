@@ -5,10 +5,10 @@ template<typename V>
 static bool use_reusable_event_window(sys::state& state, V& v, Cyto::Any& payload) {
 	if(v.empty())
 		return false;
-	auto it = v.begin();
+	auto it = v.end() - 1;
 	(*it)->impl_set(state, payload);
 	state.ui_state.root->add_child_to_front(std::move(*it));
-	v.erase(it);
+	v.pop_back();
 	return true;
 }
 template<typename T>
