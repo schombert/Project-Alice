@@ -11,6 +11,7 @@
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
 #include "gui_province_window.hpp"
+#include "gui_event.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
