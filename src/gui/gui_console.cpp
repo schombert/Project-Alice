@@ -118,7 +118,7 @@ struct parser_state {
 	std::variant<
 		std::monostate, // none
 		std::string_view, // tag/string
-		uint32_t // numeric
+		int32_t // numeric
 	> arg_slots[4] = {};
 };
 static parser_state parse_command(sys::state& state, std::string_view s) {
@@ -149,7 +149,7 @@ static parser_state parse_command(sys::state& state, std::string_view s) {
 		|| pstate.cmd.args[i].mode == command_info::argument_info::type::tag)
 			pstate.arg_slots[i] = ident;
 		else if(pstate.cmd.args[i].mode == command_info::argument_info::type::numeric)
-			pstate.arg_slots[i] = uint32_t(std::stoi(std::string(ident)));
+			pstate.arg_slots[i] = int32_t(std::stoi(std::string(ident)));
 		else
 			pstate.arg_slots[i] = std::monostate{};
 		// Skip spaces
@@ -170,6 +170,26 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		return;
 	
 	log_to_console(state, parent, s);
+	for(auto i = 0; i < 4; ++i) {
+		if(pstate.cmd.args[i].optional)
+			continue;
+		if(pstate.cmd.args[i].mode == command_info::argument_info::type::text) {
+			if(!std::holds_alternative<std::string_view>(pstate.arg_slots[i])) {
+				log_to_console(state, parent, "Command requires a text argument at " + std::to_string(i));
+				return;
+			}
+		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::tag) {
+			if(!std::holds_alternative<std::string_view>(pstate.arg_slots[i])) {
+				log_to_console(state, parent, "Command requires a tag argument at " + std::to_string(i));
+				return;
+			}
+		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::numeric) {
+			if(!std::holds_alternative<int32_t>(pstate.arg_slots[i])) {
+				log_to_console(state, parent, "Command requires a numeric argument at " + std::to_string(i));
+				return;
+			}
+		}
+	}
 	switch(pstate.cmd.mode) {
 	case command_info::type::reload:
 		log_to_console(state, parent, "Reloading...");
@@ -304,7 +324,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	} break;
 	case command_info::type::show_stats: {
 		if(!std::holds_alternative<std::string_view>(pstate.arg_slots[0])) {
-			log_to_console(state, parent, "Valid options: demo(graphics), diplo(macy), eco(nomy), event(s), mil(itary), tech(nology), pol(itics), a(ll)/all");
+			log_to_console(state, parent, "Valid options: demo(graphics), diplo(macy), eco(nomy), event(s), mil(itary)");
+			log_to_console(state, parent, "tech(nology), pol(itics), a(ll)/all");
 			log_to_console(state, parent, "Ex: \"stats pol\"");
 			break;
 		}
@@ -340,116 +361,116 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			v |= uint8_t(flags::all);
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent, std::string("* National Identities - ") + std::to_string(state.world.national_identity_size()));
-			log_to_console(state, parent, std::string("* Political Parties - ") + std::to_string(state.world.political_party_size()));
-			log_to_console(state, parent, std::string("* Religions - ") + std::to_string(state.world.religion_size()));
-			log_to_console(state, parent, std::string("* Culture Groups - ") + std::to_string(state.world.culture_group_size()));
-			log_to_console(state, parent, std::string("* Cultures - ") + std::to_string(state.world.culture_size()));
-			log_to_console(state, parent, std::string("* Culture Group Memberships - ") + std::to_string(state.world.culture_group_membership_size()));
-			log_to_console(state, parent, std::string("* Cultural Unions (Of) - ") + std::to_string(state.world.cultural_union_of_size()));
+			log_to_console(state, parent, "* National Identities: " + std::to_string(state.world.national_identity_size()));
+			log_to_console(state, parent, "* Political Parties: " + std::to_string(state.world.political_party_size()));
+			log_to_console(state, parent, "* Religions: " + std::to_string(state.world.religion_size()));
+			log_to_console(state, parent, "* Culture Groups: " + std::to_string(state.world.culture_group_size()));
+			log_to_console(state, parent, "* Cultures: " + std::to_string(state.world.culture_size()));
+			log_to_console(state, parent, "* Culture Group Memberships: " + std::to_string(state.world.culture_group_membership_size()));
+			log_to_console(state, parent, "* Cultural Unions (Of): " + std::to_string(state.world.cultural_union_of_size()));
 		}
 		if((v & uint8_t(flags::economy)) != 0) {
-			log_to_console(state, parent, std::string("* Commodities - ") + std::to_string(state.world.commodity_size()));
-			log_to_console(state, parent, std::string("* Modifiers - ") + std::to_string(state.world.modifier_size()));
-			log_to_console(state, parent, std::string("* Factory Types - ") + std::to_string(state.world.factory_type_size()));
+			log_to_console(state, parent, "* Commodities: " + std::to_string(state.world.commodity_size()));
+			log_to_console(state, parent, "* Modifiers: " + std::to_string(state.world.modifier_size()));
+			log_to_console(state, parent, "* Factory Types: " + std::to_string(state.world.factory_type_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent, std::string("* Ideology Groups - ") + std::to_string(state.world.ideology_group_size()));
-			log_to_console(state, parent, std::string("* Ideologies - ") + std::to_string(state.world.ideology_size()));
-			log_to_console(state, parent, std::string("* Ideology Group Memberships - ") + std::to_string(state.world.ideology_group_membership_size()));
-			log_to_console(state, parent, std::string("* Issues - ") + std::to_string(state.world.issue_size()));
-			log_to_console(state, parent, std::string("* Issue Options - ") + std::to_string(state.world.issue_option_size()));
-			log_to_console(state, parent, std::string("* Reforms - ") + std::to_string(state.world.reform_size()));
-			log_to_console(state, parent, std::string("* Reform Options - ") + std::to_string(state.world.reform_option_size()));
+			log_to_console(state, parent, "* Ideology Groups: " + std::to_string(state.world.ideology_group_size()));
+			log_to_console(state, parent, "* Ideologies: " + std::to_string(state.world.ideology_size()));
+			log_to_console(state, parent, "* Ideology Group Memberships: " + std::to_string(state.world.ideology_group_membership_size()));
+			log_to_console(state, parent, "* Issues: " + std::to_string(state.world.issue_size()));
+			log_to_console(state, parent, "* Issue Options: " + std::to_string(state.world.issue_option_size()));
+			log_to_console(state, parent, "* Reforms: " + std::to_string(state.world.reform_size()));
+			log_to_console(state, parent, "* Reform Options: " + std::to_string(state.world.reform_option_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
-			log_to_console(state, parent, std::string("* CB Types - ") + std::to_string(state.world.cb_type_size()));
+			log_to_console(state, parent, "* CB Types: " + std::to_string(state.world.cb_type_size()));
 		}
 		if((v & uint8_t(flags::military)) != 0) {
-			log_to_console(state, parent, std::string("* Leader Traits - ") + std::to_string(state.world.leader_trait_size()));
+			log_to_console(state, parent, "* Leader Traits: " + std::to_string(state.world.leader_trait_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent, std::string("* Pop Types - ") + std::to_string(state.world.pop_type_size()));
-			log_to_console(state, parent, std::string("* Rebel Types - ") + std::to_string(state.world.rebel_type_size()));
+			log_to_console(state, parent, "* Pop Types: " + std::to_string(state.world.pop_type_size()));
+			log_to_console(state, parent, "* Rebel Types: " + std::to_string(state.world.rebel_type_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent, std::string("* Provinces - ") + std::to_string(state.world.province_size()));
-			log_to_console(state, parent, std::string("* Province Adjacenciess - ") + std::to_string(state.world.province_adjacency_size()));
-			log_to_console(state, parent, std::string("* Nation Adjacencies - ") + std::to_string(state.world.nation_adjacency_size()));
+			log_to_console(state, parent, "* Provinces: " + std::to_string(state.world.province_size()));
+			log_to_console(state, parent, "* Province Adjacenciess: " + std::to_string(state.world.province_adjacency_size()));
+			log_to_console(state, parent, "* Nation Adjacencies: " + std::to_string(state.world.nation_adjacency_size()));
 		}
 		if((v & uint8_t(flags::military)) != 0) {
-			log_to_console(state, parent, std::string("* Regiments - ") + std::to_string(state.world.regiment_size()));
-			log_to_console(state, parent, std::string("* Ships - ") + std::to_string(state.world.ship_size()));
-			log_to_console(state, parent, std::string("* Armies - ") + std::to_string(state.world.army_size()));
-			log_to_console(state, parent, std::string("* Navies - ") + std::to_string(state.world.navy_size()));
-			log_to_console(state, parent, std::string("* Army Controls - ") + std::to_string(state.world.army_control_size()));
-			log_to_console(state, parent, std::string("* Army Locations - ") + std::to_string(state.world.army_location_size()));
-			log_to_console(state, parent, std::string("* Army Memberships - ") + std::to_string(state.world.army_membership_size()));
-			log_to_console(state, parent, std::string("* Regiment Sources - ") + std::to_string(state.world.regiment_source_size()));
-			log_to_console(state, parent, std::string("* Navy Controls - ") + std::to_string(state.world.navy_control_size()));
-			log_to_console(state, parent, std::string("* Navy Locations - ") + std::to_string(state.world.navy_location_size()));
-			log_to_console(state, parent, std::string("* Navy Memberships - ") + std::to_string(state.world.navy_membership_size()));
-			log_to_console(state, parent, std::string("* Leaders - ") + std::to_string(state.world.leader_size()));
-			log_to_console(state, parent, std::string("* Army Leadership (leader<->army) - ") + std::to_string(state.world.army_leadership_size()));
-			log_to_console(state, parent, std::string("* Navy Leadership (leader<->navy) - ") + std::to_string(state.world.navy_leadership_size()));
-			log_to_console(state, parent, std::string("* Leader Loyalties (leader<->nation membership) - ") + std::to_string(state.world.leader_loyalty_size()));
+			log_to_console(state, parent, "* Regiments: " + std::to_string(state.world.regiment_size()));
+			log_to_console(state, parent, "* Ships: " + std::to_string(state.world.ship_size()));
+			log_to_console(state, parent, "* Armies: " + std::to_string(state.world.army_size()));
+			log_to_console(state, parent, "* Navies: " + std::to_string(state.world.navy_size()));
+			log_to_console(state, parent, "* Army Controls: " + std::to_string(state.world.army_control_size()));
+			log_to_console(state, parent, "* Army Locations: " + std::to_string(state.world.army_location_size()));
+			log_to_console(state, parent, "* Army Memberships: " + std::to_string(state.world.army_membership_size()));
+			log_to_console(state, parent, "* Regiment Sources: " + std::to_string(state.world.regiment_source_size()));
+			log_to_console(state, parent, "* Navy Controls: " + std::to_string(state.world.navy_control_size()));
+			log_to_console(state, parent, "* Navy Locations: " + std::to_string(state.world.navy_location_size()));
+			log_to_console(state, parent, "* Navy Memberships: " + std::to_string(state.world.navy_membership_size()));
+			log_to_console(state, parent, "* Leaders: " + std::to_string(state.world.leader_size()));
+			log_to_console(state, parent, "* Army Leadership (leader<->army): " + std::to_string(state.world.army_leadership_size()));
+			log_to_console(state, parent, "* Navy Leadership (leader<->navy): " + std::to_string(state.world.navy_leadership_size()));
+			log_to_console(state, parent, "* Leader Loyalties (leader<->nation membership): " + std::to_string(state.world.leader_loyalty_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
-			log_to_console(state, parent, std::string("* Wars - ") + std::to_string(state.world.war_size()));
-			log_to_console(state, parent, std::string("* Wargoals - ") + std::to_string(state.world.wargoal_size()));
-			log_to_console(state, parent, std::string("* War Participants - ") + std::to_string(state.world.war_participant_size()));
-			log_to_console(state, parent, std::string("* Wargoals Attached (wargoal<->war) - ") + std::to_string(state.world.wargoals_attached_size()));
+			log_to_console(state, parent, "* Wars: " + std::to_string(state.world.war_size()));
+			log_to_console(state, parent, "* Wargoals: " + std::to_string(state.world.wargoal_size()));
+			log_to_console(state, parent, "* War Participants: " + std::to_string(state.world.war_participant_size()));
+			log_to_console(state, parent, "* Wargoals Attached (wargoal<->war): " + std::to_string(state.world.wargoals_attached_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent, std::string("* State Definitions - ") + std::to_string(state.world.state_definition_size()));
-			log_to_console(state, parent, std::string("* State Instances - ") + std::to_string(state.world.state_instance_size()));
+			log_to_console(state, parent, "* State Definitions: " + std::to_string(state.world.state_definition_size()));
+			log_to_console(state, parent, "* State Instances: " + std::to_string(state.world.state_instance_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
-			log_to_console(state, parent, std::string("* Colonizations - ") + std::to_string(state.world.colonization_size()));
+			log_to_console(state, parent, "* Colonizations: " + std::to_string(state.world.colonization_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent, std::string("* State Ownerships - ") + std::to_string(state.world.state_ownership_size()));
-			log_to_console(state, parent, std::string("* Abstract State Memberships - ") + std::to_string(state.world.abstract_state_membership_size()));
-			log_to_console(state, parent, std::string("* Cores - ") + std::to_string(state.world.core_size()));
-			log_to_console(state, parent, std::string("* Identity Holders - ") + std::to_string(state.world.identity_holder_size()));
+			log_to_console(state, parent, "* State Ownerships: " + std::to_string(state.world.state_ownership_size()));
+			log_to_console(state, parent, "* Abstract State Memberships: " + std::to_string(state.world.abstract_state_membership_size()));
+			log_to_console(state, parent, "* Cores: " + std::to_string(state.world.core_size()));
+			log_to_console(state, parent, "* Identity Holders: " + std::to_string(state.world.identity_holder_size()));
 		}
 		if((v & uint8_t(flags::technology)) != 0) {
-			log_to_console(state, parent, std::string("* Technologies - ") + std::to_string(state.world.technology_size()));
-			log_to_console(state, parent, std::string("* Inventions - ") + std::to_string(state.world.invention_size()));
+			log_to_console(state, parent, "* Technologies: " + std::to_string(state.world.technology_size()));
+			log_to_console(state, parent, "* Inventions: " + std::to_string(state.world.invention_size()));
 		}
 		if((v & uint8_t(flags::diplomacy)) != 0) {
-			log_to_console(state, parent, std::string("* Nations - ") + std::to_string(state.world.nation_size()));
-			log_to_console(state, parent, std::string("* Diplomatic Relations - ") + std::to_string(state.world.diplomatic_relation_size()));
-			log_to_console(state, parent, std::string("* Unilateral Relationships - ") + std::to_string(state.world.unilateral_relationship_size()));
-			log_to_console(state, parent, std::string("* GP Relationships - ") + std::to_string(state.world.gp_relationship_size()));
+			log_to_console(state, parent, "* Nations: " + std::to_string(state.world.nation_size()));
+			log_to_console(state, parent, "* Diplomatic Relations: " + std::to_string(state.world.diplomatic_relation_size()));
+			log_to_console(state, parent, "* Unilateral Relationships: " + std::to_string(state.world.unilateral_relationship_size()));
+			log_to_console(state, parent, "* GP Relationships: " + std::to_string(state.world.gp_relationship_size()));
 		}
 		if((v & uint8_t(flags::economy)) != 0) {
-			log_to_console(state, parent, std::string("* Factories - ") + std::to_string(state.world.factory_size()));
-			log_to_console(state, parent, std::string("* Factory Locations - ") + std::to_string(state.world.factory_location_size()));
+			log_to_console(state, parent, "* Factories: " + std::to_string(state.world.factory_size()));
+			log_to_console(state, parent, "* Factory Locations: " + std::to_string(state.world.factory_location_size()));
 		}
 		if((v & uint8_t(flags::politics)) != 0) {
-			log_to_console(state, parent, std::string("* Province Ownerships - ") + std::to_string(state.world.province_ownership_size()));
-			log_to_console(state, parent, std::string("* Province Controls - ") + std::to_string(state.world.province_control_size()));
-			log_to_console(state, parent, std::string("* Province Rebel Controls - ") + std::to_string(state.world.province_rebel_control_size()));
-			log_to_console(state, parent, std::string("* Overlords - ") + std::to_string(state.world.overlord_size()));
-			log_to_console(state, parent, std::string("* Rebel Factions - ") + std::to_string(state.world.rebel_faction_size()));
-			log_to_console(state, parent, std::string("* Rebellions Within - ") + std::to_string(state.world.rebellion_within_size()));
-			log_to_console(state, parent, std::string("* Movements - ") + std::to_string(state.world.movement_size()));
-			log_to_console(state, parent, std::string("* Movements Within - ") + std::to_string(state.world.movement_within_size()));
-			log_to_console(state, parent, std::string("* Pop Movement Memberships - ") + std::to_string(state.world.pop_movement_membership_size()));
-			log_to_console(state, parent, std::string("* Pop Rebellion Memberships - ") + std::to_string(state.world.pop_rebellion_membership_size()));
+			log_to_console(state, parent, "* Province Ownerships: " + std::to_string(state.world.province_ownership_size()));
+			log_to_console(state, parent, "* Province Controls: " + std::to_string(state.world.province_control_size()));
+			log_to_console(state, parent, "* Province Rebel Controls: " + std::to_string(state.world.province_rebel_control_size()));
+			log_to_console(state, parent, "* Overlords: " + std::to_string(state.world.overlord_size()));
+			log_to_console(state, parent, "* Rebel Factions: " + std::to_string(state.world.rebel_faction_size()));
+			log_to_console(state, parent, "* Rebellions Within: " + std::to_string(state.world.rebellion_within_size()));
+			log_to_console(state, parent, "* Movements: " + std::to_string(state.world.movement_size()));
+			log_to_console(state, parent, "* Movements Within: " + std::to_string(state.world.movement_within_size()));
+			log_to_console(state, parent, "* Pop Movement Memberships: " + std::to_string(state.world.pop_movement_membership_size()));
+			log_to_console(state, parent, "* Pop Rebellion Memberships: " + std::to_string(state.world.pop_rebellion_membership_size()));
 		}
 		if((v & uint8_t(flags::demographics)) != 0) {
-			log_to_console(state, parent, std::string("* Pops - ") + std::to_string(state.world.pop_size()));
-			log_to_console(state, parent, std::string("* Pop Locations - ") + std::to_string(state.world.pop_location_size()));
+			log_to_console(state, parent, "* Pops: " + std::to_string(state.world.pop_size()));
+			log_to_console(state, parent, "* Pop Locations: " + std::to_string(state.world.pop_location_size()));
 		}
 		if((v & uint8_t(flags::events)) != 0) {
-			log_to_console(state, parent, std::string("* National Events - ") + std::to_string(state.world.national_event_size()));
-			log_to_console(state, parent, std::string("* Provincial Events - ") + std::to_string(state.world.provincial_event_size()));
-			log_to_console(state, parent, std::string("* Free National Events - ") + std::to_string(state.world.free_national_event_size()));
-			log_to_console(state, parent, std::string("* Free Provincial Events - ") + std::to_string(state.world.free_provincial_event_size()));
-			log_to_console(state, parent, std::string("* National Focuses - ") + std::to_string(state.world.national_focus_size()));
-			log_to_console(state, parent, std::string("* Decisions - ") + std::to_string(state.world.decision_size()));
+			log_to_console(state, parent, "* National Events: " + std::to_string(state.world.national_event_size()));
+			log_to_console(state, parent, "* Provincial Events: " + std::to_string(state.world.provincial_event_size()));
+			log_to_console(state, parent, "* Free National Events: " + std::to_string(state.world.free_national_event_size()));
+			log_to_console(state, parent, "* Free Provincial Events: " + std::to_string(state.world.free_provincial_event_size()));
+			log_to_console(state, parent, "* National Focuses: " + std::to_string(state.world.national_focus_size()));
+			log_to_console(state, parent, "* Decisions: " + std::to_string(state.world.decision_size()));
 		}
 	} break;
 	case command_info::type::none:
@@ -458,7 +479,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	default:
 		break;
 	}
-	log_to_console(state, parent, ""); // space after command
 }
 
 void ui::console_window::show_toggle(sys::state& state) {
