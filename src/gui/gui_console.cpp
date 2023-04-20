@@ -9,7 +9,7 @@ struct command_info {
 	std::string_view name;
 	enum class type : uint8_t {
 		none = 0, reload, abort, clear_log, fps, set_tag, help, fire_national_event,fire_free_national_event, fire_provincial_event, fire_free_provincial_event,
-		show_stats, add_money, add_prestige, add_infamy,
+		show_stats,
 		search_tag
 	} mode = type::none;
 	std::string_view desc;
@@ -90,24 +90,6 @@ static const std::vector<command_info> possible_commands = {
 	},
 	command_info{ "ffp", command_info::type::fire_free_provincial_event, "Fire free (random-chance based) provincial event",
 		command_info::argument_info{ "event-id", command_info::argument_info::type::numeric, false },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
-	},
-	command_info{ "money", command_info::type::add_money, "Add money to the current nation",
-		command_info::argument_info{ "amount", command_info::argument_info::type::numeric, false },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
-	},
-	command_info{ "prestige", command_info::type::add_prestige, "Add prestige to the current nation",
-		command_info::argument_info{ "amount", command_info::argument_info::type::numeric, false },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
-	},
-	command_info{ "infamy", command_info::type::add_infamy, "Add infamy to the current nation",
-		command_info::argument_info{ "amount", command_info::argument_info::type::numeric, false },
 		command_info::argument_info{},
 		command_info::argument_info{},
 		command_info::argument_info{}
@@ -558,27 +540,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			log_to_console(state, parent, "* National Focuses: " + std::to_string(state.world.national_focus_size()));
 			log_to_console(state, parent, "* Decisions: " + std::to_string(state.world.decision_size()));
 		}
-	} break;
-	case command_info::type::add_money: {
-		auto amount = std::get<int32_t>(pstate.arg_slots[0]);
-		auto fat_id = dcon::fatten(state.world, state.local_player_nation);
-		fat_id.set_stockpiles(economy::money, fat_id.get_stockpiles(economy::money) + amount);
-		log_to_console(state, parent, "Added " + std::to_string(amount) + " money");
-		state.game_state_updated.store(true, std::memory_order::release);
-	} break;
-	case command_info::type::add_prestige: {
-		auto amount = std::get<int32_t>(pstate.arg_slots[0]);
-		auto fat_id = dcon::fatten(state.world, state.local_player_nation);
-		fat_id.set_prestige(fat_id.get_prestige() + amount);
-		log_to_console(state, parent, "Added " + std::to_string(amount) + " prestige");
-		state.game_state_updated.store(true, std::memory_order::release);
-	} break;
-	case command_info::type::add_infamy: {
-		auto amount = std::get<int32_t>(pstate.arg_slots[0]);
-		auto fat_id = dcon::fatten(state.world, state.local_player_nation);
-		fat_id.set_infamy(fat_id.get_infamy() + amount);
-		log_to_console(state, parent, "Added " + std::to_string(amount) + " infamy");
-		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
