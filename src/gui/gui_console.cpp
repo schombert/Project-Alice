@@ -5,6 +5,7 @@
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
 
+
 struct command_info {
 	std::string_view name;
 	enum class type : uint8_t {
@@ -21,6 +22,7 @@ struct command_info {
 		bool optional = false;
 	} args[4] = {};
 };
+
 static const std::vector<command_info> possible_commands = {
 	command_info{ "none", command_info::type::none, "Dummy command",
 		command_info::argument_info{},
@@ -159,6 +161,49 @@ static parser_state parse_command(sys::state& state, std::string_view s) {
 			break;
 	}
 	return pstate;
+}
+
+void ui::console_edit::edit_box_tab(sys::state &state, std::string_view s) noexcept {
+    if(s.empty())
+        return;
+
+    std::pair<uint32_t, std::string_view> closest_match{};
+    closest_match.first = std::numeric_limits<uint32_t>::max();
+
+    // Loop through possible_commands
+    for(const auto& cmd : possible_commands) {
+        std::string_view name = cmd.name;
+        if(name.starts_with(s)) {
+            auto dist = levenshtein_distance(s, name);
+            if(dist < closest_match.first) {
+                closest_match.first = dist;
+                closest_match.second = name;
+            }
+        }
+    }
+    auto closest_name = closest_match.second;
+    if(closest_name.empty())
+        return;
+    this->set_text(state, std::string(closest_name)+" ");
+    auto index = int32_t(closest_name.size() + 1);
+    this->edit_index_position(state, index);
+}
+
+void ui::console_edit::edit_box_up(sys::state &state) noexcept {
+    std::string up = up_history();
+    if(!up.empty()) {
+        this->set_text(state, up);
+        auto index = int32_t(up.size());
+        this->edit_index_position(state, index);
+    }
+}
+void ui::console_edit::edit_box_down(sys::state &state) noexcept {
+    std::string down = down_history();
+    if(!down.empty()) {
+        this->set_text(state, down);
+        auto index = int32_t(down.size());
+        this->edit_index_position(state, index);
+    }
 }
 
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
@@ -479,6 +524,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	default:
 		break;
 	}
+	log_to_console(state, parent, ""); // space after command
+    add_to_history(state, std::string(s));
 }
 
 void ui::console_window::show_toggle(sys::state& state) {

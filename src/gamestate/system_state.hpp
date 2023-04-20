@@ -217,6 +217,15 @@ namespace sys {
 		void load_scenario_data(); // loads all scenario files other than map data
 		void fill_unsaved_data(); // reconstructs derived values that are not directly saved after a save has been loaded
 
+        /**
+         * Method for logging to console.
+         * @param base Element base to get name of invoking element.
+         * @param message Message to log.
+         * @param open_console Open console upon log?
+         * @result base_name: message. Example: `pop_window: 43`
+         */
+        void console_log(ui::element_base* base, std::string message, bool open_console = true);
+
 		void open_diplomacy(dcon::nation_id target);  // Open the diplomacy window with target selected
 	};
 }
