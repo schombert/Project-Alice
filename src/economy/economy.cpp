@@ -174,6 +174,7 @@ void initialize(sys::state& state) {
 		fn.set_rich_tax(int8_t(75));
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			state.world.nation_set_demand_satisfaction(n, c, 1.0f);
 			// set domestic market pool
 		});
 	});
@@ -358,7 +359,7 @@ float factory_total_employment(sys::state const& state, dcon::factory_id f) {
 void update_factory_employment(sys::state& state) {
 	state.world.for_each_state_instance([&](dcon::state_instance_id si) {
 		float primary_pool = state.world.state_instance_get_demographics(si, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-		float secondary_pool = state.world.state_instance_get_demographics(si, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+		float secondary_pool = state.world.state_instance_get_demographics(si, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
 
 		static std::vector<dcon::factory_id> ordered_factories;
 		ordered_factories.clear();
@@ -406,7 +407,7 @@ void update_factory_employment(sys::state& state) {
 				float scale = secondary_pool_copy >= type_share ? 1.0f : secondary_pool_copy / type_share;
 				secondary_pool_copy = std::max(0.0f, secondary_pool_copy - type_share);
 				for(uint32_t i = index; i < next_index; ++i) {
-					state.world.factory_set_primary_employment(ordered_factories[i], scale * state.world.factory_get_production_scale(ordered_factories[i]));
+					state.world.factory_set_secondary_employment(ordered_factories[i], scale * state.world.factory_get_production_scale(ordered_factories[i]));
 				}
 			}
 
@@ -499,7 +500,7 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 			break;
 		}
 	}
-	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+	for(uint32_t i = 0; i < small_commodity_set::set_size; ++i) {
 		if(fac_type.get_efficiency_inputs().commodity_type[i]) {
 			input_total += fac_type.get_efficiency_inputs().commodity_amounts[i] * effective_prices.get(fac_type.get_efficiency_inputs().commodity_type[i]);
 		} else {
@@ -537,7 +538,7 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 
 	bool profitable = (output_total * throughput_multiplier * output_multiplier - expected_min_wage * (factory_per_level_employment / needs_scaling_factor) - input_multiplier * throughput_multiplier * input_total) >= 0.0f;
 	state.world.factory_set_unprofitable(f, !profitable);
-	
+
 	if(profitable || state.world.factory_get_subsidized(f)) {
 		// increase production scale ?
 		auto new_production_scale = std::min(1.0f, state.world.factory_get_production_scale(f) + production_scale_delta);
@@ -606,13 +607,16 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 		}
 
 		auto amount = (0.75f + 0.25f * min_efficiency_input) * min_input * production;
-		state.world.factory_set_production_scale(f, (min_input * 0.75f + 0.25f) * state.world.factory_get_production_scale(f));
+		auto existing_scale = state.world.factory_get_production_scale(f);
+
+		if(min_input < existing_scale)
+			state.world.factory_set_production_scale(f, min_input * 0.5f + 0.5f * existing_scale);
+
 		state.world.factory_set_actual_production(f, amount);
 		state.world.nation_get_domestic_market_pool(n, fac_type.get_output()) += amount;
 
 		auto money_made = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_full_profit(f);
 		state.world.factory_set_full_profit(f, money_made);
-
 		// pay wages ?
 	} else {
 
@@ -651,17 +655,19 @@ void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon
 
 void update_province_artisan_consumption(sys::state& state, dcon::province_id p, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, float mobilization_impact, float expected_min_wage, bool occupied) {
 
-	if((state.current_date.to_raw_value() & 31) == (p.value & 31)) {
-		randomly_assign_artisan_production(state, p); // randomly switch once a month 
+	if((state.current_date.to_raw_value() & 63) == (p.value & 63)) {
+		randomly_assign_artisan_production(state, p); // randomly switch once every other month 
 	}
 
 	float input_total = 0.0f;
 	auto artisan_prod_type = state.world.province_get_artisan_production(p);
 	auto& inputs = state.world.commodity_get_artisan_inputs(artisan_prod_type);
+	float min_available = 1.0f;
 
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 		if(inputs.commodity_type[i]) {
 			input_total += inputs.commodity_amounts[i] * effective_prices.get(inputs.commodity_type[i]);
+			min_available = std::min(min_available, state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]));
 		} else {
 			break;
 		}
@@ -688,7 +694,8 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 
 	float max_production_scale = artisan_pop / 10'000.0f * (occupied ? 0.0f : 1.0f) * std::max(0.0f, mobilization_impact);
 
-	bool profitable = (output_total * output_multiplier - expected_min_wage * (10'000.0f / needs_scaling_factor) - input_multiplier * input_total) >= 0.0f;
+	// note: we add min available to try to anticipate how availability will limit profits
+	bool profitable = (output_total * output_multiplier * throughput_multiplier * min_available - expected_min_wage * (10'000.0f / needs_scaling_factor) - input_multiplier * input_total * throughput_multiplier * min_available) >= 0.0f;
 
 	if(profitable) {
 		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
@@ -701,7 +708,7 @@ void update_province_artisan_consumption(sys::state& state, dcon::province_id p,
 		}
 
 		state.world.province_set_artisan_actual_production(p, state.world.commodity_get_artisan_output_amount(artisan_prod_type) * throughput_multiplier * output_multiplier * max_production_scale);
-		state.world.province_set_artisan_full_profit(p, (output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier);
+		state.world.province_set_artisan_full_profit(p, (output_total * output_multiplier - input_multiplier * input_total) * throughput_multiplier * max_production_scale);
 	} else {
 		// switch production type
 		randomly_assign_artisan_production(state, p);
