@@ -1,5 +1,7 @@
 #include "nations.hpp"
 #include "dcon_generated.hpp"
+#include "demographics.hpp"
+#include "modifiers.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
 #include "ve_scalar_extensions.hpp"
@@ -760,5 +762,16 @@ float get_bank_funds(sys::state& state, dcon::nation_id n) {
 float get_debt(sys::state& state, dcon::nation_id n) {
 	return 0.0f;
 }
+
+float tariff_efficiency(sys::state& state, dcon::nation_id n) {
+	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
+	auto adm_eff = state.world.nation_get_administrative_efficiency(n);
+	return std::min(state.defines.base_tariff_efficiency + eff_mod + adm_eff, 1.f); 
 }
 
+float tax_efficiency(sys::state& state, dcon::nation_id n) {
+	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency);
+	return eff_mod + state.defines.base_country_tax_efficiency;
+}
+
+}

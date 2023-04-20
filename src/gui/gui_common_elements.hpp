@@ -1207,6 +1207,58 @@ public:
 	}
 };
 
+class nation_actual_stockpile_spending_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		float amount = state.world.nation_get_effective_construction_spending(nation_id);
+		amount += state.world.nation_get_effective_land_spending(nation_id);
+		amount += state.world.nation_get_effective_naval_spending(nation_id);
+		return text::format_money(amount);
+	}
+};
+
+class nation_tariff_percentage_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(state.world.nation_get_tariffs(nation_id));
+	}
+};
+
+class nation_gold_income_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_money(economy::estimate_gold_income(state, nation_id));
+	}
+};
+
+class nation_loan_spending_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_money(economy::estimate_loan_payments(state, nation_id));
+	}
+};
+
+class nation_diplomatic_balance_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_money(economy::estimate_diplomatic_balance(state, nation_id));
+	}
+};
+
+class nation_subsidy_spending_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_money(economy::estimate_subsidy_spending(state, nation_id));
+	}
+};
+
+class nation_administrative_efficiency_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(state.world.nation_get_administrative_efficiency(nation_id));
+	}
+};
+
 class nation_prestige_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {

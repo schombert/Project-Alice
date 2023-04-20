@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include "culture.hpp"
 #include "dcon_generated.hpp"
 
 namespace nations {
@@ -246,6 +247,8 @@ float leadership_points(sys::state const& state, dcon::nation_id n);
 float get_treasury(sys::state& state, dcon::nation_id n);
 float get_bank_funds(sys::state& state, dcon::nation_id n);
 float get_debt(sys::state& state, dcon::nation_id n);
+float tariff_efficiency(sys::state& state, dcon::nation_id n);
+float tax_efficiency(sys::state& state, dcon::nation_id n);
 int32_t free_colonial_points(sys::state const& state, dcon::nation_id n);
 int32_t max_colonial_points(sys::state const& state, dcon::nation_id n);
 

@@ -2456,8 +2456,19 @@ object {
 		type{ float }
 	}
 	property {
-		name{ total_citizen_money }
+		name{ total_rich_income }
 		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ total_middle_income }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ total_poor_income }
+		type{ float }
+		tag{ save }
 	}
 	property {
 		name{ poor_tax }
@@ -2567,34 +2578,42 @@ object {
 	property {
 		name{ imports }
 		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property {
 		name{ army_demand }
 		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property {
 		name{ navy_demand }
 		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property {
 		name{ construction_demand }
 		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property {
 		name{ demand_satisfaction }
 		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property{
 		name{ life_needs_costs }
 		type{ array{pop_type_id}{float} }
+		tag{ save }
 	}
 	property{
 		name{ everyday_needs_costs }
 		type{ array{pop_type_id}{float} }
+		tag{ save }
 	}
 	property{
 		name{ luxury_needs_costs }
 		type{ array{pop_type_id}{float} }
+		tag{ save }
 	}
 	property {
 		name{ overseas_penalty }
