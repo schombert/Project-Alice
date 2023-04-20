@@ -182,6 +182,8 @@ void ui::console_edit::edit_box_tab(sys::state &state, std::string_view s) noexc
         }
     }
     auto closest_name = closest_match.second;
+    if(closest_name.empty())
+        return;
     this->set_text(state, std::string(closest_name)+" ");
     auto index = int32_t(closest_name.size() + 1);
     this->edit_index_position(state, index);
