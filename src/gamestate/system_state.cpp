@@ -252,6 +252,12 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
 
+        {
+            auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
+            ui_state.console_window = window.get();
+            window->set_visible(*this, false);
+            ui_state.root->add_child_to_front(std::move(window));
+        }
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
@@ -268,12 +274,6 @@ namespace sys {
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
-		}
-		{
-			auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
-			ui_state.console_window = window.get();
-			window->set_visible(*this, false);
-			ui_state.root->add_child_to_front(std::move(window));
 		}
 	}
 	//
@@ -1588,4 +1588,19 @@ namespace sys {
 			}
 		}
 	}
+
+    void state::console_log(ui::element_base* base, std::string message, bool open_console) {
+        if(ui_state.console_window != nullptr) {
+
+            Cyto::Any payload = std::string(to_string_view(base->base_data.name)) + ": " + std::string(message);
+            ui_state.console_window->impl_get(*this, payload);
+
+            if(open_console && !(ui_state.console_window->is_visible())){
+                ui_state.root->move_child_to_front(ui_state.console_window);
+                ui_state.console_window->set_visible(*this, true);
+            }
+
+        }
+    }
+
 }
