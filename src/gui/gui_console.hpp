@@ -22,32 +22,31 @@ public:
     void edit_box_up(sys::state& state) noexcept override;
     void edit_box_down(sys::state& state) noexcept override;
     void add_to_history(sys::state& state, std::string s) noexcept {
-        // Add the command to the history (most recent = front)
+        // Add the command to the history, starting with the most recent command
         command_history.insert(command_history.begin(), s);
         // Reset the history index
         history_index = 0;
     }
-    void history_index_up() noexcept {
-        if(history_index < int16_t(command_history.size() - 1))
-            history_index++;
-    }
-    void history_index_down() noexcept {
-        if(history_index > 0)
-            history_index--;
-    }
-    std::string up_history() noexcept {
-        if(history_index < int16_t(command_history.size() - 1)) {
-            history_index_up();
-            return command_history[history_index];
+    std::string navigate_history(int16_t step) noexcept {
+        // Start with most recent command.
+        // If user presses up/down, go to the older/newer command, etc.
+        int16_t size = static_cast<int16_t>(command_history.size());
+        history_index += step;
+        if(history_index < 0) {
+            history_index = 0;
+        } else if(history_index >= size) {
+            history_index = size;
+        }
+        if(history_index > 0 && history_index <= size) {
+            return command_history[history_index - 1];
         }
         return "";
     }
     std::string down_history() noexcept {
-        if(history_index > 0) {
-            history_index_down();
-            return command_history[history_index];
-        }
-        return "";
+        return navigate_history(-1);
+    }
+    std::string up_history() noexcept {
+        return navigate_history(1);
     }
 };
 
