@@ -159,12 +159,19 @@ public:
 };
 
 class edit_box_element_base : public simple_text_element_base {
+protected:
 	int32_t edit_index = 0;
 public:
+    virtual void edit_box_tab(sys::state& state, std::string_view s) noexcept { }
 	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept { }
 	virtual void edit_box_update(sys::state& state, std::string_view s) noexcept { }
+    virtual void edit_box_up(sys::state& state) noexcept { }
+    virtual void edit_box_down(sys::state& state) noexcept { }
 	virtual void edit_box_esc(sys::state& state) noexcept { }
 	virtual void edit_box_backtick(sys::state& state) noexcept { }
+    virtual void edit_index_position(sys::state& state, int32_t index) noexcept {
+        edit_index = index;
+    }
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 

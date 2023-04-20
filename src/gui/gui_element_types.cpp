@@ -344,6 +344,15 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 		case sys::virtual_key::ESCAPE:
 			edit_box_esc(state);
 			break;
+        case sys::virtual_key::TAB:
+            edit_box_tab(state, s);
+            break;
+        case sys::virtual_key::UP:
+            edit_box_up(state);
+            break;
+        case sys::virtual_key::DOWN:
+            edit_box_down(state);
+            break;
 		case sys::virtual_key::TILDA:
 			edit_box_backtick(state);
 			break;
