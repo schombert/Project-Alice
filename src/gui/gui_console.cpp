@@ -365,7 +365,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 	} break;
 	case command_info::type::fire_national_event: {
-		auto num = std::get<int32_t>(pstate.arg_slots[0]);
+		auto num = uint32_t(std::get<int32_t>(pstate.arg_slots[0]));
 		if(num >= state.world.national_event_size()) {
 			log_to_console(state, parent, "No such event " + std::to_string(num) + " max is " + std::to_string(state.world.national_event_size()));
 			break;
@@ -376,7 +376,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
 	case command_info::type::fire_free_national_event: {
-		auto num = std::get<int32_t>(pstate.arg_slots[0]);
+		auto num = uint32_t(std::get<int32_t>(pstate.arg_slots[0]));
 		if(num >= state.world.free_national_event_size()) {
 			log_to_console(state, parent, "No such event " + std::to_string(num) + " max is " + std::to_string(state.world.free_national_event_size()));
 			break;
@@ -387,7 +387,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
 	case command_info::type::fire_provincial_event: {
-		auto num = std::get<int32_t>(pstate.arg_slots[0]);
+		auto num = uint32_t(std::get<int32_t>(pstate.arg_slots[0]));
 		if(num >= state.world.provincial_event_size()) {
 			log_to_console(state, parent, "No such event " + std::to_string(num) + " max is " + std::to_string(state.world.provincial_event_size()));
 			break;
@@ -398,7 +398,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
 	case command_info::type::fire_free_provincial_event: {
-		auto num = std::get<int32_t>(pstate.arg_slots[0]);
+		auto num = uint32_t(std::get<int32_t>(pstate.arg_slots[0]));
 		if(num >= state.world.free_provincial_event_size()) {
 			log_to_console(state, parent, "No such event " + std::to_string(num) + " max is " + std::to_string(state.world.free_provincial_event_size()));
 			break;
