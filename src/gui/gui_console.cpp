@@ -8,7 +8,7 @@
 struct command_info {
 	std::string_view name;
 	enum class type : uint8_t {
-		none = 0, reload, abort, clear_log, fps, set_tag, help, fire_national_event,fire_free_national_event, fire_provincial_event, fire_free_provincial_event,
+		none = 0, reload, abort, clear_log, fps, set_tag, help,
 		show_stats,
 		search_tag
 	} mode = type::none;
@@ -66,30 +66,6 @@ static const std::vector<command_info> possible_commands = {
 	},
 	command_info{ "help", command_info::type::help, "Display help",
 		command_info::argument_info{ "cmd", command_info::argument_info::type::text, true },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
-	},
-	command_info{ "fne", command_info::type::fire_national_event, "Fire (trigger-based) national event",
-		command_info::argument_info{ "event-id", command_info::argument_info::type::numeric, false },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
-	},
-	command_info{ "ffn", command_info::type::fire_free_national_event, "Fire free (random-chance based) national event",
-		command_info::argument_info{ "event-id", command_info::argument_info::type::numeric, false },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
-	},
-	command_info{ "fpe", command_info::type::fire_provincial_event, "Fire (trigger-based) provincial event",
-		command_info::argument_info{ "event-id", command_info::argument_info::type::numeric, false },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
-	},
-	command_info{ "ffp", command_info::type::fire_free_provincial_event, "Fire free (random-chance based) provincial event",
-		command_info::argument_info{ "event-id", command_info::argument_info::type::numeric, false },
 		command_info::argument_info{},
 		command_info::argument_info{},
 		command_info::argument_info{}
@@ -325,34 +301,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			for(const auto& cmd : possible_commands)
 				log_command_info(cmd);
 		}
-	} break;
-	case command_info::type::fire_national_event: {
-		auto num = std::get<uint32_t>(pstate.arg_slots[0]);
-		auto id = dcon::national_event_id(dcon::national_event_id::value_base_t(num));
-		ui::fire_event(state, id);
-		log_to_console(state, parent, std::string("Firing national event ") + std::to_string(num));
-		state.game_state_updated.store(true, std::memory_order::release);
-	} break;
-	case command_info::type::fire_free_national_event: {
-		auto num = std::get<uint32_t>(pstate.arg_slots[0]);
-		auto id = dcon::free_national_event_id(dcon::free_national_event_id::value_base_t(num));
-		ui::fire_event(state, id);
-		log_to_console(state, parent, std::string("Firing free national event ") + std::to_string(num));
-		state.game_state_updated.store(true, std::memory_order::release);
-	} break;
-	case command_info::type::fire_provincial_event: {
-		auto num = std::get<uint32_t>(pstate.arg_slots[0]);
-		auto id = dcon::provincial_event_id(dcon::provincial_event_id::value_base_t(num));
-		ui::fire_event(state, id);
-		log_to_console(state, parent, std::string("Firing provincial event ") + std::to_string(num));
-		state.game_state_updated.store(true, std::memory_order::release);
-	} break;
-	case command_info::type::fire_free_provincial_event: {
-		auto num = std::get<uint32_t>(pstate.arg_slots[0]);
-		auto id = dcon::free_provincial_event_id(dcon::free_provincial_event_id::value_base_t(num));
-		ui::fire_event(state, id);
-		log_to_console(state, parent, std::string("Firing free provincial event ") + std::to_string(num));
-		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
 	case command_info::type::show_stats: {
 		if(!std::holds_alternative<std::string_view>(pstate.arg_slots[0])) {
