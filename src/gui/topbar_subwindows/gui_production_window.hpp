@@ -129,14 +129,14 @@ public:
 		} else if(name == "priority") {
 			return make_element_by_type<factory_priority_image>(state, id);
 		} else if(name.substr(0, 6) == "input_") {
-			auto index = std::stoi(std::string(name.substr(6)));
+			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
 			if(name.ends_with("_lack2")) {
 				auto ptr = make_element_by_type<image_element_base>(state, id);
-				input_lack_icons[index] = ptr.get();
+				input_lack_icons[input_index] = ptr.get();
 				return ptr;
 			} else {
 				auto ptr = make_element_by_type<commodity_factory_image>(state, id);
-				input_icons[index] = ptr.get();
+				input_icons[input_index] = ptr.get();
 				return ptr;
 			}
 		} else {

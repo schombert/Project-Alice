@@ -2448,8 +2448,7 @@ public:
 class factory_employment_image : public generic_settable_element<image_element_base, dcon::factory_id> {
 public:
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Get employment ratio?
-		frame = 0;//state.world.factory_get_primary_employment(content);
+		frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
 	}
 };
 
