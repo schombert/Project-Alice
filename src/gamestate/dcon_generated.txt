@@ -3019,8 +3019,23 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ primary_culture_group }
+		type{ culture_group_id }
+		tag{ save }
+	}
+	property{
 		name{ religion }
 		type{ religion_id }
+		tag{ save }
+	}
+	property{
+		name{ possible_regiments }
+		type{ int32_t }
+		tag{ save }
+	}
+	property{
+		name{ organization }
+		type{ float }
 		tag{ save }
 	}
 	property{

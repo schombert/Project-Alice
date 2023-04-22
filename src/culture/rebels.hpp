@@ -13,6 +13,8 @@ void add_pop_to_movement(sys::state& state, dcon::pop_id p, dcon::movement_id m)
 void remove_pop_from_movement(sys::state& state, dcon::pop_id p);
 void suppress_movement(sys::state& state, dcon::nation_id n, dcon::movement_id m);
 
+void daily_update_rebel_organization(sys::state& state); // increases org based on pop income and militancy
+void update_factions(sys::state& state); // adds pops to factions, deletes invalid factions
 dcon::rebel_faction_id get_faction_by_type(sys::state& state, dcon::nation_id n, dcon::rebel_type_id r);
 
 bool sphere_member_has_ongoing_revolt(sys::state& state, dcon::nation_id n);

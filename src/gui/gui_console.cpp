@@ -25,58 +25,76 @@ struct command_info {
 
 static const std::vector<command_info> possible_commands = {
 	command_info{ "none", command_info::type::none, "Dummy command",
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 	command_info{ "reload", command_info::type::reload, "Reloads Alice",
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 	command_info{ "abort", command_info::type::abort, "Abnormaly terminates execution",
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 	command_info{ "clr_log", command_info::type::clear_log, "Clears console logs",
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 	command_info{ "fps", command_info::type::fps, "Toggles FPS counter",
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 	command_info{ "tag", command_info::type::set_tag, "Set the current player's country",
-		command_info::argument_info{ "country", command_info::argument_info::type::tag, false },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{ "country", command_info::argument_info::type::tag, false },
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 	command_info{ "search", command_info::type::search_tag, "Set the current player's country",
-		command_info::argument_info{ "country", command_info::argument_info::type::tag, false },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{ "country", command_info::argument_info::type::tag, false },
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 	command_info{ "help", command_info::type::help, "Display help",
-		command_info::argument_info{ "cmd", command_info::argument_info::type::text, true },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{ "cmd", command_info::argument_info::type::text, true },
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 	command_info{ "stats", command_info::type::show_stats, "Shows statistics of the current resources used",
-		command_info::argument_info{ "type", command_info::argument_info::type::text, true },
-		command_info::argument_info{},
-		command_info::argument_info{},
-		command_info::argument_info{}
+		{
+			command_info::argument_info{ "type", command_info::argument_info::type::text, true },
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
 	},
 };
 

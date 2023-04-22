@@ -329,14 +329,10 @@ void update_rankings(sys::state& state) {
 	std::sort(state.nations_by_rank.begin(), state.nations_by_rank.begin() + to_sort_count, [&](dcon::nation_id a, dcon::nation_id b) {
 		auto fa = fatten(state.world, a);
 		auto fb = fatten(state.world, b);
-		if(fa.get_is_civilized() && !fb.get_is_civilized())
-			return true;
-		if(!fa.get_is_civilized() && fb.get_is_civilized())
-			return false;
-		if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
-			return false;
-		if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
-			return true;
+		if(fa.get_is_civilized() != fb.get_is_civilized())
+			return fa.get_is_civilized();
+		if(bool(fa.get_overlord_as_subject()) != bool(fa.get_overlord_as_subject()))
+			return !bool(fa.get_overlord_as_subject());
 		auto a_score = fa.get_military_score() + fa.get_industrial_score() + prestige_score(state, a);
 		auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
 		if(a_score != b_score)

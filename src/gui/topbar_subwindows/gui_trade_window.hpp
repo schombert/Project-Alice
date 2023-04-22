@@ -306,7 +306,7 @@ public:
 			} break;
 			case trade_flow_data::value_type::used_by: {
 				auto& inputs = state.world.factory_type_get_inputs(ftid);
-				for(auto i = 0; i < inputs.set_size; ++i)
+				for(uint32_t i = 0; i < inputs.set_size; ++i)
 					if(inputs.commodity_type[i] == commodity_id)
 						amount += inputs.commodity_amounts[i];
 				output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
@@ -418,7 +418,7 @@ public:
 		populate_rows(state, [&](dcon::factory_id fid) -> bool {
 			auto ftid = state.world.factory_get_building_type(fid);
 			auto& inputs = state.world.factory_type_get_inputs(ftid);
-			for(auto i = 0; i < inputs.set_size; ++i)
+			for(uint32_t i = 0; i < inputs.set_size; ++i)
 				if(inputs.commodity_type[i] == commodity_id)
 					return inputs.commodity_amounts[i] > 0.f; // Some inputs taken
 			return false;
@@ -433,7 +433,7 @@ public:
 		populate_rows(state, [&](dcon::factory_id fid) -> bool {
 			auto ftid = state.world.factory_get_building_type(fid);
 			auto& inputs = state.world.factory_type_get_inputs(ftid);
-			for(auto i = 0; i < inputs.set_size; ++i)
+			for(uint32_t i = 0; i < inputs.set_size; ++i)
 				if(inputs.commodity_type[i] == commodity_id)
 					return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
 			return false;

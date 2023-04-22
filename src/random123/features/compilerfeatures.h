@@ -319,7 +319,7 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
 #endif
 
 #ifndef R123_THROW
-#define R123_THROW(x)    throw (x)
+#define R123_THROW(x) std::abort()
 #endif
 
 #ifndef R123_METAL_THREAD_ADDRESS_SPACE

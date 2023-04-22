@@ -215,20 +215,25 @@ R123_STATIC_INLINE r123m128i& operator+=(r123m128i& lhs, R123_ULONG_LONG n){
 }
 
 // We need this one because it's present, but never used in r123array1xm128i::incr
-R123_STATIC_INLINE bool operator<=(R123_ULONG_LONG, const r123m128i &){
-    throw std::runtime_error("operator<=(unsigned long long, r123m128i) is unimplemented.");}
+R123_STATIC_INLINE bool operator<=(R123_ULONG_LONG, const r123m128i&) {
+	std::abort();
+}
 
 // The comparisons aren't implemented, but if we leave them out, and 
 // somebody writes, e.g., M1 < M2, the compiler will do an implicit
 // conversion through void*.  Sigh...
 R123_STATIC_INLINE bool operator<(const r123m128i&, const r123m128i&){
-    throw std::runtime_error("operator<(r123m128i, r123m128i) is unimplemented.");}
+	std::abort();
+}
 R123_STATIC_INLINE bool operator<=(const r123m128i&, const r123m128i&){
-    throw std::runtime_error("operator<=(r123m128i, r123m128i) is unimplemented.");}
+	std::abort();
+}
 R123_STATIC_INLINE bool operator>(const r123m128i&, const r123m128i&){
-    throw std::runtime_error("operator>(r123m128i, r123m128i) is unimplemented.");}
+	std::abort();
+}
 R123_STATIC_INLINE bool operator>=(const r123m128i&, const r123m128i&){
-    throw std::runtime_error("operator>=(r123m128i, r123m128i) is unimplemented.");}
+	std::abort();
+}
 
 R123_STATIC_INLINE bool operator==(const r123m128i &lhs, const r123m128i &rhs){ 
     return 0xf==_mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(lhs, rhs))); }

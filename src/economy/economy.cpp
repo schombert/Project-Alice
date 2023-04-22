@@ -372,7 +372,7 @@ void update_factory_employment(sys::state& state) {
 
 		std::sort(ordered_factories.begin(), ordered_factories.end(), [&](dcon::factory_id a, dcon::factory_id b) {
 			if(factory_is_profitable(state, a) != factory_is_profitable(state, b)) {
-				return factory_is_profitable(state, a) && !factory_is_profitable(state, b);
+				return factory_is_profitable(state, a);
 			}
 			if(factory_priority(state, a) != factory_priority(state, b)) {
 				return factory_priority(state, a) > factory_priority(state, b);
