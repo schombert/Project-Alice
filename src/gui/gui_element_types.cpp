@@ -631,6 +631,7 @@ std::unique_ptr<element_base> make_element(sys::state& state, std::string_view n
 }
 
 state::state() {
+	mapicons_root = std::make_unique<container_base>();
 	root = std::make_unique<container_base>();
 	tooltip = std::make_unique<tool_tip>();
 	tooltip->flags |= element_base::is_invisible_mask;

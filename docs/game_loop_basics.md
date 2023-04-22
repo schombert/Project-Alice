@@ -14,6 +14,7 @@ The game state may change as the result of a new day being processed, which is p
 ```
 auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 	if(game_state_was_updated) {
+		ui_state.mapicons_root->impl_on_update(*this);
 		ui_state.root->impl_on_update(*this);
 		// TODO map needs to refresh itself with data
 		// TODO also need to update any tooltips (which probably exist outside the root container)

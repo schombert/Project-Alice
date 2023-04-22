@@ -1136,26 +1136,19 @@ glm::vec2 display_data::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_siz
 	return screen_pos;
 }
 
+glm::vec2 display_data::get_map_screen_offset(glm::vec2 screen_size) {
+	auto pos = glm::vec2(-0.5f, -1.f + 0.25f) + glm::vec2(float(-offset_x), float(offset_y));
+	return map_to_screen(pos, screen_size);
+}
+
+glm::vec2 display_data::normalize_map_coord(glm::vec2 pos) {
+	return pos / glm::vec2{ float(size_x), float(size_y) };
+}
+
 glm::vec2 display_data::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size) {
-	const glm::vec2 offset{ offset_x, offset_y };
 	const glm::vec2 map_size{ float(size_x), float(size_y) };
-/*
-	vec2 world_pos = vertex_position + vec2(-offset.x, offset.y);
-	world_pos.x = mod(world_pos.x, 1.0f);
-	// Translates and scales the map coordinates to clip coordinates, i.e. -1 -> 1
-	gl_Position = vec4(
-		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
-		(2. * world_pos.y - 1.f) * zoom,
-		0.0, 1.0);
-	tex_coord = vertex_position;
-*/
-	glm::vec2 world_pos = (glm::vec2(-0.5f, -0.5f) + (map_pos / map_size) + glm::vec2(-offset.x, offset.y)) * glm::vec2(1.f, -1.f);
-	const auto aspect_ratio = float(screen_size.x) / float(screen_size.y);
-	const auto map_aspect_ratio = map_size.x / map_size.y;
-	return glm::vec2(
-		world_pos.x * (map_size.x * (zoom - 1.f)) / aspect_ratio * map_aspect_ratio,
-		world_pos.y * (map_size.y * (zoom - 1.f))
-	);
+	const auto world_pos = map_pos * glm::vec2(1.f, -1.f);
+	return glm::vec2(world_pos.x * map_size.x * zoom, world_pos.y * map_size.y * zoom);
 }
 
 void display_data::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {

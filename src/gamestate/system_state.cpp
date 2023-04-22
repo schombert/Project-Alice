@@ -145,6 +145,7 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
+			ui_state.mapicons_root->impl_on_update(*this);
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
 			// TODO also need to update any tooltips (which probably exist outside the root container)
@@ -240,6 +241,8 @@ namespace sys {
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
+		const auto map_offset = map_display.get_map_screen_offset(glm::vec2(float(x_size), float(y_size)));
+		ui_state.mapicons_root->impl_render(*this, map_offset.x, map_offset.y);
 		ui_state.root->impl_render(*this, 0, 0);
 		if(ui_state.tooltip->is_visible()) {
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
@@ -253,6 +256,14 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
 
+		{
+			world.for_each_province([&](dcon::province_id id) {
+				auto new_elm = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
+				Cyto::Any payload = id;
+				new_elm->impl_set(*this, payload);
+				ui_state.mapicons_root->add_child_to_front(std::move(new_elm));
+			});
+		}
         {
             auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
             ui_state.console_window = window.get();
@@ -275,14 +286,6 @@ namespace sys {
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
-		}
-		{
-			world.for_each_province([&](dcon::province_id id) {
-				auto new_elm = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
-				Cyto::Any payload = id;
-				new_elm->impl_set(*this, payload);
-				ui_state.root->add_child_to_front(std::move(new_elm));
-			});
 		}
 	}
 	//

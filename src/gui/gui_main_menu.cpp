@@ -84,6 +84,7 @@ void fonts_mode_left::button_action(sys::state& state) noexcept {
 	Cyto::Any payload = notify_setting_update{ };
 	if(parent) parent->impl_get(state, payload);
 
+	state.ui_state.mapicons_root->impl_on_reset_text(state);
 	state.ui_state.root->impl_on_reset_text(state);
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
@@ -95,6 +96,7 @@ void fonts_mode_right::button_action(sys::state& state) noexcept {
 	Cyto::Any payload = notify_setting_update{ };
 	if(parent) parent->impl_get(state, payload);
 
+	state.ui_state.mapicons_root->impl_on_reset_text(state);
 	state.ui_state.root->impl_on_reset_text(state);
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;

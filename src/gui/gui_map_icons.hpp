@@ -41,7 +41,7 @@ public:
         if(std::holds_alternative<int32_t>(content))
             set_text(state, std::to_string(std::get<int32_t>(content)));
         else
-            set_text(state, text::prettify(std::get<float>(content)));
+            set_text(state, text::prettify(int32_t(std::get<float>(content))));
 	}
 };
 
@@ -126,7 +126,7 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
         const auto mid_point = state.world.province_get_mid_point(content);
         const glm::vec2 screen_size{ float(state.x_size), float(state.y_size) };
-        const auto screen_pos = state.map_display.map_to_screen(mid_point, screen_size);
+        const auto screen_pos = state.map_display.map_to_screen(state.map_display.normalize_map_coord(mid_point), screen_size);
 		base_data.position.x = screen_pos.x;
         base_data.position.y = screen_pos.y;
         window_element_base::render(state, 0, 0);
