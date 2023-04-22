@@ -133,7 +133,8 @@ public:
 				++count;
 			});
 		});
-		return std::to_string(count);
+		// TODO: Is this really hardcoded? Is it really that 8 factories is the maximum, **hardcoded**??
+		return std::to_string(count) + "/" + std::to_string(8);
 	}
 };
 
@@ -2212,16 +2213,10 @@ protected:
 	}
 };
 
-class commodity_factory_image : public image_element_base {
-	dcon::commodity_id commodity_id{};
+class commodity_factory_image : public generic_settable_element<image_element_base, dcon::commodity_id> {
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			frame = int32_t(state.world.commodity_get_icon(commodity_id));
-			return message_result::consumed;
-		}
-		return message_result::unseen;
+	void on_update(sys::state& state) noexcept override {
+		frame = int32_t(state.world.commodity_get_icon(content));
 	}
 };
 
@@ -2425,7 +2420,35 @@ public:
 class factory_level_text : public standard_factory_text {
 public:
     std::string get_text(sys::state& state) noexcept override {
-        return text::format_float(state.world.factory_get_level(factory_id), 2);
+        return std::to_string(uint32_t(state.world.factory_get_level(factory_id)));
+	}
+};
+class factory_profit_text : public generic_settable_element<multiline_text_element_base, dcon::factory_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto profit = state.world.factory_get_full_profit(content);
+		bool is_positive = profit >= 0.f;
+		auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
+		// Create colour
+        auto contents = text::create_endless_layout(
+            internal_layout,
+            text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
+        );
+        auto box = text::open_layout_box(contents);
+        text::add_to_layout_box(contents, state, box, text, is_positive ? text::text_color::green : text::text_color::red);
+        text::close_layout_box(contents, box);
+	}
+};
+class factory_priority_image : public generic_settable_element<image_element_base, dcon::factory_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		frame = economy::factory_priority(state, content);
+	}
+};
+class factory_employment_image : public generic_settable_element<image_element_base, dcon::factory_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
 	}
 };
 

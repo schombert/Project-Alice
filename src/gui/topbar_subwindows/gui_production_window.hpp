@@ -18,7 +18,16 @@ enum class production_window_tab : uint8_t {
 };
 
 class production_factory_info : public window_element_base {
-	image_element_base* in_progress_bg = nullptr;
+	commodity_factory_image* output_icon = nullptr;
+	commodity_factory_image* input_icons[economy::commodity_set::set_size] = { nullptr };
+	image_element_base* input_lack_icons[economy::commodity_set::set_size] = { nullptr };
+	image_element_base* closed_overlay = nullptr;
+	simple_text_element_base* closed_text = nullptr;
+	progress_bar* inprogress_bar = nullptr;
+	progress_bar* building_bar = nullptr;
+	button_element_base* cancel_progress_btn = nullptr;
+	progress_bar* upgrade_bar = nullptr;
+	image_element_base* upgrade_overlay = nullptr;
 public:
 	dcon::state_instance_id state_id{};
 	uint8_t index = 0; // from 0 to 8
@@ -38,18 +47,98 @@ public:
 			});
 		});
 		set_visible(state, is_display);
+		if(!is_display)
+			return;
+		
+		bool is_closed = false;
+		closed_overlay->set_visible(state, is_closed);
+		closed_text->set_visible(state, is_closed);
 
-		Cyto::Any payload = fid;
-		impl_set(state, payload);
+		bool is_building = false;
+		inprogress_bar->set_visible(state, is_building);
+		building_bar->set_visible(state, is_building);
+		cancel_progress_btn->set_visible(state, is_building);
+
+		bool is_upgrade = false;
+		upgrade_bar->set_visible(state, is_upgrade);
+		upgrade_overlay->set_visible(state, is_upgrade);
+
+		auto fat_btid = state.world.factory_get_building_type(fid);
+		{
+			Cyto::Any payload = fid;
+			impl_set(state, payload);
+		}
+		{
+			auto cid = fat_btid.get_output().id;
+			Cyto::Any payload = cid;
+			output_icon->impl_set(state, payload);
+		}
+		// Commodity set
+		auto cset = fat_btid.get_inputs();
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i)
+			if(input_icons[size_t(i)]) {
+				auto cid = cset.commodity_type[size_t(i)];
+				Cyto::Any payload = cid;
+				input_icons[size_t(i)]->impl_set(state, payload);
+				bool is_lack = state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f;
+				if(cid == dcon::commodity_id{})
+					is_lack = false;
+				input_lack_icons[size_t(i)]->set_visible(state, is_lack);
+			}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "prod_factory_inprogress_bg") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			in_progress_bg = ptr.get();
-			return ptr;
-		} else if(name == "level") {
+		if(name == "level") {
 			return make_element_by_type<factory_level_text>(state, id);
+		} else if(name == "income") {
+			return make_element_by_type<factory_profit_text>(state, id);
+		} else if(name == "output") {
+			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
+			output_icon = ptr.get();
+			return ptr;
+		} else if(name == "closed_overlay") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			closed_overlay = ptr.get();
+			return ptr;
+		} else if(name == "factory_closed_text") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			closed_text = ptr.get();
+			return ptr;
+		} else if(name == "prod_factory_inprogress_bg") {
+			auto ptr = make_element_by_type<progress_bar>(state, id);
+			inprogress_bar = ptr.get();
+			return ptr;
+		} else if(name == "build_factory_progress") {
+			auto ptr = make_element_by_type<progress_bar>(state, id);
+			building_bar = ptr.get();
+			return ptr;
+		} else if(name == "prod_cancel_progress") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			cancel_progress_btn = ptr.get();
+			return ptr;
+		} else if(name == "upgrade_factory_progress") {
+			auto ptr = make_element_by_type<progress_bar>(state, id);
+			upgrade_bar = ptr.get();
+			return ptr;
+		} else if(name == "progress_overlay_16_64") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			upgrade_overlay = ptr.get();
+			return ptr;
+		} else if(name == "employment_ratio") {
+			return make_element_by_type<factory_employment_image>(state, id);
+		} else if(name == "priority") {
+			return make_element_by_type<factory_priority_image>(state, id);
+		} else if(name.substr(0, 6) == "input_") {
+			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
+			if(name.ends_with("_lack2")) {
+				auto ptr = make_element_by_type<image_element_base>(state, id);
+				input_lack_icons[input_index] = ptr.get();
+				return ptr;
+			} else {
+				auto ptr = make_element_by_type<commodity_factory_image>(state, id);
+				input_icons[input_index] = ptr.get();
+				return ptr;
+			}
 		} else {
 			return nullptr;
 		}
