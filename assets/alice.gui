@@ -521,8 +521,9 @@ guiTypes = {
 		position = { x=0 y=6 }
 		Orientation = "UPPER_LEFT"
 	}
-	guiButtonType = {
-		name = "rgo_mapicon"
-		quadTextureSprite = "GFX_resources_big"
+	
+	iconType = {
+		name = "alice_rgo_mapicon"
+		spriteType = "GFX_resources_big"
 	}
 }

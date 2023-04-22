@@ -56,7 +56,18 @@ public:
     }
 };
 
-class unit_icon_window : public generic_settable_element<window_element_base, dcon::province_id> {
+template<typename T>
+class map_element_base : public generic_settable_element<T, dcon::province_id> {
+public:
+    void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+        auto mid_point = state.world.province_get_mid_point(generic_settable_element<T, dcon::province_id>::content);
+        auto screen_pos = state.map_display.map_to_screen(state.map_display.normalize_map_coord(mid_point), glm::vec2{ float(state.x_size), float(state.y_size) });
+        T::base_data.position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+        T::render(state, x, y);
+    }
+};
+
+class unit_icon_window : public map_element_base<window_element_base> {
     unit_strength_text* strength_text = nullptr;
     unit_country_flag* country_flag = nullptr;
 public:
@@ -122,18 +133,9 @@ public:
         }
         set_visible(state, has_navy || has_army);
     }
-
-    void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-        const auto mid_point = state.world.province_get_mid_point(content);
-        const glm::vec2 screen_size{ float(state.x_size), float(state.y_size) };
-        const auto screen_pos = state.map_display.map_to_screen(state.map_display.normalize_map_coord(mid_point), screen_size);
-        base_data.position.x = screen_pos.x;
-        base_data.position.y = screen_pos.y;
-        window_element_base::render(state, 0, 0);
-    }
 };
 
-class rgo_icon : public generic_settable_element<image_element_base, dcon::province_id> {
+class rgo_icon : public map_element_base<image_element_base> {
 public:
     void on_update(sys::state& state) noexcept override {
         auto cid = state.world.province_get_rgo(content).id;
