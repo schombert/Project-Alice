@@ -132,4 +132,12 @@ public:
         window_element_base::render(state, 0, 0);
     }
 };
+
+class rgo_icon : public generic_settable_element<image_element_base, dcon::province_id> {
+public:
+    void on_update(sys::state& state) noexcept override {
+        auto cid = state.world.province_get_rgo(content).id;
+	    frame = int32_t(state.world.commodity_get_icon(cid));
+    }
+};
 }
