@@ -76,6 +76,8 @@ public:
 	dcon::province_id get_selected_province();
 	void set_selected_province(dcon::province_id prov_id);
 
+	glm::vec2 map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size);
+
 	uint32_t size_x;
 	uint32_t size_y;
 
