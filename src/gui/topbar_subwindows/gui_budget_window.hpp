@@ -243,7 +243,7 @@ class budget_military_spending_slider : public budget_slider<budget_slider_targe
 
 class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs> {
 	int32_t get_true_value(sys::state& state) noexcept override {
-		return int32_t(state.world.nation_get_poor_tax(nation_id));
+		return int32_t(state.world.nation_get_tariffs(nation_id));
 	}
 };
 
