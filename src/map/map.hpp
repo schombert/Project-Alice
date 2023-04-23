@@ -44,6 +44,10 @@ struct border {
 	int count = -1;
 	uint8_t type_flag;
 };
+enum class map_view {
+	globe,
+	flat
+};
 class display_data {
 public:
 	display_data() {};
@@ -61,6 +65,7 @@ public:
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
 	void set_terrain_map_mode();
 	void update_borders(sys::state& state);
+	void set_view_mode(map_view map_view_mode);
 
 	// Set the position of camera. Position relative from 0-1
 	void set_pos(glm::vec2 pos);
@@ -131,6 +136,7 @@ private:
 	GLuint line_border_shader = 0;
 
 	// Position and movement
+	map_view map_view_mode = map_view::globe;
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
 	glm::vec2 pos_velocity = glm::vec2(0.f);
 	glm::vec2 last_camera_drag_pos;

@@ -625,6 +625,12 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 		// uniform vec2 map_size
 		glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 		glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		GLuint function_index;
+		if (map_view_mode == map_view::globe)
+			function_index = 0;
+		else
+			function_index = 1;
+		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &function_index);
 	};
 
 	// Draw the land part of the map
@@ -778,6 +784,9 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void display_data::set_view_mode(map_view map_view_mode) {
+	this->map_view_mode = map_view_mode;
+}
 
 void display_data::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
 	active_map_mode = new_map_mode;
@@ -1005,7 +1014,7 @@ void display_data::update(sys::state& state) {
 	velocity.x *= float(size_y) / float(size_x);
 	pos += velocity;
 
-	globe_rotation = glm::rotate(glm::mat4(1.f), (1 - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
+	globe_rotation = glm::rotate(glm::mat4(1.f), (0.25f - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
 	// Rotation axis
 	glm::vec3 axis = glm::vec3(globe_rotation * glm::vec4(1, 0, 0, 0));
 	axis.z = 0;
