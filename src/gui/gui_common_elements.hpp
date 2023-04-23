@@ -825,16 +825,16 @@ public:
 class province_migration_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		return text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id)));
+		auto internal = province::monthly_net_pop_internal_migration(state, province_id);
+		auto external = province::monthly_net_pop_external_migration(state, province_id);
+		return text::prettify(int32_t(internal + external));
 	}
 };
 
 class province_pop_growth_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		auto internal = province::monthly_net_pop_internal_migration(state, province_id);
-		auto external = province::monthly_net_pop_external_migration(state, province_id);
-		return text::prettify(int32_t(internal + external));
+		return text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id)));
 	}
 };
 
