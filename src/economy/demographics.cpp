@@ -663,8 +663,8 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	Each pop has its militancy adjusted by the
 	local-militancy-modifier
 	+ (technology-separatism-modifier + 1) x define:MIL_NON_ACCEPTED (if the pop is not of a primary or accepted culture)
-	+ (pop-life-needs-satisfaction - 0.5) x define:MIL_NO_LIFE_NEED
-	+ (pop-everyday-needs-satisfaction - 0.5)^0 x define:MIL_LACK_EVERYDAY_NEED
+	- (pop-life-needs-satisfaction - 0.5) x define:MIL_NO_LIFE_NEED
+	- (pop-everyday-needs-satisfaction - 0.5)^0 x define:MIL_LACK_EVERYDAY_NEED
 	+ (pop-everyday-needs-satisfaction - 0.5)v0 x define:MIL_HAS_EVERYDAY_NEED
 	+ (pop-luxury-needs-satisfaction - 0.5)v0 x define:MIL_HAS_LUXURY_NEED
 	+ pops-support-for-conservatism x define:MIL_IDEOLOGY / 100
@@ -682,7 +682,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto ruling_party = state.world.nation_get_ruling_party(owner);
 		auto ruling_ideology = state.world.political_party_get_ideology(ruling_party);
 
-		auto lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.mil_has_luxury_need;
+		auto lx_mod = ve::max(state.world.pop_get_luxury_needs_satisfaction(ids) - 0.5f, 0.0f) * state.defines.mil_has_luxury_need;
 		auto con_sup = state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology / 100.0f;
 		auto ruling_sup = ve::apply([&](dcon::pop_id p, dcon::ideology_id i) {
 			return i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) * state.defines.mil_ruling_party / 100.0f : 0.0f;
@@ -700,13 +700,13 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids),
 			0.0f,
 			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) * state.defines.mil_non_accepted);
-		auto ln_mod = (state.world.pop_get_life_needs_satisfaction(ids) - 0.5) * state.defines.mil_no_life_need;
+		auto ln_mod = ve::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5), 0.0f) * state.defines.mil_no_life_need;
 		auto en_mod_a = ve::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5)) * state.defines.mil_lack_everyday_need;
 		auto en_mod_b = ve::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5)) * state.defines.mil_has_everyday_need;
 
 		auto old_mil = state.world.pop_get_militancy(ids);
 
-		state.world.pop_set_militancy(ids, ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil)) + ((sep_mod + ln_mod) + (en_mod_a + en_mod_b)), 0.0f)), 10.0f));
+		state.world.pop_set_militancy(ids, ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a)), 0.0f)), 10.0f));
 	});
 }
 
