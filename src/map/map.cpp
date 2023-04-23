@@ -5,7 +5,9 @@
 #include <cmath>
 #include <numbers>
 #include <glm/glm.hpp>
+#include <glm/mat3x3.hpp>
 #include <unordered_map>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace map {
 
@@ -622,6 +624,7 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 		glUniform1f(2, zoom);
 		// uniform vec2 map_size
 		glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
+		glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
 	};
 
 	// Draw the land part of the map
@@ -1001,6 +1004,14 @@ void display_data::update(sys::state& state) {
 	velocity = (pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom);
 	velocity.x *= float(size_y) / float(size_x);
 	pos += velocity;
+
+	globe_rotation = glm::rotate(glm::mat4(1.f), (1 - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
+	// Rotation axis
+	glm::vec3 axis = glm::vec3(globe_rotation * glm::vec4(1, 0, 0, 0));
+	axis.z = 0;
+	axis = glm::normalize(axis);
+	axis.y *= -1;
+	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
 
 	if(has_zoom_changed) {
 		last_zoom_time = now;

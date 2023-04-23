@@ -3,6 +3,7 @@
 #include "system_state.hpp"
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
 #include "parsers_declarations.hpp"
 
 namespace map {
@@ -133,6 +134,7 @@ private:
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
 	glm::vec2 pos_velocity = glm::vec2(0.f);
 	glm::vec2 last_camera_drag_pos;
+	glm::mat4 globe_rotation = glm::mat4(1.0f);
 	bool is_dragging = false;
 	//glm::vec2 size; // Map size
 	float offset_x = 0.f;
