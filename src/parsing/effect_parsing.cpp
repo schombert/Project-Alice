@@ -1003,46 +1003,16 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 	}
 }
 
-int32_t get_effect_non_scope_payload_size(const uint16_t* data) {
-	return effect::data_sizes[data[0] & effect::code_mask];
-}
-int32_t get_effect_scope_payload_size(const uint16_t* data) {
-	return data[1];
-}
-int32_t get_generic_effect_payload_size(const uint16_t* data) {
-	return (data[0] & effect::is_scope) != 0 ? get_effect_scope_payload_size(data) : get_effect_non_scope_payload_size(data);
-}
-
-int32_t effect_scope_data_payload(uint16_t code) {
-	const auto masked_code = code & effect::code_mask;
-	if((masked_code == effect::tag_scope) ||
-		(masked_code == effect::integer_scope) ||
-		(masked_code == effect::pop_type_scope_nation) ||
-		(masked_code == effect::pop_type_scope_state) ||
-		(masked_code == effect::pop_type_scope_province) ||
-		(masked_code == effect::region_scope) ||
-		(masked_code == effect::random_scope))
-		return 1 + ((code & effect::scope_has_limit) != 0);
-	return 0 + ((code & effect::scope_has_limit) != 0);
-}
-
-
-
-bool effect_scope_has_single_member(const uint16_t* source) { //precondition: scope known to not be empty
-	const auto data_offset = 2 + effect_scope_data_payload(source[0]);
-	return get_effect_scope_payload_size(source) == data_offset + get_generic_effect_payload_size(source + data_offset);
-}
-
 int32_t simplify_effect(uint16_t* source) {
 	assert(0 <= (*source & effect::code_mask) && (*source & effect::code_mask) < effect::first_invalid_code);
 	if((source[0] & effect::is_scope) != 0) {
-		auto source_size = 1 + get_effect_scope_payload_size(source);
+		auto source_size = 1 + effect::get_effect_scope_payload_size(source);
 
 		if((source[0] & effect::code_mask) == effect::random_list_scope) {
 			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
 
 			while(sub_units_start < source + source_size) {
-				const auto old_size = 1 + get_generic_effect_payload_size(sub_units_start);
+				const auto old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
 				const auto new_size = simplify_effect(sub_units_start);
 				if(new_size > 0) {
 					if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
@@ -1056,10 +1026,10 @@ int32_t simplify_effect(uint16_t* source) {
 				}
 			}
 		} else {
-			auto sub_units_start = source + 2 + effect_scope_data_payload(source[0]);
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
 
 			while(sub_units_start < source + source_size) {
-				const auto old_size = 1 + get_generic_effect_payload_size(sub_units_start);
+				const auto old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
 				const auto new_size = simplify_effect(sub_units_start);
 
 				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
@@ -1082,7 +1052,7 @@ int32_t simplify_effect(uint16_t* source) {
 		if((source[0] & effect::code_mask) == effect::generic_scope) {
 			if(source_size == 2) {
 				return 0; //simplify empty scope to nothing
-			} else if(((source[0] & effect::scope_has_limit) == 0) && effect_scope_has_single_member(source)) {
+			} else if(((source[0] & effect::scope_has_limit) == 0) && effect::effect_scope_has_single_member(source)) {
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
 			}
@@ -1090,7 +1060,7 @@ int32_t simplify_effect(uint16_t* source) {
 
 		return source_size;
 	} else {
-		return 1 + get_effect_non_scope_payload_size(source); // non scopes cannot be simplified
+		return 1 + effect::get_effect_non_scope_payload_size(source); // non scopes cannot be simplified
 	}
 }
 
@@ -1100,20 +1070,20 @@ void recurse_over_effects(uint16_t* source, const T& f) {
 
 	if((source[0] & effect::is_scope) != 0) {
 		if((source[0] & effect::code_mask) == effect::random_list_scope) {
-			const auto source_size = 1 + get_generic_effect_payload_size(source);
+			const auto source_size = 1 + effect::get_generic_effect_payload_size(source);
 
 			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
 			while(sub_units_start < source + source_size) {
 				recurse_over_effects(sub_units_start, f);
-				sub_units_start += 2 + get_generic_effect_payload_size(sub_units_start); // each member preceded by uint16_t
+				sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start); // each member preceded by uint16_t
 			}
 		} else {
-			const auto source_size = 1 + get_generic_effect_payload_size(source);
+			const auto source_size = 1 + effect::get_generic_effect_payload_size(source);
 
-			auto sub_units_start = source + 2 + effect_scope_data_payload(source[0]);
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
 			while(sub_units_start < source + source_size) {
 				recurse_over_effects(sub_units_start, f);
-				sub_units_start += 1 + get_generic_effect_payload_size(sub_units_start);
+				sub_units_start += 1 + effect::get_generic_effect_payload_size(sub_units_start);
 			}
 		}
 	}
@@ -1121,6 +1091,11 @@ void recurse_over_effects(uint16_t* source, const T& f) {
 
 dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_building_context& context) {
 	ef_scope_hidden_tooltip(gen, err, context);
+
+	if(context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
+		err.accumulated_errors += "effect is " + std::to_string(context.compiled_effect.size()) + " cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
+		return dcon::effect_key{0};
+	}
 
 	const auto new_size = simplify_effect(context.compiled_effect.data());
 	context.compiled_effect.resize(static_cast<size_t>(new_size));

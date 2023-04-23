@@ -2527,7 +2527,7 @@ TRIGGER_FUNCTION(tf_in_sphere_this_pop) {
 }
 TRIGGER_FUNCTION(tf_produces_nation) {
 	auto good = payload(tval[1]).com_id;
-	return compare_to_true(tval[0], ws.world.nation_get_last_production(to_nation(primary_slot), good) > 0.0f);
+	return compare_to_true(tval[0], ws.world.nation_get_domestic_market_pool(to_nation(primary_slot), good) > 0.0f);
 }
 TRIGGER_FUNCTION(tf_produces_province) {
 	return compare_to_true(tval[0],
@@ -2536,7 +2536,23 @@ TRIGGER_FUNCTION(tf_produces_province) {
 }
 TRIGGER_FUNCTION(tf_produces_state) {
 	auto good = payload(tval[1]).com_id;
-	return compare_to_true(tval[0], ws.world.state_instance_get_last_production(to_state(primary_slot), good) > 0.0f);
+	return compare_to_true(tval[0], ve::apply([&](dcon::state_instance_id si, dcon::nation_id o) {
+		auto d = ws.world.state_instance_get_definition(si);
+		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == o) {
+				if(p.get_province().get_rgo() == good)
+					return true;
+				if(p.get_province().get_artisan_production() == good)
+					return true;
+
+				for(auto f : p.get_province().get_factory_location()) {
+					if(f.get_factory().get_building_type().get_output() == good)
+						return true;
+				}
+			}
+		}
+		return false;
+	}, to_state(primary_slot), ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot))));
 }
 TRIGGER_FUNCTION(tf_produces_pop) {
 	auto pop_location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
@@ -2816,12 +2832,7 @@ TRIGGER_FUNCTION(tf_has_empty_adjacent_province) {
 TRIGGER_FUNCTION(tf_has_leader) {
 	auto name = payload(tval[1]).unam_id;
 	auto result = ve::apply([&ws, name](dcon::nation_id n) {
-		for(auto l : ws.world.nation_get_general_loyalty(n)) {
-			auto lname = l.get_leader().get_name();
-			if(ws.to_string_view(lname) == ws.to_string_view(name))
-				return true;
-		}
-		for(auto l : ws.world.nation_get_admiral_loyalty(n)) {
+		for(auto l : ws.world.nation_get_leader_loyalty(n)) {
 			auto lname = l.get_leader().get_name();
 			if(ws.to_string_view(lname) == ws.to_string_view(name))
 				return true;
@@ -3736,11 +3747,11 @@ TRIGGER_FUNCTION(tf_war_score) {
 }
 TRIGGER_FUNCTION(tf_is_releasable_vassal_from) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(to_nation(from_slot));
-	return compare_to_true(tval[0], ws.world.national_identity_get_is_releasable(tag));
+	return compare_to_true(tval[0], !ws.world.national_identity_get_is_not_releasable(tag));
 }
 TRIGGER_FUNCTION(tf_is_releasable_vassal_other) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(to_nation(from_slot));
-	return compare_to_true(tval[0], ws.world.national_identity_get_is_releasable(tag));
+	return compare_to_true(tval[0], !ws.world.national_identity_get_is_not_releasable(tag));
 }
 TRIGGER_FUNCTION(tf_has_recent_imigration) {
 	return compare_values(tval[0],

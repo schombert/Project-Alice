@@ -12,3 +12,15 @@ members of the `sys::state` object. The two store the full dates that are requir
 Most dates that the program will use are encoded by the `date` struct, which internally stores the date as a number of days after the `start_date`. Dates can be operated on directly in these terms. You can construct a date from an integer, representing the number of days after the start date, and you can add integers to a date, thereby adjusting it that many days (this is how durations should typically be calculated, by advancing the date 30 days for a month or 365 days for a year, even if this doesn't advance the user-friendly date by exactly one month or one year). You can also construct dates with the help of the `year_month_day` and the absolute starting date. For example `sys::date{sys::year_month_day{Y, M, D}, start_date}` will result in a `date` representing the given year (Y), month (M), and day (D).
 
 Finally, the convenience function `bool is_playable_date(date d, absolute_time_point start, absolute_time_point end)` is a quick way of testing whether a `date` falls within the playable range of the game.
+
+### Events
+
+- `void ui::fire_event(sys::state& state, const dcon::national_event_id event_id);` : Fires up an event window; first checking if there is any available event windows on the pool, otherwise create a new window and add it to the pool. This allows us to reuse previously created windows.
+- `void ui::fire_event(sys::state& state, const dcon::free_national_event_id event_id);` - as above.
+- `void ui::fire_event(sys::state& state, const dcon::provincial_event_id event_id);` - as above.
+- `void ui::fire_event(sys::state& state, const dcon::free_provincial_event_id event_id);` - as above.
+
+Once the user selects an option on the event window, it will be hidden from view and pass the option choosen to the game state. All event windows are placed on a pool, distinguished by 3 types: major, national and provincial. Once a window is hidden, it is available to be grabbed by another upcoming event, otherwise a new window will need to be created and added to the pool.
+
+- `void national_event_window<bool IsMajor>::select_event_option(sys::state& state, const sys::event_option opt);` - Selects the option `opt` for the event window `elm` - this will hide the window from the main user view and temporarily move it away from the root element, until it needs to be added again.
+- `void provincial_event_window::select_event_option(sys::state& state, const sys::event_option opt);` - as above.

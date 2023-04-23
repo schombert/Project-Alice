@@ -94,7 +94,7 @@ object{
 		tag{ scenario }
 	}
 	property{
-		name{ is_releasable }
+		name{ is_not_releasable }
 		type{ bitfield }
 		tag{ scenario }
 	}
@@ -260,6 +260,7 @@ object {
 	storage_type{ contiguous }
 	size{ 126 }
 	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
@@ -608,6 +609,11 @@ object {
 
 	property{
 		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ movement_name }
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
@@ -992,21 +998,6 @@ object {
 		type{ uint8_t }
 		tag{ scenario }
 	}
-	property{
-		name{ everyday_needs_income_weight }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ luxury_needs_income_weight }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ life_needs_income_weight }
-		type{ float }
-		tag{ scenario }
-	}
 
 	property{
 		name{ research_optimum }
@@ -1015,16 +1006,6 @@ object {
 	}
 	property{
 		name{ research_points }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ workplace_input }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ workplace_output }
 		type{ float }
 		tag{ scenario }
 	}
@@ -1356,7 +1337,19 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ rgo_actual_production }
+		type{ float }
+	}
+	property{
 		name{ artisan_actual_production }
+		type{ float }
+	}
+	property {
+		name{ rgo_full_profit }
+		type{ float }
+	}
+	property {
+		name{ artisan_full_profit }
 		type{ float }
 	}
 	property{
@@ -1615,7 +1608,7 @@ relationship{
 }
 
 object {
-	name{ general }
+	name{ leader }
 	storage_type{ erasable }
 	size{ 3000 }
 	tag{ save }
@@ -1645,37 +1638,9 @@ object {
 		type{ float }
 		tag{ save }
 	}
-}
-
-object {
-	name{ admiral }
-	storage_type{ erasable }
-	size{ 3000 }
-	tag{ save }
-
 	property{
-		name{ name }
-		type{ unit_name_id }
-		tag{ save }
-	}
-	property{
-		name{ personality }
-		type{ leader_trait_id }
-		tag{ save }
-	}
-	property{
-		name{ background }
-		type{ leader_trait_id }
-		tag{ save }
-	}
-	property{
-		name{ since }
-		type{ sys::date }
-		tag{ save }
-	}
-	property{
-		name{ prestige }
-		type{ float }
+		name{ is_admiral }
+		type{ bitfield }
 		tag{ save }
 	}
 }
@@ -1690,8 +1655,8 @@ relationship{
 		type{unique}
 	}
 	link{
-		object{general}
-		name{leader}
+		object{leader}
+		name{general}
 		type{unique}
 	}
 }
@@ -1705,14 +1670,14 @@ relationship{
 		type{unique}
 	}
 	link{
-		object{admiral}
-		name{leader}
+		object{leader}
+		name{admiral}
 		type{unique}
 	}
 }
 
 relationship{
-	name{ general_loyalty }
+	name{ leader_loyalty }
 	tag{ save }
 
 	link{
@@ -1722,23 +1687,7 @@ relationship{
 		index_storage{array}
 	}
 	link{
-		object{general}
-		name{leader}
-		type{unique}
-	}
-}
-relationship{
-	name{ admiral_loyalty }
-	tag{ save }
-
-	link{
-		object{nation}
-		name{nation}
-		type{many}
-		index_storage{array}
-	}
-	link{
-		object{admiral}
+		object{leader}
 		name{leader}
 		type{unique}
 	}
@@ -1762,6 +1711,11 @@ object {
 	property{
 		name{ start_date }
 		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ name }
+		type{ text_sequence_id }
 		tag{ save }
 	}
 }
@@ -1898,11 +1852,6 @@ object {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
 	}
-	property {
-		name{ last_production }
-		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
 }
 relationship{
 	name{ colonization }
@@ -2034,6 +1983,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ image }
+		type{ dcon::gfx_object_id }
+		tag{ scenario }
+	}
+	property{
 		name{folder_index}
 		type{uint8_t}
 		tag{ scenario }
@@ -2085,17 +2039,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ rgo_size }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2168,17 +2122,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_throughput }
-		type{vector_pool{800}{sys::commodity_modifier}}
+		type{vector_pool{1800}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2490,6 +2444,38 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ effective_land_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_naval_spending }
+		type{ float }
+	}
+	property {
+		name{ effective_construction_spending }
+		type{ float }
+	}
+	property {
+		name{ spending_level }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ total_rich_income }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ total_middle_income }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ total_poor_income }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ poor_tax }
 		type{ int8_t }
 		tag{ save }
@@ -2595,8 +2581,43 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ last_production }
+		name{ imports }
 		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ army_demand }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ navy_demand }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ construction_demand }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ demand_satisfaction }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ life_needs_costs }
+		type{ array{pop_type_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ everyday_needs_costs }
+		type{ array{pop_type_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ luxury_needs_costs }
+		type{ array{pop_type_id}{float} }
 		tag{ save }
 	}
 	property {
@@ -2879,6 +2900,10 @@ object {
 		name{ triggered_modifiers }
 		type{ float }
 	}
+	property {
+		name{ full_profit }
+		type{ float }
+	}
 	property{
 		name{ subsidized }
 		type{ bitfield }
@@ -2999,8 +3024,23 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ primary_culture_group }
+		type{ culture_group_id }
+		tag{ save }
+	}
+	property{
 		name{ religion }
 		type{ religion_id }
+		tag{ save }
+	}
+	property{
+		name{ possible_regiments }
+		type{ int32_t }
+		tag{ save }
+	}
+	property{
+		name{ organization }
+		type{ float }
 		tag{ save }
 	}
 	property{
@@ -3474,6 +3514,11 @@ object {
 		name{ ai_will_do }
 		type{ value_modifier_key }
 		tag{ scenario }
+	}
+	property{
+		name{ hide_notification }
+		type{ bitfield }
+		tag{ save }
 	}
 }
 

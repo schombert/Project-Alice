@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include "culture.hpp"
 #include "dcon_generated.hpp"
 
 namespace nations {
@@ -192,6 +193,8 @@ inline uint8_t decrease_priority(uint8_t v) {
 
 }
 
+dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
+
 // returns whether a culture is on the accepted list OR is the primary culture
 template<typename T, typename U>
 auto nation_accepts_culture(sys::state const& state, T ids, U c);
@@ -242,6 +245,10 @@ float suppression_points(sys::state const& state, dcon::nation_id n);
 float diplomatic_points(sys::state const& state, dcon::nation_id n);
 float leadership_points(sys::state const& state, dcon::nation_id n);
 float get_treasury(sys::state& state, dcon::nation_id n);
+float get_bank_funds(sys::state& state, dcon::nation_id n);
+float get_debt(sys::state& state, dcon::nation_id n);
+float tariff_efficiency(sys::state& state, dcon::nation_id n);
+float tax_efficiency(sys::state& state, dcon::nation_id n);
 int32_t free_colonial_points(sys::state const& state, dcon::nation_id n);
 int32_t max_colonial_points(sys::state const& state, dcon::nation_id n);
 

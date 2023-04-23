@@ -14,6 +14,9 @@
 #include "gui_main_menu.cpp"
 #include "gui_console.cpp"
 #include "gui_province_window.cpp"
+#include "gui_budget_window.cpp"
+#include "gui_technology_window.cpp"
+#include "gui_event.cpp"
 #include "nations_parsing.cpp"
 #include "cultures_parsing.cpp"
 #include "econ_parsing.cpp"
@@ -35,7 +38,9 @@
 #include "rebels.cpp"
 #include "parsers_declarations.cpp"
 #include "politics.cpp"
+#include "gui_effect_tooltips.cpp"
 #include "gui_trigger_tooltips.cpp"
+#include "gui_modifier_tooltips.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

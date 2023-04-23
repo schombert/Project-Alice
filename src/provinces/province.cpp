@@ -1,5 +1,7 @@
 #include "province.hpp"
 #include "dcon_generated.hpp"
+#include "demographics.hpp"
+#include "nations.hpp"
 #include "system_state.hpp"
 #include <vector>
 
@@ -252,8 +254,39 @@ bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
+	auto nation = state.world.province_get_nation_from_province_ownership(id);
+	float total_pops = state.world.province_get_demographics(id, demographics::total);
+
+
+	float life_rating = state.world.province_get_life_rating(id)
+						* (1 + state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::life_rating));
+	life_rating = std::clamp(life_rating, 0.f, 40.f);
+
+	if(life_rating > state.defines.min_life_rating_for_growth) {
+		life_rating -= state.defines.min_life_rating_for_growth;
+		life_rating *= state.defines.life_rating_growth_bonus;
+	} else {
+		life_rating = 0;
+	}
+
+	float growth_factor = life_rating + state.defines.base_popgrowth;
+
+	float life_needs = state.world.province_get_demographics(id, demographics::poor_everyday_needs)
+		+ state.world.province_get_demographics(id, demographics::middle_everyday_needs)
+		+ state.world.province_get_demographics(id, demographics::rich_everyday_needs);
+
+	life_needs /= total_pops;
+
+	
+
+	float growth_modifier_sum = ((life_needs - state.defines.life_need_starvation_limit) * growth_factor * 4
+		+ state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth)
+		+ state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::pop_growth) * 0.1f
+		); // /state.defines.slave_growth_divisor;
+
+	// TODO: slaves growth
+
+	return growth_modifier_sum * total_pops;
 }
 float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id) {
 	// TODO
@@ -268,25 +301,46 @@ float monthly_net_pop_external_migration(sys::state& state, dcon::province_id id
 	return 0.0f;
 }
 float rgo_maximum_employment(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
+	return economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
 }
 float rgo_employment(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
+	return economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id) * state.world.province_get_rgo_employment(id);
 }
 float rgo_income(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
+	return state.world.province_get_rgo_full_profit(id);
 }
 float rgo_production_quantity(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
+	return economy::rgo_full_production_quantity(state, state.world.province_get_nation_from_province_ownership(id), id) * state.world.province_get_rgo_employment(id);
 }
+float rgo_size(sys::state& state, dcon::province_id prov_id) {
+	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
+	auto sz = state.world.province_get_rgo_size(prov_id);
+
+
+	auto n = dcon::fatten(state.world, prov_id).get_nation_from_province_ownership();
+	auto bonus = state.world.province_get_modifier_values(prov_id, is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size)
+		+ state.world.nation_get_modifier_values(n, is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size)
+		+ state.world.nation_get_rgo_size(n, state.world.province_get_rgo(prov_id))
+		+ 1.0f;
+	return sz * bonus;
+}
+
+float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id id) {
+	float bsum = 0.f;
+	for_each_province_in_state_instance(state, id, [&](dcon::province_id p) {
+		for(auto po : state.world.province_get_pop_location(p)) {
+			if(po.get_pop().get_is_primary_or_accepted_culture() && po.get_pop().get_poptype() == state.culture_definitions.bureaucrat) {
+				bsum += po.get_pop().get_size();
+			}
+		}
+	});
+	return bsum;
+}
+
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id) {
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
 
-	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency);
+	auto admin_mod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::administrative_efficiency_modifier);
 
 	float issue_sum = 0.0f;
 	for(auto i : state.culture_definitions.social_issues) {
@@ -339,4 +393,52 @@ float revolt_risk(sys::state& state, dcon::province_id id) {
 	auto militancy = state.world.province_get_demographics(id, demographics::militancy);
 	return militancy / total_pop;
 }
+
+dcon::province_id get_connected_province(sys::state& state, dcon::province_adjacency_id adj, dcon::province_id curr) {
+	auto first = state.world.province_adjacency_get_connected_provinces(adj, 0);
+	if(first == curr) {
+		return state.world.province_adjacency_get_connected_provinces(adj, 1);
+	} else {
+		return first;
+	}
+}
+
+struct queue_node {
+	float priority;
+	dcon::province_id prov_id;
+};
+
+float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id) {
+	// TODO
+	return 1.f;
+}
+
+bool can_integrate_colony(sys::state& state, dcon::state_instance_id id) {
+	auto dkey = demographics::to_key(state, state.culture_definitions.bureaucrat);
+	auto bureaucrat_size = state_accepted_bureaucrat_size(state, id);
+	auto total_size = state.world.state_instance_get_demographics(id, demographics::total);
+	if(bureaucrat_size / total_size >= state.defines.state_creation_admin_limit) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
+		return colony_integration_cost(state, id) <= nations::free_colonial_points(state, owner);
+	} else {
+		return false;
+	}
+}
+
+float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
+	bool entirely_overseas = true;
+	float prov_count = 0.f;
+	for_each_province_in_state_instance(state, id, [&](dcon::province_id prov) {
+		entirely_overseas &= is_overseas(state, prov);
+		prov_count++;
+	});
+	if(entirely_overseas) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(id);
+		float distance = state_distance(state, id, state.world.nation_get_capital(owner).id);
+		return state.defines.colonization_create_state_cost * prov_count * std::max(distance / state.defines.colonization_colony_state_distance, 1.f);
+	} else {
+		return 0.f;
+	}
+}
+
 }

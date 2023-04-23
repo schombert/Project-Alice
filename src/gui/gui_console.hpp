@@ -5,7 +5,13 @@
 namespace ui {
 
 class console_edit : public edit_box_element_base {
+protected:
+    // Vector list of last commands
+    std::vector<std::string> command_history;
+    // Index of the current command in the history
+    int history_index = 0;
 public:
+    void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
 	void edit_box_enter(sys::state& state, std::string_view s) noexcept override;
 	void edit_box_esc(sys::state& state) noexcept override {
 		state.ui_state.console_window->set_visible(state, false);
@@ -13,6 +19,35 @@ public:
 	void edit_box_backtick(sys::state& state) noexcept override {
 		state.ui_state.console_window->set_visible(state, false);
 	}
+    void edit_box_up(sys::state& state) noexcept override;
+    void edit_box_down(sys::state& state) noexcept override;
+    void add_to_history(sys::state& state, std::string s) noexcept {
+        // Add the command to the history, starting with the most recent command
+        command_history.insert(command_history.begin(), s);
+        // Reset the history index
+        history_index = 0;
+    }
+    std::string navigate_history(int16_t step) noexcept {
+        // Start with most recent command.
+        // If user presses up/down, go to the older/newer command, etc.
+        int16_t size = static_cast<int16_t>(command_history.size());
+        history_index += step;
+        if(history_index < 0) {
+            history_index = 0;
+        } else if(history_index >= size) {
+            history_index = size;
+        }
+        if(history_index > 0 && history_index <= size) {
+            return command_history[history_index - 1];
+        }
+        return "";
+    }
+    std::string down_history() noexcept {
+        return navigate_history(-1);
+    }
+    std::string up_history() noexcept {
+        return navigate_history(1);
+    }
 };
 
 class console_list_entry : public listbox_row_element_base<std::string> {

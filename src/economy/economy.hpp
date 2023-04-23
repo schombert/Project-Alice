@@ -59,10 +59,17 @@ constexpr inline dcon::commodity_id money(0);
 // 1'200'000. Assuming that grain is slightly more prevalent, we arrive at the factor below as a nice round number
 constexpr inline float needs_scaling_factor = 1'000'000.0f;
 
+float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
+
+float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p);
+float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, dcon::province_id p);
+float rgo_max_employment(sys::state const& state, dcon::nation_id n, dcon::province_id p);
+
 bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
+float factory_total_employment(sys::state const& state, dcon::factory_id f);
 int32_t factory_priority(sys::state const& state, dcon::factory_id f);
 void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority);
 bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
@@ -75,5 +82,27 @@ void regenerate_unsaved_values(sys::state& state);
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
+void daily_update(sys::state& state);
+
+float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
+float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
+float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float nation_factory_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float nation_pop_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float nation_total_imports(sys::state& state, dcon::nation_id n);
+float pop_income(sys::state& state, dcon::pop_id p);
+
+float estimate_gold_income(sys::state& state, dcon::nation_id n);
+float estimate_tariff_income(sys::state& state, dcon::nation_id n);
+float estimate_social_spending(sys::state& state, dcon::nation_id n);
+float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
+float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
+float estimate_loan_payments(sys::state& state, dcon::nation_id n);
+float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
+float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
+
+float estimate_land_spending(sys::state& state, dcon::nation_id n);
+float estimate_naval_spending(sys::state& state, dcon::nation_id n);
+float estimate_construction_spending(sys::state& state, dcon::nation_id n);
 
 }

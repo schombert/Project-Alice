@@ -40,6 +40,10 @@ void restore_unsaved_values(sys::state& state);
 
 template<typename T>
 auto is_overseas(sys::state const& state, T ids);
+bool can_integrate_colony(sys::state& state, dcon::state_instance_id id);
+dcon::province_id get_connected_province(sys::state& state, dcon::province_adjacency_id adj, dcon::province_id curr);
+float colony_integration_cost(sys::state& state, dcon::state_instance_id id);
+float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id id);
 
 // can we just do without this?
 // void update_state_administrative_efficiency(sys::state& state);
@@ -56,6 +60,7 @@ float rgo_maximum_employment(sys::state& state, dcon::province_id id);
 float rgo_employment(sys::state& state, dcon::province_id id);
 float rgo_income(sys::state& state, dcon::province_id id);
 float rgo_production_quantity(sys::state& state, dcon::province_id id);
+float rgo_size(sys::state& state, dcon::province_id prov_id);
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);
 float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
 float revolt_risk(sys::state& state, dcon::province_id id);

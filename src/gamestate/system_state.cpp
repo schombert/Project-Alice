@@ -11,6 +11,7 @@
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
 #include "gui_province_window.hpp"
+#include "gui_event.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
@@ -245,6 +246,18 @@ namespace sys {
 	}
 	void state::on_create() {
 		local_player_nation = dcon::nation_id{42};
+		// Clear "center" property so they don't look messed up!
+		ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
+
+        {
+            auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
+            ui_state.console_window = window.get();
+            window->set_visible(*this, false);
+            ui_state.root->add_child_to_front(std::move(window));
+        }
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
@@ -261,12 +274,6 @@ namespace sys {
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
-		}
-		{
-			auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
-			ui_state.console_window = window.get();
-			window->set_visible(*this, false);
-			ui_state.root->add_child_to_front(std::move(window));
 		}
 	}
 	//
@@ -338,22 +345,24 @@ namespace sys {
 		auto length = text.length();
 		if(length == 0)
 			return dcon::unit_name_id();
+
 		unit_names.resize(start + length + 1, char(0));
 		std::copy_n(text.data(), length, unit_names.data() + start);
 		unit_names.back() = 0;
-		return dcon::unit_name_id(uint16_t(start));
+		unit_names_indices.push_back(int32_t(start));
+		return dcon::unit_name_id(dcon::unit_name_id::value_base_t(unit_names_indices.size() - 1));
 	}
 	std::string_view state::to_string_view(dcon::unit_name_id tag) const {
 		if(!tag)
 			return std::string_view();
-		auto start_position = unit_names.data() + tag.index();
+		auto start_position = unit_names.data() + unit_names_indices[tag.index()];
 		auto data_size = unit_names.size();
 		auto end_position = start_position;
 		for(; end_position < unit_names.data() + data_size; ++end_position) {
 			if(*end_position == 0)
 				break;
 		}
-		return std::string_view(unit_names.data() + tag.index(), size_t(end_position - start_position));
+		return std::string_view(unit_names.data() + unit_names_indices[tag.index()], size_t(end_position - start_position));
 	}
 
 	dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
@@ -1326,8 +1335,6 @@ namespace sys {
 		world.nation_resize_stockpiles(world.commodity_size());
 		world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 		world.pop_resize_demographics(pop_demographics::size(*this));
-		world.nation_resize_last_production(world.commodity_size());
-		world.state_instance_resize_last_production(world.commodity_size());
 		national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{0});
 
 		world.for_each_ideology([&](dcon::ideology_id id) {
@@ -1473,6 +1480,7 @@ namespace sys {
 		nations::restore_unsaved_values(*this);
 
 		culture::update_all_nations_issue_rules(*this);
+		culture::restore_unsaved_values(*this);
 		demographics::regenerate_from_pop_data(*this);
 		pop_demographics::regenerate_is_primary_or_accepted(*this);
 
@@ -1521,11 +1529,43 @@ namespace sys {
 
 					auto ymd_date = current_date.to_ymd(start_date);
 
+					auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
+					auto next_month_start = sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) };
+					auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
+
+					// pop update:
+
+					concurrency::parallel_for(0, 3, [&](int32_t index) {
+						switch(index) {
+							case 0:
+							{
+								auto o = uint32_t(ymd_date.day);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_militancy(*this, o, days_in_month);
+								break;
+							}
+							case 1:
+							{
+								auto o = uint32_t(ymd_date.day + 1);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_consciousness(*this, o, days_in_month);
+								break;
+							}
+							case 2:
+							{
+								auto o = uint32_t(ymd_date.day + 2);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_literacy(*this, o, days_in_month);
+								break;
+							}
+						}
+					});
+
 					// basic repopulation of demographics derived values
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 8, [&](int32_t index) {
+					concurrency::parallel_for(0, 9, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1551,6 +1591,9 @@ namespace sys {
 							case 7:
 								economy::update_factory_employment(*this);
 								break;
+							case 8:
+								rebel::daily_update_rebel_organization(*this);
+								break;
 						}
 
 					});
@@ -1567,10 +1610,13 @@ namespace sys {
 							break;
 						case 5:
 							rebel::update_movements(*this);
+							rebel::update_factions(*this);
 							break;
 						default:
 							break;
 					}
+
+					economy::daily_update(*this);
 
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
@@ -1579,4 +1625,19 @@ namespace sys {
 			}
 		}
 	}
+
+    void state::console_log(ui::element_base* base, std::string message, bool open_console) {
+        if(ui_state.console_window != nullptr) {
+
+            Cyto::Any payload = std::string(to_string_view(base->base_data.name)) + ": " + std::string(message);
+            ui_state.console_window->impl_get(*this, payload);
+
+            if(open_console && !(ui_state.console_window->is_visible())){
+                ui_state.root->move_child_to_front(ui_state.console_window);
+                ui_state.console_window->set_visible(*this, true);
+            }
+
+        }
+    }
+
 }

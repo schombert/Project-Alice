@@ -76,6 +76,7 @@ void good::money(association_type, bool v, error_handler& err, int32_t line, goo
 	if(v) {
 		context.outer_context.state.world.commodity_set_color(economy::money, context.outer_context.state.world.commodity_get_color(context.id));
 		context.outer_context.state.world.commodity_set_cost(economy::money, context.outer_context.state.world.commodity_get_cost(context.id));
+		context.outer_context.state.world.commodity_set_commodity_group(economy::money, context.outer_context.state.world.commodity_get_commodity_group(context.id));
 
 		for(auto& pr : context.outer_context.map_of_commodity_names) {
 			if(pr.second == context.id) {
@@ -478,11 +479,11 @@ void poptype_file::can_reduce_consciousness(association_type, bool value, error_
 }
 
 void poptype_file::workplace_input(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_workplace_input(context.id, value);
+	// discard
 }
 
 void poptype_file::workplace_output(association_type, float value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_workplace_output(context.id, value);
+	// discard
 }
 
 void poptype_file::equivalent(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context) {
@@ -515,17 +516,17 @@ void poptype_file::luxury_needs(commodity_array const& value, error_handler& err
 }
 
 void poptype_file::life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_life_needs_income_type(context.id, uint8_t(value.itype));
 }
 
 void poptype_file::everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_everyday_needs_income_type(context.id, uint8_t(value.itype));
 }
 
 void poptype_file::luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
-	context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
+	//context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_luxury_needs_income_type(context.id, uint8_t(value.itype));
 }
 
@@ -1818,13 +1819,14 @@ void oob_army::location(association_type, int32_t value, error_handler& err, int
 
 void oob_army::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_army_context& context) {
 	if(value.is_general) {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_general());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_general_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(false);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 		context.outer_context.state.world.force_create_army_leadership(context.id, l_id);
 	} else {
 		err.accumulated_errors += "Cannot attach an admiral to an army (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -1927,21 +1929,23 @@ void oob_relationship::influence_value(association_type, float v, error_handler&
 
 void oob_file::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_context& context) {
 	if(value.is_general) {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_general());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_general_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(false);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 	} else {
-		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_admiral());
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
 		l_id.set_personality(value.personality_);
 		l_id.set_prestige(value.prestige);
 		l_id.set_since(value.date_);
 		l_id.set_name(value.name_);
-		context.outer_context.state.world.force_create_admiral_loyalty(context.nation_for, l_id);
+		l_id.set_is_admiral(true);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
 	}
 }
 
@@ -2175,7 +2179,7 @@ void country_history_file::civilized(association_type, bool value, error_handler
 }
 
 void country_history_file::is_releasable_vassal(association_type, bool value, error_handler& err, int32_t line, country_history_context& context) {
-	context.outer_context.state.world.national_identity_set_is_releasable(context.nat_ident, value);
+	context.outer_context.state.world.national_identity_set_is_not_releasable(context.nat_ident, !value);
 }
 
 void country_history_file::literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context) {
@@ -2271,6 +2275,15 @@ void commodity_array::finish(scenario_building_context& context) {
 
 void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {
 	context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);
+}
+
+void country_file::any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line, country_file_context& context) {
+	if(auto it = context.outer_context.map_of_governments.find(std::string(name)); it != context.outer_context.map_of_governments.end()) {
+		// TODO: Do something with country government types stuff
+		// I assume this is used to change colours of countries?
+	} else {
+		err.accumulated_errors += "Invalid government type " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
 }
 
 void generic_event::title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
@@ -2425,12 +2438,17 @@ void enter_war_dated_block(std::string_view label, token_generator& gen, error_h
 	}
 }
 
+void war_history_file::name(association_type, std::string_view name, error_handler& err, int32_t line, war_history_context& context) {
+	context.name = std::string(name);
+}
+
 void war_history_file::finish(war_history_context& context) {
 	if(context.attackers.size() > 0 && context.defenders.size() > 0 && context.wargoals.size() > 0) {
 		auto new_war = fatten(context.outer_context.state.world, context.outer_context.state.world.create_war());
 		new_war.set_start_date(sys::date(0));
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
+		new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
 		for(auto n : context.attackers) {
 			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);

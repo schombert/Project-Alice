@@ -113,6 +113,7 @@ namespace sys {
 		dcon::nation_id primary_crisis_attacker;
 		dcon::nation_id primary_crisis_defender;
 
+		std::vector<int32_t> unit_names_indices; // indices for the names
 		std::vector<char> unit_names; // a second text buffer, this time for just the unit names
 		                              // why a second text buffer? Partly because unit names don't need the extra redirection possibilities of
 									  // ordinary game text, partly because I envision the possibility that we may stick dynamic names into this
@@ -133,6 +134,7 @@ namespace sys {
 		dcon::nation_id local_player_nation;
 		sys::date current_date = sys::date{0};
 		uint32_t game_seed = 0; // do *not* alter this value, ever
+		float inflation = 1.0f;
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information
@@ -214,6 +216,15 @@ namespace sys {
 
 		void load_scenario_data(); // loads all scenario files other than map data
 		void fill_unsaved_data(); // reconstructs derived values that are not directly saved after a save has been loaded
+
+        /**
+         * Method for logging to console.
+         * @param base Element base to get name of invoking element.
+         * @param message Message to log.
+         * @param open_console Open console upon log?
+         * @result base_name: message. Example: `pop_window: 43`
+         */
+        void console_log(ui::element_base* base, std::string message, bool open_console = true);
 
 		void open_diplomacy(dcon::nation_id target);  // Open the diplomacy window with target selected
 	};

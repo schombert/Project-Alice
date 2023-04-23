@@ -956,6 +956,10 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
 
 	e_context.compiled_effect[payload_size_offset] = uint16_t(e_context.compiled_effect.size() - payload_size_offset);
 
+	if(e_context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
+		err.accumulated_errors += "effect " + text::produce_simple_string(context.outer_context.state, opt_result.name_) + " is " + std::to_string(e_context.compiled_effect.size()) + " cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
+		return sys::event_option{opt_result.name_, opt_result.ai_chance, dcon::effect_key{0}};
+	}
 	const auto new_size = simplify_effect(e_context.compiled_effect.data());
 	e_context.compiled_effect.resize(static_cast<size_t>(new_size));
 

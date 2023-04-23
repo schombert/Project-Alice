@@ -360,6 +360,8 @@ Finally, pops in a civ nation that are not in a colony any which do not belong t
 Let us define the local pop militancy modifier as the province's militancy modifier + the nation's militancy modifier + the nation's core pop militancy modifier (for non-colonial states, not just core provinces).
 Each pop has its militancy adjusted by the local-militancy-modifier + (technology-separatism-modifier + 1) x define:MIL_NON_ACCEPTED (if the pop is not of a primary or accepted culture) - (pop-life-needs-satisfaction - 0.5) x define:MIL_NO_LIFE_NEED - (pop-everyday-needs-satisfaction - 0.5)^0 x define:MIL_LACK_EVERYDAY_NEED + (pop-everyday-needs-satisfaction - 0.5)v0 x define:MIL_HAS_EVERYDAY_NEED + (pop-luxury-needs-satisfaction - 0.5)v0 x define:MIL_HAS_LUXURY_NEED + pops-support-for-conservatism x define:MIL_IDEOLOGY / 100 + pops-support-for-the-ruling-party-ideology x define:MIL_RULING_PARTY / 100 - (if the pop has an attached regiment, applied at most once) leader-reliability-trait / 1000 + define:MIL_WAR_EXHAUSTION x national-war-exhaustion x (sum of support-for-each-issue x issues-war-exhaustion-effect) / 100.0 + (for pops not in colonies) pops-social-issue-support x define:MIL_REQUIRE_REFORM + pops-political-issue-support x define:MIL_REQUIRE_REFORM
 
+Militancy is updated monthly
+
 NOTE FOR FUTURE SELF: the default war-exhaustion effect of any issue is 1, not 0.
 
 ### Consciousness
@@ -373,9 +375,13 @@ Otherwise, the daily change in consciousness is:
 ) x define:CON_COLONIAL_FACTOR if colonial
 + province-pop-consciousness-modifier + national-pop-consciousness-modifier + national-core-pop-consciousness-modifier (in non-colonial states) + national-non-accepted-pop-consciousness-modifier (if not a primary or accepted culture)
 
+Consciousness is updated monthly
+
 ### Literacy
 
-Everyday, the literacy of each pop changes by: 0.01 x define:LITERACY_CHANGE_SPEED x education-spending x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) / (define:MAX_CLERGY_FOR_LITERACY - define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0). Literacy cannot drop below 0.01.
+The literacy of each pop changes by: 0.01 x define:LITERACY_CHANGE_SPEED x education-spending x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) / (define:MAX_CLERGY_FOR_LITERACY - define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0). Literacy cannot drop below 0.01.
+
+Literacy is updated monthly
 
 ### Ideology
 
@@ -743,7 +749,7 @@ Increase the consciousness of all pops that were in the movement by 1 and remove
 - Rebel factions whose independence country exists will disband (different for defection rebels?)
 - Pan nationalists inside their union country will disband
 - Any pops belonging to a rebel faction that disbands have their militancy reduced to 0
-- Sum for each pop belonging to the faction that has made money in the day: net-income x pop-literacy x (10 if militancy is > define:MILITANCY_TO_AUTO_RISE and 5 if militancy is less than that but > define:MILITANCY_TO_JOIN_RISING) / (1 + national-administration-spending-setting). Take this sum, multiply by (rebel organization from technology + 1) and divide by the number of regiments those pops could form. If positive, add this to the current organization of the rebel faction (to a maximum of 1)
+- Sum for each pop belonging to the faction that has made money in the day: (pop-income + 0.02) x pop-literacy x (10 if militancy is > define:MILITANCY_TO_AUTO_RISE and 5 if militancy is less than that but > define:MILITANCY_TO_JOIN_RISING) / (1 + national-administration-spending-setting). Take this sum, multiply by 0.001 x (rebel organization from technology + 1) and divide by the number of regiments those pops could form. If positive, add this to the current organization of the rebel faction (to a maximum of 1). This appears to be done daily.
 - Rebels have a chance to rise once per month. If there are pops belonging to the faction with militancy greater than define:MILITANCY_TO_JOIN_RISING that can form at least one regiment, then a random check is made. The probability the rising will happen is: faction-organization x 0.05 + 0.02 + faction-organization x number-of-regiments-the-rising-could-form / 1v(number-of-regiments-controlled-by-nation x 20)
 - When a rising happens, pops with at least define:MILITANCY_TO_JOIN_RISING will spawn faction-organization x max-possible-supported-regiments, to a minimum of 1 (if any more regiments are possible).
 - Any pop that contributes regiments has its militancy reduced by define:REDUCTION_AFTER_RISING

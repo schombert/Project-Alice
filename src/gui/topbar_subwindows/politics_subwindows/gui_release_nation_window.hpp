@@ -57,7 +57,6 @@ public:
 		} else if(name == "country_flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
 			country_flag = ptr.get();
-			ptr->set_current_nation(state, content);
 			return ptr;
 		} else if(name == "type") {
 			return make_element_by_type<national_identity_vassal_type_text>(state, id);
@@ -65,6 +64,15 @@ public:
 			return make_element_by_type<release_nation_description_text>(state, id);
 		} else {
 			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::national_identity_id>()) {
+			payload.emplace<dcon::national_identity_id>(content);
+			return message_result::consumed;
+		} else {
+			return listbox_row_element_base<dcon::national_identity_id>::get(state, payload);
 		}
 	}
 };

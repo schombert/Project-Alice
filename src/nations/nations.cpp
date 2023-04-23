@@ -1,11 +1,25 @@
 #include "nations.hpp"
 #include "dcon_generated.hpp"
+#include "demographics.hpp"
+#include "modifiers.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "triggers.hpp"
 
 namespace nations {
+
+dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
+	uint16_t count = 0;
+	for(uint16_t i = 0; i < uint16_t(state.nations_by_rank.size()); ++i) {
+		if(is_great_power(state, state.nations_by_rank[i])) {
+			if(count == n)
+				return state.nations_by_rank[i];
+			++count;
+		}
+	}
+	return dcon::nation_id{};
+}
 
 // returns whether a culture is on the accepted list OR is the primary culture
 template<typename T, typename U>
@@ -60,6 +74,8 @@ auto occupied_provinces_fraction(sys::state const& state, T ids) {
 }
 
 void restore_unsaved_values(sys::state& state) {
+	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
+
 	state.world.for_each_gp_relationship([&](dcon::gp_relationship_id rel) {
 		if((influence::level_mask & state.world.gp_relationship_get_status(rel)) == influence::level_in_sphere) {
 			auto t = state.world.gp_relationship_get_influence_target(rel);
@@ -129,9 +145,7 @@ void generate_initial_state_instances(sys::state& state) {
 }
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
-	// if(state.world.national_identity_get_is_releasable(releasable) && !identity_has_holder(state, releasable)) {
-	// TODO -- handle releasable signal when available
-	if(!identity_has_holder(state, releasable)) {
+	if(!state.world.national_identity_get_is_not_releasable(releasable) && !identity_has_holder(state, releasable)) {
 		bool owns_a_core = false;
 		bool not_on_capital = true;
 		state.world.national_identity_for_each_core(releasable, [&](dcon::core_id core) {
@@ -179,7 +193,7 @@ void update_administrative_efficiency(sys::state& state) {
 	- national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 	*/
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency);
+		auto admin_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::administrative_efficiency_modifier);
 		ve::fp_vector issue_sum;
 		for(auto i : state.culture_definitions.social_issues) {
 			issue_sum = issue_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(ids, i));
@@ -291,9 +305,8 @@ void update_military_scores(sys::state& state) {
 		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto num_leaders = ve::apply([&](dcon::nation_id i) {
-			auto gen_range = state.world.nation_get_general_loyalty(i);
-			auto ad_range = state.world.nation_get_admiral_loyalty(i);
-			return float((gen_range.end() - gen_range.begin()) + (ad_range.end() - ad_range.begin()));
+			auto gen_range = state.world.nation_get_leader_loyalty(i);
+			return float((gen_range.end() - gen_range.begin()));
 		}, n);
 		state.world.nation_set_military_score(n, ve::to_int(
 			(ve::min(recruitable, active_regs * 4.0f) * avg_land_score) * ((disarm_factor * supply_mod) / 7.0f)
@@ -316,14 +329,10 @@ void update_rankings(sys::state& state) {
 	std::sort(state.nations_by_rank.begin(), state.nations_by_rank.begin() + to_sort_count, [&](dcon::nation_id a, dcon::nation_id b) {
 		auto fa = fatten(state.world, a);
 		auto fb = fatten(state.world, b);
-		if(fa.get_is_civilized() && !fb.get_is_civilized())
-			return true;
-		if(!fa.get_is_civilized() && fb.get_is_civilized())
-			return false;
-		if(bool(fa.get_overlord_as_subject()) && !bool(fa.get_overlord_as_subject()))
-			return false;
-		if(!bool(fa.get_overlord_as_subject()) && bool(fa.get_overlord_as_subject()))
-			return true;
+		if(fa.get_is_civilized() != fb.get_is_civilized())
+			return fa.get_is_civilized();
+		if(bool(fa.get_overlord_as_subject()) != bool(fa.get_overlord_as_subject()))
+			return !bool(fa.get_overlord_as_subject());
 		auto a_score = fa.get_military_score() + fa.get_industrial_score() + prestige_score(state, a);
 		auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
 		if(a_score != b_score)
@@ -404,8 +413,8 @@ void update_ui_rankings(sys::state& state) {
 	}
 }
 
-bool is_great_power(sys::state const& state, dcon::nation_id n) {
-	return state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count);
+bool is_great_power(sys::state const& state, dcon::nation_id id) {
+	return state.world.nation_get_rank(id) <= uint16_t(state.defines.great_nations_count);
 }
 
 status get_status(sys::state& state, dcon::nation_id n) {
@@ -647,11 +656,13 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
 		dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
-		auto lim = state.world.decision_get_potential(did);
-		if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
-			auto allow = state.world.decision_get_allow(did);
-			if(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
-				return true;
+		if(n != state.local_player_nation || !state.world.decision_get_hide_notification(did)) {
+			auto lim = state.world.decision_get_potential(did);
+			if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+				auto allow = state.world.decision_get_allow(did);
+				if(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+					return true;
+				}
 			}
 		}
 	}
@@ -737,8 +748,26 @@ void update_monthly_points(sys::state& state) {
 }
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
-	// TODO
-	return 0.0f;
-}
+	return state.world.nation_get_stockpiles(n, economy::money);
 }
 
+float get_bank_funds(sys::state& state, dcon::nation_id n) {
+	return 0.0f;
+}
+
+float get_debt(sys::state& state, dcon::nation_id n) {
+	return 0.0f;
+}
+
+float tariff_efficiency(sys::state& state, dcon::nation_id n) {
+	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
+	auto adm_eff = state.world.nation_get_administrative_efficiency(n);
+	return std::min(state.defines.base_tariff_efficiency + eff_mod + adm_eff, 1.f); 
+}
+
+float tax_efficiency(sys::state& state, dcon::nation_id n) {
+	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency);
+	return eff_mod + state.defines.base_country_tax_efficiency;
+}
+
+}

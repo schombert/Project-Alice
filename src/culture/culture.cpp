@@ -460,6 +460,29 @@ void update_all_nations_issue_rules(sys::state& state) {
 	});
 }
 
+void restore_unsaved_values(sys::state& state) {
+	state.world.for_each_pop([&state](dcon::pop_id pid) {
+		float total = 0.0f;
+		float pol_sup = 0.0f;
+		float soc_sup = 0.0f;
+		state.world.for_each_issue_option([&](dcon::issue_option_id i) {
+			auto sup = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, i));
+			total += sup;
+
+			auto par = state.world.issue_option_get_parent_issue(i);
+			if(state.world.issue_get_issue_type(par) == uint8_t(culture::issue_type::political)) {
+				pol_sup += sup;
+			} else if(state.world.issue_get_issue_type(par) == uint8_t(culture::issue_type::social)) {
+				soc_sup += sup;
+			}
+		});
+		if(total > 0) {
+			state.world.pop_set_political_reform_desire(pid, pol_sup / total);
+			state.world.pop_set_social_reform_desire(pid, soc_sup / total);
+		}
+	});
+}
+
 void create_initial_ideology_and_issues_distribution(sys::state& state) {
 	state.world.for_each_pop([&state](dcon::pop_id pid) {
 		auto ptype = state.world.pop_get_poptype(pid);
@@ -491,6 +514,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 		{ // issues
 			
 			float total = 0.0f;
+
 			state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
 				auto opt = fatten(state.world, iid);
 				auto allow = opt.get_allow();

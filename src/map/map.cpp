@@ -251,120 +251,87 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 		return border_index;
 	};
 
-	auto add_border = [&](uint32_t x0, uint32_t y0, uint16_t id_ul, uint16_t id_ur, uint16_t id_dl, uint16_t id_dr) {
-		// Yes this can be done better and more optimized. But for its good for now
-		uint8_t diff_u = id_ul != id_ur;
-		uint8_t diff_d = id_dl != id_dr;
-		uint8_t diff_l = id_ul != id_dl;
-		uint8_t diff_r = id_ur != id_dr;
+    auto add_border = [&](uint32_t x0, uint32_t y0, uint16_t id_ul, uint16_t id_ur, uint16_t id_dl, uint16_t id_dr) {
+        uint8_t diff_u = id_ul != id_ur;
+        uint8_t diff_d = id_dl != id_dr;
+        uint8_t diff_l = id_ul != id_dl;
+        uint8_t diff_r = id_ur != id_dr;
 
-		glm::vec2 map_pos(x0, y0);
+        glm::vec2 map_pos(x0, y0);
 
-		// Diagonal borders
-		if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
-			auto border_index = get_border_index(id_ul, id_dl);
-			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
-			glm::vec2 pos2 = glm::vec2(0.5f, 0.0f);
-			add_line(map_pos, pos1, pos2, border_index, x0, direction::UP_LEFT);
-			return;
-		}
-		if(diff_l && diff_d && !diff_r && !diff_u) { // Lower left
-			auto border_index = get_border_index(id_ul, id_dl);
-			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
-			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			add_line(map_pos, pos1, pos2, border_index, x0, direction::DOWN_LEFT);
-			return;
-		}
-		if(diff_r && diff_u && !diff_l && !diff_d) { // Upper right
-			auto border_index = get_border_index(id_ur, id_dr);
-			glm::vec2 pos1 = glm::vec2(1.0f, 0.5f);
-			glm::vec2 pos2 = glm::vec2(0.5f, 0.0f);
-			add_line(map_pos, pos1, pos2, border_index, x0, direction::UP_RIGHT);
-			return;
-		}
-		if(diff_r && diff_d && !diff_l && !diff_u) { // Lower right
-			auto border_index = get_border_index(id_ur, id_dr);
-			glm::vec2 pos1 = glm::vec2(1.0f, 0.5f);
-			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			add_line(map_pos, pos1, pos2, border_index, x0, direction::DOWN_LEFT);
-			return;
-		}
-		// Straight borders
-		if(diff_u) {
-			auto border_index = get_border_index(id_ul, id_ur);
-			glm::vec2 pos1 = glm::vec2(0.5f, 0.0f);
-			glm::vec2 pos2 = glm::vec2(0.5f, 0.5f);
-			if(!extend_if_possible(x0, border_index, direction::UP))
-				add_line(map_pos, pos1, pos2, border_index, x0, direction::UP);
-		}
-		if(diff_d) {
-			auto border_index = get_border_index(id_dl, id_dr);
-			glm::vec2 pos1 = glm::vec2(0.5f, 0.5f);
-			glm::vec2 pos2 = glm::vec2(0.5f, 1.0f);
-			if(!extend_if_possible(x0, border_index, direction::DOWN))
-				add_line(map_pos, pos1, pos2, border_index, x0, direction::DOWN);
-		}
-		if(diff_l) {
-			auto border_index = get_border_index(id_ul, id_dl);
-			glm::vec2 pos1 = glm::vec2(0.0f, 0.5f);
-			glm::vec2 pos2 = glm::vec2(0.5f, 0.5f);
-			if(!extend_if_possible(x0, border_index, direction::LEFT))
-				add_line(map_pos, pos1, pos2, border_index, x0, direction::LEFT);
-		}
-		if(diff_r) {
-			auto border_index = get_border_index(id_ur, id_dr);
-			glm::vec2 pos1 = glm::vec2(0.5f, 0.5f);
-			glm::vec2 pos2 = glm::vec2(1.0f, 0.5f);
-			if(!extend_if_possible(x0, border_index, direction::LEFT))
-				add_line(map_pos, pos1, pos2, border_index, x0, direction::RIGHT);
-		}
-	};
+        auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, uint16_t id1, uint16_t id2, direction dir) {
+            auto border_index = get_border_index(id1, id2);
+            if (!extend_if_possible(x0, border_index, dir))
+                add_line(map_pos, pos1, pos2, border_index, x0, dir);
+        };
 
-	for(uint32_t y = 0; y < size_y - 1; y++) {
-		for(uint32_t x = 0; x < size_x - 1; x++) {
-			auto prov_id_ul = province_id_map[(x + 0) + (y + 0) * size_x];
-			auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
-			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
-			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
-			if(prov_id_ul != prov_id_ur) {
-				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				if(prov_id_ur != 0 && prov_id_ul != 0)
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
-			} else if(prov_id_ul != prov_id_dl) {
-				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				if(prov_id_dl != 0 && prov_id_ul != 0)
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
-			} else if(prov_id_ul != prov_id_dr) {
-				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				if(prov_id_dr != 0 && prov_id_ul != 0)
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
-			}
-		}
+        if (diff_l && diff_u && !diff_r && !diff_d) { // Upper left
+            add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ul, id_dl, direction::UP_LEFT);
+        } else if (diff_l && diff_d && !diff_r && !diff_u) { // Lower left
+            add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ul, id_dl, direction::DOWN_LEFT);
+        } else if (diff_r && diff_u && !diff_l && !diff_d) { // Upper right
+            add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ur, id_dr, direction::UP_RIGHT);
+        } else if (diff_r && diff_d && !diff_l && !diff_u) { // Lower right
+            add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ur, id_dr, direction::DOWN_LEFT);
+        } else {
+            if (diff_u) {
+                add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), id_ul, id_ur, direction::UP);
+            }
+            if (diff_d) {
+                add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), id_dl, id_dr, direction::DOWN);
+            }
+            if (diff_l) {
+                add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.5f), id_ul, id_dl, direction::LEFT);
+            }
+            if (diff_r) {
+                add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), id_ur, id_dr, direction::RIGHT);
+            }
+        }
+    };
+    for (uint32_t y = 0; y < size_y - 1; y++) {
+        for (uint32_t x = 0; x < size_x - 1; x++) {
+            auto prov_id_ul = province_id_map[(x + 0) + (y + 0) * size_x];
+            auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
+            auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
+            auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
+            if (prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
+                add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+                if (prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
+                    context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+                }
+                if (prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
+                    context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+                }
+                if (prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
+                    context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
+                }
+            }
+        }
+
 		{
 			// handle the international date line
-			auto prov_id_ul = province_id_map[((size_x - 1) + 0) + (y + 0) * size_x];
-			auto prov_id_ur = province_id_map[0 + (y + 0) * size_x];
-			auto prov_id_dl = province_id_map[((size_x - 1) + 0) + (y + 1) * size_x];
-			auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
-			if(prov_id_ul != prov_id_ur) {
-				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				if(prov_id_ur != 0 && prov_id_ul != 0)
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
-			} else if(prov_id_ul != prov_id_dl) {
-				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				if(prov_id_dl != 0 && prov_id_ul != 0)
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
-			} else if(prov_id_ul != prov_id_dr) {
-				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				if(prov_id_dr != 0 && prov_id_ul != 0)
-					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
-			}
+            auto prov_id_ul = province_id_map[((size_x - 1) + 0) + (y + 0) * size_x];
+            auto prov_id_ur = province_id_map[0 + (y + 0) * size_x];
+            auto prov_id_dl = province_id_map[((size_x - 1) + 0) + (y + 1) * size_x];
+            auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
+
+            if (prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
+                add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
+
+                if (prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
+                    context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+                }
+                if (prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
+                    context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+                }
+                if (prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
+                    context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
+                }
+            }
 		}
 		// Move the border_direction rows a step down
-		for(uint32_t x = 0; x < size_x; x++) {
-			last_row[x] = current_row[x];
-			current_row[x] = BorderDirection();
-		}
+		std::swap(last_row, current_row);
+        std::fill(current_row.begin(), current_row.end(), BorderDirection{});
 	}
 
 	borders.resize(borders_list_vertices.size());

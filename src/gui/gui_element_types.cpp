@@ -7,6 +7,7 @@
 #include <vector>
 #include "color.hpp"
 #include "culture.hpp"
+#include "cyto_any.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
 #include "gui_element_types.hpp"
@@ -319,7 +320,7 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 }
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
-	if(state.ui_state.console_window->is_visible()) {
+	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
 		if(ch >= 32) {
 			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
 			edit_index++;
@@ -330,7 +331,7 @@ void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
 }
 
 message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
-	if(state.ui_state.edit_target == this) {
+	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
 		// Typable keys are handled by on_text callback, we only handle control keys
 		auto s = std::string(get_text(state));
 		switch(key) {
@@ -343,6 +344,15 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 		case sys::virtual_key::ESCAPE:
 			edit_box_esc(state);
 			break;
+        case sys::virtual_key::TAB:
+            edit_box_tab(state, s);
+            break;
+        case sys::virtual_key::UP:
+            edit_box_up(state);
+            break;
+        case sys::virtual_key::DOWN:
+            edit_box_down(state);
+            break;
 		case sys::virtual_key::TILDA:
 			edit_box_backtick(state);
 			break;
@@ -725,16 +735,20 @@ void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	const float PI = 3.141592653589793238463f;
 	float dx = float(x) - radius;
 	float dy = float(y) - radius;
-	float dist = std::sqrt(dx * dx + dy * dy);
-	float angle = std::acos(-dx / dist);
-	if(dy > 0.f) {
-		angle = PI + (PI - angle);
+	size_t index = 0;
+	if(dx || dy) {
+		float dist = std::sqrt(dx * dx + dy * dy);
+		float angle = std::acos(-dx / dist);
+		if(dy > 0.f) {
+			angle = PI + (PI - angle);
+		}
+		index = size_t(angle / (2.f * PI) * float(resolution));
 	}
-	auto index = size_t(angle / (2.f * PI) * float(resolution));
 	T t = T(spread[index]);
 	auto fat_t = dcon::fatten(state.world, t);
 	auto percentage = distribution[static_cast<typename T::value_base_t>(t.index())];
 	auto box = text::open_layout_box(contents, 0);
+
 
 	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
 	text::add_to_layout_box(contents, state, box, std::string(":"), text::text_color::white);
@@ -1047,13 +1061,57 @@ void overlapping_enemy_flags::populate_flags(sys::state& state) {
 	}
 }
 
+void overlapping_protected_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_truce_until()) {
+				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
+				auto fat_id = dcon::fatten(state.world, nat_id);
+				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+			}
+		}
+
+		for(auto gpr : state.world.nation_get_gp_relationship_as_great_power(current_nation)) {
+			if((nations::influence::level_mask & gpr.get_status()) == nations::influence::level_in_sphere) {
+				if(gpr.get_influence_target().id == current_nation) {
+					auto nat_id = gpr.get_great_power();
+					auto fat_id = dcon::fatten(state.world, nat_id);
+					contents.push_back(fat_id.get_identity_from_identity_holder().id);
+				}
+			}
+		}
+		update(state);
+	}
+}
+
+void overlapping_truce_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
+		contents.clear();
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_truce_until()) {
+				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
+				auto fat_id = dcon::fatten(state.world, nat_id);
+				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+			}
+		}
+		update(state);
+	}
+}
+
 dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
-	Cyto::Any payload = dcon::nation_id{};
 	if(parent != nullptr) {
-		parent->impl_get(state, payload);
-		auto nation = any_cast<dcon::nation_id>(payload);
-		auto fat_nation = dcon::fatten(state.world, nation);
-		return fat_nation.get_identity_from_identity_holder().id;
+		Cyto::Any identity_payload = dcon::national_identity_id{};
+		parent->impl_get(state, identity_payload);
+		auto identity = any_cast<dcon::national_identity_id>(identity_payload);
+		if(identity) {
+			return identity;
+		} else {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation = any_cast<dcon::nation_id>(payload);
+			return state.world.nation_get_identity_from_identity_holder(nation);
+		}
 	} else {
 		return dcon::national_identity_id{};
 	}

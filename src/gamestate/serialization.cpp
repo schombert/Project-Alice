@@ -589,6 +589,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
 	ptr_in = deserialize(ptr_in, state.unit_names);
+	ptr_in = deserialize(ptr_in, state.unit_names_indices);
 	ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
 	ptr_in = memcpy_deserialize(ptr_in, state.current_date);
 	ptr_in = memcpy_deserialize(ptr_in, state.game_seed);
@@ -598,6 +599,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_temperature);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_defender);
+	ptr_in = memcpy_deserialize(ptr_in, state.inflation);
 
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -620,6 +622,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
 	ptr_in = serialize(ptr_in, state.unit_names);
+	ptr_in = serialize(ptr_in, state.unit_names_indices);
 	ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
 	ptr_in = memcpy_serialize(ptr_in, state.current_date);
 	ptr_in = memcpy_serialize(ptr_in, state.game_seed);
@@ -629,6 +632,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_temperature);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_defender);
+	ptr_in = memcpy_serialize(ptr_in, state.inflation);
 
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -651,6 +655,7 @@ size_t sizeof_save_section(sys::state& state) {
 	// hand-written contribution
 
 	sz += serialize_size(state.unit_names);
+	sz += serialize_size(state.unit_names_indices);
 	sz += sizeof(state.local_player_nation);
 	sz += sizeof(state.current_date);
 	sz += sizeof(state.game_seed);
@@ -660,6 +665,7 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += sizeof(state.crisis_temperature);
 	sz += sizeof(state.primary_crisis_attacker);
 	sz += sizeof(state.primary_crisis_defender);
+	sz += sizeof(state.inflation);
 
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.global_flag_variables);
@@ -768,6 +774,8 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 		});
 
 		state.game_seed = uint32_t(std::random_device()());
+
+		float g1price = state.world.commodity_get_current_price(dcon::commodity_id(1));
 
 		return true;
 	} else {

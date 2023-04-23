@@ -137,6 +137,7 @@ target_include_directories(Alice PUBLIC
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/production_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/politics_subwindows
+	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/military_subwindows
 	${PROJECT_SOURCE_DIR}/src/ogl
 	${PROJECT_SOURCE_DIR}/src/parsing
 	${PROJECT_SOURCE_DIR}/src/window
