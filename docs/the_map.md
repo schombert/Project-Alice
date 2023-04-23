@@ -27,13 +27,10 @@ The following are input event functions:
 
 For the future goal most work will be recreating the graphics of Victoria 2. The only new thing we will add is the globe and some extra optimizations that Victoria 2 didn't include. These are the goals:
 
-- Map modes : This is mostly done. We just need to send in the colors of the map mode in set_province_colors(). More map modes will be available as we parse more data from Victoria 2. One extra thing we will need to add is the diagonal borders, that will probably be done by having separate vertices for each province.
-- Borders : This is another thing that will make a big impact on the visuals. The plan is to read the province texture and create new polygon borders from at the borders. We will see if we use the border textures or not.
 - Shores : Will work very similar to borders, but will use the shore textures
 - Rivers : Also very similar to borders and shore, it will just be a bit harder to parse since we will need to take the direction of the water into account.
 - Globe : The globe is new thing that Victoria 2 didn't have. OpenV2 had it though so it has to be here too, it's also very cool! We will probably use the implementation from SoE when creating the globe.
 - Smoother map movement : This makes a big impact when zooming and moving around, but it has to be done right otherwise it will feel even worse than no smooth movement.
-- Save the loaded data to the scenario blob : Once the map is parsed it should be able to be serialized and saved as a binary blob. The next time the user loads up the game with the same mods it should be able to deserialize the blob instead for faster loading times.
 - Optimize map parsing with multithreading : This isn't that important currently, but is going to speed up the parsing a lot.
 - Add error handling for missing or broken files : When there is a problem loading the files it should be able to report the error and exit the application. This can be done by parsing an error object to the `load_map` function.
 
