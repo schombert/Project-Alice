@@ -61,7 +61,7 @@ class map_element_base : public generic_settable_element<T, dcon::province_id> {
 public:
     void render(sys::state& state, int32_t x, int32_t y) noexcept override {
         auto mid_point = state.world.province_get_mid_point(generic_settable_element<T, dcon::province_id>::content);
-        auto screen_pos = state.map_display.map_to_screen(state.map_display.normalize_map_coord(mid_point), glm::vec2{ float(state.x_size), float(state.y_size) });
+        auto screen_pos = state.map_display.map_to_screen(state.map_display.normalize_map_coord(mid_point), glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) });
         T::base_data.position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
         T::render(state, x, y);
     }

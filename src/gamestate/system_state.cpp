@@ -245,11 +245,10 @@ namespace sys {
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
-		const auto map_offset = map_display.get_map_screen_offset(glm::vec2(float(x_size), float(y_size)));
 		if(map_display.active_map_mode == map_mode::mode::rgo_output)
-			ui_state.rgos_root->impl_render(*this, map_offset.x, map_offset.y);
+			ui_state.rgos_root->impl_render(*this, 0, 0);
 		else
-			ui_state.units_root->impl_render(*this, map_offset.x, map_offset.y);
+			ui_state.units_root->impl_render(*this, 0, 0);
 		ui_state.root->impl_render(*this, 0, 0);
 		if(ui_state.tooltip->is_visible()) {
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
