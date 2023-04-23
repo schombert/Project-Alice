@@ -2456,6 +2456,11 @@ object {
 		type{ float }
 	}
 	property {
+		name{ spending_level }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ total_rich_income }
 		type{ float }
 		tag{ save }

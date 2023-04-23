@@ -47,4 +47,8 @@ bool is_playable_date(date d, absolute_time_point start, absolute_time_point end
 	return bool(d) && start.to_days() + (d.to_raw_value() - 1) < end.to_days();
 }
 
+int32_t days_difference(year_month_day start, year_month_day end) {
+	return days_from_civil(end.year, end.month, end.day) - days_from_civil(start.year, start.month, start.day);
+}
+
 }

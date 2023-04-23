@@ -173,6 +173,8 @@ void initialize(sys::state& state) {
 		fn.set_middle_tax(int8_t(75));
 		fn.set_rich_tax(int8_t(75));
 
+		fn.set_spending_level(1.0f);
+
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			state.world.nation_set_demand_satisfaction(n, c, 1.0f);
 			// set domestic market pool
@@ -1161,12 +1163,6 @@ void daily_update(sys::state& state) {
 	auto const num_nation = state.world.nation_size();
 	uint32_t total_commodities = state.world.commodity_size();
 
-	static auto commodity_spending = state.world.nation_make_vectorizable_float_buffer();
-	static auto old_num_nations = state.world.nation_size();
-	if(old_num_nations < num_nation) {
-		old_num_nations = num_nation;
-		commodity_spending = state.world.nation_make_vectorizable_float_buffer();
-	}
 
 	/*
 	As the day starts, we move production, fractionally, into the sphere leaders domestic production pool,
@@ -1321,7 +1317,7 @@ void daily_update(sys::state& state) {
 			float budget = state.world.nation_get_stockpiles(n, economy::money); // (TODO: make debt possible)
 			float spending_scale = (total < 0.001 || total <= budget) ? 1.0f : budget / total;
 			state.world.nation_get_stockpiles(n, economy::money) -= budget * spending_scale;
-			commodity_spending.set(n, spending_scale);
+			state.world.nation_set_spending_level(n, spending_scale);
 		
 
 			update_national_consumption(state, n, effective_prices, spending_scale);
@@ -1396,7 +1392,7 @@ void daily_update(sys::state& state) {
 
 	state.world.execute_parallel_over_pop([&](auto ids) {
 		auto owners = nations::owner_of_pop(state, ids);
-		auto owner_spending = commodity_spending.get(owners);
+		auto owner_spending = state.world.nation_get_spending_level(owners);
 
 		auto adj_pop_of_type = state.world.pop_get_size(ids) / needs_scaling_factor;
 
@@ -1505,7 +1501,7 @@ void daily_update(sys::state& state) {
 		/*
 		determine effective spending levels
 		*/
-		auto nations_commodity_spending = commodity_spending.get(n);
+		auto nations_commodity_spending = state.world.nation_get_spending_level(n);
 		{
 			float max_sp = 0.0f;
 			float total = 0.0f;

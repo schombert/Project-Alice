@@ -1480,6 +1480,7 @@ namespace sys {
 		nations::restore_unsaved_values(*this);
 
 		culture::update_all_nations_issue_rules(*this);
+		culture::restore_unsaved_values(*this);
 		demographics::regenerate_from_pop_data(*this);
 		pop_demographics::regenerate_is_primary_or_accepted(*this);
 
@@ -1527,6 +1528,38 @@ namespace sys {
 					current_date += 1;
 
 					auto ymd_date = current_date.to_ymd(start_date);
+
+					auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
+					auto next_month_start = sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) };
+					auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
+
+					// pop update:
+
+					concurrency::parallel_for(0, 3, [&](int32_t index) {
+						switch(index) {
+							case 0:
+							{
+								auto o = uint32_t(ymd_date.day);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_militancy(*this, o, days_in_month);
+								break;
+							}
+							case 1:
+							{
+								auto o = uint32_t(ymd_date.day + 1);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_consciousness(*this, o, days_in_month);
+								break;
+							}
+							case 2:
+							{
+								auto o = uint32_t(ymd_date.day + 2);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_literacy(*this, o, days_in_month);
+								break;
+							}
+						}
+					});
 
 					// basic repopulation of demographics derived values
 					demographics::regenerate_from_pop_data(*this);

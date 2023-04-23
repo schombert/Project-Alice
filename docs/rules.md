@@ -360,6 +360,8 @@ Finally, pops in a civ nation that are not in a colony any which do not belong t
 Let us define the local pop militancy modifier as the province's militancy modifier + the nation's militancy modifier + the nation's core pop militancy modifier (for non-colonial states, not just core provinces).
 Each pop has its militancy adjusted by the local-militancy-modifier + (technology-separatism-modifier + 1) x define:MIL_NON_ACCEPTED (if the pop is not of a primary or accepted culture) - (pop-life-needs-satisfaction - 0.5) x define:MIL_NO_LIFE_NEED - (pop-everyday-needs-satisfaction - 0.5)^0 x define:MIL_LACK_EVERYDAY_NEED + (pop-everyday-needs-satisfaction - 0.5)v0 x define:MIL_HAS_EVERYDAY_NEED + (pop-luxury-needs-satisfaction - 0.5)v0 x define:MIL_HAS_LUXURY_NEED + pops-support-for-conservatism x define:MIL_IDEOLOGY / 100 + pops-support-for-the-ruling-party-ideology x define:MIL_RULING_PARTY / 100 - (if the pop has an attached regiment, applied at most once) leader-reliability-trait / 1000 + define:MIL_WAR_EXHAUSTION x national-war-exhaustion x (sum of support-for-each-issue x issues-war-exhaustion-effect) / 100.0 + (for pops not in colonies) pops-social-issue-support x define:MIL_REQUIRE_REFORM + pops-political-issue-support x define:MIL_REQUIRE_REFORM
 
+Militancy is updated monthly
+
 NOTE FOR FUTURE SELF: the default war-exhaustion effect of any issue is 1, not 0.
 
 ### Consciousness
@@ -373,9 +375,13 @@ Otherwise, the daily change in consciousness is:
 ) x define:CON_COLONIAL_FACTOR if colonial
 + province-pop-consciousness-modifier + national-pop-consciousness-modifier + national-core-pop-consciousness-modifier (in non-colonial states) + national-non-accepted-pop-consciousness-modifier (if not a primary or accepted culture)
 
+Consciousness is updated monthly
+
 ### Literacy
 
-Everyday, the literacy of each pop changes by: 0.01 x define:LITERACY_CHANGE_SPEED x education-spending x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) / (define:MAX_CLERGY_FOR_LITERACY - define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0). Literacy cannot drop below 0.01.
+The literacy of each pop changes by: 0.01 x define:LITERACY_CHANGE_SPEED x education-spending x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) / (define:MAX_CLERGY_FOR_LITERACY - define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0). Literacy cannot drop below 0.01.
+
+Literacy is updated monthly
 
 ### Ideology
 

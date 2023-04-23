@@ -106,5 +106,6 @@ public:
 
 
 bool is_playable_date(date d, absolute_time_point start, absolute_time_point end);
+int32_t days_difference(year_month_day start, year_month_day end);
 
 }

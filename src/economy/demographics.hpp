@@ -4,6 +4,8 @@
 
 namespace pop_demographics {
 
+constexpr inline uint32_t count_special_keys = 0;
+
 dcon::pop_demographics_key to_key(sys::state const& state, dcon::ideology_id v);
 dcon::pop_demographics_key to_key(sys::state const& state, dcon::issue_option_id v);
 uint32_t size(sys::state const& state);
@@ -49,5 +51,9 @@ dcon::demographics_key to_employment_key(sys::state const& state, dcon::pop_type
 uint32_t size(sys::state const& state);
 
 void regenerate_from_pop_data(sys::state& state);
+
+void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
 
 }

@@ -6,13 +6,13 @@
 namespace pop_demographics {
 
 dcon::pop_demographics_key to_key(sys::state const& state, dcon::ideology_id v) {
-	return dcon::pop_demographics_key(dcon::pop_demographics_key::value_base_t(v.index()));
+	return dcon::pop_demographics_key(dcon::pop_demographics_key::value_base_t(v.index() + count_special_keys));
 }
 dcon::pop_demographics_key to_key(sys::state const& state, dcon::issue_option_id v) {
-	return dcon::pop_demographics_key(dcon::pop_demographics_key::value_base_t(state.world.ideology_size() + v.index()));
+	return dcon::pop_demographics_key(dcon::pop_demographics_key::value_base_t(state.world.ideology_size() + v.index() + count_special_keys));
 }
 uint32_t size(sys::state const& state) {
-	return state.world.ideology_size() + state.world.issue_option_size();
+	return state.world.ideology_size() + state.world.issue_option_size() + count_special_keys;
 }
 
 void regenerate_is_primary_or_accepted(sys::state& state) {
@@ -34,8 +34,6 @@ void regenerate_is_primary_or_accepted(sys::state& state) {
 
 }
 namespace demographics {
-
-//constexpr inline uint32_t count_special_keys = 6;
 
 dcon::demographics_key to_key(sys::state const& state, dcon::ideology_id v) {
 	return dcon::demographics_key(dcon::pop_demographics_key::value_base_t(count_special_keys + v.index()));
@@ -642,5 +640,147 @@ void regenerate_from_pop_data(sys::state& state) {
 	});
 }
 
+
+inline constexpr uint32_t executions_per_block = 16 / ve::vector_size;
+
+template<typename F>
+void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
+	auto block_index = 16 * offset;
+	auto const block_advance = 16 * divisions;
+
+	while(block_index < max) {
+		for(uint32_t i = 0; i < executions_per_block; ++i) {
+			functor(ve::contiguous_tags<dcon::pop_id>(block_index + i * ve::vector_size));
+		}
+		block_index += block_advance;
+	}
+}
+
+void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
+	/*
+	Let us define the local pop militancy modifier as the province's militancy modifier + the nation's militancy modifier + the nation's core pop militancy modifier (for non-colonial states, not just core provinces).
+
+	Each pop has its militancy adjusted by the
+	local-militancy-modifier
+	+ (technology-separatism-modifier + 1) x define:MIL_NON_ACCEPTED (if the pop is not of a primary or accepted culture)
+	+ (pop-life-needs-satisfaction - 0.5) x define:MIL_NO_LIFE_NEED
+	+ (pop-everyday-needs-satisfaction - 0.5)^0 x define:MIL_LACK_EVERYDAY_NEED
+	+ (pop-everyday-needs-satisfaction - 0.5)v0 x define:MIL_HAS_EVERYDAY_NEED
+	+ (pop-luxury-needs-satisfaction - 0.5)v0 x define:MIL_HAS_LUXURY_NEED
+	+ pops-support-for-conservatism x define:MIL_IDEOLOGY / 100
+	+ pops-support-for-the-ruling-party-ideology x define:MIL_RULING_PARTY / 100
+	- (if the pop has an attached regiment, applied at most once) leader-reliability-trait / 1000 + define:MIL_WAR_EXHAUSTION x national-war-exhaustion x (sum of support-for-each-issue x issues-war-exhaustion-effect) / 100.0
+	+ (for pops not in colonies) pops-social-issue-support x define:MIL_REQUIRE_REFORM
+	+ (for pops not in colonies) pops-political-issue-support x define:MIL_REQUIRE_REFORM
+	*/
+
+	auto const conservatism_key = pop_demographics::to_key(state, state.culture_definitions.conservative);
+
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owner = state.world.province_get_nation_from_province_ownership(loc);
+		auto ruling_party = state.world.nation_get_ruling_party(owner);
+		auto ruling_ideology = state.world.political_party_get_ideology(ruling_party);
+
+		auto lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.mil_has_luxury_need;
+		auto con_sup = state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology / 100.0f;
+		auto ruling_sup = ve::apply([&](dcon::pop_id p, dcon::ideology_id i) {
+			return i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) * state.defines.mil_ruling_party / 100.0f : 0.0f;
+		}, ids, ruling_ideology);
+		auto ref_mod = ve::select(state.world.province_get_is_colonial(loc), 0.0f, (state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) * state.defines.mil_require_reform);
+
+		auto sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
+
+		auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_militancy_modifier);
+		auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_militancy_modifier);
+		auto cmod = ve::select(state.world.province_get_is_colonial(loc), 0.0f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::core_pop_militancy_modifier));
+
+		auto local_mod = (pmod + omod) + cmod;
+
+		auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids),
+			0.0f,
+			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) * state.defines.mil_non_accepted);
+		auto ln_mod = (state.world.pop_get_life_needs_satisfaction(ids) - 0.5) * state.defines.mil_no_life_need;
+		auto en_mod_a = ve::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5)) * state.defines.mil_lack_everyday_need;
+		auto en_mod_b = ve::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5)) * state.defines.mil_has_everyday_need;
+
+		auto old_mil = state.world.pop_get_militancy(ids);
+
+		state.world.pop_set_militancy(ids, ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil)) + ((sep_mod + ln_mod) + (en_mod_a + en_mod_b)), 0.0f)), 10.0f));
+	});
+}
+
+void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions) {
+	// local consciousness modifier = province-pop-consciousness-modifier + national-pop-consciousness-modifier + national-core-pop-consciousness-modifier (in non-colonial states)
+	/*
+	the daily change in consciousness is:
+	(pop-luxury-needs-satisfaction x define:CON_LUXURY_GOODS
+	+ define:CON_POOR_CLERGY or define:CON_MIDRICH_CLERGY x clergy-fraction-in-province
+	+ national-plurality x 0v((national-literacy-consciousness-impact-modifier + 1) x define:CON_LITERACY x pop-literacy)) x define:CON_COLONIAL_FACTOR if colonial
+	+ national-non-accepted-pop-consciousness-modifier (if not a primary or accepted culture)
+	+ local consciousnesses modifier
+	*/
+
+	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
+
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owner = state.world.province_get_nation_from_province_ownership(loc);
+		auto cfrac = state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
+		auto types = state.world.pop_get_poptype(ids);
+
+		auto lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
+		auto cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
+			ve::fp_vector{state.defines.con_poor_clergy}, ve::fp_vector{ state.defines.con_midrich_clergy }
+			);
+		auto lit_mod = (state.world.nation_get_plurality(owner) / 10000.0f) * (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) * state.defines.con_literacy * state.world.pop_get_literacy(ids) * ve::select(state.world.province_get_is_colonial(loc), ve::fp_vector{ state.defines.con_colonial_factor }, 1.0f);
+
+		auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
+		auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
+		auto cmod = ve::select(state.world.province_get_is_colonial(loc), 0.0f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::core_pop_consciousness_modifier));
+
+		auto local_mod = (pmod + omod) + cmod;
+
+		auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids),
+			0.0f,
+			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier)
+		);
+	
+		auto old_con = state.world.pop_get_consciousness(ids);
+
+		state.world.pop_set_consciousness(ids, ve::min(ve::max(ve::select(owner != dcon::nation_id{}, ((old_con + lx_mod) + (cl_mod + lit_mod)) + (local_mod + sep_mod), 0.0f), 0.0f), 10.f));
+	});
+}
+
+void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
+	/*
+	the literacy of each pop changes by:
+	0.01
+	x define:LITERACY_CHANGE_SPEED
+	x education-spending
+	x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) / (define:MAX_CLERGY_FOR_LITERACY - define:BASE_CLERGY_FOR_LITERACY))^1
+	x (national-modifier-to-education-efficiency + 1.0)
+	x (tech-education-efficiency + 1.0).
+	Literacy cannot drop below 0.01.
+	*/
+
+	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
+
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owner = state.world.province_get_nation_from_province_ownership(loc);
+		auto cfrac = state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
+
+		auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
+		auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
+		auto espending = (ve::to_float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
+		auto cmod = ve::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) / (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy));
+
+		auto old_lit = state.world.pop_get_literacy(ids);
+		auto new_lit = ve::min(ve::max(old_lit + (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod)), 0.01f), 1.0f);
+
+		state.world.pop_set_literacy(ids, ve::select(owner != dcon::nation_id{}, new_lit, old_lit));
+	});
+}
 
 }
