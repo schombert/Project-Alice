@@ -871,7 +871,96 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions) {
 			});
 		}
 	});
+}
 
+inline constexpr float issues_change_rate = 0.10f;
+
+void update_issues(sys::state& state, uint32_t offset, uint32_t divisions) {
+	/*
+	As with ideologies, the attraction modifier for each issue is computed *multiplicatively* and then are collectively normalized. Then we zero the attraction for any issue that is not currently possible (i.e. its trigger condition is not met or it is not the next/previous step for a next-step type issue, and for uncivs only the party issues are valid here)
+	*/
+
+	static ve::vectorizable_buffer<float, dcon::pop_id> totals(0);
+	static tagged_vector<ve::vectorizable_buffer<float, dcon::pop_id>, dcon::issue_option_id> temp_buffers = [&]() {
+		tagged_vector<ve::vectorizable_buffer<float, dcon::pop_id>, dcon::issue_option_id> t;
+		for(uint32_t i = 0; i < state.world.issue_option_size(); ++i) {
+			t.emplace_back(uint32_t(0));
+		}
+		return t;
+	}();
+	static uint32_t pop_count = 0;
+
+
+	auto new_pop_count = state.world.pop_size();
+	if(new_pop_count > pop_count) {
+		totals = state.world.pop_make_vectorizable_float_buffer();
+		state.world.for_each_issue_option([&](dcon::issue_option_id i) {
+			temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer();
+		});
+		pop_count = new_pop_count;
+	}
+
+	// clear totals
+	execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+		totals.set(ids, ve::fp_vector{});
+	});
+
+	// update
+	state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+		auto opt = fatten(state.world, iid);
+		auto allow = opt.get_allow();
+		auto parent_issue = opt.get_parent_issue();
+		auto const i_key = pop_demographics::to_key(state, iid);
+		auto is_party_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::party);
+		auto is_social_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::social);
+		auto is_political_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::political);
+		auto has_modifier = is_social_issue || is_political_issue;
+		auto modifier_key = is_social_issue ? sys::national_mod_offsets::social_reform_desire : sys::national_mod_offsets::political_reform_desire;
+
+		execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+			auto owner = nations::owner_of_pop(state, ids);
+			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
+			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || ve::mask_vector(is_party_issue))
+				&& (allow ? trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : ve::mask_vector(true))
+				&& (current_issue_setting != iid)
+				&& (ve::mask_vector(!state.world.issue_get_is_next_step_only(parent_issue))
+					|| (ve::tagged_vector<int32_t>(current_issue_setting) == iid.index() - 1)
+					|| (ve::tagged_vector<int32_t>(current_issue_setting) == iid.index() + 1)
+					);
+			auto owner_modifier = has_modifier ? (state.world.nation_get_modifier_values(owner, modifier_key) + 1.0f) : ve::fp_vector(1.0f);
+
+			auto amount = owner_modifier * ve::select(allowed_by_owner,
+				ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+					if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
+						return trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(o), 0);
+					} else {
+						return 0.0f;
+					}
+				}, ids, state.world.pop_get_poptype(ids), owner), 0.0f);
+
+			temp_buffers[iid].set(ids, amount);
+			totals.set(ids, totals.get(ids) + amount);
+		});
+	});
+
+	/*
+	Then, like with ideologies, we check how much the normalized attraction is above and below the current support, with a couple of differences. First, for political or social issues, we multiply the magnitude of the adjustment by (national-political-reform-desire-modifier + 1) or (national-social-reform-desire-modifier + 1) as appropriate. Secondly, the base magnitude of the change is either (national-issue-change-speed-modifier + 1.0) x 0.25 or (national-issue-change-speed-modifier + 1.0) x 0.05 (instead of a fixed 0.05 or 0.25). Finally, there is an additional "bin" at 5x more or less where the adjustment is a flat 1.0.
+	*/
+
+	// make updates
+	state.world.for_each_issue_option([&](dcon::issue_option_id i) {
+		auto const i_key = pop_demographics::to_key(state, i);
+		execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+			auto ttotal = totals.get(ids);
+			auto avalue = temp_buffers[i].get(ids) / ttotal;
+			auto current = state.world.pop_get_demographics(ids, i_key);
+			auto owner = nations::owner_of_pop(state, ids);
+			auto owner_rate_modifier = (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::issue_change_speed) + 1.0f);
+
+			state.world.pop_set_demographics(ids, i_key,
+					ve::select(ttotal > 0.0f, issues_change_rate * owner_rate_modifier * avalue + (1.0f - issues_change_rate * owner_rate_modifier) * current, current));
+		});
+	});
 }
 
 }
