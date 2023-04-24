@@ -493,6 +493,7 @@ object {
 	storage_type{ contiguous }
 	size{ 32 }
 	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }

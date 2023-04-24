@@ -2107,10 +2107,8 @@ protected:
                 auto pop_id = any_cast<dcon::pop_id>(pop_id_payload);
                 auto fat_id = dcon::fatten(state.world, pop_id);
                 state.world.for_each_issue_option([&](dcon::issue_option_id issue_id) {
-                    auto pop_size = fat_id.get_size();
                     auto weight =
-                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, issue_id)) /
-                            pop_size;
+                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, issue_id));
                     distrib[uint16_t(issue_id.index())] = weight;
                 });
             }
@@ -2137,10 +2135,8 @@ protected:
                 auto pop_id = any_cast<dcon::pop_id>(pop_id_payload);
                 dcon::pop_fat_id pfat_id = dcon::fatten(state.world, pop_id);
                 state.world.for_each_ideology([&](dcon::ideology_id ideo_id) {
-                    auto pop_size = pfat_id.get_size();
                     auto weight =
-                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, ideo_id)) /
-                            pop_size;
+                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, ideo_id));
                     distrib[uint8_t(ideo_id.index())] = weight;
                 });
             }

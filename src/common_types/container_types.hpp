@@ -74,6 +74,9 @@ public:
 	}
 	tagged_vector(tagged_vector<value_type, tag_type, allocator> const& other) noexcept : storage(other.storage) { }
 	tagged_vector(tagged_vector<value_type, tag_type, allocator>&& other) noexcept : storage(std::move(other.storage)) { }
+	tagged_vector(size_t size) {
+		storage.resize(size);
+	}
 
 	tagged_vector& operator=(tagged_vector<value_type, tag_type, allocator> const& other) noexcept {
 		storage = other.storage;

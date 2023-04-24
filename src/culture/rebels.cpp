@@ -204,7 +204,7 @@ void update_pop_movement_membership(sys::state& state) {
 		if(existing_movement) {
 			auto i = state.world.movement_get_associated_issue_option(state.world.pop_movement_membership_get_movement(existing_movement));
 			if(i) {
-				auto support = state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) / state.world.pop_get_size(p);
+				auto support = state.world.pop_get_demographics(p, pop_demographics::to_key(state, i));
 				if(support * 100.0f < state.defines.issue_movement_leave_limit) {
 					// If the pop's support of the issue for an issue-based movement drops below define:ISSUE_MOVEMENT_LEAVE_LIMIT the pop will leave the movement. 
 					state.world.delete_pop_movement_membership(existing_movement);
@@ -236,7 +236,7 @@ void update_pop_movement_membership(sys::state& state) {
 				if(co != io
 					&& (state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() -1 == io.index())
 					&& (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
-					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io)) / state.world.pop_get_size(p);
+					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io));
 					if(sup * 100.0f >= state.defines.issue_movement_join_limit && sup > max_support) {
 						max_option = io;
 						max_support = sup;

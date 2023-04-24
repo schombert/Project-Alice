@@ -504,7 +504,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 				}
 			});
 			if(total != 0) {
-				float adjustment_factor = psize / total;
+				float adjustment_factor = 1.0f / total;
 				state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
 					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
 					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
@@ -529,7 +529,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 				}
 			});
 			if(total != 0) {
-				float adjustment_factor = psize / total;
+				float adjustment_factor = 1.0f / total;
 				state.world.for_each_issue_option([&state, pid, adjustment_factor](dcon::issue_option_id iid) {
 					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
 					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);

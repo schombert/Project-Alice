@@ -250,13 +250,13 @@ void regenerate_from_pop_data(sys::state& state) {
 			dcon::ideology_id pkey{ dcon::ideology_id::value_base_t( index - count_special_keys ) };
 			auto pdemo_key = pop_demographics::to_key(state, pkey);
 			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
-				return state.world.pop_get_demographics(p, pdemo_key);
+				return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
 			});
 		} else if(key.index() < to_key(state, dcon::pop_type_id(0)).index()) { // issue option
 			dcon::issue_option_id pkey{ dcon::issue_option_id::value_base_t(index - (count_special_keys + state.world.ideology_size()) ) };
 			auto pdemo_key = pop_demographics::to_key(state, pkey);
 			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
-				return state.world.pop_get_demographics(p, pdemo_key);
+				return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
 			});
 		} else if(key.index() < to_key(state, dcon::culture_id(0)).index()) { // pop type
 			dcon::pop_type_id pkey{ dcon::pop_type_id::value_base_t(index - (count_special_keys + state.world.ideology_size() + state.world.issue_option_size())) };
@@ -683,9 +683,9 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto ruling_ideology = state.world.political_party_get_ideology(ruling_party);
 
 		auto lx_mod = ve::max(state.world.pop_get_luxury_needs_satisfaction(ids) - 0.5f, 0.0f) * state.defines.mil_has_luxury_need;
-		auto con_sup = state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology / 100.0f;
+		auto con_sup = (state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology);
 		auto ruling_sup = ve::apply([&](dcon::pop_id p, dcon::ideology_id i) {
-			return i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) * state.defines.mil_ruling_party / 100.0f : 0.0f;
+			return i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) * state.defines.mil_ruling_party : 0.0f;
 		}, ids, ruling_ideology);
 		auto ref_mod = ve::select(state.world.province_get_is_colonial(loc), 0.0f, (state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) * state.defines.mil_require_reform);
 
@@ -781,6 +781,97 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 
 		state.world.pop_set_literacy(ids, ve::select(owner != dcon::nation_id{}, new_lit, old_lit));
 	});
+}
+
+inline constexpr float ideology_change_rate = 0.10f;
+
+void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions) {
+	/*
+	For ideologies after their enable date (actual discovery / activation is irrelevant), and not restricted to civs only for pops in an unciv, the attraction modifier is computed *multiplicatively*. Then, these values are collectively normalized.
+	*/
+
+	static ve::vectorizable_buffer<float, dcon::pop_id> totals(0);
+	static tagged_vector<ve::vectorizable_buffer<float, dcon::pop_id>, dcon::ideology_id> temp_buffers = [&]() {
+		tagged_vector<ve::vectorizable_buffer<float, dcon::pop_id>, dcon::ideology_id> t;
+		for(uint32_t i = 0; i < state.world.ideology_size(); ++i) {
+			t.emplace_back(uint32_t(0));
+		}
+		return t;
+	}();
+	static uint32_t pop_count = 0;
+
+
+	auto new_pop_count = state.world.pop_size();
+	if( new_pop_count > pop_count) {
+		totals = state.world.pop_make_vectorizable_float_buffer();
+		state.world.for_each_ideology([&](dcon::ideology_id i) {
+			temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer();
+		});
+		pop_count = new_pop_count;
+	}
+
+	// clear totals
+	execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+		totals.set(ids, ve::fp_vector{});
+	});
+
+	// update
+	state.world.for_each_ideology([&](dcon::ideology_id i) {
+		if(state.world.ideology_get_enabled(i)) {
+			auto const i_key = pop_demographics::to_key(state, i);
+			if(state.world.ideology_get_is_civilized_only(i)) {
+				execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+					auto owner = nations::owner_of_pop(state, ids);
+
+					auto amount = ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+						if(state.world.nation_get_is_civilized(o)) {
+							auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+							return trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(o), 0);
+						} else
+							return 0.0f;
+					}, ids, state.world.pop_get_poptype(ids), owner);
+
+					temp_buffers[i].set(ids, amount);
+					totals.set(ids, totals.get(ids) + amount);
+				});
+			} else {
+				execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+					auto owner = nations::owner_of_pop(state, ids);
+
+					auto amount = ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+						auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+						return trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(o), 0);
+					}, ids, state.world.pop_get_poptype(ids), owner);
+
+					temp_buffers[i].set(ids, amount);
+					totals.set(ids, totals.get(ids) + amount);
+				});
+			}
+		}
+	});
+
+	/*
+	If the normalized value is greater than twice the pop's current support for the ideology: add 0.25 to the pop's current support for the ideology
+	If the normalized value is greater than the pop's current support for the ideology: add 0.05 to the pop's current support for the ideology
+	If the normalized value is greater than half the pop's current support for the ideology: do nothing
+	Otherwise: subtract 0.25 from the pop's current support for the ideology (to a minimum of zero)
+	*/
+
+	// make updates
+	state.world.for_each_ideology([&](dcon::ideology_id i) {
+		if(state.world.ideology_get_enabled(i)) {
+			auto const i_key = pop_demographics::to_key(state, i);
+			execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+				auto ttotal = totals.get(ids);
+				auto avalue = temp_buffers[i].get(ids) / ttotal;
+				auto current = state.world.pop_get_demographics(ids, i_key);
+
+				state.world.pop_set_demographics(ids, i_key,
+					ve::select(ttotal > 0.0f, ideology_change_rate * avalue + (1.0f - ideology_change_rate) * current, current));
+			});
+		}
+	});
+
 }
 
 }

@@ -1535,25 +1535,32 @@ namespace sys {
 
 					// pop update:
 
-					concurrency::parallel_for(0, 3, [&](int32_t index) {
+					concurrency::parallel_for(0, 4, [&](int32_t index) {
 						switch(index) {
 							case 0:
 							{
 								auto o = uint32_t(ymd_date.day);
 								if(o >= days_in_month) o -= days_in_month;
-								demographics::update_militancy(*this, o, days_in_month);
+								demographics::update_ideologies(*this, o, days_in_month);
 								break;
 							}
 							case 1:
 							{
 								auto o = uint32_t(ymd_date.day + 1);
 								if(o >= days_in_month) o -= days_in_month;
-								demographics::update_consciousness(*this, o, days_in_month);
+								demographics::update_militancy(*this, o, days_in_month);
 								break;
 							}
 							case 2:
 							{
 								auto o = uint32_t(ymd_date.day + 2);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_consciousness(*this, o, days_in_month);
+								break;
+							}
+							case 3:
+							{
+								auto o = uint32_t(ymd_date.day + 3);
 								if(o >= days_in_month) o -= days_in_month;
 								demographics::update_literacy(*this, o, days_in_month);
 								break;

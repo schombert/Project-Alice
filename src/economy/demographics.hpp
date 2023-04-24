@@ -55,5 +55,6 @@ void regenerate_from_pop_data(sys::state& state);
 void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions);
 
 }

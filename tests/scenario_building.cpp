@@ -1323,8 +1323,6 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	nations::generate_initial_state_instances(*state);
 	state->world.nation_resize_stockpiles(state->world.commodity_size());
-	state->world.nation_resize_last_production(state->world.commodity_size());
-	state->world.state_instance_resize_last_production(state->world.commodity_size());
 
 	state->national_definitions.global_flag_variables.resize((state->national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
 

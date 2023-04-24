@@ -113,6 +113,9 @@ bool issue_is_selected(sys::state& state, dcon::nation_id nation, dcon::issue_op
 }
 
 bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
+	if(!issue_option)
+		return false;
+
     auto issue = state.world.issue_option_get_parent_issue(issue_option);
     auto current = state.world.nation_get_issues(nation, issue.id).id;
     auto allow = state.world.issue_option_get_allow(issue_option);
@@ -137,6 +140,9 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
 }
 
 bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_option_id o) {
+	if(!o)
+		return false;
+
     auto issue = state.world.issue_option_get_parent_issue(o);
     auto current = state.world.nation_get_issues(n, issue.id).id;
     auto allow = state.world.issue_option_get_allow(o);
@@ -161,6 +167,9 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
 }
 
 bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::reform_option_id o) {
+	if(!o)
+		return false;
+
     auto reform = state.world.reform_option_get_parent_reform(o);
     auto current = state.world.nation_get_reforms(n, reform.id).id;
     auto allow = state.world.reform_option_get_allow(o);
@@ -183,6 +192,9 @@ bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::refor
 }
 
 bool can_enact_economic_reform(sys::state& state, dcon::nation_id n, dcon::reform_option_id o) {
+	if(!o)
+		return false;
+
     auto reform = state.world.reform_option_get_parent_reform(o);
     auto current = state.world.nation_get_reforms(n, reform.id).id;
     auto allow = state.world.reform_option_get_allow(o);
