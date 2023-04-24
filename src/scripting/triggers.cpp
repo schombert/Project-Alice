@@ -146,7 +146,7 @@ struct gathered_s<ve::partial_contiguous_tags<int32_t>> {
 };
 
 template<typename T>
-using gathered_t = gathered_s<T>::type;
+using gathered_t = typename gathered_s<T>::type;
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, primary_type primary_slot, this_type this_slot, from_type from_slot);
