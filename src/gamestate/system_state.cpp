@@ -1535,7 +1535,7 @@ namespace sys {
 
 					// pop update:
 
-					concurrency::parallel_for(0, 5, [&](int32_t index) {
+					concurrency::parallel_for(0, 6, [&](int32_t index) {
 						switch(index) {
 							case 0:
 							{
@@ -1572,8 +1572,17 @@ namespace sys {
 								demographics::update_literacy(*this, o, days_in_month);
 								break;
 							}
+							case 5:
+							{
+								auto o = uint32_t(ymd_date.day + 5);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_growth(*this, o, days_in_month);
+								break;
+							}
 						}
 					});
+
+					demographics::remove_size_zero_pops(*this);
 
 					// basic repopulation of demographics derived values
 					demographics::regenerate_from_pop_data(*this);

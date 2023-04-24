@@ -99,7 +99,6 @@ namespace sys {
     MOD_LIST_ELEMENT(38, rich_luxury_needs, false, modifier_display_type::percent, "modifier_rich_luxury_needs") \
     MOD_LIST_ELEMENT(39, unemployment_benefit, true, modifier_display_type::percent, "modifier_unemployment_benefit") \
     MOD_LIST_ELEMENT(40, pension_level, true, modifier_display_type::percent, "modifier_pension_level") \
-    MOD_LIST_ELEMENT(41, global_population_growth, true, modifier_display_type::fp_two_places, "modifier_global_population_growth") \
     MOD_LIST_ELEMENT(42, factory_input, false, modifier_display_type::percent, "modifier_factory_input") \
     MOD_LIST_ELEMENT(43, factory_output, true, modifier_display_type::percent, "modifier_factory_output") \
     MOD_LIST_ELEMENT(44, factory_throughput, true, modifier_display_type::percent, "modifier_factory_throughput") \

@@ -57,5 +57,8 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_issues(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_growth(sys::state& state, uint32_t offset, uint32_t divisions);
+
+void remove_size_zero_pops(sys::state& state);
 
 }

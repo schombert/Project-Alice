@@ -561,7 +561,16 @@ namespace parsers {
 		MOD_NAT_FUNCTION(unemployment_benefit)
 		MOD_NAT_FUNCTION(pension_level)
 		MOD_PROV_FUNCTION(population_growth)
-		MOD_NAT_FUNCTION(global_population_growth)
+		template<typename T> 
+		void global_population_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
+					err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::pop_growth;
+				constructed_definition_n.values[next_to_add_n] = v * 0.1f;
+				++next_to_add_n;
+			}
+		}
 		MOD_NAT_FUNCTION(factory_input)
 		MOD_NAT_FUNCTION(factory_output)
 		MOD_NAT_FUNCTION(factory_throughput)

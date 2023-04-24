@@ -963,4 +963,45 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions) {
 	});
 }
 
+void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
+	/*
+	Province pop-growth factor: Only owned provinces grow. To calculate the pop growth in a province: First, calculate the modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+
+	The amount a pop grows is determine by first computing the growth modifier sum: (pop-life-needs - define:LIFE_NEED_STARVATION_LIMIT) x province-pop-growth-factor x 4 + province-growth-modifier + tech-pop-growth-modifier + national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+	*/
+
+
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owner = state.world.province_get_nation_from_province_ownership(loc);
+
+		auto base_life_rating = ve::to_float(state.world.province_get_life_rating(loc));
+		auto mod_life_rating = ve::min(base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
+		auto lr_factor = ve::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+		auto province_factor = lr_factor + state.defines.base_popgrowth;
+
+		auto ln_factor = state.world.pop_get_life_needs_satisfaction(ids) - state.defines.life_need_starvation_limit;
+		auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth)
+			+ state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+
+		auto total_factor = ln_factor * province_factor * 4.0f + mod_sum;
+		auto old_size = state.world.pop_get_size(ids);
+		auto new_size = old_size * total_factor + old_size;
+
+		auto type = state.world.pop_get_poptype(ids);
+
+		state.world.pop_set_size(ids, ve::select((owner != dcon::nation_id{}) && (type != state.culture_definitions.slaves), new_size, old_size));
+	});
+}
+
+void remove_size_zero_pops(sys::state& state) {
+	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
+	for(auto last = state.world.pop_size(); last-- > 0; ) {
+		dcon::pop_id m{ dcon::pop_id::value_base_t(last) };
+		if(state.world.pop_get_size(m) < 1.0f) {
+			state.world.delete_pop(m);
+		}
+	}
+}
+
 }
