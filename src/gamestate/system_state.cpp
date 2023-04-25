@@ -1535,8 +1535,9 @@ namespace sys {
 
 					// pop update:
 					static demographics::promotion_buffer pbuf;
+					static demographics::assimilation_buffer abuf;
 
-					concurrency::parallel_for(0, 7, [&](int32_t index) {
+					concurrency::parallel_for(0, 8, [&](int32_t index) {
 						switch(index) {
 							case 0:
 							{
@@ -1587,6 +1588,13 @@ namespace sys {
 								demographics::update_type_changes(*this, o, days_in_month, pbuf);
 								break;
 							}
+							case 7:
+							{
+								auto o = uint32_t(ymd_date.day + 7);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_assimilation(*this, o, days_in_month, abuf);
+								break;
+							}
 						}
 					});
 
@@ -1594,6 +1602,11 @@ namespace sys {
 						auto o = uint32_t(ymd_date.day + 6);
 						if(o >= days_in_month) o -= days_in_month;
 						demographics::apply_type_changes(*this, o, days_in_month, pbuf);
+					}
+					{
+						auto o = uint32_t(ymd_date.day + 7);
+						if(o >= days_in_month) o -= days_in_month;
+						demographics::apply_assimilation(*this, o, days_in_month, abuf);
 					}
 
 					demographics::remove_size_zero_pops(*this);

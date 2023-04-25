@@ -67,6 +67,19 @@ struct promotion_buffer {
 	}
 };
 
+struct assimilation_buffer {
+	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
+	uint32_t size = 0;
+
+	assimilation_buffer() : amounts(0), size(0) { }
+	void update(uint32_t s) {
+		if(size < s) {
+			size = s;
+			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
+		}
+	}
+};
+
 void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
@@ -74,8 +87,10 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_issues(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_growth(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
 
 void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
 
 void remove_size_zero_pops(sys::state& state);
 

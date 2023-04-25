@@ -922,7 +922,7 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions) {
 			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
 			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || ve::mask_vector(is_party_issue))
 				&& (allow ? trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : ve::mask_vector(true))
-				&& (current_issue_setting != iid)
+				&& (current_issue_setting != iid || ve::mask_vector(is_party_issue))
 				&& (ve::mask_vector(!state.world.issue_get_is_next_step_only(parent_issue))
 					|| (ve::tagged_vector<int32_t>(current_issue_setting) == iid.index() - 1)
 					|| (ve::tagged_vector<int32_t>(current_issue_setting) == iid.index() + 1)
@@ -1003,7 +1003,10 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 
 	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
-		ve::apply([&](dcon::pop_id p) {
+		auto owners = nations::owner_of_pop(state, ids);
+		auto promotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0);
+		auto demotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0);
+		ve::apply([&](dcon::pop_id p, dcon::nation_id owner, float promotion_chance, float demotion_chance) {
 			/*
 			Promotion amount:
 			Compute the promotion modifier *additively*. If it it non-positive, there is no promotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly promote into that type, add the national focus effect to the promotion modifier. Conversely, pops of the focused type, are not allowed to promote out. Then multiply this value by national-administrative-efficiency x define:PROMOTION_SCALE x pop-size to find out how many promote (although at least one person will promote per day if the result is positive).
@@ -1012,12 +1015,9 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 			Compute the demotion modifier *additively*. If it it non-positive, there is no demotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly demote into that type, add the national focus effect to the demotion modifier. Then multiply this value by define:PROMOTION_SCALE x pop-size to find out how many demote (although at least one person will demote per day if the result is positive).
 			*/
 			
-			auto owner = nations::owner_of_pop(state, p);
+			
 			if(!owner)
 				return;
-
-			auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance, trigger::to_generic(p), trigger::to_generic(owner), 0);
-			auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance, trigger::to_generic(p), trigger::to_generic(owner), 0);
 
 			auto loc = state.world.pop_get_province_from_pop_location(p);
 			auto si = state.world.province_get_state_membership(loc);
@@ -1106,7 +1106,86 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 				}
 			}
 
-		}, ids);
+		}, ids, owners, promotion_chances, demotion_chances);
+	});
+}
+
+void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
+	pbuf.update(state.world.pop_size());
+
+	/*
+	- cultural assimilation -- For a pop to assimilate, there must be a pop of the same strata of either a primary culture (preferred) or accepted culture in the province to assimilate into. (schombert notes: not sure if it is worthwhile preserving this limitation)
+	*/
+
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		pbuf.amounts.set(ids, 0.0f);
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owners = state.world.province_get_nation_from_province_ownership(loc);
+		auto assimilation_chances = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f);
+
+		ve::apply([&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float assimilation_chance) {
+			// no assimilation in unowned provinces
+			if(!owner)
+				return; // early exit
+
+			//slaves do not assimilate
+			if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
+				return; // early exit
+
+			//pops of an accepted culture do not assimilate
+			if(state.world.pop_get_is_primary_or_accepted_culture(p))
+				return; // early exit
+
+			//pops in an overseas and colonial province do not assimilate
+			if(state.world.province_get_is_colonial(location) && province::is_overseas(state, location))
+				return; // early exit
+			
+			/*
+			Amount: define:ASSIMILATION_SCALE x (provincial-assimilation-rate-modifier + 1) x (national-assimilation-rate-modifier + 1) x pop-size x assimilation chance factor (computed additively, and always at least 0.01).
+			*/
+
+			float current_size = state.world.pop_get_size(p);
+			float base_amount = state.defines.assimilation_scale * (state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f) * (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) * assimilation_chance * current_size;
+
+
+			/*
+			In a colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a factor of 100. In a non-colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a factor of 10.
+			*/
+
+			auto pc = state.world.pop_get_culture(p);
+			if(state.world.province_get_is_colonial(location)) {
+				if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+					base_amount /= 100.0f;
+				}
+			} else {
+				if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+					base_amount /= 10.0f;
+				}
+			}
+
+			/*
+			All pops have their assimilation numbers reduced by a factor of 100 per core in the province sharing their primary culture.
+			*/
+
+			for(auto core : state.world.province_get_core(location)) {
+				if(core.get_identity().get_primary_culture() == pc) {
+					base_amount /= 100.0f;
+				}
+			}
+
+			/*
+			If the pop size is less than 100 or thereabouts, they seem to get all assimilated if there is any assimilation.
+			*/
+
+			if(current_size < 100.0f && base_amount >= 0.001f) {
+				state.world.pop_set_size(p, 0.0f);
+				pbuf.amounts.set(p, current_size);
+			} else if(base_amount >= 0.001f) {
+				state.world.pop_set_size(p, current_size - std::ceil(base_amount));
+				pbuf.amounts.set(p, std::ceil(base_amount));
+			}
+
+		}, ids, loc, owners, assimilation_chances);
 	});
 }
 
@@ -1129,6 +1208,21 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 	np.set_culture(cid);
 	np.set_religion(rid);
 	np.set_poptype(ptid);
+
+	{
+		auto n = state.world.province_get_nation_from_province_ownership(loc);
+		if(state.world.nation_get_primary_culture(n) == cid) {
+			np.set_is_primary_or_accepted_culture(true);
+		} else {
+			auto accepted = state.world.nation_get_accepted_cultures(n);
+			for(auto c : accepted) {
+				if(c == cid) {
+					np.set_is_primary_or_accepted_culture(true);
+					break;
+				}
+			}
+		}
+	}
 
 	{ // initial ideology
 		float totals = 0.0f;
@@ -1176,7 +1270,7 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
 			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || is_party_issue)
 				&& (allow ? trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : true)
-				&& (current_issue_setting != iid)
+				&& (current_issue_setting != iid || is_party_issue)
 				&& (!state.world.issue_get_is_next_step_only(parent_issue)
 					|| (current_issue_setting.id.index() == iid.index() - 1)
 					|| (current_issue_setting.id.index() == iid.index() + 1)
@@ -1203,7 +1297,7 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 }
 
 void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
-	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+	execute_staggered_blocks(offset, divisions, pbuf.size, [&](auto ids) {
 		ve::apply([&](dcon::pop_id p) {
 			if(pbuf.amounts.get(p) > 0.0f && pbuf.types.get(p)) {
 				auto target_pop = impl::find_or_make_pop(state,
@@ -1211,6 +1305,24 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 					state.world.pop_get_culture(p),
 					state.world.pop_get_religion(p),
 					pbuf.types.get(p));
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+			}
+		}, ids);
+	});
+}
+
+void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
+	execute_staggered_blocks(offset, divisions, pbuf.size, [&](auto ids) {
+		ve::apply([&](dcon::pop_id p) {
+			if(pbuf.amounts.get(p) > 0.0f) {
+				auto o = nations::owner_of_pop(state, p);
+				auto cul = state.world.nation_get_primary_culture(o);
+				auto rel = state.world.nation_get_religion(o);
+				auto target_pop = impl::find_or_make_pop(state,
+					state.world.pop_get_province_from_pop_location(p),
+					cul,
+					rel,
+					state.world.pop_get_poptype(p));
 				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
 			}
 		}, ids);
