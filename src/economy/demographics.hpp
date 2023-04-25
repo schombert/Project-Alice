@@ -52,12 +52,30 @@ uint32_t size(sys::state const& state);
 
 void regenerate_from_pop_data(sys::state& state);
 
+struct promotion_buffer {
+	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
+	ve::vectorizable_buffer<dcon::pop_type_id, dcon::pop_id> types;
+	uint32_t size = 0;
+
+	promotion_buffer() : amounts(0), types(0), size(0) { }
+	void update(uint32_t s) {
+		if(size < s) {
+			size = s;
+			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
+			types = ve::vectorizable_buffer<dcon::pop_type_id, dcon::pop_id>(s);
+		}
+	}
+};
+
 void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_issues(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_growth(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+
+void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
 
 void remove_size_zero_pops(sys::state& state);
 

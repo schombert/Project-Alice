@@ -994,6 +994,229 @@ void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
 	});
 }
 
+void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
+	pbuf.update(state.world.pop_size());
+
+	/*
+	Pops appear to "promote" into other pops of the same or greater strata. Likewise they "demote" into pops of the same or lesser strata. (Thus both promotion and demotion can move pops within the same strata?).
+	*/
+
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		pbuf.amounts.set(ids, 0.0f);
+		ve::apply([&](dcon::pop_id p) {
+			/*
+			Promotion amount:
+			Compute the promotion modifier *additively*. If it it non-positive, there is no promotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly promote into that type, add the national focus effect to the promotion modifier. Conversely, pops of the focused type, are not allowed to promote out. Then multiply this value by national-administrative-efficiency x define:PROMOTION_SCALE x pop-size to find out how many promote (although at least one person will promote per day if the result is positive).
+
+			Demotion amount:
+			Compute the demotion modifier *additively*. If it it non-positive, there is no demotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly demote into that type, add the national focus effect to the demotion modifier. Then multiply this value by define:PROMOTION_SCALE x pop-size to find out how many demote (although at least one person will demote per day if the result is positive).
+			*/
+			
+			auto owner = nations::owner_of_pop(state, p);
+			if(!owner)
+				return;
+
+			auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance, trigger::to_generic(p), trigger::to_generic(owner), 0);
+			auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance, trigger::to_generic(p), trigger::to_generic(owner), 0);
+
+			auto loc = state.world.pop_get_province_from_pop_location(p);
+			auto si = state.world.province_get_state_membership(loc);
+			auto nf = state.world.state_instance_get_owner_focus(si);
+			auto promoted_type = state.world.national_focus_get_promotion_type(nf);
+			auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
+			auto ptype = state.world.pop_get_poptype(p);
+			auto strata = state.world.pop_type_get_strata(ptype);
+
+			if(promoted_type) {
+				if(promoted_type == ptype) {
+					promotion_chance = 0.0f;
+				} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
+					promotion_chance += promotion_bonus;
+				} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
+					demotion_chance += promotion_bonus;
+				}
+			}
+
+			if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
+				return; // skip this pop
+
+			float current_size = state.world.pop_get_size(p);
+
+			bool promoting = promotion_chance >= demotion_chance;
+			float amount = std::min(current_size, promoting ? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) * state.defines.promotion_scale * current_size)) : (std::ceil(promotion_chance * state.defines.promotion_scale * current_size)));
+			pbuf.amounts.set(p, amount);
+
+			
+			tagged_vector<float, dcon::pop_type_id> weights(state.world.pop_type_size());
+
+			
+			/*
+			The promotion and demotion factors seem to be computed additively (by taking the sum of all true conditions). If there is a national focus set towards a pop type in the state, that is also added into the chances to promote into that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This obviously has the effect of making those pop types even more likely than they otherwise would be.
+
+			As for demotion, there appear to an extra wrinkle. Pops do not appear to demote into pop types if there is more unemployment in that demotion target than in their current pop type. Otherwise, the national focus appears to have the same effect with respect to demotion.
+			*/
+
+			if(promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata) {
+				auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
+				auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) +  promotion_bonus;
+				if(chance > 0) {
+					state.world.pop_set_size(p, current_size - amount);
+					pbuf.types.set(p, promoted_type);
+					return; // early exit
+				}
+			} else if(!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata) {
+				auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
+				auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + promotion_bonus;
+				if(chance > 0) {
+					state.world.pop_set_size(p, current_size - amount);
+					pbuf.types.set(p, promoted_type);
+					return; // early exit
+				}
+			}
+
+			float chances_total = 0.0f;
+			state.world.for_each_pop_type([&](dcon::pop_type_id target_type) {
+				if(target_type == ptype) {
+					weights[target_type] = 0.0f;
+				} else if(promoting && state.world.pop_type_get_strata(promoted_type) >= strata) {
+					auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
+					auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f), 0.0f);
+					chances_total += chance;
+					weights[target_type] = chance;
+				} else if(!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) {
+					auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
+					auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f), 0.0f);
+					chances_total += chance;
+					weights[target_type] = chance;
+				} else {
+					weights[target_type] = 0.0f;
+				}
+			});
+
+			if(chances_total > 0.0f) {
+				auto rvalue = float(rng::get_random(state, uint32_t(p.index())) & 0xFFFF) / float(0xFFFF + 1);
+				for(uint32_t i = state.world.pop_type_size(); i-- > 0;) {
+					dcon::pop_type_id pr{dcon::pop_type_id::value_base_t(i) };
+					rvalue -= weights[pr] / chances_total;
+					if(rvalue < 0.0f) {
+						state.world.pop_set_size(p, current_size - amount);
+						pbuf.types.set(p, pr);
+						return;
+					}
+				}
+			}
+
+		}, ids);
+	});
+}
+
+namespace impl {
+dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::culture_id cid, dcon::religion_id rid, dcon::pop_type_id ptid) {
+	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(loc));
+	if(is_mine && ptid == state.culture_definitions.farmers) {
+		ptid = state.culture_definitions.laborers;
+	} else if(!is_mine && ptid == state.culture_definitions.laborers) {
+		ptid = state.culture_definitions.farmers;
+	}
+	// TODO: fix state capital only type pops ?
+	for(auto pl : state.world.province_get_pop_location(loc)) {
+		if(pl.get_pop().get_culture() == cid && pl.get_pop().get_religion() == rid && pl.get_pop().get_poptype() == ptid) {
+			return pl.get_pop();
+		}
+	}
+	auto np = fatten(state.world, state.world.create_pop());
+	state.world.force_create_pop_location(np, loc);
+	np.set_culture(cid);
+	np.set_religion(rid);
+	np.set_poptype(ptid);
+
+	{ // initial ideology
+		float totals = 0.0f;
+		state.world.for_each_ideology([&](dcon::ideology_id i) {
+			if(state.world.ideology_get_enabled(i)) {
+				auto const i_key = pop_demographics::to_key(state, i);
+				auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+				auto owner = nations::owner_of_pop(state, np);
+
+				if(state.world.ideology_get_is_civilized_only(i)) {
+					if(state.world.nation_get_is_civilized(owner)) {
+						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id), trigger::to_generic(owner), 0);
+						state.world.pop_set_demographics(np, i_key, amount);
+						totals += amount;
+					}
+				} else {
+					auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id), trigger::to_generic(owner), 0);
+					state.world.pop_set_demographics(np, i_key, amount);
+					totals += amount;
+				}
+			}
+		});
+		if(totals > 0) {
+			state.world.for_each_ideology([&](dcon::ideology_id i) {
+				auto const i_key = pop_demographics::to_key(state, i);
+				state.world.pop_get_demographics(np, i_key) /= totals;
+			});
+		}
+	}
+	{ // initial issues
+		float totals = 0.0f;
+		state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+			auto opt = fatten(state.world, iid);
+			auto allow = opt.get_allow();
+			auto parent_issue = opt.get_parent_issue();
+			auto const i_key = pop_demographics::to_key(state, iid);
+			auto is_party_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::party);
+			auto is_social_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::social);
+			auto is_political_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::political);
+			auto has_modifier = is_social_issue || is_political_issue;
+			auto modifier_key = is_social_issue ? sys::national_mod_offsets::social_reform_desire : sys::national_mod_offsets::political_reform_desire;
+
+
+			auto owner = nations::owner_of_pop(state, np);
+			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
+			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || is_party_issue)
+				&& (allow ? trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : true)
+				&& (current_issue_setting != iid)
+				&& (!state.world.issue_get_is_next_step_only(parent_issue)
+					|| (current_issue_setting.id.index() == iid.index() - 1)
+					|| (current_issue_setting.id.index() == iid.index() + 1)
+					);
+			auto owner_modifier = has_modifier ? (state.world.nation_get_modifier_values(owner, modifier_key) + 1.0f) : 1.0f;
+			if(allowed_by_owner) {
+				if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
+					auto amount = owner_modifier * trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(np.id), trigger::to_generic(owner), 0);
+
+					state.world.pop_set_demographics(np, i_key, amount);
+					totals += amount;
+				}
+			}
+		});
+		if(totals > 0) {
+			state.world.for_each_issue_option([&](dcon::issue_option_id i) {
+				auto const i_key = pop_demographics::to_key(state, i);
+				state.world.pop_get_demographics(np, i_key) /= totals;
+			});
+		}
+	}
+	return np;
+}
+}
+
+void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		ve::apply([&](dcon::pop_id p) {
+			if(pbuf.amounts.get(p) > 0.0f && pbuf.types.get(p)) {
+				auto target_pop = impl::find_or_make_pop(state,
+					state.world.pop_get_province_from_pop_location(p),
+					state.world.pop_get_culture(p),
+					state.world.pop_get_religion(p),
+					pbuf.types.get(p));
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+			}
+		}, ids);
+	});
+}
+
 void remove_size_zero_pops(sys::state& state) {
 	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
 	for(auto last = state.world.pop_size(); last-- > 0; ) {

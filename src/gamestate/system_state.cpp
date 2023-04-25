@@ -1534,8 +1534,9 @@ namespace sys {
 					auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
 					// pop update:
+					static demographics::promotion_buffer pbuf;
 
-					concurrency::parallel_for(0, 6, [&](int32_t index) {
+					concurrency::parallel_for(0, 7, [&](int32_t index) {
 						switch(index) {
 							case 0:
 							{
@@ -1579,8 +1580,21 @@ namespace sys {
 								demographics::update_growth(*this, o, days_in_month);
 								break;
 							}
+							case 6:
+							{
+								auto o = uint32_t(ymd_date.day + 6);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_type_changes(*this, o, days_in_month, pbuf);
+								break;
+							}
 						}
 					});
+
+					{
+						auto o = uint32_t(ymd_date.day + 6);
+						if(o >= days_in_month) o -= days_in_month;
+						demographics::apply_type_changes(*this, o, days_in_month, pbuf);
+					}
 
 					demographics::remove_size_zero_pops(*this);
 

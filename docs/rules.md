@@ -327,15 +327,25 @@ The amount a pop grows is determine by first computing the growth modifier sum: 
 
 Internal and external "normal" migration appears to be handled distinctly from "colonial" migration. In performing colonial migration, all pops of the same culture+religion+type seems to get combined before moving them around. Pops may only migrate between countries of the same civ/unciv status.
 
+#### Destinations
+
 Country targets for external migration: must be a country with its capital on a different continent from the source country *or* an adjacent country (same continent, but non adjacent, countries are not targets). Each country target is then weighted: Firs, the product of the country migration target modifiers (including the base value) is computed, and any results less than 0.01 are increased to that value. That value is then multiplied by (1.0 + the nations immigrant attractiveness modifier). Assuming that there are valid targets for immigration, the nations with the top three values are selected as the possible targets. The pop (or, rather, the part of the pop that is migrating) then goes to one of those three targets, selected at random according to their relative attractiveness weight. The final provincial destination for the pop is then selected as if doing normal internal migration.
 
 Destination for internal migration: colonial provinces are not valid targets, nor are non state capital provinces for pop types restricted to capitals. Valid provinces are weighted according to the product of the factors, times the value of the immigration focus + 1.0 if it is present, times the provinces immigration attractiveness modifier + 1.0. The pop is then distributed more or less evenly over those provinces with positive attractiveness in proportion to their attractiveness, or dumped somewhere at random if no provinces are attractive.
 
 Colonial migration appears to work much the same way as internal migration, except that *only* colonial provinces are valid targets, and pops belonging to cultures with "overseas" = false set will not colonially migrate outside the same continent. The same trigger seems to be used as internal migration for weighting the colonial provinces.
 
+#### Amounts
+
+For non-slave, non-colonial pops in provinces with a total population > 100, some pops may migrate within the nation. This is done by calculating the migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
+If a nation has colonies, non-factory worker, non-rich pops in provinces with a total population > 100 may move to the colonies. This is done by calculating the colonial migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x (colonial-migration-from-tech + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
+Finally, pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x 1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
 ### Promotion/demotion
 
-Pops appear to "promote" into other pops of the same or greater strata. Likewise they "demote" into pops of the same or lesser strata. (Thus both promotion and demotion can move pops within the same strata?). The promotion and demotion factors seem to be computed additively (by taking the same of all true conditions). If there is a national focus set towards a pop type in the state, that also seems to be added into the chances to promote into that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This obviously has the effect of making those pop types even more likely than they otherwise would be.
+Pops appear to "promote" into other pops of the same or greater strata. Likewise they "demote" into pops of the same or lesser strata. (Thus both promotion and demotion can move pops within the same strata?). The promotion and demotion factors seem to be computed additively (by taking the sum of all true conditions). If there is a national focus set towards a pop type in the state, that is also added into the chances to promote into that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This obviously has the effect of making those pop types even more likely than they otherwise would be.
 
 There are known bugs in terms of promotion not respecting culture and/or religion. I don't see a reason to try to replicate them.
 
@@ -348,12 +358,6 @@ Compute the promotion modifier *additively*. If it it non-positive, there is no 
 
 Demotion amount:
 Compute the demotion modifier *additively*. If it it non-positive, there is no demotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly demote into that type, add the national focus effect to the demotion modifier. Then multiply this value by define:PROMOTION_SCALE x pop-size to find out how many demote (although at least one person will demote per day if the result is positive).
-
-Similarly, for non-slave, non-colonial pops in provinces with a total population > 100, some pops may migrate within the nation. This is done by calculating the migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
-
-If a nation has colonies, non-factory worker, non-rich pops in provinces with a total population > 100 may move to the colonies. This is done by calculating the colonial migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x (colonial-migration-from-tech + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
-
-Finally, pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x 1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
 
 ### Militancy
 

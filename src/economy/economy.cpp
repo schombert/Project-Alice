@@ -980,6 +980,7 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, dcon::province
 
 	for(auto pl : state.world.province_get_pop_location(p)) {
 		auto t = pl.get_pop().get_poptype();
+		assert(t);
 		auto total_budget = pl.get_pop().get_savings();
 		auto total_pop = pl.get_pop().get_size();
 
