@@ -1537,8 +1537,9 @@ namespace sys {
 					static demographics::promotion_buffer pbuf;
 					static demographics::assimilation_buffer abuf;
 					static demographics::migration_buffer mbuf;
+					static demographics::migration_buffer cmbuf;
 
-					concurrency::parallel_for(0, 9, [&](int32_t index) {
+					concurrency::parallel_for(0, 10, [&](int32_t index) {
 						switch(index) {
 							case 0:
 							{
@@ -1603,6 +1604,13 @@ namespace sys {
 								demographics::update_internal_migration(*this, o, days_in_month, mbuf);
 								break;
 							}
+							case 9:
+							{
+								auto o = uint32_t(ymd_date.day + 9);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
+								break;
+							}
 						}
 					});
 
@@ -1627,6 +1635,11 @@ namespace sys {
 						auto o = uint32_t(ymd_date.day + 8);
 						if(o >= days_in_month) o -= days_in_month;
 						demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
+					}
+					{
+						auto o = uint32_t(ymd_date.day + 9);
+						if(o >= days_in_month) o -= days_in_month;
+						demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
 					}
 
 					demographics::remove_size_zero_pops(*this);
