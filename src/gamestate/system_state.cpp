@@ -1534,25 +1534,85 @@ namespace sys {
 					auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
 					// pop update:
+					static demographics::ideology_buffer idbuf(*this);
+					static demographics::issues_buffer isbuf(*this);
 					static demographics::promotion_buffer pbuf;
 					static demographics::assimilation_buffer abuf;
 					static demographics::migration_buffer mbuf;
 					static demographics::migration_buffer cmbuf;
+					static demographics::migration_buffer imbuf;
 
-					concurrency::parallel_for(0, 10, [&](int32_t index) {
+					// calculate complex changes in parallel where we can, but don't actually apply the results
+					// instead, the changes are saved to be applied only after all triggers have been evaluated
+					concurrency::parallel_for(0, 7, [&](int32_t index) {
 						switch(index) {
 							case 0:
 							{
 								auto o = uint32_t(ymd_date.day);
 								if(o >= days_in_month) o -= days_in_month;
-								demographics::update_ideologies(*this, o, days_in_month);
+								demographics::update_ideologies(*this, o, days_in_month, idbuf);
 								break;
 							}
 							case 1:
 							{
 								auto o = uint32_t(ymd_date.day + 1);
 								if(o >= days_in_month) o -= days_in_month;
-								demographics::update_issues(*this, o, days_in_month);
+								demographics::update_issues(*this, o, days_in_month, isbuf);
+								break;
+							}
+							case 2:
+							{
+								auto o = uint32_t(ymd_date.day + 6);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_type_changes(*this, o, days_in_month, pbuf);
+								break;
+							}
+							case 3:
+							{
+								auto o = uint32_t(ymd_date.day + 7);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_assimilation(*this, o, days_in_month, abuf);
+								break;
+							}
+							case 4:
+							{
+								auto o = uint32_t(ymd_date.day + 8);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_internal_migration(*this, o, days_in_month, mbuf);
+								break;
+							}
+							case 5:
+							{
+								auto o = uint32_t(ymd_date.day + 9);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
+								break;
+							}
+							case 6:
+							{
+								auto o = uint32_t(ymd_date.day + 10);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_immigration(*this, o, days_in_month, imbuf);
+								break;
+							}
+						}
+					});
+
+					// apply in parallel where we can
+					concurrency::parallel_for(0, 8, [&](int32_t index) {
+						switch(index) {
+							case 0:
+							{
+								auto o = uint32_t(ymd_date.day + 0);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::apply_ideologies(*this, o, days_in_month, idbuf);
+								break;
+							}
+							case 1:
+							{
+								auto o = uint32_t(ymd_date.day + 1);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::apply_issues(*this, o, days_in_month, isbuf);
 								break;
 							}
 							case 2:
@@ -1584,43 +1644,19 @@ namespace sys {
 								break;
 							}
 							case 6:
-							{
-								auto o = uint32_t(ymd_date.day + 6);
-								if(o >= days_in_month) o -= days_in_month;
-								demographics::update_type_changes(*this, o, days_in_month, pbuf);
+								province::ve_for_each_land_province(*this, [&](auto ids) {
+									world.province_set_daily_net_migration(ids, ve::fp_vector{});
+								});
 								break;
-							}
 							case 7:
-							{
-								auto o = uint32_t(ymd_date.day + 7);
-								if(o >= days_in_month) o -= days_in_month;
-								demographics::update_assimilation(*this, o, days_in_month, abuf);
+								province::ve_for_each_land_province(*this, [&](auto ids) {
+									world.province_set_daily_net_immigration(ids, ve::fp_vector{});
+								});
 								break;
-							}
-							case 8:
-							{
-								auto o = uint32_t(ymd_date.day + 8);
-								if(o >= days_in_month) o -= days_in_month;
-								demographics::update_internal_migration(*this, o, days_in_month, mbuf);
-								break;
-							}
-							case 9:
-							{
-								auto o = uint32_t(ymd_date.day + 9);
-								if(o >= days_in_month) o -= days_in_month;
-								demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
-								break;
-							}
 						}
 					});
 
-					province::ve_for_each_land_province(*this, [&](auto ids) {
-						world.province_set_daily_net_migration(ids, ve::fp_vector{});
-					});
-					province::ve_for_each_land_province(*this, [&](auto ids) {
-						world.province_set_daily_net_immigration(ids, ve::fp_vector{});
-					});
-
+					// because they may add pops, these changes must be applied sequentially
 					{
 						auto o = uint32_t(ymd_date.day + 6);
 						if(o >= days_in_month) o -= days_in_month;
@@ -1640,6 +1676,11 @@ namespace sys {
 						auto o = uint32_t(ymd_date.day + 9);
 						if(o >= days_in_month) o -= days_in_month;
 						demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
+					}
+					{
+						auto o = uint32_t(ymd_date.day + 10);
+						if(o >= days_in_month) o -= days_in_month;
+						demographics::apply_immigration(*this, o, days_in_month, imbuf);
 					}
 
 					demographics::remove_size_zero_pops(*this);

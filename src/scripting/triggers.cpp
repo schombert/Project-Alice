@@ -3061,7 +3061,10 @@ TRIGGER_FUNCTION(tf_agree_with_ruling_party) {
 	auto ruling_ideology = ws.world.political_party_get_ideology(ws.world.nation_get_ruling_party(owner));
 	auto population_size = ws.world.pop_get_size(to_pop(primary_slot));
 	auto ruling_support = ve::apply([&](dcon::pop_id p, dcon::ideology_id i) {
-		return ws.world.pop_get_demographics(p, pop_demographics::to_key(ws, i));
+		if(i)
+			return ws.world.pop_get_demographics(p, pop_demographics::to_key(ws, i));
+		else
+			return 0.0f;
 	}, to_pop(primary_slot), ruling_ideology);
 	return compare_values(tval[0], ve::select(population_size > 0.0f, ruling_support / population_size, 0.0f), read_float_from_payload(tval + 1));
 }
