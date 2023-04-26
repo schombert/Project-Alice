@@ -1363,6 +1363,14 @@ object {
 		type{ float }
 		tag{ scenario }
 	}
+	property{
+		name{ daily_net_migration }
+		type{ float }
+	}
+	property{
+		name{ daily_net_immigration }
+		type{ float }
+	}
 }
 
 relationship{

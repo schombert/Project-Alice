@@ -33,6 +33,10 @@ template<typename F>
 void for_each_sea_province(sys::state& state, F const& func);
 template<typename F>
 void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
+template<typename F>
+void execute_serial_over_land_province(sys::state& state, F const& func);
+template<typename F>
+void ve_for_each_land_province(sys::state& state, F const& func);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void update_connected_regions(sys::state& state);

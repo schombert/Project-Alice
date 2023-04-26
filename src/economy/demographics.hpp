@@ -80,6 +80,21 @@ struct assimilation_buffer {
 	}
 };
 
+struct migration_buffer {
+	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
+	ve::vectorizable_buffer<dcon::province_id, dcon::pop_id> destinations;
+	uint32_t size = 0;
+
+	migration_buffer() : amounts(0), destinations(0), size(0) { }
+	void update(uint32_t s) {
+		if(size < s) {
+			size = s;
+			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
+			destinations = ve::vectorizable_buffer<dcon::province_id, dcon::pop_id>(s);
+		}
+	}
+};
+
 void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
@@ -88,9 +103,11 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_growth(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
 void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
+void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
 void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
 void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
+void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
 void remove_size_zero_pops(sys::state& state);
 

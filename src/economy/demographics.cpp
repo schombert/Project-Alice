@@ -1181,11 +1181,93 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 				state.world.pop_set_size(p, 0.0f);
 				pbuf.amounts.set(p, current_size);
 			} else if(base_amount >= 0.001f) {
-				state.world.pop_set_size(p, current_size - std::ceil(base_amount));
-				pbuf.amounts.set(p, std::ceil(base_amount));
+				auto transfer_amount = std::min(current_size, std::ceil(base_amount));
+				state.world.pop_set_size(p, current_size - transfer_amount);
+				pbuf.amounts.set(p, transfer_amount);
 			}
 
 		}, ids, loc, owners, assimilation_chances);
+	});
+}
+
+namespace impl {
+dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_id n, dcon::pop_id p) {
+	/*
+	Destination for internal migration: colonial provinces are not valid targets, nor are non state capital provinces for pop types restricted to capitals. Valid provinces are weighted according to the product of the factors, times the value of the immigration focus + 1.0 if it is present, times the provinces immigration attractiveness modifier + 1.0. The pop is then distributed more or less evenly over those provinces with positive attractiveness in proportion to their attractiveness, or dumped somewhere at random if no provinces are attractive.
+	*/
+	auto weights_buffer = state.world.province_make_vectorizable_float_buffer();
+	float total_weight = 0.0f;
+
+	auto modifier = state.world.pop_type_get_migration_target(state.world.pop_get_poptype(p));
+	if(!modifier)
+		return dcon::province_id{};
+
+	for(auto loc : state.world.nation_get_province_ownership(n)) {
+		if(loc.get_province().get_is_colonial() == false) {
+			auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0)
+				* (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f)
+				* (loc.get_province().get_state_membership().get_owner_focus().get_immigrant_attract() + 1.0f);
+
+			if(weight > 0.0f) {
+				weights_buffer.set(loc.get_province(), weight);
+				total_weight += weight;
+			}
+		}
+	}
+
+	if(total_weight <= 0.0f)
+		return dcon::province_id{};
+
+	auto rvalue = float(rng::get_random(state, (uint32_t(p.index()) << 2) | uint32_t(1) ) & 0xFFFF) / float(0xFFFF + 1);
+	for(auto loc : state.world.nation_get_province_ownership(n)) {
+		rvalue -= weights_buffer.get(loc.get_province()) / total_weight;
+		if(rvalue < 0.0f) {
+			return loc.get_province();
+		}
+	}
+
+	return dcon::province_id{};
+}
+
+}
+
+void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
+	pbuf.update(state.world.pop_size());
+
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		pbuf.amounts.set(ids, 0.0f);
+		/*
+		For non-slave, non-colonial pops in provinces with a total population > 100, some pops may migrate within the nation. This is done by calculating the migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+		*/
+
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owners = state.world.province_get_nation_from_province_ownership(loc);
+		auto pop_sizes = state.world.pop_get_size(ids);
+		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) * state.defines.immigration_scale;
+
+		ve::apply([&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount) {
+			// no assimilation in unowned provinces
+			if(amount <= 0.0f)
+				return; // early exit
+			if(!owner)
+				return; // early exit
+			if(state.world.province_get_is_colonial(location))
+				return; // early exit
+			if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
+				return; // early exit
+
+			auto pop_size = state.world.pop_get_size(p);
+			amount = std::min(pop_size, std::ceil(amount));
+
+			auto dest = impl::get_province_target_in_nation(state, owner, p);
+
+			if(dest) {
+				state.world.pop_set_size(p, pop_size - amount);
+				pbuf.amounts.set(p, amount);
+				pbuf.destinations.set(p, dest);
+			}
+
+		}, ids, loc, owners, amounts);
 	});
 }
 
@@ -1297,7 +1379,7 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 }
 
 void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
-	execute_staggered_blocks(offset, divisions, pbuf.size, [&](auto ids) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
 		ve::apply([&](dcon::pop_id p) {
 			if(pbuf.amounts.get(p) > 0.0f && pbuf.types.get(p)) {
 				auto target_pop = impl::find_or_make_pop(state,
@@ -1312,7 +1394,7 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 }
 
 void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
-	execute_staggered_blocks(offset, divisions, pbuf.size, [&](auto ids) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
 		ve::apply([&](dcon::pop_id p) {
 			if(pbuf.amounts.get(p) > 0.0f) {
 				auto o = nations::owner_of_pop(state, p);
@@ -1324,6 +1406,23 @@ void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, 
 					rel,
 					state.world.pop_get_poptype(p));
 				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+			}
+		}, ids);
+	});
+}
+
+void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+		ve::apply([&](dcon::pop_id p) {
+			if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
+				auto target_pop = impl::find_or_make_pop(state,
+					pbuf.destinations.get(p),
+					state.world.pop_get_culture(p),
+					state.world.pop_get_religion(p),
+					state.world.pop_get_poptype(p));
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+				state.world.province_get_daily_net_migration(state.world.pop_get_province_from_pop_location(p)) -= pbuf.amounts.get(p);
+				state.world.province_get_daily_net_migration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
 			}
 		}, ids);
 	});

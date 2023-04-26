@@ -1536,8 +1536,9 @@ namespace sys {
 					// pop update:
 					static demographics::promotion_buffer pbuf;
 					static demographics::assimilation_buffer abuf;
+					static demographics::migration_buffer mbuf;
 
-					concurrency::parallel_for(0, 8, [&](int32_t index) {
+					concurrency::parallel_for(0, 9, [&](int32_t index) {
 						switch(index) {
 							case 0:
 							{
@@ -1595,7 +1596,21 @@ namespace sys {
 								demographics::update_assimilation(*this, o, days_in_month, abuf);
 								break;
 							}
+							case 8:
+							{
+								auto o = uint32_t(ymd_date.day + 8);
+								if(o >= days_in_month) o -= days_in_month;
+								demographics::update_internal_migration(*this, o, days_in_month, mbuf);
+								break;
+							}
 						}
+					});
+
+					province::ve_for_each_land_province(*this, [&](auto ids) {
+						world.province_set_daily_net_migration(ids, ve::fp_vector{});
+					});
+					province::ve_for_each_land_province(*this, [&](auto ids) {
+						world.province_set_daily_net_immigration(ids, ve::fp_vector{});
 					});
 
 					{
@@ -1607,6 +1622,11 @@ namespace sys {
 						auto o = uint32_t(ymd_date.day + 7);
 						if(o >= days_in_month) o -= days_in_month;
 						demographics::apply_assimilation(*this, o, days_in_month, abuf);
+					}
+					{
+						auto o = uint32_t(ymd_date.day + 8);
+						if(o >= days_in_month) o -= days_in_month;
+						demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
 					}
 
 					demographics::remove_size_zero_pops(*this);
