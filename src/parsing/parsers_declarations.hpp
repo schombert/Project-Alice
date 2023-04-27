@@ -1465,6 +1465,7 @@ namespace parsers {
 		void unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void is_slave(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void state_capital_only(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context);
 		void research_optimum(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
 		void administrative_efficiency(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);

@@ -446,6 +446,10 @@ void poptype_file::can_be_recruited(association_type, bool value, error_handler&
 		context.outer_context.state.culture_definitions.soldiers = context.id;
 }
 
+void poptype_file::state_capital_only(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+	context.outer_context.state.world.pop_type_set_state_capital_only(context.id, value);
+}
+
 void poptype_file::leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
 	context.outer_context.state.culture_definitions.officer_leadership_points = value;
 	context.outer_context.state.culture_definitions.officers = context.id;

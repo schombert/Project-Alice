@@ -1240,7 +1240,10 @@ TRIGGER_FUNCTION(tf_has_national_minority_province) {
 	auto prov_populations = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
 
 	auto majority_pop = ve::apply([&ws](int32_t p_slot, dcon::culture_id c) {
-		return ws.world.province_get_demographics(to_prov(p_slot), demographics::to_key(ws, c));
+		if(c)
+			return ws.world.province_get_demographics(to_prov(p_slot), demographics::to_key(ws, c));
+		else
+			return 0.0f;
 	}, primary_slot, pcultures);
 
 	return compare_to_false(tval[0], majority_pop == prov_populations);
@@ -1251,7 +1254,10 @@ TRIGGER_FUNCTION(tf_has_national_minority_state) {
 	auto populations = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
 
 	auto majority_pop = ve::apply([&ws](int32_t p_slot, dcon::culture_id c) {
-		return ws.world.state_instance_get_demographics(to_state(p_slot), demographics::to_key(ws, c));
+		if(c)
+			return ws.world.state_instance_get_demographics(to_state(p_slot), demographics::to_key(ws, c));
+		else
+			return 0.0f;
 	}, primary_slot, pcultures);
 
 	return compare_to_false(tval[0], majority_pop == populations);
@@ -1261,7 +1267,10 @@ TRIGGER_FUNCTION(tf_has_national_minority_nation) {
 	auto populations = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
 
 	auto majority_pop = ve::apply([&ws](int32_t p_slot, dcon::culture_id c) {
-		return ws.world.nation_get_demographics(to_nation(p_slot), demographics::to_key(ws, c));
+		if(c)
+			return ws.world.nation_get_demographics(to_nation(p_slot), demographics::to_key(ws, c));
+		else
+			return 0.0f;
 	}, primary_slot, pcultures);
 
 	return compare_to_false(tval[0], majority_pop == populations);
@@ -3578,6 +3587,8 @@ TRIGGER_FUNCTION(tf_minorities_nation) {
 	auto pculture = ws.world.nation_get_primary_culture(to_nation(primary_slot));
 
 	auto accepted_pop = ve::apply([&ws](dcon::nation_id n, dcon::culture_id pc) {
+		if(!pc)
+			return 0.0f;
 		auto accumulated = ws.world.nation_get_demographics(n, demographics::to_key(ws, pc));
 		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
 			accumulated += ws.world.nation_get_demographics(n, demographics::to_key(ws, ac));
@@ -3593,6 +3604,8 @@ TRIGGER_FUNCTION(tf_minorities_state) {
 	auto pculture = ws.world.nation_get_primary_culture(owner);
 
 	auto accepted_pop = ve::apply([&ws](dcon::state_instance_id i, dcon::nation_id n, dcon::culture_id pc) {
+		if(!pc)
+			return 0.0f;
 		auto accumulated = ws.world.state_instance_get_demographics(i, demographics::to_key(ws, pc));
 		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
 			accumulated += ws.world.state_instance_get_demographics(i, demographics::to_key(ws, ac));
@@ -3608,6 +3621,8 @@ TRIGGER_FUNCTION(tf_minorities_province) {
 	auto pculture = ws.world.nation_get_primary_culture(owner);
 
 	auto accepted_pop = ve::apply([&ws](dcon::province_id i, dcon::nation_id n, dcon::culture_id pc) {
+		if(!pc)
+			return 0.0f;
 		auto accumulated = ws.world.province_get_demographics(i, demographics::to_key(ws, pc));
 		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
 			accumulated += ws.world.province_get_demographics(i, demographics::to_key(ws, ac));
@@ -4345,11 +4360,17 @@ TRIGGER_FUNCTION(tf_pop_unemployment_nation_this_pop) {
 	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
 
 	auto pop_size = ve::apply([&](dcon::nation_id loc, dcon::pop_type_id t) {
-		return ws.world.nation_get_demographics(loc, demographics::to_key(ws, t));
+		if(t)
+			return ws.world.nation_get_demographics(loc, demographics::to_key(ws, t));
+		else
+			return 0.0f;
 	}, to_nation(primary_slot), type);
 
 	auto employment = ve::apply([&](dcon::nation_id loc, dcon::pop_type_id t) {
-		return ws.world.nation_get_demographics(loc, demographics::to_employment_key(ws, t));
+		if(t)
+			return ws.world.nation_get_demographics(loc, demographics::to_employment_key(ws, t));
+		else
+			return 0.0f;
 	}, to_nation(primary_slot), type);
 
 	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
@@ -4358,11 +4379,17 @@ TRIGGER_FUNCTION(tf_pop_unemployment_state_this_pop) {
 	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
 
 	auto pop_size = ve::apply([&](dcon::state_instance_id loc, dcon::pop_type_id t) {
-		return ws.world.state_instance_get_demographics(loc, demographics::to_key(ws, t));
+		if(t)
+			return ws.world.state_instance_get_demographics(loc, demographics::to_key(ws, t));
+		else
+			return 0.0f;
 	}, to_state(primary_slot), type);
 
 	auto employment = ve::apply([&](dcon::state_instance_id loc, dcon::pop_type_id t) {
-		return ws.world.state_instance_get_demographics(loc, demographics::to_employment_key(ws, t));
+		if(t)
+			return ws.world.state_instance_get_demographics(loc, demographics::to_employment_key(ws, t));
+		else
+			return 0.0f;
 	}, to_state(primary_slot), type);
 
 	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
@@ -4371,11 +4398,17 @@ TRIGGER_FUNCTION(tf_pop_unemployment_province_this_pop) {
 	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
 
 	auto pop_size = ve::apply([&](dcon::province_id loc, dcon::pop_type_id t) {
-		return ws.world.province_get_demographics(loc, demographics::to_key(ws, t));
+		if(t)
+			return ws.world.province_get_demographics(loc, demographics::to_key(ws, t));
+		else
+			return 0.0f;
 	}, to_prov(primary_slot), type);
 
 	auto employment = ve::apply([&](dcon::province_id loc, dcon::pop_type_id t) {
-		return ws.world.province_get_demographics(loc, demographics::to_employment_key(ws, t));
+		if(t)
+			return ws.world.province_get_demographics(loc, demographics::to_employment_key(ws, t));
+		else
+			return 0.0f;
 	}, to_prov(primary_slot), type);
 
 	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));

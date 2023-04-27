@@ -983,7 +983,11 @@ object {
 		type{ uint8_t }
 		tag{ scenario }
 	}
-
+	property{
+		name{ state_capital_only }
+		type{ bitfield }
+		tag{ scenario }
+	}
 	property{
 		name{ everyday_needs_income_type }
 		type{ uint8_t }

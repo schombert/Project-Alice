@@ -1028,14 +1028,18 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 			As for demotion, there appear to an extra wrinkle. Pops do not appear to demote into pop types if there is more unemployment in that demotion target than in their current pop type. Otherwise, the national focus appears to have the same effect with respect to demotion.
 			*/
 
-			if(promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata) {
+			bool is_state_capital = state.world.state_instance_get_capital(state.world.province_get_state_membership(loc)) == loc;
+
+			if(promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata
+				&& (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
 				auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
 				auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) +  promotion_bonus;
 				if(chance > 0) {
 					pbuf.types.set(p, promoted_type);
 					return; // early exit
 				}
-			} else if(!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata) {
+			} else if(!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata
+				&& (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
 				auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
 				auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + promotion_bonus;
 				if(chance > 0) {
@@ -1047,6 +1051,8 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 			float chances_total = 0.0f;
 			state.world.for_each_pop_type([&](dcon::pop_type_id target_type) {
 				if(target_type == ptype) {
+					weights[target_type] = 0.0f;
+				} else if(!is_state_capital && state.world.pop_type_get_state_capital_only(target_type)) {
 					weights[target_type] = 0.0f;
 				} else if(promoting && state.world.pop_type_get_strata(promoted_type) >= strata) {
 					auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
@@ -1169,15 +1175,18 @@ dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_
 	if(!modifier)
 		return dcon::province_id{};
 
+	bool limit_to_capitals = state.world.pop_type_get_state_capital_only(state.world.pop_get_poptype(p));
 	for(auto loc : state.world.nation_get_province_ownership(n)) {
 		if(loc.get_province().get_is_colonial() == false) {
-			auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0)
-				* (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f)
-				* (loc.get_province().get_state_membership().get_owner_focus().get_immigrant_attract() + 1.0f);
+			if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
+				auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0)
+					* (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f)
+					* (loc.get_province().get_state_membership().get_owner_focus().get_immigrant_attract() + 1.0f);
 
-			if(weight > 0.0f) {
-				weights_buffer.set(loc.get_province(), weight);
-				total_weight += weight;
+				if(weight > 0.0f) {
+					weights_buffer.set(loc.get_province(), weight);
+					total_weight += weight;
+				}
 			}
 		}
 	}
@@ -1209,16 +1218,20 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 	auto overseas_culture = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
 	auto home_continent = state.world.province_get_continent(state.world.pop_get_province_from_pop_location(p));
 
+	bool limit_to_capitals = state.world.pop_type_get_state_capital_only(state.world.pop_get_poptype(p));
 	for(auto loc : state.world.nation_get_province_ownership(n)) {
 		if(loc.get_province().get_is_colonial() == true) {
-			if(overseas_culture || loc.get_province().get_continent() == home_continent) {
+			if((overseas_culture || loc.get_province().get_continent() == home_continent)
+				&& (!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id)) {
 				auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0)
 					* (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f)
 					* (loc.get_province().get_state_membership().get_owner_focus().get_immigrant_attract() + 1.0f);
 
 				if(weight > 0.0f) {
-					weights_buffer.set(loc.get_province(), weight);
-					total_weight += weight;
+					if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
+						weights_buffer.set(loc.get_province(), weight);
+						total_weight += weight;
+					}
 				}
 			}
 		}

@@ -1060,7 +1060,7 @@ poptype_file
 	merge_max_size     value         none                               discard
 	strata             value         text                               member_fn
 	rebel              group         none                               discard
-	state_capital_only value         bool                               discard
+	state_capital_only value         bool                               member_fn
 	unemployment       value         bool                               member_fn
 	equivalent         value         text                               member_fn
 	allowed_to_vote    value         bool                               discard
