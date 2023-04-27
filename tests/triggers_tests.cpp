@@ -661,3 +661,43 @@ TEST_CASE("complex full reduction", "[trigger_tests]") {
 	REQUIRE(tc.compiled_trigger[5] == uint16_t(trigger::association_lt | trigger::average_consciousness_province));
 }
 
+TEST_CASE("batch-individual comparision", "[trigger_tests]") {
+	auto ws = load_testing_scenario_file();
+
+	{
+		auto modifier = ws->world.pop_type_get_promotion(ws->culture_definitions.bureaucrat, ws->culture_definitions.secondary_factory_worker);
+		REQUIRE(bool(modifier) == true);
+
+		ve::contiguous_tags<dcon::pop_id> g1(16);
+		auto bulk_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(g1), trigger::to_generic(nations::owner_of_pop(*ws, g1)), 0);
+
+		ve::apply([&](float v1, dcon::pop_id p, dcon::nation_id n) {
+			auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
+			REQUIRE(single_eval == v1);
+		}, bulk_eval, g1, nations::owner_of_pop(*ws, g1));
+	}
+	{
+		auto modifier = ws->world.pop_type_get_promotion(ws->culture_definitions.primary_factory_worker, ws->culture_definitions.secondary_factory_worker);
+		REQUIRE(bool(modifier) == true);
+
+		ve::contiguous_tags<dcon::pop_id> g1(32);
+		auto bulk_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(g1), trigger::to_generic(nations::owner_of_pop(*ws, g1)), 0);
+
+		ve::apply([&](float v1, dcon::pop_id p, dcon::nation_id n) {
+			auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
+			REQUIRE(single_eval == v1);
+		}, bulk_eval, g1, nations::owner_of_pop(*ws, g1));
+	}
+	{
+		auto modifier = ws->world.pop_type_get_promotion(ws->culture_definitions.aristocrat, ws->culture_definitions.capitalists);
+		REQUIRE(bool(modifier) == true);
+
+		ve::contiguous_tags<dcon::pop_id> g1(48);
+		auto bulk_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(g1), trigger::to_generic(nations::owner_of_pop(*ws, g1)), 0);
+
+		ve::apply([&](float v1, dcon::pop_id p, dcon::nation_id n) {
+			auto single_eval = trigger::evaluate_additive_modifier(*ws, modifier, trigger::to_generic(p), trigger::to_generic(n), 0);
+			REQUIRE(single_eval == v1);
+		}, bulk_eval, g1, nations::owner_of_pop(*ws, g1));
+	}
+}

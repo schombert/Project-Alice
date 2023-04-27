@@ -1033,18 +1033,22 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 			if(promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata
 				&& (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
 				auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
-				auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) +  promotion_bonus;
-				if(chance > 0) {
-					pbuf.types.set(p, promoted_type);
-					return; // early exit
+				if(promote_mod) {
+					auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + promotion_bonus;
+					if(chance > 0) {
+						pbuf.types.set(p, promoted_type);
+						return; // early exit
+					}
 				}
 			} else if(!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata
 				&& (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
 				auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
-				auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + promotion_bonus;
-				if(chance > 0) {
-					pbuf.types.set(p, promoted_type);
-					return; // early exit
+				if(promote_mod) {
+					auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + promotion_bonus;
+					if(chance > 0) {
+						pbuf.types.set(p, promoted_type);
+						return; // early exit
+					}
 				}
 			}
 
@@ -1056,14 +1060,18 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 					weights[target_type] = 0.0f;
 				} else if(promoting && state.world.pop_type_get_strata(promoted_type) >= strata) {
 					auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
-					auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f), 0.0f);
-					chances_total += chance;
-					weights[target_type] = chance;
+					if(promote_mod) {
+						auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f), 0.0f);
+						chances_total += chance;
+						weights[target_type] = chance;
+					}
 				} else if(!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) {
 					auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
-					auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f), 0.0f);
-					chances_total += chance;
-					weights[target_type] = chance;
+					if(promote_mod) {
+						auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f), 0.0f);
+						chances_total += chance;
+						weights[target_type] = chance;
+					}
 				} else {
 					weights[target_type] = 0.0f;
 				}
