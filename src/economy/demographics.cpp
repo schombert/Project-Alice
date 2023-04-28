@@ -809,13 +809,11 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 	});
 
 	// update
-	//state.world.for_each_ideology([&](dcon::ideology_id i) {
-	concurrency::parallel_for(uint32_t(0), state.world.ideology_size(), [&](uint32_t index) {
-		dcon::ideology_id i{ dcon::ideology_id::value_base_t(index) };
+	state.world.for_each_ideology([&](dcon::ideology_id i) {
 		if(state.world.ideology_get_enabled(i)) {
 			auto const i_key = pop_demographics::to_key(state, i);
 			if(state.world.ideology_get_is_civilized_only(i)) {
-				execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+				pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
 					auto owner = nations::owner_of_pop(state, ids);
 
 					auto amount = ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
@@ -830,7 +828,7 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 					ibuf.totals.set(ids, ibuf.totals.get(ids) + amount);
 				});
 			} else {
-				execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+				pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
 					auto owner = nations::owner_of_pop(state, ids);
 
 					auto amount = ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
@@ -887,9 +885,7 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 	});
 
 	// update
-	//state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
-	concurrency::parallel_for(uint32_t(0), state.world.issue_option_size(), [&](uint32_t index) {
-		dcon::issue_option_id iid{ dcon::issue_option_id::value_base_t(index) };
+	state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
 		auto opt = fatten(state.world, iid);
 		auto allow = opt.get_allow();
 		auto parent_issue = opt.get_parent_issue();
@@ -900,7 +896,7 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 		auto has_modifier = is_social_issue || is_political_issue;
 		auto modifier_key = is_social_issue ? sys::national_mod_offsets::social_reform_desire : sys::national_mod_offsets::political_reform_desire;
 
-		execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+		pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
 			auto owner = nations::owner_of_pop(state, ids);
 			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
 			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || ve::mask_vector(is_party_issue))
