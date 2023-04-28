@@ -656,6 +656,15 @@ void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max,
 	}
 }
 
+template<typename F>
+void pexecute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
+	concurrency::parallel_for(16 * offset, max, 16 * divisions, [&](uint32_t index) {
+		for(uint32_t i = 0; i < executions_per_block; ++i) {
+			functor(ve::contiguous_tags<dcon::pop_id>(index + i * ve::vector_size));
+		}
+	});
+}
+
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	/*
 	Let us define the local pop militancy modifier as the province's militancy modifier + the nation's militancy modifier + the nation's core pop militancy modifier (for non-colonial states, not just core provinces).
@@ -800,7 +809,9 @@ void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, i
 	});
 
 	// update
-	state.world.for_each_ideology([&](dcon::ideology_id i) {
+	//state.world.for_each_ideology([&](dcon::ideology_id i) {
+	concurrency::parallel_for(uint32_t(0), state.world.ideology_size(), [&](uint32_t index) {
+		dcon::ideology_id i{ dcon::ideology_id::value_base_t(index) };
 		if(state.world.ideology_get_enabled(i)) {
 			auto const i_key = pop_demographics::to_key(state, i);
 			if(state.world.ideology_get_is_civilized_only(i)) {
@@ -876,7 +887,9 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 	});
 
 	// update
-	state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+	//state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+	concurrency::parallel_for(uint32_t(0), state.world.issue_option_size(), [&](uint32_t index) {
+		dcon::issue_option_id iid{ dcon::issue_option_id::value_base_t(index) };
 		auto opt = fatten(state.world, iid);
 		auto allow = opt.get_allow();
 		auto parent_issue = opt.get_parent_issue();
@@ -973,7 +986,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 	Pops appear to "promote" into other pops of the same or greater strata. Likewise they "demote" into pops of the same or lesser strata. (Thus both promotion and demotion can move pops within the same strata?).
 	*/
 
-	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 		auto owners = nations::owner_of_pop(state, ids);
 		auto promotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0);
@@ -1100,7 +1113,7 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 	- cultural assimilation -- For a pop to assimilate, there must be a pop of the same strata of either a primary culture (preferred) or accepted culture in the province to assimilate into. (schombert notes: not sure if it is worthwhile preserving this limitation)
 	*/
 
-	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
@@ -1318,7 +1331,7 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id n, dco
 void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
-	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 		/*
 		For non-slave, non-colonial pops in provinces with a total population > 100, some pops may migrate within the nation. This is done by calculating the migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
@@ -1353,7 +1366,7 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
-	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 
 		/*
@@ -1399,7 +1412,7 @@ void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divi
 void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
-	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
 		pbuf.amounts.set(ids, 0.0f);
 
 		/*
@@ -1487,6 +1500,7 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 				auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
 				auto owner = nations::owner_of_pop(state, np);
 
+				assert(ptrigger);
 				if(state.world.ideology_get_is_civilized_only(i)) {
 					if(state.world.nation_get_is_civilized(owner)) {
 						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id), trigger::to_generic(owner), 0);
