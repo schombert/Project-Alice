@@ -95,5 +95,6 @@ ve::mask_vector evaluate_trigger(sys::state& state, dcon::trigger_key key, ve::c
 ve::mask_vector evaluate_trigger(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot);
 ve::mask_vector evaluate_trigger(sys::state& state, dcon::trigger_key key, ve::tagged_vector<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot);
 ve::mask_vector evaluate_trigger(sys::state& state, uint16_t const* data, ve::tagged_vector<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot);
-
+ve::mask_vector evaluate_trigger(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot);
+ve::mask_vector evaluate_trigger(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot);
 }

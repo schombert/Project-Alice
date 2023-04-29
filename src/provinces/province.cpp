@@ -40,8 +40,6 @@ void for_each_sea_province(sys::state& state, F const& func) {
 }
 
 template<typename F>
-
-/* Helper methods for obtaining province data */
 void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func) {
 	auto d = state.world.state_instance_get_definition(s);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(s);

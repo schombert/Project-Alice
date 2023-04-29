@@ -91,6 +91,8 @@ bool can_use_cb_against(sys::state const& state, dcon::nation_id from, dcon::nat
 template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids);
 template<typename T>
+auto province_is_under_siege(sys::state const& state, T ids);
+template<typename T>
 auto battle_is_ongoing_in_province(sys::state const& state, T ids);
 
 float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);

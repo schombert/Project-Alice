@@ -5571,4 +5571,11 @@ ve::mask_vector evaluate_trigger(sys::state& state, uint16_t const* data, ve::ta
 	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
 }
 
+ve::mask_vector evaluate_trigger(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
+}
+ve::mask_vector evaluate_trigger(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
+}
+
 }

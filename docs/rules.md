@@ -8,22 +8,53 @@ Both nations and provinces have a set of properties (a bag of float values) that
 
 Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since these need to be updated daily, there is a second bag of values attached to nations just for these
 
-- rebel occupation: scaled by the fraction of rebel-occupied, non-overseas provinces when at war
-- infamy: scaled by infamy as a fraction of the infamy limit (can be greater than 1)
-- blockaded: scaled by the fraction of non-overseas blockaded ports
-- war exhaustion: scaled by war exhaustion
-- plurality: scaled by plurality
-- literacy: scaled by average literacy
+- total occupation: scaled by the fraction of hostile, but not rebel occupied home continent provinces when at war (yeah, not the normal overseas check; home continent only)
+- infamy: scaled by infamy
+- total blockaded: scaled by the fraction of non-overseas blockaded ports
+- war exhaustion: scaled by war exhaustion (as a value from 0 to 100)
+- plurality: scaled by plurality (as a value from 0 to 100, so 100% plurality = 100x the modifier values)
+- literacy: scaled by average literacy (as a value from 0 to 1)
 
 ### Other conditional national modifiers
 
-- war/peace
-- disarmed
+- national value of the nation
+- tech school of the nation
+- one of: the great-power static modifier, the secondary-power static modifier, the civilized-nation static modifier, or the uncivilized-nation static modifier
+- modifiers from any active party issues, social and political issues (if civilized), reforms (if unciv), technologies (if civ), or inventions
+- one of: war or peace
+- disarming, if currently disarmed
 - debt: The debt default to modifier is triggered by the nation having the generalized debt default and/or bankruptcy as a timed/triggered modifier and unpaid creditors ... I think.
+- timed or permanent modifiers applied by event
+- triggered modifiers where the trigger condition is met
+
+### Scaled provincial modifiers
+
+- the modifier for each province building, scaled by its level
+- the infrastructure modifier, scaled by the infrastructure value for the province (each level of railroad gives a fixed amount of infrastructure)
+- the nationalism modifier, scaled by the province's nationalism value, assuming that the owner does not have a core there (starts at define:YEARS_OF_NATIONALISM and ticks down by 1/12 per month)
+
+### Conditional province modifiers
+
+- terrain modifier
+- climate modifier
+- continent modifier
+- a national focus modifier
+- crime modifier
+- the land_province modifier if it is land, and the sea_zone modifier otherwise (which we probably won't use)
+- the coastal modifier if the province is coastal, and the non_coastal modifier otherwise
+- there is also a coastal_sea modifier, which I am going to ignore
+- the overseas modifier if the province is overseas
+- the has_siege modifier if there is an active siege
+- the blockaded modifier if the province is blockaded
+- the core modifier if the owner of the province has a core there
+- the no_adjacent_controlled modifier if not adjacent provinces are controlled (the base game doesn't use this, and I am going to ignore it)
+- timed or permanent modifiers applied by event
 
 ### Update frequency
 
 Triggered modifiers for nations appear to be updated on the first of each month. The game appears to update the values that result from modifiers being applied or not on a monthly basis (1st of the month) for provinces and nations.
+
+When modifiers are updated, any spending over the maximum/minimums is limited appropriately.
 
 ## Economy
 
@@ -1017,7 +1048,7 @@ The probabilities for province events are calculated in the same way, except tha
 - national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 - tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to at most 1.0
 - number of national focuses: the lesser of total-accepted-and-primary-culture-population / define:NATIONAL_FOCUS_DIVIDER and 1 + the number of national focuses provided by technology.
-- province nationalism decreases by 0.083 per month.
+- province nationalism decreases by 0.083 (1/12) per month.
 
 ## Tracking changes
 

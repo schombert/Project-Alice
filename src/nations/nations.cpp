@@ -73,6 +73,18 @@ auto occupied_provinces_fraction(sys::state const& state, T ids) {
 	return ve::select(cpc != 0.0f, occ_count / cpc, decltype(cpc)());
 }
 
+void restore_state_instances(sys::state& state) {
+	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
+		auto owner = state.world.state_instance_get_nation_from_state_ownership(sid);
+		auto base_state = state.world.state_instance_get_definition(sid);
+		for(auto mprov : state.world.state_definition_get_abstract_state_membership(base_state)) {
+			if(mprov.get_province().get_nation_from_province_ownership() == owner) {
+				mprov.get_province().set_state_membership(sid);
+			}
+		}
+	});
+}
+
 void restore_unsaved_values(sys::state& state) {
 	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
 
@@ -81,16 +93,6 @@ void restore_unsaved_values(sys::state& state) {
 			auto t = state.world.gp_relationship_get_influence_target(rel);
 			auto gp = state.world.gp_relationship_get_great_power(rel);
 			state.world.nation_set_in_sphere_of(t, gp);
-		}
-	});
-
-	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
-		auto owner = state.world.state_instance_get_nation_from_state_ownership(sid);
-		auto base_state = state.world.state_instance_get_definition(sid);
-		for(auto mprov : state.world.state_definition_get_abstract_state_membership(base_state)) {
-			if(mprov.get_province().get_nation_from_province_ownership() == owner) {
-				mprov.get_province().set_state_membership(sid);
-			}
 		}
 	});
 

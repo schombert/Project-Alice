@@ -257,16 +257,10 @@ struct dated_modifier {
 	dcon::modifier_id mod_id;
 };
 
-// NOTE: these functions do not add or remove a modifier from the list of modifiers for an entity
-void apply_modifier_values_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
-void apply_modifier_values_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id);
-void remove_modifier_values_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
-void remove_modifier_values_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id); // also removes national values form owner
-void apply_modifier_values_to_province_owner(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
-void remove_modifier_values_from_province_owner(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
-
 // restores values after loading a save
 void repopulate_modifier_effects(sys::state& state);
+
+void update_modifier_effects(sys::state& state);
 
 void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration
 void add_modifier_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration

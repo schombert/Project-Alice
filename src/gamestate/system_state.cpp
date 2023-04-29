@@ -1472,18 +1472,21 @@ namespace sys {
 		culture::repopulate_invention_effects(*this);
 		military::apply_base_unit_stat_modifiers(*this);
 
-		sys::repopulate_modifier_effects(*this);
 		province::update_connected_regions(*this);
 
-		military::restore_unsaved_values(*this);
 		province::restore_unsaved_values(*this);
-		nations::restore_unsaved_values(*this);
 
 		culture::update_all_nations_issue_rules(*this);
 		culture::restore_unsaved_values(*this);
+		nations::restore_state_instances(*this);
 		demographics::regenerate_from_pop_data(*this);
-		pop_demographics::regenerate_is_primary_or_accepted(*this);
 
+		sys::repopulate_modifier_effects(*this);
+		military::restore_unsaved_values(*this);
+		nations::restore_unsaved_values(*this);
+		
+		pop_demographics::regenerate_is_primary_or_accepted(*this);
+		
 		rebel::update_movement_values(*this);
 
 		economy::regenerate_unsaved_values(*this);
@@ -1731,6 +1734,9 @@ namespace sys {
 					switch(ymd_date.day) {
 						case 1:
 							nations::update_monthly_points(*this);
+							break;
+						case 2:
+							sys::update_modifier_effects(*this);
 							break;
 						case 5:
 							rebel::update_movements(*this);

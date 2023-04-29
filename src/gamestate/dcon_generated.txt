@@ -2304,10 +2304,6 @@ object {
 		type{ array{national_modifier_value}{float} }
 	}
 	property{
-		name{ fluctuating_modifier_values }
-		type{ array{int32_t}{float} }
-	}
-	property{
 		name{ rgo_goods_output }
 		type{ array{commodity_id}{float} }
 	}
