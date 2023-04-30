@@ -772,4 +772,26 @@ float tax_efficiency(sys::state& state, dcon::nation_id n) {
 	return eff_mod + state.defines.base_country_tax_efficiency;
 }
 
+bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
+	if(n == state.primary_crisis_attacker)
+		return true;
+	if(n == state.primary_crisis_defender)
+		return true;
+	for(size_t i = state.crisis_participants.size(); i-- > 0; ) {
+		if(state.crisis_participants[i].id == n)
+			return true;
+	}
+
+	return false;
+}
+
+void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
+	if(auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b)) {
+		state.world.diplomatic_relation_get_value(rel) += delta;
+	} else {
+		auto nrel = state.world.try_create_diplomatic_relation(a, b);
+		state.world.diplomatic_relation_set_value(nrel, delta);
+	}
+}
+
 }

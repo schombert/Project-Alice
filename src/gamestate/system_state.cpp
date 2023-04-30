@@ -1729,6 +1729,7 @@ namespace sys {
 					nations::update_rankings(*this); // depends on industrial score, military scores 
 
 					nations::update_colonial_points(*this); // depends on rankings, naval supply values
+					military::update_cbs(*this); // may add/remove cbs to a nation
 
 					// Once per month updates, spread out over the month
 					switch(ymd_date.day) {

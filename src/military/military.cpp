@@ -1,5 +1,6 @@
 #include "military.hpp"
 #include "dcon_generated.hpp"
+#include "prng.hpp"
 
 namespace military {
 
@@ -34,9 +35,18 @@ void restore_unsaved_values(sys::state& state) {
 	update_naval_supply_points(state);
 }
 
-bool can_use_cb_against(sys::state const& state, dcon::nation_id from, dcon::nation_id target) {
-	// TODO: implement function
-	// return true if nation from has any cb to use against target
+bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+	auto other_cbs = state.world.nation_get_available_cbs(from);
+	for(auto& cb : other_cbs) {
+		if(cb.target == target && cb_conditions_satisfied(state, from, target, cb.cb_type))
+			return true;
+	}
+	for(auto cb : state.world.in_cb_type) {
+		if((cb.get_type_bits() & military::cb_flag::always) != 0) {
+			if(cb_conditions_satisfied(state, from, target, cb))
+				return true;
+		}
+	}
 	return false;
 }
 
@@ -339,6 +349,223 @@ float mobilization_impact(sys::state const& state, dcon::nation_id n) {
 	return std::clamp(
 		1.0f - mobilization_size(state, n) * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact),
 		0.0f, 1.0f);
+}
+
+bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb) {
+	auto can_use = state.world.cb_type_get_can_use(cb);
+	if(can_use && !trigger::evaluate_trigger(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(actor))) {
+		return false;
+	}
+
+	auto allowed_countries = state.world.cb_type_get_allowed_countries(cb);
+	auto allowed_states = state.world.cb_type_get_allowed_states(cb);
+
+	if(!allowed_countries && allowed_states) {
+		bool any_allowed = false;
+		for(auto si : state.world.nation_get_state_ownership(target)) {
+			if(trigger::evaluate_trigger(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+				any_allowed = true;
+				break;
+			}
+		}
+		if(!any_allowed)
+			return false;
+	}
+
+	auto allowed_substates = state.world.cb_type_get_allowed_substate_regions(cb);
+	if(allowed_substates) {
+		bool any_allowed = [&]() {
+			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
+				if(v.get_subject().get_is_substate()) {
+					for(auto si : state.world.nation_get_state_ownership(target)) {
+						if(trigger::evaluate_trigger(state, allowed_substates, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}();
+		if(!any_allowed)
+			return false;
+	}
+
+	if(allowed_countries) {
+		bool any_allowed = [&]() {
+			for(auto n : state.world.in_nation) {
+				if(n != target && n != actor) {
+					if(trigger::evaluate_trigger(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
+						if(allowed_states) { // check whether any state within the target is valid for free / liberate
+							for(auto si : state.world.nation_get_state_ownership(target)) {
+								if(trigger::evaluate_trigger(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(n.id))) {
+									return true;
+								}
+							}
+						} else { // no allowed states trigger -> nation is automatically a valid target
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}();
+		if(!any_allowed)
+			return false;
+	}
+
+	return true;
+}
+
+void update_cbs(sys::state& state) {
+	for(auto n : state.world.in_nation) {
+		auto current_cbs = n.get_available_cbs();
+		for(uint32_t i = current_cbs.size(); i-- > 0;) {
+			if(current_cbs[i].expiration && current_cbs[i].expiration <= state.current_date) {
+				current_cbs.remove_at(i);
+			}
+		}
+
+		// check for cancellation
+		if(n.get_constructing_cb_type()) {
+			/*
+			CBs that become invalid (the nations involved no longer satisfy the conditions or enter into a war with each other) are canceled (and the player should be notified in this event).
+			*/
+			auto target = n.get_constructing_cb_target();
+			if(military::are_at_war(state, n, target)
+				|| state.world.nation_get_owned_province_count(target) == 0
+				|| !cb_conditions_satisfied(state, n, target, n.get_constructing_cb_type())) {
+
+				// TODO: notify player
+
+				n.set_constructing_cb_is_discovered(false);
+				n.set_constructing_cb_progress(0.0f);
+				n.set_constructing_cb_target(dcon::nation_id{});
+				n.set_constructing_cb_type(dcon::cb_type_id{});
+			}
+		}
+
+		if(n.get_constructing_cb_type() && !nations::is_involved_in_crisis(state, n)) {
+			/*
+			CB fabrication by a nation is paused while that nation is in a crisis (nor do events related to CB fabrication happen). CB fabrication is advanced by points equal to:
+			define:CB_GENERATION_BASE_SPEED x cb-type-construction-speed x (national-cb-construction-speed-modifiers + technology-cb-construction-speed-modifier + 1).
+			*/
+
+			n.get_constructing_cb_progress() += state.defines.cb_generation_base_speed * n.get_constructing_cb_type().get_construction_speed() * (n.get_modifier_values(sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
+
+			/*
+			Each day, a fabricating CB has a define:CB_DETECTION_CHANCE_BASE out of 1000 chance to be detected. If discovered, the fabricating country gains the infamy for that war goal x the fraction of fabrication remaining. If discovered relations between the two nations are changed by define:ON_CB_DETECTED_RELATION_CHANGE. If discovered, any states with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
+			*/
+			if(!n.get_constructing_cb_is_discovered()) {
+				auto val = rng::get_random(state, uint32_t((n.id.index() << 3) + 5)) % 1000;
+				if(val <= uint32_t(state.defines.cb_detection_chance_base)) {
+					execute_cb_discovery(state, n);
+					n.set_constructing_cb_is_discovered(true);
+				}
+			}
+
+
+			// TODO: cb fabrication events
+
+			/*
+			When fabrication progress reaches 100, the CB will remain valid for define:CREATED_CB_VALID_TIME months (so x30 days for us). Note that pending CBs have their target nation fixed, but all other parameters are flexible.
+			*/
+			if(n.get_constructing_cb_progress() >= 100.0f) {
+				add_cb(state, n, n.get_constructing_cb_type(), n.get_constructing_cb_target());
+				n.set_constructing_cb_is_discovered(false);
+				n.set_constructing_cb_progress(0.0f);
+				n.set_constructing_cb_target(dcon::nation_id{});
+				n.set_constructing_cb_type(dcon::cb_type_id{});
+			}
+		}
+	}
+}
+
+void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target) {
+	auto current_cbs = state.world.nation_get_available_cbs(n);
+	current_cbs.push_back(military::available_cb{ target, state.current_date + int32_t(state.defines.created_cb_valid_time) * 30 , cb});
+	// TODO: notify
+}
+
+float cb_infamy(sys::state const& state, dcon::cb_type_id t) {
+	float total = 0.0f;
+	auto bits = state.world.cb_type_get_type_bits(t);
+
+	if((bits & cb_flag::po_clear_union_sphere) != 0) {
+		total += state.defines.infamy_clear_union_sphere;
+	}
+	if((bits & cb_flag::po_gunboat) != 0) {
+		total += state.defines.infamy_gunboat;
+	}
+	if((bits & cb_flag::po_annex) != 0) {
+		total += state.defines.infamy_annex;
+	}
+	if((bits & cb_flag::po_demand_state) != 0) {
+		total += state.defines.infamy_demand_state;
+	}
+	if((bits & cb_flag::po_add_to_sphere) != 0) {
+		total += state.defines.infamy_add_to_sphere;
+	}
+	if((bits & cb_flag::po_disarmament) != 0) {
+		total += state.defines.infamy_disarmament;
+	}
+	if((bits & cb_flag::po_reparations) != 0) {
+		total += state.defines.infamy_reparations;
+	}
+	if((bits & cb_flag::po_transfer_provinces) != 0) {
+		total += state.defines.infamy_transfer_provinces;
+	}
+	if((bits & cb_flag::po_remove_prestige) != 0) {
+		total += state.defines.infamy_prestige;
+	}
+	if((bits & cb_flag::po_make_puppet) != 0) {
+		total += state.defines.infamy_make_puppet;
+	}
+	if((bits & cb_flag::po_release_puppet) != 0) {
+		total += state.defines.infamy_release_puppet;
+	}
+	if((bits & cb_flag::po_status_quo) != 0) {
+		total += state.defines.infamy_status_quo;
+	}
+	if((bits & cb_flag::po_install_communist_gov_type) != 0) {
+		total += state.defines.infamy_install_communist_gov_type;
+	}
+	if((bits & cb_flag::po_uninstall_communist_gov_type) != 0) {
+		total += state.defines.infamy_uninstall_communist_gov_type;
+	}
+	if((bits & cb_flag::po_remove_cores) != 0) {
+		total += state.defines.infamy_remove_cores;
+	}
+	if((bits & cb_flag::po_colony) != 0) {
+		total += state.defines.infamy_colony;
+	}
+	if((bits & cb_flag::po_destroy_forts) != 0) {
+		total += state.defines.infamy_destroy_forts;
+	}
+	if((bits & cb_flag::po_destroy_naval_bases) != 0) {
+		total += state.defines.infamy_destroy_naval_bases;
+	}
+
+	return total * state.world.cb_type_get_badboy_factor(t);
+}
+
+void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
+	/*
+	 If discovered, the fabricating country gains the infamy for that war goal x the fraction of fabrication remaining. If discovered relations between the two nations are changed by define:ON_CB_DETECTED_RELATION_CHANGE. If discovered, any states with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
+	*/
+	auto infamy = cb_infamy(state, state.world.nation_get_constructing_cb_type(n));
+	state.world.nation_get_infamy(n) += ((100.0f - state.world.nation_get_constructing_cb_progress(n)) / 100.0f) * infamy;
+
+	auto target = state.world.nation_get_constructing_cb_target(n);
+
+	nations::adjust_relationship(state, n, target, state.defines.on_cb_detected_relation_change);
+
+	for(auto si : state.world.nation_get_state_ownership(target)) {
+		if(si.get_state().get_flashpoint_tag()) {
+			si.get_state().get_flashpoint_tension() += state.defines.tension_on_cb_discovered;
+		}
+	}
+
+	// TODO: notify
 }
 
 }

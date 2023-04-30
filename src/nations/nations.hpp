@@ -262,10 +262,14 @@ int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n);
 bool can_expand_colony(sys::state& state, dcon::nation_id n);
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
+bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 
 std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
 
 void update_monthly_points(sys::state& state);
+
+// may create a relationship DO NOT call in a context where two or more such functions may run in parallel
+void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta); 
 
 }
 

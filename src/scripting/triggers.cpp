@@ -4419,14 +4419,14 @@ TRIGGER_FUNCTION(tf_relation_tag) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, holder);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot));
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_relation_this_nation) {
 	auto relation = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot), to_nation(this_slot));
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_relation_this_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
@@ -4434,14 +4434,14 @@ TRIGGER_FUNCTION(tf_relation_this_province) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot), owner);
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_relation_from_nation) {
 	auto relation = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot), to_nation(from_slot));
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_relation_from_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(from_slot));
@@ -4449,7 +4449,7 @@ TRIGGER_FUNCTION(tf_relation_from_province) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot), owner);
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_check_variable) {
 	auto id = payload(tval[3]).natv_id;

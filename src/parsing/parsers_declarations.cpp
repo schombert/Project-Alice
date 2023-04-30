@@ -1893,10 +1893,10 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 void oob_relationship::value(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context) {
 	auto rel = context.outer_context.state.world.get_diplomatic_relation_by_diplomatic_pair(context.nation_for, context.nation_with);
 	if(rel) {
-		context.outer_context.state.world.diplomatic_relation_set_value(rel, v);
+		context.outer_context.state.world.diplomatic_relation_set_value(rel, float(v));
 	} else {
 		auto new_rel = context.outer_context.state.world.force_create_diplomatic_relation(context.nation_for, context.nation_with);
-		context.outer_context.state.world.diplomatic_relation_set_value(new_rel, v);
+		context.outer_context.state.world.diplomatic_relation_set_value(new_rel, float(v));
 	}
 }
 

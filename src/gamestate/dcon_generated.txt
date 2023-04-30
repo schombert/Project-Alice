@@ -3,6 +3,7 @@ include{"constants.hpp"}
 include{"modifiers.hpp"}
 include{"date_interface.hpp"}
 include{"container_types.hpp"}
+include{"military.hpp"}
 include{<glm/glm.hpp>}
 
 make_index{text_key}{uint32_t}
@@ -2684,6 +2685,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ available_cbs }
+		type{vector_pool{16000}{military::available_cb}}
+		tag{ save }
+	}
+	property {
 		name{ non_colonial_population }
 		type{ float }
 	}
@@ -2766,7 +2772,7 @@ relationship{
 
 	property{
 		name{ value }
-		type{ int32_t }
+		type{ float }
 		tag{ save }
 	}
 	property{

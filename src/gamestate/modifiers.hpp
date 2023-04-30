@@ -161,26 +161,25 @@ namespace sys {
     MOD_LIST_ELEMENT(100, supply_limit, true, modifier_display_type::percent, "supply_limit_tech") \
     MOD_LIST_ELEMENT(101, colonial_migration, true, modifier_display_type::percent, "colonial_migration_tech") \
     MOD_LIST_ELEMENT(102, max_national_focus, true, modifier_display_type::integer, "tech_max_focus") \
-    MOD_LIST_ELEMENT(103, cb_creation_speed, true, modifier_display_type::percent, "cb_manufacture_tech") \
-    MOD_LIST_ELEMENT(104, education_efficiency, true, modifier_display_type::percent, "edu_eff_tech") \
-    MOD_LIST_ELEMENT(105, reinforce_rate, true, modifier_display_type::percent, "reinforce_tech") \
-    MOD_LIST_ELEMENT(106, influence, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \
-    MOD_LIST_ELEMENT(107, dig_in_cap, true, modifier_display_type::percent, "digin_from_tech") \
-    MOD_LIST_ELEMENT(108, combat_width, true, modifier_display_type::percent, "combat_width_tech") \
-    MOD_LIST_ELEMENT(109, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech") \
-    MOD_LIST_ELEMENT(110, supply_range, true, modifier_display_type::percent, "supply_range_tech") \
-    MOD_LIST_ELEMENT(111, regular_experience_level, true, modifier_display_type::percent, "regular_exp_tech") \
-    MOD_LIST_ELEMENT(112, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech") \
-    MOD_LIST_ELEMENT(113, naval_attrition, true, modifier_display_type::percent, "naval_attrition_tech") \
-    MOD_LIST_ELEMENT(114, land_attrition, true, modifier_display_type::percent, "land_attrition_tech") \
-    MOD_LIST_ELEMENT(115, pop_growth, true, modifier_display_type::percent, "tech_pop_growth") \
-    MOD_LIST_ELEMENT(116, colonial_life_rating, true, modifier_display_type::percent, "modifier_life_rating") \
-    MOD_LIST_ELEMENT(117, seperatism, true, modifier_display_type::percent, "seperatism_tech") \
-    MOD_LIST_ELEMENT(118, plurality, true, modifier_display_type::percent, "tech_plurality") \
-    MOD_LIST_ELEMENT(119, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech") \
-    MOD_LIST_ELEMENT(120, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech") \
-    MOD_LIST_ELEMENT(121, prestige_modifier, true, modifier_display_type::percent, "prestige_modifier_tech")
-#define MOD_NAT_LIST_COUNT 122
+    MOD_LIST_ELEMENT(103, education_efficiency, true, modifier_display_type::percent, "edu_eff_tech") \
+    MOD_LIST_ELEMENT(104, reinforce_rate, true, modifier_display_type::percent, "reinforce_tech") \
+    MOD_LIST_ELEMENT(105, influence, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \
+    MOD_LIST_ELEMENT(106, dig_in_cap, true, modifier_display_type::percent, "digin_from_tech") \
+    MOD_LIST_ELEMENT(107, combat_width, true, modifier_display_type::percent, "combat_width_tech") \
+    MOD_LIST_ELEMENT(108, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech") \
+    MOD_LIST_ELEMENT(109, supply_range, true, modifier_display_type::percent, "supply_range_tech") \
+    MOD_LIST_ELEMENT(110, regular_experience_level, true, modifier_display_type::percent, "regular_exp_tech") \
+    MOD_LIST_ELEMENT(111, soldier_to_pop_loss, true, modifier_display_type::percent, "soldier_to_pop_loss_tech") \
+    MOD_LIST_ELEMENT(112, naval_attrition, true, modifier_display_type::percent, "naval_attrition_tech") \
+    MOD_LIST_ELEMENT(113, land_attrition, true, modifier_display_type::percent, "land_attrition_tech") \
+    MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::percent, "tech_pop_growth") \
+    MOD_LIST_ELEMENT(115, colonial_life_rating, true, modifier_display_type::percent, "modifier_life_rating") \
+    MOD_LIST_ELEMENT(116, seperatism, true, modifier_display_type::percent, "seperatism_tech") \
+    MOD_LIST_ELEMENT(117, plurality, true, modifier_display_type::percent, "tech_plurality") \
+    MOD_LIST_ELEMENT(118, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech") \
+    MOD_LIST_ELEMENT(119, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech") \
+    MOD_LIST_ELEMENT(120, prestige_modifier, true, modifier_display_type::percent, "prestige_modifier_tech")
+#define MOD_NAT_LIST_COUNT 121
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \
