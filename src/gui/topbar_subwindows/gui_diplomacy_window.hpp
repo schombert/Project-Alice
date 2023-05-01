@@ -409,7 +409,10 @@ public:
 		if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_flag") {
-			return make_element_by_type<flag_button>(state, id);
+			auto ptr = make_element_by_type<flag_button>(state, id);
+			ptr->base_data.size.x += 3; // Nudge
+			ptr->base_data.size.y += 4;
+			return ptr;
 		} else if(name == "country_puppets") {
 			return make_element_by_type<overlapping_protected_flags>(state, id);
 		} else if(name == "gp_prestige") {
@@ -447,6 +450,7 @@ private:
 	diplomacy_action_dialog_window* action_dialog_win = nullptr;
 	diplomacy_gp_action_dialog_window* gp_action_dialog_win = nullptr;
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
+	std::vector<element_base*> action_buttons{};
 
 	void filter_countries(sys::state& state, std::function<bool(dcon::nation_id)> filter_fun) {
 		if(country_listbox) {
@@ -480,7 +484,7 @@ private:
 	void add_action_button(sys::state& state, xy_pair offset) noexcept {
 		auto ptr = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("diplomacy_option")->second.definition);
 		ptr->base_data.position = offset;
-		offset.y += ptr->base_data.size.y;
+		action_buttons.push_back(ptr.get());
 		add_child_to_front(std::move(ptr));
 	}
 
@@ -700,6 +704,8 @@ public:
 			filter_by_continent(state, mod_id);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
+			for(const auto e : action_buttons)
+				e->impl_set(state, payload);
 			return country_facts->impl_set(state, payload);
 		} else if(payload.holds_type<diplomacy_action>()) {
 			auto v = any_cast<diplomacy_action>(payload);
@@ -713,6 +719,7 @@ public:
 			case diplomacy_action::discredit:
 			case diplomacy_action::expel_advisors:
 			case diplomacy_action::ban_embassy:
+			case diplomacy_action::decrease_opinion:
 				gp_action_dialog_win->set_visible(state, true);
 				gp_action_dialog_win->impl_set(state, new_payload);
 				gp_action_dialog_win->impl_set(state, payload);
