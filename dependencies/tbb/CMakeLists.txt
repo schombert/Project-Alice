@@ -49,4 +49,8 @@ if(WIN32)
 			set_target_properties(tbb PROPERTIES COMPILE_FLAGS "/MT /wd4100 /wd4189 /wd4065 /GR- /W3 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline")
 		endif()
 	endif()
+else() # GCC or CLANG
+	target_compile_options(tbb PRIVATE
+		$<$<CONFIG:Debug>:			-fexceptions>
+		$<$<NOT:$<CONFIG:Debug>>: 	-fexceptions>)
 endif()
