@@ -74,8 +74,8 @@ if(WIN32)
 else() # GCC or CLANG
 	target_compile_options(Alice PRIVATE
 									# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter
-		$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -fno-exceptions -fno-rtti>
-		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-exceptions -fno-rtti>)
+		$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -fno-rtti>
+		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti>)
 endif()
 
 # Include sub-projects.
