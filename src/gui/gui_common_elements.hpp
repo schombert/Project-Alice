@@ -17,14 +17,12 @@
 
 namespace ui {
 
-
-// Filters for pops.
-struct demographics_pop_filter {
-    dcon::province_id province;
-};
-enum class pop_list_filter : uint8_t {
-    all
-};
+typedef std::variant<
+	std::monostate,
+	dcon::nation_id,
+	dcon::state_instance_id,
+	dcon::province_id
+> pop_list_filter;
 
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);

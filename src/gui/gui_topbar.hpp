@@ -70,7 +70,7 @@ public:
             topbar_subwindow->set_visible(state, true);
             topbar_subwindow->impl_on_update(state);
 
-            Cyto::Any payload = pop_list_filter::all;
+            Cyto::Any payload = pop_list_filter(state.local_player_nation);
             topbar_subwindow->impl_set(state,payload);
 
             state.ui_state.root->move_child_to_front(topbar_subwindow);
