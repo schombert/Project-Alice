@@ -29,13 +29,18 @@ enum diplomacy_action : uint8_t {
     justify_war,
 };
 
-class diplomacy_action_ally_button : public button_element_base {
+class diplomacy_action_ally_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_update(sys::state& state) noexcept override {
         bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
             can_cancel ? "cancelalliance_button"
                 : "alliance_button"));
+        
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -48,11 +53,18 @@ public:
     }
 };
 
-class diplomacy_action_call_ally_button : public button_element_base {
+class diplomacy_action_call_ally_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "callally_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -63,13 +75,18 @@ public:
     }
 };
 
-class diplomacy_action_military_access_button : public button_element_base {
+class diplomacy_action_military_access_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_update(sys::state& state) noexcept override {
         bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
             can_cancel ? "cancelaskmilitaryaccess_button"
                 : "askmilitaryaccess_button"));
+        
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -82,13 +99,18 @@ public:
     }
 };
 
-class diplomacy_action_give_military_access_button : public button_element_base {
+class diplomacy_action_give_military_access_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_update(sys::state& state) noexcept override {
         bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
             can_cancel ? "cancelgivemilitaryaccess_button"
                 : "givemilitaryaccess_button"));
+        
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -101,11 +123,18 @@ public:
     }
 };
 
-class diplomacy_action_increase_relations_button : public button_element_base {
+class diplomacy_action_increase_relations_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "increaserelation_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -116,11 +145,18 @@ public:
     }
 };
 
-class diplomacy_action_decrease_relations_button : public button_element_base {
+class diplomacy_action_decrease_relations_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "decreaserelation_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -131,13 +167,18 @@ public:
     }
 };
 
-class diplomacy_action_war_subisides_button : public button_element_base {
+class diplomacy_action_war_subisides_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_update(sys::state& state) noexcept override {
         bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
             can_cancel ? "cancel_warsubsidies_button"
                 : "warsubsidies_button"));
+        
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -150,11 +191,18 @@ public:
     }
 };
 
-class diplomacy_action_declare_war_button : public button_element_base {
+class diplomacy_action_declare_war_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "war_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -165,13 +213,18 @@ public:
     }
 };
 
-class diplomacy_action_command_units_button : public button_element_base {
+class diplomacy_action_command_units_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_update(sys::state& state) noexcept override {
         bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
             can_cancel ? "cancel_unit_command_button"
                 : "give_unit_command_button"));
+        
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -184,11 +237,20 @@ public:
     }
 };
 
-class diplomacy_action_discredit_button : public button_element_base {
+class diplomacy_action_discredit_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "discredit_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
+        else if(!nations::is_great_power(state, state.local_player_nation))
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -199,11 +261,20 @@ public:
     }
 };
 
-class diplomacy_action_expel_advisors_button : public button_element_base {
+class diplomacy_action_expel_advisors_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "expeladvisors_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
+        else if(!nations::is_great_power(state, state.local_player_nation))
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -214,11 +285,20 @@ public:
     }
 };
 
-class diplomacy_action_ban_embassy_button : public button_element_base {
+class diplomacy_action_ban_embassy_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "banembassy_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
+        else if(!nations::is_great_power(state, state.local_player_nation))
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -229,11 +309,20 @@ public:
     }
 };
 
-class diplomacy_action_increase_opinion_button : public button_element_base {
+class diplomacy_action_increase_opinion_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "increaseopinion_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
+        else if(!nations::is_great_power(state, state.local_player_nation))
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -244,11 +333,20 @@ public:
     }
 };
 
-class diplomacy_action_decrease_opinion_button : public button_element_base {
+class diplomacy_action_decrease_opinion_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "decreaseopinion_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
+        else if(!nations::is_great_power(state, state.local_player_nation))
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -259,11 +357,20 @@ public:
     }
 };
 
-class diplomacy_action_add_to_sphere_button : public button_element_base {
+class diplomacy_action_add_to_sphere_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "addtosphere_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
+        else if(!nations::is_great_power(state, state.local_player_nation))
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -274,11 +381,20 @@ public:
     }
 };
 
-class diplomacy_action_remove_from_sphere_button : public button_element_base {
+class diplomacy_action_remove_from_sphere_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "removefromsphere_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
+        else if(!nations::is_great_power(state, state.local_player_nation))
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -289,11 +405,18 @@ public:
     }
 };
 
-class diplomacy_action_justify_war_button : public button_element_base {
+class diplomacy_action_justify_war_button : public generic_settable_element<button_element_base, dcon::nation_id> {
 public:
     void on_create(sys::state& state) noexcept override {
         button_element_base::on_create(state);
         set_button_text(state, text::produce_simple_string(state, "make_cb_button"));
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        // TODO: Conditions for enabling/disabling
+        disabled = false;
+        if(content == state.local_player_nation)
+            disabled = true;
     }
 
     void button_action(sys::state& state) noexcept override {
@@ -472,7 +595,7 @@ public:
         } else if(name == "declinebutton") {
             return make_element_by_type<diplomacy_action_dialog_decline_button>(state, id);
         } else if(name == "leftshield") {
-            return make_element_by_type<diplomacy_action_dialog_left_flag_image>(state, id);
+			return make_element_by_type<diplomacy_action_dialog_left_flag_image>(state, id);
         } else if(name == "rightshield") {
             return make_element_by_type<diplomacy_action_dialog_right_flag_image>(state, id);
         } else if(name == "background") {
@@ -546,7 +669,7 @@ public:
         } else if(name == "declinebutton") {
             return make_element_by_type<diplomacy_action_dialog_decline_button>(state, id);
         } else if(name == "leftshield") {
-            return make_element_by_type<diplomacy_action_dialog_left_flag_image>(state, id);
+			return make_element_by_type<diplomacy_action_dialog_left_flag_image>(state, id);
         } else if(name == "rightshield") {
             return make_element_by_type<diplomacy_action_dialog_right_flag_image>(state, id);
         } else if(name == "background") {
