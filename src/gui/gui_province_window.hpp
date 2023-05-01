@@ -28,13 +28,10 @@ protected:
 public:
     void button_action(sys::state& state) noexcept override {
         if(state.ui_state.population_subwindow != nullptr) {
-            struct demographics_pop_filter filter;
-            filter.province = province_id;
-            Cyto::Any payload = filter;
+            Cyto::Any payload = pop_list_filter(province_id);
             state.ui_state.population_subwindow->impl_set(state,payload);
-            if(state.ui_state.topbar_subwindow != nullptr) {
+            if(state.ui_state.topbar_subwindow != nullptr)
                state.ui_state.topbar_subwindow->set_visible(state, false);
-            }
             state.ui_state.topbar_subwindow = state.ui_state.population_subwindow;
             state.ui_state.population_subwindow->set_visible(state, true);
             state.ui_state.root->move_child_to_front(state.ui_state.population_subwindow);

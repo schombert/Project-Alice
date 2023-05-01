@@ -51,7 +51,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void  update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 
 		auto pfat_id = dcon::fatten(state.world, pop_id);
@@ -83,7 +83,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void  update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 
 		auto pfat_id = dcon::fatten(state.world, pop_id);
@@ -114,7 +114,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void  update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 
 		auto pfat_id = dcon::fatten(state.world, pop_id);
@@ -145,7 +145,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void  update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 
 		auto pfat_id = dcon::fatten(state.world, pop_id);
@@ -279,8 +279,6 @@ public:
 			return listbox_row_element_base<dcon::pop_id>::get(state, payload);
 		}
 	}
-
-
 };
 
 class pop_legend_listbox : public listbox_element_base<pop_legend_info, dcon::pop_id> {
@@ -292,66 +290,51 @@ protected:
 
 class population_window : public window_element_base {
 private:
-	std::vector<dcon::state_instance_id> state_list;
-	std::vector<dcon::province_id> province_list;
 	pop_legend_listbox* country_pop_listbox = nullptr;
-	dcon::nation_id nation_id;
+	pop_list_filter filter = std::monostate{};
 
-	void populate_owned_states(sys::state& state) {
-		clear_lists();
-		fill_state_list(state);
-		fill_province_list(state);
-		fill_pop_list(state);
-	}
-	void clear_lists() {
-		state_list.clear();
-		province_list.clear();
-	}
-	void fill_state_list(sys::state& state) {
-		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+	void populate_pop_list(sys::state& state) {
+		std::vector<dcon::state_instance_id> state_list;
+		std::vector<dcon::province_id> province_list;
+
+		auto nation_id = std::holds_alternative<dcon::nation_id>(filter)
+			? std::get<dcon::nation_id>(filter)
+			: state.local_player_nation;
+		for(auto si : state.world.nation_get_state_ownership(nation_id))
 			state_list.push_back(si.get_state().id);
-		}
-	}
-	void fill_province_list(sys::state& state) {
+		
 		for(auto& state_id : state_list) {
-			dcon::state_instance_fat_id fat_id = fatten(state.world, state_id);
+			if(std::holds_alternative<dcon::state_instance_id>(filter)
+			&& std::get<dcon::state_instance_id>(filter) != state_id)
+				continue;
+			auto fat_id = dcon::fatten(state.world, state_id);
 			province::for_each_province_in_state_instance(state, fat_id, [&](dcon::province_id id) {
 				province_list.push_back(id);
 			});
 		}
-	}
-	void fill_pop_list(sys::state& state) {
+
 		for(auto& province_id : province_list) {
-			state.world.for_each_pop_location([&](dcon::pop_location_id id) {
-				dcon::pop_location_fat_id fat_id = fatten(state.world, id);
-				if(fat_id.get_province() == province_id)
-					country_pop_listbox->row_contents.push_back(fat_id.get_pop());
-				else
-					return;
+			if(std::holds_alternative<dcon::province_id>(filter)
+			&& std::get<dcon::province_id>(filter) != province_id)
+				continue;
+			auto fat_id = dcon::fatten(state.world, province_id);
+			fat_id.for_each_pop_location_as_province([&](dcon::pop_location_id id) {
+				country_pop_listbox->row_contents.push_back(state.world.pop_location_get_pop(id));
 			});
-		}
-	}
-	void filter_pop(sys::state& state, std::function<bool(dcon::nation_id)> filter_fun) {
-		if(country_pop_listbox) {
-			sort_pop_list(state);
-			country_pop_listbox->update(state);
 		}
 	}
 	void sort_pop_list(sys::state& state) {
 		std::sort(country_pop_listbox->row_contents.begin(), country_pop_listbox->row_contents.end(), [&](auto a, auto b) {
-			dcon::pop_fat_id a_fat_id = fatten(state.world, a);
-			dcon::pop_fat_id b_fat_id = fatten(state.world, b);
-			bool sortFilter = a_fat_id.get_size() > b_fat_id.get_size();
-			return sortFilter;
+			auto a_fat_id = dcon::fatten(state.world, a);
+			auto b_fat_id = dcon::fatten(state.world, b);
+			return a_fat_id.get_size() > b_fat_id.get_size();
 	  });
 	}
 public:
 	void on_create(sys::state& state) noexcept override {
-		nation_id = state.local_player_nation;
 		window_element_base::on_create(state);
 		set_visible(state, false);
 	}
-
 
 	std::unique_ptr<element_base>
 		make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -433,35 +416,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(nation_id != state.local_player_nation) {
+		if(country_pop_listbox) {
 			country_pop_listbox->row_contents.clear();
-			nation_id = state.local_player_nation;
-			populate_owned_states(state);
-			filter_pop(state, [](dcon::nation_id) { return true; });
+			populate_pop_list(state);
+			sort_pop_list(state);
+			country_pop_listbox->update(state);
 		}
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<demographics_pop_filter>()) {
-			auto pv = any_cast<demographics_pop_filter>(payload);
-			country_pop_listbox->row_contents.clear();
-			province_list.clear();
-			province_list.push_back(pv.province);
-			fill_pop_list(state);
-			filter_pop(state, [](dcon::nation_id) { return true; });
-			return message_result::consumed;
-		}
-		// If payload holds enum
 		if(payload.holds_type<pop_list_filter>()) {
-			auto filter = any_cast<pop_list_filter>(payload);
-			switch(filter) {
-				case pop_list_filter::all:
-					populate_owned_states(state);
-					filter_pop(state, [](dcon::nation_id) { return true; });
-					break;
-				default:
-					break;
-			}
+			filter = any_cast<pop_list_filter>(payload);
+			on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
