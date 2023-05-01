@@ -1692,7 +1692,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 9, [&](int32_t index) {
+					concurrency::parallel_for(0, 10, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1721,6 +1721,9 @@ namespace sys {
 							case 8:
 								rebel::daily_update_rebel_organization(*this);
 								break;
+							case 9:
+								military::daily_leaders_update(*this);
+								break;
 						}
 
 					});
@@ -1738,6 +1741,9 @@ namespace sys {
 							break;
 						case 2:
 							sys::update_modifier_effects(*this);
+							break;
+						case 3:
+							military::monthly_leaders_update(*this);
 							break;
 						case 5:
 							rebel::update_movements(*this);

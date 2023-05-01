@@ -449,7 +449,7 @@ When fabrication progress reaches 100, the CB will remain valid for define:CREAT
 
 ### Other CBs
 
-Beyond fabricating a CB, you can get one from any CB with "triggered_only = yes" if the "is_valid" trigger is satisfied (with the potential target country in scope and the country that would be granted the CB in "this"). I believe that this is always tested daily. At least for the player, some record of which CBs were available in the previous day must be maintained in order to give messages about CB gained/lost for these triggered CBs
+Beyond fabricating a CB, you can get one from any CB with "always = yes" if the "is_valid" trigger is satisfied (with the potential target country in scope and the country that would be granted the CB in "this"). I believe that this is always tested daily. At least for the player, some record of which CBs were available in the previous day must be maintained in order to give messages about CB gained/lost for these triggered CBs
 
 ### Leaders (Generals and Admirals)
 

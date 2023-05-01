@@ -568,4 +568,152 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 	// TODO: notify
 }
 
+bool leader_is_in_combat(sys::state& state, dcon::leader_id l) {
+	// TODO: implement
+	return false;
+}
+
+dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_general) {
+	auto l = fatten(state.world, state.world.create_leader());
+	l.set_is_admiral(!is_general);
+
+	uint32_t seed_base = (uint32_t(n.index()) << 6) ^ uint32_t(l.id.index());
+
+	auto num_personalities = state.military_definitions.first_background_trait.index() - 1;
+	auto num_backgrounds = (state.world.leader_trait_size() - num_personalities) - 2;
+
+	auto trait_pair = rng::get_random_pair(state, seed_base);
+
+	l.set_personality(dcon::leader_trait_id{dcon::leader_trait_id::value_base_t( 1 + trait_pair.high % num_personalities ) });
+	l.set_background(dcon::leader_trait_id{ dcon::leader_trait_id::value_base_t(state.military_definitions.first_background_trait.index() + 1 + trait_pair.low % num_backgrounds) });
+
+	auto names_pair = rng::get_random_pair(state, seed_base + 1);
+
+	auto names = state.world.culture_get_last_names(state.world.nation_get_primary_culture(n));
+	if(names.size() > 0)
+		l.set_name(names.at(names_pair.high % names.size()));
+
+	l.set_since(state.current_date);
+
+	state.world.try_create_leader_loyalty(n, l);
+
+	state.world.nation_get_leadership_points(n) -= state.defines.leader_recruit_cost;
+
+	return l;
+}
+
+void kill_leader(sys::state& state, dcon::leader_id l) {
+	// TODO: notify?
+	/*
+	the player only gets leader death messages if the leader is currently assigned to an army or navy (assuming the message setting for it is turned on).
+	*/
+
+	state.world.delete_leader(l);
+}
+
+struct leader_counts {
+	int32_t admirals = 0;
+	int32_t generals = 0;
+};
+
+leader_counts count_leaders(sys::state& state, dcon::nation_id n) {
+	leader_counts result{};
+	for(auto l : state.world.nation_get_leader_loyalty(n)) {
+		if(l.get_leader().get_is_admiral())
+			++result.admirals;
+		else
+			++result.generals;
+	}
+	return result;
+}
+int32_t count_armies(sys::state& state, dcon::nation_id n) {
+	auto x = state.world.nation_get_army_control(n);
+	return int32_t(x.end() - x.begin());
+}
+int32_t count_navies(sys::state& state, dcon::nation_id n) {
+	auto x = state.world.nation_get_navy_control(n);
+	return int32_t(x.end() - x.begin());
+}
+
+void monthly_leaders_update(sys::state& state) {
+	/*
+	- A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount + national-modifier-to-leadership x (national-modifier-to-leadership-modifier + 1) leadership points per month.
+	*/
+
+	state.world.execute_serial_over_nation([&, optimum_officers = state.world.pop_type_get_research_optimum(state.culture_definitions.officers)](auto ids) {
+		auto ofrac = state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.officers)) / ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f);
+		auto omod = ve::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points);
+		auto nmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership_modifier) + 1.0f) * state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership);
+
+		state.world.nation_set_leadership_points(ids, state.world.nation_get_leadership_points(ids) + omod + nmod);
+	});
+
+
+	for(auto n : state.world.in_nation) {
+		if(n.get_leadership_points() > state.defines.leader_recruit_cost * 3.0f) {
+			// automatically make new leader
+			auto new_l = [&]() {
+				auto existing_leaders = count_leaders(state, n);
+				auto army_count = count_armies(state, n);
+				auto navy_count = count_navies(state, n);
+				if(existing_leaders.generals < army_count) {
+					return make_new_leader(state, n, true);
+				} else if(existing_leaders.admirals < navy_count) {
+					return make_new_leader(state, n, false);
+				} else {
+					auto too_many_generals = (existing_leaders.admirals > 0 && navy_count > 0) ? float(existing_leaders.generals) / float(existing_leaders.admirals) > float(army_count) / float(navy_count) : false;
+					return make_new_leader(state, n, !too_many_generals);
+				}
+			}();
+			if(state.world.leader_get_is_admiral(new_l)) {
+				for(auto v : state.world.nation_get_navy_control(n)) {
+					if(!v.get_navy().get_admiral_from_navy_leadership()) {
+						state.world.try_create_navy_leadership(v.get_navy(), new_l);
+						break;
+					}
+				}
+			} else {
+				for(auto a : state.world.nation_get_army_control(n)) {
+					if(!a.get_army().get_general_from_army_leadership()) {
+						state.world.try_create_army_leadership(a.get_army(), new_l);
+						break;
+					}
+				}
+			}
+			
+		}
+	}
+}
+void daily_leaders_update(sys::state& state) {
+	/*
+	Leaders who are both less than 26 years old and not in combat have no chance of death. Otherwise, we take the age of the leader and divide by define:LEADER_AGE_DEATH_FACTOR. Then we multiply that result by 2 if the leader is currently in combat. That is then the leader's current chance of death out of ... my notes say 11,000 here.
+	*/
+
+	for(uint32_t i = state.world.leader_size(); i-->0; ) {
+		dcon::leader_id l{dcon::leader_id::value_base_t(i) };
+		auto age_in_days = state.world.leader_get_since(l).to_raw_value() * 365;
+		if(age_in_days > 365 * 26) { // assume leaders are created at age 20; no death chance prior to 46
+			float age_in_years = float(age_in_days) / 365.0f;
+			float death_chance = (age_in_years * (leader_is_in_combat(state, l) ? 2.0f : 1.0f) / state.defines.leader_age_death_factor) / 11000.0f;
+
+			/*
+			float live_chance = 1.0f - death_chance;
+			float live_chance_2 = live_chance * live_chance;
+			float live_chance_4 = live_chance_2 * live_chance_2;
+			float live_chance_8 = live_chance_4 * live_chance_4;
+			float live_chance_16 = live_chance_8 * live_chance_8;
+			float live_chance_32 = live_chance_16 * live_chance_16;
+
+			float monthly_chance = 1.0f - (live_chance_32 / live_chance_2);
+			*/
+
+			auto int_chance = uint32_t(death_chance * float(0xFFFFFFFF));
+			auto rvalue = uint32_t(rng::get_random(state, uint32_t(l.index())) & 0xFFFFFFFF);
+
+			if(rvalue < int_chance)
+				kill_leader(state, l);
+		}
+	}
+}
+
 }

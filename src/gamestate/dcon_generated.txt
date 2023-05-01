@@ -212,12 +212,12 @@ object {
 
 	property{
 		name{ first_names }
-		type{vector_pool{10000}{text_key}}
+		type{vector_pool{10000}{unit_name_id}}
 		tag{ scenario }
 	}
 	property{
 		name{ last_names }
-		type{vector_pool{10000}{text_key}}
+		type{vector_pool{10000}{unit_name_id}}
 		tag{ scenario }
 	}
 }

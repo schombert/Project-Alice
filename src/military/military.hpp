@@ -94,6 +94,7 @@ void restore_unsaved_values(sys::state& state); // must run after determining co
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 float cb_infamy(sys::state const& state, dcon::cb_type_id t);
+bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 
 template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids);
@@ -126,6 +127,8 @@ float mobilization_impact(sys::state const& state, dcon::nation_id n);
 
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 void update_cbs(sys::state& state);
+void monthly_leaders_update(sys::state& state);
+void daily_leaders_update(sys::state& state);
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target); // do not call this function directly unless you know what you are doing

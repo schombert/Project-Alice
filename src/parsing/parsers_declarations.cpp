@@ -20,7 +20,7 @@ void religion_def::pagan(association_type, bool v, error_handler& err, int32_t l
 }
 
 void names_list::free_value(std::string_view text, error_handler& err, int32_t line, names_context& context) {
-	auto new_id = context.outer_context.state.add_to_pool(text);
+	auto new_id = context.outer_context.state.add_unit_name(text);
 	if(context.first_names) {
 		context.outer_context.state.world.culture_get_first_names(context.id).push_back(new_id);
 	} else {

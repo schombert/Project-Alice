@@ -736,17 +736,6 @@ void update_monthly_points(sys::state& state) {
 
 		state.world.nation_set_suppression_points(ids, ve::min(state.world.nation_get_suppression_points(ids) + cmod, state.defines.max_suppression));
 	});
-	/*
-	- A nation gets ((number-of-officers / total-population) / officer-optimum)^1 x officer-leadership-amount + national-modifier-to-leadership x (national-modifier-to-leadership-modifier + 1) leadership points per month.
-	*/
-
-	state.world.execute_serial_over_nation([&, optimum_officers = state.world.pop_type_get_research_optimum(state.culture_definitions.officers)](auto ids) {
-		auto ofrac = state.world.nation_get_demographics(ids, demographics::to_key(state, state.culture_definitions.officers)) / ve::max(state.world.nation_get_demographics(ids, demographics::total), 1.0f);
-		auto omod = ve::min(1.0f, ofrac / optimum_officers) * float(state.culture_definitions.officer_leadership_points);
-		auto nmod = (state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership_modifier) + 1.0f) * state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::leadership);
-
-		state.world.nation_set_leadership_points(ids, ve::min(state.world.nation_get_leadership_points(ids) + omod + nmod, state.defines.leader_recruit_cost * 3));
-	});
 }
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
