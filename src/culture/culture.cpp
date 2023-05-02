@@ -163,11 +163,11 @@ void repopulate_invention_effects(sys::state& state) {
 				state.world.nation_set_has_gas_attack(nation_indices, old_value | has_inv_mask);
 			});
 		}
-		if(inv_id.get_enable_gas_defence()) {
+		if(inv_id.get_enable_gas_defense()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
-				auto old_value = state.world.nation_get_has_gas_defence(nation_indices);
-				state.world.nation_set_has_gas_defence(nation_indices, old_value | has_inv_mask);
+				auto old_value = state.world.nation_get_has_gas_defense(nation_indices);
+				state.world.nation_set_has_gas_defense(nation_indices, old_value | has_inv_mask);
 			});
 		}
 
@@ -345,8 +345,8 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	if(inv_id.get_enable_gas_attack()) {
 		state.world.nation_set_has_gas_attack(target_nation, true);
 	}
-	if(inv_id.get_enable_gas_defence()) {
-		state.world.nation_set_has_gas_defence(target_nation, true);
+	if(inv_id.get_enable_gas_defense()) {
+		state.world.nation_set_has_gas_defense(target_nation, true);
 	}
 
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {

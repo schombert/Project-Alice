@@ -248,4 +248,36 @@ float get_economic_reform_multiplier(sys::state& state, dcon::nation_id n) {
     return reform_factor;
 }
 
+bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
+	auto start_date = state.world.political_party_get_start_date(p);
+	auto end_date = state.world.political_party_get_end_date(p);
+	return (!start_date || start_date <= state.current_date) && (!end_date || end_date > state.current_date);
+}
+
+void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
+	state.world.for_each_ideology([&](auto iid) {
+		state.world.nation_set_upper_house(n, iid, 0.0f);
+	});
+	state.world.nation_set_upper_house(n, id, 100.0f);
+
+	auto tag = state.world.nation_get_identity_from_identity_holder(n);
+	auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+	auto end = start + state.world.national_identity_get_political_party_count(tag);
+
+	for(int32_t i = start; i < end; i++) {
+		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+		if(politics::political_party_is_active(state, pid) && state.world.political_party_get_ideology(pid) == id) {
+			state.world.nation_set_ruling_party(n, pid);
+			return;
+		}
+	}
+}
+
+void update_displayed_identity(sys::state& state, dcon::nation_id id) {
+	auto ident = state.world.nation_get_identity_from_identity_holder(id);
+	state.world.nation_set_name(id, state.world.national_identity_get_name(ident));
+	state.world.nation_set_adjective(id, state.world.national_identity_get_adjective(ident));
+	state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
+}
+
 }

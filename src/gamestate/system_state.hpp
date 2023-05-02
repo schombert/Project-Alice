@@ -101,6 +101,8 @@ namespace sys {
 		ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
 		bool adjacency_data_out_of_date = true;
+		bool national_cached_values_out_of_date = false;
+		bool diplomatic_cached_values_out_of_date = false;
 		std::vector<dcon::nation_id> nations_by_rank;
 		std::vector<dcon::nation_id> nations_by_industrial_score;
 		std::vector<dcon::nation_id> nations_by_military_score;

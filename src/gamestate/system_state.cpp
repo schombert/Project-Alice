@@ -1358,6 +1358,14 @@ namespace sys {
 			}
 		});
 
+		// add dummy nations for unheld tags
+		world.for_each_national_identity([&](dcon::national_identity_id id) {
+			if(!world.national_identity_get_nation_from_identity_holder(id)) {
+				auto new_nation = world.create_nation();
+				world.try_create_identity_holder(new_nation, id);
+			}
+		});
+
 		map_loader.join();
 
 		// touch up adjacencies
@@ -1425,10 +1433,7 @@ namespace sys {
 		world.province_resize_demographics(demographics::size(*this));
 
 		world.for_each_nation([&](dcon::nation_id id) {
-			auto ident = world.nation_get_identity_from_identity_holder(id);
-			world.nation_set_name(id, world.national_identity_get_name(ident));
-			world.nation_set_adjective(id, world.national_identity_get_adjective(ident));
-			world.nation_set_color(id, world.national_identity_get_color(ident));
+			politics::update_displayed_identity(*this, id);
 		});
 
 		nations_by_rank.resize(1000); // TODO: take this value directly from the data container: max number of nations
@@ -1527,6 +1532,8 @@ namespace sys {
 
 					// do update logic
 					province::update_connected_regions(*this);
+					province::update_cached_values(*this);
+					nations::update_cached_values(*this);
 
 					current_date += 1;
 
@@ -1748,6 +1755,9 @@ namespace sys {
 						case 5:
 							rebel::update_movements(*this);
 							rebel::update_factions(*this);
+							break;
+						case 25:
+							rebel::execute_province_defections(*this);
 							break;
 						default:
 							break;

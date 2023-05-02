@@ -727,4 +727,123 @@ float get_faction_revolt_risk(sys::state& state, dcon::rebel_faction_id r) {
 	return 0.f;
 }
 
+void execute_province_defections(sys::state& state) {
+	province::for_each_land_province(state, [&](dcon::province_id p) {
+		auto reb_controller = state.world.province_get_rebel_faction_from_province_rebel_control(p);
+		auto owner = state.world.province_get_nation_from_province_ownership(p);
+		if(reb_controller && owner) {
+			auto reb_type = state.world.rebel_faction_get_type(reb_controller);
+			culture::rebel_defection def_type = culture::rebel_defection(reb_type.get_defection());
+			if(def_type != culture::rebel_defection::none
+				&&  state.world.province_get_last_control_change(p) + reb_type.get_defect_delay() * 31 <= state.current_date) {
+
+				// defection time
+
+				dcon::nation_id defection_tag = [&]() {
+					switch(def_type) {
+						case culture::rebel_defection::ideology:
+						{
+							// prefer existing tag of same ideology
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_nation_from_identity_holder().get_ruling_party().get_ideology() == reb_type.get_ideology() && owned.begin() != owned.end()) {
+									return c.get_identity().get_nation_from_identity_holder().id;
+								}
+							}
+							// otherwise pick a non-existent tag
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(!c.get_identity().get_is_not_releasable() && owned.begin() == owned.end()) {
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									politics::force_nation_ideology(state, t, reb_type.get_ideology());
+									return t;
+								}
+							}
+							break;
+						}
+						case culture::rebel_defection::religion:
+							// prefer existing
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && owned.begin() != owned.end()) {
+									return c.get_identity().get_nation_from_identity_holder().id;
+								}
+							}
+							// otherwise pick a non-existent tag
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && owned.begin() == owned.end()) {
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									return t;
+								}
+							}
+							break;
+						case culture::rebel_defection::culture:
+							// prefer existing
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && owned.begin() != owned.end()) {
+									return c.get_identity().get_nation_from_identity_holder().id;
+								}
+							}
+							// otherwise pick a non-existent tag
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && owned.begin() == owned.end()) {
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									return t;
+								}
+							}
+							break;
+						case culture::rebel_defection::culture_group:
+							// prefer existing
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && owned.begin() != owned.end()) {
+									return c.get_identity().get_nation_from_identity_holder().id;
+								}
+							}
+							// otherwise pick a non-existent tag
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && owned.begin() == owned.end()) {
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									return t;
+								}
+							}
+
+							// first: existing tag of culture; then existing tag of culture group;
+							// then dead tag of culture, then dead tag of cg
+							break;
+						case culture::rebel_defection::pan_nationalist:
+							// union tag or nothing
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity() == state.world.rebel_faction_get_defection_target(reb_controller)) {
+									if(owned.begin() != owned.end())
+										return c.get_identity().get_nation_from_identity_holder().id;
+
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									return t;
+								}
+							}
+							break;	
+					}
+					return dcon::nation_id{};
+				}();
+
+				if(defection_tag) {
+					province::change_province_owner(state, p, defection_tag);
+				}
+			}
+
+		}
+	});
+}
+
 }

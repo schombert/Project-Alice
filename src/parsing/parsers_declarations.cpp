@@ -212,7 +212,7 @@ void trait::attack(association_type, float value, error_handler& err, int32_t li
 }
 
 void trait::defence(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_defence(context.id, value);
+	context.outer_context.state.world.leader_trait_set_defense(context.id, value);
 }
 
 void trait::reconnaissance(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
@@ -1427,7 +1427,7 @@ void inv_effect::gas_attack(association_type, bool value, error_handler& err, in
 }
 
 void inv_effect::gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context) {
-	context.outer_context.state.world.invention_set_enable_gas_defence(context.id, value);
+	context.outer_context.state.world.invention_set_enable_gas_defense(context.id, value);
 }
 
 void inv_effect::rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context) {

@@ -27,5 +27,12 @@ bool can_enact_military_reform(sys::state& state, dcon::nation_id nation, dcon::
 bool can_enact_economic_reform(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option);
 float get_military_reform_multiplier(sys::state& state, dcon::nation_id nation);
 float get_economic_reform_multiplier(sys::state& state, dcon::nation_id nation);
+bool political_party_is_active(sys::state& state, dcon::political_party_id p);
+
+// sets upperhouse to 100% and changes ruling party to match the ideology
+void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id i);
+
+// use this function for update flag, name, adjective, and color based on government type changes
+void update_displayed_identity(sys::state& state, dcon::nation_id n);
 
 }

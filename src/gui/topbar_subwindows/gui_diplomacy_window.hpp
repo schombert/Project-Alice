@@ -448,7 +448,7 @@ private:
 		if(country_listbox) {
 			country_listbox->row_contents.clear();
 			state.world.for_each_nation([&](dcon::nation_id id) {
-				if(filter_fun(id)) {
+				if(state.world.nation_get_owned_province_count(id) != 0 && filter_fun(id)) {
 					country_listbox->row_contents.push_back(id);
 				}
 			});

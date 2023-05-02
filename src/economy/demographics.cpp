@@ -1283,6 +1283,8 @@ dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id n, dco
 	auto home_continent = state.world.province_get_continent(state.world.pop_get_province_from_pop_location(p));
 
 	state.world.for_each_nation([&](dcon::nation_id inner) {
+		if(state.world.nation_get_owned_province_count(inner) == 0)
+			return; // ignore dead nations
 		if(state.world.nation_get_is_civilized(inner) == false)
 			return; // ignore unciv nations
 		if(state.world.province_get_continent(state.world.nation_get_capital(inner)) == home_continent

@@ -931,7 +931,7 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ defence }
+		name{ defense }
 		type{ float }
 		tag{ scenario }
 	}
@@ -2115,7 +2115,7 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ enable_gas_defence }
+		name{ enable_gas_defense }
 		type{ bitfield }
 		tag{ scenario }
 	}
@@ -2345,7 +2345,7 @@ object {
 		type{ bitfield }
 	}
 	property{
-		name{ has_gas_defence }
+		name{ has_gas_defense }
 		type{ bitfield }
 	}
 	property {
@@ -2873,7 +2873,7 @@ relationship{
 
 object {
 	name { factory }
-	storage_type{ contiguous }
+	storage_type{ compactable }
 	size{ 10000 }
 	tag{ save }
 

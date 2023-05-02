@@ -463,6 +463,7 @@ trait
 	morale          value    float       member_fn
 	attack          value    float       member_fn
 	defence         value    float       member_fn
+	defense         value    float       member_fn (defence)
 	reconnaissance  value    float       member_fn
 	speed           value    float       member_fn
 	experience      value    float       member_fn
@@ -642,6 +643,7 @@ unit_definition
 	reconnaissance value      float            member  (reconnaissance_or_fire_range)
 	attack         value      float            member  (attack_or_gun_power)
 	defence        value      float            member  (defence_or_hull)
+	defense        value      float            member  (defence_or_hull)
 	discipline     value      float            member
 	support        value      float            member
 	maneuver       value      float            member  (maneuver_or_evasion)
@@ -1531,6 +1533,7 @@ unit_modifier_body
 	supply_consumption    value      float            member
 	attack                value      float            member  (attack_or_gun_power)
 	defence               value      float            member  (defence_or_hull)
+	defense               value      float            member  (defence_or_hull)
 	support               value      float            member
 	siege                 value      float            member  (siege_or_torpedo_attack)
 	hull                  value      float            member  (defence_or_hull)
@@ -1593,6 +1596,7 @@ inv_effect
 	rebel_org_gain        group      inv_rebel_org_gain     member_fn
 	gas_attack            value      bool                   member_fn
 	gas_defence           value      bool                   member_fn
+	gas_defense           value      bool                   member_fn (gas_defence)
 
 invention_contents
 	#base          modifier_base

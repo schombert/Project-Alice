@@ -260,6 +260,7 @@ struct dated_modifier {
 void repopulate_modifier_effects(sys::state& state);
 
 void update_modifier_effects(sys::state& state);
+void update_single_nation_modifiers(sys::state& state, dcon::nation_id n);
 
 void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration
 void add_modifier_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration

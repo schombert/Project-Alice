@@ -216,6 +216,7 @@ bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::nat
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
 
+void update_cached_values(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void restore_state_instances(sys::state& state);
 void generate_initial_state_instances(sys::state& state);
@@ -269,7 +270,11 @@ std::vector<dcon::political_party_id> get_active_political_parties(sys::state& s
 void update_monthly_points(sys::state& state);
 
 // may create a relationship DO NOT call in a context where two or more such functions may run in parallel
-void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta); 
+void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta);
+// used for creating a "new" nation when it is released
+void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon::nation_id base);
+// call after a nation loses its last province
+void cleanup_nation(sys::state& state, dcon::nation_id n);
 
 }
 

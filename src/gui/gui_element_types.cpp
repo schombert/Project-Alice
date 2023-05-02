@@ -1120,7 +1120,7 @@ dcon::national_identity_id flag_button::get_current_nation(sys::state& state) no
 void flag_button::button_action(sys::state& state) noexcept {
 	auto fat_id = dcon::fatten(state.world, get_current_nation(state));
 	auto nation = fat_id.get_nation_from_identity_holder();
-	if(bool(nation.id)) {
+	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		state.open_diplomacy(nation.id);
 	}
 }
@@ -1130,7 +1130,7 @@ void flag_button::set_current_nation(sys::state& state, dcon::national_identity_
 		auto fat_id = dcon::fatten(state.world, identity);
 		auto nation = fat_id.get_nation_from_identity_holder();
 		culture::flag_type flag_type = culture::flag_type{};
-		if(bool(nation.id)) {
+		if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 			flag_type = culture::get_current_flag_type(state, nation.id);
 		} else {
 			flag_type = culture::get_current_flag_type(state, identity);

@@ -1457,6 +1457,9 @@ void daily_update(sys::state& state) {
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		auto n = dcon::nation_id{ dcon::nation_id::value_base_t(i) };
 
+		if(state.world.nation_get_owned_province_count(n) == 0)
+			return;
+
 		/*
 		prepare needs satisfaction caps
 		*/

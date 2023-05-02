@@ -4,6 +4,7 @@
 #include "nations.hpp"
 #include "system_state.hpp"
 #include <vector>
+#include "rebels.hpp"
 
 namespace province {
 
@@ -102,9 +103,24 @@ void update_connected_regions(sys::state& state) {
 		}
 	}
 }
-void restore_unsaved_values(sys::state& state) {
-	//clear nation values that cache province information
 
+dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
+	auto trad_cap = state.world.national_identity_get_capital(state.world.nation_get_identity_from_identity_holder(n));
+	if(state.world.province_get_nation_from_province_ownership(trad_cap) == n) {
+		return trad_cap;
+	}
+	dcon::province_id best_choice;
+	for(auto prov : state.world.nation_get_province_ownership(n)) {
+		if(prov.get_province().get_demographics(demographics::total) > state.world.province_get_demographics(best_choice, demographics::total) && prov.get_province().get_is_owner_core() == state.world.province_get_is_owner_core(best_choice)) {
+			best_choice = prov.get_province().id;
+		} else if(prov.get_province().get_is_owner_core() && !state.world.province_get_is_owner_core(best_choice)) {
+			best_choice = prov.get_province().id;
+		}
+	}
+	return best_choice;
+}
+
+void restore_cached_values(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) {
 		state.world.nation_set_owned_province_count(ids, ve::int_vector());
 	});
@@ -138,16 +154,12 @@ void restore_unsaved_values(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) {
 		state.world.nation_set_is_colonial_nation(ids, ve::mask_vector());
 	});
+
+	// need to set owner cores first becasue capital selection depends on them
+
 	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
-		[&]() {
-			for(auto adj : state.world.province_get_province_adjacency(pid)) {
-				if((state.world.province_adjacency_get_type(adj) & province::border::coastal_bit) != 0) {
-					state.world.province_set_is_coast(pid, true);
-					return;
-				}
-			}
-		}();
+
 		auto owner = state.world.province_get_nation_from_province_ownership(pid);
 		if(owner) {
 			bool owner_core = false;
@@ -158,6 +170,22 @@ void restore_unsaved_values(sys::state& state) {
 				}
 			}
 			state.world.province_set_is_owner_core(pid, owner_core);
+		} else {
+			state.world.province_set_is_owner_core(pid, false);
+		}
+	}
+
+	for(auto n : state.world.in_nation) {
+		if(n.get_capital().get_nation_from_province_ownership() != n) {
+			n.set_capital(pick_capital(state, n));
+		}
+	}
+
+	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
+		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
+
+		auto owner = state.world.province_get_nation_from_province_ownership(pid);
+		if(owner) {
 
 			state.world.nation_get_owned_province_count(owner) += uint16_t(1);
 
@@ -191,15 +219,49 @@ void restore_unsaved_values(sys::state& state) {
 					state.world.nation_get_central_crime_count(owner) += uint16_t(1);
 				}
 			}
-		} else {
-			state.world.province_set_is_owner_core(pid, false);
 		}
 	}
 	state.world.for_each_state_instance([&](dcon::state_instance_id s) {
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(s);
 		state.world.nation_get_owned_state_count(owner) += uint16_t(1);
+		dcon::province_id p;
+		for(auto prv : state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(s))) {
+			if(state.world.province_get_nation_from_province_ownership(prv.get_province()) == owner) {
+				p = prv.get_province().id;
+				break;
+			}
+		}
+		state.world.state_instance_set_capital(s, p);
 	});
 }
+
+
+void update_cached_values(sys::state& state) {
+	if(!state.national_cached_values_out_of_date)
+		return;
+
+	state.national_cached_values_out_of_date = false;
+
+	restore_cached_values(state);
+}
+
+
+
+void restore_unsaved_values(sys::state& state) {
+	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
+		dcon::province_id pid{ dcon::province_id::value_base_t(i) };
+
+		for(auto adj : state.world.province_get_province_adjacency(pid)) {
+			if((state.world.province_adjacency_get_type(adj) & province::border::coastal_bit) != 0) {
+				state.world.province_set_is_coast(pid, true);
+				break;
+			}
+		}
+	}
+
+	restore_cached_values(state);
+}
+
 /*
 // We can probably do without this
 void update_state_administrative_efficiency(sys::state& state) {
@@ -436,6 +498,101 @@ float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
 		return state.defines.colonization_create_state_cost * prov_count * std::max(distance / state.defines.colonization_colony_state_distance, 1.f);
 	} else {
 		return 0.f;
+	}
+}
+
+void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
+	state.adjacency_data_out_of_date = true;
+	state.national_cached_values_out_of_date = true;
+
+	auto state_def = state.world.province_get_state_from_abstract_state_membership(id);
+	auto old_si = state.world.province_get_state_membership(id);
+	auto old_owner = state.world.province_get_nation_from_province_ownership(id);
+
+	if(new_owner) {
+		dcon::state_instance_id new_si;
+		for(auto si : state.world.nation_get_state_ownership(new_owner)) {
+			if(si.get_state().get_definition().id == state_def) {
+				new_si = si.get_state().id;
+				break;
+			}
+		}
+		if(!new_si) {
+			new_si = state.world.create_state_instance();
+			state.world.state_instance_set_definition(new_si, state_def);
+			state.world.try_create_state_ownership(new_si, new_owner);
+		}
+		int32_t factories_in_new_state = 0;
+		province::for_each_province_in_state_instance(state, new_si, [&](dcon::province_id pr) {
+			auto fac_range = state.world.province_get_factory_location(pr);
+			factories_in_new_state += int32_t(fac_range.end() - fac_range.begin());
+		});
+
+		auto province_fac_range = state.world.province_get_factory_location(id);
+		int32_t factories_in_province = int32_t(province_fac_range.end() - province_fac_range.begin());
+
+		auto excess_factories = std::min((factories_in_new_state + factories_in_province) - 8, factories_in_province);
+		if(excess_factories > 0) {
+			std::vector<dcon::factory_id> to_delete;
+			while(excess_factories > 0) {
+				to_delete.push_back((*(province_fac_range.begin() + excess_factories)).get_factory().id);
+				--excess_factories;
+			}
+			for(auto fid : to_delete) {
+				state.world.delete_factory(fid);
+			}
+		}
+
+		state.world.province_set_state_membership(id, new_si);
+
+		for(auto p : state.world.province_get_pop_location(id)) {
+			if(state.world.nation_get_primary_culture(new_owner) == p.get_pop().get_culture()) {
+				p.get_pop().set_is_primary_or_accepted_culture(true);
+				continue;
+			}
+			auto accepted = state.world.nation_get_accepted_cultures(new_owner);
+			for(auto c : accepted) {
+				if(c == p.get_pop().get_culture()) {
+					p.get_pop().set_is_primary_or_accepted_culture(true);
+					continue;
+				}
+			}
+			p.get_pop().set_is_primary_or_accepted_culture(false);
+		}
+	} else {
+		state.world.province_set_state_membership(id, dcon::state_instance_id{});
+	}
+
+	for(auto p : state.world.province_get_pop_location(id)) {
+		rebel::remove_pop_from_movement(state, p.get_pop());
+		rebel::remove_pop_from_rebel_faction(state, p.get_pop());
+
+		std::vector<dcon::regiment_id> regs;
+		for(auto r : p.get_pop().get_regiment_source()) {
+			regs.push_back(r.get_regiment().id);
+		}
+		for(auto r : regs) {
+			state.world.delete_regiment(r);
+		}
+	}
+
+	state.world.province_set_nation_from_province_ownership(id, new_owner);
+	state.world.province_set_last_control_change(id, state.current_date);
+	state.world.province_set_nation_from_province_control(id, new_owner);
+
+	if(old_si) {
+		int32_t provinces_in_old_si = 0;
+		province::for_each_province_in_state_instance(state, old_si, [&](auto) { ++provinces_in_old_si; });
+		if(provinces_in_old_si == 0) {
+			state.world.delete_state_instance(old_si);
+		}
+	}
+
+	if(old_owner) {
+		auto old_owner_rem_provs = state.world.nation_get_province_ownership(old_owner);
+		if(old_owner_rem_provs.begin() == old_owner_rem_provs.end()) {
+			nations::cleanup_nation(state, old_owner);
+		}
 	}
 }
 
