@@ -17,14 +17,12 @@
 
 namespace ui {
 
-
-// Filters for pops.
-struct demographics_pop_filter {
-    dcon::province_id province;
-};
-enum class pop_list_filter : uint8_t {
-    all
-};
+typedef std::variant<
+	std::monostate,
+	dcon::nation_id,
+	dcon::state_instance_id,
+	dcon::province_id
+> pop_list_filter;
 
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
@@ -1459,7 +1457,7 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(nation_id, state.local_player_nation);
 		auto fat_rel = dcon::fatten(state.world, rel);
-		return std::to_string(fat_rel.get_value());
+		return std::to_string(int32_t(fat_rel.get_value()));
 	}
 };
 
