@@ -70,5 +70,7 @@ float revolt_risk(sys::state& state, dcon::province_id id);
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 
+void update_crimes(sys::state& state);
+
 }
 

@@ -596,4 +596,45 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	}
 }
 
+void update_crimes(sys::state& state) {
+	for_each_land_province(state, [&](dcon::province_id p) {
+		auto owner = state.world.province_get_nation_from_province_ownership(p);
+		if(!owner)
+			return;
+
+		/*
+		Once per month (the 1st) province crimes are updated. If the province has a crime, the crime fighting percent is the probability of that crime being removed. If there is no crime, the crime fighting percent is the probability that it will remain crime free. If a crime is added to the province, it is selected randomly (with equal probability) from the crimes that are possible for the province (determined by the crime being activated and its trigger passing).
+		*/
+
+		auto chance = uint32_t(province::crime_fighting_efficiency(state, p) * 256.0f);
+		auto rvalues = rng::get_random_pair(state, uint32_t((p.index() << 2) + 1));
+		if((rvalues .high & 0xFF) >= chance) {
+			state.world.province_set_crime(p, dcon::crime_id{});
+		} else {
+			if(!state.world.province_get_crime(p)) {
+				static std::vector<dcon::crime_id> possible_crimes;
+				possible_crimes.clear();
+
+				for(uint32_t i = 0; i < state.culture_definitions.crimes.size(); ++i) {
+					dcon::crime_id c{dcon::crime_id::value_base_t(i) };
+					if(state.culture_definitions.crimes[c].available_by_default || state.world.nation_get_active_crime(owner, c)) {
+						if(auto t = state.culture_definitions.crimes[c].trigger; t) {
+							if(trigger::evaluate(state, t, trigger::to_generic(p), trigger::to_generic(owner), 0))
+								possible_crimes.push_back(c);
+						} else {
+							possible_crimes.push_back(c);
+						}
+					}
+				}
+
+				if(auto count = possible_crimes.size(); count != 0) {
+					auto selected = possible_crimes[rvalues.low % count];
+					state.world.province_set_crime(p, selected);
+				}
+				
+			}
+		}
+	});
+}
+
 }
