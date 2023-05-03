@@ -276,5 +276,10 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 // call after a nation loses its last province
 void cleanup_nation(sys::state& state, dcon::nation_id n);
 
+void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
+void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
+void release_vassal(sys::state& state, dcon::overlord_id rel);
+void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
+
 }
 

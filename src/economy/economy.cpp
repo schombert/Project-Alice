@@ -272,15 +272,15 @@ void update_factory_triggered_modifiers(sys::state& state) {
 
 		if(powner && pstate) {
 			if(auto mod_a = fac_type.get_bonus_1_trigger();
-				mod_a && trigger::evaluate_trigger(state, mod_a, trigger::to_generic(pstate), trigger::to_generic(powner), 0)) {
+				mod_a && trigger::evaluate(state, mod_a, trigger::to_generic(pstate), trigger::to_generic(powner), 0)) {
 				sum -= fac_type.get_bonus_1_amount();
 			}
 			if(auto mod_b = fac_type.get_bonus_2_trigger();
-				mod_b && trigger::evaluate_trigger(state, mod_b, trigger::to_generic(pstate), trigger::to_generic(powner), 0)) {
+				mod_b && trigger::evaluate(state, mod_b, trigger::to_generic(pstate), trigger::to_generic(powner), 0)) {
 				sum -= fac_type.get_bonus_2_amount();
 			}
 			if(auto mod_c = fac_type.get_bonus_3_trigger();
-				mod_c && trigger::evaluate_trigger(state, mod_c, trigger::to_generic(pstate), trigger::to_generic(powner), 0)) {
+				mod_c && trigger::evaluate(state, mod_c, trigger::to_generic(pstate), trigger::to_generic(powner), 0)) {
 				sum -= fac_type.get_bonus_3_amount();
 			}
 		}

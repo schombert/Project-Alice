@@ -365,7 +365,7 @@ void recreate_national_modifiers(sys::state& state) {
 			auto& nat_values = state.world.modifier_get_national_values(tm.linked_modifier);
 			auto size_used = state.world.nation_size();
 			ve::execute_serial_fast<dcon::nation_id>(size_used, [&](auto nids) {
-				auto trigger_condition_satisfied = trigger::evaluate_trigger(state, tm.trigger_condition, trigger::to_generic(nids), trigger::to_generic(nids), 0) || ve::apply([size_used](auto n) { return n.index() < int32_t(size_used); }, nids);
+				auto trigger_condition_satisfied = trigger::evaluate(state, tm.trigger_condition, trigger::to_generic(nids), trigger::to_generic(nids), 0) || ve::apply([size_used](auto n) { return n.index() < int32_t(size_used); }, nids);
 				auto compressed_res = ve::compress_mask(trigger_condition_satisfied);
 				if(compressed_res.v == ve::vbitfield_type::storage(0)) {
 					return;
@@ -507,7 +507,7 @@ void update_single_nation_modifiers(sys::state& state, dcon::nation_id n) {
 	for(auto tm : state.national_definitions.triggered_modifiers) {
 		if(tm.trigger_condition && tm.linked_modifier) {
 
-			auto trigger_condition_satisfied = trigger::evaluate_trigger(state, tm.trigger_condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+			auto trigger_condition_satisfied = trigger::evaluate(state, tm.trigger_condition, trigger::to_generic(n), trigger::to_generic(n), 0);
 
 			if(trigger_condition_satisfied) {
 				apply_modifier_values_to_nation(state, n, tm.linked_modifier);

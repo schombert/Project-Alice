@@ -35,4 +35,9 @@ void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_
 // use this function for update flag, name, adjective, and color based on government type changes
 void update_displayed_identity(sys::state& state, dcon::nation_id n);
 
+void change_government_type(sys::state& state, dcon::nation_id n, dcon::government_type_id new_type);
+
+// this function sets the upperhouse and ruling party *as if* a vote had been taken, but without any other effects
+void recalculate_upper_house(sys::state& state, dcon::nation_id n);
+
 }

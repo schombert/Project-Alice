@@ -1756,6 +1756,9 @@ namespace sys {
 							rebel::update_movements(*this);
 							rebel::update_factions(*this);
 							break;
+						case 24:
+							rebel::execute_rebel_victories(*this);
+							break;
 						case 25:
 							rebel::execute_province_defections(*this);
 							break;

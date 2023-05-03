@@ -122,7 +122,7 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
     if(
         (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() || current.index() - 1 == issue_option.index())
         &&
-        (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))
+        (!allow || trigger::evaluate(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))
         ) {
 
         float total = 0.0f;
@@ -149,7 +149,7 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
     if(
         (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() || current.index() - 1 == o.index())
         &&
-        (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+        (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
         ) {
 
         float total = 0.0f;
@@ -179,7 +179,7 @@ bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::refor
         &&
         (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == o.index())
         &&
-        (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+        (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
         ) {
 
         float base_cost = float(state.world.reform_option_get_technology_cost(o));
@@ -204,7 +204,7 @@ bool can_enact_economic_reform(sys::state& state, dcon::nation_id n, dcon::refor
         &&
         (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == o.index())
         &&
-        (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
+        (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
         ) {
 
         float base_cost = float(state.world.reform_option_get_technology_cost(o));
@@ -278,6 +278,21 @@ void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 	state.world.nation_set_name(id, state.world.national_identity_get_name(ident));
 	state.world.nation_set_adjective(id, state.world.national_identity_get_adjective(ident));
 	state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
+}
+
+
+void change_government_type(sys::state& state, dcon::nation_id n, dcon::government_type_id new_type) {
+	auto old_gov = state.world.nation_get_government_type(n);
+	if(old_gov != new_type) {
+		state.world.nation_set_government_type(n, new_type);
+		recalculate_upper_house(state, n);
+		// TODO: notify player ?
+		update_displayed_identity(state, n);
+	}
+}
+
+void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
+	// TODO
 }
 
 }

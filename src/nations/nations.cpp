@@ -234,7 +234,7 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 	state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 		auto rp = state.world.pop_type_get_research_points(t);
 		if(rp > 0) {
-			sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(n, demographics::to_key(state, t)) / (state.world.nation_get_demographics(n, demographics::total) * state.world.pop_type_get_research_optimum(t)) );
+			sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(n, demographics::to_key(state, t)) / (state.world.nation_get_demographics(n, demographics::total) * state.world.pop_type_get_research_optimum(t)));
 		}
 	});
 
@@ -276,7 +276,7 @@ void update_industrial_scores(sys::state& state) {
 	- For each state: (fraction of factory workers in each state (types marked with can work factory = yes) to the total-workforce x building level of factories in the state (capped at 1)) x total-factory-levels
 	- For each country that the nation is invested in: define:INVESTMENT_SCORE_FACTOR x the amount invested x 0.01
 	*/
-	
+
 	state.world.for_each_nation([&, iweight = state.defines.investment_score_factor](dcon::nation_id n) {
 		float sum = 0;
 		for(auto si : state.world.nation_get_state_ownership(n)) {
@@ -677,9 +677,9 @@ bool has_decision_available(sys::state& state, dcon::nation_id n) {
 		dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
 		if(n != state.local_player_nation || !state.world.decision_get_hide_notification(did)) {
 			auto lim = state.world.decision_get_potential(did);
-			if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+			if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
 				auto allow = state.world.decision_get_allow(did);
-				if(!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+				if(!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)) {
 					return true;
 				}
 			}
@@ -694,7 +694,7 @@ std::vector<dcon::political_party_id> get_active_political_parties(sys::state& s
 	auto identity = state.world.nation_get_identity_from_identity_holder(n);
 	auto start = state.world.national_identity_get_political_party_first(identity).id.index();
 	auto end = start + state.world.national_identity_get_political_party_count(identity);
-	
+
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(uint16_t(i));
 		if(politics::political_party_is_active(state, pid)) {
@@ -770,7 +770,7 @@ float get_debt(sys::state& state, dcon::nation_id n) {
 float tariff_efficiency(sys::state& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier);
 	auto adm_eff = state.world.nation_get_administrative_efficiency(n);
-	return std::min(state.defines.base_tariff_efficiency + eff_mod + adm_eff, 1.f); 
+	return std::min(state.defines.base_tariff_efficiency + eff_mod + adm_eff, 1.f);
 }
 
 float tax_efficiency(sys::state& state, dcon::nation_id n) {
@@ -830,7 +830,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	});
 	state.world.nation_set_is_substate(n, false);
 	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
-		state.world.nation_set_flag_variables(n, dcon::national_flag_id{dcon::national_flag_id::value_base_t(i) }, false);
+		state.world.nation_set_flag_variables(n, dcon::national_flag_id{ dcon::national_flag_id::value_base_t(i) }, false);
 	}
 	state.world.nation_set_is_substate(n, false);
 	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
@@ -860,7 +860,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.nation_set_max_railroad_level(n, state.world.nation_get_max_railroad_level(base));
 	state.world.nation_set_max_fort_level(n, state.world.nation_get_max_fort_level(base));
 	state.world.nation_set_max_naval_base_level(n, state.world.nation_get_max_naval_base_level(base));
-	state.world.nation_set_election_ends(n, sys::date{0});
+	state.world.nation_set_election_ends(n, sys::date{ 0 });
 	state.world.nation_set_education_spending(n, int8_t(100));
 	state.world.nation_set_military_spending(n, int8_t(100));
 	state.world.nation_set_administrative_spending(n, int8_t(100));
@@ -924,7 +924,7 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 
 	//cleanup:
 	for(uint32_t i = state.world.leader_size(); i-- > 0;) {
-		dcon::leader_id l{dcon::leader_id::value_base_t(i) };
+		dcon::leader_id l{ dcon::leader_id::value_base_t(i) };
 		if(!state.world.leader_get_nation_from_leader_loyalty(l)) {
 			state.world.delete_leader(l);
 		}
@@ -946,6 +946,60 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 
 	if(n == state.local_player_nation) { // TODO: player defeated; notify and end game
 		state.local_player_nation = dcon::nation_id{};
+	}
+}
+
+void adjust_prestige(sys::state& state, dcon::nation_id n, float delta) {
+	auto prestige_multiplier = 1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::prestige_modifier);
+	auto new_prestige = std::max(0.0f, state.world.nation_get_prestige(n) + (delta > 0 ? (delta * prestige_multiplier) : delta));
+	state.world.nation_set_prestige(n, new_prestige);
+}
+
+void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
+	{
+		auto gp_relationships = state.world.nation_get_gp_relationship_as_great_power(n);
+		while(gp_relationships.begin() != gp_relationships.end()) {
+			state.world.delete_gp_relationship(*(gp_relationships.begin()));
+		}
+	}
+	{
+		auto gp_relationships = state.world.nation_get_gp_relationship_as_influence_target(n);
+		while(gp_relationships.begin() != gp_relationships.end()) {
+			state.world.delete_gp_relationship(*(gp_relationships.begin()));
+		}
+	}
+	{
+		for(auto rel : state.world.nation_get_diplomatic_relation(n)) {
+			break_alliance(state, rel);
+		}
+	}
+	{
+		auto ov_rel = state.world.nation_get_overlord_as_ruler(n);
+		bool released_vassal = true;
+		while(released_vassal) {
+			released_vassal = [&]() {
+				for(auto it = ov_rel.begin(); it != ov_rel.end(); ++it) {
+					if((*it).get_subject().get_is_substate() == false) {
+						release_vassal(state, *it);
+						return true;
+					}
+				}
+				return false;
+			}();
+		}
+	}
+}
+void release_vassal(sys::state& state, dcon::overlord_id rel) {
+	auto vas = state.world.overlord_get_subject(rel);
+	state.world.nation_set_is_substate(vas, false);
+	politics::update_displayed_identity(state, vas);
+	// TODO: notify player
+	state.world.delete_overlord(rel);
+}
+void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
+	if(state.world.diplomatic_relation_get_are_allied(rel)) {
+		// TODO: notify player
+		state.world.diplomatic_relation_set_are_allied(rel, false);
 	}
 }
 

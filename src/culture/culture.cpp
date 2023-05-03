@@ -520,7 +520,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 				auto allow = opt.get_allow();
 				auto parent_issue = opt.get_parent_issue();
 				if((state.world.nation_get_is_civilized(owner) || state.world.issue_get_issue_type(parent_issue) == uint8_t(issue_type::party))
-					&& (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+					&& (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
 					if(auto mtrigger = state.world.pop_type_get_issues(ptype, iid); mtrigger) {
 						auto amount = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
 						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);

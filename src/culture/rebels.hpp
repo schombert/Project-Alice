@@ -24,6 +24,7 @@ int32_t get_faction_brigades_active(sys::state& state, dcon::rebel_faction_id r)
 float get_faction_organization(sys::state& state, dcon::rebel_faction_id r);
 float get_faction_revolt_risk(sys::state& state, dcon::rebel_faction_id r);
 
+void execute_rebel_victories(sys::state& state);
 void execute_province_defections(sys::state& state);
 
 }

@@ -565,10 +565,14 @@ TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 		if(*tval & trigger::is_existence_scope) {
 			auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
-			for(uint32_t i = 0; i < ws.nations_by_rank.size() && i < great_nations_count; ++i) {
-				accumulator.add_value(to_generic(ws.nations_by_rank[i]));
-				if(accumulator.result)
-					return true;
+			uint32_t added = 0;
+			for(uint32_t i = 0; i < ws.nations_by_rank.size() && added < great_nations_count; ++i) {
+				if(nations::is_great_power(ws, ws.nations_by_rank[i])) {
+					++added;
+					accumulator.add_value(to_generic(ws.nations_by_rank[i]));
+					if(accumulator.result)
+						return true;
+				}
 			}
 
 			accumulator.flush();
@@ -576,10 +580,14 @@ TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 		} else {
 			auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
 
-			for(uint32_t i = 0; i < ws.nations_by_rank.size() && i < great_nations_count; ++i) {
-				accumulator.add_value(to_generic(ws.nations_by_rank[i]));
-				if(!accumulator.result)
-					return false;
+			uint32_t added = 0;
+			for(uint32_t i = 0; i < ws.nations_by_rank.size() && added < great_nations_count; ++i) {
+				if(nations::is_great_power(ws, ws.nations_by_rank[i])) {
+					++added;
+					accumulator.add_value(to_generic(ws.nations_by_rank[i]));
+					if(!accumulator.result)
+						return false;
+				}
 			}
 
 			accumulator.flush();
@@ -5550,31 +5558,31 @@ ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier
 	return sum;
 }
 
-bool evaluate_trigger(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
+bool evaluate(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	return test_trigger_generic<bool>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
 }
-bool evaluate_trigger(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot) {
+bool evaluate(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	return test_trigger_generic<bool>(data, state, primary, this_slot, from_slot);
 }
 
-ve::mask_vector evaluate_trigger(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
 	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
 }
-ve::mask_vector evaluate_trigger(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
 	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
 }
 
-ve::mask_vector evaluate_trigger(sys::state& state, dcon::trigger_key key, ve::tagged_vector<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::tagged_vector<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
 	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
 }
-ve::mask_vector evaluate_trigger(sys::state& state, uint16_t const* data, ve::tagged_vector<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::tagged_vector<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
 	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
 }
 
-ve::mask_vector evaluate_trigger(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
 	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
 }
-ve::mask_vector evaluate_trigger(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
 	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
 }
 

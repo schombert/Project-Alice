@@ -1,6 +1,8 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
+#include "effects.hpp"
+#include "politics.hpp"
 
 namespace rebel {
 
@@ -145,7 +147,7 @@ bool issue_is_valid_for_movement(sys::state& state, dcon::nation_id nation_withi
 			return false;
 	}
 	auto allow = state.world.issue_option_get_allow(i);
-	if(allow && !trigger::evaluate_trigger(state, allow, trigger::to_generic(nation_within), trigger::to_generic(nation_within), 0))
+	if(allow && !trigger::evaluate(state, allow, trigger::to_generic(nation_within), trigger::to_generic(nation_within), 0))
 		return false;
 
 	return true;
@@ -235,7 +237,7 @@ void update_pop_movement_membership(sys::state& state) {
 				auto allow = state.world.issue_option_get_allow(io);
 				if(co != io
 					&& (state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() -1 == io.index())
-					&& (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+					&& (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
 					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io));
 					if(sup * 100.0f >= state.defines.issue_movement_join_limit && sup > max_support) {
 						max_option = io;
@@ -641,6 +643,11 @@ void update_pop_rebel_membership(sys::state& state) {
 	});
 }
 
+void delete_faction(sys::state& state, dcon::rebel_faction_id reb) {
+	// TODO: delete rebel units
+	state.world.delete_rebel_faction(reb);
+}
+
 void update_factions(sys::state& state) {
 	update_pop_rebel_membership(state);
 
@@ -651,7 +658,7 @@ void update_factions(sys::state& state) {
 			for(auto members : state.world.rebel_faction_get_pop_rebellion_membership(m)) {
 				members.get_pop().set_militancy(0.0f);
 			}
-			state.world.delete_rebel_faction(m);
+			delete_faction(state, m);
 		}
 	}
 }
@@ -844,6 +851,55 @@ void execute_province_defections(sys::state& state) {
 
 		}
 	});
+}
+
+void execute_rebel_victories(sys::state& state) {
+	for(uint32_t i = state.world.rebel_faction_size(); i-- > 0;) {
+		auto reb = dcon::rebel_faction_id{dcon::rebel_faction_id::value_base_t(i) };
+		auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
+		auto is_active = state.world.rebel_faction_get_is_active(reb);
+		auto enforce_trigger = state.world.rebel_faction_get_type(reb).get_demands_enforced_trigger();
+		if(is_active && enforce_trigger && trigger::evaluate(state, enforce_trigger, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb))) {
+			// rebel victory
+
+			/*
+			If it wins, it gets its `demands_enforced_effect` executed.
+			*/
+
+			if(auto k = state.world.rebel_faction_get_type(reb).get_demands_enforced_effect(); k)
+				effect::execute(state, k, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb));
+
+			/*
+			The government type of the nation will change if the rebel type has an associated government (with the same logic for a government type change from a wargoal or other cause).
+			*/
+
+			auto new_gov = state.world.rebel_faction_get_type(reb).get_government_change(state.world.nation_get_government_type(within));
+			if(new_gov) {
+				politics::change_government_type(state, within, new_gov);
+			}
+			if(auto iid = state.world.rebel_faction_get_type(reb).get_ideology(); iid) {
+				politics::force_nation_ideology(state, within, iid);
+			}
+
+			/*
+			If the rebel type has "break alliances on win" then the nation loses all of its alliances, all of its non-substate vassals, all of its sphere members, and loses all of its influence and has its influence level set to neutral.
+			*/
+
+			if(state.world.rebel_faction_get_type(reb).get_break_alliance_on_win()) {
+				nations::destroy_diplomatic_relationships(state, within);
+			}
+
+			/*
+			The nation loses prestige equal to define:PRESTIGE_HIT_ON_BREAK_COUNTRY x (nation's current prestige + permanent prestige), which is multiplied by the nation's prestige modifier from technology + 1 as usual (!).
+			*/
+			nations::adjust_prestige(state, within, state.defines.prestige_hit_on_break_country * nations::prestige_score(state, within));
+
+			/*
+			Any units for the faction that exist are destroyed (or transferred if it is one of the special rebel types).
+			*/
+			delete_faction(state, reb);
+		}
+	}
 }
 
 }

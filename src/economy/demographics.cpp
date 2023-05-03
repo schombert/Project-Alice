@@ -900,7 +900,7 @@ void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issue
 			auto owner = nations::owner_of_pop(state, ids);
 			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
 			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || ve::mask_vector(is_party_issue))
-				&& (allow ? trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : ve::mask_vector(true))
+				&& (allow ? trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : ve::mask_vector(true))
 				&& (current_issue_setting != iid || ve::mask_vector(is_party_issue))
 				&& (ve::mask_vector(!state.world.issue_get_is_next_step_only(parent_issue))
 					|| (ve::tagged_vector<int32_t>(current_issue_setting) == iid.index() - 1)
@@ -1536,7 +1536,7 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 			auto owner = nations::owner_of_pop(state, np);
 			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
 			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || is_party_issue)
-				&& (allow ? trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : true)
+				&& (allow ? trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : true)
 				&& (current_issue_setting != iid || is_party_issue)
 				&& (!state.world.issue_get_is_next_step_only(parent_issue)
 					|| (current_issue_setting.id.index() == iid.index() - 1)
