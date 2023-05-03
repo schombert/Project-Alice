@@ -950,7 +950,7 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 }
 
 void adjust_prestige(sys::state& state, dcon::nation_id n, float delta) {
-	auto prestige_multiplier = 1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::prestige_modifier);
+	auto prestige_multiplier = 1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::prestige);
 	auto new_prestige = std::max(0.0f, state.world.nation_get_prestige(n) + (delta > 0 ? (delta * prestige_multiplier) : delta));
 	state.world.nation_set_prestige(n, new_prestige);
 }

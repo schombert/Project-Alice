@@ -1779,16 +1779,6 @@ namespace parsers {
 		void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 
-		void prestige(association_type, float v, error_handler& err, int32_t line, tech_context& context) {
-			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
-				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
-			} else {
-				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::prestige_modifier;
-				constructed_definition_n.values[next_to_add_n] = v;
-				++next_to_add_n;
-			} 
-		}
-
 		tech_rgo_goods_output rgo_goods_output;
 		tech_rgo_size rgo_size;
 		tech_fac_goods_output factory_goods_output;

@@ -177,9 +177,8 @@ namespace sys {
     MOD_LIST_ELEMENT(116, seperatism, true, modifier_display_type::percent, "seperatism_tech") \
     MOD_LIST_ELEMENT(117, plurality, true, modifier_display_type::percent, "tech_plurality") \
     MOD_LIST_ELEMENT(118, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech") \
-    MOD_LIST_ELEMENT(119, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech") \
-    MOD_LIST_ELEMENT(120, prestige_modifier, true, modifier_display_type::percent, "prestige_modifier_tech")
-#define MOD_NAT_LIST_COUNT 121
+    MOD_LIST_ELEMENT(119, permanent_prestige, true, modifier_display_type::percent, "permanent_prestige_tech")
+#define MOD_NAT_LIST_COUNT 120
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name) \
