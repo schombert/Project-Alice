@@ -537,6 +537,53 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 			}
 		}
 	});
+
+}
+
+float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation, dcon::technology_id tech_id) {
+	/*
+	The effective amount of research points a tech costs = base-cost x 0v(1 - (current-year - tech-availability-year) / define:TECH_YEAR_SPAN) x define:TECH_FACTOR_VASSAL(if your overlord has the tech) / (1 + tech-category-research-modifier)
+	*/
+	auto base_cost = state.world.technology_get_cost(tech_id);
+	auto availability_year = state.world.technology_get_year(tech_id);
+	auto folder = state.world.technology_get_folder_index(tech_id);
+	auto category = state.culture_definitions.tech_folders[folder].category;
+	auto research_mod = [&]() {
+		switch(category) {
+			case tech_category::army:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::army_tech_research_bonus) + 1.0f;
+			case tech_category::navy:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::navy_tech_research_bonus) + 1.0f;
+			case tech_category::commerce:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::commerce_tech_research_bonus) + 1.0f;
+			case tech_category::culture:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::culture_tech_research_bonus) + 1.0f;
+			case tech_category::industry:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::industry_tech_research_bonus) + 1.0f;
+			default:
+				return 1.0f;
+		}
+	}();
+	auto ol_mod = state.world.nation_get_active_technologies(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target_nation)), tech_id) ? state.defines.tech_factor_vassal : 1.0f;
+	return float(base_cost) * ol_mod * (1.0f / research_mod) * (1.0f - std::max(0.0f, float(current_year - availability_year) / state.defines.tech_year_span));
+}
+
+void update_reasearch(sys::state& state, uint32_t current_year) {
+	for(auto n : state.world.in_nation) {
+		if(n.get_owned_province_count() != 0 && n.get_current_research()) {
+			if(n.get_active_technologies(n.get_current_research())) {
+				n.set_current_research(dcon::technology_id{});
+			} else {
+				auto cost = effective_technology_cost(state, current_year, n, n.get_current_research());
+				if(n.get_research_points() >= cost) {
+					n.get_research_points() -= cost;
+					apply_technology(state, n, n.get_current_research());
+					// TODO: notify player
+					n.set_current_research(dcon::technology_id{});
+				}
+			}
+		}
+	}
 }
 
 }

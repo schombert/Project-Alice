@@ -2707,6 +2707,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ current_research }
+		type{ technology_id }
+		tag{ save }
+	}
+	property {
 		name{ active_regiments }
 		type{ uint16_t }
 	}

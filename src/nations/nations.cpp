@@ -216,7 +216,8 @@ void update_administrative_efficiency(sys::state& state) {
 		}
 		auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment + state.defines.max_bureaucracy_percentage;
 
-		auto total = (admin_mod + 1.0f) * state.world.nation_get_non_colonial_bureaucrats(ids) / (state.world.nation_get_non_colonial_population(ids) * from_issues);
+		auto non_colonial = state.world.nation_get_non_colonial_population(ids);
+		auto total = ve::select(non_colonial > 0.0f, (admin_mod + 1.0f) * state.world.nation_get_non_colonial_bureaucrats(ids) / (non_colonial * from_issues), 0.0f);
 
 		state.world.nation_set_administrative_efficiency(ids, ve::min(total, 1.0f));
 	});
@@ -260,7 +261,7 @@ void update_research_points(sys::state& state) {
 					sum_from_pops);
 			}
 		});
-		auto amount = (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f);
+		auto amount = ve::select(state.world.nation_get_owned_province_count(ids) != 0, (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
 		/*
 		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x daily research points, for civs, or define:MAX_RESEARCH_POINTS for uncivs.
 		*/
@@ -279,23 +280,25 @@ void update_industrial_scores(sys::state& state) {
 
 	state.world.for_each_nation([&, iweight = state.defines.investment_score_factor](dcon::nation_id n) {
 		float sum = 0;
-		for(auto si : state.world.nation_get_state_ownership(n)) {
-			float total_level = 0;
-			float worker_total =
-				si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))
-				+ si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-			float total_factory_capacity = 0;
-			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
-				for(auto f : state.world.province_get_factory_location(p)) {
-					total_factory_capacity += float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
-					total_level += float(f.get_factory().get_level());
-				}
-			});
-			if(total_factory_capacity > 0)
-				sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
-		}
-		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-			sum += ur.get_foreign_investment() * iweight * 0.05f;
+		if(state.world.nation_get_owned_province_count(n) != 0) {
+			for(auto si : state.world.nation_get_state_ownership(n)) {
+				float total_level = 0;
+				float worker_total =
+					si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))
+					+ si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+				float total_factory_capacity = 0;
+				province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+					for(auto f : state.world.province_get_factory_location(p)) {
+						total_factory_capacity += float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
+						total_level += float(f.get_factory().get_level());
+					}
+				});
+				if(total_factory_capacity > 0)
+					sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
+			}
+			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
+				sum += ur.get_foreign_investment() * iweight * 0.05f;
+			}
 		}
 		state.world.nation_set_industrial_score(n, uint16_t(sum));
 	});
@@ -369,10 +372,12 @@ void update_rankings(sys::state& state) {
 void update_ui_rankings(sys::state& state) {
 	uint32_t to_sort_count = 0;
 	state.world.for_each_nation([&](dcon::nation_id n) {
-		state.nations_by_industrial_score[to_sort_count] = n;
-		state.nations_by_military_score[to_sort_count] = n;
-		state.nations_by_prestige_score[to_sort_count] = n;
-		++to_sort_count;
+		if(state.world.nation_get_owned_province_count(n) != 0) {
+			state.nations_by_industrial_score[to_sort_count] = n;
+			state.nations_by_military_score[to_sort_count] = n;
+			state.nations_by_prestige_score[to_sort_count] = n;
+			++to_sort_count;
+		}
 	});
 	std::sort(state.nations_by_industrial_score.begin(), state.nations_by_industrial_score.begin() + to_sort_count, [&](dcon::nation_id a, dcon::nation_id b) {
 		auto fa = fatten(state.world, a);
@@ -456,8 +461,7 @@ status get_status(sys::state& state, dcon::nation_id n) {
 }
 
 dcon::technology_id current_research(sys::state const& state, dcon::nation_id n) {
-	// TODO
-	return dcon::technology_id{};
+	return state.world.nation_get_current_research(n);
 }
 
 float suppression_points(sys::state const& state, dcon::nation_id n) {

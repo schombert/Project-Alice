@@ -1735,6 +1735,8 @@ namespace sys {
 
 					});
 
+					culture::update_reasearch(*this, uint32_t(ymd_date.year));
+
 					nations::update_military_scores(*this); // depends on ship score, land unit average
 					nations::update_rankings(*this); // depends on industrial score, military scores 
 
