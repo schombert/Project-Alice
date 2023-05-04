@@ -5558,6 +5558,31 @@ ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier
 	return sum;
 }
 
+ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	ve::fp_vector product = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			auto res = test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot);
+			product = ve::select(res, product * seg.factor, product);
+		}
+	}
+	return product;
+}
+ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	ve::fp_vector sum = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			auto res = test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot);
+			sum = ve::select(res, sum + seg.factor, sum);
+		}
+	}
+	return sum;
+}
+
 bool evaluate(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	return test_trigger_generic<bool>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
 }

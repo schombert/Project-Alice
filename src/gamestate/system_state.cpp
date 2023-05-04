@@ -1761,6 +1761,9 @@ namespace sys {
 						case 10:
 							province::update_crimes(*this);
 							break;
+						case 15:
+							culture::discover_inventions(*this);
+							break;
 						case 24:
 							rebel::execute_rebel_victories(*this);
 							break;

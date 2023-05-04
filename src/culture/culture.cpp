@@ -2,6 +2,7 @@
 #include "culture.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
+#include "prng.hpp"
 
 namespace culture {
 
@@ -404,6 +405,16 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 			state.world.nation_get_unit_stats(target_nation, umod.type) += umod;
 		}
 	}
+
+	if(auto p = inv_id.get_shared_prestige(); p > 0) {
+		int32_t total = 0;
+		for(auto n : state.world.in_nation) {
+			if(n.get_active_inventions(i_id)) {
+				++total;
+			}
+		}
+		nations::adjust_prestige(state, target_nation, p / float(total));
+	}
 }
 
 uint32_t get_remapped_flag_type(sys::state const& state, flag_type type) {
@@ -582,6 +593,52 @@ void update_reasearch(sys::state& state, uint32_t current_year) {
 					n.set_current_research(dcon::technology_id{});
 				}
 			}
+		}
+	}
+}
+
+void discover_inventions(sys::state& state) {
+	/*
+	Inventions have a chance to be discovered on the 1st of every month. The invention chance modifier is computed additively, and the result is the chance out of 100 that the invention will be discovered. When an invention with shared prestige is discovered, the discoverer gains that amount of shared prestige / the number of times it has been discovered (including the current time).
+	*/
+	for(auto inv : state.world.in_invention) {
+		auto lim = inv.get_limit();
+		auto odds = inv.get_chance();
+		assert(odds);
+		if(lim) {
+			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto nids) {
+				auto may_not_discover =
+					state.world.nation_get_active_inventions(nids, inv) || (state.world.nation_get_owned_province_count(nids) == 0) || !trigger::evaluate(state, lim, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+				if(ve::compress_mask(may_not_discover).v != 0) {
+					auto chances = trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+					ve::apply([&](dcon::nation_id n, float chance, bool block_discovery) {
+						if(!block_discovery) {
+							auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
+							if(int32_t(random % 100) < int32_t(chance)) {
+								apply_invention(state, n, inv);
+								// TODO: notify player
+							}
+						}
+					}, nids, chances, may_not_discover);
+				}
+			});
+		} else {
+			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto nids) {
+				auto may_not_discover =
+					state.world.nation_get_active_inventions(nids, inv) || (state.world.nation_get_owned_province_count(nids) == 0);
+				if(ve::compress_mask(may_not_discover).v != 0) {
+					auto chances = trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+					ve::apply([&](dcon::nation_id n, float chance, bool block_discovery) {
+						if(!block_discovery) {
+							auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
+							if(int32_t(random % 100) < int32_t(chance)) {
+								apply_invention(state, n, inv);
+								// TODO: notify player
+							}
+						}
+					}, nids, chances, may_not_discover);
+				}
+			});
 		}
 	}
 }
