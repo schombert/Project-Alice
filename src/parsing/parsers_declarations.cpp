@@ -441,6 +441,12 @@ void poptype_file::is_slave(association_type, bool value, error_handler& err, in
 		context.outer_context.state.culture_definitions.slaves = context.id;
 }
 
+void poptype_file::allowed_to_vote(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+	if(value == false) {
+		context.outer_context.state.world.pop_type_set_voting_forbidden(context.id, true);
+	}
+}
+
 void poptype_file::can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
 	if(value)
 		context.outer_context.state.culture_definitions.soldiers = context.id;

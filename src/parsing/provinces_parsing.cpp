@@ -314,7 +314,7 @@ void province_history_file::remove_core(association_type, uint32_t value, error_
 
 void province_history_file::party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line, province_file_context& context) {
 	if (value.id) {
-		context.outer_context.state.world.province_set_party_loyalty(context.id, value.id, uint8_t(value.loyalty_value));
+		context.outer_context.state.world.province_set_party_loyalty(context.id, value.id, float(value.loyalty_value) / 100.0f);
 	}
 }
 

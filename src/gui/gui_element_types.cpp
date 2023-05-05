@@ -1145,7 +1145,6 @@ void flag_button::on_update(sys::state& state) noexcept {
 
 void flag_button::on_create(sys::state& state) noexcept {
 	button_element_base::on_create(state);
-	flag_size = base_data.size;
 	on_update(state);
 }
 
@@ -1160,10 +1159,11 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 		auto& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.type_dependent) {
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
+			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(
 				state,
 				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-				float(x + flag_position.x), float(y + flag_position.y), float(flag_size.x), float(flag_size.y),
+				float(x) + float(base_data.size.x - mask_tex.size_x) * 0.5f, float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f, float(mask_tex.size_x), float(mask_tex.size_y),
 				flag_texture_handle,
 				mask_handle,
 				base_data.get_rotation(),
@@ -1173,14 +1173,14 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			ogl::render_textured_rect(
 				state,
 				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-				float(x + flag_position.x), float(y + flag_position.y), float(flag_size.x), float(flag_size.y),
+				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 				flag_texture_handle,
 				base_data.get_rotation(),
 				gfx_def.is_vertically_flipped()
 			);
 		}
 	}
-	button_element_base::render(state, x, y);
+	image_element_base::render(state, x, y);
 }
 void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto ident = get_current_nation(state);

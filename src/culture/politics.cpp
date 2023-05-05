@@ -71,7 +71,7 @@ bool has_elections(sys::state& state, dcon::nation_id nation) {
 
 sys::date next_election_date(sys::state& state, dcon::nation_id nation) {
     auto end_date = state.world.nation_get_election_ends(nation);
-    return sys::date(uint16_t(end_date.to_raw_value() + 1825));
+    return end_date + 365 * 5;
 }
 
 dcon::reform_id get_reform_by_name(sys::state& state, std::string_view name) {
@@ -254,6 +254,11 @@ bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
 	return (!start_date || start_date <= state.current_date) && (!end_date || end_date > state.current_date);
 }
 
+void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
+	state.world.nation_set_ruling_party(n, p);
+	culture::update_nation_issue_rules(state, n);
+}
+
 void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
 	state.world.for_each_ideology([&](auto iid) {
 		state.world.nation_set_upper_house(n, iid, 0.0f);
@@ -267,7 +272,7 @@ void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
 		if(politics::political_party_is_active(state, pid) && state.world.political_party_get_ideology(pid) == id) {
-			state.world.nation_set_ruling_party(n, pid);
+			set_ruling_party(state, n, pid);
 			return;
 		}
 	}
@@ -291,8 +296,334 @@ void change_government_type(sys::state& state, dcon::nation_id n, dcon::governme
 	}
 }
 
+float pop_vote_weight(sys::state& state, dcon::pop_id p, dcon::nation_id n) {
+	/*
+	When a pop's "votes" in any form, the weight of that vote is the product of the size of the pop and the national modifier for voting for their strata (this could easily result in a strata having no votes). If the nation has primary culture voting set then primary culture pops get a full vote, accepted culture pops get a half vote, and other culture pops get no vote. If it has culture voting, primary and accepted culture pops get a full vote and no one else gets a vote. If neither is set, all pops get an equal vote.
+	*/
+	
+	auto type = state.world.pop_get_poptype(p);
+	if(state.world.pop_type_get_voting_forbidden(type))
+		return 0.0f;
+
+	auto size = state.world.pop_get_size(p);
+	auto strata = culture::pop_strata(state.world.pop_type_get_strata(type));
+	auto vmod = [&]() {
+		switch(strata) {
+			case culture::pop_strata::poor:
+				return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_vote);
+			case culture::pop_strata::middle:
+				return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_vote);
+			case culture::pop_strata::rich:
+				return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_vote);
+			default:
+				return 0.0f;
+		}
+	}();
+
+	auto rules = state.world.nation_get_combined_issue_rules(n);
+	if((rules & issue_rule::primary_culture_voting) != 0) {
+		if(state.world.pop_get_culture(p) == state.world.nation_get_primary_culture(n))
+			return size * vmod;
+		else if(state.world.pop_get_is_primary_or_accepted_culture(p))
+			return size * vmod * 0.5f;
+		else
+			return 0.0f;
+	} else if((rules & issue_rule::culture_voting) != 0) {
+		if(state.world.pop_get_is_primary_or_accepted_culture(p))
+			return size * vmod;
+		else
+			return 0.0f;
+	} else {
+		return size * vmod;
+	}
+}
+
 void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
-	// TODO
+	/*
+	Every year, the upper house of each nation is updated. If the "same as ruling party" rule is set, the upper house becomes 100% the ideology of the ruling party. If the rule is "state vote", then for each non-colonial state: for each pop in the state that is not prevented from voting by its type we distribute its weighted vote proportionally to its ideology support, giving us an ideology distribution for each of those states. The state ideology distributions are then normalized and summed to form the distribution for the upper house. For "population_vote" and "rich_only" the voting weight of each non colonial pop (or just the rich ones for "rich only") is distributed proportionally to its ideological support, with the sum for all eligible pops forming the distribution for the upper house.
+	*/
+	static std::vector<float> accumulated_in_state;
+	accumulated_in_state.resize(state.world.ideology_size());
+
+	auto rules = state.world.nation_get_combined_issue_rules(n);
+	if((rules & issue_rule::same_as_ruling_party) != 0) {
+		auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
+		for(auto i : state.world.in_ideology) {
+			state.world.nation_set_upper_house(n, i, 0.0f);
+		}
+		state.world.nation_set_upper_house(n, rp_ideology, 100.0f);
+	} else if((rules & issue_rule::state_vote) != 0) {
+		for(auto i : state.world.in_ideology) {
+			state.world.nation_set_upper_house(n, i, 0.0f);
+		}
+		float state_total = 0.0f;
+		
+		for(auto si : state.world.nation_get_state_ownership(n)) {
+			if(si.get_state().get_capital().get_is_colonial())
+				continue; // skip colonial states
+
+			for(auto i : state.world.in_ideology) {
+				accumulated_in_state[i.id.index()] = 0.0f;
+			}
+			float total = 0.0f;
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				for(auto pop : state.world.province_get_pop_location(p)) {
+					auto weight = pop_vote_weight(state, pop.get_pop(), n);
+					if(weight > 0) {
+						total += weight;
+						for(auto i : state.world.in_ideology) {
+							accumulated_in_state[i.id.index()] += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
+						}
+					}
+				}
+			});
+			if(total > 0) {
+				for(auto i : state.world.in_ideology) {
+					auto scaled = accumulated_in_state[i.id.index()] / total;
+					state_total += scaled;
+					state.world.nation_get_upper_house(n, i) += scaled;
+				}
+			}
+		}
+
+		if(state_total > 0) {
+			auto scale_factor = 100.0f / state_total;
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_get_upper_house(n, i) *= scale_factor;
+			}
+		}
+	} else if((rules & issue_rule::rich_only) != 0) {
+		for(auto i : state.world.in_ideology) {
+			state.world.nation_set_upper_house(n, i, 0.0f);
+		}
+		float total = 0.0f;
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			if(p.get_province().get_is_colonial())
+				continue; // skip colonial provinces
+
+			for(auto pop : state.world.province_get_pop_location(p.get_province())) {
+				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich)) {
+					auto weight = pop_vote_weight(state, pop.get_pop(), n);
+					if(weight > 0) {
+						total += weight;
+						for(auto i : state.world.in_ideology) {
+							state.world.nation_get_upper_house(n, i) += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
+						}
+					}
+				}
+			}
+		}
+		if(total > 0) {
+			auto scale_factor = 100.0f / total;
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_get_upper_house(n, i) *= scale_factor;
+			}
+		}
+	} else {
+		for(auto i : state.world.in_ideology) {
+			state.world.nation_set_upper_house(n, i, 0.0f);
+		}
+		float total = 0.0f;
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			if(p.get_province().get_is_colonial())
+				continue; // skip colonial provinces
+
+			for(auto pop : state.world.province_get_pop_location(p.get_province())) {
+				auto weight = pop_vote_weight(state, pop.get_pop(), n);
+				if(weight > 0) {
+					total += weight;
+					for(auto i : state.world.in_ideology) {
+						state.world.nation_get_upper_house(n, i) += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
+					}
+				}
+			}
+		}
+		if(total > 0) {
+			auto scale_factor = 100.0f / total;
+			for(auto i : state.world.in_ideology) {
+				state.world.nation_get_upper_house(n, i) *= scale_factor;
+			}
+		}
+	}
+
+	// TODO: notify player
+}
+
+void daily_party_loyalty_update(sys::state& state) {
+	province::for_each_land_province(state, [&](dcon::province_id p) {
+		auto si = state.world.province_get_state_membership(p);
+		auto nf = state.world.state_instance_get_owner_focus(si);
+		auto party = state.world.national_focus_get_ideology(nf);
+		if(party) {
+			auto& l = state.world.province_get_party_loyalty(p, party);
+			l = std::clamp(l + state.world.national_focus_get_loyalty_value(nf), -1.0f, 1.0f);
+		}
+	});
+}
+
+struct party_vote {
+	dcon::political_party_id par;
+	float vote = 0.0f;
+};
+
+void update_elections(sys::state& state) {
+	static std::vector<party_vote> party_votes;
+	static std::vector<party_vote> provincial_party_votes;
+
+	for(auto n : state.world.in_nation) {
+		/*
+		A country with elections starts one every 5 years.
+		Elections last define:CAMPAIGN_DURATION months.
+		*/
+		if(has_elections(state, n)) {
+			if(n.get_election_ends() == state.current_date) {
+				// make election results
+
+				party_votes.clear();
+				float total_vote = 0.0f;
+
+				auto tag = state.world.nation_get_identity_from_identity_holder(n);
+				auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+				auto end = start + state.world.national_identity_get_political_party_count(tag);
+
+				for(int32_t i = start; i < end; i++) {
+					auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+					if(politics::political_party_is_active(state, pid)) {
+						party_votes.push_back(party_vote{pid, 0.0f});
+					}
+				}
+
+				if(party_votes.size() == 0)
+					std::abort(); // ERROR: no valid parties
+
+				// - Determine the vote in each province. Note that voting is *by active party* not by ideology.
+				for(auto p : n.get_province_ownership()) {
+					if(p.get_province().get_is_colonial())
+						continue; // skip colonial provinces
+
+					provincial_party_votes.clear();
+					float province_total = 0.0f;
+					for(auto& par : party_votes) {
+						provincial_party_votes.push_back(party_vote{ par.par, 0.0f });
+					}
+
+					float ruling_party_support = p.get_province().get_modifier_values(sys::provincial_mod_offsets::local_ruling_party_support) + n.get_modifier_values(sys::national_mod_offsets::ruling_party_support) + 1.0f;
+					float prov_vote_mod = p.get_province().get_modifier_values(sys::provincial_mod_offsets::number_of_voters) + 1.0f;
+
+					for(auto pop : p.get_province().get_pop_location()) {
+						auto weight = pop_vote_weight(state, pop.get_pop(), n);
+						if(weight > 0) {
+							auto ideological_share = pop.get_pop().get_consciousness() / 20.0f;
+							for(auto& par : provincial_party_votes) {
+								/*
+								- For each party we do the following: figure out the pop's ideological support for the party and its issues based support for the party (by summing up its support for each issue that the party has set, except that pops of non-accepted cultures will never support more restrictive culture voting parties). The pop then votes for the party (i.e. contributes its voting weight in support) based on the sum of its issue and ideological support, except that the greater consciousness the pop has, the more its vote is based on ideological support (pops with 0 consciousness vote based on issues alone). The support for the party is then multiplied by (provincial-modifier-ruling-party-support + national-modifier-ruling-party-support + 1), if it is the ruling party, and by (1 + province-party-loyalty) for its ideology.
+								- Pop votes are also multiplied by (provincial-modifier-number-of-voters + 1)
+								*/
+								auto pid = state.world.political_party_get_ideology(par.par);
+								auto base_support = (p.get_province().get_party_loyalty(pid) + 1.0f) * prov_vote_mod * (par.par == n.get_ruling_party() ? ruling_party_support : 1.0f) * weight;
+								auto issue_support = 0.0f;
+								for(auto pi : state.culture_definitions.party_issues) {
+									auto party_pos = state.world.political_party_get_party_issues(par.par, pi);
+									issue_support += pop.get_pop().get_demographics(pop_demographics::to_key(state, party_pos));
+								}
+								auto ideology_support = pop.get_pop().get_demographics(pop_demographics::to_key(state, pid));
+								auto total_support = base_support * (issue_support * (1.0f - ideological_share) + ideology_support * ideological_share);
+
+								province_total += total_support;
+								par.vote += total_support;
+							}
+						}
+					}
+
+					if(province_total > 0) {
+						/*
+						- After the vote has occurred in each province, the winning party there has the province's ideological loyalty for its ideology increased by define:LOYALTY_BOOST_ON_PARTY_WIN x (provincial-boost-strongest-party-modifier + 1) x fraction-of-vote-for-winning-party
+						- If voting rule "largest_share" is in effect: all votes are added to the sum towards the party that recieved the most votes in the province. If it is "dhont", then the votes in each province are normalized to the number of votes from the province, and for "sainte_laque" the votes from the provinces are simply summed up.
+						*/
+
+						uint32_t winner = 0;
+						float winner_amount = provincial_party_votes[0].vote;
+						for(uint32_t i = 1; i < provincial_party_votes.size(); ++i) {
+							if(provincial_party_votes[i].vote > winner_amount) {
+								winner = i;
+								winner_amount = provincial_party_votes[i].vote;
+							}
+						}
+
+						auto pid = state.world.political_party_get_ideology(provincial_party_votes[winner].par);
+						auto& l = p.get_province().get_party_loyalty(pid);
+						l = std::clamp(l + state.defines.loyalty_boost_on_party_win * (p.get_province().get_modifier_values(sys::provincial_mod_offsets::boost_strongest_party) + 1.0f) * winner_amount / province_total, -1.0f, 1.0f);
+						auto national_rule = n.get_combined_issue_rules();
+
+						if((national_rule & issue_rule::largest_share) != 0) {
+							party_votes[winner].vote += winner_amount;
+						} else if((national_rule & issue_rule::dhont) != 0) {
+							for(uint32_t i = 0; i < provincial_party_votes.size(); ++i) {
+								party_votes[i].vote += provincial_party_votes[i].vote / province_total;
+							}
+						} else /*if((national_rule & issue_rule::sainte_laque) != 0)*/ {
+							for(uint32_t i = 0; i < provincial_party_votes.size(); ++i) {
+								party_votes[i].vote += provincial_party_votes[i].vote;
+							}
+						}
+					}
+					
+				}
+
+				/*
+				What happens with the election result depends partly on the average militancy of the nation. If it is less than 5: We find the ideology group with the greatest support (each active party gives their support to their group), then the party with the greatest support from the winning group is elected. If average militancy is greater than 5: the party with the greatest individual support wins. (Note: so at average militancy less than 5, having parties with duplicate ideologies makes an ideology group much more likely to win, because they get double counted.)
+				*/
+
+				auto total_pop = n.get_demographics(demographics::total);
+				auto avg_mil = total_pop > 0.0f ? n.get_demographics(demographics::militancy) / total_pop : 0.0f;
+
+				if(avg_mil <= 5.0f) {
+					static auto per_group = state.world.ideology_group_make_vectorizable_float_buffer();
+					for(auto ig : state.world.in_ideology_group) {
+						per_group.set(ig, 0.0f);
+					}
+					for(uint32_t i = 0; i < party_votes.size(); ++i) {
+						per_group.get(state.world.ideology_get_ideology_group_from_ideology_group_membership(state.world.political_party_get_ideology(party_votes[i].par))) += party_votes[i].vote;
+					}
+					dcon::ideology_group_id winner;
+					float winner_amount = -1.0f;
+					for(auto ig : state.world.in_ideology_group) {
+						if(per_group.get(ig) > winner_amount) {
+							winner_amount = per_group.get(ig);
+							winner = ig;
+						}
+					}
+
+					uint32_t winner_b = 0;
+					float winner_amount_b = -1.0f;
+					for(uint32_t i = 0; i < party_votes.size(); ++i) {
+						if(state.world.ideology_get_ideology_group_from_ideology_group_membership(state.world.political_party_get_ideology(party_votes[i].par)) == winner && party_votes[i].vote > winner_amount_b) {
+							winner_b = i;
+							winner_amount_b = party_votes[i].vote;
+						}
+					}
+
+					set_ruling_party(state, n, party_votes[winner_b].par);
+				} else {
+					uint32_t winner = 0;
+					float winner_amount = party_votes[0].vote;
+					for(uint32_t i = 1; i < party_votes.size(); ++i) {
+						if(party_votes[i].vote > winner_amount) {
+							winner = i;
+							winner_amount = party_votes[i].vote;
+						}
+					}
+
+					set_ruling_party(state, n, party_votes[winner].par);
+				}
+
+			} else if(next_election_date(state, n) >= state.current_date) {
+				n.set_election_ends(state.current_date + int32_t(state.defines.campaign_duration) * 30);
+				// TODO: Notify player
+			}
+		}
+	}
+
 }
 
 }

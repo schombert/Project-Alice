@@ -410,8 +410,8 @@ public:
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
-			ptr->base_data.size.x += 3; // Nudge
-			ptr->base_data.size.y += 4;
+			//ptr->base_data.size.x += 3; // Nudge
+			//ptr->base_data.size.y += 4;
 			return ptr;
 		} else if(name == "country_puppets") {
 			return make_element_by_type<overlapping_protected_flags>(state, id);

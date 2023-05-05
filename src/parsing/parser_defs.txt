@@ -1065,7 +1065,7 @@ poptype_file
 	state_capital_only value         bool                               member_fn
 	unemployment       value         bool                               member_fn
 	equivalent         value         text                               member_fn
-	allowed_to_vote    value         bool                               discard
+	allowed_to_vote    value         bool                               member_fn
 	is_slave           value         bool                               member_fn
 	can_be_recruited   value         bool                               member_fn
 	leadership         value         int                                member_fn

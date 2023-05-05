@@ -126,14 +126,6 @@ private:
 	dcon::province_id province_id{};
 
 public:
-	void on_create(sys::state& state) noexcept override {
-		flag_button::on_create(state);
-		flag_size.x = int16_t(float(flag_size.x) / 1.3f);
-		flag_size.y /= 2;
-		flag_position.x += base_data.size.x / 7;
-		flag_position.y += base_data.size.y / 4;
-	}
-
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, province_id);
 		auto controller_id = fat_id.get_province_control_as_province().get_nation();

@@ -1463,6 +1463,7 @@ namespace parsers {
 		void strata(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context);
 		void unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void is_slave(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void allowed_to_vote(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void state_capital_only(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context);

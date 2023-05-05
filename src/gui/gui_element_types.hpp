@@ -286,8 +286,6 @@ public:
 class flag_button : public button_element_base {
 protected:
 	GLuint flag_texture_handle = 0;
-	xy_pair flag_position{};
-	xy_pair flag_size{};
 
 public:
 	virtual dcon::national_identity_id get_current_nation(sys::state& state) noexcept;

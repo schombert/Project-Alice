@@ -990,6 +990,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ voting_forbidden }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ everyday_needs_income_type }
 		type{ uint8_t }
 		tag{ scenario }
@@ -1267,7 +1272,7 @@ object {
 
 	property{
 		name{ party_loyalty }
-		type{array{ideology_id}{int8_t}}
+		type{array{ideology_id}{float}}
 		tag{ save }
 	}
 
