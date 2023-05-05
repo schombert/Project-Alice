@@ -51,7 +51,7 @@ namespace sys {
     MOD_LIST_ELEMENT(41, movement_cost, false, modifier_display_type::percent, "modifier_movement_cost") \
     MOD_LIST_ELEMENT(42, defense, true, modifier_display_type::integer, "defence") \
     MOD_LIST_ELEMENT(43, attack, true, modifier_display_type::integer, "attack") \
-    MOD_LIST_ELEMENT(44, combat_width, false, modifier_display_type::percent, "modifier_combat_width") \
+    MOD_LIST_ELEMENT(44, combat_width, true, modifier_display_type::integer, "modifier_combat_width") \
     MOD_LIST_ELEMENT(45, min_build_naval_base, false, modifier_display_type::integer, "naval_base_level") \
     MOD_LIST_ELEMENT(46, min_build_railroad, false, modifier_display_type::integer, "railroad_level") \
     MOD_LIST_ELEMENT(47, min_build_fort, false, modifier_display_type::integer, "fort_level")
@@ -165,7 +165,7 @@ namespace sys {
     MOD_LIST_ELEMENT(104, reinforce_rate, true, modifier_display_type::percent, "reinforce_tech") \
     MOD_LIST_ELEMENT(105, influence, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \
     MOD_LIST_ELEMENT(106, dig_in_cap, true, modifier_display_type::percent, "digin_from_tech") \
-    MOD_LIST_ELEMENT(107, combat_width, true, modifier_display_type::percent, "combat_width_tech") \
+    MOD_LIST_ELEMENT(107, combat_width, false, modifier_display_type::integer, "combat_width_tech") \
     MOD_LIST_ELEMENT(108, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech") \
     MOD_LIST_ELEMENT(109, supply_range, true, modifier_display_type::percent, "supply_range_tech") \
     MOD_LIST_ELEMENT(110, regular_experience_level, true, modifier_display_type::percent, "regular_exp_tech") \

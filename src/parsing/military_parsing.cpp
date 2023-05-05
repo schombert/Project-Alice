@@ -85,9 +85,9 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 	context.state.military_definitions.unit_base_definitions.emplace_back();
 
 	auto name_id = text::find_or_add_key(context.state, name);
-	context.state.military_definitions.unit_base_definitions.back().name = name_id;
-
+	
 	context.state.military_definitions.unit_base_definitions.back() = parsers::parse_unit_definition(gen, err, context);
+	context.state.military_definitions.unit_base_definitions.back().name = name_id;
 
 	context.map_of_unit_types.insert_or_assign(std::string(name), new_id);
 }
