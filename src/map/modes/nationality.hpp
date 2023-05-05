@@ -52,7 +52,7 @@ std::vector<uint32_t> get_nationality_global_color(sys::state& state) {
 }
 
 std::vector<uint32_t> get_nationality_diaspora_color(sys::state& state) {
-	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
+	auto fat_selected_id = dcon::fatten(state.world, state.map_state.get_selected_province());
 	auto culture_id = fat_selected_id.get_dominant_culture();
 	auto culture_key = demographics::to_key(state, culture_id.id);
 
@@ -88,7 +88,7 @@ std::vector<uint32_t> get_nationality_diaspora_color(sys::state& state) {
 
 std::vector<uint32_t> nationality_map_from(sys::state& state) {
 	std::vector<uint32_t> prov_color;
-	if(state.map_display.get_selected_province()) {
+	if(state.map_state.get_selected_province()) {
 		prov_color = get_nationality_diaspora_color(state);
 	} else {
 		prov_color = get_nationality_global_color(state);

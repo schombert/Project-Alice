@@ -17,7 +17,7 @@ namespace ui {
 class province_close_button : public generic_close_button {
 public:
 	void button_action(sys::state& state) noexcept override {
-		state.map_display.set_selected_province(dcon::province_id{});
+		state.map_state.set_selected_province(dcon::province_id{});
         generic_close_button::button_action(state);
 	}
 };
@@ -131,7 +131,7 @@ public:
 		auto controller_id = fat_id.get_province_control_as_province().get_nation();
 		return controller_id.get_identity_from_identity_holder().id;
 	}
-	
+
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::province_id>()) {
 			province_id = any_cast<dcon::province_id>(payload);
@@ -745,7 +745,7 @@ public:
 			focus_id = any_cast<dcon::national_focus_id>(payload);
 			auto fat_id = dcon::fatten(state.world, focus_id);
 			frame = fat_id.get_icon() - 1;
-			
+
 			return message_result::consumed;
 		} else {
 			return message_result::unseen;

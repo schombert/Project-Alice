@@ -227,11 +227,11 @@ void ui::console_edit::edit_box_down(sys::state &state) noexcept {
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
 	if(s.empty())
 		return;
-	
+
 	auto pstate = parse_command(state, s);
 	if(pstate.cmd.mode == command_info::type::none)
 		return;
-	
+
 	log_to_console(state, parent, s);
 	for(auto i = 0; i < 4; ++i) {
 		if(pstate.cmd.args[i].optional)
@@ -256,7 +256,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	switch(pstate.cmd.mode) {
 	case command_info::type::reload:
 		log_to_console(state, parent, "Reloading...");
-		state.map_display.load_map(state);
+		state.map_state.load_map(state);
 		break;
 	case command_info::type::abort:
 		log_to_console(state, parent, "Aborting...");

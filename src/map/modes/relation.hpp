@@ -6,7 +6,7 @@ std::vector<uint32_t> relation_map_from(sys::state& state) {
 
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto selected_province = state.map_display.get_selected_province();
+	auto selected_province = state.map_state.get_selected_province();
 	auto fat_id = dcon::fatten(state.world, selected_province);
 	auto selected_nation = fat_id.get_nation_from_province_ownership();
 

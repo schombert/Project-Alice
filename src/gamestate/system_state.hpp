@@ -13,7 +13,7 @@
 #include "opengl_wrapper.hpp"
 #include "fonts.hpp"
 #include "sound.hpp"
-#include "map.hpp"
+#include "map_state.hpp"
 #include "economy.hpp"
 #include "culture.hpp"
 #include "military.hpp"
@@ -161,7 +161,7 @@ namespace sys {
 		bool is_dragging = false;
 
 		// map data
-		map::display_data map_display;
+		map::map_state map_state;
 
 		// graphics data
 		ogl::data open_gl;

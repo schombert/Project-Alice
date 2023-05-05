@@ -43,7 +43,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		};
 		err.file_name = "test.mod";
 		parsers::token_generator gen(content.data(), content.data() + content.length());
-		
+
 		parsers::mod_file_context mod_file_context(context);
 		parsers::parse_mod_file(gen, err, mod_file_context);
 	}
@@ -55,7 +55,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		};
 		err.file_name = "test2.mod";
 		parsers::token_generator gen(content.data(), content.data() + content.length());
-		
+
 		parsers::mod_file_context mod_file_context(context);
 		parsers::parse_mod_file(gen, err, mod_file_context);
 	}
@@ -93,7 +93,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 
 	std::thread map_loader([&]() {
-		state->map_display.load_map_data(context);
+		state->map_state.load_map_data(context);
 	});
 
 	//COUNTRIES
@@ -734,7 +734,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(it != context.map_of_ident_names.end());
 		auto id = it->second;
 
-		
+
 		REQUIRE(sys::int_red_from_int(state->world.national_identity_get_color(id)) == 173);
 		REQUIRE(sys::int_green_from_int(state->world.national_identity_get_color(id)) == 242);
 		REQUIRE(sys::int_blue_from_int(state->world.national_identity_get_color(id)) == 175);
@@ -1014,7 +1014,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 		auto it = context.map_of_inventions.find(std::string("the_talkies"));
 		auto fit = fatten(state->world, it->second.id);
-		
+
 		REQUIRE(bool(fit.get_limit()) == true);
 		REQUIRE(bool(fit.get_chance()) == true);
 		REQUIRE(fit.get_shared_prestige() == 20.0f);
@@ -1023,7 +1023,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(fit.get_modifier().get_national_values().offsets[1] == sys::national_mod_offsets::core_pop_consciousness_modifier);
 		REQUIRE(fit.get_modifier().get_national_values().values[0] == Approx(-0.05f));
 		REQUIRE(fit.get_modifier().get_national_values().values[1] == Approx(0.01f));
-		
+
 	}
 	// parse on_actions.txt
 	{
@@ -1359,7 +1359,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	for(int32_t i = 0; i < state->province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id id{ dcon::province_id::value_base_t(i) };
 		if(!state->world.province_get_terrain(id)) { // don't overwrite if set by the history file
-			auto modifier = context.modifier_by_terrain_index[state->map_display.median_terrain_type[province::to_map_id(id)]];
+			auto modifier = context.modifier_by_terrain_index[state->map_state.map_data.median_terrain_type[province::to_map_id(id)]];
 			state->world.province_set_terrain(id, modifier);
 		}
 	}
@@ -1566,7 +1566,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.cb_type_size() > 5);
 	}
 	{
-		
+
 		auto ita = context.map_of_leader_traits.find(std::string("wretched"));
 		REQUIRE(ita != context.map_of_leader_traits.end());
 
@@ -1680,7 +1680,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->world.province_get_climate(context.original_id_to_prov_id_map[2702]) == id);
 	}
 	{
-	
+
 		auto nvit = context.map_of_modifiers.find(std::string("army_tech_school"));
 		REQUIRE(nvit != context.map_of_modifiers.end());
 		auto id = nvit->second;
@@ -1703,7 +1703,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(culture::tech_category(state->world.invention_get_technology_type(tit->second.id)) == culture::tech_category::industry);
 	}
 	{
-		
+
 		auto uit = context.map_of_unit_types.find("battleship");
 		REQUIRE(uit != context.map_of_unit_types.end());
 		auto id = uit->second;
@@ -1718,7 +1718,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(state->military_definitions.unit_base_definitions[id].build_cost.commodity_amounts[4] == 0.0f);
 	}
 	{
-	
+
 		auto name_num = nations::tag_to_int('M', 'E', 'X');
 		auto it = context.map_of_ident_names.find(name_num);
 		REQUIRE(it != context.map_of_ident_names.end());
@@ -1737,7 +1737,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 		REQUIRE(context.map_of_ideologies.find(std::string("conservative"))->second.id == state->world.political_party_get_ideology(first_party));
 	}
 	{
-	
+
 		auto france_tag = context.map_of_ident_names.find(nations::tag_to_int('F', 'R', 'A'))->second;
 		auto ident_rel = state->world.national_identity_get_identity_holder(france_tag);
 		auto france = state->world.identity_holder_get_nation(ident_rel);
@@ -1799,7 +1799,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 
 	// cb contents
 	{
-	
+
 		REQUIRE(bool(state->military_definitions.standard_civil_war) == true);
 		REQUIRE(state->world.cb_type_get_sprite_index(state->military_definitions.standard_civil_war) == uint8_t(2));
 		REQUIRE(state->world.cb_type_get_months(state->military_definitions.standard_civil_war) == uint8_t(1));
@@ -1814,7 +1814,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// pending crimes
 	{
-		
+
 		auto ita = context.map_of_crimes.find(std::string("machine_politics"));
 		REQUIRE(state->culture_definitions.crimes[ita->second.id].available_by_default == true);
 		auto mod_id = state->culture_definitions.crimes[ita->second.id].modifier;
@@ -1825,7 +1825,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// pending issue options
 	{
-		
+
 		REQUIRE(bool(state->culture_definitions.jingoism) == true);
 
 		auto itb = context.map_of_ioptions.find(std::string("acceptable_schools"));
@@ -1838,7 +1838,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// parse national_focus.txt
 	{
-	
+
 		REQUIRE(bool(state->national_definitions.flashpoint_focus) == true);
 		REQUIRE(state->world.national_focus_get_icon(state->national_definitions.flashpoint_focus) == uint8_t(4));
 		REQUIRE(state->world.national_focus_get_type(state->national_definitions.flashpoint_focus) == uint8_t(nations::focus_type::diplomatic_focus));
@@ -1846,7 +1846,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// load pop_types.txt
 	{
-		
+
 		REQUIRE(bool(state->culture_definitions.migration_chance) == true);
 	}
 
@@ -1867,7 +1867,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// read pending inventions
 	{
-	
+
 		auto it = context.map_of_inventions.find(std::string("the_talkies"));
 		auto fit = fatten(state->world, it->second.id);
 
@@ -1883,13 +1883,13 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// parse on_actions.txt
 	{
-		
+
 		REQUIRE(state->national_definitions.on_civilize.size() == size_t(3));
 		REQUIRE(state->national_definitions.on_civilize[0].chance == int16_t(100));
 	}
 	// parse production_types.txt
 	{
-		
+
 
 		auto it = context.map_of_factory_names.find(std::string("aeroplane_factory"));
 		auto fac = fatten(state->world, it->second);
@@ -1901,7 +1901,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	}
 	// read pending rebel types
 	{
-		
+
 		auto it = context.map_of_rebeltypes.find(std::string("boxer_rebels"));
 		auto fid = fatten(state->world, it->second.id);
 
@@ -2051,7 +2051,7 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	BENCHMARK_ADVANCED("vectorized loop exchanged maximum")(Catch::Benchmark::Chronometer meter) {
 		trash_cache();
 		meter.measure([&]() {
-			
+
 			ve::execute_serial<dcon::province_id>(uint32_t(state->province_definitions.first_sea_province.index()), [&](auto p) {
 				max_buffer.set(p, ve::fp_vector());
 			});
@@ -2094,7 +2094,7 @@ TEST_CASE(".mod overrides", "[req-game-files]") {
 		};
 		err.file_name = "test.mod";
 		parsers::token_generator gen(content.data(), content.data() + content.length());
-		
+
 		parsers::mod_file_context mod_file_context(context);
 		parsers::parse_mod_file(gen, err, mod_file_context);
 

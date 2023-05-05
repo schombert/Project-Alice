@@ -37,7 +37,7 @@ void set_map_mode(sys::state& state, mode mode) {
 
 	switch(mode) {
 		case mode::terrain:
-			state.map_display.set_terrain_map_mode();
+			state.map_state.set_terrain_map_mode();
 			return;
 		case mode::political:
 			prov_color = political_map_from(state);
@@ -109,13 +109,13 @@ void set_map_mode(sys::state& state, mode mode) {
 		default:
 			return;
 	}
-	state.map_display.set_province_color(prov_color, mode);
+	state.map_state.set_province_color(prov_color, mode);
 }
 
 void update_map_mode(sys::state& state) {
-	if(state.map_display.active_map_mode == mode::terrain || state.map_display.active_map_mode == mode::region) {
+	if(state.map_state.active_map_mode == mode::terrain || state.map_state.active_map_mode == mode::region) {
 		return;
 	}
-	set_map_mode(state, state.map_display.active_map_mode);
+	set_map_mode(state, state.map_state.active_map_mode);
 }
 }

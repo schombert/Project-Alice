@@ -44,10 +44,7 @@ struct border {
 	int count = -1;
 	uint8_t type_flag;
 };
-enum class map_view {
-	globe,
-	flat
-};
+enum class map_view;
 class display_data {
 public:
 	display_data() {};
@@ -58,29 +55,10 @@ public:
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	map_mode::mode active_map_mode = map_mode::mode::terrain;
-	dcon::province_id selected_province = dcon::province_id{};
-
-	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
-	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
-	void set_terrain_map_mode();
+	void render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter);
 	void update_borders(sys::state& state);
-	void set_view_mode(map_view map_view_mode);
-
-	// Set the position of camera. Position relative from 0-1
-	void set_pos(glm::vec2 pos);
-
-	// Input methods
-	void on_key_down(sys::virtual_key keycode, sys::key_modifiers mod);
-	void on_key_up(sys::virtual_key keycode, sys::key_modifiers mod);
-	void on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount);
-	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
-	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
-	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
-	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
-
-	dcon::province_id get_selected_province();
-	void set_selected_province(dcon::province_id prov_id);
+	void set_selected_province(sys::state& state, dcon::province_id province_id);
+	void set_province_color(std::vector<uint32_t> const& prov_color);
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -93,15 +71,6 @@ public:
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
 private:
-	// Last update time, used for smooth map movement
-	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
-
-	// Time in seconds, send to the map shader for animations
-	float time_counter = 0;
-
-	// interaction
-	bool unhandled_province_selection = false;
-
 	// Meshes
 	GLuint water_vao = 0;
 	GLuint water_vbo = 0;
@@ -134,30 +103,6 @@ private:
 	GLuint water_shader = 0;
 	GLuint water_political_shader = 0;
 	GLuint line_border_shader = 0;
-
-	// Position and movement
-	map_view map_view_mode = map_view::globe;
-	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
-	glm::vec2 pos_velocity = glm::vec2(0.f);
-	glm::vec2 last_camera_drag_pos;
-	glm::mat4 globe_rotation = glm::mat4(1.0f);
-	bool is_dragging = false;
-	//glm::vec2 size; // Map size
-	float offset_x = 0.f;
-	float offset_y = 0.f;
-	float zoom = 1.f;
-	float zoom_change = 1.f;
-	bool has_zoom_changed = false;
-	bool left_arrow_key_down = false;
-	bool right_arrow_key_down = false;
-	bool up_arrow_key_down = false;
-	bool down_arrow_key_down = false;
-	glm::vec2 scroll_pos_velocity = glm::vec2(0.f);
-	std::chrono::time_point<std::chrono::system_clock> last_zoom_time{};
-
-	void update(sys::state& state);
-
-	glm::vec2 screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size);
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();

@@ -5,7 +5,7 @@ std::vector<uint32_t> rgo_output_map_from(sys::state& state) {
 
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto selected_province = state.map_display.get_selected_province();
+	auto selected_province = state.map_state.get_selected_province();
 
 	if(selected_province) {
 		auto searched_rgo = state.world.province_get_rgo(selected_province);
@@ -15,7 +15,7 @@ std::vector<uint32_t> rgo_output_map_from(sys::state& state) {
 			auto prov_rgo = state.world.province_get_rgo(prov_id);
 
 			if(searched_rgo == prov_rgo) {
-				
+
 				max_rgo_size = std::max(max_rgo_size, province::rgo_size(state, prov_id));
 			}
 		});

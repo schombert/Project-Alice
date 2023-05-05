@@ -71,6 +71,7 @@
 
 #include "opengl_wrapper.cpp"
 #include "map.cpp"
+#include "map_state.cpp"
 #include "map_modes.cpp"
 #include "prng.cpp"
 

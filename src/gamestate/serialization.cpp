@@ -80,12 +80,12 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
 	{ // map
-		ptr_in = memcpy_deserialize(ptr_in, state.map_display.size_x);
-		ptr_in = memcpy_deserialize(ptr_in, state.map_display.size_y);
-		ptr_in = deserialize(ptr_in, state.map_display.border_vertices);
-		ptr_in = deserialize(ptr_in, state.map_display.borders);
-		ptr_in = deserialize(ptr_in, state.map_display.terrain_id_map);
-		ptr_in = deserialize(ptr_in, state.map_display.province_id_map);
+		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
+		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_y);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.border_vertices);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.borders);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.terrain_id_map);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_id_map);
 	}
 	{
 		uint32_t length = 0;
@@ -250,12 +250,12 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
 	{ // map
-		ptr_in = memcpy_serialize(ptr_in, state.map_display.size_x);
-		ptr_in = memcpy_serialize(ptr_in, state.map_display.size_y);
-		ptr_in = serialize(ptr_in, state.map_display.border_vertices);
-		ptr_in = serialize(ptr_in, state.map_display.borders);
-		ptr_in = serialize(ptr_in, state.map_display.terrain_id_map);
-		ptr_in = serialize(ptr_in, state.map_display.province_id_map);
+		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
+		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.border_vertices);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.borders);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.terrain_id_map);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.province_id_map);
 	}
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);
@@ -420,12 +420,12 @@ size_t sizeof_scenario_section(sys::state& state) {
 
 	// hand-written contribution
 	{ // map
-		sz += sizeof(state.map_display.size_x);
-		sz += sizeof(state.map_display.size_y);
-		sz += serialize_size(state.map_display.border_vertices);
-		sz += serialize_size(state.map_display.borders);
-		sz += serialize_size(state.map_display.terrain_id_map);
-		sz += serialize_size(state.map_display.province_id_map);
+		sz += sizeof(state.map_state.map_data.size_x);
+		sz += sizeof(state.map_state.map_data.size_y);
+		sz += serialize_size(state.map_state.map_data.border_vertices);
+		sz += serialize_size(state.map_state.map_data.borders);
+		sz += serialize_size(state.map_state.map_data.terrain_id_map);
+		sz += serialize_size(state.map_state.map_data.province_id_map);
 	}
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);

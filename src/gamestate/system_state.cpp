@@ -35,7 +35,7 @@ namespace sys {
 		// Lose focus on text
 		ui_state.edit_target = nullptr;
 
-		map_display.on_mbuttom_down(x, y, x_size, y_size, mod);
+		map_state.on_mbuttom_down(x, y, x_size, y_size, mod);
 	}
 	void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		// Lose focus on text
@@ -44,15 +44,15 @@ namespace sys {
 		if(ui_state.under_mouse != nullptr) {
 			auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 			if(r != ui::message_result::consumed) {
-				map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+				map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 				if(ui_state.province_window) {
-					static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_display.selected_province);
+					static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 				}
 			}
 		} else {
-			map_display.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			if(ui_state.province_window) {
-				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_display.selected_province);
+				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 			}
 		}
 	}
@@ -60,7 +60,7 @@ namespace sys {
 
 	}
 	void state::on_mbutton_up(int32_t x, int32_t y, key_modifiers mod) {
-		map_display.on_mbuttom_up(x, y, mod);
+		map_state.on_mbuttom_up(x, y, mod);
 	}
 	void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		is_dragging = false;
@@ -73,10 +73,10 @@ namespace sys {
 			// TODO figure out tooltips
 			auto r = ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 			if(r != ui::message_result::consumed) {
-				map_display.on_mouse_move(x, y, x_size, y_size, mod);
+				map_state.on_mouse_move(x, y, x_size, y_size, mod);
 			}
 		} else {
-			map_display.on_mouse_move(x, y, x_size, y_size, mod);
+			map_state.on_mouse_move(x, y, x_size, y_size, mod);
 		}
 	}
 	void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is held down
@@ -105,10 +105,10 @@ namespace sys {
 			auto r = ui_state.under_mouse->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
 			if(r != ui::message_result::consumed) {
 				// TODO Settings for making zooming the map faster
-				map_display.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
+				map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 			}
 		} else {
-			map_display.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
+			map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 		}
 	}
 	void state::on_key_down(virtual_key keycode, key_modifiers mod) {
@@ -124,12 +124,12 @@ namespace sys {
 				} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 					ui::console_window::show_toggle(*this);
 				}
-				map_display.on_key_down(keycode, mod);
+				map_state.on_key_down(keycode, mod);
 			}
 		}
 	}
 	void state::on_key_up(virtual_key keycode, key_modifiers mod) {
-		map_display.on_key_up(keycode, mod);
+		map_state.on_key_up(keycode, mod);
 	}
 	void state::on_text(char c) { // c is win1250 codepage value
 		if(ui_state.edit_target)
@@ -140,7 +140,6 @@ namespace sys {
 
 		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
 
-		map_display.update_borders(*this);
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
@@ -224,7 +223,7 @@ namespace sys {
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		map_display.render(*this, x_size, y_size);
+		map_state.render(*this, x_size, y_size);
 
 		// UI rendering
 		glUseProgram(open_gl.ui_shader_program);
@@ -534,7 +533,7 @@ namespace sys {
 
 
 		std::thread map_loader([&]() {
-			map_display.load_map_data(context);
+			map_state.load_map_data(context);
 		});
 
 		// Read national tags from countries.txt
@@ -1393,7 +1392,7 @@ namespace sys {
 		for(int32_t i = 0; i < province_definitions.first_sea_province.index(); ++i) {
 			dcon::province_id id{ dcon::province_id::value_base_t(i) };
 			if(!world.province_get_terrain(id)) { // don't overwrite if set by the history file
-				auto modifier = context.modifier_by_terrain_index[map_display.median_terrain_type[province::to_map_id(id)]];
+				auto modifier = context.modifier_by_terrain_index[map_state.map_data.median_terrain_type[province::to_map_id(id)]];
 				world.province_set_terrain(id, modifier);
 			}
 		}
@@ -1489,9 +1488,9 @@ namespace sys {
 		sys::repopulate_modifier_effects(*this);
 		military::restore_unsaved_values(*this);
 		nations::restore_unsaved_values(*this);
-		
+
 		pop_demographics::regenerate_is_primary_or_accepted(*this);
-		
+
 		rebel::update_movement_values(*this);
 
 		economy::regenerate_unsaved_values(*this);
@@ -1738,7 +1737,7 @@ namespace sys {
 					culture::update_reasearch(*this, uint32_t(ymd_date.year));
 
 					nations::update_military_scores(*this); // depends on ship score, land unit average
-					nations::update_rankings(*this); // depends on industrial score, military scores 
+					nations::update_rankings(*this); // depends on industrial score, military scores
 
 					nations::update_colonial_points(*this); // depends on rankings, naval supply values
 					military::update_cbs(*this); // may add/remove cbs to a nation

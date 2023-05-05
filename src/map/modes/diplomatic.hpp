@@ -28,7 +28,7 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
+	auto fat_selected_id = dcon::fatten(state.world, state.map_state.get_selected_province());
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
 
 	if(!bool(selected_nation)) {
@@ -127,14 +127,14 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 		prov_color[i] = color;
 		prov_color[i + texture_size] = stripe_color;
 	});
-	
+
 	return prov_color;
 }
 
 std::vector<uint32_t> diplomatic_map_from(sys::state& state) {
 	std::vector<uint32_t> prov_color;
 
-	if (state.map_display.get_selected_province()) {
+	if (state.map_state.get_selected_province()) {
 		prov_color = get_selected_diplomatic_color(state);
 	}
 	else {

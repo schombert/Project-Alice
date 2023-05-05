@@ -1,5 +1,4 @@
 #include "map.hpp"
-#include "map.hpp"
 #include "texture.hpp"
 #include "province.hpp"
 #include <cmath>
@@ -582,8 +581,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	line_border_shader = create_program(*line_border_vshader, *line_border_fshader);
 }
 
-void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
-	update(state);
+void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -617,9 +615,9 @@ void display_data::render(sys::state& state, uint32_t screen_x, uint32_t screen_
 		glUseProgram(program);
 
 		// uniform vec2 offset
-		glUniform2f(0, offset_x + 0.f, offset_y);
+		glUniform2f(0, offset.x + 0.f, offset.y);
 		// uniform float aspect_ratio
-		glUniform1f(1, screen_x / ((float)screen_y));
+		glUniform1f(1, screen_size.x / screen_size.y);
 		// uniform float zoom
 		glUniform1f(2, zoom);
 		// uniform vec2 map_size
@@ -784,17 +782,15 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void display_data::set_view_mode(map_view map_view_mode) {
-	this->map_view_mode = map_view_mode;
+void display_data::set_selected_province(sys::state& state, dcon::province_id prov_id) {
+	std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
+	if(prov_id)
+		province_highlights[province::to_map_id(prov_id)] = 0x2B2B2B2B;
+	gen_prov_color_texture(province_highlight, province_highlights);
 }
 
-void display_data::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
-	active_map_mode = new_map_mode;
+void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
 	gen_prov_color_texture(province_color, prov_color, 2);
-}
-
-void display_data::set_terrain_map_mode() {
-	active_map_mode = map_mode::mode::terrain;
 }
 
 void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
@@ -990,212 +986,7 @@ void display_data::load_map(sys::state& state) {
 		testColor[i] = 255;
 	}
 
-	set_province_color(testColor, map_mode::mode::terrain);
+	set_province_color(testColor);
 }
 
-void display_data::update(sys::state& state) {
-	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-	// Set the last_update_time if it hasn't been set yet
-	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
-		last_update_time = now;
-	if(last_zoom_time == std::chrono::time_point<std::chrono::system_clock>{})
-		last_zoom_time = now;
-
-	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
-	float seconds_since_last_update = (float)(microseconds_since_last_update.count() / 1e6);
-	last_update_time = now;
-
-	time_counter += seconds_since_last_update;
-	time_counter = (float)std::fmod(time_counter, 600.f); // Reset it after every 10 minutes
-
-	glm::vec2 velocity;
-
-	velocity = (pos_velocity + scroll_pos_velocity) * (seconds_since_last_update / zoom);
-	velocity.x *= float(size_y) / float(size_x);
-	pos += velocity;
-
-	globe_rotation = glm::rotate(glm::mat4(1.f), (0.25f - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
-	// Rotation axis
-	glm::vec3 axis = glm::vec3(globe_rotation * glm::vec4(1, 0, 0, 0));
-	axis.z = 0;
-	axis = glm::normalize(axis);
-	axis.y *= -1;
-	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
-
-	if(has_zoom_changed) {
-		last_zoom_time = now;
-		has_zoom_changed = false;
-	}
-	auto microseconds_since_last_zoom = std::chrono::duration_cast<std::chrono::microseconds>(now - last_zoom_time);
-	float seconds_since_last_zoom = (float)(microseconds_since_last_zoom.count() / 1e6);
-
-	zoom += (zoom_change * seconds_since_last_update) / (1 / zoom);
-	zoom_change *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
-	zoom = glm::clamp(zoom, 1.f, 75.f);
-	scroll_pos_velocity *= std::max(0.1f - seconds_since_last_zoom, 0.f) * 9.5f;
-
-	pos.x = glm::mod(pos.x, 1.f);
-	pos.y = glm::clamp(pos.y, 0.f, 1.f);
-	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
-	offset_y = pos.y - 0.5f;
-
-	if(unhandled_province_selection) {
-		map_mode::update_map_mode(state);
-		std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
-		if(selected_province)
-			province_highlights[province::to_map_id(selected_province)] = 0x2B2B2B2B;
-		gen_prov_color_texture(province_highlight, province_highlights);
-		unhandled_province_selection = false;
-	}
-}
-
-void display_data::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
-	if(keycode == sys::virtual_key::LEFT) {
-		pos_velocity.x = -1.f;
-		left_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::RIGHT) {
-		pos_velocity.x = +1.f;
-		right_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::UP) {
-		pos_velocity.y = -1.f;
-		up_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::DOWN) {
-		pos_velocity.y = +1.f;
-		down_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::Q) {
-		zoom_change = zoom * 1.1f;
-	} else if(keycode == sys::virtual_key::E) {
-		zoom_change = zoom * 0.9f;
-	}
-}
-
-void display_data::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
-	if(keycode == sys::virtual_key::LEFT) {
-		if(pos_velocity.x < 0) {
-			if(right_arrow_key_down == false) {
-				pos_velocity.x = 0;
-			} else {
-				pos_velocity.x *= -1;
-			}
-		}
-		left_arrow_key_down = false;
-	} else if(keycode == sys::virtual_key::RIGHT) {
-		if(pos_velocity.x > 0) {
-			if(left_arrow_key_down == false) {
-				pos_velocity.x = 0;
-			} else {
-				pos_velocity.x *= -1;
-			}
-		}
-		right_arrow_key_down = false;
-	} else if(keycode == sys::virtual_key::UP) {
-		if(pos_velocity.y < 0) {
-			if(down_arrow_key_down == false) {
-				pos_velocity.y = 0;
-			} else {
-				pos_velocity.y *= -1;
-			}
-		}
-		up_arrow_key_down = false;
-	} else if(keycode == sys::virtual_key::DOWN) {
-		if(pos_velocity.y > 0) {
-			if(up_arrow_key_down == false) {
-				pos_velocity.y = 0;
-			} else {
-				pos_velocity.y *= -1;
-			}
-		}
-		down_arrow_key_down = false;
-	}
-}
-
-
-void display_data::set_pos(glm::vec2 new_pos) {
-	pos.x = glm::mod(new_pos.x, 1.f);
-	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
-	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
-	offset_y = pos.y - 0.5f;
-}
-
-void display_data::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount) {
-    constexpr auto zoom_speed_factor = 15.f;
-
-	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
-    has_zoom_changed = true;
-
-    auto mouse_pos = glm::vec2(x, y);
-    auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-    scroll_pos_velocity = mouse_pos - screen_size * .5f;
-    scroll_pos_velocity /= screen_size;
-    scroll_pos_velocity *= zoom_speed_factor;
-    if(amount > 0) {
-        scroll_pos_velocity /= 3.f;
-    } else if(amount < 0) {
-        scroll_pos_velocity /= 6.f;
-    }
-}
-
-void display_data::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
-	if(is_dragging) {  // Drag the map with middlemouse
-		auto mouse_pos = glm::vec2(x, y);
-		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-		auto map_pos = screen_to_map(mouse_pos, screen_size);
-
-		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
-	}
-}
-
-glm::vec2 display_data::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size) {
-	screen_pos -= screen_size * 0.5f;
-	screen_pos /= screen_size;
-	screen_pos.x *= screen_size.x / screen_size.y;
-	screen_pos.x *= float(size_y) / float(size_x);
-
-	screen_pos /= zoom;
-	screen_pos += pos;
-	return screen_pos;
-}
-
-void display_data::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
-	auto mouse_pos = glm::vec2(x, y);
-	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-
-	auto map_pos = screen_to_map(mouse_pos, screen_size);
-
-	last_camera_drag_pos = map_pos;
-	is_dragging = true;
-	pos_velocity = glm::vec2(0);
-}
-
-void display_data::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) {
-	is_dragging = false;
-}
-
-void display_data::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
-	auto mouse_pos = glm::vec2(x, y);
-	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-	auto map_pos = screen_to_map(mouse_pos, screen_size);
-	map_pos *= glm::vec2(float(size_x), float(size_y));
-	auto idx = int32_t(size_y - map_pos.y) * int32_t(size_x) + int32_t(map_pos.x);
-	if(0 <= idx && size_t(idx) < province_id_map.size()) {
-		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-		auto fat_id = dcon::fatten(state.world, province::from_map_id(province_id_map[idx]));
-		if(province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
-			set_selected_province(province::from_map_id(province_id_map[idx]));
-		} else {
-			set_selected_province(dcon::province_id{});
-		}
-	} else {
-		set_selected_province(dcon::province_id{});
-	}
-}
-
-dcon::province_id display_data::get_selected_province() {
-	return selected_province;
-}
-
-void display_data::set_selected_province(dcon::province_id prov_id) {
-	unhandled_province_selection = selected_province != prov_id;
-	selected_province = prov_id;
-}
 }

@@ -44,7 +44,7 @@ void initialize_opengl(sys::state& state) {
 	// Allocate textures for the flags
 	state.open_gl.asset_textures.resize(state.ui_defs.textures.size() + (state.world.national_identity_size() + 1) * state.flag_types.size());
 
-	state.map_display.load_map(state);
+	state.map_state.load_map(state);
 
 	state.font_collection.load_all_glyphs();
 }
@@ -528,7 +528,7 @@ void render_classic_text(sys::state const& state, float x, float y, char const* 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 
-		//Only check kerning if there is greater then 1 character and 
+		//Only check kerning if there is greater then 1 character and
 		//if the check character is 1 less then the end of the string.
 		if(i != count - 1) {
 			x += font.GetKerningPair(codepoints[i], codepoints[i + 1]);

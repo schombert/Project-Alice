@@ -18,7 +18,7 @@ public:
 	}
 
 	bool is_active(sys::state& state) noexcept override {
-		return state.map_display.active_map_mode == target;
+		return state.map_state.active_map_mode == target;
 	}
 
 	map_mode::mode target = map_mode::mode::terrain;
@@ -205,7 +205,7 @@ public:
 
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		auto minimap_size = glm::vec2(base_data.size.x, base_data.size.y);
-        state.map_display.set_pos(glm::vec2(x, y) / minimap_size);
+        state.map_state.set_pos(glm::vec2(x, y) / minimap_size);
         return message_result::consumed;
 	}
 

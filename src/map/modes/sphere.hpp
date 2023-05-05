@@ -61,7 +61,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-	auto fat_selected_id = dcon::fatten(state.world, state.map_display.get_selected_province());
+	auto fat_selected_id = dcon::fatten(state.world, state.map_state.get_selected_province());
 	auto selected_nation = fat_selected_id.get_nation_from_province_ownership();
 
 	// Get sphere master if exists
@@ -166,7 +166,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 std::vector<uint32_t> sphere_map_from(sys::state& state) {
 	std::vector<uint32_t> prov_color;
 
-	if(state.map_display.get_selected_province()) {
+	if(state.map_state.get_selected_province()) {
 		prov_color = get_selected_sphere_color(state);
 	} else {
 		prov_color = get_global_sphere_color(state);

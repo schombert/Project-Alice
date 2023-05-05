@@ -22,7 +22,7 @@ class province_search_list_item : public listbox_row_button_base<dcon::province_
 public:
     void button_action(sys::state& state) noexcept override {
         auto map_prov_id = content;
-        state.map_display.set_selected_province(map_prov_id);
+        state.map_state.set_selected_province(map_prov_id);
         static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, map_prov_id);
     }
 
@@ -98,7 +98,7 @@ public:
 	void on_visible(sys::state& state) noexcept override {
 		state.ui_state.edit_target = edit_box;
 	}
-    
+
 	void on_hide(sys::state& state) noexcept override {
 		state.ui_state.edit_target = nullptr;
 	}
