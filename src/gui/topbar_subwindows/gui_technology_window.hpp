@@ -339,7 +339,7 @@ public:
 		row_contents.clear();
 		state.world.for_each_invention([&](dcon::invention_id id) {
 			auto lim_trigger_k = state.world.invention_get_limit(id);
-			if(trigger::evaluate_trigger(state, lim_trigger_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1))
+			if(trigger::evaluate(state, lim_trigger_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1))
 				row_contents.push_back(id);
 		});
 		update(state);

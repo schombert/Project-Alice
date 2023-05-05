@@ -32,6 +32,7 @@
 #include "modifiers.cpp"
 #include "province.cpp"
 #include "triggers.cpp"
+#include "effects.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"
 #include "bmfont.cpp"

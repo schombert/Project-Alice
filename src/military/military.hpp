@@ -81,15 +81,25 @@ struct global_military_state {
 	dcon::cb_type_id standard_great_war;
 };
 
+struct available_cb {
+	dcon::nation_id target;
+	sys::date expiration;
+	dcon::cb_type_id cb_type;
+};
+
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state); // must run after determining connectivity
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
-bool can_use_cb_against(sys::state const& state, dcon::nation_id from, dcon::nation_id target);
+bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
+float cb_infamy(sys::state const& state, dcon::cb_type_id t);
+bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 
 template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids);
+template<typename T>
+auto province_is_under_siege(sys::state const& state, T ids);
 template<typename T>
 auto battle_is_ongoing_in_province(sys::state const& state, T ids);
 
@@ -101,7 +111,6 @@ int32_t regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
-
 
 void update_recruitable_regiments(sys::state& state, dcon::nation_id n);
 void update_all_recruitable_regiments(sys::state& state);
@@ -117,5 +126,12 @@ float mobilization_size(sys::state const& state, dcon::nation_id n);
 float mobilization_impact(sys::state const& state, dcon::nation_id n);
 
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
+void update_cbs(sys::state& state);
+void monthly_leaders_update(sys::state& state);
+void daily_leaders_update(sys::state& state);
+
+bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
+void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target); // do not call this function directly unless you know what you are doing
+void execute_cb_discovery(sys::state& state, dcon::nation_id n);
 
 }

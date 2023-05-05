@@ -27,8 +27,8 @@ if(WIN32)
 else() # GCC or CLANG
 	target_compile_options(tests_project PRIVATE
 									# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter
-		$<$<CONFIG:Debug>:			-msse4.1 -g>
-		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3>)
+		$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
+		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti>)
 endif()
 
 FetchContent_MakeAvailable(Catch2)
@@ -76,6 +76,7 @@ target_include_directories(tests_project PUBLIC
 	${PROJECT_SOURCE_DIR}/src/gamestate
 	${PROJECT_SOURCE_DIR}/src/gui
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows
+	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/diplomacy_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/production_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/politics_subwindows
 	${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/military_subwindows

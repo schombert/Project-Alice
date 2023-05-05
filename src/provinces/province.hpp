@@ -33,9 +33,12 @@ template<typename F>
 void for_each_sea_province(sys::state& state, F const& func);
 template<typename F>
 void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
+template<typename F>
+void ve_for_each_land_province(sys::state& state, F const& func);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void update_connected_regions(sys::state& state);
+void update_cached_values(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 
 template<typename T>
@@ -64,5 +67,10 @@ float rgo_size(sys::state& state, dcon::province_id prov_id);
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);
 float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
 float revolt_risk(sys::state& state, dcon::province_id id);
+
+void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
+
+void update_crimes(sys::state& state);
+
 }
 

@@ -250,13 +250,13 @@ void regenerate_from_pop_data(sys::state& state) {
 			dcon::ideology_id pkey{ dcon::ideology_id::value_base_t( index - count_special_keys ) };
 			auto pdemo_key = pop_demographics::to_key(state, pkey);
 			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
-				return state.world.pop_get_demographics(p, pdemo_key);
+				return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
 			});
 		} else if(key.index() < to_key(state, dcon::pop_type_id(0)).index()) { // issue option
 			dcon::issue_option_id pkey{ dcon::issue_option_id::value_base_t(index - (count_special_keys + state.world.ideology_size()) ) };
 			auto pdemo_key = pop_demographics::to_key(state, pkey);
 			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
-				return state.world.pop_get_demographics(p, pdemo_key);
+				return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
 			});
 		} else if(key.index() < to_key(state, dcon::culture_id(0)).index()) { // pop type
 			dcon::pop_type_id pkey{ dcon::pop_type_id::value_base_t(index - (count_special_keys + state.world.ideology_size() + state.world.issue_option_size())) };
@@ -656,6 +656,15 @@ void execute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max,
 	}
 }
 
+template<typename F>
+void pexecute_staggered_blocks(uint32_t offset, uint32_t divisions, uint32_t max, F&& functor) {
+	concurrency::parallel_for(16 * offset, max, 16 * divisions, [&](uint32_t index) {
+		for(uint32_t i = 0; i < executions_per_block; ++i) {
+			functor(ve::contiguous_tags<dcon::pop_id>(index + i * ve::vector_size));
+		}
+	});
+}
+
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	/*
 	Let us define the local pop militancy modifier as the province's militancy modifier + the nation's militancy modifier + the nation's core pop militancy modifier (for non-colonial states, not just core provinces).
@@ -683,9 +692,9 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto ruling_ideology = state.world.political_party_get_ideology(ruling_party);
 
 		auto lx_mod = ve::max(state.world.pop_get_luxury_needs_satisfaction(ids) - 0.5f, 0.0f) * state.defines.mil_has_luxury_need;
-		auto con_sup = state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology / 100.0f;
+		auto con_sup = (state.world.pop_get_demographics(ids, conservatism_key) * state.defines.mil_ideology);
 		auto ruling_sup = ve::apply([&](dcon::pop_id p, dcon::ideology_id i) {
-			return i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) * state.defines.mil_ruling_party / 100.0f : 0.0f;
+			return i ? state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) * state.defines.mil_ruling_party : 0.0f;
 		}, ids, ruling_ideology);
 		auto ref_mod = ve::select(state.world.province_get_is_colonial(loc), 0.0f, (state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) * state.defines.mil_require_reform);
 
@@ -781,6 +790,878 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 
 		state.world.pop_set_literacy(ids, ve::select(owner != dcon::nation_id{}, new_lit, old_lit));
 	});
+}
+
+inline constexpr float ideology_change_rate = 0.10f;
+
+void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& ibuf) {
+	/*
+	For ideologies after their enable date (actual discovery / activation is irrelevant), and not restricted to civs only for pops in an unciv, the attraction modifier is computed *multiplicatively*. Then, these values are collectively normalized.
+	*/
+
+
+	auto new_pop_count = state.world.pop_size();
+	ibuf.update(state, new_pop_count);
+
+	// clear totals
+	execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+		ibuf.totals.set(ids, ve::fp_vector{});
+	});
+
+	// update
+	state.world.for_each_ideology([&](dcon::ideology_id i) {
+		if(state.world.ideology_get_enabled(i)) {
+			auto const i_key = pop_demographics::to_key(state, i);
+			if(state.world.ideology_get_is_civilized_only(i)) {
+				pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+					auto owner = nations::owner_of_pop(state, ids);
+
+					auto amount = ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+						if(state.world.nation_get_is_civilized(o)) {
+							auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+							return trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(o), 0);
+						} else
+							return 0.0f;
+					}, ids, state.world.pop_get_poptype(ids), owner);
+
+					ibuf.temp_buffers[i].set(ids, amount);
+					ibuf.totals.set(ids, ibuf.totals.get(ids) + amount);
+				});
+			} else {
+				pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+					auto owner = nations::owner_of_pop(state, ids);
+
+					auto amount = ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+						auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+						return trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(pid), trigger::to_generic(o), 0);
+					}, ids, state.world.pop_get_poptype(ids), owner);
+
+					ibuf.temp_buffers[i].set(ids, amount);
+					ibuf.totals.set(ids, ibuf.totals.get(ids) + amount);
+				});
+			}
+		}
+	});
+}
+
+void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf) {
+
+	/*
+	If the normalized value is greater than twice the pop's current support for the ideology: add 0.25 to the pop's current support for the ideology
+	If the normalized value is greater than the pop's current support for the ideology: add 0.05 to the pop's current support for the ideology
+	If the normalized value is greater than half the pop's current support for the ideology: do nothing
+	Otherwise: subtract 0.25 from the pop's current support for the ideology (to a minimum of zero)
+	*/
+
+	state.world.for_each_ideology([&](dcon::ideology_id i) {
+		if(state.world.ideology_get_enabled(i)) {
+			auto const i_key = pop_demographics::to_key(state, i);
+
+			execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+				auto ttotal = pbuf.totals.get(ids);
+				auto avalue = pbuf.temp_buffers[i].get(ids) / ttotal;
+				auto current = state.world.pop_get_demographics(ids, i_key);
+
+				state.world.pop_set_demographics(ids, i_key,
+					ve::select(ttotal > 0.0f, ideology_change_rate * avalue + (1.0f - ideology_change_rate) * current, current));
+			});
+		}
+	});
+}
+
+inline constexpr float issues_change_rate = 0.10f;
+
+void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& ibuf) {
+	/*
+	As with ideologies, the attraction modifier for each issue is computed *multiplicatively* and then are collectively normalized. Then we zero the attraction for any issue that is not currently possible (i.e. its trigger condition is not met or it is not the next/previous step for a next-step type issue, and for uncivs only the party issues are valid here)
+	*/
+
+	auto new_pop_count = state.world.pop_size();
+	ibuf.update(state, new_pop_count);
+
+	// clear totals
+	execute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+		ibuf.totals.set(ids, ve::fp_vector{});
+	});
+
+	// update
+	state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+		auto opt = fatten(state.world, iid);
+		auto allow = opt.get_allow();
+		auto parent_issue = opt.get_parent_issue();
+		auto const i_key = pop_demographics::to_key(state, iid);
+		auto is_party_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::party);
+		auto is_social_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::social);
+		auto is_political_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::political);
+		auto has_modifier = is_social_issue || is_political_issue;
+		auto modifier_key = is_social_issue ? sys::national_mod_offsets::social_reform_desire : sys::national_mod_offsets::political_reform_desire;
+
+		pexecute_staggered_blocks(offset, divisions, new_pop_count, [&](auto ids) {
+			auto owner = nations::owner_of_pop(state, ids);
+			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
+			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || ve::mask_vector(is_party_issue))
+				&& (allow ? trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : ve::mask_vector(true))
+				&& (current_issue_setting != iid || ve::mask_vector(is_party_issue))
+				&& (ve::mask_vector(!state.world.issue_get_is_next_step_only(parent_issue))
+					|| (ve::tagged_vector<int32_t>(current_issue_setting) == iid.index() - 1)
+					|| (ve::tagged_vector<int32_t>(current_issue_setting) == iid.index() + 1)
+					);
+			auto owner_modifier = has_modifier ? (state.world.nation_get_modifier_values(owner, modifier_key) + 1.0f) : ve::fp_vector(1.0f);
+
+			auto amount = owner_modifier * ve::select(allowed_by_owner,
+				ve::apply([&](dcon::pop_id pid, dcon::pop_type_id ptid, dcon::nation_id o) {
+					if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
+						return trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(o), 0);
+					} else {
+						return 0.0f;
+					}
+				}, ids, state.world.pop_get_poptype(ids), owner), 0.0f);
+
+			ibuf.temp_buffers[iid].set(ids, amount);
+			ibuf.totals.set(ids, ibuf.totals.get(ids) + amount);
+		});
+	});
+}
+
+void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf) {
+	/*
+	Then, like with ideologies, we check how much the normalized attraction is above and below the current support, with a couple of differences. First, for political or social issues, we multiply the magnitude of the adjustment by (national-political-reform-desire-modifier + 1) or (national-social-reform-desire-modifier + 1) as appropriate. Secondly, the base magnitude of the change is either (national-issue-change-speed-modifier + 1.0) x 0.25 or (national-issue-change-speed-modifier + 1.0) x 0.05 (instead of a fixed 0.05 or 0.25). Finally, there is an additional "bin" at 5x more or less where the adjustment is a flat 1.0.
+	*/
+
+	state.world.for_each_issue_option([&](dcon::issue_option_id i) {
+		auto const i_key = pop_demographics::to_key(state, i);
+
+		execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+			auto ttotal = pbuf.totals.get(ids);
+			auto avalue = pbuf.temp_buffers[i].get(ids) / ttotal;
+			auto current = state.world.pop_get_demographics(ids, i_key);
+			auto owner = nations::owner_of_pop(state, ids);
+			auto owner_rate_modifier = (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::issue_change_speed) + 1.0f);
+
+			state.world.pop_set_demographics(ids, i_key,
+					ve::select(ttotal > 0.0f, issues_change_rate * owner_rate_modifier * avalue + (1.0f - issues_change_rate * owner_rate_modifier) * current, current));
+		});
+	});
+}
+
+void update_growth(sys::state& state, uint32_t offset, uint32_t divisions) {
+	/*
+	Province pop-growth factor: Only owned provinces grow. To calculate the pop growth in a province: First, calculate the modified life rating of the province. This is done by taking the intrinsic life rating and then multiplying by (1 + the provincial modifier for life rating). The modified life rating is capped at 40. Take that value, if it is greater than define:MIN_LIFE_RATING_FOR_GROWTH, subtract define:MIN_LIFE_RATING_FOR_GROWTH from it, and then multiply by define:LIFE_RATING_GROWTH_BONUS. If it is less than define:MIN_LIFE_RATING_FOR_GROWTH, treat it as zero. Now, take that value and add it to define:BASE_POPGROWTH. This gives us the growth factor for the province.
+
+	The amount a pop grows is determine by first computing the growth modifier sum: (pop-life-needs - define:LIFE_NEED_STARVATION_LIMIT) x province-pop-growth-factor x 4 + province-growth-modifier + tech-pop-growth-modifier + national-growth-modifier x 0.1. Then divide that by define:SLAVE_GROWTH_DIVISOR if the pop is a slave, and multiply the pop's size to determine how much the pop grows by (growth is computed and applied during the pop's monthly tick).
+	*/
+
+
+	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owner = state.world.province_get_nation_from_province_ownership(loc);
+
+		auto base_life_rating = ve::to_float(state.world.province_get_life_rating(loc));
+		auto mod_life_rating = ve::min(base_life_rating * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::life_rating) + 1.0f), 40.0f);
+		auto lr_factor = ve::max((mod_life_rating - state.defines.min_life_rating_for_growth) * state.defines.life_rating_growth_bonus, 0.0f);
+		auto province_factor = lr_factor + state.defines.base_popgrowth;
+
+		auto ln_factor = state.world.pop_get_life_needs_satisfaction(ids) - state.defines.life_need_starvation_limit;
+		auto mod_sum = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::population_growth)
+			+ state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::pop_growth);
+
+		auto total_factor = ln_factor * province_factor * 4.0f + mod_sum;
+		auto old_size = state.world.pop_get_size(ids);
+		auto new_size = old_size * total_factor + old_size;
+
+		auto type = state.world.pop_get_poptype(ids);
+
+		state.world.pop_set_size(ids, ve::select((owner != dcon::nation_id{}) && (type != state.culture_definitions.slaves), new_size, old_size));
+	});
+}
+
+void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
+	pbuf.update(state.world.pop_size());
+
+	/*
+	Pops appear to "promote" into other pops of the same or greater strata. Likewise they "demote" into pops of the same or lesser strata. (Thus both promotion and demotion can move pops within the same strata?).
+	*/
+
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		pbuf.amounts.set(ids, 0.0f);
+		auto owners = nations::owner_of_pop(state, ids);
+		auto promotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0);
+		auto demotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0);
+		ve::apply([&](dcon::pop_id p, dcon::nation_id owner, float promotion_chance, float demotion_chance) {
+			/*
+			Promotion amount:
+			Compute the promotion modifier *additively*. If it it non-positive, there is no promotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly promote into that type, add the national focus effect to the promotion modifier. Conversely, pops of the focused type, are not allowed to promote out. Then multiply this value by national-administrative-efficiency x define:PROMOTION_SCALE x pop-size to find out how many promote (although at least one person will promote per day if the result is positive).
+
+			Demotion amount:
+			Compute the demotion modifier *additively*. If it it non-positive, there is no demotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly demote into that type, add the national focus effect to the demotion modifier. Then multiply this value by define:PROMOTION_SCALE x pop-size to find out how many demote (although at least one person will demote per day if the result is positive).
+			*/
+			
+			
+			if(!owner)
+				return;
+
+			auto loc = state.world.pop_get_province_from_pop_location(p);
+			auto si = state.world.province_get_state_membership(loc);
+			auto nf = state.world.state_instance_get_owner_focus(si);
+			auto promoted_type = state.world.national_focus_get_promotion_type(nf);
+			auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
+			auto ptype = state.world.pop_get_poptype(p);
+			auto strata = state.world.pop_type_get_strata(ptype);
+
+			if(promoted_type) {
+				if(promoted_type == ptype) {
+					promotion_chance = 0.0f;
+				} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
+					promotion_chance += promotion_bonus;
+				} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
+					demotion_chance += promotion_bonus;
+				}
+			}
+
+			if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
+				return; // skip this pop
+
+			float current_size = state.world.pop_get_size(p);
+
+			bool promoting = promotion_chance >= demotion_chance;
+			float amount = std::min(current_size, promoting ? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) * state.defines.promotion_scale * current_size)) : (std::ceil(promotion_chance * state.defines.promotion_scale * current_size)));
+			pbuf.amounts.set(p, amount);
+
+			
+			tagged_vector<float, dcon::pop_type_id> weights(state.world.pop_type_size());
+
+			
+			/*
+			The promotion and demotion factors seem to be computed additively (by taking the sum of all true conditions). If there is a national focus set towards a pop type in the state, that is also added into the chances to promote into that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This obviously has the effect of making those pop types even more likely than they otherwise would be.
+
+			As for demotion, there appear to an extra wrinkle. Pops do not appear to demote into pop types if there is more unemployment in that demotion target than in their current pop type. Otherwise, the national focus appears to have the same effect with respect to demotion.
+			*/
+
+			bool is_state_capital = state.world.state_instance_get_capital(state.world.province_get_state_membership(loc)) == loc;
+
+			if(promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata
+				&& (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
+				auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
+				if(promote_mod) {
+					auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + promotion_bonus;
+					if(chance > 0) {
+						pbuf.types.set(p, promoted_type);
+						return; // early exit
+					}
+				}
+			} else if(!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata
+				&& (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
+				auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
+				if(promote_mod) {
+					auto chance = trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + promotion_bonus;
+					if(chance > 0) {
+						pbuf.types.set(p, promoted_type);
+						return; // early exit
+					}
+				}
+			}
+
+			float chances_total = 0.0f;
+			state.world.for_each_pop_type([&](dcon::pop_type_id target_type) {
+				if(target_type == ptype) {
+					weights[target_type] = 0.0f;
+				} else if(!is_state_capital && state.world.pop_type_get_state_capital_only(target_type)) {
+					weights[target_type] = 0.0f;
+				} else if(promoting && state.world.pop_type_get_strata(promoted_type) >= strata) {
+					auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
+					if(promote_mod) {
+						auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f), 0.0f);
+						chances_total += chance;
+						weights[target_type] = chance;
+					}
+				} else if(!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) {
+					auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
+					if(promote_mod) {
+						auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(owner), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f), 0.0f);
+						chances_total += chance;
+						weights[target_type] = chance;
+					}
+				} else {
+					weights[target_type] = 0.0f;
+				}
+			});
+
+			if(chances_total > 0.0f) {
+				auto rvalue = float(rng::get_random(state, uint32_t(p.index())) & 0xFFFF) / float(0xFFFF + 1);
+				for(uint32_t i = state.world.pop_type_size(); i-- > 0;) {
+					dcon::pop_type_id pr{dcon::pop_type_id::value_base_t(i) };
+					rvalue -= weights[pr] / chances_total;
+					if(rvalue < 0.0f) {
+						pbuf.types.set(p, pr);
+						return;
+					}
+				}
+			}
+
+		}, ids, owners, promotion_chances, demotion_chances);
+	});
+}
+
+void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
+	pbuf.update(state.world.pop_size());
+
+	/*
+	- cultural assimilation -- For a pop to assimilate, there must be a pop of the same strata of either a primary culture (preferred) or accepted culture in the province to assimilate into. (schombert notes: not sure if it is worthwhile preserving this limitation)
+	*/
+
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		pbuf.amounts.set(ids, 0.0f);
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owners = state.world.province_get_nation_from_province_ownership(loc);
+		auto assimilation_chances = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.assimilation_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f);
+
+		ve::apply([&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float assimilation_chance) {
+			// no assimilation in unowned provinces
+			if(!owner)
+				return; // early exit
+
+			//slaves do not assimilate
+			if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
+				return; // early exit
+
+			//pops of an accepted culture do not assimilate
+			if(state.world.pop_get_is_primary_or_accepted_culture(p))
+				return; // early exit
+
+			//pops in an overseas and colonial province do not assimilate
+			if(state.world.province_get_is_colonial(location) && province::is_overseas(state, location))
+				return; // early exit
+			
+			/*
+			Amount: define:ASSIMILATION_SCALE x (provincial-assimilation-rate-modifier + 1) x (national-assimilation-rate-modifier + 1) x pop-size x assimilation chance factor (computed additively, and always at least 0.01).
+			*/
+
+			float current_size = state.world.pop_get_size(p);
+			float base_amount = state.defines.assimilation_scale * (state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::assimilation_rate) + 1.0f) * (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_assimilation_rate) + 1.0f) * assimilation_chance * current_size;
+
+
+			/*
+			In a colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a factor of 100. In a non-colonial province, assimilation numbers for pops with an *non* "overseas"-type culture group are reduced by a factor of 10.
+			*/
+
+			auto pc = state.world.pop_get_culture(p);
+			if(state.world.province_get_is_colonial(location)) {
+				if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+					base_amount /= 100.0f;
+				}
+			} else {
+				if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
+					base_amount /= 10.0f;
+				}
+			}
+
+			/*
+			All pops have their assimilation numbers reduced by a factor of 100 per core in the province sharing their primary culture.
+			*/
+
+			for(auto core : state.world.province_get_core(location)) {
+				if(core.get_identity().get_primary_culture() == pc) {
+					base_amount /= 100.0f;
+				}
+			}
+
+			/*
+			If the pop size is less than 100 or thereabouts, they seem to get all assimilated if there is any assimilation.
+			*/
+
+			if(current_size < 100.0f && base_amount >= 0.001f) {
+				pbuf.amounts.set(p, current_size);
+			} else if(base_amount >= 0.001f) {
+				auto transfer_amount = std::min(current_size, std::ceil(base_amount));
+				pbuf.amounts.set(p, transfer_amount);
+			}
+
+		}, ids, loc, owners, assimilation_chances);
+	});
+}
+
+namespace impl {
+dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_id n, dcon::pop_id p) {
+	/*
+	Destination for internal migration: colonial provinces are not valid targets, nor are non state capital provinces for pop types restricted to capitals. Valid provinces are weighted according to the product of the factors, times the value of the immigration focus + 1.0 if it is present, times the provinces immigration attractiveness modifier + 1.0. The pop is then distributed more or less evenly over those provinces with positive attractiveness in proportion to their attractiveness, or dumped somewhere at random if no provinces are attractive.
+	*/
+	auto weights_buffer = state.world.province_make_vectorizable_float_buffer();
+	float total_weight = 0.0f;
+
+	auto modifier = state.world.pop_type_get_migration_target(state.world.pop_get_poptype(p));
+	if(!modifier)
+		return dcon::province_id{};
+
+	bool limit_to_capitals = state.world.pop_type_get_state_capital_only(state.world.pop_get_poptype(p));
+	for(auto loc : state.world.nation_get_province_ownership(n)) {
+		if(loc.get_province().get_is_colonial() == false) {
+			if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
+				auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0)
+					* (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f)
+					* (loc.get_province().get_state_membership().get_owner_focus().get_immigrant_attract() + 1.0f);
+
+				if(weight > 0.0f) {
+					weights_buffer.set(loc.get_province(), weight);
+					total_weight += weight;
+				}
+			}
+		}
+	}
+
+	if(total_weight <= 0.0f)
+		return dcon::province_id{};
+
+	auto rvalue = float(rng::get_random(state, (uint32_t(p.index()) << 2) | uint32_t(1) ) & 0xFFFF) / float(0xFFFF + 1);
+	for(auto loc : state.world.nation_get_province_ownership(n)) {
+		rvalue -= weights_buffer.get(loc.get_province()) / total_weight;
+		if(rvalue < 0.0f) {
+			return loc.get_province();
+		}
+	}
+
+	return dcon::province_id{};
+}
+dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon::nation_id n, dcon::pop_id p) {
+	/*
+	*only* colonial provinces are valid targets, and pops belonging to cultures with "overseas" = false set will not colonially migrate outside the same continent. The same trigger seems to be used as internal migration for weighting the colonial provinces.
+	*/
+	auto weights_buffer = state.world.province_make_vectorizable_float_buffer();
+	float total_weight = 0.0f;
+
+	auto modifier = state.world.pop_type_get_migration_target(state.world.pop_get_poptype(p));
+	if(!modifier)
+		return dcon::province_id{};
+
+	auto overseas_culture = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
+	auto home_continent = state.world.province_get_continent(state.world.pop_get_province_from_pop_location(p));
+
+	bool limit_to_capitals = state.world.pop_type_get_state_capital_only(state.world.pop_get_poptype(p));
+	for(auto loc : state.world.nation_get_province_ownership(n)) {
+		if(loc.get_province().get_is_colonial() == true) {
+			if((overseas_culture || loc.get_province().get_continent() == home_continent)
+				&& (!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id)) {
+				auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(loc.get_province().id), trigger::to_generic(p), 0)
+					* (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f)
+					* (loc.get_province().get_state_membership().get_owner_focus().get_immigrant_attract() + 1.0f);
+
+				if(weight > 0.0f) {
+					if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
+						weights_buffer.set(loc.get_province(), weight);
+						total_weight += weight;
+					}
+				}
+			}
+		}
+	}
+
+	if(total_weight <= 0.0f)
+		return dcon::province_id{};
+
+	auto rvalue = float(rng::get_random(state, (uint32_t(p.index()) << 2) | uint32_t(2)) & 0xFFFF) / float(0xFFFF + 1);
+	for(auto loc : state.world.nation_get_province_ownership(n)) {
+		rvalue -= weights_buffer.get(loc.get_province()) / total_weight;
+		if(rvalue < 0.0f) {
+			return loc.get_province();
+		}
+	}
+
+	return dcon::province_id{};
+}
+
+dcon::nation_id get_immigration_target(sys::state& state, dcon::nation_id n, dcon::pop_id p) {
+	/*
+	Country targets for external migration: must be a country with its capital on a different continent from the source country *or* an adjacent country (same continent, but non adjacent, countries are not targets). Each country target is then weighted: First, the product of the country migration target modifiers (including the base value) is computed, and any results less than 0.01 are increased to that value. That value is then multiplied by (1.0 + the nations immigrant attractiveness modifier). Assuming that there are valid targets for immigration, the nations with the top three values are selected as the possible targets. The pop (or, rather, the part of the pop that is migrating) then goes to one of those three targets, selected at random according to their relative attractiveness weight. The final provincial destination for the pop is then selected as if doing normal internal migration.
+	*/
+
+	auto modifier = state.world.pop_type_get_country_migration_target(state.world.pop_get_poptype(p));
+	if(!modifier)
+		return dcon::nation_id{};
+
+	dcon::nation_id top_nations[3] = { dcon::nation_id {}, dcon::nation_id{}, dcon::nation_id{} };
+	float top_weights[3] = { 0.0f, 0.0f, 0.0f };
+
+	auto home_continent = state.world.province_get_continent(state.world.pop_get_province_from_pop_location(p));
+
+	state.world.for_each_nation([&](dcon::nation_id inner) {
+		if(state.world.nation_get_owned_province_count(inner) == 0)
+			return; // ignore dead nations
+		if(state.world.nation_get_is_civilized(inner) == false)
+			return; // ignore unciv nations
+		if(state.world.province_get_continent(state.world.nation_get_capital(inner)) == home_continent
+			&& !state.world.get_nation_adjacency_by_nation_adjacency_pair(n, inner)) {
+			return; // ignore same continent, non-adjacent nations
+		}
+
+		auto weight = trigger::evaluate_multiplicative_modifier(state, modifier, trigger::to_generic(inner), trigger::to_generic(p), 0)
+			* (state.world.nation_get_modifier_values(inner, sys::national_mod_offsets::global_immigrant_attract) + 1.0f);
+
+		if(weight > top_weights[2]) {
+			top_weights[2] = weight;
+			top_nations[2] = inner;
+			if(top_weights[2] > top_weights[1]) {
+				std::swap(top_weights[1], top_weights[2]);
+				std::swap(top_nations[1], top_nations[2]);
+			}
+			if(top_weights[1] > top_weights[0]) {
+				std::swap(top_weights[1], top_weights[0]);
+				std::swap(top_nations[1], top_nations[0]);
+			}
+		}
+	});
+
+	float total_weight = top_weights[0] + top_weights[1] + top_weights[2];
+	if(total_weight <= 0.0f)
+		return dcon::nation_id{};
+
+	auto rvalue = float(rng::get_random(state, (uint32_t(p.index()) << 2) | uint32_t(3)) & 0xFFFF) / float(0xFFFF + 1);
+	for(uint32_t i = 0; i < 3; ++i) {
+		rvalue -= top_weights[i] / total_weight;
+		if(rvalue < 0.0f) {
+			return top_nations[i];
+		}
+	}
+
+	return dcon::nation_id{};
+}
+
+}
+
+void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
+	pbuf.update(state.world.pop_size());
+
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		pbuf.amounts.set(ids, 0.0f);
+		/*
+		For non-slave, non-colonial pops in provinces with a total population > 100, some pops may migrate within the nation. This is done by calculating the migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+		*/
+
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owners = state.world.province_get_nation_from_province_ownership(loc);
+		auto pop_sizes = state.world.pop_get_size(ids);
+		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f) * pop_sizes * (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f) * state.defines.immigration_scale;
+
+		ve::apply([&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount) {
+			if(amount <= 0.0f)
+				return; // early exit
+			if(!owner)
+				return; // early exit
+			if(state.world.province_get_is_colonial(location))
+				return; // early exit
+			if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
+				return; // early exit
+
+			auto pop_size = state.world.pop_get_size(p);
+			amount = std::min(pop_size, std::ceil(amount));
+
+			auto dest = impl::get_province_target_in_nation(state, owner, p);
+
+			pbuf.destinations.set(p, dest);
+			pbuf.amounts.set(p, amount);
+		}, ids, loc, owners, amounts);
+	});
+}
+
+void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
+	pbuf.update(state.world.pop_size());
+
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		pbuf.amounts.set(ids, 0.0f);
+
+		/*
+		If a nation has colonies, non-factory worker, non-rich pops in provinces with a total population > 100 may move to the colonies. This is done by calculating the colonial migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x (colonial-migration-from-tech + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+		*/
+
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owners = state.world.province_get_nation_from_province_ownership(loc);
+		auto pop_sizes = state.world.pop_get_size(ids);
+		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.colonialmigration_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f)
+			* pop_sizes
+			* (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f)
+			* (state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::colonial_migration) + 1.0f)
+			* state.defines.immigration_scale;
+
+		ve::apply([&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount) {
+			if(amount <= 0.0f)
+				return; // early exit
+			if(!owner)
+				return; // early exit
+			if(state.world.nation_get_is_colonial_nation(owner) == false)
+				return; // early exit
+			auto pt = state.world.pop_get_poptype(p);
+			if(state.world.pop_type_get_strata(pt) == uint8_t(culture::pop_strata::rich))
+				return; // early exit
+			if(state.world.province_get_is_colonial(location))
+				return; // early exit
+			if(pt == state.culture_definitions.slaves || pt == state.culture_definitions.primary_factory_worker || pt == state.culture_definitions.secondary_factory_worker)
+				return; // early exit
+
+			auto pop_size = state.world.pop_get_size(p);
+			amount = std::min(pop_size, std::ceil(amount));
+
+			auto dest = impl::get_colonial_province_target_in_nation(state, owner, p);
+
+			pbuf.destinations.set(p, dest);
+			pbuf.amounts.set(p, amount);
+
+		}, ids, loc, owners, amounts);
+	});
+}
+
+void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
+	pbuf.update(state.world.pop_size());
+
+	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
+		pbuf.amounts.set(ids, 0.0f);
+
+		/*
+		pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x 1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+		*/
+
+		auto loc = state.world.pop_get_province_from_pop_location(ids);
+		auto owners = state.world.province_get_nation_from_province_ownership(loc);
+		auto pop_sizes = state.world.pop_get_size(ids);
+		auto impush = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
+		auto amounts = ve::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.emigration_chance, trigger::to_generic(ids), trigger::to_generic(owners), 0), 0.0f)
+			* pop_sizes
+			* impush
+			* ve::max(impush, 1.0f)
+			* state.defines.immigration_scale;
+
+		ve::apply([&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount) {
+			if(amount <= 0.0f)
+				return; // early exit
+			if(!owner)
+				return; // early exit
+			if(state.world.nation_get_is_civilized(owner) == false)
+				return; // early exit
+			if(state.world.province_get_is_colonial(location))
+				return; // early exit
+			if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
+				return; // early exit
+			if(state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p))) == false) {
+				return; // early exit
+			}
+
+			auto pop_size = state.world.pop_get_size(p);
+			amount = std::min(pop_size, std::ceil(amount));
+
+			auto ndest = impl::get_immigration_target(state, owner, p);
+			auto dest = impl::get_colonial_province_target_in_nation(state, ndest, p);
+
+			pbuf.destinations.set(p, dest);
+			pbuf.amounts.set(p, amount);
+
+		}, ids, loc, owners, amounts);
+	});
+}
+
+namespace impl {
+dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::culture_id cid, dcon::religion_id rid, dcon::pop_type_id ptid) {
+	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(loc));
+	if(is_mine && ptid == state.culture_definitions.farmers) {
+		ptid = state.culture_definitions.laborers;
+	} else if(!is_mine && ptid == state.culture_definitions.laborers) {
+		ptid = state.culture_definitions.farmers;
+	}
+	// TODO: fix state capital only type pops ?
+	for(auto pl : state.world.province_get_pop_location(loc)) {
+		if(pl.get_pop().get_culture() == cid && pl.get_pop().get_religion() == rid && pl.get_pop().get_poptype() == ptid) {
+			return pl.get_pop();
+		}
+	}
+	auto np = fatten(state.world, state.world.create_pop());
+	state.world.force_create_pop_location(np, loc);
+	np.set_culture(cid);
+	np.set_religion(rid);
+	np.set_poptype(ptid);
+
+	{
+		auto n = state.world.province_get_nation_from_province_ownership(loc);
+		if(state.world.nation_get_primary_culture(n) == cid) {
+			np.set_is_primary_or_accepted_culture(true);
+		} else {
+			auto accepted = state.world.nation_get_accepted_cultures(n);
+			for(auto c : accepted) {
+				if(c == cid) {
+					np.set_is_primary_or_accepted_culture(true);
+					break;
+				}
+			}
+		}
+	}
+
+	{ // initial ideology
+		float totals = 0.0f;
+		state.world.for_each_ideology([&](dcon::ideology_id i) {
+			if(state.world.ideology_get_enabled(i)) {
+				auto const i_key = pop_demographics::to_key(state, i);
+				auto ptrigger = state.world.pop_type_get_ideology(ptid, i);
+				auto owner = nations::owner_of_pop(state, np);
+
+				assert(ptrigger);
+				if(state.world.ideology_get_is_civilized_only(i)) {
+					if(state.world.nation_get_is_civilized(owner)) {
+						auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id), trigger::to_generic(owner), 0);
+						state.world.pop_set_demographics(np, i_key, amount);
+						totals += amount;
+					}
+				} else {
+					auto amount = trigger::evaluate_multiplicative_modifier(state, ptrigger, trigger::to_generic(np.id), trigger::to_generic(owner), 0);
+					state.world.pop_set_demographics(np, i_key, amount);
+					totals += amount;
+				}
+			}
+		});
+		if(totals > 0) {
+			state.world.for_each_ideology([&](dcon::ideology_id i) {
+				auto const i_key = pop_demographics::to_key(state, i);
+				state.world.pop_get_demographics(np, i_key) /= totals;
+			});
+		}
+	}
+	{ // initial issues
+		float totals = 0.0f;
+		state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+			auto opt = fatten(state.world, iid);
+			auto allow = opt.get_allow();
+			auto parent_issue = opt.get_parent_issue();
+			auto const i_key = pop_demographics::to_key(state, iid);
+			auto is_party_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::party);
+			auto is_social_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::social);
+			auto is_political_issue = state.world.issue_get_issue_type(parent_issue) == uint8_t(culture::issue_type::political);
+			auto has_modifier = is_social_issue || is_political_issue;
+			auto modifier_key = is_social_issue ? sys::national_mod_offsets::social_reform_desire : sys::national_mod_offsets::political_reform_desire;
+
+
+			auto owner = nations::owner_of_pop(state, np);
+			auto current_issue_setting = state.world.nation_get_issues(owner, parent_issue);
+			auto allowed_by_owner = (state.world.nation_get_is_civilized(owner) || is_party_issue)
+				&& (allow ? trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0) : true)
+				&& (current_issue_setting != iid || is_party_issue)
+				&& (!state.world.issue_get_is_next_step_only(parent_issue)
+					|| (current_issue_setting.id.index() == iid.index() - 1)
+					|| (current_issue_setting.id.index() == iid.index() + 1)
+					);
+			auto owner_modifier = has_modifier ? (state.world.nation_get_modifier_values(owner, modifier_key) + 1.0f) : 1.0f;
+			if(allowed_by_owner) {
+				if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
+					auto amount = owner_modifier * trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(np.id), trigger::to_generic(owner), 0);
+
+					state.world.pop_set_demographics(np, i_key, amount);
+					totals += amount;
+				}
+			}
+		});
+		if(totals > 0) {
+			state.world.for_each_issue_option([&](dcon::issue_option_id i) {
+				auto const i_key = pop_demographics::to_key(state, i);
+				state.world.pop_get_demographics(np, i_key) /= totals;
+			});
+		}
+	}
+	return np;
+}
+}
+
+void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+		ve::apply([&](dcon::pop_id p) {
+			if(pbuf.amounts.get(p) > 0.0f && pbuf.types.get(p)) {
+				auto target_pop = impl::find_or_make_pop(state,
+					state.world.pop_get_province_from_pop_location(p),
+					state.world.pop_get_culture(p),
+					state.world.pop_get_religion(p),
+					pbuf.types.get(p));
+				state.world.pop_get_size(p) -= pbuf.amounts.get(p);
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+			}
+		}, ids);
+	});
+}
+
+void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+		ve::apply([&](dcon::pop_id p) {
+			if(pbuf.amounts.get(p) > 0.0f) {
+				auto o = nations::owner_of_pop(state, p);
+				auto cul = state.world.nation_get_primary_culture(o);
+				auto rel = state.world.nation_get_religion(o);
+				auto target_pop = impl::find_or_make_pop(state,
+					state.world.pop_get_province_from_pop_location(p),
+					cul,
+					rel,
+					state.world.pop_get_poptype(p));
+				state.world.pop_get_size(p) -= pbuf.amounts.get(p);
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+			}
+		}, ids);
+	});
+}
+
+void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+		ve::apply([&](dcon::pop_id p) {
+			if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
+				auto target_pop = impl::find_or_make_pop(state,
+					pbuf.destinations.get(p),
+					state.world.pop_get_culture(p),
+					state.world.pop_get_religion(p),
+					state.world.pop_get_poptype(p));
+				state.world.pop_get_size(p) -= pbuf.amounts.get(p);
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+				state.world.province_get_daily_net_migration(state.world.pop_get_province_from_pop_location(p)) -= pbuf.amounts.get(p);
+				state.world.province_get_daily_net_migration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
+			}
+		}, ids);
+	});
+}
+
+void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+		ve::apply([&](dcon::pop_id p) {
+			if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
+				auto target_pop = impl::find_or_make_pop(state,
+					pbuf.destinations.get(p),
+					state.world.pop_get_culture(p),
+					state.world.pop_get_religion(p),
+					state.world.pop_get_poptype(p));
+				state.world.pop_get_size(p) -= pbuf.amounts.get(p);
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+				state.world.province_get_daily_net_migration(state.world.pop_get_province_from_pop_location(p)) -= pbuf.amounts.get(p);
+				state.world.province_get_daily_net_migration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
+			}
+		}, ids);
+	});
+}
+
+void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+		ve::apply([&](dcon::pop_id p) {
+			if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
+				auto target_pop = impl::find_or_make_pop(state,
+					pbuf.destinations.get(p),
+					state.world.pop_get_culture(p),
+					state.world.pop_get_religion(p),
+					state.world.pop_get_poptype(p));
+				state.world.pop_get_size(p) -= pbuf.amounts.get(p);
+				state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+				state.world.province_get_daily_net_immigration(state.world.pop_get_province_from_pop_location(p)) -= pbuf.amounts.get(p);
+				state.world.province_get_daily_net_immigration(pbuf.destinations.get(p)) += pbuf.amounts.get(p);
+				state.world.province_set_last_immigration(pbuf.destinations.get(p), state.current_date);
+			}
+		}, ids);
+	});
+}
+
+
+void remove_size_zero_pops(sys::state& state) {
+	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
+	for(auto last = state.world.pop_size(); last-- > 0; ) {
+		dcon::pop_id m{ dcon::pop_id::value_base_t(last) };
+		if(state.world.pop_get_size(m) < 1.0f) {
+			state.world.delete_pop(m);
+		}
+	}
 }
 
 }

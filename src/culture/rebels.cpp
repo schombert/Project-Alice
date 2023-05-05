@@ -1,6 +1,8 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
+#include "effects.hpp"
+#include "politics.hpp"
 
 namespace rebel {
 
@@ -145,7 +147,7 @@ bool issue_is_valid_for_movement(sys::state& state, dcon::nation_id nation_withi
 			return false;
 	}
 	auto allow = state.world.issue_option_get_allow(i);
-	if(allow && !trigger::evaluate_trigger(state, allow, trigger::to_generic(nation_within), trigger::to_generic(nation_within), 0))
+	if(allow && !trigger::evaluate(state, allow, trigger::to_generic(nation_within), trigger::to_generic(nation_within), 0))
 		return false;
 
 	return true;
@@ -204,7 +206,7 @@ void update_pop_movement_membership(sys::state& state) {
 		if(existing_movement) {
 			auto i = state.world.movement_get_associated_issue_option(state.world.pop_movement_membership_get_movement(existing_movement));
 			if(i) {
-				auto support = state.world.pop_get_demographics(p, pop_demographics::to_key(state, i)) / state.world.pop_get_size(p);
+				auto support = state.world.pop_get_demographics(p, pop_demographics::to_key(state, i));
 				if(support * 100.0f < state.defines.issue_movement_leave_limit) {
 					// If the pop's support of the issue for an issue-based movement drops below define:ISSUE_MOVEMENT_LEAVE_LIMIT the pop will leave the movement. 
 					state.world.delete_pop_movement_membership(existing_movement);
@@ -235,8 +237,8 @@ void update_pop_movement_membership(sys::state& state) {
 				auto allow = state.world.issue_option_get_allow(io);
 				if(co != io
 					&& (state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() -1 == io.index())
-					&& (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
-					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io)) / state.world.pop_get_size(p);
+					&& (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io));
 					if(sup * 100.0f >= state.defines.issue_movement_join_limit && sup > max_support) {
 						max_option = io;
 						max_support = sup;
@@ -641,6 +643,11 @@ void update_pop_rebel_membership(sys::state& state) {
 	});
 }
 
+void delete_faction(sys::state& state, dcon::rebel_faction_id reb) {
+	// TODO: delete rebel units
+	state.world.delete_rebel_faction(reb);
+}
+
 void update_factions(sys::state& state) {
 	update_pop_rebel_membership(state);
 
@@ -651,7 +658,7 @@ void update_factions(sys::state& state) {
 			for(auto members : state.world.rebel_faction_get_pop_rebellion_membership(m)) {
 				members.get_pop().set_militancy(0.0f);
 			}
-			state.world.delete_rebel_faction(m);
+			delete_faction(state, m);
 		}
 	}
 }
@@ -725,6 +732,174 @@ float get_faction_organization(sys::state& state, dcon::rebel_faction_id r) {
 float get_faction_revolt_risk(sys::state& state, dcon::rebel_faction_id r) {
 	// TODO
 	return 0.f;
+}
+
+void execute_province_defections(sys::state& state) {
+	province::for_each_land_province(state, [&](dcon::province_id p) {
+		auto reb_controller = state.world.province_get_rebel_faction_from_province_rebel_control(p);
+		auto owner = state.world.province_get_nation_from_province_ownership(p);
+		if(reb_controller && owner) {
+			auto reb_type = state.world.rebel_faction_get_type(reb_controller);
+			culture::rebel_defection def_type = culture::rebel_defection(reb_type.get_defection());
+			if(def_type != culture::rebel_defection::none
+				&&  state.world.province_get_last_control_change(p) + reb_type.get_defect_delay() * 31 <= state.current_date) {
+
+				// defection time
+
+				dcon::nation_id defection_tag = [&]() {
+					switch(def_type) {
+						case culture::rebel_defection::ideology:
+						{
+							// prefer existing tag of same ideology
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_nation_from_identity_holder().get_ruling_party().get_ideology() == reb_type.get_ideology() && owned.begin() != owned.end()) {
+									return c.get_identity().get_nation_from_identity_holder().id;
+								}
+							}
+							// otherwise pick a non-existent tag
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(!c.get_identity().get_is_not_releasable() && owned.begin() == owned.end()) {
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									politics::force_nation_ideology(state, t, reb_type.get_ideology());
+									return t;
+								}
+							}
+							break;
+						}
+						case culture::rebel_defection::religion:
+							// prefer existing
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && owned.begin() != owned.end()) {
+									return c.get_identity().get_nation_from_identity_holder().id;
+								}
+							}
+							// otherwise pick a non-existent tag
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && owned.begin() == owned.end()) {
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									return t;
+								}
+							}
+							break;
+						case culture::rebel_defection::culture:
+							// prefer existing
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && owned.begin() != owned.end()) {
+									return c.get_identity().get_nation_from_identity_holder().id;
+								}
+							}
+							// otherwise pick a non-existent tag
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && owned.begin() == owned.end()) {
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									return t;
+								}
+							}
+							break;
+						case culture::rebel_defection::culture_group:
+							// prefer existing
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && owned.begin() != owned.end()) {
+									return c.get_identity().get_nation_from_identity_holder().id;
+								}
+							}
+							// otherwise pick a non-existent tag
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && owned.begin() == owned.end()) {
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									return t;
+								}
+							}
+
+							// first: existing tag of culture; then existing tag of culture group;
+							// then dead tag of culture, then dead tag of cg
+							break;
+						case culture::rebel_defection::pan_nationalist:
+							// union tag or nothing
+							for(auto c : state.world.province_get_core(p)) {
+								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+								if(c.get_identity() == state.world.rebel_faction_get_defection_target(reb_controller)) {
+									if(owned.begin() != owned.end())
+										return c.get_identity().get_nation_from_identity_holder().id;
+
+									auto t = c.get_identity().get_nation_from_identity_holder().id;
+									nations::create_nation_based_on_template(state, t, owner);
+									return t;
+								}
+							}
+							break;	
+					}
+					return dcon::nation_id{};
+				}();
+
+				if(defection_tag) {
+					province::change_province_owner(state, p, defection_tag);
+				}
+			}
+
+		}
+	});
+}
+
+void execute_rebel_victories(sys::state& state) {
+	for(uint32_t i = state.world.rebel_faction_size(); i-- > 0;) {
+		auto reb = dcon::rebel_faction_id{dcon::rebel_faction_id::value_base_t(i) };
+		auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
+		auto is_active = state.world.rebel_faction_get_is_active(reb);
+		auto enforce_trigger = state.world.rebel_faction_get_type(reb).get_demands_enforced_trigger();
+		if(is_active && enforce_trigger && trigger::evaluate(state, enforce_trigger, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb))) {
+			// rebel victory
+
+			/*
+			If it wins, it gets its `demands_enforced_effect` executed.
+			*/
+
+			if(auto k = state.world.rebel_faction_get_type(reb).get_demands_enforced_effect(); k)
+				effect::execute(state, k, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb));
+
+			/*
+			The government type of the nation will change if the rebel type has an associated government (with the same logic for a government type change from a wargoal or other cause).
+			*/
+
+			auto new_gov = state.world.rebel_faction_get_type(reb).get_government_change(state.world.nation_get_government_type(within));
+			if(new_gov) {
+				politics::change_government_type(state, within, new_gov);
+			}
+			if(auto iid = state.world.rebel_faction_get_type(reb).get_ideology(); iid) {
+				politics::force_nation_ideology(state, within, iid);
+			}
+
+			/*
+			If the rebel type has "break alliances on win" then the nation loses all of its alliances, all of its non-substate vassals, all of its sphere members, and loses all of its influence and has its influence level set to neutral.
+			*/
+
+			if(state.world.rebel_faction_get_type(reb).get_break_alliance_on_win()) {
+				nations::destroy_diplomatic_relationships(state, within);
+			}
+
+			/*
+			The nation loses prestige equal to define:PRESTIGE_HIT_ON_BREAK_COUNTRY x (nation's current prestige + permanent prestige), which is multiplied by the nation's prestige modifier from technology + 1 as usual (!).
+			*/
+			nations::adjust_prestige(state, within, state.defines.prestige_hit_on_break_country * nations::prestige_score(state, within));
+
+			/*
+			Any units for the faction that exist are destroyed (or transferred if it is one of the special rebel types).
+			*/
+			delete_faction(state, reb);
+		}
+	}
 }
 
 }

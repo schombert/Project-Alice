@@ -8,22 +8,53 @@ Both nations and provinces have a set of properties (a bag of float values) that
 
 Some modifiers are scaled by things such as war exhaustion, literacy, etc. Since these need to be updated daily, there is a second bag of values attached to nations just for these
 
-- rebel occupation: scaled by the fraction of rebel-occupied, non-overseas provinces when at war
-- infamy: scaled by infamy as a fraction of the infamy limit (can be greater than 1)
-- blockaded: scaled by the fraction of non-overseas blockaded ports
-- war exhaustion: scaled by war exhaustion
-- plurality: scaled by plurality
-- literacy: scaled by average literacy
+- total occupation: scaled by the fraction of hostile, but not rebel occupied home continent provinces when at war (yeah, not the normal overseas check; home continent only)
+- infamy: scaled by infamy
+- total blockaded: scaled by the fraction of non-overseas blockaded ports
+- war exhaustion: scaled by war exhaustion (as a value from 0 to 100)
+- plurality: scaled by plurality (as a value from 0 to 100, so 100% plurality = 100x the modifier values)
+- literacy: scaled by average literacy (as a value from 0 to 1)
 
 ### Other conditional national modifiers
 
-- war/peace
-- disarmed
+- national value of the nation
+- tech school of the nation
+- one of: the great-power static modifier, the secondary-power static modifier, the civilized-nation static modifier, or the uncivilized-nation static modifier
+- modifiers from any active party issues, social and political issues (if civilized), reforms (if unciv), technologies (if civ), or inventions
+- one of: war or peace
+- disarming, if currently disarmed
 - debt: The debt default to modifier is triggered by the nation having the generalized debt default and/or bankruptcy as a timed/triggered modifier and unpaid creditors ... I think.
+- timed or permanent modifiers applied by event
+- triggered modifiers where the trigger condition is met
+
+### Scaled provincial modifiers
+
+- the modifier for each province building, scaled by its level
+- the infrastructure modifier, scaled by the infrastructure value for the province (each level of railroad gives a fixed amount of infrastructure)
+- the nationalism modifier, scaled by the province's nationalism value, assuming that the owner does not have a core there (starts at define:YEARS_OF_NATIONALISM and ticks down by 1/12 per month)
+
+### Conditional province modifiers
+
+- terrain modifier
+- climate modifier
+- continent modifier
+- a national focus modifier
+- crime modifier
+- the land_province modifier if it is land, and the sea_zone modifier otherwise (which we probably won't use)
+- the coastal modifier if the province is coastal, and the non_coastal modifier otherwise
+- there is also a coastal_sea modifier, which I am going to ignore
+- the overseas modifier if the province is overseas
+- the has_siege modifier if there is an active siege
+- the blockaded modifier if the province is blockaded
+- the core modifier if the owner of the province has a core there
+- the no_adjacent_controlled modifier if not adjacent provinces are controlled (the base game doesn't use this, and I am going to ignore it)
+- timed or permanent modifiers applied by event
 
 ### Update frequency
 
 Triggered modifiers for nations appear to be updated on the first of each month. The game appears to update the values that result from modifiers being applied or not on a monthly basis (1st of the month) for provinces and nations.
+
+When modifiers are updated, any spending over the maximum/minimums is limited appropriately.
 
 ## Economy
 
@@ -327,15 +358,25 @@ The amount a pop grows is determine by first computing the growth modifier sum: 
 
 Internal and external "normal" migration appears to be handled distinctly from "colonial" migration. In performing colonial migration, all pops of the same culture+religion+type seems to get combined before moving them around. Pops may only migrate between countries of the same civ/unciv status.
 
-Country targets for external migration: must be a country with its capital on a different continent from the source country *or* an adjacent country (same continent, but non adjacent, countries are not targets). Each country target is then weighted: Firs, the product of the country migration target modifiers (including the base value) is computed, and any results less than 0.01 are increased to that value. That value is then multiplied by (1.0 + the nations immigrant attractiveness modifier). Assuming that there are valid targets for immigration, the nations with the top three values are selected as the possible targets. The pop (or, rather, the part of the pop that is migrating) then goes to one of those three targets, selected at random according to their relative attractiveness weight. The final provincial destination for the pop is then selected as if doing normal internal migration.
+#### Destinations
+
+Country targets for external migration: must be a country with its capital on a different continent from the source country *or* an adjacent country (same continent, but non adjacent, countries are not targets). Each country target is then weighted: First, the product of the country migration target modifiers (including the base value) is computed, and any results less than 0.01 are increased to that value. That value is then multiplied by (1.0 + the nations immigrant attractiveness modifier). Assuming that there are valid targets for immigration, the nations with the top three values are selected as the possible targets. The pop (or, rather, the part of the pop that is migrating) then goes to one of those three targets, selected at random according to their relative attractiveness weight. The final provincial destination for the pop is then selected as if doing normal internal migration.
 
 Destination for internal migration: colonial provinces are not valid targets, nor are non state capital provinces for pop types restricted to capitals. Valid provinces are weighted according to the product of the factors, times the value of the immigration focus + 1.0 if it is present, times the provinces immigration attractiveness modifier + 1.0. The pop is then distributed more or less evenly over those provinces with positive attractiveness in proportion to their attractiveness, or dumped somewhere at random if no provinces are attractive.
 
 Colonial migration appears to work much the same way as internal migration, except that *only* colonial provinces are valid targets, and pops belonging to cultures with "overseas" = false set will not colonially migrate outside the same continent. The same trigger seems to be used as internal migration for weighting the colonial provinces.
 
+#### Amounts
+
+For non-slave, non-colonial pops in provinces with a total population > 100, some pops may migrate within the nation. This is done by calculating the migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
+If a nation has colonies, non-factory worker, non-rich pops in provinces with a total population > 100 may move to the colonies. This is done by calculating the colonial migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x (colonial-migration-from-tech + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
+Finally, pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x 1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
+
 ### Promotion/demotion
 
-Pops appear to "promote" into other pops of the same or greater strata. Likewise they "demote" into pops of the same or lesser strata. (Thus both promotion and demotion can move pops within the same strata?). The promotion and demotion factors seem to be computed additively (by taking the same of all true conditions). If there is a national focus set towards a pop type in the state, that also seems to be added into the chances to promote into that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This obviously has the effect of making those pop types even more likely than they otherwise would be.
+Pops appear to "promote" into other pops of the same or greater strata. Likewise they "demote" into pops of the same or lesser strata. (Thus both promotion and demotion can move pops within the same strata?). The promotion and demotion factors seem to be computed additively (by taking the sum of all true conditions). If there is a national focus set towards a pop type in the state, that is also added into the chances to promote into that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This obviously has the effect of making those pop types even more likely than they otherwise would be.
 
 There are known bugs in terms of promotion not respecting culture and/or religion. I don't see a reason to try to replicate them.
 
@@ -344,16 +385,10 @@ As for demotion, there appear to an extra wrinkle. Pops do not appear to demote 
 Pops that move / promote seem to take some money with them, but there is also magical money generated by starter share, at least for capitalists, probably so that it is possible for the first capitalists in a state with no factories to build a factory. I propose the following instead: capitalists building a factory in a province with no open factories (or reopening a closed factory in those conditions) is simply free.
 
 Promotion amount:
-Compute the promotion modifier *additively*. If it it non-positive, there is no promotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly promote into that type, add the national focus effect to the promotion modifier. Conversely, pops of the focused type, are not allowed to promote out. Then multiply this value by national-administrative-efficiency x define:PROMOTION_SCALE x pop-size to find out how many promote (although at least one person will promote per day if the result is positive).
+Compute the promotion modifier *additively*. If it it non-positive, there is no promotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly promote into that type, add the national focus effect to the promotion modifier. Conversely, pops of the focused type are not allowed to promote out. Then multiply this value by national-administrative-efficiency x define:PROMOTION_SCALE x pop-size to find out how many promote (although at least one person will promote per day if the result is positive).
 
 Demotion amount:
 Compute the demotion modifier *additively*. If it it non-positive, there is no demotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly demote into that type, add the national focus effect to the demotion modifier. Then multiply this value by define:PROMOTION_SCALE x pop-size to find out how many demote (although at least one person will demote per day if the result is positive).
-
-Similarly, for non-slave, non-colonial pops in provinces with a total population > 100, some pops may migrate within the nation. This is done by calculating the migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
-
-If a nation has colonies, non-factory worker, non-rich pops in provinces with a total population > 100 may move to the colonies. This is done by calculating the colonial migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x (colonial-migration-from-tech + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
-
-Finally, pops in a civ nation that are not in a colony any which do not belong to an `overseas` culture group in provinces with a total population > 100 may emigrate. This is done by calculating the emigration migration chance factor *additively*. If it is non negative, pops may migrate, and we multiply it by (province-immigrant-push-modifier + 1) x 1v(province-immigrant-push-modifier + 1) x define:IMMIGRATION_SCALE x pop-size to find out how many migrate.
 
 ### Militancy
 
@@ -408,13 +443,13 @@ Nations consume (or try to consume) commodities for their land and naval units d
 CB fabrication by a nation is paused while that nation is in a crisis (nor do events related to CB fabrication happen). CBs that become invalid (the nations involved no longer satisfy the conditions or enter into a war with each other) are canceled (and the player should be notified in this event). Otherwise, CB fabrication is advanced by points equal to:
 define:CB_GENERATION_BASE_SPEED x cb-type-construction-speed x (national-cb-construction-speed-modifiers + technology-cb-construction-speed-modifier + 1). This value is further multiplied by (define:CB_GENERATION_SPEED_BONUS_ON_COLONY_COMPETITION + 1) if the fabricating country and the target country are competing colonially for the same state, and then further by (define:CB_GENERATION_SPEED_BONUS_ON_COLONY_COMPETITION_TROOPS_PRESENCE + 1) if either country has units in that colonial state. (schombert: I'm really not convinced that these effects are worth the trouble it would take to implement). When the fabrication reaches 100 points, it is complete and the nation gets the CB.
 
-Each day, a fabricating CB has a define:CB_DETECTION_CHANCE_BASE out of 1000 chance to be detected. If discovered, the fabricating country gains the infamy for that war goal x the fraction of fabrication remaining. If discovered relations between the two nations are changed by define:ON_CB_DETECTED_RELATION_CHANGE. If discovered, any states with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
+Each day, a fabricating CB has a define:CB_DETECTION_CHANCE_BASE out of 1000 chance to be detected. If discovered, the fabricating country gains the infamy for that war goal (sum the po costs) x the fraction of fabrication remaining. If discovered relations between the two nations are changed by define:ON_CB_DETECTED_RELATION_CHANGE. If discovered, any states with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
 
 When fabrication progress reaches 100, the CB will remain valid for define:CREATED_CB_VALID_TIME months (so x30 days for us). Note that pending CBs have their target nation fixed, but all other parameters are flexible.
 
 ### Other CBs
 
-Beyond fabricating a CB, you can get one from any CB with "triggered_only = yes" if the "is_valid" trigger is satisfied (with the potential target country in scope and the country that would be granted the CB in "this"). I believe that this is always tested daily. At least for the player, some record of which CBs were available in the previous day must be maintained in order to give messages about CB gained/lost for these triggered CBs
+Beyond fabricating a CB, you can get one from any CB with "always = yes" if the "is_valid" trigger is satisfied (with the potential target country in scope and the country that would be granted the CB in "this"). I believe that this is always tested daily. At least for the player, some record of which CBs were available in the previous day must be maintained in order to give messages about CB gained/lost for these triggered CBs
 
 ### Leaders (Generals and Admirals)
 
@@ -762,7 +797,7 @@ If, on the first of the month, a non-capital province is controlled by rebels an
 
 ### Rebel victory
 
-Every day, an active rebel faction has its `demands_enforced_trigger` checked. If it wins, it gets its `demands_enforced_trigger` executed. Any units for the faction that exist are destroyed (or transferred if it is one of the special rebel types). The government type of the nation will change if the rebel type has an associated government (with the same logic for a government type change from a wargoal or other cause). The upper house will then be set in a special way (even if the type of government has not changed). How the upper house is reset is a bit complicated, so the outline I will give here assumes that you understand in general how the upper house works. First we check the relevant rules: in "same as ruling party" we set it 100% to the ruling party ideology. If it is "state vote" we compute the upper house result for each non-colonial state as usual (i.e. we apply the standard strata voting modifiers and weight the vote by culture as the voting rules require), then we normalize each state result and add them together. Otherwise, we are in direct voting, meaning that we just add up each pop vote (again, weighting those votes according to the usual rules and modifiers). If the rebel type has "break alliances on win" then the nation loses all of its alliances, all of its non-substate vassals, all of its sphere members, and loses all of its influence and has its influence level set to neutral. The nation loses prestige equal to define:PRESTIGE_HIT_ON_BREAK_COUNTRY x (nation's current prestige + permanent prestige), which is multiplied by the nation's prestige modifier from technology + 1 as usual (!).
+Every day, an active rebel faction has its `demands_enforced_trigger` checked. If it wins, it gets its `demands_enforced_effect` executed. Any units for the faction that exist are destroyed (or transferred if it is one of the special rebel types). The government type of the nation will change if the rebel type has an associated government (with the same logic for a government type change from a wargoal or other cause). The upper house will then be set in a special way (even if the type of government has not changed). How the upper house is reset is a bit complicated, so the outline I will give here assumes that you understand in general how the upper house works. First we check the relevant rules: in "same as ruling party" we set it 100% to the ruling party ideology. If it is "state vote" we compute the upper house result for each non-colonial state as usual (i.e. we apply the standard strata voting modifiers and weight the vote by culture as the voting rules require), then we normalize each state result and add them together. Otherwise, we are in direct voting, meaning that we just add up each pop vote (again, weighting those votes according to the usual rules and modifiers). If the rebel type has "break alliances on win" then the nation loses all of its alliances, all of its non-substate vassals, all of its sphere members, and loses all of its influence and has its influence level set to neutral. The nation loses prestige equal to define:PRESTIGE_HIT_ON_BREAK_COUNTRY x (nation's current prestige + permanent prestige), which is multiplied by the nation's prestige modifier from technology + 1 as usual (!).
 
 ### Calculating how many regiments are "ready to join" a rebel faction
 
@@ -801,15 +836,23 @@ Inventions have a chance to be discovered on the 1st of every month. The inventi
 
 ### Party loyalty
 
-Each province has a party loyalty value (although it is by ideology, not party, so it would be more appropriately called ideology loyalty ... whatever). If the national focus is present in the state for party loyalty, the loyalty in each province in the state for that ideology will increase by the loyalty value of the focus.
+Each province has a party loyalty value (although it is by ideology, not party, so it would be more appropriately called ideology loyalty ... whatever). If the national focus is present in the state for party loyalty, the loyalty in each province in the state for that ideology will increase by the loyalty value of the focus (daily).
 
 ### When a social/political reform is possible
 
-These are only available for civ nations. If it is "next step only" either the previous or next issue option must be in effect. At least define:MIN_DELAY_BETWEEN_REFORMS months must have passed since the last issue option change (for any type of issue). And it's `allow` trigger must be satisfied. Then. for each ideology, we test its `add_social_reform` or `remove_social_reform` (depending if we are increasing or decreasing, and substituting `political_reform` here as necessary), computing its modifier additively, and then adding the result x the fraction of the upperhouse that the ideology has to a running total. If the running total is > 0.5, the issue option can be implemented.
+These are only available for civ nations. If it is "next step only" either the previous or next issue option must be in effect. At least define:MIN_DELAY_BETWEEN_REFORMS months must have passed since the last issue option change (for any type of issue). And it's `allow` trigger must be satisfied. Then. for each ideology, we test its `add_social_reform` or `remove_social_reform` (depending if we are increasing or decreasing, and substituting `political_reform` here as necessary), computing its modifier additively, and then adding the result x the fraction of the upper house that the ideology has to a running total. If the running total is > 0.5, the issue option can be implemented.
 
 ### When an economic/military reform is possible
 
 These are only available for unciv nations. Some of the rules are the same as for social/political reforms:  If it is "next step only" either the previous or next reform option must be in effect. At least define:MIN_DELAY_BETWEEN_REFORMS months must have passed since the last reform option change (for any type of reform). And it's `allow` trigger must be satisfied. Where things are different: Each reform also has a cost in research points. This cost, however, can vary. The actual cost you must pay is multiplied by what I call the "reform factor" + 1. The reform factor is (sum of ideology-in-upper-house x add-reform-triggered-modifier) x define:ECONOMIC_REFORM_UH_FACTOR + the nation's self_unciv_economic/military_modifier + the unciv_economic/military_modifier of the nation it is in the sphere of (if any).
+
+### Pop voting weight
+
+Since this is used in a couple of places, it is easiest to make it its own rule: When a pop's "votes" in any form, the weight of that vote is the product of the size of the pop and the national modifier for voting for their strata (this could easily result in a strata having no votes). If the nation has primary culture voting set then primary culture pops get a full vote, accepted culture pops get a half vote, and other culture pops get no vote. If it has culture voting, primary and accepted culture pops get a full vote and no one else gets a vote. If neither is set, all pops get an equal vote.
+
+### Yearly upper house updates
+
+Every year, the upper house of each nation is updated. If the "same as ruling party" rule is set, the upper house becomes 100% the ideology of the ruling party. If the rule is "state vote", then for each non-colonial state: for each pop in the state that is not prevented from voting by its type we distribute its weighted vote proportionally to its ideology support, giving us an ideology distribution for each of those states. The state ideology distributions are then normalized and summed to form the distribution for the upper house. For "population_vote" and "rich_only" the voting weight of each non colonial pop (or just the rich ones for "rich only") is distributed proportionally to its ideological support, with the sum for all eligible pops forming the distribution for the upper house.
 
 ### Elections
 
@@ -820,11 +863,10 @@ Elections last define:CAMPAIGN_DURATION months.
 To determine the outcome of election, we must do the following:
 - Determine the vote in each province. Note that voting is *by active party* not by ideology.
 - Provinces in colonial states don't get to vote
-- Each pop has their vote multiplied by the national modifier for voting for their strata (this could easily result in a strata having no votes). If the nation has primary culture voting set. Primary culture pops get a full vote, accepted culture pops get a half vote, and other culture pops get no vote. If it has culture voting, primary and accepted culture pops get a full vote and no one else gets a vote. If neither is set, all pops get an equal vote.
-- For each party we do the following: figure out the pop's ideological support for the party and its issues based support for the party (by summing up its support for each issue that the party has set, except that pops of non-accepted cultures will never support more restrictive culture voting parties). The pop then votes for the party based on the sum of its issue and ideological support, except that the greater consciousness the pop has, the more its vote is based on ideological support (pops with 0 consciousness vote based on issues alone). I don't know the exact ratio (does anyone care if I don't use the exact ratio?). The support for the party is then multiplied by (provincial-modifier-ruling-party-support + national-modifier-ruling-party-support + 1), if it is the ruling party, and by (1 + province-party-loyalty) for its ideology.
+- For each party we do the following: figure out the pop's ideological support for the party and its issues based support for the party (by summing up its support for each issue that the party has set, except that pops of non-accepted cultures will never support more restrictive culture voting parties). The pop then votes for the party (i.e. contributes its voting weight in support) based on the sum of its issue and ideological support, except that the greater consciousness the pop has, the more its vote is based on ideological support (pops with 0 consciousness vote based on issues alone). I don't know the exact ratio (does anyone care if I don't use the exact ratio?). The support for the party is then multiplied by (provincial-modifier-ruling-party-support + national-modifier-ruling-party-support + 1), if it is the ruling party, and by (1 + province-party-loyalty) for its ideology.
 - Pop votes are also multiplied by (provincial-modifier-number-of-voters + 1)
 - After the vote has occurred in each province, the winning party there has the province's ideological loyalty for its ideology increased by define:LOYALTY_BOOST_ON_PARTY_WIN x (provincial-boost-strongest-party-modifier + 1) x fraction-of-vote-for-winning-party
-- If voting rule "largest_share" is in effect: only votes for the winning party in a province are added to the sum. If it is "dhont", then the votes in each province are normalized to the size of the province, and for "sainte_laque" the votes from the provinces are simply summed up.
+- If voting rule "largest_share" is in effect: all votes are added to the sum towards the party that recieved the most votes in the province. If it is "dhont", then the votes in each province are normalized to the number of votes from the province, and for "sainte_laque" the votes from the provinces are simply summed up.
 
 What happens with the election result depends partly on the average militancy of the nation. If it is less than 5: We find the ideology group with the greatest support (each active party gives their support to their group), then the party with the greatest support from the winning group is elected. If average militancy is greater than 5: the party with the greatest individual support wins. (Note: so at average militancy less than 5, having parties with duplicate ideologies makes an ideology group much more likely to win, because they get double counted.)
 
@@ -1013,7 +1055,7 @@ The probabilities for province events are calculated in the same way, except tha
 - national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier + efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x (sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x define:BUREAUCRACY_PERCENTAGE_INCREMENT + define:MAX_BUREAUCRACY_PERCENTAGE) )
 - tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to at most 1.0
 - number of national focuses: the lesser of total-accepted-and-primary-culture-population / define:NATIONAL_FOCUS_DIVIDER and 1 + the number of national focuses provided by technology.
-- province nationalism decreases by 0.083 per month.
+- province nationalism decreases by 0.083 (1/12) per month.
 
 ## Tracking changes
 

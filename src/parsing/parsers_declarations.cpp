@@ -20,7 +20,7 @@ void religion_def::pagan(association_type, bool v, error_handler& err, int32_t l
 }
 
 void names_list::free_value(std::string_view text, error_handler& err, int32_t line, names_context& context) {
-	auto new_id = context.outer_context.state.add_to_pool(text);
+	auto new_id = context.outer_context.state.add_unit_name(text);
 	if(context.first_names) {
 		context.outer_context.state.world.culture_get_first_names(context.id).push_back(new_id);
 	} else {
@@ -212,7 +212,7 @@ void trait::attack(association_type, float value, error_handler& err, int32_t li
 }
 
 void trait::defence(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
-	context.outer_context.state.world.leader_trait_set_defence(context.id, value);
+	context.outer_context.state.world.leader_trait_set_defense(context.id, value);
 }
 
 void trait::reconnaissance(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
@@ -441,9 +441,19 @@ void poptype_file::is_slave(association_type, bool value, error_handler& err, in
 		context.outer_context.state.culture_definitions.slaves = context.id;
 }
 
+void poptype_file::allowed_to_vote(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+	if(value == false) {
+		context.outer_context.state.world.pop_type_set_voting_forbidden(context.id, true);
+	}
+}
+
 void poptype_file::can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
 	if(value)
 		context.outer_context.state.culture_definitions.soldiers = context.id;
+}
+
+void poptype_file::state_capital_only(association_type, bool value, error_handler& err, int32_t line, poptype_context& context) {
+	context.outer_context.state.world.pop_type_set_state_capital_only(context.id, value);
 }
 
 void poptype_file::leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
@@ -1423,7 +1433,7 @@ void inv_effect::gas_attack(association_type, bool value, error_handler& err, in
 }
 
 void inv_effect::gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context) {
-	context.outer_context.state.world.invention_set_enable_gas_defence(context.id, value);
+	context.outer_context.state.world.invention_set_enable_gas_defense(context.id, value);
 }
 
 void inv_effect::rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context) {
@@ -1889,10 +1899,10 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 void oob_relationship::value(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context) {
 	auto rel = context.outer_context.state.world.get_diplomatic_relation_by_diplomatic_pair(context.nation_for, context.nation_with);
 	if(rel) {
-		context.outer_context.state.world.diplomatic_relation_set_value(rel, v);
+		context.outer_context.state.world.diplomatic_relation_set_value(rel, float(v));
 	} else {
 		auto new_rel = context.outer_context.state.world.force_create_diplomatic_relation(context.nation_for, context.nation_with);
-		context.outer_context.state.world.diplomatic_relation_set_value(new_rel, v);
+		context.outer_context.state.world.diplomatic_relation_set_value(new_rel, float(v));
 	}
 }
 

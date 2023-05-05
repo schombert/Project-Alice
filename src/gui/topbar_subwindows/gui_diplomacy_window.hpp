@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <functional>
 
+#include "gui_diplomacy_actions_window.hpp"
+
 namespace ui {
 
 enum class diplomacy_window_tab : uint8_t {
@@ -407,7 +409,10 @@ public:
 		if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_flag") {
-			return make_element_by_type<flag_button>(state, id);
+			auto ptr = make_element_by_type<flag_button>(state, id);
+			//ptr->base_data.size.x += 3; // Nudge
+			//ptr->base_data.size.y += 4;
+			return ptr;
 		} else if(name == "country_puppets") {
 			return make_element_by_type<overlapping_protected_flags>(state, id);
 		} else if(name == "gp_prestige") {
@@ -442,13 +447,16 @@ private:
 	diplomacy_country_listbox* country_listbox = nullptr;
 	diplomacy_war_listbox* war_listbox = nullptr;
 	diplomacy_country_facts* country_facts = nullptr;
+	diplomacy_action_dialog_window* action_dialog_win = nullptr;
+	diplomacy_gp_action_dialog_window* gp_action_dialog_win = nullptr;
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
+	std::vector<element_base*> action_buttons{};
 
 	void filter_countries(sys::state& state, std::function<bool(dcon::nation_id)> filter_fun) {
 		if(country_listbox) {
 			country_listbox->row_contents.clear();
 			state.world.for_each_nation([&](dcon::nation_id id) {
-				if(filter_fun(id)) {
+				if(state.world.nation_get_owned_province_count(id) != 0 && filter_fun(id)) {
 					country_listbox->row_contents.push_back(id);
 				}
 			});
@@ -470,6 +478,14 @@ private:
 			auto cont_id = fat_id.get_capital().get_continent().id;
 			return mod_id == cont_id;
 		});
+	}
+
+	template<typename T>
+	void add_action_button(sys::state& state, xy_pair offset) noexcept {
+		auto ptr = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("diplomacy_option")->second.definition);
+		ptr->base_data.position = offset;
+		action_buttons.push_back(ptr.get());
+		add_child_to_front(std::move(ptr));
 	}
 
 public:
@@ -494,6 +510,56 @@ public:
 			gp_infos.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
+
+		// Fill out all the options for the diplomacy window
+		xy_pair options_base_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_actions_pos")->second.definition].position;
+		xy_pair options_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_option")->second.definition].size;
+		xy_pair options_offset = options_base_offset;
+		add_action_button<diplomacy_action_window<diplomacy_action_ally_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_call_ally_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_military_access_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_give_military_access_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_increase_relations_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_decrease_relations_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_war_subisides_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_declare_war_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_command_units_button>>(state, options_offset);
+		// Next row of actions...
+		options_offset.x += options_size.x;
+		options_offset.y = options_base_offset.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_discredit_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_expel_advisors_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_ban_embassy_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_increase_opinion_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_decrease_opinion_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_add_to_sphere_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_remove_from_sphere_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_justify_war_button>>(state, options_offset);
+
+		auto new_win1 = make_element_by_type<diplomacy_action_dialog_window>(state, state.ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition);
+		new_win1->set_visible(state, false);
+		action_dialog_win = new_win1.get();
+		add_child_to_front(std::move(new_win1));
+
+		auto new_win2 = make_element_by_type<diplomacy_gp_action_dialog_window>(state, state.ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition);
+		new_win2->set_visible(state, false);
+		gp_action_dialog_win = new_win2.get();
+		add_child_to_front(std::move(new_win2));
 
 		Cyto::Any payload = state.local_player_nation;
 		impl_get(state, payload);
@@ -638,7 +704,33 @@ public:
 			filter_by_continent(state, mod_id);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
+			for(const auto e : action_buttons)
+				e->impl_set(state, payload);
 			return country_facts->impl_set(state, payload);
+		} else if(payload.holds_type<diplomacy_action>()) {
+			auto v = any_cast<diplomacy_action>(payload);
+			Cyto::Any new_payload = dcon::nation_id{};
+			country_facts->impl_get(state, new_payload);
+
+			gp_action_dialog_win->set_visible(state, false);
+			action_dialog_win->set_visible(state, false);
+
+			switch(v) {
+			case diplomacy_action::discredit:
+			case diplomacy_action::expel_advisors:
+			case diplomacy_action::ban_embassy:
+			case diplomacy_action::decrease_opinion:
+				gp_action_dialog_win->set_visible(state, true);
+				gp_action_dialog_win->impl_set(state, new_payload);
+				gp_action_dialog_win->impl_set(state, payload);
+				break;
+			default:
+				action_dialog_win->set_visible(state, true);
+				action_dialog_win->impl_set(state, new_payload);
+				action_dialog_win->impl_set(state, payload);
+				break;
+			}
+			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}

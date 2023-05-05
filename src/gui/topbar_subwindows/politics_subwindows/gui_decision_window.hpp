@@ -43,7 +43,7 @@ public:
 			auto id = any_cast<dcon::decision_id>(payload);
 
 			auto condition = state.world.decision_get_allow(id);
-			disabled = condition && !trigger::evaluate_trigger(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+			disabled = condition && !trigger::evaluate(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -225,7 +225,7 @@ private:
     for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
       dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
       auto lim = state.world.decision_get_potential(did); 
-      if(!lim || trigger::evaluate_trigger(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) { 
+      if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) { 
         list.push_back(did);
       }
     }

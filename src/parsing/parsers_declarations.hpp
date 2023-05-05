@@ -561,7 +561,16 @@ namespace parsers {
 		MOD_NAT_FUNCTION(unemployment_benefit)
 		MOD_NAT_FUNCTION(pension_level)
 		MOD_PROV_FUNCTION(population_growth)
-		MOD_NAT_FUNCTION(global_population_growth)
+		template<typename T> 
+		void global_population_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
+			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
+					err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+			} else {
+				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::pop_growth;
+				constructed_definition_n.values[next_to_add_n] = v * 0.1f;
+				++next_to_add_n;
+			}
+		}
 		MOD_NAT_FUNCTION(factory_input)
 		MOD_NAT_FUNCTION(factory_output)
 		MOD_NAT_FUNCTION(factory_throughput)
@@ -688,7 +697,6 @@ namespace parsers {
 		MOD_NAT_FUNCTION(culture_tech_research_bonus)
 		MOD_NAT_FUNCTION(colonial_migration)
 		MOD_NAT_FUNCTION(max_national_focus)
-		MOD_NAT_FUNCTION(cb_creation_speed)
 		MOD_NAT_FUNCTION(education_efficiency)
 		MOD_NAT_FUNCTION(reinforce_rate)
 		MOD_NAT_FUNCTION(influence)
@@ -1455,7 +1463,9 @@ namespace parsers {
 		void strata(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context);
 		void unemployment(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void is_slave(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void allowed_to_vote(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void can_be_recruited(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
+		void state_capital_only(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
 		void leadership(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context);
 		void research_optimum(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
 		void administrative_efficiency(association_type, bool value, error_handler& err, int32_t line, poptype_context& context);
@@ -1769,16 +1779,6 @@ namespace parsers {
 		void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 		void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
 		void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, tech_context& context);
-
-		void prestige(association_type, float v, error_handler& err, int32_t line, tech_context& context) {
-			if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
-				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
-			} else {
-				constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::prestige_modifier;
-				constructed_definition_n.values[next_to_add_n] = v;
-				++next_to_add_n;
-			} 
-		}
 
 		tech_rgo_goods_output rgo_goods_output;
 		tech_rgo_size rgo_size;

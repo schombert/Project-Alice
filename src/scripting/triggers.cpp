@@ -13,7 +13,7 @@ namespace trigger {
 #endif
 
 template<typename A, typename B>
-[[nodiscard]] auto compare_values(uint16_t trigger_code, A value_a, B value_b) {
+[[nodiscard]] auto compare_values(uint16_t trigger_code, A value_a, B value_b) -> decltype(value_a == value_b) {
 	switch(trigger_code & trigger::association_mask) {
 		case trigger::association_eq:
 			return value_a == value_b;
@@ -33,7 +33,7 @@ template<typename A, typename B>
 }
 
 template<typename A, typename B>
-[[nodiscard]] auto compare_values_eq(uint16_t trigger_code, A value_a, B value_b) {
+[[nodiscard]] auto compare_values_eq(uint16_t trigger_code, A value_a, B value_b) -> decltype(value_a == value_b) {
 	switch(trigger_code & trigger::association_mask) {
 		case trigger::association_eq:
 			return value_a == value_b;
@@ -49,6 +49,26 @@ template<typename A, typename B>
 			return value_a == value_b;
 		default:
 			return value_a == value_b;
+	}
+}
+
+template<typename B>
+[[nodiscard]] auto compare_values_eq(uint16_t trigger_code, dcon::nation_fat_id value_a, B value_b) -> decltype(value_a.id == value_b) {
+	switch(trigger_code & trigger::association_mask) {
+		case trigger::association_eq:
+			return value_a.id == value_b;
+		case trigger::association_gt:
+			return value_a.id != value_b;
+		case trigger::association_lt:
+			return value_a.id != value_b;
+		case trigger::association_le:
+			return value_a.id == value_b;
+		case trigger::association_ne:
+			return value_a.id != value_b;
+		case trigger::association_ge:
+			return value_a.id == value_b;
+		default:
+			return value_a.id == value_b;
 	}
 }
 
@@ -104,6 +124,29 @@ float read_float_from_payload(const uint16_t* data) {
 
 	return pack_float.f;
 }
+
+template<typename T>
+struct gathered_s {
+	using type = T;
+};
+
+template<>
+struct gathered_s<ve::contiguous_tags<int32_t>> {
+	using type = ve::tagged_vector<int32_t>;
+};
+
+template<>
+struct gathered_s<ve::unaligned_contiguous_tags<int32_t>> {
+	using type = ve::tagged_vector<int32_t>;
+};
+
+template<>
+struct gathered_s<ve::partial_contiguous_tags<int32_t>> {
+	using type = ve::tagged_vector<int32_t>;
+};
+
+template<typename T>
+using gathered_t = typename gathered_s<T>::type;
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 return_type CALLTYPE test_trigger_generic(uint16_t const* tval, sys::state& ws, primary_type primary_slot, this_type this_slot, from_type from_slot);
@@ -522,10 +565,14 @@ TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 		if(*tval & trigger::is_existence_scope) {
 			auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
-			for(uint32_t i = 0; i < ws.nations_by_rank.size() && i < great_nations_count; ++i) {
-				accumulator.add_value(to_generic(ws.nations_by_rank[i]));
-				if(accumulator.result)
-					return true;
+			uint32_t added = 0;
+			for(uint32_t i = 0; i < ws.nations_by_rank.size() && added < great_nations_count; ++i) {
+				if(nations::is_great_power(ws, ws.nations_by_rank[i])) {
+					++added;
+					accumulator.add_value(to_generic(ws.nations_by_rank[i]));
+					if(accumulator.result)
+						return true;
+				}
 			}
 
 			accumulator.flush();
@@ -533,10 +580,14 @@ TRIGGER_FUNCTION(tf_x_greater_power_scope) {
 		} else {
 			auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
 
-			for(uint32_t i = 0; i < ws.nations_by_rank.size() && i < great_nations_count; ++i) {
-				accumulator.add_value(to_generic(ws.nations_by_rank[i]));
-				if(!accumulator.result)
-					return false;
+			uint32_t added = 0;
+			for(uint32_t i = 0; i < ws.nations_by_rank.size() && added < great_nations_count; ++i) {
+				if(nations::is_great_power(ws, ws.nations_by_rank[i])) {
+					++added;
+					accumulator.add_value(to_generic(ws.nations_by_rank[i]));
+					if(!accumulator.result)
+						return false;
+				}
 			}
 
 			accumulator.flush();
@@ -910,32 +961,32 @@ TRIGGER_FUNCTION(tf_x_provinces_in_variable_region) {
 }
 TRIGGER_FUNCTION(tf_owner_scope_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_owner_scope_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_controller_scope) {
 	auto controller = ws.world.province_get_nation_from_province_control(to_prov(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(controller), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(controller), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_location_scope) {
 	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(location), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(location), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_country_scope_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_country_scope_pop) {
 	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
 	auto owner = ws.world.province_get_nation_from_province_ownership(location);
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_capital_scope) {
 	auto cap = ws.world.nation_get_capital(to_nation(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(cap), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(cap), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_this_scope) {
 	return apply_subtriggers<return_type, this_type, this_type, from_type>(tval, ws, this_slot, this_slot, from_slot);
@@ -944,7 +995,7 @@ TRIGGER_FUNCTION(tf_from_scope) {
 	return apply_subtriggers<return_type, from_type, this_type, from_type>(tval, ws, from_slot, this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_sea_zone_scope) {
-	auto sea_zones = ve::apply([&ws](int32_t p_slot, int32_t, int32_t) {
+	auto sea_zones = ve::apply([&ws](int32_t p_slot) {
 		auto pid = fatten(ws.world, to_prov(p_slot));
 		for(auto adj : pid.get_province_adjacency()) {
 			if(adj.get_connected_provinces(0).id.index() >= ws.province_definitions.first_sea_province.index()) {
@@ -954,52 +1005,52 @@ TRIGGER_FUNCTION(tf_sea_zone_scope) {
 			}
 		}
 		return dcon::province_id();
-	}, primary_slot, this_slot, from_slot);
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(sea_zones), this_slot, from_slot);
+	}, primary_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(sea_zones), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_cultural_union_scope) {
 	auto cultures = ws.world.nation_get_primary_culture(to_nation(primary_slot));
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(cultures);
 	auto union_tags = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
 	auto group_holders = ws.world.national_identity_get_nation_from_identity_holder(union_tags);
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(group_holders), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(group_holders), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_overlord_scope) {
 	auto so = ws.world.nation_get_overlord_as_subject(to_nation(primary_slot));
 	auto nso = ws.world.overlord_get_ruler(so);
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(nso), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(nso), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_sphere_owner_scope) {
 	auto nso = ws.world.nation_get_in_sphere_of(to_nation(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(nso), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(nso), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_independence_scope) {
 	auto rtags = ws.world.rebel_faction_get_defection_target(to_rebel(from_slot));
 	auto r_holders = ws.world.national_identity_get_nation_from_identity_holder(rtags);
 
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(r_holders), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(r_holders), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_flashpoint_tag_scope) {
 	auto ctags = ws.world.state_instance_get_flashpoint_tag(to_state(primary_slot));
 	auto fp_nations = ws.world.national_identity_get_nation_from_identity_holder(ctags);
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(fp_nations), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(fp_nations), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_crisis_state_scope) {
 	return apply_subtriggers<return_type, int32_t, this_type, from_type>(tval, ws, to_generic(ws.crisis_state), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_state_scope_province) {
 	auto state_instance = ws.world.province_get_state_membership(to_prov(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(state_instance), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(state_instance), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_state_scope_pop) {
 	auto location = ws.world.pop_get_province_from_pop_location(to_pop(primary_slot));
 	auto state_instance = ws.world.province_get_state_membership(location);
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(state_instance), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(state_instance), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_tag_scope) {
 	auto tag = trigger::payload(tval[2]).tag_id;
 	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(tag);
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(tag_holder), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(tag_holder), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_integer_scope) {
 	auto wprov = trigger::payload(tval[2]).prov_id;
@@ -1010,7 +1061,7 @@ TRIGGER_FUNCTION(tf_country_scope_nation) {
 }
 TRIGGER_FUNCTION(tf_country_scope_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(owner), this_slot, from_slot);
 }
 TRIGGER_FUNCTION(tf_cultural_union_scope_pop) {
 	auto cultures = ws.world.pop_get_culture(to_pop(primary_slot));
@@ -1018,7 +1069,7 @@ TRIGGER_FUNCTION(tf_cultural_union_scope_pop) {
 	auto union_tags = ws.world.culture_group_get_identity_from_cultural_union_of(cg);
 	auto group_holders = ws.world.national_identity_get_nation_from_identity_holder(union_tags);
 
-	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, to_generic(group_holders), this_slot, from_slot);
+	return apply_subtriggers<return_type, gathered_t<primary_type>, this_type, from_type>(tval, ws, to_generic(group_holders), this_slot, from_slot);
 }
 
 //
@@ -1197,7 +1248,10 @@ TRIGGER_FUNCTION(tf_has_national_minority_province) {
 	auto prov_populations = ws.world.province_get_demographics(to_prov(primary_slot), demographics::total);
 
 	auto majority_pop = ve::apply([&ws](int32_t p_slot, dcon::culture_id c) {
-		return ws.world.province_get_demographics(to_prov(p_slot), demographics::to_key(ws, c));
+		if(c)
+			return ws.world.province_get_demographics(to_prov(p_slot), demographics::to_key(ws, c));
+		else
+			return 0.0f;
 	}, primary_slot, pcultures);
 
 	return compare_to_false(tval[0], majority_pop == prov_populations);
@@ -1208,7 +1262,10 @@ TRIGGER_FUNCTION(tf_has_national_minority_state) {
 	auto populations = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::total);
 
 	auto majority_pop = ve::apply([&ws](int32_t p_slot, dcon::culture_id c) {
-		return ws.world.state_instance_get_demographics(to_state(p_slot), demographics::to_key(ws, c));
+		if(c)
+			return ws.world.state_instance_get_demographics(to_state(p_slot), demographics::to_key(ws, c));
+		else
+			return 0.0f;
 	}, primary_slot, pcultures);
 
 	return compare_to_false(tval[0], majority_pop == populations);
@@ -1218,7 +1275,10 @@ TRIGGER_FUNCTION(tf_has_national_minority_nation) {
 	auto populations = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::total);
 
 	auto majority_pop = ve::apply([&ws](int32_t p_slot, dcon::culture_id c) {
-		return ws.world.nation_get_demographics(to_nation(p_slot), demographics::to_key(ws, c));
+		if(c)
+			return ws.world.nation_get_demographics(to_nation(p_slot), demographics::to_key(ws, c));
+		else
+			return 0.0f;
 	}, primary_slot, pcultures);
 
 	return compare_to_false(tval[0], majority_pop == populations);
@@ -3018,7 +3078,10 @@ TRIGGER_FUNCTION(tf_agree_with_ruling_party) {
 	auto ruling_ideology = ws.world.political_party_get_ideology(ws.world.nation_get_ruling_party(owner));
 	auto population_size = ws.world.pop_get_size(to_pop(primary_slot));
 	auto ruling_support = ve::apply([&](dcon::pop_id p, dcon::ideology_id i) {
-		return ws.world.pop_get_demographics(p, pop_demographics::to_key(ws, i));
+		if(i)
+			return ws.world.pop_get_demographics(p, pop_demographics::to_key(ws, i));
+		else
+			return 0.0f;
 	}, to_pop(primary_slot), ruling_ideology);
 	return compare_values(tval[0], ve::select(population_size > 0.0f, ruling_support / population_size, 0.0f), read_float_from_payload(tval + 1));
 }
@@ -3532,6 +3595,8 @@ TRIGGER_FUNCTION(tf_minorities_nation) {
 	auto pculture = ws.world.nation_get_primary_culture(to_nation(primary_slot));
 
 	auto accepted_pop = ve::apply([&ws](dcon::nation_id n, dcon::culture_id pc) {
+		if(!pc)
+			return 0.0f;
 		auto accumulated = ws.world.nation_get_demographics(n, demographics::to_key(ws, pc));
 		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
 			accumulated += ws.world.nation_get_demographics(n, demographics::to_key(ws, ac));
@@ -3547,6 +3612,8 @@ TRIGGER_FUNCTION(tf_minorities_state) {
 	auto pculture = ws.world.nation_get_primary_culture(owner);
 
 	auto accepted_pop = ve::apply([&ws](dcon::state_instance_id i, dcon::nation_id n, dcon::culture_id pc) {
+		if(!pc)
+			return 0.0f;
 		auto accumulated = ws.world.state_instance_get_demographics(i, demographics::to_key(ws, pc));
 		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
 			accumulated += ws.world.state_instance_get_demographics(i, demographics::to_key(ws, ac));
@@ -3562,6 +3629,8 @@ TRIGGER_FUNCTION(tf_minorities_province) {
 	auto pculture = ws.world.nation_get_primary_culture(owner);
 
 	auto accepted_pop = ve::apply([&ws](dcon::province_id i, dcon::nation_id n, dcon::culture_id pc) {
+		if(!pc)
+			return 0.0f;
 		auto accumulated = ws.world.province_get_demographics(i, demographics::to_key(ws, pc));
 		for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
 			accumulated += ws.world.province_get_demographics(i, demographics::to_key(ws, ac));
@@ -4297,20 +4366,59 @@ TRIGGER_FUNCTION(tf_pop_unemployment_pop) {
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_nation_this_pop) {
 	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
-	auto pop_size = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_key(ws, type));
-	auto employment = ws.world.nation_get_demographics(to_nation(primary_slot), demographics::to_employment_key(ws, type));
+
+	auto pop_size = ve::apply([&](dcon::nation_id loc, dcon::pop_type_id t) {
+		if(t)
+			return ws.world.nation_get_demographics(loc, demographics::to_key(ws, t));
+		else
+			return 0.0f;
+	}, to_nation(primary_slot), type);
+
+	auto employment = ve::apply([&](dcon::nation_id loc, dcon::pop_type_id t) {
+		if(t)
+			return ws.world.nation_get_demographics(loc, demographics::to_employment_key(ws, t));
+		else
+			return 0.0f;
+	}, to_nation(primary_slot), type);
+
 	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_state_this_pop) {
 	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
-	auto pop_size = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_key(ws, type));
-	auto employment = ws.world.state_instance_get_demographics(to_state(primary_slot), demographics::to_employment_key(ws, type));
+
+	auto pop_size = ve::apply([&](dcon::state_instance_id loc, dcon::pop_type_id t) {
+		if(t)
+			return ws.world.state_instance_get_demographics(loc, demographics::to_key(ws, t));
+		else
+			return 0.0f;
+	}, to_state(primary_slot), type);
+
+	auto employment = ve::apply([&](dcon::state_instance_id loc, dcon::pop_type_id t) {
+		if(t)
+			return ws.world.state_instance_get_demographics(loc, demographics::to_employment_key(ws, t));
+		else
+			return 0.0f;
+	}, to_state(primary_slot), type);
+
 	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_pop_unemployment_province_this_pop) {
 	auto type = ws.world.pop_get_poptype(to_pop(this_slot));
-	auto pop_size = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_key(ws, type));
-	auto employment = ws.world.province_get_demographics(to_prov(primary_slot), demographics::to_employment_key(ws, type));
+
+	auto pop_size = ve::apply([&](dcon::province_id loc, dcon::pop_type_id t) {
+		if(t)
+			return ws.world.province_get_demographics(loc, demographics::to_key(ws, t));
+		else
+			return 0.0f;
+	}, to_prov(primary_slot), type);
+
+	auto employment = ve::apply([&](dcon::province_id loc, dcon::pop_type_id t) {
+		if(t)
+			return ws.world.province_get_demographics(loc, demographics::to_employment_key(ws, t));
+		else
+			return 0.0f;
+	}, to_prov(primary_slot), type);
+
 	return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_relation_tag) {
@@ -4319,14 +4427,14 @@ TRIGGER_FUNCTION(tf_relation_tag) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, holder);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot));
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_relation_this_nation) {
 	auto relation = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot), to_nation(this_slot));
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_relation_this_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
@@ -4334,14 +4442,14 @@ TRIGGER_FUNCTION(tf_relation_this_province) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot), owner);
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_relation_from_nation) {
 	auto relation = ve::apply([&ws](dcon::nation_id a, dcon::nation_id b) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot), to_nation(from_slot));
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_relation_from_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(from_slot));
@@ -4349,7 +4457,7 @@ TRIGGER_FUNCTION(tf_relation_from_province) {
 		auto rel = ws.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
 		return ws.world.diplomatic_relation_get_value(rel);
 	}, to_nation(primary_slot), owner);
-	return compare_values(tval[0], relation, int32_t(payload(tval[1]).signed_value));
+	return compare_values(tval[0], relation, float(payload(tval[1]).signed_value));
 }
 TRIGGER_FUNCTION(tf_check_variable) {
 	auto id = payload(tval[3]).natv_id;
@@ -5424,11 +5532,83 @@ float evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key mod
 	return sum;
 }
 
-bool evaluate_trigger(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
+
+ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	ve::fp_vector product = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			auto res = test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot);
+			product = ve::select(res, product * seg.factor, product);
+		}
+	}
+	return product;
+}
+ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	ve::fp_vector sum = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			auto res = test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot);
+			sum = ve::select(res, sum + seg.factor, sum);
+		}
+	}
+	return sum;
+}
+
+ve::fp_vector evaluate_multiplicative_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	ve::fp_vector product = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			auto res = test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot);
+			product = ve::select(res, product * seg.factor, product);
+		}
+	}
+	return product;
+}
+ve::fp_vector evaluate_additive_modifier(sys::state& state, dcon::value_modifier_key modifier, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	ve::fp_vector sum = base.base_factor;
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			auto res = test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + seg.condition.index(), state, primary, this_slot, from_slot);
+			sum = ve::select(res, sum + seg.factor, sum);
+		}
+	}
+	return sum;
+}
+
+bool evaluate(sys::state& state, dcon::trigger_key key, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	return test_trigger_generic<bool>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
 }
-bool evaluate_trigger(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot) {
+bool evaluate(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot) {
 	return test_trigger_generic<bool>(data, state, primary, this_slot, from_slot);
+}
+
+ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
+}
+ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
+}
+
+ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::tagged_vector<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
+}
+ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::tagged_vector<int32_t> primary, ve::tagged_vector<int32_t> this_slot, int32_t from_slot) {
+	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
+}
+
+ve::mask_vector evaluate(sys::state& state, dcon::trigger_key key, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+	return test_trigger_generic<ve::mask_vector>(state.trigger_data.data() + key.index(), state, primary, this_slot, from_slot);
+}
+ve::mask_vector evaluate(sys::state& state, uint16_t const* data, ve::contiguous_tags<int32_t> primary, ve::contiguous_tags<int32_t> this_slot, int32_t from_slot) {
+	return test_trigger_generic<ve::mask_vector>(data, state, primary, this_slot, from_slot);
 }
 
 }

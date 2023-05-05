@@ -3,6 +3,7 @@ include{"constants.hpp"}
 include{"modifiers.hpp"}
 include{"date_interface.hpp"}
 include{"container_types.hpp"}
+include{"military.hpp"}
 include{<glm/glm.hpp>}
 
 make_index{text_key}{uint32_t}
@@ -211,12 +212,12 @@ object {
 
 	property{
 		name{ first_names }
-		type{vector_pool{10000}{text_key}}
+		type{vector_pool{10000}{unit_name_id}}
 		tag{ scenario }
 	}
 	property{
 		name{ last_names }
-		type{vector_pool{10000}{text_key}}
+		type{vector_pool{10000}{unit_name_id}}
 		tag{ scenario }
 	}
 }
@@ -493,6 +494,7 @@ object {
 	storage_type{ contiguous }
 	size{ 32 }
 	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
@@ -929,7 +931,7 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ defence }
+		name{ defense }
 		type{ float }
 		tag{ scenario }
 	}
@@ -982,7 +984,16 @@ object {
 		type{ uint8_t }
 		tag{ scenario }
 	}
-
+	property{
+		name{ state_capital_only }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ voting_forbidden }
+		type{ bitfield }
+		tag{ scenario }
+	}
 	property{
 		name{ everyday_needs_income_type }
 		type{ uint8_t }
@@ -1261,7 +1272,7 @@ object {
 
 	property{
 		name{ party_loyalty }
-		type{array{ideology_id}{int8_t}}
+		type{array{ideology_id}{float}}
 		tag{ save }
 	}
 
@@ -1361,6 +1372,14 @@ object {
 		name{ rgo_size }
 		type{ float }
 		tag{ scenario }
+	}
+	property{
+		name{ daily_net_migration }
+		type{ float }
+	}
+	property{
+		name{ daily_net_immigration }
+		type{ float }
 	}
 }
 
@@ -1832,6 +1851,11 @@ object {
 		type{ province_id }
 		tag{ save }
 	}
+	property{
+		name{ owner_focus }
+		type{ national_focus_id }
+		tag{ save }
+	}
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
@@ -2096,7 +2120,7 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ enable_gas_defence }
+		name{ enable_gas_defense }
 		type{ bitfield }
 		tag{ scenario }
 	}
@@ -2286,10 +2310,6 @@ object {
 		type{ array{national_modifier_value}{float} }
 	}
 	property{
-		name{ fluctuating_modifier_values }
-		type{ array{int32_t}{float} }
-	}
-	property{
 		name{ rgo_goods_output }
 		type{ array{commodity_id}{float} }
 	}
@@ -2330,7 +2350,7 @@ object {
 		type{ bitfield }
 	}
 	property{
-		name{ has_gas_defence }
+		name{ has_gas_defense }
 		type{ bitfield }
 	}
 	property {
@@ -2670,6 +2690,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ available_cbs }
+		type{vector_pool{16000}{military::available_cb}}
+		tag{ save }
+	}
+	property {
 		name{ non_colonial_population }
 		type{ float }
 	}
@@ -2684,6 +2709,11 @@ object {
 	property {
 		name{ research_points }
 		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ current_research }
+		type{ technology_id }
 		tag{ save }
 	}
 	property {
@@ -2752,7 +2782,7 @@ relationship{
 
 	property{
 		name{ value }
-		type{ int32_t }
+		type{ float }
 		tag{ save }
 	}
 	property{
@@ -2853,7 +2883,7 @@ relationship{
 
 object {
 	name { factory }
-	storage_type{ contiguous }
+	storage_type{ compactable }
 	size{ 10000 }
 	tag{ save }
 

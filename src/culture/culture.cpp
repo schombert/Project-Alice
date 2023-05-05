@@ -2,6 +2,7 @@
 #include "culture.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
+#include "prng.hpp"
 
 namespace culture {
 
@@ -163,11 +164,11 @@ void repopulate_invention_effects(sys::state& state) {
 				state.world.nation_set_has_gas_attack(nation_indices, old_value | has_inv_mask);
 			});
 		}
-		if(inv_id.get_enable_gas_defence()) {
+		if(inv_id.get_enable_gas_defense()) {
 			state.world.execute_serial_over_nation([&](auto nation_indices) {
 				auto has_inv_mask = state.world.nation_get_active_inventions(nation_indices, i_id);
-				auto old_value = state.world.nation_get_has_gas_defence(nation_indices);
-				state.world.nation_set_has_gas_defence(nation_indices, old_value | has_inv_mask);
+				auto old_value = state.world.nation_get_has_gas_defense(nation_indices);
+				state.world.nation_set_has_gas_defense(nation_indices, old_value | has_inv_mask);
 			});
 		}
 
@@ -345,8 +346,8 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 	if(inv_id.get_enable_gas_attack()) {
 		state.world.nation_set_has_gas_attack(target_nation, true);
 	}
-	if(inv_id.get_enable_gas_defence()) {
-		state.world.nation_set_has_gas_defence(target_nation, true);
+	if(inv_id.get_enable_gas_defense()) {
+		state.world.nation_set_has_gas_defense(target_nation, true);
 	}
 
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
@@ -403,6 +404,16 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 		} else {
 			state.world.nation_get_unit_stats(target_nation, umod.type) += umod;
 		}
+	}
+
+	if(auto p = inv_id.get_shared_prestige(); p > 0) {
+		int32_t total = 0;
+		for(auto n : state.world.in_nation) {
+			if(n.get_active_inventions(i_id)) {
+				++total;
+			}
+		}
+		nations::adjust_prestige(state, target_nation, p / float(total));
 	}
 }
 
@@ -504,7 +515,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 				}
 			});
 			if(total != 0) {
-				float adjustment_factor = psize / total;
+				float adjustment_factor = 1.0f / total;
 				state.world.for_each_ideology([&state, pid, adjustment_factor](dcon::ideology_id iid) {
 					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
 					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
@@ -520,7 +531,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 				auto allow = opt.get_allow();
 				auto parent_issue = opt.get_parent_issue();
 				if((state.world.nation_get_is_civilized(owner) || state.world.issue_get_issue_type(parent_issue) == uint8_t(issue_type::party))
-					&& (!allow || trigger::evaluate_trigger(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+					&& (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
 					if(auto mtrigger = state.world.pop_type_get_issues(ptype, iid); mtrigger) {
 						auto amount = trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(pid), trigger::to_generic(owner), 0);
 						state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), amount);
@@ -529,7 +540,7 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 				}
 			});
 			if(total != 0) {
-				float adjustment_factor = psize / total;
+				float adjustment_factor = 1.0f / total;
 				state.world.for_each_issue_option([&state, pid, adjustment_factor](dcon::issue_option_id iid) {
 					auto normalized_amount = state.world.pop_get_demographics(pid, pop_demographics::to_key(state, iid)) * adjustment_factor;
 					state.world.pop_set_demographics(pid, pop_demographics::to_key(state, iid), normalized_amount);
@@ -537,6 +548,99 @@ void create_initial_ideology_and_issues_distribution(sys::state& state) {
 			}
 		}
 	});
+
+}
+
+float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::nation_id target_nation, dcon::technology_id tech_id) {
+	/*
+	The effective amount of research points a tech costs = base-cost x 0v(1 - (current-year - tech-availability-year) / define:TECH_YEAR_SPAN) x define:TECH_FACTOR_VASSAL(if your overlord has the tech) / (1 + tech-category-research-modifier)
+	*/
+	auto base_cost = state.world.technology_get_cost(tech_id);
+	auto availability_year = state.world.technology_get_year(tech_id);
+	auto folder = state.world.technology_get_folder_index(tech_id);
+	auto category = state.culture_definitions.tech_folders[folder].category;
+	auto research_mod = [&]() {
+		switch(category) {
+			case tech_category::army:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::army_tech_research_bonus) + 1.0f;
+			case tech_category::navy:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::navy_tech_research_bonus) + 1.0f;
+			case tech_category::commerce:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::commerce_tech_research_bonus) + 1.0f;
+			case tech_category::culture:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::culture_tech_research_bonus) + 1.0f;
+			case tech_category::industry:
+				return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::industry_tech_research_bonus) + 1.0f;
+			default:
+				return 1.0f;
+		}
+	}();
+	auto ol_mod = state.world.nation_get_active_technologies(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target_nation)), tech_id) ? state.defines.tech_factor_vassal : 1.0f;
+	return float(base_cost) * ol_mod * (1.0f / research_mod) * (1.0f - std::max(0.0f, float(current_year - availability_year) / state.defines.tech_year_span));
+}
+
+void update_reasearch(sys::state& state, uint32_t current_year) {
+	for(auto n : state.world.in_nation) {
+		if(n.get_owned_province_count() != 0 && n.get_current_research()) {
+			if(n.get_active_technologies(n.get_current_research())) {
+				n.set_current_research(dcon::technology_id{});
+			} else {
+				auto cost = effective_technology_cost(state, current_year, n, n.get_current_research());
+				if(n.get_research_points() >= cost) {
+					n.get_research_points() -= cost;
+					apply_technology(state, n, n.get_current_research());
+					// TODO: notify player
+					n.set_current_research(dcon::technology_id{});
+				}
+			}
+		}
+	}
+}
+
+void discover_inventions(sys::state& state) {
+	/*
+	Inventions have a chance to be discovered on the 1st of every month. The invention chance modifier is computed additively, and the result is the chance out of 100 that the invention will be discovered. When an invention with shared prestige is discovered, the discoverer gains that amount of shared prestige / the number of times it has been discovered (including the current time).
+	*/
+	for(auto inv : state.world.in_invention) {
+		auto lim = inv.get_limit();
+		auto odds = inv.get_chance();
+		assert(odds);
+		if(lim) {
+			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto nids) {
+				auto may_not_discover =
+					state.world.nation_get_active_inventions(nids, inv) || (state.world.nation_get_owned_province_count(nids) == 0) || !trigger::evaluate(state, lim, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+				if(ve::compress_mask(may_not_discover).v != 0) {
+					auto chances = trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+					ve::apply([&](dcon::nation_id n, float chance, bool block_discovery) {
+						if(!block_discovery) {
+							auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
+							if(int32_t(random % 100) < int32_t(chance)) {
+								apply_invention(state, n, inv);
+								// TODO: notify player
+							}
+						}
+					}, nids, chances, may_not_discover);
+				}
+			});
+		} else {
+			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto nids) {
+				auto may_not_discover =
+					state.world.nation_get_active_inventions(nids, inv) || (state.world.nation_get_owned_province_count(nids) == 0);
+				if(ve::compress_mask(may_not_discover).v != 0) {
+					auto chances = trigger::evaluate_additive_modifier(state, odds, trigger::to_generic(nids), trigger::to_generic(nids), 0);
+					ve::apply([&](dcon::nation_id n, float chance, bool block_discovery) {
+						if(!block_discovery) {
+							auto random = rng::get_random(state, uint32_t(inv.id.index()) << 5 ^ uint32_t(n.index()));
+							if(int32_t(random % 100) < int32_t(chance)) {
+								apply_invention(state, n, inv);
+								// TODO: notify player
+							}
+						}
+					}, nids, chances, may_not_discover);
+				}
+			});
+		}
+	}
 }
 
 }
