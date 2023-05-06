@@ -4,7 +4,9 @@ Once again, it is time to review what the slackers over at Project Alice have be
 
 ## New team members
 
---- THIS SPACE INTENTIONALLY LEFT BLANK IN CASE DBD MAKES A PR BEFORE FRIDAY ---
+In March we added one new programmers to the team, DeathByDarwin, who, along with leaf has been making improvements to the technology window.
+
+![Technology window](tech.png)
 
 ## Team Q&A
 

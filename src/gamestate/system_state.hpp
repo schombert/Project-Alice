@@ -63,6 +63,11 @@ namespace sys {
 		none = 0, claim = 1, liberation = 2, colonial = 3
 	};
 
+	struct great_nation {
+		sys::date last_greatness = sys::date(0);
+		dcon::nation_id nation;
+	};
+
 	struct alignas(64) state {
 		// the state struct will eventually include (at least pointers to)
 		// the state of the sound system, the state of the windowing system,
@@ -107,6 +112,7 @@ namespace sys {
 		std::vector<dcon::nation_id> nations_by_industrial_score;
 		std::vector<dcon::nation_id> nations_by_military_score;
 		std::vector<dcon::nation_id> nations_by_prestige_score;
+		std::vector<great_nation> great_nations;
 
 		dcon::state_instance_id crisis_state;
 		std::vector<crisis_member_def> crisis_participants;

@@ -40,6 +40,7 @@ void change_government_type(sys::state& state, dcon::nation_id n, dcon::governme
 // this function sets the upper house (for example, as when performing the yearly upper house update)
 void recalculate_upper_house(sys::state& state, dcon::nation_id n);
 
+void update_elections(sys::state& state);
 void daily_party_loyalty_update(sys::state& state);
 
 }
