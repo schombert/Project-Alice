@@ -366,6 +366,9 @@ namespace ui {
 		element_base* ledger_window = nullptr;
 		element_base* diplomacy_subwindow = nullptr;
         element_base* population_subwindow = nullptr;
+		element_base* unit_window_army = nullptr;
+		element_base* unit_window_navy = nullptr;
+		element_base* build_unit_window = nullptr;
 
 		// Event windows that are reused
 		std::vector<std::unique_ptr<element_base>> spare_major_event_subwindows;

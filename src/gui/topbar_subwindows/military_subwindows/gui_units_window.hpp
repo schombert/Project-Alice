@@ -205,6 +205,27 @@ public:
 };
 
 template<class TypeId>
+class build_unit_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.unit_window_army->set_visible(state, false);
+		state.ui_state.unit_window_navy->set_visible(state, false);
+
+		state.ui_state.build_unit_window->set_visible(state, true);
+		state.ui_state.root->move_child_to_front(state.ui_state.build_unit_window);
+
+		if constexpr(std::is_same_v<TypeId, dcon::army_id>) {
+			Cyto::Any payload = dcon::army_id(1);
+			state.ui_state.build_unit_window->impl_set(state, payload);
+		} else if constexpr(std::is_same_v<TypeId, dcon::navy_id>) {
+			Cyto::Any payload = dcon::navy_id(1);
+			state.ui_state.build_unit_window->impl_set(state, payload);
+		}
+	}
+
+};
+
+template<class TypeId>
 class military_units_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -215,7 +236,16 @@ public:
                 return make_element_by_type<military_armies_text>(state, id);
             else
                 return make_element_by_type<military_navies_text>(state, id);
-        } else {
+        } else if(name == "build_new") {
+			auto ptr = make_element_by_type<build_unit_button<TypeId>>(state, id);
+			if constexpr(std::is_same_v<TypeId, dcon::army_id>) {
+				ptr->set_button_text(state, text::produce_simple_string(state, "MILITARY_BUILD_ARMY_LABEL"));
+			} else {
+				ptr->set_button_text(state, text::produce_simple_string(state, "MILITARY_BUILD_NAVY_LABEL"));
+			}
+			ptr->set_visible(state, true);
+			return ptr;
+		} else {
 			return nullptr;
 		}
 	}
