@@ -901,7 +901,7 @@ And then we add one point either per leader or per regiment, whichever is greate
 
 An uncivilized nation or a nation with only a single state cannot be a great power.
 
-When a nation becomes great is ceases to be a vassal / substate. It also gets an `on_new_great_nation` event.
+When a nation becomes great, it ceases to be a vassal / substate. It also gets an `on_new_great_nation` event.
 
 When a nation loses GP status, it gets an `on_lost_great_nation` event.
 

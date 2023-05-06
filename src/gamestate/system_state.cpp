@@ -1502,6 +1502,13 @@ namespace sys {
 		nations::update_rankings(*this);
 		nations::update_ui_rankings(*this);
 
+		for(uint32_t i = 0; i < nations_by_rank.size() && i < uint32_t(defines.great_nations_count); ++i) {
+			if(nations_by_rank[i]) {
+				great_nations.push_back(great_nation{ current_date, nations_by_rank[i] });
+				world.nation_set_is_great_power(nations_by_rank[i], true);
+			}
+		}
+
 		if(local_player_nation) {
 			world.nation_set_is_player_controlled(local_player_nation, true);
 		}
@@ -1698,7 +1705,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 10, [&](int32_t index) {
+					concurrency::parallel_for(0, 11, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1730,6 +1737,9 @@ namespace sys {
 							case 9:
 								military::daily_leaders_update(*this);
 								break;
+							case 10:
+								politics::daily_party_loyalty_update(*this);
+								break;
 						}
 
 					});
@@ -1738,9 +1748,12 @@ namespace sys {
 
 					nations::update_military_scores(*this); // depends on ship score, land unit average
 					nations::update_rankings(*this); // depends on industrial score, military scores
+					nations::update_great_powers(*this); // depends on rankings
 
 					nations::update_colonial_points(*this); // depends on rankings, naval supply values
 					military::update_cbs(*this); // may add/remove cbs to a nation
+
+					politics::update_elections(*this);
 
 					// Once per month updates, spread out over the month
 					switch(ymd_date.day) {
@@ -1774,6 +1787,13 @@ namespace sys {
 					}
 
 					economy::daily_update(*this);
+
+					// yearly update : redo the upper house
+					if(ymd_date.day == 1 && ymd_date.month == 1) {
+						for(auto n : world.in_nation) {
+							politics::recalculate_upper_house(*this, n);
+						}
+					}
 
 					game_state_updated.store(true, std::memory_order::release);
 				} else {

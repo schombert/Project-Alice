@@ -281,5 +281,7 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
 void release_vassal(sys::state& state, dcon::overlord_id rel);
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
 
+void update_great_powers(sys::state& state);
+
 }
 

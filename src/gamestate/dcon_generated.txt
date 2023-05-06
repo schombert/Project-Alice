@@ -2217,6 +2217,10 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ is_great_power }
+		type{ bitfield }
+	}
+	property{
 		name{ national_value }
 		type{ modifier_id }
 		tag{ save }
