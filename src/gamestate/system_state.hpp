@@ -66,6 +66,9 @@ namespace sys {
 	struct great_nation {
 		sys::date last_greatness = sys::date(0);
 		dcon::nation_id nation;
+
+		great_nation(sys::date last_greatness, dcon::nation_id nation) : last_greatness(last_greatness), nation(nation) { }
+		great_nation() = default;
 	};
 
 	struct alignas(64) state {
