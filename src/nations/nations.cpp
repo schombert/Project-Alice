@@ -7,6 +7,8 @@
 #include "ve_scalar_extensions.hpp"
 #include "triggers.hpp"
 #include "politics.hpp"
+#include "events.hpp"
+#include "prng.hpp"
 
 namespace nations {
 
@@ -123,6 +125,10 @@ void update_cached_values(sys::state& state) {
 
 void restore_unsaved_values(sys::state& state) {
 	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
+
+	for(auto& gp : state.great_nations) {
+		state.world.nation_set_is_great_power(gp.nation, true);
+	}
 
 	state.world.for_each_gp_relationship([&](dcon::gp_relationship_id rel) {
 		if((influence::level_mask & state.world.gp_relationship_get_status(rel)) == influence::level_in_sphere) {
@@ -438,13 +444,79 @@ void update_ui_rankings(sys::state& state) {
 }
 
 bool is_great_power(sys::state const& state, dcon::nation_id id) {
-	return state.world.nation_get_rank(id) <= uint16_t(state.defines.great_nations_count);
+	return state.world.nation_get_is_great_power(id);
+}
+
+void update_great_powers(sys::state& state) {
+	for(auto i = state.great_nations.size(); i-- > 0;) {
+		if(state.world.nation_get_rank(state.great_nations[i].nation) <= uint16_t(state.defines.great_nations_count)) {
+			// is still a gp
+			state.great_nations[i].last_greatness = state.current_date;
+		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date) {
+
+			auto n = state.great_nations[i].nation;
+			state.great_nations[i] = state.great_nations.back();
+			state.great_nations.pop_back();
+
+			state.world.nation_set_is_great_power(n, false);
+
+			auto possible_events = state.national_definitions.on_lost_great_nation.size();
+			if(possible_events > 0) {
+				int32_t total_chances = 0;
+
+				for(auto& fe : state.national_definitions.on_lost_great_nation)
+					total_chances += fe.chance;
+
+				int32_t random_value = int32_t(rng::get_random(state, uint32_t(n.index() + (state.world.nation_get_owned_province_count(n) << 3))) % total_chances);
+
+				for(auto& fe : state.national_definitions.on_lost_great_nation) {
+					random_value -= fe.chance;
+					if(random_value < 0) {
+						event::trigger_national_event(state, fe.id, n);
+						break;
+					}
+				}
+			}
+
+			// kill gp relationships
+			auto rels = state.world.nation_get_gp_relationship_as_great_power(n);
+			while(rels.begin() != rels.end()) {
+				state.world.delete_gp_relationship(*(rels.begin()));
+			}
+		}
+	}
+	while(state.great_nations.size() < size_t(state.defines.great_nations_count)) {
+		for(auto n : state.nations_by_rank) {
+			if(n && !state.world.nation_get_is_great_power(n)) {
+				state.world.nation_set_is_great_power(n, true);
+				state.great_nations.push_back(sys::great_nation(state.current_date, n));
+
+				auto possible_events = state.national_definitions.on_new_great_nation.size();
+				if(possible_events > 0) {
+					int32_t total_chances = 0;
+
+					for(auto& fe : state.national_definitions.on_new_great_nation)
+						total_chances += fe.chance;
+
+					int32_t random_value = int32_t(rng::get_random(state, uint32_t(n.index() + (state.world.nation_get_owned_province_count(n) << 3))) % total_chances);
+
+					for(auto& fe : state.national_definitions.on_new_great_nation) {
+						random_value -= fe.chance;
+						if(random_value < 0) {
+							event::trigger_national_event(state, fe.id, n);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 status get_status(sys::state& state, dcon::nation_id n) {
 	if(is_great_power(state, n)) {
 		return status::great_power;
-	} else if(state.world.nation_get_rank(n) <= uint16_t(state.defines.great_nations_count + 8)) {
+	} else if(state.world.nation_get_rank(n) <= uint16_t(state.defines.colonial_rank)) {
 		return status::secondary_power;
 	} else if(state.world.nation_get_is_civilized(n)) {
 		return status::civilized;
