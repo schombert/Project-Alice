@@ -238,6 +238,11 @@ public:
                 return make_element_by_type<military_navies_text>(state, id);
         } else if(name == "build_new") {
 			auto ptr = make_element_by_type<build_unit_button<TypeId>>(state, id);
+			if constexpr(std::is_same_v<TypeId, dcon::army_id>) {
+				ptr->set_button_text(state, text::produce_simple_string(state, "MILITARY_BUILD_ARMY_LABEL"));
+			} else {
+				ptr->set_button_text(state, text::produce_simple_string(state, "MILITARY_BUILD_NAVY_LABEL"));
+			}
 			ptr->set_visible(state, true);
 			return ptr;
 		} else {
