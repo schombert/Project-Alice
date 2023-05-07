@@ -61,7 +61,12 @@ class map_element_base : public generic_settable_element<T, dcon::province_id> {
 public:
     void render(sys::state& state, int32_t x, int32_t y) noexcept override {
         auto mid_point = state.world.province_get_mid_point(generic_settable_element<T, dcon::province_id>::content);
-        auto screen_pos = state.map_state.map_to_screen(state.map_state.normalize_map_coord(mid_point), glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) });
+		auto map_pos = state.map_state.normalize_map_coord(mid_point);
+		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+        glm::vec2 screen_pos;
+		if (!state.map_state.map_to_screen(map_pos, screen_size, screen_pos)) {
+			return;
+		}
 		auto size = T::base_data.size;
 		T::base_data.position = xy_pair{ int16_t(screen_pos.x - size.x / 2), int16_t(screen_pos.y - size.y / 2)};
         T::render(state, x, y);
@@ -74,7 +79,12 @@ class unit_icon_window : public map_element_base<window_element_base> {
 public:
     void render(sys::state& state, int32_t x, int32_t y) noexcept override {
         auto mid_point = state.world.province_get_mid_point(generic_settable_element<window_element_base, dcon::province_id>::content);
-        auto screen_pos = state.map_state.map_to_screen(state.map_state.normalize_map_coord(mid_point), glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) });
+		auto map_pos = state.map_state.normalize_map_coord(mid_point);
+		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+        glm::vec2 screen_pos;
+		if (!state.map_state.map_to_screen(map_pos, screen_size, screen_pos)) {
+			return;
+		}
 		auto size = window_element_base::base_data.size;
 		window_element_base::base_data.position = xy_pair{ int16_t(screen_pos.x - 27), int16_t(screen_pos.y - 36)};
         window_element_base::render(state, x, y);

@@ -13,6 +13,8 @@ layout (location = 2) uniform float zoom;
 layout (location = 3) uniform vec2 map_size;
 layout (location = 5) uniform mat3 rotation;
 
+#define PI 3.1415926538
+
 subroutine vec4 calc_gl_position_class();
 layout(location = 0) subroutine uniform calc_gl_position_class calc_gl_position;
 
@@ -20,12 +22,12 @@ layout(index = 0) subroutine(calc_gl_position_class)
 vec4 globe_coords() {
 	vec3 new_world_pos;
 	float section = map_size.x / 256;
-	float angle_x1 = 2 * 3.1415 * floor(vertex_position.x * section) / section;
-	float angle_x2 = 2 * 3.1415 * floor(vertex_position.x * section + 1) / section;
+	float angle_x1 = 2 * PI * floor(vertex_position.x * section) / section;
+	float angle_x2 = 2 * PI * floor(vertex_position.x * section + 1) / section;
 	new_world_pos.x = mix(cos(angle_x1), cos(angle_x2), mod(vertex_position.x * section, 1));
 	new_world_pos.y = mix(sin(angle_x1), sin(angle_x2), mod(vertex_position.x * section, 1));
 
-	float angle_y = vertex_position.y * 3.1415;
+	float angle_y = vertex_position.y * PI;
 	new_world_pos.x *= sin(angle_y);
 	new_world_pos.y *= sin(angle_y);
 	new_world_pos.z = cos(angle_y);

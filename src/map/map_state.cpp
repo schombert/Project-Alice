@@ -269,15 +269,47 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	}
 }
 
-glm::vec2 map_state::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size) {
-	map_pos -= pos;
-	map_pos *= zoom;
+bool map_state::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
+	if (map_view_mode == map_view::globe) {
+		glm::vec3 cartesian_coords;
+		float section = map_data.size_x / 256;
+		float pi = glm::pi<float>();
+		float angle_x1 = 2 * pi * std::floor(map_pos.x * section) / section;
+		float angle_x2 = 2 * pi * std::floor(map_pos.x * section + 1) / section;
+		cartesian_coords.x = std::lerp(std::cos(angle_x1), std::cos(angle_x2), std::fmod(map_pos.x * section, 1.f));
+		cartesian_coords.y = std::lerp(std::sin(angle_x1), std::sin(angle_x2), std::fmod(map_pos.x * section, 1.f));
 
-	map_pos.x *= float(map_data.size_x) / float(map_data.size_y);
-	map_pos.x *= screen_size.y / screen_size.x;
-	map_pos *= screen_size;
-	map_pos += screen_size * 0.5f;
-	return map_pos;
+		float angle_y = (1.f - map_pos.y) * pi;
+		cartesian_coords.x *= std::sin(angle_y);
+		cartesian_coords.y *= std::sin(angle_y);
+		cartesian_coords.z = std::cos(angle_y);
+		cartesian_coords = glm::mat3(globe_rotation) * cartesian_coords;
+		cartesian_coords *= 0.2;
+		cartesian_coords.x *= -1;
+		cartesian_coords.y *= -1;
+		if (cartesian_coords.y > 0) {
+			return false;
+		}
+		cartesian_coords += glm::vec3(0.5);
+
+		screen_pos = glm::vec2(cartesian_coords.x, cartesian_coords.z);
+		screen_pos = (2.f * screen_pos - glm::vec2(1.f));
+		screen_pos *= zoom;
+		screen_pos.x *= screen_size.y / screen_size.x;
+		screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
+		screen_pos *= screen_size;
+		return true;
+	} else {
+		map_pos -= pos;
+		map_pos *= zoom;
+
+		map_pos.x *= float(map_data.size_x) / float(map_data.size_y);
+		map_pos.x *= screen_size.y / screen_size.x;
+		map_pos *= screen_size;
+		map_pos += screen_size * 0.5f;
+		screen_pos = map_pos;
+		return true;
+	}
 }
 
 glm::vec2 map_state::normalize_map_coord(glm::vec2 pos) {
