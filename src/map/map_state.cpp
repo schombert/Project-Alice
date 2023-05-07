@@ -24,8 +24,8 @@ void map_state::set_selected_province(dcon::province_id prov_id) {
 	selected_province = prov_id;
 }
 
-void map_state::set_view_mode(map_view map_view_mode) {
-	this->map_view_mode = map_view_mode;
+void map_state::set_view_mode(map_view map_v) {
+	this->map_view_mode = map_v;
 }
 
 void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
@@ -272,7 +272,7 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 bool map_state::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
 	if (map_view_mode == map_view::globe) {
 		glm::vec3 cartesian_coords;
-		float section = map_data.size_x / 256;
+		float section = float(map_data.size_x / 256);
 		float pi = glm::pi<float>();
 		float angle_x1 = 2 * pi * std::floor(map_pos.x * section) / section;
 		float angle_x2 = 2 * pi * std::floor(map_pos.x * section + 1) / section;
@@ -312,8 +312,8 @@ bool map_state::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size, glm::vec
 	}
 }
 
-glm::vec2 map_state::normalize_map_coord(glm::vec2 pos) {
-	auto new_pos = pos / glm::vec2{ float(map_data.size_x), float(map_data.size_y) };
+glm::vec2 map_state::normalize_map_coord(glm::vec2 p) {
+	auto new_pos = p / glm::vec2{ float(map_data.size_x), float(map_data.size_y) };
 	new_pos.y = 1.f - new_pos.y;
 	return new_pos;
 }
