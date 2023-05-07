@@ -1,4 +1,5 @@
 #include "map.hpp"
+#include "glm/fwd.hpp"
 #include "map.hpp"
 #include "texture.hpp"
 #include "province.hpp"
@@ -1134,6 +1135,23 @@ glm::vec2 display_data::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_siz
 	screen_pos /= zoom;
 	screen_pos += pos;
 	return screen_pos;
+}
+
+glm::vec2 display_data::normalize_map_coord(glm::vec2 pos) {
+	auto new_pos = pos / glm::vec2{ float(size_x), float(size_y) };
+	new_pos.y = 1.f - new_pos.y;
+	return new_pos;
+}
+
+glm::vec2 display_data::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size) {
+	map_pos -= pos;
+	map_pos *= zoom;
+
+	map_pos.x *= float(size_x) / float(size_y);
+	map_pos.x *= screen_size.y / screen_size.x;
+	map_pos *= screen_size;
+	map_pos += screen_size * 0.5f;
+	return map_pos;
 }
 
 void display_data::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {

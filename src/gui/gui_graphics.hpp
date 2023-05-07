@@ -351,6 +351,8 @@ namespace ui {
 		element_base* last_tooltip = nullptr;
 
 		xy_pair relative_mouse_location = xy_pair{ 0, 0 };
+		std::unique_ptr<element_base> units_root;
+		std::unique_ptr<element_base> rgos_root;
 		std::unique_ptr<element_base> root;
 		std::unique_ptr<tool_tip> tooltip;
 		ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;

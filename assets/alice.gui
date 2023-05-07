@@ -521,4 +521,9 @@ guiTypes = {
 		position = { x=0 y=6 }
 		Orientation = "UPPER_LEFT"
 	}
+	
+	iconType = {
+		name = "alice_rgo_mapicon"
+		spriteType = "GFX_resources_big"
+	}
 }
