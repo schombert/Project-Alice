@@ -653,7 +653,9 @@ dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger
 
 	const auto new_size = simplify_trigger(context.compiled_trigger.data());
 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
-
+	// Can't rely on a trigger with errors!
+	if(!err.accumulated_errors.empty())
+		return dcon::trigger_key{0};
 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
 }
 
