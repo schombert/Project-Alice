@@ -40,8 +40,8 @@ int WINAPI wWinMain(
 				assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
 			}
 			WCHAR szBuffer[256]; // excessive but just in case someone has their game directory NESTED
-			LONG lnBuffer = 256;
-			res = RegQueryValueEx(hKey, L"path", NULL, NULL, szBuffer, &length);
+			DWORD lnBuffer = 256;
+			res = RegQueryValueEx(hKey, L"path", NULL, NULL, reinterpret_cast<LPBYTE>(szBuffer), &lnBuffer);
 			if(res != ERROR_SUCCESS) {
 				assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
 			}
