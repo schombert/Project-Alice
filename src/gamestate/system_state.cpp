@@ -12,6 +12,7 @@
 #include "gui_console.hpp"
 #include "gui_province_window.hpp"
 #include "gui_event.hpp"
+#include "gui_map_icons.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
@@ -143,6 +144,11 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
+			if(map_state.active_map_mode == map_mode::mode::rgo_output)
+				ui_state.rgos_root->impl_on_update(*this);
+			else
+				ui_state.units_root->impl_on_update(*this);
+
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
 			// TODO also need to update any tooltips (which probably exist outside the root container)
@@ -238,6 +244,10 @@ namespace sys {
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
+		if(map_state.active_map_mode == map_mode::mode::rgo_output)
+			ui_state.rgos_root->impl_render(*this, 0, 0);
+		else
+			ui_state.units_root->impl_render(*this, 0, 0);
 		ui_state.root->impl_render(*this, 0, 0);
 		if(ui_state.tooltip->is_visible()) {
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
@@ -251,6 +261,18 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
 
+		world.for_each_province([&](dcon::province_id id) {
+			auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
+			Cyto::Any payload = id;
+			ptr->impl_set(*this, payload);
+			ui_state.units_root->add_child_to_front(std::move(ptr));
+		});
+		world.for_each_province([&](dcon::province_id id) {
+			auto ptr = ui::make_element_by_type<ui::rgo_icon>(*this, "alice_rgo_mapicon");
+			Cyto::Any payload = id;
+			ptr->impl_set(*this, payload);
+			ui_state.rgos_root->add_child_to_front(std::move(ptr));
+		});
         {
             auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
             ui_state.console_window = window.get();

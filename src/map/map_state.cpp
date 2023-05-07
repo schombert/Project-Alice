@@ -268,4 +268,22 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 		set_selected_province(dcon::province_id{});
 	}
 }
+
+glm::vec2 map_state::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size) {
+	map_pos -= pos;
+	map_pos *= zoom;
+
+	map_pos.x *= float(map_data.size_x) / float(map_data.size_y);
+	map_pos.x *= screen_size.y / screen_size.x;
+	map_pos *= screen_size;
+	map_pos += screen_size * 0.5f;
+	return map_pos;
+}
+
+glm::vec2 map_state::normalize_map_coord(glm::vec2 pos) {
+	auto new_pos = pos / glm::vec2{ float(map_data.size_x), float(map_data.size_y) };
+	new_pos.y = 1.f - new_pos.y;
+	return new_pos;
+}
+
 }

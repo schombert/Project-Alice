@@ -1,4 +1,5 @@
 #include "map.hpp"
+#include "glm/fwd.hpp"
 #include "texture.hpp"
 #include "province.hpp"
 #include <cmath>
