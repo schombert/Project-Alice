@@ -716,4 +716,9 @@ void daily_leaders_update(sys::state& state) {
 	}
 }
 
+bool has_truce_with(sys::state const& state, dcon::nation_id attacker, dcon::nation_id target) {
+	// TODO
+	return false;
+}
+
 }

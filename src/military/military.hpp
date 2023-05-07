@@ -92,6 +92,7 @@ void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state); // must run after determining connectivity
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
+bool has_truce_with(sys::state const& state, dcon::nation_id attacker, dcon::nation_id target);
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 float cb_infamy(sys::state const& state, dcon::cb_type_id t);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);

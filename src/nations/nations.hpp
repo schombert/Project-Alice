@@ -136,7 +136,7 @@ constexpr inline uint8_t priority_one = uint8_t(0x08);
 constexpr inline uint8_t priority_two = uint8_t(0x10);
 constexpr inline uint8_t priority_three = uint8_t(0x18);
 
-constexpr inline uint8_t is_expelled = uint8_t(0x20);
+// constexpr inline uint8_t is_expelled = uint8_t(0x20); // <-- didn't need this; free bit
 constexpr inline uint8_t is_discredited = uint8_t(0x40);
 constexpr inline uint8_t is_banned = uint8_t(0x80);
 
@@ -282,6 +282,7 @@ void release_vassal(sys::state& state, dcon::overlord_id rel);
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
 
 void update_great_powers(sys::state& state);
+void update_influence(sys::state& state);
 
 }
 

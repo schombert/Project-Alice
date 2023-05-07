@@ -1750,6 +1750,7 @@ namespace sys {
 					nations::update_military_scores(*this); // depends on ship score, land unit average
 					nations::update_rankings(*this); // depends on industrial score, military scores 
 					nations::update_great_powers(*this); // depends on rankings
+					nations::update_influence(*this); // depends on rankings, great powers
 
 					nations::update_colonial_points(*this); // depends on rankings, naval supply values
 					military::update_cbs(*this); // may add/remove cbs to a nation
