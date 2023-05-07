@@ -1510,6 +1510,8 @@ namespace sys {
 			}
 		}
 
+		nations::monthly_flashpoint_update(*this);
+
 		if(local_player_nation) {
 			world.nation_set_is_player_controlled(local_player_nation, true);
 		}
@@ -1706,7 +1708,7 @@ namespace sys {
 					demographics::regenerate_from_pop_data(*this);
 
 					// values updates pass 1 (mostly trivial things, can be done in parallel
-					concurrency::parallel_for(0, 11, [&](int32_t index) {
+					concurrency::parallel_for(0, 12, [&](int32_t index) {
 						switch(index) {
 							case 0:
 								nations::update_administrative_efficiency(*this);
@@ -1740,6 +1742,9 @@ namespace sys {
 								break;
 							case 10:
 								politics::daily_party_loyalty_update(*this);
+								break;
+							case 11:
+								nations::daily_update_flashpoint_tension(*this);
 								break;
 						}
 
@@ -1777,6 +1782,9 @@ namespace sys {
 							break;
 						case 15:
 							culture::discover_inventions(*this);
+							break;
+						case 20:
+							nations::monthly_flashpoint_update(*this);
 							break;
 						case 24:
 							rebel::execute_rebel_victories(*this);

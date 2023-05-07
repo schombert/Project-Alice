@@ -1931,6 +1931,22 @@ relationship{
 }
 
 relationship{
+	name{ flashpoint_focus }
+	tag{ save }
+
+	link{
+		object{state_instance}
+		name{state}
+		type{unique}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{unique}
+	}
+}
+
+relationship{
 	name{ abstract_state_membership }
 	tag{ scenario }
 
@@ -2762,6 +2778,14 @@ object {
 	property {
 		name{ used_naval_supply_points }
 		type{ uint16_t }
+	}
+	property{
+		name{ has_flash_point_state }
+		type{ bitfield }
+	}
+	property{
+		name{ is_target_of_some_cb }
+		type{ bitfield }
 	}
 }
 

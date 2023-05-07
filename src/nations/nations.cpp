@@ -1224,4 +1224,195 @@ void update_influence(sys::state& state) {
 	}
 }
 
+bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation) {
+	auto fp_focus_nation = fatten(state.world, fp_nation);
+	auto si = fatten(state.world, s);
+
+	auto fp_ident = fp_focus_nation.get_identity_from_identity_holder();
+
+	auto owner = si.get_nation_from_state_ownership();
+
+	if(owner == fp_nation)
+		return false;
+
+	auto owner_accepts_culture = [&](dcon::culture_id c) {
+		return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
+	};
+
+	if(fp_focus_nation.get_rank() > uint16_t(state.defines.colonial_rank)) {
+		auto d = si.get_definition();
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == owner) {
+				for(auto cores : p.get_province().get_core()) {
+					if(cores.get_identity() == fp_ident && !fp_ident.get_is_not_releasable() && !owner_accepts_culture(fp_ident.get_primary_culture())) {
+
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+void monthly_flashpoint_update(sys::state& state) {
+	// determine which states have flashpoints
+	/*
+	Whether a state contains a flashpoint depends on: whether a province in the state contains a core other than that of its owner and of a tag that is marked as releasable (i.e. not a cultural union core), and which has a primary culture that is not the primary culture or an accepted culture of its owner. If any core qualifies, the state is considered to be a flashpoint, and its default flashpoint tag will be the qualifying core whose culture has the greatest population in the state.
+	*/
+	for(auto si : state.world.in_state_instance) {
+		[&]() {
+			auto owner = si.get_nation_from_state_ownership();
+			auto owner_tag = owner.get_identity_from_identity_holder();
+
+			
+			auto owner_accepts_culture = [&](dcon::culture_id c) {
+				return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
+			};
+
+			if(auto fp_focus_nation = si.get_nation_from_flashpoint_focus(); fp_focus_nation) {
+				if(can_put_flashpoint_focus_in_state(state, si, fp_focus_nation)) {
+					si.set_flashpoint_tag(fp_focus_nation.get_identity_from_identity_holder());
+					return; // done, skip remainder
+				} else {
+					// remove focus
+					si.set_nation_from_flashpoint_focus(dcon::nation_id{});
+				}
+			}
+
+
+			dcon::national_identity_id qualifying_tag;
+
+			auto d = si.get_definition();
+			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				if(p.get_province().get_nation_from_province_ownership() == owner) {
+					for(auto cores : p.get_province().get_core()) {
+						if(!cores.get_identity().get_is_not_releasable() && !owner_accepts_culture(cores.get_identity().get_primary_culture()) && si.get_demographics(demographics::to_key(state, cores.get_identity().get_primary_culture())) > si.get_demographics(demographics::to_key(state, state.world.national_identity_get_primary_culture(qualifying_tag)))) {
+
+							qualifying_tag = cores.get_identity();
+						}
+					}
+				}
+			}
+
+			si.set_flashpoint_tag(qualifying_tag);
+		}();
+	}
+
+	// set which nations contain such states
+	state.world.execute_serial_over_nation([&](auto ids) {
+		state.world.nation_set_has_flash_point_state(ids, ve::mask_vector(false));
+	});
+	for(auto si : state.world.in_state_instance) {
+		if(si.get_flashpoint_tag()) {
+			si.get_nation_from_state_ownership().set_has_flash_point_state(true);
+		}
+	}
+
+	// set which of those nations are targeted by some cb
+	state.world.execute_serial_over_nation([&](auto ids) {
+		state.world.nation_set_is_target_of_some_cb(ids, ve::mask_vector(false));
+	});
+
+	for(auto target : state.world.in_nation) {
+		if(target.get_has_flash_point_state()) {
+			// check all other nations to see if they hold a cb
+			for(auto actor : state.world.in_nation) {
+				auto owned = actor.get_province_ownership();
+				if(actor != target && owned.begin() != owned.end()) {
+					if(military::can_use_cb_against(state, actor, target)) {
+						target.set_is_target_of_some_cb(true);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void daily_update_flashpoint_tension(sys::state& state) {
+	for(auto si : state.world.in_state_instance) {
+		if(si.get_flashpoint_tag()) {
+			float total_increase = 0.0f;
+			/*
+			- If at least one nation has a CB on the owner of a flashpoint state, the tension increases by define:TENSION_FROM_CB per day.
+			*/
+			if(si.get_nation_from_state_ownership().get_is_target_of_some_cb()) {
+				total_increase += state.defines.tension_from_cb;
+			}
+			/*
+			- If there is an independence movement within the nation owning the state for the independence tag, the tension will increase by movement-radicalism x define:TENSION_FROM_MOVEMENT x fraction-of-population-in-state-with-same-culture-as-independence-tag x movement-support / 4000, up to a maximum of define:TENSION_FROM_MOVEMENT_MAX per day.
+			*/
+			auto mov = rebel::get_movement_by_independence(state, si.get_nation_from_state_ownership(), si.get_flashpoint_tag());
+			if(mov) {
+				auto radicalism = state.world.movement_get_radicalism(mov);
+				auto support = state.world.movement_get_pop_support(mov);
+				auto state_pop = si.get_demographics(demographics::total);
+				auto pop_of_culture = si.get_demographics(demographics::to_key(state, si.get_flashpoint_tag().get_primary_culture()));
+				if(state_pop > 0) {
+					total_increase += std::min(state.defines.tension_from_movement_max, state.defines.tension_from_movement * radicalism * pop_of_culture * support / state_pop);
+				}
+			}
+
+			/*
+			- Any flashpoint focus increases the tension by the amount listed in it per day.
+			*/
+			if(si.get_nation_from_flashpoint_focus()) {
+				total_increase += state.national_definitions.flashpoint_amount;
+			}
+
+			/*
+			- Tension increases by define:TENSION_DECAY per day (this is negative, so this is actually a daily decrease).
+			*/
+			total_increase += state.defines.tension_decay;
+
+			/*
+			- Tension increased by define:TENSION_WHILE_CRISIS per day while a crisis is ongoing.
+			*/
+			if(state.current_crisis != sys::crisis_type::none) {
+				total_increase += state.defines.tension_while_crisis;
+			}
+
+			/*
+			- If the state is owned by a great power, tension is increased by define:RANK_X_TENSION_DECAY per day
+			*/
+			if(auto rank = si.get_nation_from_state_ownership().get_rank(); uint16_t(1) <= rank && rank <= uint16_t(8)) {
+				static float rank_amounts[8] = {
+					state.defines.rank_1_tension_decay,
+					state.defines.rank_2_tension_decay,
+					state.defines.rank_3_tension_decay,
+					state.defines.rank_4_tension_decay,
+					state.defines.rank_5_tension_decay,
+					state.defines.rank_6_tension_decay,
+					state.defines.rank_7_tension_decay,
+					state.defines.rank_8_tension_decay };
+
+				total_increase += rank_amounts[rank - 1];
+			}
+
+			/*
+			- For each great power at war or disarmed on the same continent as either the owner or the state, tension is increased by define:AT_WAR_TENSION_DECAY per day.
+			*/
+			for(auto& gp : state.great_nations) {
+				if(state.world.nation_get_is_at_war(gp.nation)) {
+					auto continent = state.world.province_get_continent(state.world.nation_get_capital(gp.nation));
+					if(si.get_capital().get_continent() == continent || si.get_nation_from_state_ownership().get_capital().get_continent() == continent) {
+						total_increase += state.defines.at_war_tension_decay;
+						break;
+					}
+				}
+			}
+
+
+			/*
+			- Tension ranges between 0 and 100
+			*/
+			si.get_flashpoint_tension() = std::clamp(si.get_flashpoint_tension() + total_increase, 0.0f, 100.0f);
+		} else {
+			si.set_flashpoint_tension(0.0f);
+		}
+	}
+}
+
 }

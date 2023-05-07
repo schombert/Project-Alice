@@ -264,6 +264,7 @@ bool can_expand_colony(sys::state& state, dcon::nation_id n);
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
+bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
 
 std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
 
@@ -283,6 +284,9 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);
+
+void monthly_flashpoint_update(sys::state& state);
+void daily_update_flashpoint_tension(sys::state& state);
 
 }
 
