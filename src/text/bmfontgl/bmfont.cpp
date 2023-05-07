@@ -47,7 +47,7 @@ aaedev@gmail.com 2012
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <sstream> 
+#include <sstream>
 #include "bmfont.h"
 #include <stdarg.h>
 
@@ -55,7 +55,9 @@ aaedev@gmail.com 2012
 #include "fonts.hpp"
 #include "system_state.hpp"
 
+#ifdef _WIN64
 #pragma warning (disable : 4996 )
+#endif
 
 //Todo: Add buffer overflow checking.
 
