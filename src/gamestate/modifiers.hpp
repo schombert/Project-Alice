@@ -163,7 +163,7 @@ namespace sys {
     MOD_LIST_ELEMENT(102, max_national_focus, true, modifier_display_type::integer, "tech_max_focus") \
     MOD_LIST_ELEMENT(103, education_efficiency, true, modifier_display_type::percent, "edu_eff_tech") \
     MOD_LIST_ELEMENT(104, reinforce_rate, true, modifier_display_type::percent, "reinforce_tech") \
-    MOD_LIST_ELEMENT(105, influence, true, modifier_display_type::percent, "modifier_greatpower_influence_gain") \
+    MOD_LIST_ELEMENT(105, influence, true, modifier_display_type::percent, "tech_gp_influence") \
     MOD_LIST_ELEMENT(106, dig_in_cap, true, modifier_display_type::percent, "digin_from_tech") \
     MOD_LIST_ELEMENT(107, combat_width, false, modifier_display_type::integer, "combat_width_tech") \
     MOD_LIST_ELEMENT(108, military_tactics, true, modifier_display_type::percent, "mil_tactics_tech") \

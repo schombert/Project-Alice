@@ -672,7 +672,7 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n) {
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n) {
 	for(auto it : state.world.nation_get_gp_relationship_as_great_power(n)) {
 		auto act_date = it.get_penalty_expires_date();
-		if(!act_date || act_date <= state.current_date || (it.get_status() & influence::is_banned) == 0) {
+		if((it.get_status() & influence::is_banned) == 0) {
 			if(it.get_influence() >= state.defines.increaseopinion_influence_cost && (influence::level_mask & it.get_status()) != influence::level_in_sphere) {
 				return true;
 			} else if(!(it.get_influence_target().get_in_sphere_of()) && it.get_influence() >= state.defines.addtosphere_influence_cost) {
@@ -1076,6 +1076,342 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 	if(state.world.diplomatic_relation_get_are_allied(rel)) {
 		// TODO: notify player
 		state.world.diplomatic_relation_set_are_allied(rel, false);
+	}
+}
+
+bool other_nation_is_influencing(sys::state& state, dcon::nation_id target, dcon::gp_relationship_id rel) {
+	for(auto orel : state.world.nation_get_gp_relationship_as_influence_target(target)) {
+		if(orel != rel) {
+			if(orel.get_influence() > 0.0f)
+				return true;
+		}
+	}
+	return false;
+}
+
+bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel) {
+	if((state.world.gp_relationship_get_status(rel) & influence::is_banned) != 0)
+		return false;
+	if(military::has_truce_with(state, gp, target))
+		return false;
+	if(military::are_at_war(state, gp, target))
+		return false;
+	if(state.world.gp_relationship_get_influence(rel) >= state.defines.max_influence && !other_nation_is_influencing(state, target, rel))
+		return false;
+	return true;
+}
+
+void update_influence(sys::state& state) {
+	for(auto rel : state.world.in_gp_relationship) {
+		if(rel.get_penalty_expires_date() == state.current_date) {
+			rel.set_status(rel.get_status() & ~(influence::is_banned | influence::is_discredited));
+		}
+	}
+
+	for(auto& grn : state.great_nations) {
+		dcon::nation_fat_id n = fatten(state.world, grn.nation);
+		if(!is_great_power(state, n))
+			continue; // skip
+
+		int32_t total_influence_shares = 0;
+		for(auto rel : n.get_gp_relationship_as_great_power()) {
+			if(can_accumulate_influence_with(state, n, rel.get_influence_target(), rel)) {
+				switch(rel.get_status() & influence::priority_mask) {
+					case influence::priority_one:
+						total_influence_shares += 1;
+						break;
+					case influence::priority_two:
+						total_influence_shares += 2;
+						break;
+					case influence::priority_three:
+						total_influence_shares += 3;
+						break;
+					default:
+					case influence::priority_zero:
+						break;
+				}
+			}
+		}
+
+		if(total_influence_shares > 0) {
+			/*
+			The nation gets a daily increase of define:BASE_GREATPOWER_DAILY_INFLUENCE x (national-modifier-to-influence-gain + 1) x (technology-modifier-to-influence + 1). This is then divided among the nations they are accumulating influence with in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc).
+			*/
+			float total_gain = state.defines.base_greatpower_daily_influence * (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier))* (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence));
+
+			/*
+			This influence value does not translate directly into influence with the target nation. Instead it is first multiplied by the following factor:
+			1 + define:DISCREDIT_INFLUENCE_GAIN_FACTOR (if discredited) + define:NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if the nations are adjacent) + define:SPHERE_NEIGHBOUR_BONUS_INFLUENCE_PERCENT (if some member of the influencing nation's sphere is adjacent but not the influencing nation itself) + define:OTHER_CONTINENT_BONUS_INFLUENCE_PERCENT (if the influencing nation and the target have capitals on different continents) + define:PUPPET_BONUS_INFLUENCE_PERCENT (if the target is a vassal of the influencer) + relation-value / define:RELATION_INFLUENCE_MODIFIER + define:INVESTMENT_INFLUENCE_DEFENCE x fraction-of-influencer's-foreign-investment-out-of-total-foreign-investment + define:LARGE_POPULATION_INFLUENCE_PENALTY x target-population / define:LARGE_POPULATION_INFLUENCE_PENALTY_CHUNK (if the target nation has population greater than define:LARGE_POPULATION_LIMIT) + (1 - target-score / influencer-score)^0
+			*/
+
+			float gp_score = n.get_industrial_score() + n.get_military_score() + prestige_score(state, n);
+
+			for(auto rel : n.get_gp_relationship_as_great_power()) {
+				if(can_accumulate_influence_with(state, n, rel.get_influence_target(), rel)) {
+					float base_shares = [&]() {
+						switch(rel.get_status() & influence::priority_mask) {
+							case influence::priority_one:
+								return total_gain / float(total_influence_shares);
+							case influence::priority_two:
+								return 2.0f * total_gain / float(total_influence_shares);
+							case influence::priority_three:
+								return 3.0f * total_gain / float(total_influence_shares);
+							default:
+							case influence::priority_zero:
+								return 0.0f;
+						}
+					}();
+
+					if(base_shares <= 0.0f)
+						continue; // skip calculations for priority zero nations
+
+					bool has_sphere_neighbor = [&]() {
+						for(auto g : rel.get_influence_target().get_nation_adjacency()) {
+							if(g.get_connected_nations(0) != rel.get_influence_target() && g.get_connected_nations(0).get_in_sphere_of() == n)
+								return true;
+							if(g.get_connected_nations(1) != rel.get_influence_target() && g.get_connected_nations(1).get_in_sphere_of() == n)
+								return true;
+						}
+						return false;
+					}();
+
+					float total_fi = 0.0f;
+					for(auto i : rel.get_influence_target().get_unilateral_relationship_as_target()) {
+						total_fi += i.get_foreign_investment();
+					}
+					auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(state.world.get_unilateral_relationship_by_unilateral_pair(rel.get_influence_target(), n));
+
+					float discredit_factor = (rel.get_status() & influence::is_discredited) != 0 ? state.defines.discredit_influence_gain_factor : 0.0f;
+					float neighbor_factor = bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, rel.get_influence_target())) ? state.defines.neighbour_bonus_influence_percent : 0.0f;
+					float sphere_neighbor_factor = has_sphere_neighbor ? state.defines.sphere_neighbour_bonus_influence_percent : 0.0f;
+					float continent_factor = n.get_capital().get_continent() != rel.get_influence_target().get_capital().get_continent() ? state.defines.other_continent_bonus_influence_percent : 0.0f;
+					float puppet_factor = rel.get_influence_target().get_overlord_as_subject().get_ruler() == n ? state.defines.puppet_bonus_influence_percent : 0.0f;
+					float relationship_factor = state.world.diplomatic_relation_get_value(state.world.get_diplomatic_relation_by_diplomatic_pair(n, rel.get_influence_target())) / state.defines.relation_influence_modifier;
+					float investment_factor = total_fi > 0.0f ? state.defines.investment_influence_defense * gp_invest / total_fi : 0.0f;
+					float pop_factor = rel.get_influence_target().get_demographics(demographics::total) > state.defines.large_population_limit ? state.defines.large_population_influence_penalty * rel.get_influence_target().get_demographics(demographics::total) / state.defines.large_population_influence_penalty_chunk : 0.0f;
+					float score_factor = gp_score > 0.0f ? std::max(1.0f - (rel.get_influence_target().get_industrial_score() + rel.get_influence_target().get_military_score() + prestige_score(state, rel.get_influence_target())) / gp_score, 0.0f) : 0.0f;
+
+					float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor + continent_factor + puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
+
+					auto gain_amount = base_shares * total_multiplier;
+
+					/*
+					Any influence that accumulates beyond the max (define:MAX_INFLUENCE) will be subtracted from the influence of the great power with the most influence (other than the influencing nation).
+					*/
+
+					rel.get_influence() += gain_amount;
+					if(rel.get_influence() > state.defines.max_influence) {
+						auto overflow = rel.get_influence() - state.defines.max_influence;
+						rel.get_influence() = state.defines.max_influence;
+
+						dcon::gp_relationship_id other_rel;
+						for(auto orel : rel.get_influence_target().get_gp_relationship_as_influence_target()) {
+							if(orel != rel) {
+								if(orel.get_influence() > state.world.gp_relationship_get_influence(other_rel)) {
+									other_rel = orel;
+								}
+							}
+						}
+
+						if(other_rel) {
+							auto& orl_i = state.world.gp_relationship_get_influence(other_rel);
+							orl_i = std::max(0.0f, orl_i - overflow);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation) {
+	auto fp_focus_nation = fatten(state.world, fp_nation);
+	auto si = fatten(state.world, s);
+
+	auto fp_ident = fp_focus_nation.get_identity_from_identity_holder();
+
+	auto owner = si.get_nation_from_state_ownership();
+
+	if(owner == fp_nation)
+		return false;
+
+	auto owner_accepts_culture = [&](dcon::culture_id c) {
+		return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
+	};
+
+	if(fp_focus_nation.get_rank() > uint16_t(state.defines.colonial_rank)) {
+		auto d = si.get_definition();
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == owner) {
+				for(auto cores : p.get_province().get_core()) {
+					if(cores.get_identity() == fp_ident && !fp_ident.get_is_not_releasable() && !owner_accepts_culture(fp_ident.get_primary_culture())) {
+
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+void monthly_flashpoint_update(sys::state& state) {
+	// determine which states have flashpoints
+	/*
+	Whether a state contains a flashpoint depends on: whether a province in the state contains a core other than that of its owner and of a tag that is marked as releasable (i.e. not a cultural union core), and which has a primary culture that is not the primary culture or an accepted culture of its owner. If any core qualifies, the state is considered to be a flashpoint, and its default flashpoint tag will be the qualifying core whose culture has the greatest population in the state.
+	*/
+	for(auto si : state.world.in_state_instance) {
+		[&]() {
+			auto owner = si.get_nation_from_state_ownership();
+			auto owner_tag = owner.get_identity_from_identity_holder();
+
+			
+			auto owner_accepts_culture = [&](dcon::culture_id c) {
+				return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
+			};
+
+			if(auto fp_focus_nation = si.get_nation_from_flashpoint_focus(); fp_focus_nation) {
+				if(can_put_flashpoint_focus_in_state(state, si, fp_focus_nation)) {
+					si.set_flashpoint_tag(fp_focus_nation.get_identity_from_identity_holder());
+					return; // done, skip remainder
+				} else {
+					// remove focus
+					si.set_nation_from_flashpoint_focus(dcon::nation_id{});
+				}
+			}
+
+
+			dcon::national_identity_id qualifying_tag;
+
+			auto d = si.get_definition();
+			for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				if(p.get_province().get_nation_from_province_ownership() == owner) {
+					for(auto cores : p.get_province().get_core()) {
+						if(!cores.get_identity().get_is_not_releasable() && !owner_accepts_culture(cores.get_identity().get_primary_culture()) && si.get_demographics(demographics::to_key(state, cores.get_identity().get_primary_culture())) > si.get_demographics(demographics::to_key(state, state.world.national_identity_get_primary_culture(qualifying_tag)))) {
+
+							qualifying_tag = cores.get_identity();
+						}
+					}
+				}
+			}
+
+			si.set_flashpoint_tag(qualifying_tag);
+		}();
+	}
+
+	// set which nations contain such states
+	state.world.execute_serial_over_nation([&](auto ids) {
+		state.world.nation_set_has_flash_point_state(ids, ve::mask_vector(false));
+	});
+	for(auto si : state.world.in_state_instance) {
+		if(si.get_flashpoint_tag()) {
+			si.get_nation_from_state_ownership().set_has_flash_point_state(true);
+		}
+	}
+
+	// set which of those nations are targeted by some cb
+	state.world.execute_serial_over_nation([&](auto ids) {
+		state.world.nation_set_is_target_of_some_cb(ids, ve::mask_vector(false));
+	});
+
+	for(auto target : state.world.in_nation) {
+		if(target.get_has_flash_point_state()) {
+			// check all other nations to see if they hold a cb
+			for(auto actor : state.world.in_nation) {
+				auto owned = actor.get_province_ownership();
+				if(actor != target && owned.begin() != owned.end()) {
+					if(military::can_use_cb_against(state, actor, target)) {
+						target.set_is_target_of_some_cb(true);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void daily_update_flashpoint_tension(sys::state& state) {
+	for(auto si : state.world.in_state_instance) {
+		if(si.get_flashpoint_tag()) {
+			float total_increase = 0.0f;
+			/*
+			- If at least one nation has a CB on the owner of a flashpoint state, the tension increases by define:TENSION_FROM_CB per day.
+			*/
+			if(si.get_nation_from_state_ownership().get_is_target_of_some_cb()) {
+				total_increase += state.defines.tension_from_cb;
+			}
+			/*
+			- If there is an independence movement within the nation owning the state for the independence tag, the tension will increase by movement-radicalism x define:TENSION_FROM_MOVEMENT x fraction-of-population-in-state-with-same-culture-as-independence-tag x movement-support / 4000, up to a maximum of define:TENSION_FROM_MOVEMENT_MAX per day.
+			*/
+			auto mov = rebel::get_movement_by_independence(state, si.get_nation_from_state_ownership(), si.get_flashpoint_tag());
+			if(mov) {
+				auto radicalism = state.world.movement_get_radicalism(mov);
+				auto support = state.world.movement_get_pop_support(mov);
+				auto state_pop = si.get_demographics(demographics::total);
+				auto pop_of_culture = si.get_demographics(demographics::to_key(state, si.get_flashpoint_tag().get_primary_culture()));
+				if(state_pop > 0) {
+					total_increase += std::min(state.defines.tension_from_movement_max, state.defines.tension_from_movement * radicalism * pop_of_culture * support / state_pop);
+				}
+			}
+
+			/*
+			- Any flashpoint focus increases the tension by the amount listed in it per day.
+			*/
+			if(si.get_nation_from_flashpoint_focus()) {
+				total_increase += state.national_definitions.flashpoint_amount;
+			}
+
+			/*
+			- Tension increases by define:TENSION_DECAY per day (this is negative, so this is actually a daily decrease).
+			*/
+			total_increase += state.defines.tension_decay;
+
+			/*
+			- Tension increased by define:TENSION_WHILE_CRISIS per day while a crisis is ongoing.
+			*/
+			if(state.current_crisis != sys::crisis_type::none) {
+				total_increase += state.defines.tension_while_crisis;
+			}
+
+			/*
+			- If the state is owned by a great power, tension is increased by define:RANK_X_TENSION_DECAY per day
+			*/
+			if(auto rank = si.get_nation_from_state_ownership().get_rank(); uint16_t(1) <= rank && rank <= uint16_t(8)) {
+				static float rank_amounts[8] = {
+					state.defines.rank_1_tension_decay,
+					state.defines.rank_2_tension_decay,
+					state.defines.rank_3_tension_decay,
+					state.defines.rank_4_tension_decay,
+					state.defines.rank_5_tension_decay,
+					state.defines.rank_6_tension_decay,
+					state.defines.rank_7_tension_decay,
+					state.defines.rank_8_tension_decay };
+
+				total_increase += rank_amounts[rank - 1];
+			}
+
+			/*
+			- For each great power at war or disarmed on the same continent as either the owner or the state, tension is increased by define:AT_WAR_TENSION_DECAY per day.
+			*/
+			for(auto& gp : state.great_nations) {
+				if(state.world.nation_get_is_at_war(gp.nation)) {
+					auto continent = state.world.province_get_continent(state.world.nation_get_capital(gp.nation));
+					if(si.get_capital().get_continent() == continent || si.get_nation_from_state_ownership().get_capital().get_continent() == continent) {
+						total_increase += state.defines.at_war_tension_decay;
+						break;
+					}
+				}
+			}
+
+
+			/*
+			- Tension ranges between 0 and 100
+			*/
+			si.get_flashpoint_tension() = std::clamp(si.get_flashpoint_tension() + total_increase, 0.0f, 100.0f);
+		} else {
+			si.set_flashpoint_tension(0.0f);
+		}
 	}
 }
 
