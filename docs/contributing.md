@@ -19,7 +19,7 @@ We are looking for people who can build a C++ project and run it, but who don't 
 Translators -- this is a very late-stage consideration and we are nowhere near there yet.
 
 #### Other:
-If you have some other skill or contribution that you think you can make, I am open to suggestions 
+If you have some other skill or contribution that you think you can make, I am open to suggestions
 
 ### Free agents
 
@@ -29,17 +29,45 @@ Since this is an open-source project, you don't have to be an official member of
 
 The build uses CMake and should "just work", with some annoying exceptions.
 
-First, windows users will need a full copy of git installed (https://git-scm.com/downloads), as the one that ships with Visual Studio is not sufficient for CMake, for some reason.
+#### Windows
 
-1. Windows users will need to make sure that they have a relatively up-to-date version of the windows SDK installed (you can update your local version of the windows SDK through the Visual Studio installer).
-2. The version of Intel's TBB library we use seems to fail to compile if you have any spaces in the path, so you need to make sure that wherever you put the project has no spaces anywhere in its path (yes, this seems dumb to me too).
-3. Because the project in its current state needs to use the existing game files (as a source of graphics, for starters), everyone needs to tell the compiler where their copy of the game is installed. You do this by creating a file named `local_user_settings.hpp` in the directory `src`.
+1. You will need a full copy of git installed (https://git-scm.com/downloads), as the one that ships with Visual Studio is not sufficient for CMake, for some reason.
+2. Make sure that you have a relatively up-to-date version of the Windows SDK installed (you can update your local version of the Windows SDK through the Visual Studio installer).
+3. Open the project in Visual Studio and let it configure.
+
+#### Linux (Debian-based distro)
+
+Make sure to install the required dependencies.
+
+```bash
+sudo apt update
+sudo apt install git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+```
+
+After the installation is done, download the `cmake-tools` extension for Visual Studio Code and open the project. CMake should automatically configure the project for you.
+
+If you get the error, `/usr/bin/ld: cannot find -lstdc++`, it might be caused by a broken gcc-12 package in Ubuntu jammy.
+```bash
+sudo apt remove gcc-12
+```
+https://stackoverflow.com/questions/67712376/after-updating-gcc-clang-cant-find-libstdc-anymore
+
+(Linux only) The version of Intel's TBB library we use seems to fail to compile if you have any spaces in the path, so you need to make sure that wherever you put the project has no spaces anywhere in its path (yes, this seems dumb to me too).
+
+#### Final touches
+
+Because the project in its current state needs to use the existing game files (as a source of graphics, for starters), everyone needs to tell the compiler where their copy of the game is installed. You do this by creating a file named `local_user_settings.hpp` in the directory `src`.
 
 That file should contain the following four lines (the last one is an empty line):
-```
+```cpp
 #ifndef GAME_DIR
-#define GAME_DIR "D:\\programs\\V2"
+#define GAME_DIR "C:\\Your\\Victoria2\\Files"
 #endif
 
 ```
-except replacing the path there with your installation location. Note that on Windows you need to write `\\` instead of just `\` for each path separator. (Linux does not have this issue, and you can write a single `/`)
+except replacing that path with your own installation location.
+
+Note that on Windows you need to write `\\` instead of just `\` for each path separator. (Linux does not have this issue, and you can write a single `/`)
+Second note: on Windows, BrickPi has made a change such that, if you have Victoria 2 installed, you may be able to bypass creating `local_user_settings.hpp` completely. You may want to try that first.
+
+Finally, just build the Alice launch target, and you should see the game pop up on your screen.
