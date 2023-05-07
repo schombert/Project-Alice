@@ -1,5 +1,8 @@
 #include "map_state.hpp"
 
+#include <glm/gtx/intersect.hpp>
+#include <glm/gtx/polar_coordinates.hpp>
+
 namespace map {
 
 dcon::province_id map_state::get_selected_province() {
@@ -184,28 +187,56 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 	if(is_dragging) {  // Drag the map with middlemouse
 		auto mouse_pos = glm::vec2(x, y);
 		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-		auto map_pos = screen_to_map(mouse_pos, screen_size);
+		glm::vec2 map_pos;
+		screen_to_map(mouse_pos, screen_size, map_view::flat, map_pos);
 
 		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
 	}
 }
 
-glm::vec2 map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size) {
-	screen_pos -= screen_size * 0.5f;
-	screen_pos /= screen_size;
-	screen_pos.x *= screen_size.x / screen_size.y;
-	screen_pos.x *= float(map_data.size_y) / float(map_data.size_x);
+bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos) {
+	if (view_mode == map_view::globe) {
+		screen_pos -= screen_size * 0.5f;
+		screen_pos /= screen_size;
+		screen_pos.x *= screen_size.x / screen_size.y;
 
-	screen_pos /= zoom;
-	screen_pos += pos;
-	return screen_pos;
+		float cursor_radius = glm::length(screen_pos);
+		glm::vec3 cursor_pos = glm::vec3(screen_pos.x, -10, -screen_pos.y);
+		glm::vec3 cursor_direction = glm::vec3(0, 1, 0);
+		glm::vec3 sphere_center = glm::vec3(0, 0, 0);
+		float sphere_radius = 0.2f * zoom;
+
+		glm::vec3 intersection_pos;
+		glm::vec3 intersection_normal;
+
+		if (glm::intersectRaySphere(cursor_pos, cursor_direction, sphere_center, sphere_radius, intersection_pos, intersection_normal)) {
+			intersection_pos = glm::mat3(glm::inverse(globe_rotation)) * intersection_pos;
+			float theta = std::acos(std::clamp(intersection_pos.z/glm::length(intersection_pos), -1.f, 1.f));
+			float phi = std::atan2(intersection_pos.y, intersection_pos.x);
+			float pi = glm::pi<float>();
+			map_pos = glm::vec2((phi / (2*pi)) + 0.5f, theta / pi);
+			return true;
+		}
+		return false;
+	} else {
+		screen_pos -= screen_size * 0.5f;
+		screen_pos /= screen_size;
+		screen_pos.x *= screen_size.x / screen_size.y;
+		screen_pos.x *= float(map_data.size_y) / float(map_data.size_x);
+
+		screen_pos /= zoom;
+		screen_pos += pos;
+        map_pos = screen_pos;
+		return (map_pos.x >= 0 && map_pos.y >= 0 && map_pos.x <= map_data.size_x && map_pos.y <= map_data.size_y);
+	}
 }
 
 void map_state::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 
-	auto map_pos = screen_to_map(mouse_pos, screen_size);
+	glm::vec2 map_pos;
+	screen_to_map(mouse_pos, screen_size, map_view::flat, map_pos);
 
 	last_camera_drag_pos = map_pos;
 	is_dragging = true;
@@ -219,7 +250,10 @@ void map_state::on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod) {
 void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-	auto map_pos = screen_to_map(mouse_pos, screen_size);
+	glm::vec2 map_pos;
+	if(!screen_to_map(mouse_pos, screen_size, map_view_mode, map_pos)) {
+		return;
+	}
 	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
 	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
