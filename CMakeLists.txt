@@ -72,10 +72,17 @@ if(WIN32)
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 	endif()
 else() # GCC or CLANG
-	target_compile_options(Alice PRIVATE
-									-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses -Wno-class-memaccess
-		$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
-		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti>)
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		target_compile_options(Alice PRIVATE
+										-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field
+			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
+			$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti>)
+	else()
+		target_compile_options(Alice PRIVATE
+										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
+			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
+			$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti>)
+	endif()
 endif()
 
 # Include sub-projects.
