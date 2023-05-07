@@ -24,4 +24,4 @@ void province_rgo_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, 
 	}
 }
 
-};
+}

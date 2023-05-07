@@ -32,7 +32,7 @@ namespace text {
 		auto start = (file_size != 0 && file_content[0] == '#') ? parsers::csv_advance_to_next_line(file_content, file_content + file_size) : file_content;
 		while(start < file_content + file_size) {
 			start = parsers::parse_first_and_nth_csv_values(language, start, file_content + file_size, ';', [&state](std::string_view key, std::string_view content) {
-				
+
 				char const* section_start = content.data();
 				char const* seq_start = content.data();
 				char const* seq_end = content.data() + content.size();
@@ -84,7 +84,7 @@ namespace text {
 					state.text_components.emplace_back( added_key );
 				}
 
-				
+
 
 				auto to_lower_temp = lowercase_str(key);
 				if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
@@ -733,7 +733,7 @@ namespace text {
 		} else {
 			amount = prettify(int32_t(num));
 		}
-		
+
 		return "\xA4 " + amount;
 	}
 
@@ -796,7 +796,7 @@ namespace text {
 		return endless_layout(dest, params);
 	}
 
-	
+
 
 	namespace impl {
 
@@ -899,7 +899,7 @@ namespace text {
 				end_position = next_word;
 				first_in_line = false;
 			}
-			
+
 		}
 	}
 
@@ -956,7 +956,7 @@ namespace text {
 		} else {
 			return std::string("?");
 		}
-	};
+	}
 
 	}
 
