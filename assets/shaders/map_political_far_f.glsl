@@ -38,7 +38,8 @@ void main() {
 	OutColor.b = OverlayColor.b < .5 ? (2. * OverlayColor.b * political.b) : (1. - 2. * (1. - OverlayColor.b) * (1. - political.b));
 	OutColor.a = OverlayColor.a;
 
-	vec3 background = texture(colormap_political, tex_coord).rgb;
+	//vec3 background = texture(colormap_political, tex_coord).rgb;
+	vec3 background = vec3(0.5, 0.5, 0.5);
 	OutColor.rgb = mix(background, OutColor.rgb, 0.3);
 
 	OutColor.rgb *= 1.5;

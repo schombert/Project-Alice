@@ -49,6 +49,7 @@ vec4 globe_coords(vec2 world_pos) {
 layout(index = 1) subroutine(calc_gl_position_class)
 vec4 flat_coords(vec2 world_pos) {
 	world_pos += vec2(-offset.x, offset.y);
+	world_pos.x = mod(world_pos.x, 1.0f);
 	return vec4(
 		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
@@ -66,7 +67,7 @@ void main() {
 	vec2 extend_vector = -normalize(direction) * thickness / (1 + sqrt(2));
 	vec2 world_pos = vertex_position;
 
-	world_pos.x = mod(world_pos.x, 1.0f);
+	
 	world_pos.x *= map_size.x / map_size.y;
 	world_pos += extend_vector + normal_vector;
 	world_pos.x /= map_size.x / map_size.y;

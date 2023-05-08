@@ -24,14 +24,10 @@ void map_state::set_selected_province(dcon::province_id prov_id) {
 	selected_province = prov_id;
 }
 
-void map_state::set_view_mode(map_view map_v) {
-	this->map_view_mode = map_v;
-}
-
 void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
 	update(state);
 	glm::vec2 offset = glm::vec2(glm::mod(pos.x, 1.f) - 0.5f, pos.y - 0.5f);
-	map_data.render(glm::vec2(screen_x, screen_y), offset, zoom, map_view_mode, active_map_mode, globe_rotation, time_counter);
+	map_data.render(glm::vec2(screen_x, screen_y), offset, zoom, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, active_map_mode, globe_rotation, time_counter);
 }
 
 void map_state::update(sys::state& state) {
@@ -248,7 +244,7 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	glm::vec2 map_pos;
-	if(!screen_to_map(mouse_pos, screen_size, map_view_mode, map_pos)) {
+	if(!screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {
 		return;
 	}
 	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
@@ -266,8 +262,8 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	}
 }
 
-bool map_state::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
-	if (map_view_mode == map_view::globe) {
+bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
+	if (state.user_settings.map_is_globe) {
 		glm::vec3 cartesian_coords;
 		float section = float(map_data.size_x / 256);
 		float pi = glm::pi<float>();
@@ -297,7 +293,14 @@ bool map_state::map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size, glm::vec
 		screen_pos *= screen_size;
 		return true;
 	} else {
+
 		map_pos -= pos;
+
+		if(map_pos.x >= 0.5f)
+			map_pos.x -= 1.0f;
+		if(map_pos.x < -0.5f)
+			map_pos.x += 1.0f;
+
 		map_pos *= zoom;
 
 		map_pos.x *= float(map_data.size_x) / float(map_data.size_y);

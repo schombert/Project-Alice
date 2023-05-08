@@ -29,7 +29,8 @@ const float vColorMapFactor = 1.0f; //how much colormap
 // The water effect
 vec4 get_water(vec2 tex_coord)
 {
-	vec3 WorldColorColor = texture(colormap_water, tex_coord).rgb;
+	//vec3 WorldColorColor = texture(colormap_water, tex_coord).rgb;
+	vec3 WorldColorColor = vec3(0.21, 0.38, 0.55);
 	tex_coord *= 100.;
 	tex_coord = tex_coord * 0.25 + time * 0.002;
 
@@ -76,5 +77,6 @@ vec4 get_water(vec2 tex_coord)
 
 // Will look "real" water
 void main() {
-	frag_color = get_water(tex_coord);
+	//frag_color = get_water(tex_coord);
+	frag_color = vec4(0.21, 0.38, 0.55, 1.0f);
 }

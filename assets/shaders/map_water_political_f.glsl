@@ -12,7 +12,8 @@ layout (location = 3) uniform vec2 map_size;
 
 // Blue color mixed with the map overlay texture.
 void main() {
-	vec4 water_background = texture(colormap_water, tex_coord);
+	//vec4 water_background = texture(colormap_water, tex_coord);
+	vec3 water_background = vec3(0.21, 0.38, 0.55);
 	vec3 color = water_background.rgb;
 
 	// The "foldable map" overlay effect

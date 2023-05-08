@@ -53,8 +53,8 @@ void main() {
 	vec4 terrain_background = texture(colormap_terrain, tex_coord);
 	vec4 terrain = get_terrain_mix();
 	// Mixes the terrains from "texturesheet.tga" with the "colormap.dds" background color.
-	terrain = (terrain * 2. + terrain_background) / 3.;
-
+	//terrain = (terrain * 2. + terrain_background) / 3.;
+	
 	// Make the terrain a gray scale color
     float grey = dot( terrain.rgb, GREYIFY );
  	terrain.rgb = vec3(grey);

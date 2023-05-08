@@ -6,6 +6,8 @@ sound_options;Sound Options;;;;;;;;;;;;x
 controls_options;Controls Options;;;;;;;;;;;;x
 window_mode;Window mode;;;;;;;;;;;;x
 map_projection;Map projection;;;;;;;;;;;;x
+map_projection_globe;Orthographic;;;;;;;;;;;;x
+map_projection_flat;Equirectangular;;;;;;;;;;;;x
 ui_scale;UI scale;;;;;;;;;;;;x
 zoom_mode_label;Zoom style;;;;;;;;;;;;x
 master_volume_label;Master volume;;;;;;;;;;;;x

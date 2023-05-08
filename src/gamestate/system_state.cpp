@@ -144,10 +144,7 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
-			if(map_state.active_map_mode == map_mode::mode::rgo_output)
-				ui_state.rgos_root->impl_on_update(*this);
-			else
-				ui_state.units_root->impl_on_update(*this);
+			
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
@@ -244,10 +241,17 @@ namespace sys {
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
-		if(map_state.active_map_mode == map_mode::mode::rgo_output)
-			ui_state.rgos_root->impl_render(*this, 0, 0);
-		else
-			ui_state.units_root->impl_render(*this, 0, 0);
+
+		if(map_state.get_zoom() > 5) {
+			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+				ui_state.rgos_root->impl_on_update(*this);
+				ui_state.rgos_root->impl_render(*this, 0, 0);
+			} else {
+				ui_state.units_root->impl_on_update(*this);
+				ui_state.units_root->impl_render(*this, 0, 0);
+			}
+		}
+
 		ui_state.root->impl_render(*this, 0, 0);
 		if(ui_state.tooltip->is_visible()) {
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
@@ -1414,8 +1418,11 @@ namespace sys {
 		for(int32_t i = 0; i < province_definitions.first_sea_province.index(); ++i) {
 			dcon::province_id id{ dcon::province_id::value_base_t(i) };
 			if(!world.province_get_terrain(id)) { // don't overwrite if set by the history file
-				auto modifier = context.modifier_by_terrain_index[map_state.map_data.median_terrain_type[province::to_map_id(id)]];
-				world.province_set_terrain(id, modifier);
+				auto terrain_type = map_state.map_data.median_terrain_type[province::to_map_id(id)];
+				if(terrain_type < 64) {
+					auto modifier = context.modifier_by_terrain_index[terrain_type];
+					world.province_set_terrain(id, modifier);
+				}
 			}
 		}
 		for(int32_t i = province_definitions.first_sea_province.index(); i < int32_t(world.province_size()); ++i) {

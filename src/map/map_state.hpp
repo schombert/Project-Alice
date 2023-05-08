@@ -28,9 +28,8 @@ public:
 	void update_borders(sys::state& state);
 
 	glm::vec2 normalize_map_coord(glm::vec2 pos);
-	bool map_to_screen(glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos);
+	bool map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos);
 
-	void set_view_mode(map_view map_view_mode);
 
 	// Set the position of camera. Position relative from 0-1
 	void set_pos(glm::vec2 pos);
@@ -63,7 +62,6 @@ private:
 	bool unhandled_province_selection = false;
 
 	// Position and movement
-	map_view map_view_mode = map_view::globe;
 	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
 	glm::vec2 pos_velocity = glm::vec2(0.f);
 	glm::vec2 last_camera_drag_pos;
@@ -82,5 +80,9 @@ private:
 	void update(sys::state& state);
 
 	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos);
+public:
+	float get_zoom() {
+		return zoom;
+	}
 };
 }

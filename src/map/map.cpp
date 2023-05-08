@@ -839,17 +839,25 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 	// Create the terrain_id_map
 	// If it is invalid province (meaning that the color didn't map to anything) or a sea province, it forces the terrain to be ocean.
 	// If it is a land province, it forces the terrain to be plains if it is currently ocean
-	terrain_id_map.resize(terrain_size_x * terrain_size_y, uint8_t(255));
+
+	auto free_space = std::max(uint32_t(0), size_y - terrain_size_y); // schombert: find out how much water we need to add
+	auto top_free_space = (free_space * 3) / 5;
+	auto bottom_free_space = free_space - top_free_space;
+
+	assert(terrain_size_x == size_x);
+
+	terrain_id_map.resize(size_x * size_y, uint8_t(255));
+
 	for(uint32_t y = 0; y < terrain_size_y; ++y) {
-		for(uint32_t x = 0; x < terrain_size_x; ++x) {
-			if(province_id_map[y * size_x + x] == 0 || province_id_map[y * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province)) {
-				terrain_id_map[y * size_x + x] = uint8_t(255);
+		for(uint32_t x = 0; x < size_x; ++x) {
+			if(province_id_map[(y + top_free_space) * size_x + x] == 0 || province_id_map[(y + top_free_space) * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province)) {
+				terrain_id_map[(y + top_free_space) * size_x + x] = uint8_t(255);
 			} else {
-				auto value = *(terrain_data + x + (terrain_size_y - y - 1) * terrain_size_x);
+				auto value = *(terrain_data + x + (terrain_size_y - (y) - 1) * terrain_size_x);
 				if(value < 64)
-					terrain_id_map[y * size_x + x] = value;
+					terrain_id_map[(y + top_free_space) * size_x + x] = value;
 				else
-					terrain_id_map[y * size_x + x] = uint8_t(6);
+					terrain_id_map[(y + top_free_space) * size_x + x] = uint8_t(6);
 			}
 		}
 	}
@@ -879,16 +887,27 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 }
 
 void display_data::load_province_data(parsers::scenario_building_context& context, image& image) {
-	uint32_t imsz = uint32_t(image.size_x * image.size_y);
+	uint32_t imsz = uint32_t(size_x * size_y);
+	auto free_space = std::max(uint32_t(0), size_y - image.size_y); // schombert: find out how much water we need to add
+	auto top_free_space = (free_space * 3) / 5;
+
 	province_id_map.resize(imsz);
-	for(uint32_t i = 0; i < imsz; ++i) {
-		uint8_t* ptr = image.data + i * 4;
+	uint32_t i = 0;
+	for(; i < top_free_space * size_x; ++i) { // schombert: fill with nothing until the start of the real data
+		province_id_map[i] = 0;
+	}
+	auto first_actual_map_pixel = top_free_space * size_x; // schombert: where the real data starts
+	for(; i < first_actual_map_pixel + image.size_x * image.size_y; ++i) {
+		uint8_t* ptr = image.data + (i - first_actual_map_pixel) * 4; // schombert: subtract to find our offset in the actual image data
 		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
 		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
 			province_id_map[i] = province::to_map_id(it->second);
 		} else {
 			province_id_map[i] = 0;
 		}
+	}
+	for(; i < imsz; ++i) { // schombert: fill remainder with nothing
+		province_id_map[i] = 0;
 	}
 
 	load_provinces_mid_point(context);
@@ -903,7 +922,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	auto provinces_image = load_stb_image(*provinces_bmp);
 
 	size_x = uint32_t(provinces_image.size_x);
-	size_y = uint32_t(provinces_image.size_y);
+	size_y = uint32_t(provinces_image.size_x / 2); // schombert: force the correct map size
 
 	load_province_data(context, provinces_image);
 	load_terrain_data(context);
