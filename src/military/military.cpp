@@ -195,7 +195,7 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 
 	int32_t total = 0;
 	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
-	auto mobilization_size = fp.get_nation_from_province_ownership().get_modifier_values(sys::national_mod_offsets::mobilization_size);
+	auto mobilization_size = std::max(0.0f, fp.get_nation_from_province_ownership().get_modifier_values(sys::national_mod_offsets::mobilization_size));
 
 	for(auto pop : state.world.province_get_pop_location(p)) {
 		/*
