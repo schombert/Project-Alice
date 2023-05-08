@@ -416,31 +416,24 @@ void display_data::create_meshes() {
 		vertices.emplace_back(pos0.x, pos0.y);
 	};
 
+	glm::vec2 last_pos(0, 0);
+	glm::vec2 pos(0, 0);
+	glm::vec2 map_size(size_x, size_y);
+	glm::vec2 sections(1000, 1000);
+	for(int y = 0; y < sections.y; y++) {
+		pos.y = last_pos.y + (map_size.y / sections.y);
+		if (y == sections.y - 1)
+			pos.y = map_size.y;
 
-	uint32_t index = 0;
-	for(uint32_t y = 0; y < size_y; y++) {
-		uint32_t last_x = 0;
-		bool last_is_water = terrain_id_map[index++] > 64;
-		for(uint32_t x = 1; x < size_x; x++) {
-			bool is_water = terrain_id_map[index++] > 64;
-			if(is_water != last_is_water || (x & (256 - 1)) == 0) {
-				glm::vec2 pos0(last_x, y);
-				glm::vec2 pos1(x, y + 1);
-				if(last_is_water)
-					add_quad(water_vertices, pos0, pos1);
-				else
-					add_quad(land_vertices, pos0, pos1);
-
-				last_x = x;
-				last_is_water = is_water;
-			}
+		last_pos.x = 0;
+		for(int x = 0; x < sections.x; x++) {
+			pos.x = last_pos.x + (map_size.x / sections.x);
+			if (x == sections.x - 1)
+				pos.x = map_size.x;
+			add_quad(land_vertices, last_pos, pos);
+			last_pos.x = pos.x;
 		}
-		glm::vec2 pos0(last_x, y);
-		glm::vec2 pos1(size_x, y + 1);
-		if(last_is_water)
-			add_quad(water_vertices, pos0, pos1);
-		else
-			add_quad(land_vertices, pos0, pos1);
+		last_pos.y = pos.y;
 	}
 
 	water_vertex_count = ((uint32_t)water_vertices.size());

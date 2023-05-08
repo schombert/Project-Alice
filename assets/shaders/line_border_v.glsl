@@ -26,15 +26,18 @@ layout(index = 0) subroutine(calc_gl_position_class)
 vec4 globe_coords(vec2 world_pos) {
 
 	vec3 new_world_pos;
-	float section = map_size.x / 256;
-	float angle_x1 = 2 * PI * floor(world_pos.x * section) / section;
-	float angle_x2 = 2 * PI * floor(world_pos.x * section + 1) / section;
-	new_world_pos.x = mix(cos(angle_x1), cos(angle_x2), mod(world_pos.x * section, 1));
-	new_world_pos.y = mix(sin(angle_x1), sin(angle_x2), mod(world_pos.x * section, 1));
-	float angle_y = world_pos.y * PI;
-	new_world_pos.x *= sin(angle_y);
-	new_world_pos.y *= sin(angle_y);
-	new_world_pos.z = cos(angle_y);
+	float section_x = 1000;
+	float angle_x1 = 2 * PI * floor(world_pos.x * section_x) / section_x;
+	float angle_x2 = 2 * PI * floor(world_pos.x * section_x + 1) / section_x;
+	float angle_x = mix(angle_x1, angle_x2, mod(world_pos.x * section_x, 1));
+	new_world_pos.x = mix(cos(angle_x1), cos(angle_x2), mod(world_pos.x * section_x, 1));
+	new_world_pos.y = mix(sin(angle_x1), sin(angle_x2), mod(world_pos.x * section_x, 1));
+	float section_y = 1000;
+	float angle_y1 = PI * floor(world_pos.y * section_y) / section_y;
+	float angle_y2 = PI * floor(world_pos.y * section_y + 1) / section_y;
+	new_world_pos.x *= mix(sin(angle_y1), sin(angle_y2), mod(world_pos.y * section_y, 1));
+	new_world_pos.y *= mix(sin(angle_y1), sin(angle_y2), mod(world_pos.y * section_y, 1));
+	new_world_pos.z = mix(cos(angle_y1), cos(angle_y2), mod(world_pos.y * section_y, 1));
 	new_world_pos = rotation * new_world_pos;
 	new_world_pos *= 0.2;
 	new_world_pos.xz *= -1;
@@ -67,7 +70,7 @@ void main() {
 	vec2 extend_vector = -normalize(direction) * thickness / (1 + sqrt(2));
 	vec2 world_pos = vertex_position;
 
-	
+
 	world_pos.x *= map_size.x / map_size.y;
 	world_pos += extend_vector + normal_vector;
 	world_pos.x /= map_size.x / map_size.y;
