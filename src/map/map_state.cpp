@@ -194,7 +194,7 @@ bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_v
 		screen_pos.x *= screen_size.x / screen_size.y;
 
 		float cursor_radius = glm::length(screen_pos);
-		glm::vec3 cursor_pos = glm::vec3(screen_pos.x, -10, -screen_pos.y);
+		glm::vec3 cursor_pos = glm::vec3(screen_pos.x, -10 * zoom, -screen_pos.y);
 		glm::vec3 cursor_direction = glm::vec3(0, 1, 0);
 		glm::vec3 sphere_center = glm::vec3(0, 0, 0);
 		float sphere_radius = 0.2f * zoom;
