@@ -48,5 +48,6 @@ void main() {
 	vec4 terrain_background = texture(colormap_terrain, tex_coord);
 	vec4 terrain = get_terrain_mix();
 	// Mixes the terrains from "texturesheet.tga" with the "colormap.dds" background color.
-	frag_color = (terrain * 2. + terrain_background) / 3.;
+	// frag_color = (terrain * 2. + terrain_background) / 3.;
+	frag_color = terrain;
 }

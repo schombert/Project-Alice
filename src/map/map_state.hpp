@@ -83,5 +83,9 @@ private:
 	void update(sys::state& state);
 
 	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos);
+public:
+	float get_zoom() {
+		return zoom;
+	}
 };
 }

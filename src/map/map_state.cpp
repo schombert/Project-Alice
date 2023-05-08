@@ -296,7 +296,14 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 		screen_pos *= screen_size;
 		return true;
 	} else {
+
 		map_pos -= pos;
+
+		if(map_pos.x >= 0.5f)
+			map_pos.x -= 1.0f;
+		if(map_pos.x < -0.5f)
+			map_pos.x += 1.0f;
+
 		map_pos *= zoom;
 
 		map_pos.x *= float(map_data.size_x) / float(map_data.size_y);

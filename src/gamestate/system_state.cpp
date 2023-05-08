@@ -144,10 +144,7 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
-			if(map_state.active_map_mode == map_mode::mode::rgo_output)
-				ui_state.rgos_root->impl_on_update(*this);
-			else
-				ui_state.units_root->impl_on_update(*this);
+			
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
@@ -244,10 +241,17 @@ namespace sys {
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
-		if(map_state.active_map_mode == map_mode::mode::rgo_output)
-			ui_state.rgos_root->impl_render(*this, 0, 0);
-		else
-			ui_state.units_root->impl_render(*this, 0, 0);
+
+		if(map_state.get_zoom() > 5) {
+			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+				ui_state.rgos_root->impl_on_update(*this);
+				ui_state.rgos_root->impl_render(*this, 0, 0);
+			} else {
+				ui_state.units_root->impl_on_update(*this);
+				ui_state.units_root->impl_render(*this, 0, 0);
+			}
+		}
+
 		ui_state.root->impl_render(*this, 0, 0);
 		if(ui_state.tooltip->is_visible()) {
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
