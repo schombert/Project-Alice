@@ -649,12 +649,17 @@ int32_t simplify_trigger(uint16_t* source) {
 }
 
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
-	tr_scope_and(gen, err, context);
+	error_handler trigger_err(std::string{ err.file_name });
+	tr_scope_and(gen, trigger_err, context);
+	// Append errors, warnings and misc flags to the main error handler
+	err.accumulated_errors.insert(err.accumulated_errors.end(), trigger_err.accumulated_errors.begin(), trigger_err.accumulated_errors.end());
+	err.accumulated_warnings.insert(err.accumulated_warnings.end(), trigger_err.accumulated_warnings.begin(), trigger_err.accumulated_warnings.end());
+	err.fatal = trigger_err.fatal;
 
 	const auto new_size = simplify_trigger(context.compiled_trigger.data());
 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
 	// Can't rely on a trigger with errors!
-	if(!err.accumulated_errors.empty())
+	if(!trigger_err.accumulated_errors.empty())
 		return dcon::trigger_key{0};
 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
 }
