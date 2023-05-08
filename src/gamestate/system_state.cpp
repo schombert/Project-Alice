@@ -1414,8 +1414,11 @@ namespace sys {
 		for(int32_t i = 0; i < province_definitions.first_sea_province.index(); ++i) {
 			dcon::province_id id{ dcon::province_id::value_base_t(i) };
 			if(!world.province_get_terrain(id)) { // don't overwrite if set by the history file
-				auto modifier = context.modifier_by_terrain_index[map_state.map_data.median_terrain_type[province::to_map_id(id)]];
-				world.province_set_terrain(id, modifier);
+				auto terrain_type = map_state.map_data.median_terrain_type[province::to_map_id(id)];
+				if(terrain_type < 64) {
+					auto modifier = context.modifier_by_terrain_index[terrain_type];
+					world.province_set_terrain(id, modifier);
+				}
 			}
 		}
 		for(int32_t i = province_definitions.first_sea_province.index(); i < int32_t(world.province_size()); ++i) {

@@ -64,7 +64,7 @@ public:
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
         glm::vec2 screen_pos;
-		if (!state.map_state.map_to_screen(map_pos, screen_size, screen_pos)) {
+		if (!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 			return;
 		}
 		auto size = T::base_data.size;
@@ -82,7 +82,7 @@ public:
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
         glm::vec2 screen_pos;
-		if (!state.map_state.map_to_screen(map_pos, screen_size, screen_pos)) {
+		if (!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 			return;
 		}
 		auto size = window_element_base::base_data.size;
