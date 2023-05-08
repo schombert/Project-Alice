@@ -288,10 +288,183 @@ protected:
 	}
 };
 
+typedef std::variant<
+	std::monostate,
+	dcon::nation_id,
+	dcon::state_instance_id,
+	dcon::province_id
+> pop_left_side_data;
+template<typename T>
+class pop_left_side_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			T id = any_cast<T>(payload);
+			if(state.ui_state.population_subwindow) {
+				Cyto::Any new_payload = pop_list_filter(id);
+				state.ui_state.population_subwindow->impl_set(state, new_payload);
+			}
+		}
+	}
+};
+class pop_left_side_country_window : public generic_settable_element<window_element_base, dcon::nation_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "poplistbutton") {
+			return make_element_by_type<pop_left_side_button<dcon::nation_id>>(state, id);
+		} else if(name == "poplist_name") {
+			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+		} else if(name == "poplist_numpops") {
+			return make_element_by_type<nation_population_text>(state, id);
+		} else if(name == "growth_indicator") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(content);
+			return message_result::consumed;
+		}
+		return window_element_base::get(state, payload);
+	}
+};
+typedef std::variant<std::monostate, dcon::state_instance_id> pop_left_side_expand_action;
+class pop_left_side_expand_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto id = any_cast<dcon::state_instance_id>(payload);
+			if(state.ui_state.population_subwindow) {
+				Cyto::Any new_payload = pop_left_side_expand_action(id);
+				state.ui_state.population_subwindow->impl_set(state, new_payload);
+			}
+		}
+	}
+};
+class pop_left_side_state_window : public generic_settable_element<window_element_base, dcon::state_instance_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "poplistbutton") {
+			return make_element_by_type<pop_left_side_button<dcon::state_instance_id>>(state, id);
+		} else if(name == "poplist_name") {
+			return make_element_by_type<state_name_text>(state, id);
+		} else if(name == "poplist_numpops") {
+			return make_element_by_type<state_population_text>(state, id);
+		} else if(name == "colonial_state_icon") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "state_focus") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "expand") {
+			return make_element_by_type<pop_left_side_expand_button>(state, id);
+		} else if(name == "growth_indicator") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::state_instance_id>()) {
+			payload.emplace<dcon::state_instance_id>(content);
+			return message_result::consumed;
+		}
+		return window_element_base::get(state, payload);
+	}
+};
+class pop_left_side_province_window : public generic_settable_element<window_element_base, dcon::province_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "poplistbutton") {
+			return make_element_by_type<pop_left_side_button<dcon::province_id>>(state, id);
+		} else if(name == "poplist_name") {
+			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
+		} else if(name == "poplist_numpops") {
+			return make_element_by_type<province_population_text>(state, id);
+		} else if(name == "growth_indicator") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
+			payload.emplace<dcon::province_id>(content);
+			return message_result::consumed;
+		}
+		return window_element_base::get(state, payload);
+	}
+};
+
+class pop_left_side_item : public listbox_row_element_base<pop_left_side_data> {
+	pop_left_side_country_window* country_window = nullptr;
+	pop_left_side_state_window* state_window = nullptr;
+	pop_left_side_province_window* province_window = nullptr;
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base<pop_left_side_data>::on_create(state);
+
+		auto ptr1 = make_element_by_type<pop_left_side_country_window>(state, state.ui_state.defs_by_name.find("poplistitem_country")->second.definition);
+		country_window = ptr1.get();
+		add_child_to_back(std::move(ptr1));
+
+		auto ptr2 = make_element_by_type<pop_left_side_state_window>(state, state.ui_state.defs_by_name.find("poplistitem_state")->second.definition);
+		state_window = ptr2.get();
+		add_child_to_back(std::move(ptr2));
+
+		auto ptr3 = make_element_by_type<pop_left_side_province_window>(state, state.ui_state.defs_by_name.find("poplistitem_province")->second.definition);
+		province_window = ptr3.get();
+		add_child_to_back(std::move(ptr3));
+		// After this, the widget will be immediately set by the parent
+	}
+
+	void update(sys::state& state) noexcept override {
+		country_window->set_visible(state, std::holds_alternative<dcon::nation_id>(content));
+		state_window->set_visible(state, std::holds_alternative<dcon::state_instance_id>(content));
+		province_window->set_visible(state, std::holds_alternative<dcon::province_id>(content));
+		if (std::holds_alternative<dcon::nation_id>(content)) {
+			Cyto::Any new_payload = std::get<dcon::nation_id>(content);
+			country_window->impl_set(state, new_payload);
+		} else if (std::holds_alternative<dcon::state_instance_id>(content)) {
+			Cyto::Any new_payload = std::get<dcon::state_instance_id>(content);
+			state_window->impl_set(state, new_payload);
+		} else if (std::holds_alternative<dcon::province_id>(content)) {
+			Cyto::Any new_payload = std::get<dcon::province_id>(content);
+			province_window->impl_set(state, new_payload);
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<pop_left_side_data>()) {
+			payload.emplace<pop_left_side_data>(content);
+			return message_result::consumed;
+		} else {
+			return listbox_row_element_base<pop_left_side_data>::get(state, payload);
+		}
+	}
+};
+
+class pop_left_side_listbox : public listbox_element_base<pop_left_side_item, pop_left_side_data> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "pop_left_side_list_base_window";
+	}
+};
+
 class population_window : public window_element_base {
 private:
 	pop_legend_listbox* country_pop_listbox = nullptr;
+	pop_left_side_listbox* left_side_listbox = nullptr;
 	pop_list_filter filter = std::monostate{};
+	// Whetever or not to show provinces below the state element in the listbox!
+	ankerl::unordered_dense::map<decltype(dcon::state_instance_id::value), bool> view_expanded_state;
 
 	void populate_pop_list(sys::state& state) {
 		std::vector<dcon::state_instance_id> state_list;
@@ -328,7 +501,43 @@ private:
 			auto a_fat_id = dcon::fatten(state.world, a);
 			auto b_fat_id = dcon::fatten(state.world, b);
 			return a_fat_id.get_size() > b_fat_id.get_size();
-	  });
+		});
+	}
+
+	void populate_left_side_list(sys::state& state) {
+		auto nation_id = std::holds_alternative<dcon::nation_id>(filter)
+			? std::get<dcon::nation_id>(filter)
+			: state.local_player_nation;
+
+		// & then populate the separate, left side listbox
+		if(nation_id != state.local_player_nation)
+			left_side_listbox->row_contents.push_back(pop_left_side_data(nation_id));
+
+		// States are sorted by total population
+		std::vector<dcon::state_instance_id> state_list;
+		for(auto si : state.world.nation_get_state_ownership(nation_id))
+			state_list.push_back(si.get_state().id);
+		std::sort(state_list.begin(), state_list.end(), [&](auto a, auto b) {
+			return state.world.state_instance_get_demographics(a, demographics::total) > state.world.state_instance_get_demographics(b, demographics::total);
+		});
+
+		std::vector<dcon::province_id> province_list;
+		for(const auto state_id : state_list) {
+			left_side_listbox->row_contents.push_back(pop_left_side_data(state_id));
+			// Provinces are sorted by total population too
+			province_list.clear();
+			auto fat_id = dcon::fatten(state.world, state_id);
+			province::for_each_province_in_state_instance(state, fat_id, [&](dcon::province_id id) {
+				province_list.push_back(id);
+			});
+			std::sort(province_list.begin(), province_list.end(), [&](auto a, auto b) {
+				return state.world.province_get_demographics(a, demographics::total) > state.world.province_get_demographics(b, demographics::total);
+			});
+			// Only put if the state is "expanded"
+			if(view_expanded_state[state_id.value] == true)
+				for(const auto province_id : province_list)
+					left_side_listbox->row_contents.push_back(pop_left_side_data(province_id));
+		}
 	}
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -410,6 +619,10 @@ public:
 			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
+		} else if(name == "pop_province_list") {
+			auto ptr = make_element_by_type<pop_left_side_listbox>(state, id);
+			left_side_listbox = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -422,11 +635,22 @@ public:
 			sort_pop_list(state);
 			country_pop_listbox->update(state);
 		}
+		if(left_side_listbox) {
+			left_side_listbox->row_contents.clear();
+			populate_left_side_list(state);
+			left_side_listbox->update(state);
+		}
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<pop_list_filter>()) {
 			filter = any_cast<pop_list_filter>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<pop_left_side_expand_action>()) {
+			auto expand_action = any_cast<pop_left_side_expand_action>(payload);
+			auto sid = std::get<dcon::state_instance_id>(expand_action);
+			view_expanded_state[sid.value] = !view_expanded_state[sid.value];
 			on_update(state);
 			return message_result::consumed;
 		}

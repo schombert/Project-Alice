@@ -153,6 +153,26 @@ public:
 	}
 };
 
+class state_population_text : public standard_state_instance_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		auto total_pop = state.world.state_instance_get_demographics(state_id, demographics::total);
+		return text::prettify(int32_t(total_pop));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_totalpop")); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class standard_unit_progress_bar : public progress_bar {
 public:
     void on_create(sys::state& state) noexcept override {

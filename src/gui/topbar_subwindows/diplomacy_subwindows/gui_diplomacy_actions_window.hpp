@@ -30,11 +30,14 @@ enum diplomacy_action : uint8_t {
 };
 
 class diplomacy_action_ally_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+    bool can_cancel(sys::state& state) noexcept {
+        auto drid = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, content);
+        return state.world.diplomatic_relation_get_are_allied(drid);
+    }
 public:
     void on_update(sys::state& state) noexcept override {
-        bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
-            can_cancel ? "cancelalliance_button"
+            can_cancel(state) ? "cancelalliance_button"
                 : "alliance_button"));
         
         // TODO: Conditions for enabling/disabling
@@ -44,9 +47,8 @@ public:
     }
 
     void button_action(sys::state& state) noexcept override {
-        bool can_cancel = false;
         if(parent) {
-            Cyto::Any payload = can_cancel ? diplomacy_action::cancel_ally
+            Cyto::Any payload = can_cancel(state) ? diplomacy_action::cancel_ally
                 : diplomacy_action::ally;
             parent->impl_get(state, payload);
         }
@@ -65,6 +67,10 @@ public:
         disabled = false;
         if(content == state.local_player_nation)
             disabled = true;
+        else {
+            auto drid = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, content);
+            disabled = !state.world.diplomatic_relation_get_are_allied(drid);
+        }
     }
 
     void button_action(sys::state& state) noexcept override {

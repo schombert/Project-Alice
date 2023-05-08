@@ -526,4 +526,15 @@ guiTypes = {
 		name = "alice_rgo_mapicon"
 		spriteType = "GFX_resources_big"
 	}
+
+	windowType = {
+		name = "pop_left_side_list_base_window"
+		backGround =""
+		position = { x=0 y=0 }
+		size = { x=200 y=38 }
+		moveable = 0
+		dontRender = ""
+		fullScreen = no
+		orientation = "UPPER_LEFT"
+	}
 }
