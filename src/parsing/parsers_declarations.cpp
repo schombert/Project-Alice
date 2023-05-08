@@ -163,8 +163,24 @@ void government_type::flagtype(association_type, std::string_view value, error_h
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::other;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy2"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy2;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "monarchy3"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::monarchy3;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic2"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic2;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "republic3"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::republic3;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist2"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::communist2;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "communist3"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::communist3;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist2"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::fascist2;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fascist3"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::fascist3;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy2"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::theocracy2;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocracy3"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::theocracy3;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cosmetic_1"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::cosmetic_1;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "cosmetic_2"))
@@ -177,6 +193,8 @@ void government_type::flagtype(association_type, std::string_view value, error_h
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::sectarian;
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "socialist"))
 		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::socialist;
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "dominion"))
+		context.outer_context.state.culture_definitions.governments[context.id].flag = ::culture::flag_type::dominion;
 	else {
 		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}

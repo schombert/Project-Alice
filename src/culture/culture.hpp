@@ -48,7 +48,8 @@ enum class flag_type : uint8_t {
 	monarchy2 = 11, monarchy3 = 12, republic2 = 13, republic3 = 14,
 	communist2 = 15, communist3 = 16, fascist2 = 17, fascist3 = 18,
 	theocracy2 = 19, theocracy3 = 20, cosmetic_1 = 21, cosmetic_2 = 22,
-	colonial = 23, nationalist = 24, sectarian = 25, socialist = 26
+	colonial = 23, nationalist = 24, sectarian = 25, socialist = 26,
+	dominion = 27
 };
 inline constexpr int32_t flag_count = 19;
 
