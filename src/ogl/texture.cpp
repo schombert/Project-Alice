@@ -496,6 +496,12 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 				file_str += NATIVE("_socialist"); break;
 			case culture::flag_type::dominion:
 				file_str += NATIVE("_dominion"); break;
+			case culture::flag_type::agrarism:
+				file_str += NATIVE("_agrarism"); break;
+			case culture::flag_type::national_syndicalist:
+				file_str += NATIVE("_national_syndicalist"); break;
+			case culture::flag_type::theocratic:
+				file_str += NATIVE("_theocratic"); break;
 		}
 		file_str += NATIVE(".tga");
 
