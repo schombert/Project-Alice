@@ -67,8 +67,13 @@ public:
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 			return;
 		}
-		generic_settable_element<T, dcon::province_id>::base_data.position = xy_pair{ int16_t(screen_pos.x - generic_settable_element<T, dcon::province_id>::base_data.size.x / 2), int16_t(screen_pos.y - generic_settable_element<T, dcon::province_id>::base_data.size.y / 2) };
-		generic_settable_element<T, dcon::province_id>::impl_render(state, x, y);
+		auto new_position = xy_pair{ int16_t(screen_pos.x - generic_settable_element<T, dcon::province_id>::base_data.size.x / 2), int16_t(screen_pos.y - generic_settable_element<T, dcon::province_id>::base_data.size.y / 2) };
+		auto xdiff = (generic_settable_element<T, dcon::province_id>::base_data.position.x - new_position.x);
+		auto ydiff = (generic_settable_element<T, dcon::province_id>::base_data.position.y - new_position.y);
+		generic_settable_element<T, dcon::province_id>::base_data.position = new_position;
+		generic_settable_element<T, dcon::province_id>::impl_render(state, x - xdiff, y - ydiff);
+
+		
 	}
 };
 
@@ -84,8 +89,12 @@ public:
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
 			return;
 		}
-		map_element_base<window_element_base>::base_data.position = xy_pair{ int16_t(screen_pos.x - 27), int16_t(screen_pos.y - 36) };
-		map_element_base<window_element_base>::impl_render(state, x, y);
+		auto new_position = xy_pair{ int16_t(screen_pos.x - 25), int16_t(screen_pos.y - 40) };
+		auto xdiff = (map_element_base<window_element_base>::base_data.position.x - new_position.x);
+		auto ydiff = (map_element_base<window_element_base>::base_data.position.y - new_position.y);
+		map_element_base<window_element_base>::base_data.position = new_position;
+		window_element_base::impl_render(state, x - xdiff, y - ydiff);
+		
 	}
 
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
