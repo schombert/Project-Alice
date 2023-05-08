@@ -30,7 +30,8 @@ void map_state::set_view_mode(map_view map_v) {
 
 void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
 	update(state);
-	map_data.render(glm::vec2(screen_x, screen_y), glm::vec2(offset_x, offset_y), zoom, map_view_mode, active_map_mode, globe_rotation, time_counter);
+	glm::vec2 offset = glm::vec2(glm::mod(pos.x, 1.f) - 0.5f, pos.y - 0.5f);
+	map_data.render(glm::vec2(screen_x, screen_y), offset, zoom, map_view_mode, active_map_mode, globe_rotation, time_counter);
 }
 
 void map_state::update(sys::state& state) {
@@ -76,8 +77,6 @@ void map_state::update(sys::state& state) {
 
 	pos.x = glm::mod(pos.x, 1.f);
 	pos.y = glm::clamp(pos.y, 0.f, 1.f);
-	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
-	offset_y = pos.y - 0.5f;
 
 	if(unhandled_province_selection) {
 		map_mode::update_map_mode(state);
@@ -161,8 +160,6 @@ void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 void map_state::set_pos(glm::vec2 new_pos) {
 	pos.x = glm::mod(new_pos.x, 1.f);
 	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
-	offset_x = glm::mod(pos.x, 1.f) - 0.5f;
-	offset_y = pos.y - 0.5f;
 }
 
 void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount) {
