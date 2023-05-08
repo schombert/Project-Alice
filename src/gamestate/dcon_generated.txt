@@ -907,7 +907,7 @@ object {
 object {
 	name{leader_trait}
 	storage_type{ contiguous }
-	size{ 1400 }
+	size{ 2800 }
 	tag{ scenario }
 
 	property{

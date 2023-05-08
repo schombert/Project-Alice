@@ -464,8 +464,24 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 				file_str += NATIVE("_other"); break;
 			case culture::flag_type::monarchy2:
 				file_str += NATIVE("_monarchy2"); break;
+			case culture::flag_type::monarchy3:
+				file_str += NATIVE("_monarchy3"); break;
 			case culture::flag_type::republic2:
 				file_str += NATIVE("_republic2"); break;
+			case culture::flag_type::republic3:
+				file_str += NATIVE("_republic3"); break;
+			case culture::flag_type::communist2:
+				file_str += NATIVE("_communist2"); break;
+			case culture::flag_type::communist3:
+				file_str += NATIVE("_communist3"); break;
+			case culture::flag_type::fascist2:
+				file_str += NATIVE("_fascist2"); break;
+			case culture::flag_type::fascist3:
+				file_str += NATIVE("_fascist3"); break;
+			case culture::flag_type::theocracy2:
+				file_str += NATIVE("_theocracy2"); break;
+			case culture::flag_type::theocracy3:
+				file_str += NATIVE("_theocracy3"); break;
 			case culture::flag_type::cosmetic_1:
 				file_str += NATIVE("_cosmetic_1"); break;
 			case culture::flag_type::cosmetic_2:
@@ -478,6 +494,14 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 				file_str += NATIVE("_sectarian"); break;
 			case culture::flag_type::socialist:
 				file_str += NATIVE("_socialist"); break;
+			case culture::flag_type::dominion:
+				file_str += NATIVE("_dominion"); break;
+			case culture::flag_type::agrarism:
+				file_str += NATIVE("_agrarism"); break;
+			case culture::flag_type::national_syndicalist:
+				file_str += NATIVE("_national_syndicalist"); break;
+			case culture::flag_type::theocratic:
+				file_str += NATIVE("_theocratic"); break;
 		}
 		file_str += NATIVE(".tga");
 

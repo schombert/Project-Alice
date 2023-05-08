@@ -21,7 +21,7 @@ void initialize_opengl(sys::state& state) {
 	load_shaders(state); // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
-	state.flag_type_map.resize(culture::flag_count, 0);
+	state.flag_type_map.resize(size_t(culture::flag_type::count), 0);
 	// Create the remapping for flags
 	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
 		auto fat_id = dcon::fatten(state.world, ident_id);
