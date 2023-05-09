@@ -569,13 +569,13 @@ protected:
 					state.world.for_each_ideology(weight_fn);
 				// Needs to be queried directly from the pop
 				if constexpr(std::is_same_v<T, dcon::culture_id>) {
-					distrib[state.world.pop_get_culture(pop_id).id.index()] += state.world.pop_get_size(pop_id);
+					distrib[typename T::value_base_t(state.world.pop_get_culture(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 					total += state.world.pop_get_size(pop_id);
 				} else if constexpr(std::is_same_v<T, dcon::religion_id>) {
-					distrib[state.world.pop_get_religion(pop_id).id.index()] += state.world.pop_get_size(pop_id);
+					distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 					total += state.world.pop_get_size(pop_id);
 				} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
-					distrib[state.world.pop_get_poptype(pop_id).id.index()] += state.world.pop_get_size(pop_id);
+					distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 					total += state.world.pop_get_size(pop_id);
 				}
 			}
@@ -730,11 +730,11 @@ public:
 					state.world.for_each_ideology(weight_fn);
 				// Needs to be queried directly from the pop
 				if constexpr(std::is_same_v<T, dcon::culture_id>)
-					distrib[state.world.pop_get_culture(pop_id).id.index()] += state.world.pop_get_size(pop_id);
+					distrib[typename T::value_base_t(state.world.pop_get_culture(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 				else if constexpr(std::is_same_v<T, dcon::religion_id>)
-					distrib[state.world.pop_get_religion(pop_id).id.index()] += state.world.pop_get_size(pop_id);
+					distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 				else if constexpr(std::is_same_v<T, dcon::pop_type_id>)
-					distrib[state.world.pop_get_poptype(pop_id).id.index()] += state.world.pop_get_size(pop_id);
+					distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 			}
 			std::vector<std::pair<T, float>> sorted_distrib{};
 			for(const auto& e : distrib)
@@ -835,7 +835,7 @@ public:
 			for(const auto pop_id : pop_list)
 				state.world.for_each_ideology([&](dcon::ideology_id ideology_id) {
 					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, ideology_id));
-					distrib[ideology_id.index()] += weight;
+					distrib[dcon::ideology_id::value_base_t(ideology_id.index())] += weight;
 				});
 			
 			std::vector<std::pair<dcon::ideology_id, float>> sorted_distrib{};
@@ -859,7 +859,7 @@ private:
 	pop_left_side_listbox* left_side_listbox = nullptr;
 	pop_list_filter filter = std::monostate{};
 	// Whetever or not to show provinces below the state element in the listbox!
-	ankerl::unordered_dense::map<decltype(dcon::state_instance_id::value), bool> view_expanded_state;
+	ankerl::unordered_dense::map<dcon::state_instance_id::value_base_t, bool> view_expanded_state;
 
 	void sort_pop_list(sys::state& state) {
 		std::sort(country_pop_listbox->row_contents.begin(), country_pop_listbox->row_contents.end(), [&](auto a, auto b) {
@@ -901,7 +901,7 @@ private:
 				return state.world.province_get_demographics(a, demographics::total) > state.world.province_get_demographics(b, demographics::total);
 			});
 			// Only put if the state is "expanded"
-			if(view_expanded_state[state_id.index()] == true)
+			if(view_expanded_state[dcon::state_instance_id::value_base_t(state_id.index())] == true)
 				for(const auto province_id : province_list)
 					left_side_listbox->row_contents.push_back(pop_left_side_data(province_id));
 		}
@@ -1056,7 +1056,7 @@ public:
 		} else if(payload.holds_type<pop_left_side_expand_action>()) {
 			auto expand_action = any_cast<pop_left_side_expand_action>(payload);
 			auto sid = std::get<dcon::state_instance_id>(expand_action);
-			view_expanded_state[sid.index()] = !view_expanded_state[sid.index()];
+			view_expanded_state[dcon::state_instance_id::value_base_t(sid.index())] = !view_expanded_state[sid.index()];
 			on_update(state);
 			return message_result::consumed;
 		}
@@ -1070,7 +1070,7 @@ public:
 		} else if(payload.holds_type<pop_left_side_expand_action>()) {
 			auto expand_action = any_cast<pop_left_side_expand_action>(payload);
 			auto sid = std::get<dcon::state_instance_id>(expand_action);
-			payload.emplace<pop_left_side_expand_action>(pop_left_side_expand_action(view_expanded_state[sid.index()]));
+			payload.emplace<pop_left_side_expand_action>(pop_left_side_expand_action(view_expanded_state[dcon::state_instance_id::value_base_t(sid.index())]));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
