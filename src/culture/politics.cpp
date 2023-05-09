@@ -461,6 +461,31 @@ void daily_party_loyalty_update(sys::state& state) {
 	});
 }
 
+float party_total_support(sys::state& state, dcon::pop_id pop, dcon::political_party_id par_id, dcon::nation_id nat_id, dcon::province_id prov_id) {
+	auto n = dcon::fatten(state.world, nat_id);
+	auto p = dcon::fatten(state.world, prov_id);
+
+	auto weight = pop_vote_weight(state, pop, n);
+	if(weight > 0.f) {
+		auto ideological_share = state.world.pop_get_consciousness(pop) / 20.0f;
+
+		float ruling_party_support = p.get_modifier_values(sys::provincial_mod_offsets::local_ruling_party_support) + n.get_modifier_values(sys::national_mod_offsets::ruling_party_support) + 1.0f;
+		float prov_vote_mod = p.get_modifier_values(sys::provincial_mod_offsets::number_of_voters) + 1.0f;
+
+		auto pid = state.world.political_party_get_ideology(par_id);
+		auto base_support = (p.get_party_loyalty(pid) + 1.0f) * prov_vote_mod * (par_id == n.get_ruling_party() ? ruling_party_support : 1.0f) * weight;
+		auto issue_support = 0.0f;
+		for(auto pi : state.culture_definitions.party_issues) {
+			auto party_pos = state.world.political_party_get_party_issues(par_id, pi);
+			issue_support += state.world.pop_get_demographics(pop, pop_demographics::to_key(state, party_pos));
+		}
+		auto ideology_support = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, pid));
+		return base_support * (issue_support * (1.0f - ideological_share) + ideology_support * ideological_share);
+	} else {
+		return 0.f;
+	}
+}
+
 struct party_vote {
 	dcon::political_party_id par;
 	float vote = 0.0f;

@@ -58,6 +58,12 @@ pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wr
 	return pop_satisfaction_wrapper_fat{ id.value };
 }
 }
+namespace ogl {
+template<>
+uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id){
+	return ogl::color_from_hash(uint32_t(id.index()));
+}
+}
 
 namespace ui {
 template<culture::pop_strata Strata>
