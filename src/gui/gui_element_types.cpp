@@ -702,33 +702,38 @@ void piechart<T>::on_create(sys::state& state) noexcept {
 template<class T>
 void piechart<T>::on_update(sys::state& state) noexcept {
 	get_distribution(state).swap(distribution);
+
+	auto total = 0.f;
+	for(auto& [_, quant]: distribution)
+		total += quant;
+	assert(total >= 0.f && total <= 1.f);
+
 	std::vector<uint8_t> colors = std::vector<uint8_t>(resolution * channels);
-	{
-		T last_t{};
-		size_t i = 0;
-		for(auto& [index, quant]: distribution) {
-			T t = T(index);
-			uint32_t color = ogl::get_ui_color(state, t);
-			auto slice_count = std::min(size_t(quant * resolution), i + resolution);
-			for(size_t j = 0; j < slice_count; j++) {
-				spread[j + i] = t;
-				colors[(j + i) * channels] = uint8_t(color & 0xFF);
-				colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
-				colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
-			}
-			if(slice_count) {
-				i += slice_count;
-				last_t = t;
-			}
+	T last_t{};
+	size_t i = 0;
+	for(auto& [index, quant]: distribution) {
+		T t(index);
+		uint32_t color = ogl::get_ui_color<T>(state, t);
+		auto slice_count = std::min(size_t(quant * resolution), i + resolution);
+		for(size_t j = 0; j < slice_count; j++) {
+			spread[j + i] = t;
+			colors[(j + i) * channels] = uint8_t(color & 0xFF);
+			colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
+			colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
 		}
-		uint32_t last_color = ogl::get_ui_color(state, last_t);
-		for(; i < resolution; i++) {
-			spread[i] = last_t;
-			colors[i * channels] = uint8_t(last_color & 0xFF);
-			colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
-			colors[i * channels + 2] = uint8_t(last_color >> 16 & 0xFF);
+		if(slice_count) {
+			i += slice_count;
+			last_t = t;
 		}
 	}
+	uint32_t last_color = ogl::get_ui_color(state, last_t);
+	for(; i < resolution; i++) {
+		spread[i] = last_t;
+		colors[i * channels] = uint8_t(last_color & 0xFF);
+		colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
+		colors[i * channels + 2] = uint8_t(last_color >> 16 & 0xFF);
+	}
+
 	generate_data_texture(state, colors);
 }
 
