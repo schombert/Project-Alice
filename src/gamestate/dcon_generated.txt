@@ -29,7 +29,7 @@ make_index{national_modifier_value}{uint8_t}
 object{
 	name{ national_identity }
 	storage_type{contiguous}
-	size{ 1000 }
+	size{ 2000 }
 	tag{ scenario }
 
 	property{
@@ -165,7 +165,7 @@ object{
 object {
 	name{ culture_group }
 	storage_type{ contiguous }
-	size{ 126 }
+	size{ 256 }
 	tag{ scenario }
 
 	property{
@@ -190,7 +190,7 @@ object {
 object {
 	name{ culture }
 	storage_type{ contiguous }
-	size{ 500 }
+	size{ 1800 }
 	tag{ scenario }
 
 	property{
@@ -212,12 +212,12 @@ object {
 
 	property{
 		name{ first_names }
-		type{vector_pool{10000}{unit_name_id}}
+		type{vector_pool{18000}{unit_name_id}}
 		tag{ scenario }
 	}
 	property{
 		name{ last_names }
-		type{vector_pool{10000}{unit_name_id}}
+		type{vector_pool{18000}{unit_name_id}}
 		tag{ scenario }
 	}
 }
@@ -2191,7 +2191,7 @@ object {
 object {
 	name{ nation }
 	storage_type{ erasable }
-	size{ 1000 }
+	size{ 3000 }
 	tag{ save }
 
 	property{
