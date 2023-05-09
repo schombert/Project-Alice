@@ -300,6 +300,8 @@ namespace sys {
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
+
+		map_mode::set_map_mode(*this, map_mode::mode::political);
 	}
 	//
 	// string pool functions
@@ -1788,6 +1790,7 @@ namespace sys {
 					nations::update_colonial_points(*this); // depends on rankings, naval supply values
 					military::update_cbs(*this); // may add/remove cbs to a nation
 
+					nations::update_crisis(*this);
 					politics::update_elections(*this);
 
 					// Once per month updates, spread out over the month

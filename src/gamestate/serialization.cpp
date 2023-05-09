@@ -599,6 +599,12 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_temperature);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_defender);
+	ptr_in = memcpy_deserialize(ptr_in, state.current_crisis_mode);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_last_checked_gp);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_war);
+	ptr_in = memcpy_deserialize(ptr_in, state.last_crisis_end_date);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_liberation_tag);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_colony);
 	ptr_in = memcpy_deserialize(ptr_in, state.inflation);
 	ptr_in = deserialize(ptr_in, state.great_nations);
 
@@ -633,6 +639,12 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_temperature);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_defender);
+	ptr_in = memcpy_serialize(ptr_in, state.current_crisis_mode);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_last_checked_gp);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_war);
+	ptr_in = memcpy_serialize(ptr_in, state.last_crisis_end_date);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_liberation_tag);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_colony);
 	ptr_in = memcpy_serialize(ptr_in, state.inflation);
 	ptr_in = serialize(ptr_in, state.great_nations);
 
@@ -667,6 +679,12 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += sizeof(state.crisis_temperature);
 	sz += sizeof(state.primary_crisis_attacker);
 	sz += sizeof(state.primary_crisis_defender);
+	sz += sizeof(state.current_crisis_mode);
+	sz += sizeof(state.crisis_last_checked_gp);
+	sz += sizeof(state.crisis_war);
+	sz += sizeof(state.last_crisis_end_date);
+	sz += sizeof(state.crisis_liberation_tag);
+	sz += sizeof(state.crisis_colony);
 	sz += sizeof(state.inflation);
 	sz += serialize_size(state.great_nations);
 

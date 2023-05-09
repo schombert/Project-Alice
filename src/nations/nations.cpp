@@ -366,7 +366,7 @@ void update_rankings(sys::state& state) {
 		auto b_score = fb.get_military_score() + fb.get_industrial_score() + prestige_score(state, b);
 		if(a_score != b_score)
 			return a_score > b_score;
-		return a.index() > b.index();
+		return a.index() > b.index(); // create a total order
 	});
 	if(to_sort_count < state.nations_by_rank.size()) {
 		state.nations_by_rank[to_sort_count] = dcon::nation_id{};
@@ -486,7 +486,9 @@ void update_great_powers(sys::state& state) {
 			}
 		}
 	}
+	bool at_least_one_added = false;
 	while(state.great_nations.size() < size_t(state.defines.great_nations_count)) {
+		at_least_one_added = true;
 		for(auto n : state.nations_by_rank) {
 			if(n && !state.world.nation_get_is_great_power(n)) {
 				state.world.nation_set_is_great_power(n, true);
@@ -511,6 +513,11 @@ void update_great_powers(sys::state& state) {
 				}
 			}
 		}
+	}
+	if(at_least_one_added) {
+		std::sort(state.great_nations.begin(), state.great_nations.end(), [&](sys::great_nation& a, sys::great_nation& b) {
+			return state.world.nation_get_rank(a.nation) < state.world.nation_get_rank(b.nation);
+		});
 	}
 }
 
@@ -1414,6 +1421,281 @@ void daily_update_flashpoint_tension(sys::state& state) {
 			si.set_flashpoint_tension(0.0f);
 		}
 	}
+}
+
+void cleanup_crisis(sys::state& state) {
+	state.last_crisis_end_date = state.current_date;
+	state.current_crisis = sys::crisis_type::none;
+	state.current_crisis_mode = sys::crisis_mode::inactive;
+	state.crisis_last_checked_gp = 0;
+
+	for(auto& par : state.crisis_participants) {
+		if(par.id) {
+			par.id = dcon::nation_id{};
+			par.merely_interested = false;
+			par.supports_attacker = false;
+		} else {
+			break;
+		}
+	}
+
+	state.crisis_temperature = 0.0f;
+	state.crisis_war = dcon::war_id{};
+	state.primary_crisis_attacker = dcon::nation_id{};
+	state.primary_crisis_defender = dcon::nation_id{};
+	state.crisis_state = dcon::state_instance_id{};
+	state.crisis_colony = dcon::state_definition_id{};
+	state.crisis_liberation_tag = dcon::national_identity_id{};
+}
+
+
+void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n) {
+	state.primary_crisis_defender = n;
+	// TODO: notify
+}
+
+void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n) {
+	state.primary_crisis_attacker = n;
+	// TODO: notify
+}
+
+void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {
+	state.last_crisis_end_date = state.current_date;
+	if(state.world.nation_get_is_at_war(n)) { // ineligible
+		reject_crisis_participation(state);
+	} else {
+		// TODO: check AI for either immediate yes/no or push to player
+		add_as_primary_crisis_defender(state, n);
+	}
+}
+
+void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n) {
+	state.last_crisis_end_date = state.current_date;
+	if(state.world.nation_get_is_at_war(n)) { // ineligible
+		reject_crisis_participation(state);
+	} else {
+		// TODO: check AI for either immediate yes/no or push to player
+		add_as_primary_crisis_attacker(state, n);
+	}
+}
+
+void reject_crisis_participation(sys::state& state) {
+	++state.crisis_last_checked_gp;
+	if(state.crisis_last_checked_gp < state.great_nations.size()
+		&& (state.great_nations[state.crisis_last_checked_gp].nation == state.primary_crisis_attacker || state.great_nations[state.crisis_last_checked_gp].nation == state.primary_crisis_defender)) {
+		++state.crisis_last_checked_gp;
+	}
+	if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+		if(state.crisis_last_checked_gp >= state.great_nations.size()) {
+			// no attacker -- fizzle
+			// TODO: notify fizzle
+			cleanup_crisis(state);
+		} else {
+			ask_to_attack_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
+		}
+	} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+		if(state.crisis_last_checked_gp >= state.great_nations.size()) {
+			// no defender -- attacker wins
+			// TODO: make crisis win
+			// TODO: notify resolution
+			cleanup_crisis(state);
+		} else {
+			ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
+		}
+	}
+}
+
+void update_crisis(sys::state& state) {
+	/*
+	A crisis may not start until define:CRISIS_COOLDOWN_MONTHS months after the last crisis or crisis war has ended.
+	*/
+
+	if(state.great_nations.size() <= 2)
+		return; // not enough nations obviously
+
+	if(state.current_crisis == sys::crisis_type::none && state.last_crisis_end_date + 31 * int32_t(state.defines.crisis_cooldown_months) < state.current_date) {
+		// try to start a crisis
+		// determine type if any
+
+		/*
+		When a crisis becomes possible, we first check each of the three states with the highest tension > 50 where neither the owner of the state nor the nation associated with the flashpoint (if any) is at war. I believe the probability of a crisis happening in any of those states is 0.001 x define:CRISIS_BASE_CHANCE x state-tension / 100. If this turns into a crisis, the tension in the state is immediately zeroed.
+		*/
+		std::vector<dcon::state_instance_id> most_likely_states;
+		for(auto si : state.world.in_state_instance) {
+			if(si.get_nation_from_state_ownership().get_is_at_war() == false && si.get_flashpoint_tag() && si.get_flashpoint_tension() > 50.0f && si.get_flashpoint_tag().get_nation_from_identity_holder().get_is_at_war() == false) {
+				most_likely_states.push_back(si);
+			}
+		}
+		std::sort(most_likely_states.begin(), most_likely_states.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+			auto tension_diff = state.world.state_instance_get_flashpoint_tension(a) - state.world.state_instance_get_flashpoint_tension(b);
+			if(tension_diff != 0.0f) {
+				return tension_diff > 0.0f;
+			} else {
+				return a.index() < b.index(); // create a total order
+			}
+		});
+		for(uint32_t i = 0; i < 3 && i < most_likely_states.size(); ++i) {
+			auto chance = uint32_t(state.defines.crisis_base_chance * state.world.state_instance_get_flashpoint_tension(most_likely_states[i])); // out of 10,000
+			auto rvalue = rng::get_random(state, uint32_t(most_likely_states[i].index())) % 10000;
+			if(rvalue < chance) {
+				state.crisis_state = most_likely_states[i];
+				state.crisis_liberation_tag = state.world.state_instance_get_flashpoint_tag(state.crisis_state);
+				state.world.state_instance_set_flashpoint_tension(state.crisis_state, 0.0f);
+				state.current_crisis = sys::crisis_type::liberation;
+				if(auto owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state); state.world.nation_get_is_great_power(owner)) {
+					state.primary_crisis_defender = owner;
+				}
+
+				// TODO: notify
+
+				break;
+			}
+		}
+		if(state.current_crisis == sys::crisis_type::none) {
+			/*
+			Failing that, any contested colonial region where neither colonizer is at war will become a crisis and the colonial "temperature" has reached 100.
+			*/
+			// try colonial crisis
+			for(auto sd : state.world.in_state_definition) {
+				if(sd.get_colonization_temperature() >= 100.0f) {
+					auto colonizers = sd.get_colonization();
+					auto num_colonizers = colonizers.end() - colonizers.begin();
+					if(num_colonizers == 2) {
+						state.crisis_colony = sd;
+						sd.set_colonization_temperature(0.0f);
+						state.current_crisis = sys::crisis_type::colonial;
+
+						if((*colonizers.begin()).get_colonizer().get_is_great_power()) {
+							state.primary_crisis_defender = (*colonizers.begin()).get_colonizer();
+						}
+						if((*(colonizers.begin() + 1)).get_colonizer().get_is_great_power()) {
+							if(state.primary_crisis_defender)
+								state.primary_crisis_attacker = (*(colonizers.begin() + 1)).get_colonizer();
+							else
+								state.primary_crisis_defender = (*(colonizers.begin() + 1)).get_colonizer();
+						}
+
+						// TODO: notify
+
+						break;
+					}
+				}
+			}
+		}
+
+		if(state.current_crisis == sys::crisis_type::none) {
+			state.last_crisis_end_date = state.current_date;
+			return;
+		}
+
+		state.crisis_temperature = 0.0f;
+		if(!state.primary_crisis_attacker) {
+			state.current_crisis_mode = sys::crisis_mode::finding_attacker;
+			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_defender ? 0 : 1;
+			ask_to_attack_in_crisis(state, state.great_nations[0].nation);
+		} else if(!state.primary_crisis_defender) {
+			state.current_crisis_mode = sys::crisis_mode::finding_defender;
+			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
+			ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
+		} else {
+			state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activiation logic
+		}
+	} else if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+		if(state.primary_crisis_attacker) { // found an attacker
+			if(!state.primary_crisis_defender) {
+				state.current_crisis_mode = sys::crisis_mode::finding_defender;
+				state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
+				ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
+			} else { // defender is already a gp
+				state.current_crisis_mode = sys::crisis_mode::heating_up;
+				state.crisis_last_checked_gp = 0;
+			}
+		} else if(state.last_crisis_end_date + 15 < state.current_date) { // the asking period has timed out; assume answer is no
+			reject_crisis_participation(state);
+		}
+	} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+		if(state.primary_crisis_defender) { // found an attacker
+			state.current_crisis_mode = sys::crisis_mode::heating_up;
+			state.crisis_last_checked_gp = 0;
+
+			/*
+			A GP that is not disarmed and not at war with war exhaustion less than define:CRISIS_INTEREST_WAR_EXHAUSTION_LIMIT and is either on the same continent as the crisis target, crisis attacker, or state (or with a few other special cases: I think European GPs are interested in everything, and I think north and south America are considered one continent here) is considered to be interested. When a GP becomes interested it gets a `on_crisis_declare_interest` event.
+			*/
+			/*
+			When a GP becomes interested it gets a `on_crisis_declare_interest` event.
+			*/
+			state.crisis_participants[0].id = state.primary_crisis_attacker;
+			state.crisis_participants[0].supports_attacker = true;
+			state.crisis_participants[0].merely_interested = false;
+			state.crisis_participants[1].id = state.primary_crisis_defender;
+			state.crisis_participants[1].supports_attacker = false;
+			state.crisis_participants[1].merely_interested = false;
+
+			auto crisis_state_continent = state.crisis_state ? state.world.province_get_continent(state.world.state_instance_get_capital(state.crisis_state)) : [&]() {
+				if(auto p = state.world.state_definition_get_abstract_state_membership(state.crisis_colony); p.begin() != p.end()) {
+					return (*p.begin()).get_province().get_continent().id;
+				}
+				return dcon::modifier_id{};
+			}();
+			auto crisis_defender_continent = state.world.province_get_continent(state.world.nation_get_capital(state.primary_crisis_defender));
+			uint32_t added_count = 2;
+
+			for(auto& gp : state.great_nations) {
+				if(gp.nation != state.primary_crisis_attacker && gp.nation != state.primary_crisis_defender && !state.world.nation_get_is_at_war(gp.nation) && state.world.nation_get_war_exhaustion(gp.nation) < state.defines.crisis_interest_war_exhaustion_limit) {
+					auto cap_con = state.world.province_get_continent(state.world.nation_get_capital(gp.nation));
+					if(cap_con == state.province_definitions.europe || cap_con == crisis_state_continent || cap_con == crisis_defender_continent || (cap_con == state.province_definitions.north_america && crisis_state_continent == state.province_definitions.south_america) || (cap_con == state.province_definitions.north_america && crisis_defender_continent == state.province_definitions.south_america) || (cap_con == state.province_definitions.south_america && crisis_state_continent == state.province_definitions.north_america) || (cap_con == state.province_definitions.south_america && crisis_defender_continent == state.province_definitions.north_america)) {
+
+						state.crisis_participants[added_count].id = gp.nation;
+						state.crisis_participants[added_count].supports_attacker = false;
+						state.crisis_participants[added_count].merely_interested = true;
+						++added_count;
+
+						auto possible_events = state.national_definitions.on_crisis_declare_interest.size();
+						if(possible_events > 0) {
+							int32_t total_chances = 0;
+
+							for(auto& fe : state.national_definitions.on_crisis_declare_interest)
+								total_chances += fe.chance;
+
+							int32_t random_value = int32_t(rng::get_random(state, uint32_t(gp.nation.index() + 1 + (state.world.nation_get_owned_province_count(gp.nation) << 3))) % total_chances);
+
+							for(auto& fe : state.national_definitions.on_crisis_declare_interest) {
+								random_value -= fe.chance;
+								if(random_value < 0) {
+									event::trigger_national_event(state, fe.id, gp.nation);
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+
+		} else if(state.last_crisis_end_date + 15 < state.current_date) { // the asking period has timed out; assume answer is no
+			reject_crisis_participation(state);
+		}
+	} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+		/*
+		Every day where there is at least one defending GP and one attacking GP, the crisis temperature increases by  define:CRISIS_TEMPERATURE_INCREASE x define:CRISIS_TEMPERATURE_PARTICIPANT_FACTOR x the ratio of GPs currently involved in the crisis to the total number of interested GPs and participating GPs.
+		*/
+
+		int32_t total = 0;
+		int32_t participants = 0;
+		for(auto& par : state.crisis_participants) {
+			if(par.id) {
+				++total;
+				if(!par.merely_interested) ++participants;
+			} else {
+				break;
+			}
+		}
+
+		assert(total != 0);
+		state.crisis_temperature += state.defines.crisis_temperature_increase * state.defines.crisis_temperature_participant_factor * float(participants) / float(total);
+
+		// TODO: start crisis war at temperature 100; set mode to none
+	}
+
 }
 
 }

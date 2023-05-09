@@ -58,9 +58,13 @@ namespace sys {
 	struct crisis_member_def {
 		dcon::nation_id id;
 		bool supports_attacker = false;
+		bool merely_interested = false;
 	};
 	enum class crisis_type : uint32_t {
 		none = 0, claim = 1, liberation = 2, colonial = 3
+	};
+	enum class crisis_mode : uint32_t {
+		inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3
 	};
 
 	struct great_nation {
@@ -117,12 +121,23 @@ namespace sys {
 		std::vector<dcon::nation_id> nations_by_prestige_score;
 		std::vector<great_nation> great_nations;
 
+		//
+		// Crisis data
+		//
+
 		dcon::state_instance_id crisis_state;
 		std::vector<crisis_member_def> crisis_participants;
 		crisis_type current_crisis = crisis_type::none;
 		float crisis_temperature = 0;
 		dcon::nation_id primary_crisis_attacker;
 		dcon::nation_id primary_crisis_defender;
+		crisis_mode current_crisis_mode;
+		uint32_t crisis_last_checked_gp = 0;
+		dcon::war_id crisis_war;
+		sys::date last_crisis_end_date{0}; // initial grace period
+		dcon::national_identity_id crisis_liberation_tag;
+		dcon::state_definition_id crisis_colony;
+
 
 		std::vector<int32_t> unit_names_indices; // indices for the names
 		std::vector<char> unit_names; // a second text buffer, this time for just the unit names
