@@ -156,7 +156,7 @@ public:
 	}
 };
 
-class pop_legend_info : public listbox_row_element_base<dcon::pop_id> {
+class pop_item : public listbox_row_element_base<dcon::pop_id> {
 private:
 	simple_text_element_base* size = nullptr;
 	image_element_base* type = nullptr;
@@ -172,8 +172,6 @@ private:
 	pop_life_needs_progress_bar* life_needs = nullptr;
 	pop_everyday_needs_progress_bar* everyday_needs = nullptr;
 	pop_luxury_needs_progress_bar* luxury_needs = nullptr;
-
-
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<dcon::pop_id>::on_create(state);
@@ -281,7 +279,7 @@ public:
 	}
 };
 
-class pop_legend_listbox : public listbox_element_base<pop_legend_info, dcon::pop_id> {
+class pop_listbox : public listbox_element_base<pop_item, dcon::pop_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "popinfomember_popview";
@@ -497,9 +495,136 @@ protected:
 	}
 };
 
+class pop_legend_item : public window_element_base {
+public:
+};
+class pop_legend_listbox : public listbox_element_base<pop_legend_item, std::monostate> {
+public:
+	std::string_view get_row_element_name() override {
+		return "pop_legend_item";
+	}
+};
+
+class pop_workforce_distrobution_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "item_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "workforce_disttitle"));
+			return ptr;
+		} else if(name == "chart") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "member_names") {
+			return make_element_by_type<pop_legend_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class pop_religion_distrobution_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "item_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "religion_disttitle"));
+			return ptr;
+		} else if(name == "chart") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "member_names") {
+			return make_element_by_type<pop_legend_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class pop_ideology_distrobution_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "item_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "ideology_disttitle"));
+			return ptr;
+		} else if(name == "chart") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "member_names") {
+			return make_element_by_type<pop_legend_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class pop_nationality_distrobution_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "item_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "nationality_disttitle"));
+			return ptr;
+		} else if(name == "chart") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "member_names") {
+			return make_element_by_type<pop_legend_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class pop_issues_piechart : public piechart<dcon::issue_option_id>{
+protected:
+    std::unordered_map<uint16_t, float> get_distribution(sys::state& state) noexcept override {
+        std::unordered_map<uint16_t, float> distrib = {};
+        Cyto::Any pop_id_payload = dcon::pop_id{};
+        if(parent) {
+            parent->impl_get(state, pop_id_payload);
+            if(pop_id_payload.holds_type<dcon::pop_id>()) {
+                auto pop_id = any_cast<dcon::pop_id>(pop_id_payload);
+                auto fat_id = dcon::fatten(state.world, pop_id);
+                state.world.for_each_issue_option([&](dcon::issue_option_id issue_id) {
+                    auto weight =
+                            state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, issue_id));
+                    distrib[uint16_t(issue_id.index())] = weight;
+                });
+            }
+        }
+        return distrib;
+    }
+};
+class pop_issue_distrobution_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "item_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "dominant_issues_disttitle"));
+			return ptr;
+		} else if(name == "chart") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "member_names") {
+			return make_element_by_type<pop_legend_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class pop_electorate_vote_distrobution_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "item_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->set_text(state, text::produce_simple_string(state, "electorate_vote_disttitle"));
+			return ptr;
+		} else if(name == "chart") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "member_names") {
+			return make_element_by_type<pop_legend_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 class population_window : public window_element_base {
 private:
-	pop_legend_listbox* country_pop_listbox = nullptr;
+	pop_listbox* country_pop_listbox = nullptr;
 	pop_left_side_listbox* left_side_listbox = nullptr;
 	pop_list_filter filter = std::monostate{};
 	// Whetever or not to show provinces below the state element in the listbox!
@@ -584,14 +709,53 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
+
+		// Create the distrobution windows
+		std::vector<element_base*> dist_windows;
+		// Workforce
+		auto win1 = make_element_by_type<pop_workforce_distrobution_window>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		dist_windows.push_back(win1.get());
+		add_child_to_front(std::move(win1));
+		// Religion
+		auto win2 = make_element_by_type<pop_religion_distrobution_window>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		dist_windows.push_back(win2.get());
+		add_child_to_front(std::move(win2));
+		// Ideology
+		auto win3 = make_element_by_type<pop_ideology_distrobution_window>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		dist_windows.push_back(win3.get());
+		add_child_to_front(std::move(win3));
+		// Nationality
+		auto win4 = make_element_by_type<pop_nationality_distrobution_window>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		dist_windows.push_back(win4.get());
+		add_child_to_front(std::move(win4));
+		// Dominant issues
+		auto win5 = make_element_by_type<pop_issue_distrobution_window>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		dist_windows.push_back(win5.get());
+		add_child_to_front(std::move(win5));
+		// Electorate vote
+		auto win6 = make_element_by_type<pop_electorate_vote_distrobution_window>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		dist_windows.push_back(win6.get());
+		add_child_to_front(std::move(win6));
+
+		// It should be proper to reposition the windows now
+		const xy_pair cell_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdistribution_start")->second.definition].position;
+		const xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdistribution_offset")->second.definition].position;
+		xy_pair offset = cell_offset;
+		for(const auto win : dist_windows) {
+			win->base_data.position = offset;
+			offset.x += cell_size.x;
+			if(offset.x + cell_size.x >= base_data.size.x) {
+				offset.x = cell_offset.x;
+				offset.y += cell_size.y;
+			}
+		}
 	}
 
-	std::unique_ptr<element_base>
-		make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "pop_list") {
-			auto ptr = make_element_by_type<pop_legend_listbox>(state, id);
+			auto ptr = make_element_by_type<pop_listbox>(state, id);
 			country_pop_listbox = ptr.get();
 			return ptr;
 		} else if(name == "external_scroll_slider") {
