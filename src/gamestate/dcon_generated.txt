@@ -1823,6 +1823,11 @@ object {
 		type{ text_sequence_id }
 		tag{ save }
 	}
+	property{
+		name{ colonization_temperature }
+		type{ float }
+		tag{ save }
+	}
 }
 
 object {

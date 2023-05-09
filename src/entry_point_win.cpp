@@ -64,7 +64,6 @@ int WINAPI wWinMain(
 		text::load_standard_fonts(*game_state);
 		text::load_bmfonts(*game_state);
 		ui::populate_definitions_map(*game_state);
-		
 
 		std::thread update_thread([&]() {
 			game_state->game_loop();

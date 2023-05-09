@@ -287,6 +287,12 @@ void update_influence(sys::state& state);
 
 void monthly_flashpoint_update(sys::state& state);
 void daily_update_flashpoint_tension(sys::state& state);
+void update_crisis(sys::state& state);
+
+void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n);
+void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
+void reject_crisis_participation(sys::state& state);
+void update_crisis(sys::state& state);
 
 }
 
