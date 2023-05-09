@@ -560,7 +560,7 @@ protected:
 			for(const auto pop_id : pop_list) {
 				const auto weight_fn = [&](auto id) {
 					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
-					distrib[id.index()] += weight;
+					distrib[typename T::value_base_t(id.index())] += weight;
 					total += weight;
 				};
 				// Can obtain via simple pop_demographics query
@@ -756,7 +756,7 @@ public:
 			for(const auto pop_id : pop_list) {
 				const auto weight_fn = [&](auto id) {
 					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
-					distrib[id.index()] += weight;
+					distrib[typename T::value_base_t(id.index())] += weight;
 				};
 				// Can obtain via simple pop_demographics query
 				if constexpr(std::is_same_v<T, dcon::issue_option_id>)
@@ -1005,7 +1005,7 @@ public:
 		} else if(payload.holds_type<pop_left_side_expand_action>()) {
 			auto expand_action = any_cast<pop_left_side_expand_action>(payload);
 			auto sid = std::get<dcon::state_instance_id>(expand_action);
-			view_expanded_state[dcon::state_instance_id::value_base_t(sid.index())] = !view_expanded_state[sid.index()];
+			view_expanded_state[dcon::state_instance_id::value_base_t(sid.index())] = !view_expanded_state[dcon::state_instance_id::value_base_t(sid.index())];
 			on_update(state);
 			return message_result::consumed;
 		}
