@@ -538,6 +538,7 @@ public:
 
 template<typename T>
 class pop_distrobution_plupp : public generic_settable_element<tinted_image_element_base, T> {
+public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
 		return ogl::get_ui_color<T>(state, generic_settable_element<tinted_image_element_base, T>::content);
 	}
@@ -577,6 +578,19 @@ protected:
 				} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
 					distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 					total += state.world.pop_get_size(pop_id);
+				} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
+					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
+					auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
+					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+					auto end = start + state.world.national_identity_get_political_party_count(tag);
+					for(int32_t i = start; i < end; i++) {
+						auto pid = T(typename T::value_base_t(i));
+						if(politics::political_party_is_active(state, pid)) {
+							auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
+							distrib[typename T::value_base_t(pid.index())] += support;
+							total += support;
+						}
+					}
 				}
 			}
 			for(auto& e : distrib)
@@ -589,6 +603,7 @@ public:
     void on_create(sys::state &state) noexcept override {
 		piechart<T>::on_create(state);
 		//piechart<T>::base_data.position.x -= piechart<T>::base_data.size.x;
+		piechart<T>::base_data.position.x -= 17;
 		piechart<T>::radius = float(piechart<T>::base_data.size.x);
 		piechart<T>::base_data.size.x *= 2;
 		piechart<T>::base_data.size.y *= 2;
@@ -667,6 +682,20 @@ public:
 					if(sub_id == content)
 						value += size;
 					total += size;	
+				} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
+					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
+					auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
+					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+					auto end = start + state.world.national_identity_get_political_party_count(tag);
+					for(int32_t i = start; i < end; i++) {
+						auto pid = T(typename T::value_base_t(i));
+						if(politics::political_party_is_active(state, pid)) {
+							auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
+							if(pid == content)
+								value += support;
+							total += support;
+						}
+					}
 				}
 			}
 			value_text->set_text(state, text::format_percentage(total > 0.f && value > 0.f ? value / total : 0.f, 1));
@@ -697,6 +726,8 @@ public:
 				ptr->set_text(state, text::produce_simple_string(state, "religion_disttitle"));
 			else if constexpr(std::is_same_v<T, dcon::pop_type_id>)
 				ptr->set_text(state, text::produce_simple_string(state, "workforce_disttitle"));
+			else if constexpr(std::is_same_v<T, dcon::political_party_id>)
+				ptr->set_text(state, text::produce_simple_string(state, "electorate_disttitle"));
 			return ptr;
 		} else if(name == "chart") {
 			return make_element_by_type<pop_distrobution_piechart<T>>(state, id);
@@ -735,113 +766,24 @@ public:
 					distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 				else if constexpr(std::is_same_v<T, dcon::pop_type_id>)
 					distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
+				else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
+					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
+					auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
+					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+					auto end = start + state.world.national_identity_get_political_party_count(tag);
+					for(int32_t i = start; i < end; i++) {
+						auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+						if(politics::political_party_is_active(state, pid)) {
+							auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
+							distrib[typename T::value_base_t(pid.index())] += support;
+						}
+					}
+				}
 			}
 			std::vector<std::pair<T, float>> sorted_distrib{};
 			for(const auto& e : distrib)
 				if(e.second > 0.f)
 					sorted_distrib.push_back(std::make_pair(T(e.first), e.second));
-			std::sort(sorted_distrib.begin(), sorted_distrib.end(), [&](auto a, auto b) {
-				return a.second > b.second;
-			});
-			distrib_listbox->row_contents.clear();
-			for(const auto& e : sorted_distrib)
-				distrib_listbox->row_contents.push_back(e.first);
-			distrib_listbox->update(state);
-		}
-	}
-};
-
-class pop_electorate_vote_item : public listbox_row_element_base<dcon::ideology_id> {
-	image_element_base* color_icon = nullptr;
-	element_base* title_text = nullptr;
-	simple_text_element_base* value_text = nullptr;
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "legend_color") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			color_icon = ptr.get();
-			return ptr;
-		} else if(name == "legend_title") {
-			return make_element_by_type<generic_name_text<dcon::ideology_id>>(state, id);
-		} else if(name == "legend_value") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			value_text = ptr.get();
-			return ptr;
-		} else {
-			return nullptr;
-		}
-	}
-	void update(sys::state& state) noexcept override {
-		for(auto& c : children) {
-			Cyto::Any payload = content;
-			c->impl_set(state, payload);
-		}
-		if(parent) {
-			Cyto::Any payload = pop_list_filter{};
-			parent->impl_get(state, payload);
-			auto filter = any_cast<pop_list_filter>(payload);
-
-			std::vector<dcon::pop_id> pop_list{};
-			pop_list_from_filter(state, pop_list, filter);
-			
-			auto value = 0.f;
-			auto total = 0.f;
-			for(const auto pop_id : pop_list)
-				state.world.for_each_ideology([&](dcon::ideology_id ideology_id) {
-					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, ideology_id));
-					if(ideology_id == content)
-						value += weight;
-					total += weight;
-				});
-			value_text->set_text(state, text::format_percentage(total > 0.f && value > 0.f ? value / total : 0.f, 1));
-		}
-	}
-};
-class pop_electorate_vote_listbox : public listbox_element_base<pop_electorate_vote_item, dcon::ideology_id> {
-public:
-	std::string_view get_row_element_name() override {
-		return "pop_legend_item";
-	}
-};
-class pop_electorate_vote_distrobution_window : public window_element_base {
-	pop_electorate_vote_listbox* distrib_listbox = nullptr;
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "item_name") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			ptr->set_text(state, text::produce_simple_string(state, "electorate_disttitle"));
-			return ptr;
-		} else if(name == "chart") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "member_names") {
-			auto ptr = make_element_by_type<pop_electorate_vote_listbox>(state, id);
-			distrib_listbox = ptr.get();
-			return ptr;
-		} else {
-			return nullptr;
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = pop_list_filter{};
-			parent->impl_get(state, payload);
-			auto filter = any_cast<pop_list_filter>(payload);
-
-			std::vector<dcon::pop_id> pop_list{};
-			pop_list_from_filter(state, pop_list, filter);
-			
-			std::unordered_map<dcon::ideology_id::value_base_t, float> distrib{};
-			for(const auto pop_id : pop_list)
-				state.world.for_each_ideology([&](dcon::ideology_id ideology_id) {
-					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, ideology_id));
-					distrib[dcon::ideology_id::value_base_t(ideology_id.index())] += weight;
-				});
-			
-			std::vector<std::pair<dcon::ideology_id, float>> sorted_distrib{};
-			for(const auto& e : distrib)
-				if(e.second > 0.f)
-					sorted_distrib.push_back(std::make_pair(dcon::ideology_id(e.first), e.second));
 			std::sort(sorted_distrib.begin(), sorted_distrib.end(), [&](auto a, auto b) {
 				return a.second > b.second;
 			});
@@ -934,7 +876,7 @@ public:
 		dist_windows.push_back(win5.get());
 		add_child_to_front(std::move(win5));
 		// Electorate vote
-		auto win6 = make_element_by_type<pop_electorate_vote_distrobution_window>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		auto win6 = make_element_by_type<pop_distrobution_window<dcon::political_party_id>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
 		dist_windows.push_back(win6.get());
 		add_child_to_front(std::move(win6));
 
