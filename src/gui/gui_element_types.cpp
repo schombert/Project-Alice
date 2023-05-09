@@ -703,11 +703,6 @@ template<class T>
 void piechart<T>::on_update(sys::state& state) noexcept {
 	get_distribution(state).swap(distribution);
 
-	auto total = 0.f;
-	for(auto& [_, quant]: distribution)
-		total += quant;
-	assert(total >= 0.f && total <= 1.f);
-
 	std::vector<uint8_t> colors = std::vector<uint8_t>(resolution * channels);
 	T last_t{};
 	size_t i = 0;
@@ -720,6 +715,7 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 			colors[(j + i) * channels] = uint8_t(color & 0xFF);
 			colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
 			colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
+			assert((j + i) * channels + 1 < colors.size() && "Exceeded 100% total for piechart");
 		}
 		if(slice_count) {
 			i += slice_count;
