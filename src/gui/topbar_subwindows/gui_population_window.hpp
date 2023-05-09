@@ -297,6 +297,21 @@ typedef std::variant<
 template<typename T>
 class pop_left_side_button : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			T id = any_cast<T>(payload);
+			if(state.ui_state.population_subwindow) {
+				Cyto::Any payload = pop_list_filter{};
+				state.ui_state.population_subwindow->impl_set(state, payload);
+				auto filter = any_cast<pop_list_filter>(payload);
+				frame = std::holds_alternative<T>(filter) && std::get<T>(filter) == id
+					? 1 : 0;
+			}
+		}
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
@@ -333,9 +348,26 @@ public:
 		return window_element_base::get(state, payload);
 	}
 };
-typedef std::variant<std::monostate, dcon::state_instance_id> pop_left_side_expand_action;
+typedef std::variant<std::monostate, dcon::state_instance_id, bool> pop_left_side_expand_action;
 class pop_left_side_expand_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, "");
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any id_payload = dcon::state_instance_id{};
+			parent->impl_get(state, id_payload);
+			auto id = any_cast<dcon::state_instance_id>(id_payload);
+
+			Cyto::Any payload = pop_left_side_expand_action(id);
+			parent->impl_get(state, payload);
+			frame = std::get<bool>(any_cast<pop_left_side_expand_action>(payload)) ? 1 : 0;
+		}
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -349,6 +381,7 @@ public:
 	}
 };
 class pop_left_side_state_window : public generic_settable_element<window_element_base, dcon::state_instance_id> {
+	image_element_base* colonial_icon = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "poplistbutton") {
@@ -358,7 +391,9 @@ public:
 		} else if(name == "poplist_numpops") {
 			return make_element_by_type<state_population_text>(state, id);
 		} else if(name == "colonial_state_icon") {
-			return make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			colonial_icon = ptr.get();
+			return ptr;
 		} else if(name == "state_focus") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "expand") {
@@ -368,6 +403,10 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		colonial_icon->set_visible(state, state.world.province_get_is_colonial(state.world.state_instance_get_capital(content)));
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -510,14 +549,16 @@ private:
 			: state.local_player_nation;
 
 		// & then populate the separate, left side listbox
-		if(nation_id != state.local_player_nation)
-			left_side_listbox->row_contents.push_back(pop_left_side_data(nation_id));
+		left_side_listbox->row_contents.push_back(pop_left_side_data(nation_id));
 
 		// States are sorted by total population
 		std::vector<dcon::state_instance_id> state_list;
 		for(auto si : state.world.nation_get_state_ownership(nation_id))
 			state_list.push_back(si.get_state().id);
 		std::sort(state_list.begin(), state_list.end(), [&](auto a, auto b) {
+			// Colonial states go last
+			if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(a)) != state.world.province_get_is_colonial(state.world.state_instance_get_capital(b)))
+				return !state.world.province_get_is_colonial(state.world.state_instance_get_capital(a));
 			return state.world.state_instance_get_demographics(a, demographics::total) > state.world.state_instance_get_demographics(b, demographics::total);
 		});
 
@@ -652,6 +693,19 @@ public:
 			auto sid = std::get<dcon::state_instance_id>(expand_action);
 			view_expanded_state[sid.value] = !view_expanded_state[sid.value];
 			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<pop_list_filter>()) {
+			payload.emplace<pop_list_filter>(filter);
+			return message_result::consumed;
+		} else if(payload.holds_type<pop_left_side_expand_action>()) {
+			auto expand_action = any_cast<pop_left_side_expand_action>(payload);
+			auto sid = std::get<dcon::state_instance_id>(expand_action);
+			payload.emplace<pop_left_side_expand_action>(pop_left_side_expand_action(view_expanded_state[sid.value]));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
