@@ -334,7 +334,7 @@ public:
 			T id = any_cast<T>(payload);
 			if(state.ui_state.population_subwindow) {
 				Cyto::Any filter_payload = pop_list_filter{};
-				(state.ui_state.population_subwindow)->impl_set(state, filter_payload);
+				state.ui_state.population_subwindow->impl_get(state, filter_payload);
 				auto filter = any_cast<pop_list_filter>(filter_payload);
 				frame = std::holds_alternative<T>(filter) && std::get<T>(filter) == id
 					? 1 : 0;
@@ -348,7 +348,7 @@ public:
 			T id = any_cast<T>(payload);
 			if(state.ui_state.population_subwindow) {
 				Cyto::Any new_payload = pop_list_filter(id);
-				(state.ui_state.population_subwindow)->impl_set(state, new_payload);
+				state.ui_state.population_subwindow->impl_set(state, new_payload);
 			}
 		}
 	}
@@ -580,6 +580,8 @@ protected:
 					total += state.world.pop_get_size(pop_id);
 				} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
+					if(state.world.province_get_is_colonial(prov_id))
+						continue;
 					auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
 					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
 					auto end = start + state.world.national_identity_get_political_party_count(tag);
@@ -684,6 +686,8 @@ public:
 					total += size;	
 				} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
+					if(state.world.province_get_is_colonial(prov_id))
+						continue;
 					auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
 					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
 					auto end = start + state.world.national_identity_get_political_party_count(tag);
@@ -768,11 +772,13 @@ public:
 					distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
 				else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
+					if(state.world.province_get_is_colonial(prov_id))
+						continue;
 					auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
 					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
 					auto end = start + state.world.national_identity_get_political_party_count(tag);
 					for(int32_t i = start; i < end; i++) {
-						auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+						auto pid = T(typename T::value_base_t(i));
 						if(politics::political_party_is_active(state, pid)) {
 							auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
 							distrib[typename T::value_base_t(pid.index())] += support;
@@ -988,6 +994,7 @@ public:
 			populate_left_side_list(state);
 			left_side_listbox->update(state);
 		}
+		window_element_base::on_update(state);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {

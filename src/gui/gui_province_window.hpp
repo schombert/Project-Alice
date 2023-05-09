@@ -29,7 +29,7 @@ public:
     void button_action(sys::state& state) noexcept override {
         if(state.ui_state.population_subwindow != nullptr) {
             Cyto::Any payload = pop_list_filter(province_id);
-            state.ui_state.population_subwindow->impl_set(state,payload);
+            state.ui_state.population_subwindow->impl_set(state, payload);
             if(state.ui_state.topbar_subwindow != nullptr)
                state.ui_state.topbar_subwindow->set_visible(state, false);
             state.ui_state.topbar_subwindow = state.ui_state.population_subwindow;
