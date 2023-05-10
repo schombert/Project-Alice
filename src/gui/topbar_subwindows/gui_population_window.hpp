@@ -759,9 +759,8 @@ public:
 		if(payload.holds_type<pop_left_side_data>()) {
 			payload.emplace<pop_left_side_data>(content);
 			return message_result::consumed;
-		} else {
-			return listbox_row_element_base<pop_left_side_data>::get(state, payload);
 		}
+		return listbox_row_element_base<pop_left_side_data>::get(state, payload);
 	}
 };
 
