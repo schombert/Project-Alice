@@ -753,20 +753,31 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 		} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
 			auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 			total_pops = state.world.nation_get_demographics(nat_id, demographics::total);
+		} else if(obj_id_payload.holds_type<dcon::pop_id>()) {
+			auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
+			total_pops = 1.f;
 		}
 		
-		if(total_pops <= 0) {
+		if(total_pops <= 0.f)
 			return distrib;
-		}
 		for_each_demo(state, [&](DemoT demo_id) {
-			auto demo_key = demographics::to_key(state, demo_id);
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
+				auto demo_key = demographics::to_key(state, demo_id);
 				auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
 				volume = state.world.province_get_demographics(prov_id, demo_key);
 			} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
+				auto demo_key = demographics::to_key(state, demo_id);
 				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 				volume = state.world.nation_get_demographics(nat_id, demo_key);
+			}
+			
+			if constexpr(std::is_same_v<SrcT, dcon::pop_id>) {
+				if(obj_id_payload.holds_type<dcon::pop_id>()) {
+					auto demo_key = pop_demographics::to_key(state, demo_id);
+					auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
+					volume = state.world.pop_get_demographics(pop_id, demo_key);
+				}
 			}
 			distrib[static_cast<typename DemoT::value_base_t>(demo_id.index())] = volume / total_pops;
 		});
