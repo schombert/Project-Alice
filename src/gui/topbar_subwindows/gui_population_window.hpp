@@ -590,6 +590,7 @@ public:
 				Cyto::Any new_payload = pop_list_filter(id);
 				state.ui_state.population_subwindow->impl_set(state, new_payload);
 			}
+			on_update(state);
 		}
 	}
 };
@@ -617,7 +618,11 @@ public:
 		return window_element_base::get(state, payload);
 	}
 };
-typedef std::variant<std::monostate, dcon::state_instance_id, bool> pop_left_side_expand_action;
+typedef std::variant<
+	std::monostate,
+	dcon::state_instance_id,
+	bool
+> pop_left_side_expand_action;
 class pop_left_side_expand_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -646,6 +651,7 @@ public:
 				Cyto::Any new_payload = pop_left_side_expand_action(id);
 				state.ui_state.population_subwindow->impl_set(state, new_payload);
 			}
+			on_update(state);
 		}
 	}
 };
@@ -1048,6 +1054,7 @@ private:
 	pop_left_side_listbox* left_side_listbox = nullptr;
 	pop_list_filter filter = std::monostate{};
 	pop_details_window* details_win = nullptr;
+	std::vector<element_base*> dist_windows;
 	// Whetever or not to show provinces below the state element in the listbox!
 	ankerl::unordered_dense::map<dcon::state_instance_id::value_base_t, bool> view_expanded_state;
 
@@ -1096,37 +1103,29 @@ private:
 					left_side_listbox->row_contents.push_back(pop_left_side_data(province_id));
 		}
 	}
+
+	template<typename T, typename... Targs>
+	void generate_distrobution_windows(sys::state& state) {
+		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		dist_windows.push_back(win.get());
+		add_child_to_front(std::move(win));
+
+		if constexpr(sizeof...(Targs))
+			generate_distrobution_windows<Targs...>(state);
+	}
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
-
-		// Create the distrobution windows
-		std::vector<element_base*> dist_windows;
-		// Workforce
-		auto win1 = make_element_by_type<pop_distrobution_window<dcon::pop_type_id>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win1.get());
-		add_child_to_front(std::move(win1));
-		// Religion
-		auto win2 = make_element_by_type<pop_distrobution_window<dcon::religion_id>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win2.get());
-		add_child_to_front(std::move(win2));
-		// Ideology
-		auto win3 = make_element_by_type<pop_distrobution_window<dcon::ideology_id>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win3.get());
-		add_child_to_front(std::move(win3));
-		// Nationality
-		auto win4 = make_element_by_type<pop_distrobution_window<dcon::culture_id>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win4.get());
-		add_child_to_front(std::move(win4));
-		// Dominant issues
-		auto win5 = make_element_by_type<pop_distrobution_window<dcon::issue_option_id>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win5.get());
-		add_child_to_front(std::move(win5));
-		// Electorate vote
-		auto win6 = make_element_by_type<pop_distrobution_window<dcon::political_party_id>>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
-		dist_windows.push_back(win6.get());
-		add_child_to_front(std::move(win6));
+		
+		generate_distrobution_windows<
+			pop_distrobution_window<dcon::pop_type_id>,
+			pop_distrobution_window<dcon::religion_id>,
+			pop_distrobution_window<dcon::ideology_id>,
+			pop_distrobution_window<dcon::culture_id>,
+			pop_distrobution_window<dcon::issue_option_id>,
+			pop_distrobution_window<dcon::political_party_id>
+		>(state);
 
 		// It should be proper to reposition the windows now
 		const xy_pair cell_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdistribution_start")->second.definition].position;
@@ -1240,6 +1239,8 @@ public:
 			populate_left_side_list(state);
 			left_side_listbox->update(state);
 		}
+		for(auto& e : dist_windows)
+			e->impl_on_update(state);
 		window_element_base::on_update(state);
 	}
 
