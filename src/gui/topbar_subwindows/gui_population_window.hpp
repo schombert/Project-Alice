@@ -1020,6 +1020,35 @@ public:
 			parent->impl_set(state, payload);
 		}
 	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		bool is_gray = false;
+		if(parent) {
+			Cyto::Any payload = pop_filter_data(content);
+			parent->impl_get(state, payload);
+			is_gray = !std::get<bool>(any_cast<pop_filter_data>(payload));
+		}
+
+		assert(base_data.get_element_type() == element_type::button);
+		auto gid = base_data.data.button.button_image;
+		// TODO: More elements defaults?
+		if(gid) {
+			auto& gfx_def = state.ui_defs.gfx[gid];
+			if(gfx_def.primary_texture_handle) {
+				assert(gfx_def.number_of_frames > 1);
+				ogl::render_subsprite(
+					state,
+					get_color_modification(this == state.ui_state.under_mouse, is_gray, interactable),
+					frame,
+					gfx_def.number_of_frames,
+					float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					base_data.get_rotation(),
+					gfx_def.is_vertically_flipped()
+				);
+			}
+		}
+	}
 };
 
 class population_window : public window_element_base {
