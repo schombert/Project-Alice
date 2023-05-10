@@ -1403,7 +1403,7 @@ void daily_update_flashpoint_tension(sys::state& state) {
 			- For each great power at war or disarmed on the same continent as either the owner or the state, tension is increased by define:AT_WAR_TENSION_DECAY per day.
 			*/
 			for(auto& gp : state.great_nations) {
-				if(state.world.nation_get_is_at_war(gp.nation)) {
+				if(state.world.nation_get_is_at_war(gp.nation) || (state.world.nation_get_disarmed_until(gp.nation) && state.current_date <= state.world.nation_get_disarmed_until(gp.nation))) {
 					auto continent = state.world.province_get_continent(state.world.nation_get_capital(gp.nation));
 					if(si.get_capital().get_continent() == continent || si.get_nation_from_state_ownership().get_capital().get_continent() == continent) {
 						total_increase += state.defines.at_war_tension_decay;

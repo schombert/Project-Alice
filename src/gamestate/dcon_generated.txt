@@ -1828,6 +1828,11 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property{
+		name{ colonization_stage }
+		type{ uint8_t }
+		tag{ save }
+	}
 }
 
 object {
