@@ -1051,6 +1051,21 @@ public:
 	}
 };
 
+class pop_filter_select_action {
+public:
+	bool value;
+};
+template<bool B>
+class pop_filter_select_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = pop_filter_select_action{B};
+			parent->impl_set(state, payload);
+		}
+	}
+};
+
 class population_window : public window_element_base {
 private:
 	pop_listbox* country_pop_listbox = nullptr;
@@ -1282,6 +1297,10 @@ public:
 			auto ptr = make_element_by_type<pop_left_side_listbox>(state, id);
 			left_side_listbox = ptr.get();
 			return ptr;
+		} else if(name == "popfilter_all") {
+			return make_element_by_type<pop_filter_select_button<true>>(state, id);
+		} else if(name == "popfilter_deselect_all") {
+			return make_element_by_type<pop_filter_select_button<false>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1325,6 +1344,13 @@ public:
 			auto data = any_cast<pop_filter_data>(payload);
 			auto ptid = std::get<dcon::pop_type_id>(data);
 			pop_filters[dcon::pop_type_id::value_base_t(ptid.index())] = !pop_filters[dcon::pop_type_id::value_base_t(ptid.index())];
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<pop_filter_select_action>()) {
+			auto data = any_cast<pop_filter_select_action>(payload);
+			state.world.for_each_pop_type([&](dcon::pop_type_id id) {
+				pop_filters[dcon::pop_type_id::value_base_t(id.index())] = data.value;
+			});
 			on_update(state);
 			return message_result::consumed;
 		}
