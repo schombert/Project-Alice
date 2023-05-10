@@ -2014,8 +2014,8 @@ public:
 
 class upper_house_piechart : public piechart<dcon::ideology_id> {
 protected:
-	std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {
-		std::unordered_map<uint8_t, float> distrib = {};
+	std::unordered_map<dcon::ideology_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
+		std::unordered_map<dcon::ideology_id::value_base_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
 		if(parent) {
 			parent->impl_get(state, nat_id_payload);
@@ -2023,7 +2023,7 @@ protected:
 				auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
 				state.world.for_each_ideology([&](dcon::ideology_id ideo_id) {
 					auto weight = .01f * state.world.nation_get_upper_house(nat_id, ideo_id);
-					distrib[uint8_t(ideo_id.index())] = weight;
+					distrib[dcon::ideology_id::value_base_t(ideo_id.index())] = weight;
 				});
 			}
 		}
@@ -2033,8 +2033,8 @@ protected:
 
 class voter_ideology_piechart : public piechart<dcon::ideology_id> {
 protected:
-	std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {
-		std::unordered_map<uint8_t, float> distrib = {};
+	std::unordered_map<dcon::ideology_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
+		std::unordered_map<dcon::ideology_id::value_base_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
 		if(parent) {
 			parent->impl_get(state, nat_id_payload);
@@ -2061,7 +2061,7 @@ protected:
 					}
 				});
 				for(size_t i = 0; i < ideo_pool.size(); i++) {
-					distrib[uint8_t(i)] = ideo_pool[i] / total;
+					distrib[dcon::ideology_id::value_base_t(i)] = ideo_pool[i] / total;
 				}
 			}
 		}

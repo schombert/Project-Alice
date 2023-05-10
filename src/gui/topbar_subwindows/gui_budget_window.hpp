@@ -69,8 +69,8 @@ namespace ui {
 template<culture::pop_strata Strata>
 class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
-	std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {
-		std::unordered_map<uint8_t, float> distrib = {};
+	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
+		std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
 
 		enabled = true;
@@ -113,7 +113,7 @@ protected:
 			}
 
 			for(size_t i = 0; i < sat_pool.size(); i++)
-				distrib[uint8_t(i)] = sat_pool[i] / total;
+				distrib[dcon::pop_satisfaction_wrapper_id::value_base_t(i)] = sat_pool[i] / total;
 		}
 		return distrib;
 	}
