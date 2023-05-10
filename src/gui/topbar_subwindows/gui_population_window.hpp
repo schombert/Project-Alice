@@ -5,6 +5,7 @@
 #include "gui_common_elements.hpp"
 #include "province.hpp"
 #include "color.hpp"
+#include "triggers.hpp"
 
 namespace ui {
 
@@ -260,14 +261,104 @@ typedef std::variant<
 	std::monostate,
 	dcon::pop_id
 > pop_details_data;
+class pop_details_promotion_percent_text : public simple_text_element_base {
+	dcon::value_modifier_key mod_key{};
+	dcon::pop_location_id pop_loc{};
+	float chance = 0.f;
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_percentage(chance, 1));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		// TODO: value_modifier_key effect description tooltip here
+		//auto prov_id = state.world.pop_location_get_province(pop_loc);
+		//auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
+		//trigger_description(state, contents, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_location_id>()) {
+			pop_loc = any_cast<dcon::pop_location_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::value_modifier_key>()) {
+			mod_key = any_cast<dcon::value_modifier_key>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<float>()) {
+			chance = any_cast<float>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+template<size_t N>
+class pop_details_promotion_window : public window_element_base {
+	dcon::pop_type_id content{};
+	float chance = 0.f;
+
+	pop_type_icon* type_icon = nullptr;
+	simple_text_element_base* percent_text = nullptr;
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "pop_type") {
+			auto ptr = make_element_by_type<pop_type_icon>(state, id);
+			type_icon = ptr.get();
+			return ptr;
+		} else if(name == "percentage") {
+			auto ptr = make_element_by_type<pop_details_promotion_percent_text>(state, id);
+			percent_text = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		type_icon->impl_set(state, payload);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_type_id>()) {
+			content = any_cast<dcon::pop_type_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::pop_location_id>() || payload.holds_type<dcon::value_modifier_key>() || payload.holds_type<float>()) {
+			percent_text->impl_set(state, payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
 class pop_details_window : public generic_settable_element<window_element_base, pop_details_data> {
 	pop_type_icon* type_icon = nullptr;
 	religion_type_icon* religion_icon = nullptr;
 	simple_text_element_base* savings_text = nullptr;
+	std::vector<element_base*> promotion_windows;
+
+	template<std::size_t... Targs>
+	void generate_promotion_items(sys::state& state, std::integer_sequence<std::size_t, Targs...> const &) {
+		const xy_pair cell_offset{ 312, 153 };
+		(([&]{
+			auto win = make_element_by_type<pop_details_promotion_window<Targs>>(state, state.ui_state.defs_by_name.find("pop_promotion_item")->second.definition);
+			win->base_data.position.x = cell_offset.x + (Targs * win->base_data.size.x);
+			win->base_data.position.y = cell_offset.y;
+			promotion_windows.push_back(win.get());
+			add_child_to_front(std::move(win));
+		})(), ...);
+	}
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
+		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -322,11 +413,38 @@ public:
 		religion_icon->impl_set(state, rpayload);
 		// updated below ...
 		savings_text->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
-		Cyto::Any payload = content;
+		Cyto::Any payload = fat_id.id;
 		for(auto& c : children) {
 			c->impl_set(state, payload);
 			c->impl_on_update(state);
 		}
+
+		// Hide all promotion windows...
+		for(std::size_t i = 0; i < promotion_windows.size(); ++i)
+			promotion_windows[i]->set_visible(state, false);
+		std::unordered_map<dcon::pop_type_id::value_base_t, float> distrib = {};
+		auto total = 0.f;
+		state.world.for_each_pop_type([&](dcon::pop_type_id ptid){
+			auto mod_key = fat_id.get_poptype().get_promotion(ptid);
+			auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(fat_id.id));
+			auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
+			auto chance = trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
+			distrib[dcon::pop_type_id::value_base_t(ptid.index())] = chance;
+			total += chance;
+		});
+		// And then show them as appropriate!
+		size_t index = 0;
+		for(const auto& e : distrib)
+			if(e.second > 0.f && index < promotion_windows.size()) {
+				promotion_windows[index]->set_visible(state, true);
+				Cyto::Any pt_payload = dcon::pop_type_id(e.first);
+				promotion_windows[index]->impl_set(state, pt_payload);
+				Cyto::Any pl_payload = state.world.pop_get_pop_location_as_pop(fat_id.id);
+				promotion_windows[index]->impl_set(state, pl_payload);
+				Cyto::Any chance_payload = float(e.second / total);
+				promotion_windows[index]->impl_set(state, chance_payload);
+				++index;
+			}
 	}
 };
 

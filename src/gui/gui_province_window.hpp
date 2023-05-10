@@ -97,7 +97,7 @@ public:
 		pop_type_icon::on_create(state);
 		auto fat_id = dcon::fatten(state.world, state.culture_definitions.slaves);
 		content = fat_id.id;
-		update(state);
+		on_update(state);
 	}
 };
 
@@ -107,7 +107,7 @@ public:
 		pop_type_icon::on_create(state);
 		auto fat_id = dcon::fatten(state.world, state.culture_definitions.bureaucrat);
 		content = fat_id.id;
-		update(state);
+		on_update(state);
 	}
 };
 

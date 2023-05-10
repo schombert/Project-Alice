@@ -1945,7 +1945,7 @@ public:
 
 class pop_type_icon : public generic_settable_element<button_element_base, dcon::pop_type_id> {
 public:
-	void update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		frame = int32_t(fat_id.get_sprite() - 1);
 	}
@@ -1965,7 +1965,7 @@ public:
 };
 class religion_type_icon : public generic_settable_element<button_element_base, dcon::religion_id> {
 public:
-    void update(sys::state& state) noexcept {
+    void on_update(sys::state& state) noexcept override {
         auto fat_id = dcon::fatten(state.world, content);
         frame = int32_t(fat_id.get_icon() - 1);
     }
