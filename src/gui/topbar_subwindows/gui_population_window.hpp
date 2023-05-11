@@ -472,8 +472,10 @@ class pop_distrobution_piechart : public piechart<T> {
 		// Can obtain via simple pop_demographics query
 		if constexpr(std::is_same_v<T, dcon::issue_option_id>) {
 			state.world.for_each_issue_option(weight_fn);
+			return amount;
 		} else if constexpr(std::is_same_v<T, dcon::ideology_id>) {
 			state.world.for_each_ideology(weight_fn);
+			return amount;
 		// Needs to be queried directly from the pop
 		} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 			auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
@@ -504,7 +506,6 @@ class pop_distrobution_piechart : public piechart<T> {
 			distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += size;
 			return size;
 		}
-		return amount;
 	}
 protected:
 	std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept override {
