@@ -4004,6 +4004,12 @@ dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger
 
 struct value_modifier_definition {
 	float factor = 0.0f;
+	void months(association_type, float value, error_handler& err, int32_t line, trigger_building_context& context) {
+		factor = value * 30.0f;
+	}
+	void years(association_type, float value, error_handler& err, int32_t line, trigger_building_context& context) {
+		factor = value * 365.0f;
+	}
 	void group(value_modifier_definition const& value, error_handler& err, int32_t line, trigger_building_context& context) { }
 	void finish(trigger_building_context&) { }
 };

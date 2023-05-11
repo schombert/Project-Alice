@@ -3393,6 +3393,7 @@ object {
 	storage_type{ contiguous }
 	size{ 8000 }
 	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
@@ -3408,6 +3409,11 @@ object {
 		name{ only_once }
 		type{ bitfield }
 		tag{ scenario }
+	}
+	property{
+		name{ has_been_triggered }
+		type{ bitfield }
+		tag{ save }
 	}
 	property{
 		name{ is_major }
@@ -3446,6 +3452,7 @@ object {
 	storage_type{ contiguous }
 	size{ 8000 }
 	tag{ scenario }
+	tag{ save }
 
 	property{
 		name{ name }
@@ -3461,6 +3468,11 @@ object {
 		name{ only_once }
 		type{ bitfield }
 		tag{ scenario }
+	}
+	property{
+		name{ has_been_triggered }
+		type{ bitfield }
+		tag{ save }
 	}
 	property{
 		name{ trigger }

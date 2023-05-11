@@ -867,7 +867,7 @@ void execute_rebel_victories(sys::state& state) {
 			*/
 
 			if(auto k = state.world.rebel_faction_get_type(reb).get_demands_enforced_effect(); k)
-				effect::execute(state, k, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb));
+				effect::execute(state, k, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb), uint32_t(state.current_date.value), uint32_t(within.index() ^  (reb.index() << 4)));
 
 			/*
 			The government type of the nation will change if the rebel type has an associated government (with the same logic for a government type change from a wargoal or other cause).

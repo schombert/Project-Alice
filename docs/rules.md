@@ -1027,7 +1027,7 @@ I don't know if any mods make use of them (I assume not, at the moment), but a c
 
 ### Random events
 
-Some events are designated as being able to be triggered at most once. Obviously, this means that they can happen at most once. Also note that some events have an immediate effect, which occurs when the even is triggered, before any option can be chosen.
+Some events are designated as being able to be triggered at most once. Obviously, this means that they can happen at most once. Also note that some events have an immediate effect, which occurs when the event is triggered, before any option can be chosen.
 
 Which events are possible at all seems to be tested less frequently than testing for the occurrence of an event.
 
