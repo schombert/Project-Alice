@@ -462,44 +462,50 @@ public:
 
 template<typename T, bool Multiple>
 class pop_distrobution_piechart : public piechart<T> {
-	float iterate_one_pop(sys::state& state, std::unordered_map<typename T::value_base_t, float>& distrib, dcon::pop_id pop_id, float total) {
+	float iterate_one_pop(sys::state& state, std::unordered_map<typename T::value_base_t, float>& distrib, dcon::pop_id pop_id) {
+		auto amount = 0.f;
 		const auto weight_fn = [&](auto id) {
 			auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
 			distrib[typename T::value_base_t(id.index())] += weight;
-			total += weight;
+			amount += weight;
 		};
 		// Can obtain via simple pop_demographics query
-		if constexpr(std::is_same_v<T, dcon::issue_option_id>)
+		if constexpr(std::is_same_v<T, dcon::issue_option_id>) {
 			state.world.for_each_issue_option(weight_fn);
-		else if constexpr(std::is_same_v<T, dcon::ideology_id>)
+			return amount;
+		} else if constexpr(std::is_same_v<T, dcon::ideology_id>) {
 			state.world.for_each_ideology(weight_fn);
+			return amount;
 		// Needs to be queried directly from the pop
-		if constexpr(std::is_same_v<T, dcon::culture_id>) {
-			distrib[typename T::value_base_t(state.world.pop_get_culture(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-			total += state.world.pop_get_size(pop_id);
-		} else if constexpr(std::is_same_v<T, dcon::religion_id>) {
-			distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-			total += state.world.pop_get_size(pop_id);
-		} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
-			distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-			total += state.world.pop_get_size(pop_id);
 		} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
 			auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
-			if(state.world.province_get_is_colonial(prov_id))
-				return total;
-			auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
-			auto start = state.world.national_identity_get_political_party_first(tag).id.index();
-			auto end = start + state.world.national_identity_get_political_party_count(tag);
-			for(int32_t i = start; i < end; i++) {
-				auto pid = T(typename T::value_base_t(i));
-				if(politics::political_party_is_active(state, pid)) {
-					auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
-					distrib[typename T::value_base_t(pid.index())] += support;
-					total += support;
+			if(!state.world.province_get_is_colonial(prov_id)) {
+				auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
+				auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+				auto end = start + state.world.national_identity_get_political_party_count(tag);
+				for(int32_t i = start; i < end; i++) {
+					auto pid = T(typename T::value_base_t(i));
+					if(politics::political_party_is_active(state, pid)) {
+						auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
+						distrib[typename T::value_base_t(pid.index())] += support;
+						amount += support;
+					}
 				}
 			}
+			return amount;
+		} else if constexpr(std::is_same_v<T, dcon::culture_id>) {
+			auto size = state.world.pop_get_size(pop_id);
+			distrib[typename T::value_base_t(state.world.pop_get_culture(pop_id).id.index())] += size;
+			return size;
+		} else if constexpr(std::is_same_v<T, dcon::religion_id>) {
+			auto size = state.world.pop_get_size(pop_id);
+			distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += size;
+			return size;
+		} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
+			auto size = state.world.pop_get_size(pop_id);
+			distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += size;
+			return size;
 		}
-		return total;
 	}
 protected:
 	std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept override {
@@ -509,9 +515,9 @@ protected:
 			if constexpr(Multiple) {
 				auto& pop_list = get_pop_window_list(state);
 				for(const auto pop_id : pop_list)
-					total = iterate_one_pop(state, distrib, pop_id, total);
+					total += iterate_one_pop(state, distrib, pop_id);
 			} else {
-				total = iterate_one_pop(state, distrib, get_pop_details_pop(state), total);
+				total = iterate_one_pop(state, distrib, get_pop_details_pop(state));
 			}
 			for(auto& e : distrib)
 				if(e.second > 0.f)
@@ -635,16 +641,22 @@ public:
 					}
 				}
 			}
+
 			std::vector<std::pair<T, float>> sorted_distrib{};
 			for(const auto& e : distrib)
 				if(e.second > 0.f)
-					sorted_distrib.push_back(std::make_pair(T(e.first), e.second));
+					sorted_distrib.emplace_back(T(e.first), e.second);
 			std::sort(sorted_distrib.begin(), sorted_distrib.end(), [&](auto a, auto b) {
 				return a.second > b.second;
 			});
+
 			distrib_listbox->row_contents.clear();
+			// Add (and scale elements) into the distrobution listbox
+			auto total = 0.f;
 			for(const auto& e : sorted_distrib)
-				distrib_listbox->row_contents.push_back(e);
+				total += e.second;
+			for(const auto& e : sorted_distrib)
+				distrib_listbox->row_contents.emplace_back(e.first, e.second / total);
 			distrib_listbox->update(state);
 		}
 	}
@@ -910,9 +922,11 @@ public:
 		auto total = 0.f;
 		state.world.for_each_pop_type([&](dcon::pop_type_id ptid){
 			auto mod_key = fat_id.get_poptype().get_promotion(ptid);
-			auto chance = trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
-			distrib[dcon::pop_type_id::value_base_t(ptid.index())] = chance;
-			total += chance;
+			if(mod_key) {
+				auto chance = trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
+				distrib[dcon::pop_type_id::value_base_t(ptid.index())] = chance;
+				total += chance;
+			}
 		});
 		// And then show them as appropriate!
 		size_t index = 0;
@@ -923,6 +937,8 @@ public:
 				promotion_windows[index]->impl_set(state, pt_payload);
 				Cyto::Any pl_payload = state.world.pop_get_pop_location_as_pop(fat_id.id);
 				promotion_windows[index]->impl_set(state, pl_payload);
+				Cyto::Any mod_payload = state.world.pop_get_poptype(fat_id.id).get_promotion(dcon::pop_type_id(e.first));
+				promotion_windows[index]->impl_set(state, mod_payload);
 				Cyto::Any chance_payload = float(e.second / total);
 				promotion_windows[index]->impl_set(state, chance_payload);
 				++index;
