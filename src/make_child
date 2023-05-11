@@ -1,4 +1,0 @@
-gui/gui_event.cpp:		new_elm->impl_set(state, payload);
-gui/gui_event.cpp:		new_elm->impl_set(state, payload);
-gui/gui_event.cpp:	new_elm->impl_set(state, payload);
-gamestate/system_state.cpp:			new_elm->impl_on_update(*this);
