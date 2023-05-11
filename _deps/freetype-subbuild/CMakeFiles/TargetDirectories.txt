@@ -1,0 +1,3 @@
+/home/breizh/Project-Alice/_deps/freetype-subbuild/CMakeFiles/freetype-populate.dir
+/home/breizh/Project-Alice/_deps/freetype-subbuild/CMakeFiles/edit_cache.dir
+/home/breizh/Project-Alice/_deps/freetype-subbuild/CMakeFiles/rebuild_cache.dir

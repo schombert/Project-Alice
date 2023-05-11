@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/CMakeFiles/datacontainer-populate"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/CMakeFiles/datacontainer-populate.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/CMakeFiles/datacontainer-populate-complete.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/datacontainer-populate-prefix/src/datacontainer-populate-stamp/datacontainer-populate-build.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/datacontainer-populate-prefix/src/datacontainer-populate-stamp/datacontainer-populate-configure.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/datacontainer-populate-prefix/src/datacontainer-populate-stamp/datacontainer-populate-download.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/datacontainer-populate-prefix/src/datacontainer-populate-stamp/datacontainer-populate-install.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/datacontainer-populate-prefix/src/datacontainer-populate-stamp/datacontainer-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/datacontainer-populate-prefix/src/datacontainer-populate-stamp/datacontainer-populate-patch.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/datacontainer-populate-prefix/src/datacontainer-populate-stamp/datacontainer-populate-test.rule"
+		},
+		{
+			"file" : "/home/breizh/Project-Alice/_deps/datacontainer-subbuild/datacontainer-populate-prefix/src/datacontainer-populate-stamp/datacontainer-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"datacontainer-populate"
+		],
+		"name" : "datacontainer-populate"
+	}
+}
