@@ -10,6 +10,7 @@
 namespace ui {
 
 const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state);
+dcon::pop_id get_pop_details_pop(sys::state& state);
 
 class pop_culture_text : public generic_settable_element<simple_text_element_base, dcon::pop_id> {
 public:
@@ -225,307 +226,6 @@ public:
 		base_data.size.y = 28;
 		base_data.position.x -= 13;
 		radius = 13;
-	}
-};
-
-typedef std::variant<
-	std::monostate,
-	dcon::pop_id
-> pop_details_data;
-class pop_details_promotion_percent_text : public simple_text_element_base {
-	dcon::value_modifier_key mod_key{};
-	dcon::pop_location_id pop_loc{};
-	float chance = 0.f;
-public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_percentage(chance, 1));
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		// TODO: value_modifier_key effect description tooltip here
-		//auto prov_id = state.world.pop_location_get_province(pop_loc);
-		//auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
-		//trigger_description(state, contents, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::pop_location_id>()) {
-			pop_loc = any_cast<dcon::pop_location_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::value_modifier_key>()) {
-			mod_key = any_cast<dcon::value_modifier_key>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<float>()) {
-			chance = any_cast<float>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-template<size_t N>
-class pop_details_promotion_window : public window_element_base {
-	dcon::pop_type_id content{};
-	float chance = 0.f;
-
-	pop_type_icon* type_icon = nullptr;
-	simple_text_element_base* percent_text = nullptr;
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "pop_type") {
-			auto ptr = make_element_by_type<pop_type_icon>(state, id);
-			type_icon = ptr.get();
-			return ptr;
-		} else if(name == "percentage") {
-			auto ptr = make_element_by_type<pop_details_promotion_percent_text>(state, id);
-			percent_text = ptr.get();
-			return ptr;
-		} else {
-			return nullptr;
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		type_icon->impl_set(state, payload);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::pop_type_id>()) {
-			content = any_cast<dcon::pop_type_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::pop_location_id>() || payload.holds_type<dcon::value_modifier_key>() || payload.holds_type<float>()) {
-			percent_text->impl_set(state, payload);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-};
-class pop_details_window : public generic_settable_element<window_element_base, pop_details_data> {
-	pop_type_icon* type_icon = nullptr;
-	religion_type_icon* religion_icon = nullptr;
-	simple_text_element_base* savings_text = nullptr;
-	std::vector<element_base*> promotion_windows;
-
-	template<std::size_t... Targs>
-	void generate_promotion_items(sys::state& state, std::integer_sequence<std::size_t, Targs...> const &) {
-		const xy_pair cell_offset{ 312, 153 };
-		(([&]{
-			auto win = make_element_by_type<pop_details_promotion_window<Targs>>(state, state.ui_state.defs_by_name.find("pop_promotion_item")->second.definition);
-			win->base_data.position.x = cell_offset.x + (Targs * win->base_data.size.x);
-			win->base_data.position.y = cell_offset.y;
-			promotion_windows.push_back(win.get());
-			add_child_to_front(std::move(win));
-		})(), ...);
-	}
-public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
-	}
-
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
-			return make_element_by_type<generic_close_button>(state, id);
-		} else if(name == "pop_type_icon") {
-			auto ptr = make_element_by_type<pop_type_icon>(state, id);
-			type_icon = ptr.get();
-			return ptr;
-		} else if(name == "pop_size") {
-			return make_element_by_type<pop_size_text>(state, id);
-		} else if(name == "pop_culture") {
-			return make_element_by_type<pop_culture_text>(state, id);
-		} else if(name == "pop_location") {
-			return make_element_by_type<pop_location_text>(state, id);
-		} else if(name == "mil_value") {
-			return make_element_by_type<pop_militancy_text>(state, id);
-		} else if(name == "con_value") {
-			return make_element_by_type<pop_con_text>(state, id);
-		} else if(name == "literacy_value") {
-			return make_element_by_type<pop_literacy_text>(state, id);
-		} else if(name == "icon_religion") {
-			auto ptr = make_element_by_type<religion_type_icon>(state, id);
-			religion_icon = ptr.get();
-			return ptr;
-		} else if(name == "bank_value") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			savings_text = ptr.get();
-			return ptr;
-		} else if(name == "pop_unemployment_bar") {
-			return make_element_by_type<pop_unemployment_progress_bar>(state, id);
-		} else if(name == "lifeneed_progress") {
-			return make_element_by_type<pop_life_needs_progress_bar>(state, id);
-		} else if(name == "eveneed_progress") {
-			return make_element_by_type<pop_everyday_needs_progress_bar>(state, id);
-		} else if(name == "luxneed_progress") {
-			return make_element_by_type<pop_luxury_needs_progress_bar>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		if(!std::holds_alternative<dcon::pop_id>(content))
-			return;
-		
-		auto fat_id = dcon::fatten(state.world, std::get<dcon::pop_id>(content));
-		Cyto::Any tpayload = fat_id.get_poptype().id;
-		type_icon->impl_set(state, tpayload);
-		// updated below ...
-		Cyto::Any rpayload = fat_id.get_religion().id;
-		religion_icon->impl_set(state, rpayload);
-		// updated below ...
-		savings_text->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
-		Cyto::Any payload = fat_id.id;
-		for(auto& c : children) {
-			c->impl_set(state, payload);
-			c->impl_on_update(state);
-		}
-
-		// Hide all promotion windows...
-		for(std::size_t i = 0; i < promotion_windows.size(); ++i)
-			promotion_windows[i]->set_visible(state, false);
-		std::unordered_map<dcon::pop_type_id::value_base_t, float> distrib = {};
-		auto total = 0.f;
-		state.world.for_each_pop_type([&](dcon::pop_type_id ptid){
-			auto mod_key = fat_id.get_poptype().get_promotion(ptid);
-			auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(fat_id.id));
-			auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
-			auto chance = trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
-			distrib[dcon::pop_type_id::value_base_t(ptid.index())] = chance;
-			total += chance;
-		});
-		// And then show them as appropriate!
-		size_t index = 0;
-		for(const auto& e : distrib)
-			if(e.second > 0.f && index < promotion_windows.size()) {
-				promotion_windows[index]->set_visible(state, true);
-				Cyto::Any pt_payload = dcon::pop_type_id(e.first);
-				promotion_windows[index]->impl_set(state, pt_payload);
-				Cyto::Any pl_payload = state.world.pop_get_pop_location_as_pop(fat_id.id);
-				promotion_windows[index]->impl_set(state, pl_payload);
-				Cyto::Any chance_payload = float(e.second / total);
-				promotion_windows[index]->impl_set(state, chance_payload);
-				++index;
-			}
-	}
-};
-
-class pop_details_icon : public generic_settable_element<button_element_base, dcon::pop_id> {
-public:
-	void on_update(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, state.world.pop_get_poptype(content));
-		frame = int32_t(fat_id.get_sprite() - 1);
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = pop_details_data(content);
-		state.ui_state.population_subwindow->impl_set(state, payload);
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, name);
-			text::close_layout_box(contents, box);
-		}
-	}
-};
-class pop_item : public listbox_row_element_base<dcon::pop_id> {
-private:
-	pop_details_icon* type = nullptr;
-	image_element_base* religion = nullptr;
-	simple_text_element_base* cash = nullptr;
-public:
-	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base<dcon::pop_id>::on_create(state);
-	}
-
-	std::unique_ptr<element_base>
-		make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "pop_size") {
-			return make_element_by_type<pop_size_text>(state, id);
-		} else if(name == "pop_nation") {
-			return make_element_by_type<pop_culture_text>(state, id);
-		} else if(name == "pop_location") {
-			return make_element_by_type<pop_location_text>(state, id);
-		} else if(name == "pop_mil") {
-			return make_element_by_type<pop_militancy_text>(state, id);
-		} else if(name == "pop_con") {
-			return make_element_by_type<pop_con_text>(state, id);
-		} else if(name == "pop_type") {
-			auto ptr = make_element_by_type<pop_details_icon>(state, id);
-			type = ptr.get();
-			return ptr;
-		} else if(name == "pop_religion") {
-			auto ptr = make_element_by_type<religion_type_icon>(state, id);
-			religion = ptr.get();
-			return ptr;
-		} else if(name == "pop_ideology") {
-			return make_element_by_type<pop_ideology_piechart>(state, id);
-		} else if(name == "pop_issues") {
-			return make_element_by_type<pop_issues_piechart>(state, id);
-		} else if(name == "pop_unemployment_bar") {
-			return make_element_by_type<pop_unemployment_progress_bar>(state, id);
-		} else if(name == "pop_cash") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			cash = ptr.get();
-			return ptr;
-		} else if(name == "lifeneed_progress") {
-			return make_element_by_type<pop_life_needs_progress_bar>(state, id);
-		} else if(name == "eveneed_progress") {
-			return make_element_by_type<pop_everyday_needs_progress_bar>(state, id);
-		} else if(name == "luxneed_progress") {
-			return make_element_by_type<pop_luxury_needs_progress_bar>(state, id);
-		} else if(name == "pop_literacy") {
-			return make_element_by_type<pop_literacy_text>(state, id);
-		} else {
-			return nullptr;
-		}
-	};
-
-	void update(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-
-		Cyto::Any tpayload = fat_id.get_poptype().id;
-		type->impl_set(state, tpayload);
-		// updated below...
-		Cyto::Any rpayload = fat_id.get_religion().id;
-		religion->impl_set(state, rpayload);
-		// updated below...
-		cash->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
-		Cyto::Any payload = content;
-		for(auto& c : children) {
-			c->impl_set(state, payload);
-			c->impl_on_update(state);
-		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::pop_id>()) {
-			payload.emplace<dcon::pop_id>(content);
-			return message_result::consumed;
-		}
-		return listbox_row_element_base<dcon::pop_id>::get(state, payload);
-	}
-};
-class pop_listbox : public listbox_element_base<pop_item, dcon::pop_id> {
-protected:
-	std::string_view get_row_element_name() override {
-		return "popinfomember_popview";
 	}
 };
 
@@ -760,52 +460,58 @@ public:
 	}
 };
 
-template<typename T>
+template<typename T, bool Multiple>
 class pop_distrobution_piechart : public piechart<T> {
+	float iterate_one_pop(sys::state& state, std::unordered_map<typename T::value_base_t, float>& distrib, dcon::pop_id pop_id, float total) {
+		const auto weight_fn = [&](auto id) {
+			auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
+			distrib[typename T::value_base_t(id.index())] += weight;
+			total += weight;
+		};
+		// Can obtain via simple pop_demographics query
+		if constexpr(std::is_same_v<T, dcon::issue_option_id>)
+			state.world.for_each_issue_option(weight_fn);
+		else if constexpr(std::is_same_v<T, dcon::ideology_id>)
+			state.world.for_each_ideology(weight_fn);
+		// Needs to be queried directly from the pop
+		if constexpr(std::is_same_v<T, dcon::culture_id>) {
+			distrib[typename T::value_base_t(state.world.pop_get_culture(pop_id).id.index())] += state.world.pop_get_size(pop_id);
+			total += state.world.pop_get_size(pop_id);
+		} else if constexpr(std::is_same_v<T, dcon::religion_id>) {
+			distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += state.world.pop_get_size(pop_id);
+			total += state.world.pop_get_size(pop_id);
+		} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
+			distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
+			total += state.world.pop_get_size(pop_id);
+		} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
+			auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
+			if(state.world.province_get_is_colonial(prov_id))
+				return total;
+			auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
+			auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+			auto end = start + state.world.national_identity_get_political_party_count(tag);
+			for(int32_t i = start; i < end; i++) {
+				auto pid = T(typename T::value_base_t(i));
+				if(politics::political_party_is_active(state, pid)) {
+					auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
+					distrib[typename T::value_base_t(pid.index())] += support;
+					total += support;
+				}
+			}
+		}
+		return total;
+	}
 protected:
 	std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept override {
 		std::unordered_map<typename T::value_base_t, float> distrib{};
 		if(piechart<T>::parent) {
-			auto& pop_list = get_pop_window_list(state);
-
 			auto total = 0.f;
-			for(const auto pop_id : pop_list) {
-				const auto weight_fn = [&](auto id) {
-					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
-					distrib[typename T::value_base_t(id.index())] += weight;
-					total += weight;
-				};
-				// Can obtain via simple pop_demographics query
-				if constexpr(std::is_same_v<T, dcon::issue_option_id>)
-					state.world.for_each_issue_option(weight_fn);
-				else if constexpr(std::is_same_v<T, dcon::ideology_id>)
-					state.world.for_each_ideology(weight_fn);
-				// Needs to be queried directly from the pop
-				if constexpr(std::is_same_v<T, dcon::culture_id>) {
-					distrib[typename T::value_base_t(state.world.pop_get_culture(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-					total += state.world.pop_get_size(pop_id);
-				} else if constexpr(std::is_same_v<T, dcon::religion_id>) {
-					distrib[typename T::value_base_t(state.world.pop_get_religion(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-					total += state.world.pop_get_size(pop_id);
-				} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
-					distrib[typename T::value_base_t(state.world.pop_get_poptype(pop_id).id.index())] += state.world.pop_get_size(pop_id);
-					total += state.world.pop_get_size(pop_id);
-				} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
-					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
-					if(state.world.province_get_is_colonial(prov_id))
-						continue;
-					auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
-					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
-					auto end = start + state.world.national_identity_get_political_party_count(tag);
-					for(int32_t i = start; i < end; i++) {
-						auto pid = T(typename T::value_base_t(i));
-						if(politics::political_party_is_active(state, pid)) {
-							auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
-							distrib[typename T::value_base_t(pid.index())] += support;
-							total += support;
-						}
-					}
-				}
+			if constexpr(Multiple) {
+				auto& pop_list = get_pop_window_list(state);
+				for(const auto pop_id : pop_list)
+					total = iterate_one_pop(state, distrib, pop_id, total);
+			} else {
+				total = iterate_one_pop(state, distrib, get_pop_details_pop(state), total);
 			}
 			for(auto& e : distrib)
 				if(e.second > 0.f)
@@ -825,7 +531,7 @@ public:
     }
 };
 template<typename T>
-class pop_distrobution_item : public listbox_row_element_base<T> {
+class pop_distrobution_item : public listbox_row_element_base<std::pair<T, float>> {
 	element_base* title_text = nullptr;
 	simple_text_element_base* value_text = nullptr;
 public:
@@ -843,84 +549,25 @@ public:
 		}
 	}
 	void update(sys::state& state) noexcept override {
-		T content = listbox_row_element_base<T>::content;
-		for(auto& c : listbox_row_element_base<T>::children) {
-			Cyto::Any payload = content;
+		auto& content = listbox_row_element_base<std::pair<T, float>>::content;
+		for(auto& c : listbox_row_element_base<std::pair<T, float>>::children) {
+			Cyto::Any payload = content.first;
 			c->impl_set(state, payload);
 		}
-		if(listbox_row_element_base<T>::parent) {
+		if(listbox_row_element_base<std::pair<T, float>>::parent) {
 			auto& pop_list = get_pop_window_list(state);
-
-			auto value = 0.f;
-			auto total = 0.f;
-			for(const auto pop_id : pop_list) {
-				const auto weight_fn = [&](auto id) {
-					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
-					if(id == content)
-						value += weight;
-					total += weight;
-				};
-				// Obtained with simple query
-				if constexpr(std::is_same_v<T, dcon::issue_option_id>)
-					state.world.for_each_issue_option(weight_fn);
-				else if constexpr(std::is_same_v<T, dcon::ideology_id>)
-					state.world.for_each_ideology(weight_fn);
-				// Needs to be queried directly from the pop
-				const auto direct_weight_fn = [&](auto&& fn, auto id){
-					const auto sub_id = fn(id).id;
-					const auto size = state.world.pop_get_size(id);
-					if(sub_id == content)
-						value += size;
-					total += size;
-				};
-				if constexpr(std::is_same_v<T, dcon::culture_id>) {
-					const auto sub_id = state.world.pop_get_culture(pop_id).id;
-					const auto size = state.world.pop_get_size(pop_id);
-					if(sub_id == content)
-						value += size;
-					total += size;	
-				} else if constexpr(std::is_same_v<T, dcon::religion_id>) {
-					const auto sub_id = state.world.pop_get_religion(pop_id).id;
-					const auto size = state.world.pop_get_size(pop_id);
-					if(sub_id == content)
-						value += size;
-					total += size;	
-				} else if constexpr(std::is_same_v<T, dcon::pop_type_id>) {
-					const auto sub_id = state.world.pop_get_poptype(pop_id).id;
-					const auto size = state.world.pop_get_size(pop_id);
-					if(sub_id == content)
-						value += size;
-					total += size;	
-				} else if constexpr(std::is_same_v<T, dcon::political_party_id>) {
-					auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(pop_id));
-					if(state.world.province_get_is_colonial(prov_id))
-						continue;
-					auto tag = state.world.nation_get_identity_from_identity_holder(state.world.province_get_nation_from_province_ownership(prov_id));
-					auto start = state.world.national_identity_get_political_party_first(tag).id.index();
-					auto end = start + state.world.national_identity_get_political_party_count(tag);
-					for(int32_t i = start; i < end; i++) {
-						auto pid = T(typename T::value_base_t(i));
-						if(politics::political_party_is_active(state, pid)) {
-							auto support = politics::party_total_support(state, pop_id, pid, state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
-							if(pid == content)
-								value += support;
-							total += support;
-						}
-					}
-				}
-			}
-			value_text->set_text(state, text::format_percentage(total > 0.f && value > 0.f ? value / total : 0.f, 1));
+			value_text->set_text(state, text::format_percentage(content.second, 1));
 		}
 	}
 };
 template<typename T>
-class pop_distrobution_listbox : public listbox_element_base<pop_distrobution_item<T>, T> {
+class pop_distrobution_listbox : public listbox_element_base<pop_distrobution_item<T>, std::pair<T, float>> {
 public:
 	std::string_view get_row_element_name() override {
 		return "pop_legend_item";
 	}
 };
-template<typename T>
+template<typename T, bool Multiple>
 class pop_distrobution_window : public window_element_base {
 	pop_distrobution_listbox<T>* distrib_listbox;
 public:
@@ -941,7 +588,7 @@ public:
 				ptr->set_text(state, text::produce_simple_string(state, "electorate_disttitle"));
 			return ptr;
 		} else if(name == "chart") {
-			return make_element_by_type<pop_distrobution_piechart<T>>(state, id);
+			return make_element_by_type<pop_distrobution_piechart<T, Multiple>>(state, id);
 		} else if(name == "member_names") {
 			auto ptr = make_element_by_type<pop_distrobution_listbox<T>>(state, id);
 			distrib_listbox = ptr.get();
@@ -997,9 +644,428 @@ public:
 			});
 			distrib_listbox->row_contents.clear();
 			for(const auto& e : sorted_distrib)
-				distrib_listbox->row_contents.push_back(e.first);
+				distrib_listbox->row_contents.push_back(e);
 			distrib_listbox->update(state);
 		}
+	}
+};
+
+class pop_details_promotion_percent_text : public simple_text_element_base {
+	dcon::value_modifier_key mod_key{};
+	dcon::pop_location_id pop_loc{};
+	float chance = 0.f;
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_percentage(chance, 1));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto prov_id = state.world.pop_location_get_province(pop_loc);
+		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
+		value_modifier_description(state, contents, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_location_id>()) {
+			pop_loc = any_cast<dcon::pop_location_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::value_modifier_key>()) {
+			mod_key = any_cast<dcon::value_modifier_key>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<float>()) {
+			chance = any_cast<float>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+template<size_t N>
+class pop_details_promotion_window : public window_element_base {
+	dcon::pop_type_id content{};
+	float chance = 0.f;
+
+	pop_type_icon* type_icon = nullptr;
+	simple_text_element_base* percent_text = nullptr;
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "pop_type") {
+			auto ptr = make_element_by_type<pop_type_icon>(state, id);
+			type_icon = ptr.get();
+			return ptr;
+		} else if(name == "percentage") {
+			auto ptr = make_element_by_type<pop_details_promotion_percent_text>(state, id);
+			percent_text = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		type_icon->impl_set(state, payload);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_type_id>()) {
+			content = any_cast<dcon::pop_type_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::pop_location_id>() || payload.holds_type<dcon::value_modifier_key>() || payload.holds_type<float>()) {
+			percent_text->impl_set(state, payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+typedef std::pair<
+	dcon::commodity_id,
+	float
+> pop_details_needs_data;
+class pop_details_needs_item : public listbox_row_element_base<pop_details_needs_data> {
+	commodity_factory_image* commodity_icon = nullptr;
+	simple_text_element_base* value_text = nullptr;
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "goods_type") {
+			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
+			commodity_icon = ptr.get();
+			return ptr;
+		} else if(name == "value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			value_text = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	void update(sys::state& state) noexcept override {
+		Cyto::Any payload = content.first;
+		commodity_icon->impl_set(state, payload);
+		value_text->set_text(state, text::format_float(content.second, 1));
+	}
+};
+class pop_details_needs_listbox : public listbox_element_base<pop_details_needs_item, pop_details_needs_data> {
+public:
+	std::string_view get_row_element_name() override {
+		return "popdetail_needs_entry";
+	}
+};
+
+typedef std::variant<
+	std::monostate,
+	dcon::pop_id
+> pop_details_data;
+class pop_details_window : public generic_settable_element<window_element_base, pop_details_data> {
+	pop_type_icon* type_icon = nullptr;
+	religion_type_icon* religion_icon = nullptr;
+	simple_text_element_base* religion_text = nullptr;
+	simple_text_element_base* savings_text = nullptr;
+	std::vector<element_base*> promotion_windows;
+	std::vector<element_base*> dist_windows;
+	pop_details_needs_listbox* life_needs_list = nullptr;
+	pop_details_needs_listbox* everyday_needs_list = nullptr;
+	pop_details_needs_listbox* luxury_needs_list = nullptr;
+
+	template<std::size_t... Targs>
+	void generate_promotion_items(sys::state& state, std::integer_sequence<std::size_t, Targs...> const &) {
+		const xy_pair cell_offset{ 312, 153 };
+		(([&]{
+			auto win = make_element_by_type<pop_details_promotion_window<Targs>>(state, state.ui_state.defs_by_name.find("pop_promotion_item")->second.definition);
+			win->base_data.position.x = cell_offset.x + (Targs * win->base_data.size.x);
+			win->base_data.position.y = cell_offset.y;
+			promotion_windows.push_back(win.get());
+			add_child_to_front(std::move(win));
+		})(), ...);
+	}
+
+	template<typename T, typename... Targs>
+	void generate_distrobution_windows(sys::state& state) {
+		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
+		dist_windows.push_back(win.get());
+		add_child_to_front(std::move(win));
+
+		if constexpr(sizeof...(Targs))
+			generate_distrobution_windows<Targs...>(state);
+	}
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		set_visible(state, false);
+		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
+
+		generate_distrobution_windows<
+			pop_distrobution_window<dcon::ideology_id, false>,
+			pop_distrobution_window<dcon::issue_option_id, false>
+		>(state);
+
+		// It should be proper to reposition the windows now
+		const xy_pair cell_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdetaildistribution_start")->second.definition].position;
+		const xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdetaildistribution_offset")->second.definition].position;
+		xy_pair offset = cell_offset;
+		for(const auto win : dist_windows) {
+			win->base_data.position = offset;
+			offset.x += cell_size.x;
+			if(offset.x + cell_size.x >= base_data.size.x) {
+				offset.x = cell_offset.x;
+				offset.y += cell_size.y;
+			}
+		}
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "close_button") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "pop_type_icon") {
+			auto ptr = make_element_by_type<pop_type_icon>(state, id);
+			type_icon = ptr.get();
+			return ptr;
+		} else if(name == "pop_size") {
+			return make_element_by_type<pop_size_text>(state, id);
+		} else if(name == "pop_culture") {
+			return make_element_by_type<pop_culture_text>(state, id);
+		} else if(name == "pop_location") {
+			return make_element_by_type<pop_location_text>(state, id);
+		} else if(name == "mil_value") {
+			return make_element_by_type<pop_militancy_text>(state, id);
+		} else if(name == "con_value") {
+			return make_element_by_type<pop_con_text>(state, id);
+		} else if(name == "literacy_value") {
+			return make_element_by_type<pop_literacy_text>(state, id);
+		} else if(name == "icon_religion") {
+			auto ptr = make_element_by_type<religion_type_icon>(state, id);
+			religion_icon = ptr.get();
+			return ptr;
+		} else if(name == "bank_value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			savings_text = ptr.get();
+			return ptr;
+		} else if(name == "pop_unemployment_bar") {
+			return make_element_by_type<pop_unemployment_progress_bar>(state, id);
+		} else if(name == "lifeneed_progress") {
+			return make_element_by_type<pop_life_needs_progress_bar>(state, id);
+		} else if(name == "eveneed_progress") {
+			return make_element_by_type<pop_everyday_needs_progress_bar>(state, id);
+		} else if(name == "luxneed_progress") {
+			return make_element_by_type<pop_luxury_needs_progress_bar>(state, id);
+		} else if(name == "life_needs_list") {
+			auto ptr = make_element_by_type<pop_details_needs_listbox>(state, id);
+			life_needs_list = ptr.get();
+			return ptr;
+		} else if(name == "everyday_needs_list") {
+			auto ptr = make_element_by_type<pop_details_needs_listbox>(state, id);
+			everyday_needs_list = ptr.get();
+			return ptr;
+		} else if(name == "luxury_needs_list" || name == "luxuary_needs_list") {
+			auto ptr = make_element_by_type<pop_details_needs_listbox>(state, id);
+			luxury_needs_list = ptr.get();
+			return ptr;
+		} else if(name == "religion") {
+			auto ptr = make_element_by_type<generic_name_text<dcon::religion_id>>(state, id);
+			religion_text = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(!std::holds_alternative<dcon::pop_id>(content))
+			return;
+		
+		auto fat_id = dcon::fatten(state.world, std::get<dcon::pop_id>(content));
+		Cyto::Any tpayload = fat_id.get_poptype().id;
+		type_icon->impl_set(state, tpayload);
+		// updated below ...
+		Cyto::Any rpayload = fat_id.get_religion().id;
+		religion_icon->impl_set(state, rpayload);
+		religion_text->impl_set(state, rpayload);
+		// updated below ...
+		savings_text->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
+		Cyto::Any payload = fat_id.id;
+		for(auto& c : children) {
+			c->impl_set(state, payload);
+			c->impl_on_update(state);
+		}
+
+		auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(fat_id.id));
+		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
+
+		// Hide all promotion windows...
+		for(std::size_t i = 0; i < promotion_windows.size(); ++i)
+			promotion_windows[i]->set_visible(state, false);
+		std::unordered_map<dcon::pop_type_id::value_base_t, float> distrib = {};
+		auto total = 0.f;
+		state.world.for_each_pop_type([&](dcon::pop_type_id ptid){
+			auto mod_key = fat_id.get_poptype().get_promotion(ptid);
+			auto chance = trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
+			distrib[dcon::pop_type_id::value_base_t(ptid.index())] = chance;
+			total += chance;
+		});
+		// And then show them as appropriate!
+		size_t index = 0;
+		for(const auto& e : distrib)
+			if(e.second > 0.f && index < promotion_windows.size()) {
+				promotion_windows[index]->set_visible(state, true);
+				Cyto::Any pt_payload = dcon::pop_type_id(e.first);
+				promotion_windows[index]->impl_set(state, pt_payload);
+				Cyto::Any pl_payload = state.world.pop_get_pop_location_as_pop(fat_id.id);
+				promotion_windows[index]->impl_set(state, pl_payload);
+				Cyto::Any chance_payload = float(e.second / total);
+				promotion_windows[index]->impl_set(state, chance_payload);
+				++index;
+			}
+		
+		life_needs_list->row_contents.clear();
+		everyday_needs_list->row_contents.clear();
+		luxury_needs_list->row_contents.clear();
+		state.world.for_each_commodity([&](dcon::commodity_id cid) {
+			auto kf = state.world.commodity_get_key_factory(cid);
+			if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(nat_id, kf))) {
+				auto lfn = state.world.pop_type_get_life_needs(fat_id.get_poptype(), cid);
+				if(lfn > 0.f)
+					life_needs_list->row_contents.emplace_back(cid, lfn);
+				auto evn = state.world.pop_type_get_everyday_needs(fat_id.get_poptype(), cid);
+				if(evn > 0.f)
+					everyday_needs_list->row_contents.emplace_back(cid, evn);
+				auto lxn = state.world.pop_type_get_luxury_needs(fat_id.get_poptype(), cid);
+				if(lxn > 0.f)
+					luxury_needs_list->row_contents.emplace_back(cid, lxn);
+			}
+		});
+		life_needs_list->update(state);
+		everyday_needs_list->update(state);
+		luxury_needs_list->update(state);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_id>()) {
+			if(!std::holds_alternative<dcon::pop_id>(content))
+				return message_result::unseen;
+			payload.emplace<dcon::pop_id>(std::get<dcon::pop_id>(content));
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+class pop_details_icon : public generic_settable_element<button_element_base, dcon::pop_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, state.world.pop_get_poptype(content));
+		frame = int32_t(fat_id.get_sprite() - 1);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = pop_details_data(content);
+		state.ui_state.population_subwindow->impl_set(state, payload);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, name);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+class pop_item : public listbox_row_element_base<dcon::pop_id> {
+private:
+	pop_details_icon* type = nullptr;
+	image_element_base* religion = nullptr;
+	simple_text_element_base* cash = nullptr;
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base<dcon::pop_id>::on_create(state);
+	}
+
+	std::unique_ptr<element_base>
+		make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "pop_size") {
+			return make_element_by_type<pop_size_text>(state, id);
+		} else if(name == "pop_nation") {
+			return make_element_by_type<pop_culture_text>(state, id);
+		} else if(name == "pop_location") {
+			return make_element_by_type<pop_location_text>(state, id);
+		} else if(name == "pop_mil") {
+			return make_element_by_type<pop_militancy_text>(state, id);
+		} else if(name == "pop_con") {
+			return make_element_by_type<pop_con_text>(state, id);
+		} else if(name == "pop_type") {
+			auto ptr = make_element_by_type<pop_details_icon>(state, id);
+			type = ptr.get();
+			return ptr;
+		} else if(name == "pop_religion") {
+			auto ptr = make_element_by_type<religion_type_icon>(state, id);
+			religion = ptr.get();
+			return ptr;
+		} else if(name == "pop_ideology") {
+			return make_element_by_type<pop_ideology_piechart>(state, id);
+		} else if(name == "pop_issues") {
+			return make_element_by_type<pop_issues_piechart>(state, id);
+		} else if(name == "pop_unemployment_bar") {
+			return make_element_by_type<pop_unemployment_progress_bar>(state, id);
+		} else if(name == "pop_cash") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			cash = ptr.get();
+			return ptr;
+		} else if(name == "lifeneed_progress") {
+			return make_element_by_type<pop_life_needs_progress_bar>(state, id);
+		} else if(name == "eveneed_progress") {
+			return make_element_by_type<pop_everyday_needs_progress_bar>(state, id);
+		} else if(name == "luxneed_progress") {
+			return make_element_by_type<pop_luxury_needs_progress_bar>(state, id);
+		} else if(name == "pop_literacy") {
+			return make_element_by_type<pop_literacy_text>(state, id);
+		} else {
+			return nullptr;
+		}
+	};
+
+	void update(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, content);
+
+		Cyto::Any tpayload = fat_id.get_poptype().id;
+		type->impl_set(state, tpayload);
+		// updated below...
+		Cyto::Any rpayload = fat_id.get_religion().id;
+		religion->impl_set(state, rpayload);
+		// updated below...
+		cash->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
+		Cyto::Any payload = content;
+		for(auto& c : children) {
+			c->impl_set(state, payload);
+			c->impl_on_update(state);
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_id>()) {
+			payload.emplace<dcon::pop_id>(content);
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<dcon::pop_id>::get(state, payload);
+	}
+};
+class pop_listbox : public listbox_element_base<pop_item, dcon::pop_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "popinfomember_popview";
 	}
 };
 
@@ -1176,12 +1242,12 @@ public:
 		
 		{
 			generate_distrobution_windows<
-				pop_distrobution_window<dcon::pop_type_id>,
-				pop_distrobution_window<dcon::religion_id>,
-				pop_distrobution_window<dcon::ideology_id>,
-				pop_distrobution_window<dcon::culture_id>,
-				pop_distrobution_window<dcon::issue_option_id>,
-				pop_distrobution_window<dcon::political_party_id>
+				pop_distrobution_window<dcon::pop_type_id, true>,
+				pop_distrobution_window<dcon::religion_id, true>,
+				pop_distrobution_window<dcon::ideology_id, true>,
+				pop_distrobution_window<dcon::culture_id, true>,
+				pop_distrobution_window<dcon::issue_option_id, true>,
+				pop_distrobution_window<dcon::political_party_id, true>
 			>(state);
 
 			// It should be proper to reposition the windows now
@@ -1376,6 +1442,7 @@ public:
 	}
 
 	friend const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state);
+	friend dcon::pop_id get_pop_details_pop(sys::state& state);
 };
 
 const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state) {
@@ -1384,4 +1451,18 @@ const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state) {
 		return static_cast<population_window*>(state.ui_state.population_subwindow)->shared_pop_list;
 	return empty;
 }
+
+dcon::pop_id get_pop_details_pop(sys::state& state) {
+	dcon::pop_id id{};
+	if(state.ui_state.population_subwindow) {
+		auto win = static_cast<population_window*>(state.ui_state.population_subwindow)->details_win;
+		if(win) {
+			Cyto::Any payload = dcon::pop_id{};
+			win->impl_get(state, payload);
+			id = any_cast<dcon::pop_id>(payload);
+		}
+	}
+	return id;
+}
+
 }

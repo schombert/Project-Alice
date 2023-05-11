@@ -6754,4 +6754,14 @@ void trigger_description(sys::state& state, text::layout_base& layout, dcon::tri
 	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + k.index(), primary_slot, this_slot, from_slot, 0, true);
 }
 
+void value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			trigger_description(state, layout, dcon::trigger_key(seg.condition.index()), primary_slot, this_slot, from_slot);
+		}
+	}
+}
+
 }
