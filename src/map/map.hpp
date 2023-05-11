@@ -98,10 +98,6 @@ private:
 
 	// Shaders
 	GLuint terrain_shader = 0;
-	GLuint terrain_political_far_shader = 0;
-	GLuint terrain_political_close_shader = 0;
-	GLuint water_shader = 0;
-	GLuint water_political_shader = 0;
 	GLuint line_border_shader = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);

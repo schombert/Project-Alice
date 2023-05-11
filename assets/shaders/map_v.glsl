@@ -21,11 +21,9 @@ layout(location = 0) subroutine uniform calc_gl_position_class calc_gl_position;
 layout(index = 0) subroutine(calc_gl_position_class)
 vec4 globe_coords() {
 	vec3 new_world_pos;
-	float section = map_size.x / 256;
-	float angle_x1 = 2 * PI * floor(vertex_position.x * section) / section;
-	float angle_x2 = 2 * PI * floor(vertex_position.x * section + 1) / section;
-	new_world_pos.x = mix(cos(angle_x1), cos(angle_x2), mod(vertex_position.x * section, 1));
-	new_world_pos.y = mix(sin(angle_x1), sin(angle_x2), mod(vertex_position.x * section, 1));
+	float angle_x = 2 * vertex_position.x * PI;
+	new_world_pos.x = cos(angle_x);
+	new_world_pos.y = sin(angle_x);
 
 	float angle_y = vertex_position.y * PI;
 	new_world_pos.x *= sin(angle_y);
