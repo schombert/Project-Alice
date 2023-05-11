@@ -137,7 +137,7 @@ object {
 object{
 	name{ religion }
 	storage_type{ contiguous }
-	size{ 255 }
+	size{ 126 }
 	tag{ scenario }
 
 	property{
