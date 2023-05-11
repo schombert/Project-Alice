@@ -137,7 +137,7 @@ object {
 object{
 	name{ religion }
 	storage_type{ contiguous }
-	size{ 126 }
+	size{ 255 }
 	tag{ scenario }
 
 	property{
@@ -165,7 +165,7 @@ object{
 object {
 	name{ culture_group }
 	storage_type{ contiguous }
-	size{ 256 }
+	size{ 255 }
 	tag{ scenario }
 
 	property{
@@ -2089,17 +2089,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{1800}{sys::commodity_modifier}}
+		type{vector_pool{2500}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{1800}{sys::commodity_modifier}}
+		type{vector_pool{2500}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ rgo_size }
-		type{vector_pool{1800}{sys::commodity_modifier}}
+		type{vector_pool{2500}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2172,17 +2172,17 @@ object {
 	}
 	property{
 		name{ rgo_goods_output }
-		type{vector_pool{1800}{sys::commodity_modifier}}
+		type{vector_pool{2500}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_output }
-		type{vector_pool{1800}{sys::commodity_modifier}}
+		type{vector_pool{2500}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
 		name{ factory_goods_throughput }
-		type{vector_pool{1800}{sys::commodity_modifier}}
+		type{vector_pool{2500}{sys::commodity_modifier}}
 		tag{ scenario }
 	}
 	property{
@@ -2721,7 +2721,7 @@ object {
 	}
 	property {
 		name{ available_cbs }
-		type{vector_pool{16000}{military::available_cb}}
+		type{vector_pool{28000}{military::available_cb}}
 		tag{ save }
 	}
 	property {
