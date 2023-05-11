@@ -415,7 +415,7 @@ public:
 };
 
 template<class T>
-    class piechart : public piechart_element_base {
+class piechart : public piechart_element_base {
 protected:
 	virtual std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state& state) noexcept {
 		std::unordered_map<typename T::value_base_t, float> out{};
