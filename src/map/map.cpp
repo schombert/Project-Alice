@@ -440,25 +440,6 @@ void display_data::create_meshes() {
 	land_vertex_count = ((uint32_t)land_vertices.size());
 
 	// Create and populate the VBO
-	glGenBuffers(1, &water_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, water_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * water_vertices.size(), &water_vertices[0], GL_STATIC_DRAW);
-
-	// Create and bind the VAO
-	glGenVertexArrays(1, &water_vao);
-	glBindVertexArray(water_vao);
-
-	// Bind the VBO to 0 of the VAO
-	glBindVertexBuffer(0, water_vbo, 0, sizeof(map_vertex));
-
-	// Set up vertex attribute format for the position
-	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(map_vertex, position));
-	glEnableVertexAttribArray(0);
-	glVertexAttribBinding(0, 0);
-
-	glBindVertexArray(0);
-
-	// Create and populate the VBO
 	glGenBuffers(1, &land_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, land_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * land_vertices.size(), &land_vertices[0], GL_STATIC_DRAW);
@@ -506,8 +487,6 @@ display_data::~display_data() {
 	if(province_highlight)
 		glDeleteTextures(1, &province_highlight);
 
-	if(water_vao)
-		glDeleteVertexArrays(1, &water_vao);
 	if(land_vao)
 		glDeleteVertexArrays(1, &land_vao);
 	if(border_vao)
@@ -515,8 +494,6 @@ display_data::~display_data() {
 
 	if(land_vbo)
 		glDeleteBuffers(1, &land_vbo);
-	if(water_vbo)
-		glDeleteBuffers(1, &water_vbo);
 	if(border_vbo)
 		glDeleteBuffers(1, &border_vbo);
 

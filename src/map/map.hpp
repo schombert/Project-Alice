@@ -72,8 +72,6 @@ public:
 	std::vector<uint16_t> province_id_map;
 private:
 	// Meshes
-	GLuint water_vao = 0;
-	GLuint water_vbo = 0;
 	GLuint land_vao = 0;
 	GLuint land_vbo = 0;
 	GLuint border_vao = 0;
