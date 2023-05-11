@@ -26,13 +26,13 @@ layout(index = 0) subroutine(calc_gl_position_class)
 vec4 globe_coords(vec2 world_pos) {
 
 	vec3 new_world_pos;
-	float section_x = 1000;
+	float section_x = 200;
 	float angle_x1 = 2 * PI * floor(world_pos.x * section_x) / section_x;
 	float angle_x2 = 2 * PI * floor(world_pos.x * section_x + 1) / section_x;
 	float angle_x = mix(angle_x1, angle_x2, mod(world_pos.x * section_x, 1));
 	new_world_pos.x = mix(cos(angle_x1), cos(angle_x2), mod(world_pos.x * section_x, 1));
 	new_world_pos.y = mix(sin(angle_x1), sin(angle_x2), mod(world_pos.x * section_x, 1));
-	float section_y = 1000;
+	float section_y = 20;
 	float angle_y1 = PI * floor(world_pos.y * section_y) / section_y;
 	float angle_y2 = PI * floor(world_pos.y * section_y + 1) / section_y;
 	new_world_pos.x *= mix(sin(angle_y1), sin(angle_y2), mod(world_pos.y * section_y, 1));

@@ -419,7 +419,7 @@ void display_data::create_meshes() {
 	glm::vec2 last_pos(0, 0);
 	glm::vec2 pos(0, 0);
 	glm::vec2 map_size(size_x, size_y);
-	glm::vec2 sections(1000, 1000);
+	glm::vec2 sections(200, 200);
 	for(int y = 0; y < sections.y; y++) {
 		pos.y = last_pos.y + (map_size.y / sections.y);
 		if (y == sections.y - 1)
@@ -522,14 +522,6 @@ display_data::~display_data() {
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
-	if(terrain_political_close_shader)
-		glDeleteProgram(terrain_political_close_shader);
-	if(terrain_political_far_shader)
-		glDeleteProgram(terrain_political_far_shader);
-	if(water_shader)
-		glDeleteProgram(water_shader);
-	if(water_political_shader)
-		glDeleteProgram(water_political_shader);
 	if(line_border_shader)
 		glDeleteProgram(line_border_shader);
 }
@@ -550,23 +542,11 @@ GLuint create_program(simple_fs::file& vshader_file, simple_fs::file& fshader_fi
 }
 
 void display_data::load_shaders(simple_fs::directory& root) {
+	// Map shaders
 	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/map_v.glsl"));
-
-	// Land shader
 	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/map_f.glsl"));
-	auto map_political_close_fshader = try_load_shader(root, NATIVE("assets/shaders/map_political_close_f.glsl"));
-	auto map_political_far_fshader = try_load_shader(root, NATIVE("assets/shaders/map_political_far_f.glsl"));
 
 	terrain_shader = create_program(*map_vshader, *map_fshader);
-	terrain_political_close_shader = create_program(*map_vshader, *map_political_close_fshader);
-	terrain_political_far_shader = create_program(*map_vshader, *map_political_far_fshader);
-
-	// Water shaders
-	auto map_water_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_f.glsl"));
-	auto map_water_political_fshader = try_load_shader(root, NATIVE("assets/shaders/map_water_political_f.glsl"));
-
-	water_shader = create_program(*map_vshader, *map_water_fshader);
-	water_political_shader = create_program(*map_vshader, *map_water_political_fshader);
 
 	// Line shaders
 	auto line_border_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
@@ -605,6 +585,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glActiveTexture(GL_TEXTURE11);
 	glBindTexture(GL_TEXTURE_2D, stripes_texture);
 
+	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
 		glUseProgram(program);
 
@@ -617,38 +598,38 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 		// uniform vec2 map_size
 		glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 		glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
-		GLuint function_index;
+
+		GLuint vertex_subroutines;
+		// calc_gl_position()
 		if (map_view_mode == map_view::globe)
-			function_index = 0;
+			vertex_subroutines = 0; // globe_coords()
 		else
-			function_index = 1;
-		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &function_index);
+			vertex_subroutines = 1; // flat_coords()
+		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &vertex_subroutines);
 	};
 
-	// Draw the land part of the map
-	if(active_map_mode == map_mode::mode::terrain)
-		load_shader(terrain_shader);
-	else {
-		if(zoom > 5)
-			load_shader(terrain_political_close_shader);
+	load_shader(terrain_shader);
+
+	{ // Land specific shader uniform
+		glUniform1f(4, time_counter);
+		// get_land()
+		GLuint fragment_subroutines[2];
+		if (active_map_mode == map_mode::mode::terrain)
+			fragment_subroutines[0] = 0; // get_land_terrain()
+		else if (zoom > 5)
+			fragment_subroutines[0] = 1; // get_land_political_close()
 		else
-			load_shader(terrain_political_far_shader);
+			fragment_subroutines[0] = 2; // get_land_political_far()
+		// get_water()
+		if (active_map_mode == map_mode::mode::terrain || zoom > 5)
+			fragment_subroutines[1] = 3; // get_water_terrain()
+		else
+			fragment_subroutines[1] = 4; // get_water_political()
+		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, fragment_subroutines);
 	}
 
 	glBindVertexArray(land_vao);
 	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
-
-	// Draw the water part of the map
-	if(active_map_mode == map_mode::mode::terrain || zoom > 5) {
-		load_shader(water_shader);
-		// uniform float time
-		glUniform1f(4, time_counter);
-	} else {
-		load_shader(water_political_shader);
-	}
-
-	glBindVertexArray(water_vao);
-	glDrawArrays(GL_TRIANGLES, 0, water_vertex_count);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, border_texture);
