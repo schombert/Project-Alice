@@ -650,13 +650,13 @@ public:
 	}
 };
 
-class pop_details_promotion_percent_text : public simple_text_element_base {
+class pop_details_promotion_percent_text : public button_element_base {
 	dcon::value_modifier_key mod_key{};
 	dcon::pop_location_id pop_loc{};
 	float chance = 0.f;
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_percentage(chance, 1));
+		set_button_text(state, text::format_percentage(chance, 1));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -692,7 +692,7 @@ class pop_details_promotion_window : public window_element_base {
 	float chance = 0.f;
 
 	pop_type_icon* type_icon = nullptr;
-	simple_text_element_base* percent_text = nullptr;
+	pop_details_promotion_percent_text* percent_text = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "pop_type") {
@@ -801,6 +801,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
+
 		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
 
 		generate_distrobution_windows<
@@ -825,6 +826,8 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "pop_type_icon") {
 			auto ptr = make_element_by_type<pop_type_icon>(state, id);
 			type_icon = ptr.get();
