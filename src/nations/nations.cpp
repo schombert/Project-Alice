@@ -473,7 +473,7 @@ void update_great_powers(sys::state& state) {
 				for(auto& fe : state.national_definitions.on_lost_great_nation) {
 					random_value -= fe.chance;
 					if(random_value < 0) {
-						event::trigger_national_event(state, fe.id, n);
+						event::trigger_national_event(state, fe.id, n, state.current_date.value, uint32_t(n.index()));
 						break;
 					}
 				}
@@ -506,7 +506,7 @@ void update_great_powers(sys::state& state) {
 					for(auto& fe : state.national_definitions.on_new_great_nation) {
 						random_value -= fe.chance;
 						if(random_value < 0) {
-							event::trigger_national_event(state, fe.id, n);
+							event::trigger_national_event(state, fe.id, n, state.current_date.value, uint32_t(n.index()));
 							break;
 						}
 					}
@@ -1662,7 +1662,7 @@ void update_crisis(sys::state& state) {
 							for(auto& fe : state.national_definitions.on_crisis_declare_interest) {
 								random_value -= fe.chance;
 								if(random_value < 0) {
-									event::trigger_national_event(state, fe.id, gp.nation);
+									event::trigger_national_event(state, fe.id, gp.nation, state.current_date.value, uint32_t(gp.nation.index()));
 									break;
 								}
 							}

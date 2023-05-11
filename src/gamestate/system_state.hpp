@@ -21,6 +21,7 @@
 #include "date_interface.hpp"
 #include "defines.hpp"
 #include "province.hpp"
+#include "events.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -138,6 +139,14 @@ namespace sys {
 		dcon::national_identity_id crisis_liberation_tag;
 		dcon::state_definition_id crisis_colony;
 
+		//
+		// Event data
+		//
+
+		std::vector<event::pending_human_n_event> pending_n_event;
+		std::vector<event::pending_human_f_n_event> pending_f_n_event;
+		std::vector<event::pending_human_p_event> pending_p_event;
+		std::vector<event::pending_human_f_p_event> pending_f_p_event;
 
 		std::vector<int32_t> unit_names_indices; // indices for the names
 		std::vector<char> unit_names; // a second text buffer, this time for just the unit names

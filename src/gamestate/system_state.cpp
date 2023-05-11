@@ -1783,6 +1783,8 @@ namespace sys {
 
 					});
 
+					event::update_events(*this);
+
 					culture::update_reasearch(*this, uint32_t(ymd_date.year));
 
 					nations::update_military_scores(*this); // depends on ship score, land unit average

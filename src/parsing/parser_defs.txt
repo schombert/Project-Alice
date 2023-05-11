@@ -1037,7 +1037,9 @@ pop_history_file
 value_modifier_definition
 	factor             value         float                              member
 	base               value         float                              member (factor)
-	months             value         float                              member (factor)
+	days               value         float                              member (factor)
+	months             value         float                              member_fn
+	years              value         float                              member_fn
 	group              group         value_modifier_definition          member_fn
 	modifier           extern        make_value_modifier_segment        discard
 
