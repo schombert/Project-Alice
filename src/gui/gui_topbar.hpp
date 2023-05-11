@@ -296,7 +296,7 @@ public:
 		state.ui_state.topbar_window = this;
 		on_update(state);
 	}
-	
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "topbarbutton_production") {
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
