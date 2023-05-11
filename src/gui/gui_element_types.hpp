@@ -34,11 +34,12 @@ std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id) 
 	return res;
 }
 
+ogl::color_modification get_color_modification(bool is_under_mouse, bool is_disabled, bool is_interactable);
+
 class container_base : public element_base {
 public:
 	std::vector<std::unique_ptr<element_base>> children;
-
-
+	
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept final;
 	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final;
 	void impl_on_update(sys::state& state) noexcept final;
