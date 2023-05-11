@@ -111,6 +111,16 @@ public:
 	}
 };
 
+class province_owner_icon : public pop_type_icon {
+public:
+	void on_create(sys::state& state) noexcept override {
+		pop_type_icon::on_create(state);
+		auto fat_id = dcon::fatten(state.world, state.culture_definitions.aristocrat);
+		pop_type_id = fat_id.id;
+		update(state);
+	}
+};
+
 class province_flashpoint_indicator : public standard_province_icon {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -223,6 +233,8 @@ public:
 			return ptr;
 		} else if(name == "admin_icon") {
 			return make_element_by_type<province_admin_icon>(state, id);
+		} else if(name == "owner_icon") {
+			return make_element_by_type<province_owner_icon>(state, id);
 		} else if(name == "controller_flag") {
 			return make_element_by_type<province_controller_flag>(state, id);
 		} else if(name == "flashpoint_indicator") {
