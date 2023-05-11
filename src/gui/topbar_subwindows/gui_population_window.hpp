@@ -651,9 +651,9 @@ public:
 
 			distrib_listbox->row_contents.clear();
 			// Add (and scale elements) into the distrobution listbox
-			auto total = std::accumulate(sorted_distrib.begin(), sorted_distrib.end(), 0.f, [](float a, auto e) {
-				return a + e.second;
-			});
+			auto total = 0.f;
+			for(const auto& e : sorted_distrib)
+				total += e.second;
 			for(const auto& e : sorted_distrib)
 				distrib_listbox->row_contents.emplace_back(e.first, e.second / total);
 			distrib_listbox->update(state);
