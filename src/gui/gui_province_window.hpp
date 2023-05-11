@@ -116,8 +116,8 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		pop_type_icon::on_create(state);
 		auto fat_id = dcon::fatten(state.world, state.culture_definitions.aristocrat);
-		pop_type_id = fat_id.id;
-		update(state);
+		content = fat_id.id;
+		on_update(state);
 	}
 };
 
