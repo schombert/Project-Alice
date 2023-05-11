@@ -585,6 +585,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		int32_t provinces_in_old_si = 0;
 		province::for_each_province_in_state_instance(state, old_si, [&](auto) { ++provinces_in_old_si; });
 		if(provinces_in_old_si == 0) {
+			if(old_si == state.crisis_state)
+				nations::cleanup_crisis(state);
 			state.world.delete_state_instance(old_si);
 		}
 	}
@@ -636,6 +638,128 @@ void update_crimes(sys::state& state) {
 			}
 		}
 	});
+}
+
+bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d) {
+	if(state.world.state_definition_get_colonization_stage(d) > uint8_t(1))
+		return false; // too late
+
+	// Your country must be of define:COLONIAL_RANK or less.
+	if(state.world.nation_get_rank(n) > uint16_t(state.defines.colonial_rank))
+		return false; // too low rank to colonize;
+
+	// The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
+	if(state.crisis_colony == d)
+		return false;
+	for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
+		if(par.get_nation() == n)
+			return false;
+	}
+
+	float max_life_rating = -1.0f;
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(!p.get_province().get_nation_from_province_ownership()) {
+			max_life_rating = std::max(max_life_rating, float(p.get_province().get_life_rating()));
+		}
+	}
+
+	if(max_life_rating < 0.0f) {
+		return false; // no uncolonized province
+	}
+
+	/*
+	You must have colonial life rating points from technology + define:COLONIAL_LIFERATING less than or equal to the *greatest* life rating of an unowned province in the state
+	*/
+
+	if(state.defines.colonial_liferating + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::colonial_life_rating) > max_life_rating) {
+		return false;
+	}
+
+	auto colonizers = state.world.state_definition_get_colonization(d);
+	auto num_colonizers = colonizers.end() - colonizers.begin();
+
+	// You can invest colonially in a region if there are fewer than 4 other colonists there (or you already have a colonist there)
+	if(num_colonizers >= 4)
+		return false;
+
+	for(auto c : colonizers) {
+		if(c.get_colonizer() == n)
+			return false; // already started a colony
+	}
+
+	/*
+	If you haven't yet put a colonist into the region, you must be in range of the region. Any region adjacent to your country or to one of your vassals or substates is considered to be in range. Otherwise it must be in range of one of your naval bases, with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
+	*/
+	bool nation_has_port = state.world.nation_get_central_ports(n) != 0;
+	bool adjacent_or_coastal = [&]() {
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(!p.get_province().get_nation_from_province_ownership()) {
+				if(nation_has_port && p.get_province().get_is_coast())
+					return true;
+
+				for(auto adj : p.get_province().get_province_adjacency()) {
+					auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
+					auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
+					if(o == n)
+						return true;
+					if(o.get_overlord_as_subject().get_ruler() == n)
+						return true;
+				}
+			}
+		}
+		return false;
+	}();
+
+	if(!adjacent_or_coastal)
+		return false;
+
+
+	return true;
+}
+
+void update_colonization(sys::state& state) {
+	for(auto d : state.world.in_state_definition) {
+		auto colonizers = state.world.state_definition_get_colonization(d);
+		auto num_colonizers = colonizers.end() - colonizers.begin();
+
+		if(num_colonizers == 0 && d.get_colonization_stage() != 0) {
+			d.set_colonization_stage(uint8_t(0));
+		} else if(num_colonizers > 1 && d.get_colonization_stage() == uint8_t(2)) {
+			/*
+			In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY (if either of the two colonizers are at war or disarmed)
+			*/
+
+			int32_t max_points = 0;
+			float at_war_adjust = 0.0f;
+			for(auto c : colonizers) {
+				max_points = std::max(max_points, int32_t(c.get_level()));
+				if(state.world.nation_get_is_at_war(c.get_colonizer()) || (state.world.nation_get_disarmed_until(c.get_colonizer()) && state.current_date <= state.world.nation_get_disarmed_until(c.get_colonizer()))) {
+					at_war_adjust = state.defines.at_war_tension_decay;
+				}
+			}
+
+			float adjust = state.defines.colonization_influence_temperature_per_day + float(max_points) * state.defines.colonization_influence_temperature_per_level + (state.current_crisis != sys::crisis_type::none ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
+
+			d.set_colonization_temperature(std::clamp(d.get_colonization_temperature() + adjust, 0.0f, 100.0f));
+		} else if(num_colonizers == 1 && (*colonizers.begin()).get_last_investment() + int32_t(state.defines.colonization_days_for_initial_investment) <= state.current_date) {
+			/*
+			If you have put in a colonist in a region and it goes at least define:COLONIZATION_DAYS_FOR_INITIAL_INVESTMENT without any other colonizers, it then moves into phase 3 with define:COLONIZATION_INTEREST_LEAD points.
+			*/
+
+			d.set_colonization_stage(uint8_t(3));
+		} else if(d.get_colonization_stage() == uint8_t(3) && num_colonizers != 0) {
+			/*
+			If you leave a colony in phase 3 for define:COLONIZATION_MONTHS_TO_COLONIZE months, the colonization will reset to phase 0 (no colonization in progress).
+			*/
+			if((*colonizers.begin()).get_last_investment() + 31 * int32_t(state.defines.colonization_months_to_colonize) <= state.current_date) {
+
+				d.set_colonization_stage(uint8_t(0));
+				do {
+					state.world.delete_colonization(*(colonizers.begin()));
+				} while(colonizers.end() != colonizers.begin());
+			}
+		}
+	}
 }
 
 }

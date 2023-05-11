@@ -264,6 +264,9 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		// Allow mobility of those windows who can be moved, and shall be moved
+		ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 
 		world.for_each_province([&](dcon::province_id id) {
 			auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
@@ -1780,6 +1783,8 @@ namespace sys {
 
 					});
 
+					event::update_events(*this);
+
 					culture::update_reasearch(*this, uint32_t(ymd_date.year));
 
 					nations::update_military_scores(*this); // depends on ship score, land unit average
@@ -1788,6 +1793,7 @@ namespace sys {
 					nations::update_influence(*this); // depends on rankings, great powers
 
 					nations::update_colonial_points(*this); // depends on rankings, naval supply values
+					province::update_colonization(*this);
 					military::update_cbs(*this); // may add/remove cbs to a nation
 
 					nations::update_crisis(*this);

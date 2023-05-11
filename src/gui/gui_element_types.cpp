@@ -461,6 +461,18 @@ void simple_text_element_base::set_text(sys::state& state, std::string const& ne
 void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	if(stored_text.length() == 0)
 		return;
+	float extent = 0.f;
+	if(base_data.get_element_type() == element_type::button) {
+		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle);
+	} else if(base_data.get_element_type() == element_type::text) {
+		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
+	}
+	if (int16_t(extent) > base_data.size.x) {
+		auto overshoot =  1.f - float(base_data.size.x) / extent;
+		auto extra_chars = size_t(float(stored_text.length()) * overshoot);
+		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars - 3, size_t(0)));
+		stored_text += "...";
+	}
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {
 			case alignment::centered:
@@ -473,7 +485,6 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			case alignment::left:
 				text_offset = 0.0f;
 				break;
-
 		}
 	} else if(base_data.get_element_type() == element_type::text) {
 		switch(base_data.data.button.get_alignment()) {
@@ -487,48 +498,16 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			case alignment::left:
 				text_offset = base_data.data.text.border_size.x;
 				break;
-
 		}
 	}
 }
 void simple_text_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
-		auto base_text_handle = base_data.data.button.txt;
-		stored_text = text::produce_simple_string(state, base_text_handle);
+		set_text(state, text::produce_simple_string(state, base_data.data.button.txt));
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-
-		switch(base_data.data.button.get_alignment()) {
-			case alignment::centered:
-			case alignment::justified:
-				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
-				break;
-			case alignment::right:
-				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle));
-				break;
-			case alignment::left:
-				text_offset = 0.0f;
-				break;
-
-		}
-
 	} else if(base_data.get_element_type() == element_type::text) {
-		auto base_text_handle = base_data.data.text.txt;
-		stored_text = text::produce_simple_string(state, base_text_handle);
+		set_text(state, text::produce_simple_string(state, base_data.data.text.txt));
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
-
-		switch(base_data.data.button.get_alignment()) {
-			case alignment::centered:
-			case alignment::justified:
-				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) - base_data.data.text.border_size.x) / 2.0f;
-				break;
-			case alignment::right:
-				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) - base_data.data.text.border_size.x);
-				break;
-			case alignment::left:
-				text_offset = base_data.data.text.border_size.x;
-				break;
-
-		}
 	}
 }
 void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -709,7 +688,7 @@ void piechart<T>::on_update(sys::state& state) noexcept {
 	for(auto& [index, quant]: distribution) {
 		T t(index);
 		uint32_t color = ogl::get_ui_color<T>(state, t);
-		auto slice_count = std::min(size_t(quant * resolution), i + resolution);
+		auto slice_count = std::min(size_t(quant * resolution), resolution - i);
 		for(size_t j = 0; j < slice_count; j++) {
 			spread[j + i] = t;
 			colors[(j + i) * channels] = uint8_t(color & 0xFF);
@@ -774,20 +753,31 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 		} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
 			auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 			total_pops = state.world.nation_get_demographics(nat_id, demographics::total);
+		} else if(obj_id_payload.holds_type<dcon::pop_id>()) {
+			auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
+			total_pops = 1.f;
 		}
 		
-		if(total_pops <= 0) {
+		if(total_pops <= 0.f)
 			return distrib;
-		}
 		for_each_demo(state, [&](DemoT demo_id) {
-			auto demo_key = demographics::to_key(state, demo_id);
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
+				auto demo_key = demographics::to_key(state, demo_id);
 				auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
 				volume = state.world.province_get_demographics(prov_id, demo_key);
 			} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
+				auto demo_key = demographics::to_key(state, demo_id);
 				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 				volume = state.world.nation_get_demographics(nat_id, demo_key);
+			}
+			
+			if constexpr(std::is_same_v<SrcT, dcon::pop_id>) {
+				if(obj_id_payload.holds_type<dcon::pop_id>()) {
+					auto demo_key = pop_demographics::to_key(state, demo_id);
+					auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
+					volume = state.world.pop_get_demographics(pop_id, demo_key);
+				}
 			}
 			distrib[static_cast<typename DemoT::value_base_t>(demo_id.index())] = volume / total_pops;
 		});

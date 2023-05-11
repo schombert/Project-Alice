@@ -561,7 +561,7 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 
 	for(auto si : state.world.nation_get_state_ownership(target)) {
 		if(si.get_state().get_flashpoint_tag()) {
-			si.get_state().get_flashpoint_tension() += state.defines.tension_on_cb_discovered;
+			si.get_state().set_flashpoint_tension(std::min(100.0f, si.get_state().get_flashpoint_tension() + state.defines.tension_on_cb_discovered));
 		}
 	}
 

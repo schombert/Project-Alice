@@ -985,7 +985,7 @@ If the crisis fails with a GP backer but no attackers, the lone backer gets extr
 
 ## Colonization
 
-You can invest colonially in a region if there are fewer than 4 other colonists there (or you already have a colonist there). You must also have sufficient liferating tech. Specifically, you must have colonial life rating point from technology + define:COLONIAL_LIFERATING less than or equal to the *greatest* life rating of an unowned province in the state. Your country must be of define:COLONIAL_RANK or less. The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
+You can invest colonially in a region if there are fewer than 4 other colonists there (or you already have a colonist there). You must also have sufficient liferating tech. Specifically, you must have colonial life rating points from technology + define:COLONIAL_LIFERATING less than or equal to the *greatest* life rating of an unowned province in the state. Your country must be of define:COLONIAL_RANK or less. The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
 
 If you haven't yet put a colonist into the region, you must be in range of the region. Any region adjacent to your country or to one of your vassals or substates is considered to be in range. Otherwise it must be in range of one of your naval bases, with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
 
@@ -997,11 +997,12 @@ If you get define:COLONIZATION_INTEREST_LEAD ahead in points of all other coloni
 
 In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
 
-In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY ... etc as for ordinary state flashpoint tension.
+In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY (if either of the two colonizers are at war or disarmed)
+
 
 To finish colonization and make a protectorate: you must be in colonization phase 3, you must have define:COLONIZATION_CREATE_PROTECTORATE_COST free colonial points, and your colonist in the region must have non zero points.
 
-If you leave a colony in phase 3 for define:COLONIZATION_MONTHS_TO_CANCEL months, the colonization will reset to phase 0 (no colonization in progress).
+If you leave a colony in phase 3 for define:COLONIZATION_MONTHS_TO_COLONIZE months, the colonization will reset to phase 0 (no colonization in progress).
 
 To turn a protectorate into a colony, you must have define:COLONIZATION_CREATE_COLONY_COST x number-of-provinces-in-state colonial points free.
 
@@ -1026,7 +1027,7 @@ I don't know if any mods make use of them (I assume not, at the moment), but a c
 
 ### Random events
 
-Some events are designated as being able to be triggered at most once. Obviously, this means that they can happen at most once. Also note that some events have an immediate effect, which occurs when the even is triggered, before any option can be chosen.
+Some events are designated as being able to be triggered at most once. Obviously, this means that they can happen at most once. Also note that some events have an immediate effect, which occurs when the event is triggered, before any option can be chosen.
 
 Which events are possible at all seems to be tested less frequently than testing for the occurrence of an event.
 

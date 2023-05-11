@@ -589,7 +589,9 @@ public:
 class trade_details_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "goods_details") {
+		if(name == "trade_flow_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "goods_details") {
 			return make_element_by_type<trade_details_button>(state, id);
 		} else if(name == "goods_icon") {
 			return make_element_by_type<commodity_factory_image>(state, id);
