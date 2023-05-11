@@ -92,7 +92,7 @@ Upgrading a building has a cost of: (technology-factory-owner-cost + 1) x (natio
 
 #### Railroads
 
-Railroads increase a province military and economic potential. The maximum level at the start of the game is 0, it can be increased to a maximum of 6 through researches in the infrastructure subcathegory of the industrial technologies. It can be built by capitalists and through the forgein investment mechanic.
+Railroads increase a province military and economic potential. The maximum level at the start of the game is 0, it can be increased to a maximum of 6 through researches in the infrastructure subcategory of the industrial technologies. It can be built by capitalists and through the foreign investment mechanic.
 
 You can build a railroad in a province if (nation_max_railroad_level - province_terrain_railroad_levels_modifier) > 0 and the cost requirements are satisfied.
 

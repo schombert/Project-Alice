@@ -180,9 +180,10 @@ void update_events(sys::state& state) {
 					auto adj_chance_8 = adj_chance_4 * adj_chance_4;
 					auto adj_chance_16 = adj_chance_8 * adj_chance_8;
 
-					ve::apply([&](dcon::nation_id n, float c) {
+					ve::apply([&](dcon::nation_id n, float c, bool condition) {
 						auto owned_range = state.world.nation_get_province_ownership(n);
-						if((state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false)
+						if(condition
+							&& (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false)
 							&& owned_range.begin() != owned_range.end()) {
 
 							if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
@@ -190,7 +191,7 @@ void update_events(sys::state& state) {
 							}
 						}
 						
-					}, ids, adj_chance_16);
+					}, ids, adj_chance_16, some_exist);
 				}
 			});
 		}
@@ -217,14 +218,14 @@ void update_events(sys::state& state) {
 					auto adj_chance_8 = adj_chance_4 * adj_chance_4;
 					auto adj_chance_16 = adj_chance_8 * adj_chance_8;
 
-					ve::apply([&](dcon::province_id p, dcon::nation_id o, float c) {
+					ve::apply([&](dcon::province_id p, dcon::nation_id o, float c, bool condition) {
 						auto owned_range = state.world.nation_get_province_ownership(o);
-						if(o) {
+						if(condition) {
 							if(float(rng::get_random(state, uint32_t((i << 1) ^ p.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
 								trigger_provincial_event(state, id, p, uint32_t((state.current_date.value) ^ (i << 3)), uint32_t(p.index()));
 							}
 						}
-					}, ids, owners, adj_chance_16);
+					}, ids, owners, adj_chance_16, some_exist);
 				}
 			});
 		}
