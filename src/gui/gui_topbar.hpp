@@ -171,6 +171,27 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	// FIXME: For some reason the tooltip doesnt appear on the USA tag? -breizh
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!nations::is_great_power(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
+		} else if (state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_loosinggpstatus"), text::substitution_map{});
+		} else if (state.world.nation_get_rank(nation_id) <= uint16_t(state.defines.great_nations_count)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_loosinggpstatus"), text::substitution_map{});
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_at_peace_text : public standard_nation_text {
@@ -330,6 +351,28 @@ public:
 		} else {
 			return 0;
 		}
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::temperature, text::format_float(state.crisis_temperature, 2));
+		if(state.current_crisis == sys::crisis_type::none) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_crisis"), sub);
+		} else if(state.crisis_temperature > 0.8f) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_crisis"), sub);
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string_view("gui/gui_topbar.hpp:371"));
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
