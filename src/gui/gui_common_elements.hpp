@@ -1561,6 +1561,38 @@ public:
 		auto in_use = nations::national_focuses_in_use(state, nation_id);
 		return text::format_ratio(in_use, available);
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, std::string_view("National Focuses - (WIP)"));
+		/* This isnt good per se and should be changed
+		 * im thinking to have it display the currently operating national focuses in this window (if any),
+		 * if there arent any then we just tell the user there is none(?) -breizh
+		 */
+		text::add_line_break_to_layout_box(contents, state, box);
+		if(auto k = state.key_to_text_sequence.find(std::string_view("tech_max_focus")); k != state.key_to_text_sequence.end()) {
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+		}
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, text::prettify(nations::max_national_focuses(state, nation_id)));
+		/*
+		text::add_line_break_to_layout_box(contents, state, box);
+		if(auto k = state.key_to_text_sequence.find(std::string_view("pop_con_clergy")); k != state.key_to_text_sequence.end()) {
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+		}
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, text::prettify(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))));
+		*/
+		text::close_layout_box(contents, box);
+	}
 };
 
 class nation_diplomatic_points_text : public standard_nation_text {
@@ -1598,6 +1630,25 @@ public:
 		auto available = state.world.nation_get_recruitable_regiments(nation_id);
 		auto in_use = state.world.nation_get_active_regiments(nation_id);
 		return text::format_ratio(in_use, available + in_use);
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
+		text::add_to_substitution_map(sub, text::variable_type::max, (state.world.nation_get_recruitable_regiments(nation_id) + state.world.nation_get_active_regiments(nation_id)));
+		if(auto k = state.key_to_text_sequence.find(std::string_view("topbar_army_tooltip")); k != state.key_to_text_sequence.end()) {
+			text::add_to_layout_box(contents, state, box, k->second, sub);
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
