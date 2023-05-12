@@ -552,7 +552,7 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 				ogl::render_text(
 					state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()),
 					ogl::color_modification::none,
-					float(x) + t.x, float(y + t.y),
+					float(x) + t.x, float(y + line_offset),
 					get_text_color(t.color),
 					base_data.data.text.font_handle
 				);
@@ -785,8 +785,7 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 	return distrib;
 }
 
-template<class RowWinT, class RowConT>
-void standard_listbox_scrollbar<RowWinT, RowConT>::scale_to_parent() {
+void autoscaling_scrollbar::scale_to_parent() {
 	base_data.size.y = parent->base_data.size.y;
 	base_data.data.scrollbar.border_size = base_data.size;
 	base_data.position.x = parent->base_data.size.x; // base_data.size.x / 3;
@@ -801,6 +800,59 @@ void standard_listbox_scrollbar<RowWinT, RowConT>::scale_to_parent() {
 
 	left->step_size = -settings.scaling_factor;
 	right->step_size = -settings.scaling_factor;
+}
+
+void multiline_text_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
+	Cyto::Any payload = multiline_text_scroll_event{int32_t(scaled_value())};
+	impl_get(state, payload);
+}
+
+void scrollable_text::on_create(sys::state& state) noexcept {
+	auto res = std::make_unique<multiline_text_element_base>();
+	std::memcpy(&(res->base_data), &(base_data), sizeof(ui::element_data));
+	make_size_from_graphics(state, res->base_data);
+	res->base_data.position.x = 0;
+	res->base_data.position.y = 0;
+	res->on_create(state);
+	delegate = res.get();
+	add_child_to_front(std::move(res));
+
+	auto ptr = make_element_by_type<multiline_text_scrollbar>(state, "standardlistbox_slider");
+	text_scrollbar = static_cast<multiline_text_scrollbar*>(ptr.get());
+	add_child_to_front(std::move(ptr));
+	text_scrollbar->scale_to_parent();
+}
+
+void scrollable_text::calibrate_scrollbar(sys::state& state) noexcept {
+	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
+		text_scrollbar->set_visible(state, true);
+		text_scrollbar->change_settings(state, mutable_scrollbar_settings{
+			0, delegate->internal_layout.number_of_lines - delegate->visible_lines, 0, 0, false
+		});
+	} else {
+		text_scrollbar->set_visible(state, false);
+		delegate->current_line = 0;
+	}
+}
+
+message_result scrollable_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
+		text_scrollbar->update_scaled_value(state, text_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
+		delegate->current_line = int32_t(text_scrollbar->scaled_value());
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
+
+message_result scrollable_text::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<multiline_text_scroll_event>()) {
+		auto event = any_cast<multiline_text_scroll_event>(payload);
+		delegate->current_line = event.new_value;
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
 }
 
 template<class RowWinT, class RowConT>

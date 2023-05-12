@@ -6,6 +6,7 @@
 #include "sound.hpp"
 #include "text.hpp"
 #include "texture.hpp"
+#include <cstdint>
 #include <functional>
 #include <unordered_map>
 #include <variant>
@@ -183,38 +184,6 @@ public:
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
 	void on_text(sys::state& state, char ch) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-};
-
-class multiline_text_element_base : public element_base {
-private:
-	float line_height = 0.f;
-	int32_t current_line = 0;
-	int32_t visible_lines = 0;
-	
-public:
-	bool black_text = true;
-	text::layout internal_layout;
-
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-};
-
-class single_multiline_text_element_base : public multiline_text_element_base {
-public:
-	dcon::text_sequence_id text_id{};
-
-	void on_update(sys::state& state) noexcept override {
-		auto layout = text::create_endless_layout(
-			internal_layout,
-			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
-		);
-		auto box = text::open_layout_box(layout, 0);
-		text::add_to_layout_box(layout, state, box, text_id);
-		text::close_layout_box(layout, box);
-	}
 };
 
 class tool_tip : public element_base {
@@ -555,6 +524,61 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 
+class multiline_text_element_base : public element_base {
+public:
+	float line_height = 0.f;
+	int32_t current_line = 0;
+	int32_t visible_lines = 0;
+	bool black_text = true;
+	text::layout internal_layout;
+
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+struct multiline_text_scroll_event {
+	int32_t new_value;
+};
+
+class autoscaling_scrollbar : public scrollbar {
+public:
+	void scale_to_parent();
+};
+
+class multiline_text_scrollbar : public autoscaling_scrollbar {
+public:
+	void on_value_change(sys::state& state, int32_t v) noexcept override;
+};
+
+class scrollable_text : public window_element_base {
+private:
+	multiline_text_scrollbar* text_scrollbar = nullptr;
+public:
+	multiline_text_element_base* delegate = nullptr;
+	void on_create(sys::state& state) noexcept override;
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+	void calibrate_scrollbar(sys::state& state) noexcept;
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+};
+
+class single_multiline_text_element_base : public multiline_text_element_base {
+public:
+	dcon::text_sequence_id text_id{};
+
+	void on_update(sys::state& state) noexcept override {
+		auto layout = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
+		);
+		auto box = text::open_layout_box(layout, 0);
+		text::add_to_layout_box(layout, state, box, text_id);
+		text::close_layout_box(layout, box);
+	}
+};
+
 template<class RowConT>
 class wrapped_listbox_row_content {
 public:
@@ -568,9 +592,8 @@ public:
 };
 
 template<class RowWinT, class RowConT>
-class standard_listbox_scrollbar : public scrollbar {
+class standard_listbox_scrollbar : public autoscaling_scrollbar {
 public:
-	void scale_to_parent();
 	void on_value_change(sys::state& state, int32_t v) noexcept override;
 };
 
