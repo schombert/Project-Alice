@@ -439,6 +439,12 @@ public:
 		auto dist = sqrt(dx * dx + dy * dy);
 		return dist <= radius ? message_result::consumed : message_result::unseen;
 	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return message_result::consumed;
+	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
