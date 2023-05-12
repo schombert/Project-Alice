@@ -1466,6 +1466,32 @@ public:
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
 		return text::format_percentage(literacy / total_pop, 1);
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, std::string_view("Literacy"));
+		text::add_line_break_to_layout_box(contents, state, box);
+		if(auto k = state.key_to_text_sequence.find(std::string_view("modifier_education_efficiency")); k != state.key_to_text_sequence.end()) {
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+		}
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, text::format_percentage((state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::education_efficiency) + 1.0f) * (state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f) , 1));
+		text::add_line_break_to_layout_box(contents, state, box);
+		if(auto k = state.key_to_text_sequence.find(std::string_view("pop_con_clergy")); k != state.key_to_text_sequence.end()) {
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+		}
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, text::prettify(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))));
+		text::close_layout_box(contents, box);
+	}
 };
 
 class nation_infamy_text : public standard_nation_text {
@@ -1890,7 +1916,7 @@ public:
 class nation_gp_flag : public flag_button {
 public:
 	uint16_t rank = 0;
-	
+
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		const auto nat_id = nations::get_nth_great_power(state, rank);
 		if(!bool(nat_id))
