@@ -449,7 +449,7 @@ public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
 		return ogl::get_ui_color<T>(state, content);
 	}
-	
+
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<T>()) {
 			content = any_cast<T>(payload);
@@ -606,7 +606,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			auto& pop_list = get_pop_window_list(state);
-			
+
 			std::unordered_map<typename T::value_base_t, float> distrib{};
 			for(const auto pop_id : pop_list) {
 				const auto weight_fn = [&](auto id) {
@@ -896,7 +896,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(!std::holds_alternative<dcon::pop_id>(content))
 			return;
-		
+
 		auto fat_id = dcon::fatten(state.world, std::get<dcon::pop_id>(content));
 		Cyto::Any tpayload = fat_id.get_poptype().id;
 		type_icon->impl_set(state, tpayload);
@@ -943,7 +943,7 @@ public:
 				promotion_windows[index]->impl_set(state, chance_payload);
 				++index;
 			}
-		
+
 		life_needs_list->row_contents.clear();
 		everyday_needs_list->row_contents.clear();
 		luxury_needs_list->row_contents.clear();
@@ -1172,7 +1172,7 @@ private:
 		std::vector<dcon::state_instance_id> state_list{};
 		for(auto si : state.world.nation_get_state_ownership(nation_id))
 			state_list.push_back(si.get_state().id);
-		
+
 		std::vector<dcon::province_id> province_list{};
 		for(auto& state_id : state_list) {
 			if(std::holds_alternative<dcon::state_instance_id>(filter)
@@ -1258,7 +1258,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
-		
+
 		{
 			generate_distrobution_windows<
 				pop_distrobution_window<dcon::pop_type_id, true>,
@@ -1454,7 +1454,7 @@ public:
 		} else if(payload.holds_type<pop_filter_data>()) {
 			auto data = any_cast<pop_filter_data>(payload);
 			auto ptid = std::get<dcon::pop_type_id>(data);
-			payload.emplace<pop_filter_data>(pop_filter_data(pop_filters[dcon::pop_type_id::value_base_t(ptid.index())]));
+			payload.emplace<pop_filter_data>(pop_filter_data(bool(pop_filters[dcon::pop_type_id::value_base_t(ptid.index())])));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
