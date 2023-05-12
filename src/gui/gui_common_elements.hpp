@@ -1809,9 +1809,10 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::leadership_points(state, nation_id)});
-		if(auto k = state.key_to_text_sequence.find(std::string_view("topbar_leadership_tooltip")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+	//	if(auto k = state.key_to_text_sequence.find(std::string_view("topbar_leadership_tooltip")); k != state.key_to_text_sequence.end()) {
+	//		text::add_to_layout_box(contents, state, box, k->second, sub);
+	//	}
+		text::localised_format_box(state, contents, box, std::string_view("topbar_leadership_tooltip"), sub);
 		text::close_layout_box(contents, box);
 	}
 };
