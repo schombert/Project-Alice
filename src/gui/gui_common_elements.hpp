@@ -1526,7 +1526,7 @@ public:
 			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
 		}
 		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::prettify(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))));
+		text::add_to_layout_box(contents, state, box, text::format_float(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy)), 2));
 		text::close_layout_box(contents, box);
 	}
 };
