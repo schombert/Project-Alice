@@ -1443,6 +1443,24 @@ public:
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
 		return text::format_float(consciousness / total_pop);
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(auto k = state.key_to_text_sequence.find(std::string_view("topbar_avg_con")); k != state.key_to_text_sequence.end()) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
+			text::add_to_layout_box(contents, state, box, k->second, sub);
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class nation_colonial_power_text : public standard_nation_text {
