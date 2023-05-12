@@ -1551,7 +1551,7 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
-		text::add_to_substitution_map(sub, text::variable_type::val, std::string_view("PLACEHOLDER"));
+		text::add_to_substitution_map(sub, text::variable_type::val, text::format_float(fDailyUpdate, 2);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -1743,25 +1743,19 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, std::string_view("National Focuses - (WIP)"));
-		/* This isnt good per se and should be changed
-		 * im thinking to have it display the currently operating national focuses in this window (if any),
-		 * if there arent any then we just tell the user there is none(?) -breizh
-		 */
-		text::add_line_break_to_layout_box(contents, state, box);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("tech_max_focus")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+		text::substitution_map sub1;
+		float relevant_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.world.nation_get_primary_culture(nation_id)));
+		for(auto ac : state.world.nation_get_accepted_cultures(nation_id)) {
+			relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
 		}
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::prettify(nations::max_national_focuses(state, nation_id)));
-		/*
+		text::add_to_substitution_map(sub1, text::variable_type::num, text::prettify(relevant_pop));
+		auto fPoints = (1.0f, relevant_pop / state.defines.national_focus_divider);	// NOTE: Occassionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
+		text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
+		text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);
 		text::add_line_break_to_layout_box(contents, state, box);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("pop_con_clergy")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
-		}
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::prettify(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))));
-		*/
+		text::substitution_map sub2;
+		text::add_to_substitution_map(sub2, text::variable_type::focus, nations::max_national_focuses(state, nation_id));
+		text::localised_format_box(state, contents, box, std::string_view("tb_max_focus"), sub2);
 		text::close_layout_box(contents, box);
 	}
 };
