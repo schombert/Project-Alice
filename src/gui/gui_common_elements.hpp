@@ -1521,11 +1521,12 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("topbar_avg_mil")); k != state.key_to_text_sequence.end()) {
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::militancy) / state.world.nation_get_demographics(nation_id, demographics::total))});
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::militancy) / state.world.nation_get_demographics(nation_id, demographics::total))});
+		text::add_to_substitution_map(sub, text::variable_type::val, std::string_view("PLACEHOLDER"));
+		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -1548,11 +1549,12 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("topbar_avg_con")); k != state.key_to_text_sequence.end()) {
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
+		text::add_to_substitution_map(sub, text::variable_type::val, std::string_view("PLACEHOLDER"));
+		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 		text::close_layout_box(contents, box);
 	}
 };
