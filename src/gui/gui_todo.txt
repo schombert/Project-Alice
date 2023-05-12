@@ -1,0 +1,16 @@
+UI:
+Finish Literacy - Displays Avg. Literacy of nation && estimated increase next month
+Finish RP	- Displays 
+Infamy		- Display Monthly Infamy Change too
+Suppression Points - Display Monthly Change too
+Finish Militancy - Have it display estimated monthly increase
+Finish Conciousness - Same as above
+Finish Production Tab Tooltips
+	- Displays if we have unemployment, construction or bankrupt factories
+	- Displays top 5 domestic products at top
+
+Finish Score Tooltips:
+	- Prestige Shows "Prestige Power" alongside any applicable modifiers (ie great power, secondary power, civilized nation etc)
+
+
+

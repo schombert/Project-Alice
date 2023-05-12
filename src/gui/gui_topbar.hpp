@@ -190,12 +190,52 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!economy::nation_is_constructing_factories(state, nation_id));
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!economy::nation_is_constructing_factories(state, nation_id)) {
+			text::localised_format_box(state, contents, box, "countryalert_no_isbuildingfactories", text::substitution_map{});
+		} else if(economy::nation_is_constructing_factories(state, nation_id)) {
+			text::localised_format_box(state, contents, box, "countryalert_isbuilding_factories", text::substitution_map{});
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_closed_factories_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!economy::nation_has_closed_factories(state, nation_id));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!economy::nation_has_closed_factories(state, nation_id)) {
+			text::localised_format_box(state, contents, box, "remove_countryalert_no_hasclosedfactories", text::substitution_map{});
+		} else if(economy::nation_has_closed_factories(state, nation_id)) {
+			text::localised_format_box(state, contents, box, "remove_countryalert_hasclosedfactories", text::substitution_map{});
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -212,6 +252,29 @@ public:
 		auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker);
 		auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker);
 		return int32_t(primary_unemployed + secondary_unemployed <= 0.f);
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker);
+		auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker);
+
+		auto box = text::open_layout_box(contents, 0);
+		if(primary_unemployed + secondary_unemployed <= 0.f) {
+			text::localised_format_box(state, contents, box, "countryalert_no_hasunemployedworkers", text::substitution_map{});
+		} else if(primary_unemployed + secondary_unemployed >= 0.f) {
+			text::localised_format_box(state, contents, box, "remove_countryalert_hasunemployedworkers", text::substitution_map{});
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
