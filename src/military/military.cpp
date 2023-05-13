@@ -185,6 +185,48 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 	return total;
 }
 
+dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p) {
+	if(state.world.province_get_is_colonial(p)) {
+		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					auto amount = int32_t(pop.get_pop().get_size() / divisor);
+					auto regs = pop.get_pop().get_regiment_source();
+					if(amount > (regs.end() - regs.begin()))
+						return pop.get_pop().id;
+				}
+			}
+		}
+	} else if(!state.world.province_get_is_owner_core(p)) {
+		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					auto amount = int32_t(pop.get_pop().get_size() / divisor);
+					auto regs = pop.get_pop().get_regiment_source();
+					if(amount > (regs.end() - regs.begin()))
+						return pop.get_pop().id;
+				}
+			}
+		}
+	} else {
+		float divisor = state.defines.pop_size_per_regiment;
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					auto amount = int32_t(pop.get_pop().get_size() / divisor);
+					auto regs = pop.get_pop().get_regiment_source();
+					if(amount > (regs.end() - regs.begin()))
+						return pop.get_pop().id;
+				}
+			}
+		}
+	}
+
+	return dcon::pop_id{};
+}
+
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p) {
 	/*
 	Mobilized regiments come only from unoccupied, non-colonial provinces. 
@@ -719,6 +761,21 @@ void daily_leaders_update(sys::state& state) {
 bool has_truce_with(sys::state const& state, dcon::nation_id attacker, dcon::nation_id target) {
 	// TODO
 	return false;
+}
+
+dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id t) {
+	auto reg = fatten(state.world, state.world.create_regiment());
+	reg.set_type(t);
+	// TODO make name
+	reg.set_strength(1.0f);
+	return reg.id;
+}
+dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id t) {
+	auto shp = fatten(state.world, state.world.create_ship());
+	shp.set_type(t);
+	// TODO make name
+	shp.set_strength(state.world.nation_get_unit_stats(n, t).defence_or_hull);
+	return shp.id;
 }
 
 }

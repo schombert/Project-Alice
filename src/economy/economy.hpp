@@ -31,6 +31,10 @@ struct naval_base_information {
 	dcon::text_sequence_id name;
 };
 
+enum class province_building_type : uint8_t {
+	railroad, fort, naval_base
+};
+
 struct global_economy_state {
 	fort_information fort_definition;
 	railroad_information railroad_definition;
@@ -83,6 +87,7 @@ void regenerate_unsaved_values(sys::state& state);
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
 void daily_update(sys::state& state);
+void resolve_constructions(sys::state& state);
 
 float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
@@ -104,5 +109,25 @@ float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
 float estimate_construction_spending(sys::state& state, dcon::nation_id n);
+
+struct construction_status {
+	float progress = 0.0f; // in range [0,1)
+	bool is_under_construction = false;
+};
+
+construction_status province_building_construction(sys::state& state, dcon::province_id, province_building_type t);
+construction_status factory_upgrade(sys::state& state, dcon::factory_id f);
+
+struct new_factory {
+	float progress = 0.0f;
+	dcon::factory_type_id type;
+};
+
+template<typename F>
+void for_each_new_factory(sys::state& state, dcon::state_instance_id s, F&& func); // calls the function repeatedly with new_factory as parameters
+
+bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
+float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
+float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);
 
 }

@@ -953,6 +953,8 @@ namespace text {
 			return std::string(buffer);
 		} else if(std::holds_alternative<int_percentage>(sub)) {
 			return std::to_string(std::get<int_percentage>(sub).value) + "%";
+		} else if(std::holds_alternative<dcon::text_sequence_id>(sub)) {
+			return produce_simple_string(state, std::get<dcon::text_sequence_id>(sub));
 		} else {
 			return std::string("?");
 		}

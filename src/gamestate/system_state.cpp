@@ -626,7 +626,7 @@ namespace sys {
 			}
 		}
 		// read buildings.text
-		world.factory_type_resize_construction_costs(world.commodity_size());
+		// world.factory_type_resize_construction_costs(world.commodity_size());
 		{
 			auto buildings = open_file(common, NATIVE("buildings.txt"));
 			if(buildings) {
