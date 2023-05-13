@@ -1730,17 +1730,33 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		float sum_from_pops = 0;
+		float total_clergy = 0;
 		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 				auto rp = state.world.pop_type_get_research_points(t);
 				if(rp > 0) {
+					total_clergy += state.world.nation_get_demographics(nation_id, demographics::to_key(state, t));
 					sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, t)) / (state.world.nation_get_demographics(nation_id, demographics::total) * state.world.pop_type_get_research_optimum(t)));
 				}
 		});
 
+		total_clergy = (total_clergy / state.world.nation_get_demographics(nation_id, demographics::total)) * 100;	// FIXME - there is most certainly a better way to do this, it also fails to replicate vic2 closely enough, atleast in my opinion -breizh
+
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 
-		text::add_to_substitution_map(sub, text::variable_type::value, text::format_float(sum_from_pops));
+
+		auto fat_id = dcon::fatten(state.world, state.culture_definitions.clergy);
+		auto pop_optimum = fat_id.get_research_optimum() * 100;
+		/*state.world.for_each_pop_type([&](dcon::pop_type_id t) {
+
+		});*/
+
+		auto name = text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.clergy));
+
+		text::add_to_substitution_map(sub, text::variable_type::poptype, name);
+		text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{sum_from_pops});	// Fixed Code
+		text::add_to_substitution_map(sub, text::variable_type::fraction, text::fp_two_places{total_clergy});
+		text::add_to_substitution_map(sub, text::variable_type::optimal, text::fp_two_places{pop_optimum});
 
 		text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub);
 		text::close_layout_box(contents, box);
