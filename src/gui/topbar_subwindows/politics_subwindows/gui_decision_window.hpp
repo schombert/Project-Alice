@@ -100,7 +100,7 @@ public:
 // Decision Description
 // --------------------
 
-class decision_desc : public multiline_text_element_base {
+class decision_desc : public scrollable_text {
 private:
   dcon::text_sequence_id description;
   void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
@@ -110,6 +110,11 @@ private:
   }
 
 public:
+  void on_create(sys::state& state) noexcept override {
+    base_data.size.y = 77;
+    scrollable_text::on_create(state);
+  } 
+
   void on_update(sys::state& state) noexcept override {
     Cyto::Any payload = dcon::decision_id{};
     if(parent) {
@@ -119,14 +124,11 @@ public:
       description = fat_id.get_description();
     }
     auto container = text::create_endless_layout(
-      internal_layout,
+      delegate->internal_layout,
       text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
     );
     populate_layout(state, container);
-  }
-
-  message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-    return message_result::unseen;
+    calibrate_scrollbar(state);
   }
 };
 

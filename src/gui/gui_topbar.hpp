@@ -171,6 +171,27 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	// FIXME: For some reason the tooltip doesnt appear on the USA tag? -breizh
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!nations::is_great_power(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
+		} else if (state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_loosinggpstatus"), text::substitution_map{});
+		} else if (state.world.nation_get_rank(nation_id) <= uint16_t(state.defines.great_nations_count)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_loosinggpstatus"), text::substitution_map{});
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_at_peace_text : public standard_nation_text {
@@ -190,12 +211,52 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!economy::nation_is_constructing_factories(state, nation_id));
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!economy::nation_is_constructing_factories(state, nation_id)) {
+			text::localised_format_box(state, contents, box, "countryalert_no_isbuildingfactories", text::substitution_map{});
+		} else if(economy::nation_is_constructing_factories(state, nation_id)) {
+			text::localised_format_box(state, contents, box, "countryalert_isbuilding_factories", text::substitution_map{});
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_closed_factories_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!economy::nation_has_closed_factories(state, nation_id));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!economy::nation_has_closed_factories(state, nation_id)) {
+			text::localised_format_box(state, contents, box, "remove_countryalert_no_hasclosedfactories", text::substitution_map{});
+		} else if(economy::nation_has_closed_factories(state, nation_id)) {
+			text::localised_format_box(state, contents, box, "remove_countryalert_hasclosedfactories", text::substitution_map{});
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -213,12 +274,58 @@ public:
 		auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker);
 		return int32_t(primary_unemployed + secondary_unemployed <= 0.f);
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker);
+		auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker);
+
+		auto box = text::open_layout_box(contents, 0);
+		if(primary_unemployed + secondary_unemployed <= 0.f) {
+			text::localised_format_box(state, contents, box, "countryalert_no_hasunemployedworkers", text::substitution_map{});
+		} else if(primary_unemployed + secondary_unemployed >= 0.f) {
+			text::localised_format_box(state, contents, box, "remove_countryalert_hasunemployedworkers", text::substitution_map{});
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_available_reforms_icon : public standard_nation_button {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!nations::has_reform_available(state, nation_id));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!nations::has_reform_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candoreforms"), text::substitution_map{});
+		} else if(nations::has_reform_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_candoreforms"), text::substitution_map{});
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, std::string_view("NOTE: ADD AVALIABLE REFORMS HERE"));
+			//Display Avaliable Reforms
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -227,12 +334,55 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!nations::has_decision_available(state, nation_id));
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!nations::has_decision_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candodecisions"), text::substitution_map{});
+		} else if(nations::has_decision_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_candodecisions"), text::substitution_map{});
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, std::string_view("NOTE: ADD AVALIABLE DECISIONS HERE"));
+			//Display Avaliable Reforms
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_ongoing_election_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!politics::is_election_ongoing(state, nation_id));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!politics::is_election_ongoing(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_isinelection"), text::substitution_map{});
+		} else if(politics::is_election_ongoing(state, nation_id)) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::date, text::date_to_string(state, dcon::fatten(state.world, nation_id).get_election_ends()));
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_isinelection"), sub);
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -241,6 +391,26 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
 		return int32_t(rebellions_iter.begin() == rebellions_iter.end());
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
+		if(rebellions_iter.begin() == rebellions_iter.end()) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_haverebels"), text::substitution_map{});
+		} else if(rebellions_iter.begin() != rebellions_iter.end()) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_haverebels"), text::substitution_map{});
+			//text::add_line_break_to_layout_box(contents, state, box);
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -268,6 +438,28 @@ public:
 			return 0;
 		}
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::temperature, text::format_float(state.crisis_temperature, 2));
+		if(state.current_crisis == sys::crisis_type::none) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_crisis"), sub);
+		} else if(state.crisis_temperature > 0.8f) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_crisis"), sub);
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string_view("gui/gui_topbar.hpp:371"));
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_sphere_icon : public standard_nation_icon {
@@ -280,6 +472,26 @@ public:
 		} else {
 			return 1;
 		}
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(nations::sphereing_progress_is_possible(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"), text::substitution_map{});
+		} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
+			text::add_to_layout_box(contents, state, box, std::string_view("FIXME: gui/gui_topbar.hpp:404"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"), text::substitution_map{});
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 

@@ -84,7 +84,7 @@ namespace text {
 			return ankerl::unordered_dense::detail::wyhash::hash(sv.data(), sv.size());
 		}
 		auto operator()(dcon::text_key tag) const noexcept -> uint64_t {
-			auto sv = [&]() { 
+			auto sv = [&]() {
 				if(!tag)
 					return std::string_view();
 				auto start_position = text_data.data() + tag.index();
@@ -105,7 +105,7 @@ namespace text {
 		std::vector<char>& text_data;
 
 		vector_backed_eq(std::vector<char>& text_data) : text_data(text_data) {}
-		
+
 		bool operator()(dcon::text_key l, dcon::text_key r) const noexcept {
 			return l == r;
 		}
@@ -278,7 +278,7 @@ namespace text {
 	void close_layout_box(layout_base& dest, layout_box& box);
 
 	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
-	
+
 	void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size);
 	variable_type variable_type_from_name(std::string_view);
 	void load_text_data(sys::state& state, uint32_t language);
@@ -300,5 +300,7 @@ namespace text {
 	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 	std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 	std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
+
+	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, text::substitution_map sub);
 }
 
