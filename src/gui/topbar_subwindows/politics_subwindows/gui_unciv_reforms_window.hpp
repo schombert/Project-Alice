@@ -39,7 +39,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, issue_option_id);
+		auto fat_id = dcon::fatten(state.world, reform_option_id);
 		auto name = fat_id.get_name();
 		if(bool(name)) {
 			auto box = text::open_layout_box(contents, 0);
