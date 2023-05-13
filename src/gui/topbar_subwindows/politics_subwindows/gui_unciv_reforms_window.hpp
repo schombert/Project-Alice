@@ -23,7 +23,6 @@ public:
 };
 
 class unciv_reforms_reform_button : public standard_nation_reform_option_button {
-	dcon::issue_option_id issue_option_id{};
 public:
 	void on_update(sys::state& state) noexcept override {
 		standard_nation_reform_option_button::on_update(state);
@@ -50,15 +49,6 @@ public:
 		auto mod_id = fat_id.get_modifier().id;
 		if(bool(mod_id)) {
 			modifier_description(state, contents, mod_id);
-		}
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::issue_option_id>()) {
-			issue_option_id = any_cast<dcon::issue_option_id>(payload);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
 		}
 	}
 };
