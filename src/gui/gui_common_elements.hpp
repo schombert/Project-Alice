@@ -1595,7 +1595,7 @@ public:
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("from_technology"), sub);
 		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::prettify(points), text::text_color::green);
+		text::add_to_layout_box(contents, state, box, text::format_float(points, 0), text::text_color::green);
 
 		text::close_layout_box(contents, box);
 	}
