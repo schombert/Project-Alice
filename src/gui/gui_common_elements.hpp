@@ -1808,7 +1808,7 @@ public:
 			relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
 		}
 		text::add_to_substitution_map(sub1, text::variable_type::num, text::prettify(relevant_pop));
-		auto fPoints = (1.0f, relevant_pop / state.defines.national_focus_divider);	// NOTE: Occassionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
+		auto fPoints = relevant_pop / state.defines.national_focus_divider;	// NOTE: Occassionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
 		text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
 		text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);
 		text::add_line_break_to_layout_box(contents, state, box);
