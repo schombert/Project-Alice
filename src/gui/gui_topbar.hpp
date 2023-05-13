@@ -326,6 +326,26 @@ public:
 		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
 		return int32_t(rebellions_iter.begin() == rebellions_iter.end());
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
+		if(rebellions_iter.begin() == rebellions_iter.end()) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_haverebels"), text::substitution_map{});
+		} else if(rebellions_iter.begin() != rebellions_iter.end()) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_haverebels"), text::substitution_map{});
+			//text::add_line_break_to_layout_box(contents, state, box);
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_colony_icon : public standard_nation_button {
