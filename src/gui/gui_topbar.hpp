@@ -180,7 +180,6 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	// FIXME: For some reason the tooltip doesnt appear on the USA tag? -breizh
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(!nations::is_great_power(state, nation_id)) {
@@ -375,12 +374,14 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(!politics::is_election_ongoing(state, nation_id)) {
-			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_isinelection"), text::substitution_map{});
-		} else if(politics::is_election_ongoing(state, nation_id)) {
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::date, text::date_to_string(state, dcon::fatten(state.world, nation_id).get_election_ends()));
-			text::localised_format_box(state, contents, box, std::string_view("countryalert_isinelection"), sub);
+		if(politics::has_elections(state, nation_id)) {
+			if(!politics::is_election_ongoing(state, nation_id)) {
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_isinelection"), text::substitution_map{});
+			} else if(politics::is_election_ongoing(state, nation_id)) {
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::date, dcon::fatten(state.world, nation_id).get_election_ends());
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_isinelection"), sub);
+			}
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -487,7 +488,7 @@ public:
 		if(nations::sphereing_progress_is_possible(state, nation_id)) {
 			text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"), text::substitution_map{});
 		} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
-			text::add_to_layout_box(contents, state, box, std::string_view("FIXME: gui/gui_topbar.hpp:404"));
+			text::add_to_layout_box(contents, state, box, std::string_view("FIXME: gui/gui_topbar.hpp:404"));	// TODO - if a sphere member is having a revolt then we might have to display text -breizh
 		} else {
 			text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"), text::substitution_map{});
 		}
