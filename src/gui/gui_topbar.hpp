@@ -304,6 +304,29 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!nations::has_reform_available(state, nation_id));
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!nations::has_reform_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candoreforms"), text::substitution_map{});
+		} else if(nations::has_reform_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_candoreforms"), text::substitution_map{});
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, std::string_view("NOTE: ADD AVALIABLE REFORMS HERE"));
+			//Display Avaliable Reforms
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_available_decisions_icon : public standard_nation_button {
@@ -311,12 +334,55 @@ public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!nations::has_decision_available(state, nation_id));
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!nations::has_decision_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candodecisions"), text::substitution_map{});
+		} else if(nations::has_decision_available(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_candodecisions"), text::substitution_map{});
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, std::string_view("NOTE: ADD AVALIABLE DECISIONS HERE"));
+			//Display Avaliable Reforms
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_ongoing_election_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
 		return int32_t(!politics::is_election_ongoing(state, nation_id));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!politics::is_election_ongoing(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_isinelection"), text::substitution_map{});
+		} else if(politics::is_election_ongoing(state, nation_id)) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::date, text::date_to_string(state, dcon::fatten(state.world, nation_id).get_election_ends()));
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_isinelection"), sub);
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 

@@ -1552,6 +1552,7 @@ public:
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
 		//text::add_to_substitution_map(sub, text::variable_type::val, text::format_float(fDailyUpdate, 2);
+		text::add_to_substitution_map(sub, text::variable_type::val, std::string_view("PLACEHOLDER"));
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -1562,9 +1563,41 @@ public:
 class nation_colonial_power_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state) noexcept override {
-		auto fcp = std::to_string(nations::free_colonial_points(state, nation_id));
-		auto mcp = std::to_string(nations::max_colonial_points(state, nation_id));
-		return fcp + "/" + mcp;
+		auto fcp = nations::free_colonial_points(state, nation_id);
+		auto mcp = nations::max_colonial_points(state, nation_id);
+		return text::format_ratio(fcp, mcp);
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		float points = 0;
+		state.world.for_each_technology([&](dcon::technology_id t) {
+			if(state.world.nation_get_active_technologies(nation_id, t)) {
+				points += float(state.world.technology_get_colonial_points(t));
+			}
+		});
+
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::value, text::prettify(nations::free_colonial_points(state, nation_id)));
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("colonial_points"), sub);
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::localised_format_box(state, contents, box, std::string_view("available_colonial_power"), sub);
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::localised_format_box(state, contents, box, std::string_view("from_technology"), sub);
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, text::prettify(points), text::text_color::green);
+
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1685,6 +1718,32 @@ public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::daily_research_points(state, nation_id);
 		return text::format_float(points, 2);
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		float sum_from_pops = 0;
+		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
+				auto rp = state.world.pop_type_get_research_points(t);
+				if(rp > 0) {
+					sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, t)) / (state.world.nation_get_demographics(nation_id, demographics::total) * state.world.pop_type_get_research_optimum(t)));
+				}
+		});
+
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+
+		text::add_to_substitution_map(sub, text::variable_type::value, text::format_float(sum_from_pops));
+
+		text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
