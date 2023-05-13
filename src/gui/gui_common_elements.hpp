@@ -1803,11 +1803,11 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub1;
-		int64_t relevant_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.world.nation_get_primary_culture(nation_id)));
+		float relevant_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.world.nation_get_primary_culture(nation_id)));
 		for(auto ac : state.world.nation_get_accepted_cultures(nation_id)) {
 			relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
 		}
-		text::add_to_substitution_map(sub1, text::variable_type::num, text::prettify(relevant_pop));
+		text::add_to_substitution_map(sub1, text::variable_type::num, text::prettify((int64_t)relevant_pop));
 		auto fPoints = relevant_pop / state.defines.national_focus_divider;	// NOTE: Occassionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
 		text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
 		text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);
