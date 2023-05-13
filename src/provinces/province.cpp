@@ -299,6 +299,10 @@ void update_state_administrative_efficiency(sys::state& state) {
 }
 */
 bool has_railroads_being_built(sys::state& state, dcon::province_id id) {
+	for(auto pb : state.world.province_get_province_building_construction(id)) {
+		if(economy::province_building_type(pb.get_type()) == economy::province_building_type::railroad)
+			return true;
+	}
 	return false;
 }
 bool can_build_railroads(sys::state& state, dcon::province_id id) {
@@ -307,7 +311,7 @@ bool can_build_railroads(sys::state& state, dcon::province_id id) {
 	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(nation);
 	int32_t min_build_railroad = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
 
-	return !has_railroads_being_built(state, id) && (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0);
+	return (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0) && !has_railroads_being_built(state, id);
 }
 bool has_an_owner(sys::state& state, dcon::province_id id) {
 	// TODO: not sure if this is the most efficient way
@@ -597,6 +601,29 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			nations::cleanup_nation(state, old_owner);
 		}
 	}
+
+	// cancel constructions
+
+	{
+		auto rng = state.world.province_get_province_building_construction(id);
+		while(rng.begin() != rng.end()) {
+			state.world.delete_province_building_construction(*(rng.begin()));
+		}
+	}
+
+	{
+		auto rng = state.world.province_get_province_land_construction(id);
+		while(rng.begin() != rng.end()) {
+			state.world.delete_province_land_construction(*(rng.begin()));
+		}
+	}
+
+	{
+		auto rng = state.world.province_get_province_naval_construction(id);
+		while(rng.begin() != rng.end()) {
+			state.world.delete_province_naval_construction(*(rng.begin()));
+		}
+	}
 }
 
 void update_crimes(sys::state& state) {
@@ -760,6 +787,18 @@ void update_colonization(sys::state& state) {
 			}
 		}
 	}
+}
+
+bool state_is_coastal(sys::state& state, dcon::state_instance_id s) {
+	auto d = state.world.state_instance_get_definition(s);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			if(p.get_province().get_is_coast())
+				return true;
+		}
+	}
+	return false;
 }
 
 }

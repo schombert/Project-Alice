@@ -80,9 +80,7 @@ public:
 				auto cid = cset.commodity_type[size_t(i)];
 				Cyto::Any payload = cid;
 				input_icons[size_t(i)]->impl_set(state, payload);
-				bool is_lack = state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f;
-				if(cid == dcon::commodity_id{})
-					is_lack = false;
+				bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f : false;
 				input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 			}
 	}
