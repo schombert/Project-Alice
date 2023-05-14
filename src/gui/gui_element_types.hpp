@@ -227,7 +227,6 @@ public:
 		return false;
 	}
 
-
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		frame = int32_t(is_active(state));
 		button_element_base::render(state, x, y);
