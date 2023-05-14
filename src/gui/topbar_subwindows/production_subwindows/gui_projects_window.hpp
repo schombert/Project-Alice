@@ -47,9 +47,9 @@ protected:
 		return "goods_need_template";
 	}
 
-	void update_subwindow(sys::state& state, production_project_input_item* subwindow, production_project_input_data content) override {
+	void update_subwindow(sys::state& state, production_project_input_item& subwindow, production_project_input_data content) override {
 		Cyto::Any payload = content;
-		subwindow->impl_set(state, payload);
+		subwindow.impl_get(state, payload);
 	}
 };
 
@@ -147,7 +147,7 @@ public:
             building_icon->set_visible(state, false);
 
             auto fat_id = dcon::fatten(state.world, std::get<dcon::state_building_construction_id>(content));
-            factory_icon->frame = uint16_t(fat_id.get_type().id.index());
+            factory_icon->frame = uint16_t(fat_id.get_type().get_output().id.index());
             name_text->set_text(state, text::produce_simple_string(state, fat_id.get_type().get_name()));
             state_id = fat_id.get_state();
 
@@ -158,11 +158,12 @@ public:
         if(input_listbox) {
             input_listbox->row_contents.clear();
             for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i)
-                input_listbox->row_contents.push_back(production_project_input_data{
-                    needed_commodities.commodity_type[i], // cid
-                    satisfied_commodities.commodity_amounts[i], // satisfied
-                    needed_commodities.commodity_amounts[i] // needed
-                });
+                if(bool(needed_commodities.commodity_type[i]))
+                    input_listbox->row_contents.push_back(production_project_input_data{
+                        needed_commodities.commodity_type[i], // cid
+                        satisfied_commodities.commodity_amounts[i], // satisfied
+                        needed_commodities.commodity_amounts[i] // needed
+                    });
             input_listbox->update(state);
         }
 

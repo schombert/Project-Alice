@@ -786,9 +786,9 @@ public:
 		return "focus_item";
 	}
 
-	void update_subwindow(sys::state& state, province_focus_item* subwindow, dcon::national_focus_id content) override {
+	void update_subwindow(sys::state& state, province_focus_item& subwindow, dcon::national_focus_id content) override {
 		Cyto::Any payload = content;
-		subwindow->impl_set(state, payload);
+		subwindow.impl_get(state, payload);
 	}
 };
 

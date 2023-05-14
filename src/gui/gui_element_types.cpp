@@ -1013,7 +1013,7 @@ void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& st
 		}
 		for(size_t i = 0; i < windows.size(); i++) {
 			if(i < row_contents.size()) {
-				update_subwindow(state, windows[i], row_contents[i]);
+				update_subwindow(state, *windows[i], row_contents[i]);
 				windows[i]->base_data.position.x = current_x;
 				current_x += offset;
 				windows[i]->set_visible(state, true);

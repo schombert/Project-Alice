@@ -244,7 +244,7 @@ protected:
 	virtual std::string_view get_row_element_name() {
 		return std::string_view{};
 	}
-	virtual void update_subwindow(sys::state& state, ItemWinT* subwindow, ItemConT content) { }
+	virtual void update_subwindow(sys::state& state, ItemWinT& subwindow, ItemConT content) { }
 
 public:
 	std::vector<ItemConT> row_contents{};
@@ -294,8 +294,8 @@ public:
 		return "flag_list_flag";
 	}
 
-	void update_subwindow(sys::state& state, overlapping_flags_flag_button* subwindow, dcon::national_identity_id content) override {
-		subwindow->set_current_nation(state, content);
+	void update_subwindow(sys::state& state, overlapping_flags_flag_button& subwindow, dcon::national_identity_id content) override {
+		subwindow.set_current_nation(state, content);
 	}
 
 	void on_update(sys::state& state) noexcept override;
