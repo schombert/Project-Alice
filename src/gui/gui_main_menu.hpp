@@ -241,6 +241,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto ptr = make_element_by_type<msg_settings_window>(state, state.ui_state.defs_by_name.find("shieldedinformationdialog")->second.definition);
+		message_settings_menu = ptr.get();
 		add_child_to_front(std::move(ptr));
 	}
 
