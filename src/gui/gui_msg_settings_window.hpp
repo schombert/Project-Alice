@@ -150,11 +150,12 @@ class msg_settings_window : public generic_tabbed_window<msg_settings_category> 
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window<msg_settings_category>::on_create(state);
+		ptr->base_data.position.y -= 21; // Nudge
 		set_visible(state, false);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "close") {
 		    return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "settings") {
 			// Nudge required for listbox before it is created...
