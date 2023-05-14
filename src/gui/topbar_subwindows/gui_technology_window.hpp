@@ -88,7 +88,7 @@ static void technology_description(element_base& element, sys::state& state, tex
 	auto commodity_mod_description = [&](const auto& list, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
 		for(const auto mod : list) {
 			auto box = text::open_layout_box(contents, 0);
-			auto& name = state.world.commodity_get_name(mod.type);
+			auto name = state.world.commodity_get_name(mod.type);
 			if(bool(name)) {
 				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::white);
 				text::add_space_to_layout_box(contents, state, box);
@@ -134,7 +134,7 @@ public:
 				return;
 			bool discovered = state.world.nation_get_active_technologies(state.local_player_nation, id);
 			auto color = discovered ? text::text_color::green : text::text_color::red;
-			auto& name = fat_id.get_name();
+			auto name = fat_id.get_name();
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), color);
 			text::close_layout_box(contents, box);
@@ -323,7 +323,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
-		auto& name = fat_id.get_name();
+		auto name = fat_id.get_name();
 		if(bool(name)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
@@ -393,14 +393,14 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
-		auto& name = fat_id.get_name();
+		auto name = fat_id.get_name();
 		if(bool(name)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
 		// Evaluate limit condition
-		auto& limit_condition = fat_id.get_limit();
+		auto limit_condition = fat_id.get_limit();
 		if(bool(limit_condition))
 			trigger_description(state, contents, limit_condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 	}
@@ -409,7 +409,7 @@ class invention_chance_percent_text : public generic_settable_element<simple_tex
 public:
 	void on_update(sys::state& state) noexcept override {
 		// TODO: evaluate modifiers of chances for inventions
-		auto& mod_k = state.world.invention_get_chance(content);
+		auto mod_k = state.world.invention_get_chance(content);
 		auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 		set_text(state, text::format_percentage(chances / 100.f, 1));
 	}

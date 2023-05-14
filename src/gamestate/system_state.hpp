@@ -49,7 +49,7 @@ namespace sys {
 		bool dummy2 = false;
 		bool dummy3 = false;
 		bool use_classic_fonts = false;
-
+		bool outliner_views[14] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 	};
 
 	struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
