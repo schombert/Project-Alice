@@ -181,7 +181,7 @@ namespace text {
 		float value = 0.0f;
 	};
 	struct fp_four_places {
-		float value = 0.0f;
+		double value = 0.0f;
 	};
 	struct fp_currency {
 		float value = 0.0f;
