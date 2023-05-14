@@ -637,6 +637,36 @@ public:
 		return text::get_name_as_string(state, dcon::fatten(state.world, last_religion));
 	}
 };
+class province_dominant_issue_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		dcon::issue_option_id last_issue{};
+		float last_issue_amount = 0.f;
+		state.world.for_each_issue_option([&](dcon::issue_option_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_issue_amount) {
+				last_issue_amount = amount;
+				last_issue = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_issue));
+	}
+};
+class province_dominant_ideology_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		dcon::ideology_id last_ideology{};
+		float last_ideology_amount = 0.f;
+		state.world.for_each_ideology([&](dcon::ideology_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_ideology_amount) {
+				last_ideology_amount = amount;
+				last_ideology = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_ideology));
+	}
+};
 
 class province_supply_limit_text : public standard_province_text {
 public:

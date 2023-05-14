@@ -584,8 +584,18 @@ public:
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         }
-        // TODO: Issues
-        // TODO: Ideology
+        // Issues
+        {
+            auto ptr = make_element_by_type<province_dominant_issue_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Ideology
+        {
+            auto ptr = make_element_by_type<province_dominant_ideology_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
     }
 
     void update(sys::state& state) noexcept override {
