@@ -338,7 +338,9 @@ public:
 		generic_tabbed_window::on_create(state);
 
 		{
-			auto ptr = make_child(state, "goods_filter_template", state.ui_state.defs_by_name.find("goods_filter_template")->second.definition);
+			auto ptr = make_element_by_type<goods_filter_window>(state, state.ui_state.defs_by_name.find("goods_filter_template")->second.definition);
+			ptr->set_visible(state, true);
+			factory_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 
@@ -349,8 +351,13 @@ public:
 			commodity_offset.x = base_commodity_offset.x;
 
 			// Place legend for this category...
-			auto ptr = make_child(state, "production_goods_name", state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
+			auto ptr = make_element_by_type<production_goods_category_name>(state, state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
+			ptr->base_data.position = commodity_offset;
+			Cyto::Any payload = curr_commodity_group;
+			ptr->impl_set(state, payload);
+			ptr->set_visible(state, false);
 			commodity_offset.y += ptr->base_data.size.y;
+			good_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 
 			int16_t cell_height = 0;
@@ -360,7 +367,9 @@ public:
 				|| !bool(id))
 					return;
 
-				auto info_ptr = make_child(state, "production_info", state.ui_state.defs_by_name.find("production_info")->second.definition);
+				auto info_ptr = make_element_by_type<production_good_info>(state, state.ui_state.defs_by_name.find("production_info")->second.definition);
+				info_ptr->base_data.position = commodity_offset;
+				info_ptr->set_visible(state, false);
 
 				int16_t cell_width = info_ptr->base_data.size.x;
 				cell_height = info_ptr->base_data.size.y;
@@ -373,7 +382,8 @@ public:
 
 				Cyto::Any payload = id;
 				info_ptr->impl_set(state, payload);
-				
+
+				good_elements.push_back(info_ptr.get());
 				add_child_to_front(std::move(info_ptr));
 			});
 			// Has atleast 1 good on this row? skip to next row then...
@@ -463,27 +473,6 @@ public:
 			auto ptr = make_element_by_type<pop_sort_buttons_window>(state, id);
 			factory_elements.push_back(ptr.get());
 			ptr->set_visible(state, true);
-			return ptr;
-		} else if(name == "goods_filter_template") {
-			auto ptr = make_element_by_type<goods_filter_window>(state, id);
-			factory_elements.push_back(ptr.get());
-			ptr->set_visible(state, true);
-			return ptr;
-		} else if(name == "production_goods_name") {
-			auto ptr = make_element_by_type<production_goods_category_name>(state, id);
-			ptr->base_data.position = commodity_offset;
-			
-			Cyto::Any payload = curr_commodity_group;
-			ptr->impl_set(state, payload);
-
-			good_elements.push_back(ptr.get());
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "production_info") {
-			auto ptr = make_element_by_type<production_good_info>(state, id);
-			ptr->base_data.position = commodity_offset;
-			good_elements.push_back(ptr.get());
-			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "project_listbox") {
 			auto ptr = make_element_by_type<production_project_listbox>(state, id);

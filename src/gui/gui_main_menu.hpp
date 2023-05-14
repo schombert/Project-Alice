@@ -185,19 +185,9 @@ class audio_menu_window : public window_element_base {
 };
 
 enum class main_menu_sub_window {
-	none, controls, audio, graphics, message_settings
+	controls, audio, graphics, message_settings
 };
 
-template<main_menu_sub_window SubWindow>
-class open_main_menu_sub_window_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = SubWindow;
-			parent->impl_get(state, payload);
-		}
-	}
-};
 class close_application_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -205,31 +195,45 @@ public:
 	}
 };
 
-class main_menu_window : public window_element_base {
-public:
+class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
 	controls_menu_window* controls_menu = nullptr;
 	graphics_menu_window* graphics_menu = nullptr;
 	audio_menu_window* audio_menu = nullptr;
 	msg_settings_window* message_settings_menu = nullptr;
-
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		auto ptr = make_element_by_type<msg_settings_window>(state, state.ui_state.defs_by_name.find("menu_message_settings")->second.definition);
-		message_settings_menu = ptr.get();
-		add_child_to_front(std::move(ptr));
+		// Message settings isn't a topmost window...
+		for(size_t i = state.ui_defs.gui.size(); i-- > 0; ) {
+			auto gdef_id = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+			auto key = state.to_string_view(state.ui_defs.gui[gdef_id].name);
+			if(key == "menu_message_settings") {
+				auto ptr = make_element_by_type<msg_settings_window>(state, gdef_id);
+				message_settings_menu = ptr.get();
+				add_child_to_front(std::move(ptr));
+			}
+		}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "graphics") {
-			return make_element_by_type<open_main_menu_sub_window_button<main_menu_sub_window::graphics>>(state, id);
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::graphics;
+			return ptr;
 		} else if(name == "sound") {
-			return make_element_by_type<open_main_menu_sub_window_button<main_menu_sub_window::audio>>(state, id);
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::audio;
+			return ptr;
 		} else if(name == "controls") {
-			return make_element_by_type<open_main_menu_sub_window_button<main_menu_sub_window::controls>>(state, id);
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::controls;
+			return ptr;
 		} else if(name == "message_settings") {
-			return make_element_by_type<open_main_menu_sub_window_button<main_menu_sub_window::message_settings>>(state, id);
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::message_settings;
+			return ptr;
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "exit") {
@@ -270,8 +274,6 @@ public:
 			auto enum_val = any_cast<main_menu_sub_window>(payload);
 			hide_subwindows(state);
 			switch(enum_val) {
-			case main_menu_sub_window::none:
-				break;
 			case main_menu_sub_window::controls:
 				controls_menu->set_visible(state, true);
 				break;

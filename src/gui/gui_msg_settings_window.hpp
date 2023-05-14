@@ -104,7 +104,7 @@ class msg_settings_item : public listbox_row_element_base<msg_setting_type> {
 
 	static std::string get_setting_text_key(msg_setting_type type) {
 		switch(type) {
-#define MSG_SETTING_ITEM(name, num) case msg_setting_type::name: return #name;
+#define MSG_SETTING_ITEM(name, num) case msg_setting_type::name: return #name "_setup";
 		MSG_SETTING_LIST
 #undef MSG_SETTING_ITEM
 		default:
@@ -123,7 +123,7 @@ public:
 	}
 
     void update(sys::state& state) noexcept override {
-        text->set_text(state, get_setting_text_key(content));
+        text->set_text(state, text::produce_simple_string(state, get_setting_text_key(content)));
     }
 };
 
@@ -142,10 +142,14 @@ public:
     }
 };
 
-class msg_settings_window : public window_element_base {
+enum class msg_settings_category : uint8_t {
+	all, combat, diplomacy, units, provinces, events, others
+};
+
+class msg_settings_window : public generic_tabbed_window<msg_settings_category> {
 public:
 	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
+		generic_tabbed_window<msg_settings_category>::on_create(state);
 		set_visible(state, false);
 	}
 
@@ -153,7 +157,40 @@ public:
 		if(name == "close_button") {
 		    return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "settings") {
-			return make_element_by_type<msg_settings_listbox>(state, id);
+			// Nudge required for listbox before it is created...
+			state.ui_defs.gui[id].size.x -= 21; // Nudge
+			auto ptr = make_element_by_type<msg_settings_listbox>(state, id);
+			ptr->base_data.position.x += 21; // Nudge
+			ptr->base_data.position.y += 21; // Nudge
+			return ptr;
+		} else if(name == "messagecat_all") {
+			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
+			ptr->target = msg_settings_category::all;
+			return ptr;
+		} else if(name == "messagecat_combat") {
+			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
+			ptr->target = msg_settings_category::combat;
+			return ptr;
+		} else if(name == "messagecat_diplomacy") {
+			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
+			ptr->target = msg_settings_category::diplomacy;
+			return ptr;
+		} else if(name == "messagecat_units") {
+			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
+			ptr->target = msg_settings_category::units;
+			return ptr;
+		} else if(name == "messagecat_provinces") {
+			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
+			ptr->target = msg_settings_category::provinces;
+			return ptr;
+		} else if(name == "messagecat_events") {
+			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
+			ptr->target = msg_settings_category::events;
+			return ptr;
+		} else if(name == "messagecat_others") {
+			auto ptr = make_element_by_type<generic_tab_button<msg_settings_category>>(state, id);
+			ptr->target = msg_settings_category::others;
+			return ptr;
 		} else {
 			return nullptr;
 		}
