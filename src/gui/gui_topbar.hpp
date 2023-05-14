@@ -529,10 +529,10 @@ public:
 				text::substitution_map sub;
 				auto rebelname = text::produce_simple_string(state, rbl_type_fat_id.get_name());
 				auto rebelsize = text::prettify(rebel::get_faction_brigades_active(state, rbl_fact_slim_id));
-				auto rebelOrg = rebel::get_faction_organization(state, rbl_fact_slim_id);
-				text::add_to_substitution_map(sub, text::variable_type::name, rebelname);
-				text::add_to_substitution_map(sub, text::variable_type::strength, rebelsize);
-				text::add_to_substitution_map(sub, text::variable_type::org, text::format_percentage(rebelOrg));
+				auto rebelOrg = text::format_percentage(rebel::get_faction_organization(state, rbl_fact_slim_id));
+				text::add_to_substitution_map(sub, text::variable_type::name, std::string_view(rebelname));
+				text::add_to_substitution_map(sub, text::variable_type::strength, std::string_view(rebelsize));
+				text::add_to_substitution_map(sub, text::variable_type::org, std::string_view(rebelOrg));
 				text::localised_format_box(state, contents, box, std::string_view("topbar_faction"), sub);
 			});
 			//text::add_line_break_to_layout_box(contents, state, box);
