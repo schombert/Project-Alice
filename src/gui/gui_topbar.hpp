@@ -551,6 +551,7 @@ public:
 			return 2;
 		}
 	}
+	// TODO - when the player clicks on the colony icon and theres colonies to expand then we want to teleport their camera to the colonies position & open the prov window
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
@@ -561,7 +562,29 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_fat_id = dcon::fatten(state.world, nation_id);
 		auto box = text::open_layout_box(contents, 0);
+		if(nations::can_expand_colony(state, nation_id)) {
+			nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
+				auto colony_fat_id = dcon::fatten(state.world, colony);
+				auto colState = colony_fat_id.get_state();
+				auto colonyName = colState.get_name();
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::region, colonyName);
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_colonialgood_protectorate"), text::substitution_map{});
+			});
+		} else if(nations::is_losing_colonial_race(state, nation_id)) {
+			nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
+				auto colony_fat_id = dcon::fatten(state.world, colony);
+				auto colState = colony_fat_id.get_state();
+				auto colonyName = colState.get_name();
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::region, colonyName);
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_colonialbad_influence"), text::substitution_map{});
+			});
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_colonial"), text::substitution_map{});
+		}
 		text::close_layout_box(contents, box);
 	}
 };
