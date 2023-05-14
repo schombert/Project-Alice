@@ -233,6 +233,18 @@ public:
 	}
 };
 
+template<class RowConT>
+class wrapped_listbox_row_content {
+public:
+	RowConT content;
+	wrapped_listbox_row_content() {
+		content = RowConT{};
+	}
+	wrapped_listbox_row_content(RowConT con) {
+		content = con;
+	}
+};
+
 template<class ItemWinT, class ItemConT>
 class overlapping_listbox_element_base : public window_element_base {
 private:
@@ -244,11 +256,14 @@ protected:
 	virtual std::string_view get_row_element_name() {
 		return std::string_view{};
 	}
-	virtual void update_subwindow(sys::state& state, ItemWinT& subwindow, ItemConT content) { }
+
+	virtual void update_subwindow(sys::state& state, ItemWinT& subwindow, ItemConT content) {
+		Cyto::Any payload = wrapped_listbox_row_content<ItemConT>(content);
+		subwindow.impl_get(state, payload);
+	}
 
 public:
 	std::vector<ItemConT> row_contents{};
-
 	void update(sys::state& state);
 };
 
@@ -575,18 +590,6 @@ public:
 		auto box = text::open_layout_box(layout, 0);
 		text::add_to_layout_box(layout, state, box, text_id);
 		text::close_layout_box(layout, box);
-	}
-};
-
-template<class RowConT>
-class wrapped_listbox_row_content {
-public:
-	RowConT content;
-	wrapped_listbox_row_content() {
-		content = RowConT{};
-	}
-	wrapped_listbox_row_content(RowConT con) {
-		content = con;
 	}
 };
 

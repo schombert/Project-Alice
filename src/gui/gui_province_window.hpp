@@ -785,11 +785,6 @@ public:
 	std::string_view get_row_element_name() override {
 		return "focus_item";
 	}
-
-	void update_subwindow(sys::state& state, province_focus_item& subwindow, dcon::national_focus_id content) override {
-		Cyto::Any payload = content;
-		subwindow.impl_get(state, payload);
-	}
 };
 
 class province_focus_category : public window_element_base {

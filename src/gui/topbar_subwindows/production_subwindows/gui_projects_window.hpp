@@ -46,11 +46,6 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "goods_need_template";
 	}
-
-	void update_subwindow(sys::state& state, production_project_input_item& subwindow, production_project_input_data content) override {
-		Cyto::Any payload = content;
-		subwindow.impl_get(state, payload);
-	}
 };
 
 class production_project_info : public listbox_row_element_base<production_project_data> {
