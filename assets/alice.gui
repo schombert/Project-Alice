@@ -31,7 +31,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name = "save"
-			position = { x = 58 y = 157 }
+			position = { x = 58 y = 142 }
 			quadTextureSprite ="GFX_frontend_button_236"	
 			buttonText = "alice_save"
 			buttonFont = "vic_22_black"
@@ -39,7 +39,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "exit"
-			position = { x = 58 y = 210 }
+			position = { x = 58 y = 180 }
 			quadTextureSprite ="GFX_frontend_button_236"	
 			buttonText = "alice_exit"
 			buttonFont = "vic_22_black"
@@ -47,7 +47,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "graphics"
-			position = { x = 58 y = 263 }
+			position = { x = 58 y = 218 }
 			quadTextureSprite ="GFX_frontend_button_236"	
 			buttonText = "graphics_options"
 			buttonFont = "vic_22_black"
@@ -55,7 +55,7 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "sound"
-			position = { x = 58 y = 316 }
+			position = { x = 58 y = 256 }
 			quadTextureSprite ="GFX_frontend_button_236"	
 			buttonText = "sound_options"
 			buttonFont = "vic_22_black"
@@ -63,12 +63,19 @@ guiTypes = {
 		
 		guiButtonType = {
 			name = "controls"
-			position = { x = 58 y = 369 }
+			position = { x = 58 y = 294 }
 			quadTextureSprite ="GFX_frontend_button_236"	
 			buttonText = "controls_options"
 			buttonFont = "vic_22_black"
 		}
-	
+
+		guiButtonType = {
+			name = "message_settings"
+			position = { x = 58 y = 332 }
+			quadTextureSprite ="GFX_frontend_button_236"	
+			buttonText = "message_settings_options"
+			buttonFont = "vic_22_black"
+		}
 	
 		windowType = {
 			name = "alice_graphics_menu"
