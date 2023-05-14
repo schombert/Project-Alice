@@ -1682,7 +1682,7 @@ public:
 		auto litChange = (demographics::getMonthlyLitChange(state, nation_id) / 30);
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{litChange});	// TODO - This needs to display the estimated literacy change -breizh
 		auto avgLiteracy = text::format_percentage((state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total)), 1);
-		text::add_to_substitution_map(sub, text::variable_type::avg, text::format_percentage(avgLiteracy, 1));
+		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avgLiteracy));
 
 
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
