@@ -281,6 +281,7 @@ namespace text {
 	void close_layout_box(layout_base& dest, layout_box& box);
 
 	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
+	void add_to_substitution_map(substitution_map &mp, variable_type key, std::string const&);	// DO NOT USE THIS FUNCTION
 
 	void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size);
 	variable_type variable_type_from_name(std::string_view);
