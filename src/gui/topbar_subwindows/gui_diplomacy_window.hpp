@@ -249,11 +249,11 @@ public:
 class overlapping_attacker_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override {
-		contents.clear();
+		row_contents.clear();
 		auto war = dcon::fatten(state.world, war_id);
 		for(auto o : war.get_war_participant())
 			if(o.get_is_attacker() == true)
-				contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
+				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
 	dcon::war_id war_id{};
@@ -270,11 +270,11 @@ public:
 class overlapping_defender_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override {
-		contents.clear();
+		row_contents.clear();
 		auto war = dcon::fatten(state.world, war_id);
 		for(auto o : war.get_war_participant())
 			if(o.get_is_attacker() == false)
-				contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
+				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		update(state);
 	}
 	dcon::war_id war_id{};

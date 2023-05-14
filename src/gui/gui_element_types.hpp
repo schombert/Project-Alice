@@ -247,7 +247,7 @@ protected:
 	virtual void update_subwindow(sys::state& state, ItemWinT* subwindow, ItemConT content) { }
 
 public:
-	std::vector<ItemConT> contents{};
+	std::vector<ItemConT> row_contents{};
 
 	void update(sys::state& state);
 };

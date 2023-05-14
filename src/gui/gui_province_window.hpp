@@ -296,12 +296,12 @@ public:
 class province_core_flags : public overlapping_flags_box {
 private:
 	void populate(sys::state& state, dcon::province_id prov_id) {
-		contents.clear();
+		row_contents.clear();
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		fat_id.for_each_core_as_province([&](dcon::core_id core_id) {
 			auto core_fat_id = dcon::fatten(state.world, core_id);
 			auto identity = core_fat_id.get_identity();
-			contents.push_back(identity.id);
+			row_contents.push_back(identity.id);
 		});
 		update(state);
 	}
@@ -817,11 +817,11 @@ public:
 			auto category = any_cast<nations::focus_type>(payload);
 			category_label->set_text(state, text::get_focus_category_name(state, category));
 
-			focus_list->contents.clear();
+			focus_list->row_contents.clear();
 			state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
 				auto fat_id = dcon::fatten(state.world, focus_id);
 				if(fat_id.get_type() == uint8_t(category)) {
-					focus_list->contents.push_back(focus_id);
+					focus_list->row_contents.push_back(focus_id);
 				}
 			});
 			focus_list->update(state);

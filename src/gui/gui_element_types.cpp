@@ -993,7 +993,7 @@ template<class ItemWinT, class ItemConT>
 void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& state) {
 	auto spacing = int16_t(base_data.data.overlapping.spacing);
 	if(base_data.get_element_type() == element_type::overlapping) {
-		while(contents.size() > windows.size()) {
+		while(row_contents.size() > windows.size()) {
 			auto ptr = make_element_by_type<ItemWinT>(state, get_row_element_name());
 			if(subwindow_width <= 0) {
 				subwindow_width = ptr->base_data.size.x;
@@ -1002,18 +1002,18 @@ void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& st
 			add_child_to_front(std::move(ptr));
 		}
 
-		float size_ratio = float(contents.size() * (subwindow_width + spacing)) / float(base_data.size.x);
+		float size_ratio = float(row_contents.size() * (subwindow_width + spacing)) / float(base_data.size.x);
 		int16_t offset = spacing + subwindow_width;
 		if(size_ratio > 1.f) {
 			offset = int16_t(float(subwindow_width) / size_ratio);
 		}
 		int16_t current_x = 0;
 		if(base_data.data.overlapping.image_alignment == alignment::right) {
-			current_x = base_data.size.x - subwindow_width - offset * int16_t(contents.size() - 1);
+			current_x = base_data.size.x - subwindow_width - offset * int16_t(row_contents.size() - 1);
 		}
 		for(size_t i = 0; i < windows.size(); i++) {
-			if(i < contents.size()) {
-				update_subwindow(state, windows[i], contents[i]);
+			if(i < row_contents.size()) {
+				update_subwindow(state, windows[i], row_contents[i]);
 				windows[i]->base_data.position.x = current_x;
 				current_x += offset;
 				windows[i]->set_visible(state, true);
@@ -1040,12 +1040,12 @@ message_result overlapping_flags_box::set(sys::state& state, Cyto::Any& payload)
 
 void overlapping_sphere_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		int32_t sphereling_count = 0;  // this is a hack that's only getting used because checking if a nation is a GP doesn't work yet.
 		state.world.for_each_nation([&](dcon::nation_id other) {
 			auto other_fat = dcon::fatten(state.world, other);
 			if(other_fat.get_in_sphere_of().id == current_nation) {
-				contents.push_back(other_fat.get_identity_from_identity_holder().id);
+				row_contents.push_back(other_fat.get_identity_from_identity_holder().id);
 				sphereling_count++;
 			}
 		});
@@ -1053,7 +1053,7 @@ void overlapping_sphere_flags::populate_flags(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, current_nation);
 			auto sphere_lord = fat_id.get_in_sphere_of();
 			if(sphere_lord.id) {
-				contents.push_back(sphere_lord.get_identity_from_identity_holder().id);
+				row_contents.push_back(sphere_lord.get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);
@@ -1062,15 +1062,15 @@ void overlapping_sphere_flags::populate_flags(sys::state& state) {
 
 void overlapping_puppet_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		auto fat_id = dcon::fatten(state.world, current_nation);
 		auto overlord = state.world.nation_get_overlord_as_subject(current_nation);
 		auto overlord_nation = dcon::fatten(state.world, overlord).get_ruler();
 		if(bool(overlord_nation)) {
-			contents.push_back(overlord_nation.get_identity_from_identity_holder().id);
+			row_contents.push_back(overlord_nation.get_identity_from_identity_holder().id);
 		} else {
 			for(auto puppet : state.world.nation_get_overlord_as_ruler(current_nation)) {
-				contents.push_back(puppet.get_subject().get_identity_from_identity_holder().id);
+				row_contents.push_back(puppet.get_subject().get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);
@@ -1079,12 +1079,12 @@ void overlapping_puppet_flags::populate_flags(sys::state& state) {
 
 void overlapping_ally_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
 			if(rel.get_are_allied()) {
 				auto ally = nations::get_relationship_partner(state, rel.id, current_nation);
 				auto fat_ally = dcon::fatten(state.world, ally);
-				contents.push_back(fat_ally.get_identity_from_identity_holder().id);
+				row_contents.push_back(fat_ally.get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);
@@ -1093,12 +1093,12 @@ void overlapping_ally_flags::populate_flags(sys::state& state) {
 
 void overlapping_enemy_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		for(auto wa : state.world.nation_get_war_participant(current_nation)) {
 			bool is_attacker = wa.get_is_attacker();
 			for(auto o : wa.get_war().get_war_participant()) {
 				if(o.get_is_attacker() != is_attacker) {
-					contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
+					row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 				}
 			}
 		}
@@ -1108,12 +1108,12 @@ void overlapping_enemy_flags::populate_flags(sys::state& state) {
 
 void overlapping_protected_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
 			if(rel.get_truce_until()) {
 				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
 				auto fat_id = dcon::fatten(state.world, nat_id);
-				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+				row_contents.push_back(fat_id.get_identity_from_identity_holder().id);
 			}
 		}
 
@@ -1122,7 +1122,7 @@ void overlapping_protected_flags::populate_flags(sys::state& state) {
 				if(gpr.get_influence_target().id == current_nation) {
 					auto nat_id = gpr.get_great_power();
 					auto fat_id = dcon::fatten(state.world, nat_id);
-					contents.push_back(fat_id.get_identity_from_identity_holder().id);
+					row_contents.push_back(fat_id.get_identity_from_identity_holder().id);
 				}
 			}
 		}
@@ -1132,12 +1132,12 @@ void overlapping_protected_flags::populate_flags(sys::state& state) {
 
 void overlapping_truce_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
 			if(rel.get_truce_until()) {
 				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
 				auto fat_id = dcon::fatten(state.world, nat_id);
-				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+				row_contents.push_back(fat_id.get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);
