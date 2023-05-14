@@ -637,6 +637,36 @@ public:
 		return text::get_name_as_string(state, dcon::fatten(state.world, last_religion));
 	}
 };
+class province_dominant_issue_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		dcon::issue_option_id last_issue{};
+		float last_issue_amount = 0.f;
+		state.world.for_each_issue_option([&](dcon::issue_option_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_issue_amount) {
+				last_issue_amount = amount;
+				last_issue = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_issue));
+	}
+};
+class province_dominant_ideology_text : public standard_province_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		dcon::ideology_id last_ideology{};
+		float last_ideology_amount = 0.f;
+		state.world.for_each_ideology([&](dcon::ideology_id id) {
+			auto amount = state.world.province_get_demographics(province_id, demographics::to_key(state, id));
+			if(amount > last_ideology_amount) {
+				last_ideology_amount = amount;
+				last_ideology = id;
+			}
+		});
+		return text::get_name_as_string(state, dcon::fatten(state.world, last_ideology));
+	}
+};
 
 class province_supply_limit_text : public standard_province_text {
 public:
@@ -1440,30 +1470,31 @@ public:
 };
 
 class nation_player_opinion_text : public standard_nation_text {
-	std::string_view get_level_str(uint8_t v) {
+public:
+	static std::string_view get_level_text_key(uint8_t v) {
 		switch(v & nations::influence::level_mask) {
 		case nations::influence::level_neutral:
-			return "REL_NEUTRAL";
+			return "rel_neutral";
 		case nations::influence::level_opposed:
-			return "REL_OPPOSED";
+			return "rel_opposed";
 		case nations::influence::level_hostile:
-			return "REL_HOSTILE";
+			return "rel_hostile";
 		case nations::influence::level_cordial:
-			return "REL_CORDIAL";
+			return "rel_cordial";
 		case nations::influence::level_friendly:
-			return "REL_FRIENDLY";
+			return "rel_friendly";
 		case nations::influence::level_in_sphere:
-			return "REL_SPHERE_OF_INFLUENCE";
+			return "rel_sphere_of_influence";
 		default:
 			return "?";
 		}
 	}
-public:
+
 	std::string get_text(sys::state& state) noexcept override {
 		auto gp_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
 		if(bool(gp_rel_id)) {
 			const auto status = state.world.gp_relationship_get_status(gp_rel_id);
-			return text::produce_simple_string(state, get_level_str(status));
+			return text::produce_simple_string(state, get_level_text_key(status));
 		}
 		return "-";
 	}

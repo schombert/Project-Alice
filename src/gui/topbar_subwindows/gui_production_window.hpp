@@ -6,6 +6,7 @@
 #include "gui_invest_buttons_window.hpp"
 #include "gui_pop_sort_buttons_window.hpp"
 #include "gui_goods_filter_window.hpp"
+#include "gui_projects_window.hpp"
 #include <vector>
 
 namespace ui {
@@ -80,9 +81,7 @@ public:
 				auto cid = cset.commodity_type[size_t(i)];
 				Cyto::Any payload = cid;
 				input_icons[size_t(i)]->impl_set(state, payload);
-				bool is_lack = state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f;
-				if(cid == dcon::commodity_id{})
-					is_lack = false;
+				bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f : false;
 				input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 			}
 	}
@@ -315,6 +314,25 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	sys::commodity_group curr_commodity_group{};
 	xy_pair base_commodity_offset{ 33, 50 };
 	xy_pair commodity_offset{ 33, 50 };
+
+	std::vector<element_base*> factory_elements;
+	std::vector<element_base*> investment_brow_elements;
+	std::vector<element_base*> investment_button_elements;
+	std::vector<element_base*> project_elements;
+	std::vector<element_base*> good_elements;
+
+	void set_visible_vector_elements(sys::state& state, std::vector<element_base*>& elements, bool v) noexcept {
+		for(auto element : elements)
+			element->set_visible(state, v);
+	}
+
+	void hide_sub_windows(sys::state& state) noexcept {
+		set_visible_vector_elements(state, factory_elements, false);
+		set_visible_vector_elements(state, investment_brow_elements, false);
+		set_visible_vector_elements(state, investment_button_elements, false);
+		set_visible_vector_elements(state, project_elements, false);
+		set_visible_vector_elements(state, good_elements, false);
+	}
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
@@ -467,29 +485,14 @@ public:
 			good_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
+		} else if(name == "project_listbox") {
+			auto ptr = make_element_by_type<production_project_listbox>(state, id);
+			project_elements.push_back(ptr.get());
+			ptr->set_visible(state, false);
+			return ptr;
 		} else {
 			return nullptr;
 		}
-	}
-
-	void hide_vector_elements(sys::state& state, std::vector<element_base*>& elements) {
-		for(auto element : elements) {
-			element->set_visible(state, false);
-		}
-	}
-
-	void show_vector_elements(sys::state& state, std::vector<element_base*>& elements) {
-		for(auto element : elements) {
-			element->set_visible(state, true);
-		}
-	}
-
-	void hide_sub_windows(sys::state& state) {
-		hide_vector_elements(state, factory_elements);
-		hide_vector_elements(state, investment_brow_elements);
-		hide_vector_elements(state, investment_button_elements);
-		hide_vector_elements(state, project_elements);
-		hide_vector_elements(state, good_elements);
 	}
 	
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -498,16 +501,16 @@ public:
 			hide_sub_windows(state);
 			switch(enum_val) {
 				case production_window_tab::factories:
-					show_vector_elements(state, factory_elements);
+					set_visible_vector_elements(state, factory_elements, true);
 					break;
 				case production_window_tab::investments:
-					show_vector_elements(state, investment_brow_elements);
+					set_visible_vector_elements(state, investment_brow_elements, true);
 					break;
 				case production_window_tab::projects:
-					show_vector_elements(state, project_elements);
+					set_visible_vector_elements(state, project_elements, true);
 					break;
 				case production_window_tab::goods:
-					show_vector_elements(state, good_elements);
+					set_visible_vector_elements(state, good_elements, true);
 					break;
 			}
 			active_tab = enum_val;
@@ -515,12 +518,6 @@ public:
 		}
 		return message_result::unseen;
 	}
-	
-	std::vector<element_base*> factory_elements;
-	std::vector<element_base*> investment_brow_elements;
-	std::vector<element_base*> investment_button_elements;
-	std::vector<element_base*> project_elements;
-	std::vector<element_base*> good_elements;
 };
 
 }

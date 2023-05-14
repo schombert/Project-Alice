@@ -44,10 +44,24 @@ void building_file::result(std::string_view name, building_definition&& res, err
 			context.state.world.factory_type_set_name(factory_id, text::find_or_add_key(context.state, name));
 			context.state.world.factory_type_set_construction_time(factory_id, int16_t(res.time));
 			context.state.world.factory_type_set_is_available_from_start(factory_id, res.default_enabled);
-			for(uint32_t i = context.state.world.commodity_size(); i-- > 0; ) {
+			/*for(uint32_t i = context.state.world.commodity_size(); i-- > 0; ) {
 				dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(i));
 				context.state.world.factory_type_set_construction_costs(factory_id, cid, res.goods_cost.data[cid]);
-			}
+			}*/
+			uint32_t added = 0;
+			auto& cc = context.state.world.factory_type_get_construction_costs(factory_id);
+			context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+				auto amount = res.goods_cost.data.safe_get(id);
+				if(amount > 0) {
+					if(added >= economy::commodity_set::set_size) {
+						err.accumulated_errors += "Too many factory cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+					} else {
+						cc.commodity_type[added] = id;
+						cc.commodity_amounts[added] = amount;
+						++added;
+					}
+				}
+			});
 			if(res.production_type.length() > 0) {
 				context.map_of_production_types.insert_or_assign(std::string(res.production_type), factory_id);
 			}

@@ -112,6 +112,10 @@ int32_t regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
+dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p);
+
+dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id t);
+dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id t);
 
 void update_recruitable_regiments(sys::state& state, dcon::nation_id n);
 void update_all_recruitable_regiments(sys::state& state);

@@ -54,6 +54,7 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 bool has_railroads_being_built(sys::state& state, dcon::province_id id);
 bool can_build_railroads(sys::state& state, dcon::province_id id);
 bool has_an_owner(sys::state& state, dcon::province_id id);
+bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
 
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
 float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);

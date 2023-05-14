@@ -11,6 +11,7 @@
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
 #include "gui_province_window.hpp"
+#include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "demographics.hpp"
@@ -264,6 +265,7 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("project_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		// Allow mobility of those windows who can be moved, and shall be moved
 		ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
@@ -300,6 +302,11 @@ namespace sys {
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
+			new_elm->impl_on_update(*this);
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
@@ -626,7 +633,7 @@ namespace sys {
 			}
 		}
 		// read buildings.text
-		world.factory_type_resize_construction_costs(world.commodity_size());
+		// world.factory_type_resize_construction_costs(world.commodity_size());
 		{
 			auto buildings = open_file(common, NATIVE("buildings.txt"));
 			if(buildings) {

@@ -128,11 +128,13 @@ struct migration_buffer {
 	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
 	ve::vectorizable_buffer<dcon::province_id, dcon::pop_id> destinations;
 	uint32_t size = 0;
+	uint32_t reserved = 0;
 
 	migration_buffer() : amounts(0), destinations(0), size(0) { }
 	void update(uint32_t s) {
-		if(size < s) {
-			size = s;
+		size = s;
+		if(reserved < s) {
+			reserved = s;
 			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 			destinations = ve::vectorizable_buffer<dcon::province_id, dcon::pop_id>(s);
 		}

@@ -400,7 +400,7 @@ object {
 	}
 	property{
 		name{ construction_costs }
-		type{array{commodity_id}{float}}
+		type{ economy::commodity_set }
 		tag{ scenario }
 	}
 	property{
@@ -2511,6 +2511,15 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ private_investment }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ private_investment_effective_fraction }
+		type{ float }
+	}
+	property {
 		name{ total_rich_income }
 		type{ float }
 		tag{ save }
@@ -2647,6 +2656,11 @@ object {
 	}
 	property {
 		name{ construction_demand }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ private_construction_demand }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -3049,6 +3063,145 @@ relationship{
 		name{rebel_faction}
 		type{many}
 		index_storage{array}
+	}
+}
+
+relationship{
+	name{ province_land_construction }
+	storage_type{ compactable }
+	size{ 16000 }
+	tag{ save }
+
+	link{
+		object{province}
+		name{province}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+
+	property{
+		name{ purchased_goods }
+		type{ economy::commodity_set }
+		tag{ save }
+	}
+	property{
+		name{ type }
+		type{ unit_type_id }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ province_naval_construction }
+	storage_type{ compactable }
+	size{ 16000 }
+	tag{ save }
+
+	link{
+		object{province}
+		name{province}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+
+	property{
+		name{ purchased_goods }
+		type{ economy::commodity_set }
+		tag{ save }
+	}
+	property{
+		name{ type }
+		type{ unit_type_id }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ province_building_construction }
+	storage_type{ compactable }
+	size{ 16000 }
+	tag{ save }
+
+	link{
+		object{province}
+		name{province}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+
+	property{
+		name{ purchased_goods }
+		type{ economy::commodity_set }
+		tag{ save }
+	}
+	property{
+		name{ type }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
+		name{ is_pop_project }
+		type{ bitfield }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ state_building_construction }
+	storage_type{ compactable }
+	size{ 16000 }
+	tag{ save }
+
+	link{
+		object{state_instance}
+		name{state}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{nation}
+		type{many}
+		index_storage{array}
+	}
+
+	property{
+		name{ purchased_goods }
+		type{ economy::commodity_set }
+		tag{ save }
+	}
+	property{
+		name{ type }
+		type{ factory_type_id }
+		tag{ save }
+	}
+	property{
+		name{ is_pop_project }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ is_upgrade }
+		type{ bitfield }
+		tag{ save }
 	}
 }
 
