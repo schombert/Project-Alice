@@ -192,7 +192,7 @@ public:
 			state.ui_state.msg_filters_window->set_visible(state, false);
 		} else {
 			state.ui_state.msg_filters_window->set_visible(state, true);
-			state.ui_state.root->move_child_to_front(state.ui_state.msg_settings_window);
+			state.ui_state.root->move_child_to_front(state.ui_state.msg_filters_window);
 		}
 	}
 
