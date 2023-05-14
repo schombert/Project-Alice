@@ -372,6 +372,9 @@ namespace ui {
 		element_base* unit_window_navy = nullptr;
 		element_base* build_unit_window = nullptr;
 
+		element_base* msg_filters_window = nullptr;
+		element_base* msg_settings_window = nullptr;
+
 		// Event windows that are reused
 		std::vector<std::unique_ptr<element_base>> spare_major_event_subwindows;
 		std::vector<std::unique_ptr<element_base>> spare_national_event_subwindows;

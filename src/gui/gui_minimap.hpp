@@ -5,6 +5,7 @@
 #include "gui_ledger_window.hpp"
 #include "gui_search_window.hpp"
 #include "gui_main_menu.hpp"
+#include "gui_msg_filters_window.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
 #include "map_modes.hpp"
@@ -180,6 +181,34 @@ public:
 	}
 };
 
+class minimap_msg_settings_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(!state.ui_state.msg_filters_window) {
+			auto window = make_element_by_type<msg_filters_window>(state, "message_filters");
+			state.ui_state.msg_filters_window = window.get();
+			state.ui_state.root->add_child_to_front(std::move(window));
+		} else if(state.ui_state.msg_filters_window->is_visible()) {
+			state.ui_state.msg_filters_window->set_visible(state, false);
+		} else {
+			state.ui_state.msg_filters_window->set_visible(state, true);
+			state.ui_state.root->move_child_to_front(state.ui_state.msg_settings_window);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(auto k = state.key_to_text_sequence.find(std::string_view("menubar_message_settings")); k != state.key_to_text_sequence.end()) {
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 class minimap_menu_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -225,6 +254,8 @@ public:
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {
 			return make_element_by_type<minimap_ledger_button>(state, id);
+		} else if(name == "menubar_msg_settings") {
+			return make_element_by_type<minimap_msg_settings_button>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);
 			size_t num_index = name.rfind("_") + 1;
