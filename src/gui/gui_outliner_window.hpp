@@ -331,17 +331,7 @@ public:
 
 class outliner_window : public window_element_base {
     outliner_listbox* listbox = nullptr;
-    std::vector<bool> filters;
 public:
-    void on_create(sys::state& state) noexcept override {
-        window_element_base::on_create(state);
-        // All filters enabled by default...
-        filters.resize(uint8_t(outliner_filter::count), true);
-
-        for(uint8_t i = 0; i < uint8_t(outliner_filter::count); ++i)
-            filters[i] = state.user_settings.outliner_views[i];
-    }
-
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "outliner_top") {
             return make_element_by_type<outliner_minmax_button>(state, id);
@@ -385,9 +375,8 @@ public:
     message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
         if(payload.holds_type<outliner_filter>()) {
             auto filter = any_cast<outliner_filter>(payload);
-            filters[uint8_t(filter)] = !filters[uint8_t(filter)];
-            
-            state.user_settings.outliner_views[i] = filters[i];
+
+            state.user_settings.outliner_views[uint8_t(filter)] = !state.user_settings.outliner_views[uint8_t(filter)];
             state.save_user_settings();
 
             listbox->on_update(state);
@@ -399,7 +388,7 @@ public:
     message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
         if(payload.holds_type<outliner_filter>()) {
             auto filter = any_cast<outliner_filter>(payload);
-            payload.emplace<bool>(filters[uint8_t(filter)]);
+            payload.emplace<bool>(state.user_settings.outliner_views[uint8_t(filter)]);
             return message_result::consumed;
         }
         return message_result::unseen;
