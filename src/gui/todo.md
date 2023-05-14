@@ -4,6 +4,8 @@ GUI Todo:
 - Create Lists for Colonial Actions, Bankrupt Factories, Buildings be Constructed
 - Factories are closed when their production scale is < 0.05
 - Factories being built or upgraded = the nation has one or more state_building_construction
+
+Abandon:
 - top5 production and top3 import/export requires overlapping elements (see diplo war flags)
 
 DONE:

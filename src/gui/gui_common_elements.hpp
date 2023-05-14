@@ -369,13 +369,16 @@ public:
 		auto independence_target = fat_id.get_associated_independence();
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
+		std::string movementAdj;
 		if(independence_target.get_cultural_union_of().id) {
 			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_union_movement"));
-			text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective_as_string(state, independence_target));
+			movementAdj = text::get_adjective_as_string(state, independence_target);
+			text::add_to_substitution_map(sub, text::variable_type::country_adj, std::string_view(movementAdj));
 			text::add_to_layout_box(contents, state, box, k->second, sub);
 		} else {
 			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_liberation_movement"));
-			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective_as_string(state, independence_target));
+			movementAdj = text::get_adjective_as_string(state, independence_target);
+			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(movementAdj));
 			text::add_to_layout_box(contents, state, box, k->second, sub);
 		}
 		text::close_layout_box(contents, box);
@@ -517,6 +520,7 @@ public:
 			auto fat_id = dcon::fatten(state.world, rebel_faction_id);
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
+			std::string adjective;
 			auto rebelAdj = text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within());
 			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebelAdj));
 			auto culture = fat_id.get_primary_culture();
@@ -525,9 +529,9 @@ public:
 				//auto rebelName = text::get_name_as_string(state, culture);
 				text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
 			} else if(defection_target.id) {
-				auto adjective = text::get_adjective_as_string(state, defection_target);
-				text::add_to_substitution_map(sub, text::variable_type::indep, adjective);
-				text::add_to_substitution_map(sub, text::variable_type::union_adj, adjective);
+				adjective = text::get_adjective_as_string(state, defection_target);
+				text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
+				text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
 			}
 			text::add_to_layout_box(contents, state, box, fat_id.get_type().get_name(), sub);
 			text::close_layout_box(contents, box);
@@ -1620,7 +1624,9 @@ public:
 		});
 
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::value, text::prettify(nations::free_colonial_points(state, nation_id)));
+		std::string value;
+		value = text::prettify(nations::free_colonial_points(state, nation_id));
+		text::add_to_substitution_map(sub, text::variable_type::value, std::string_view(value));
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("colonial_points"), sub);
 		text::add_line_break_to_layout_box(contents, state, box);
