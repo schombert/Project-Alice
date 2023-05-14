@@ -337,6 +337,9 @@ public:
         window_element_base::on_create(state);
         // All filters enabled by default...
         filters.resize(uint8_t(outliner_filter::count), true);
+
+        for(uint8_t i = 0; i < uint8_t(outliner_filter::count); ++i)
+            filters[i] = state.user_settings.outliner_views[i];
     }
 
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -383,6 +386,10 @@ public:
         if(payload.holds_type<outliner_filter>()) {
             auto filter = any_cast<outliner_filter>(payload);
             filters[uint8_t(filter)] = !filters[uint8_t(filter)];
+            
+            state.user_settings.outliner_views[i] = filters[i];
+            state.save_user_settings();
+
             listbox->on_update(state);
             return message_result::consumed;
         }

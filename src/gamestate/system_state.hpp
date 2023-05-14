@@ -49,20 +49,7 @@ namespace sys {
 		bool dummy2 = false;
 		bool dummy3 = false;
 		bool use_classic_fonts = false;
-		bool outliner_view_rebel_occupations = true;
-		bool outliner_view_sieges = true;
-		bool outliner_view_hostile_sieges = true;
-		bool outliner_view_combat = true;
-		bool outliner_view_naval_combat = true;
-		bool outliner_view_armies = true;
-		bool outliner_view_navies = true;
-		bool outliner_view_factories = true;
-		bool outliner_view_buildings = true;
-		bool outliner_view_army_construction = true;
-		bool outliner_view_navy_construction = true;
-		bool outliner_view_gp_influence = true;
-		bool outliner_view_national_focus = true;
-		bool outliner_view_rally_points = true;
+		bool outliner_views[14] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 	};
 
 	struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
