@@ -529,9 +529,10 @@ public:
 				text::substitution_map sub;
 				auto rebelname = text::produce_simple_string(state, rbl_type_fat_id.get_name());
 				auto rebelsize = text::prettify(rebel::get_faction_brigades_active(state, rbl_fact_slim_id));
+				auto rebelOrg = rebel::get_faction_organization(state, rbl_fact_slim_id);
 				text::add_to_substitution_map(sub, text::variable_type::name, rebelname);
 				text::add_to_substitution_map(sub, text::variable_type::strength, rebelsize);
-				text::add_to_substitution_map(sub, text::variable_type::org, text::format_percentage(rebel::get_faction_organization(state, rbl_fact_slim_id)));
+				text::add_to_substitution_map(sub, text::variable_type::org, text::format_percentage(rebelOrg));
 				text::localised_format_box(state, contents, box, std::string_view("topbar_faction"), sub);
 			});
 			//text::add_line_break_to_layout_box(contents, state, box);
@@ -571,7 +572,7 @@ public:
 				auto colonyName = colState.get_name();
 				text::substitution_map sub;
 				text::add_to_substitution_map(sub, text::variable_type::region, colonyName);
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_colonialgood_protectorate"), text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_colonialgood_state"), sub);
 			});
 		} else if(nations::is_losing_colonial_race(state, nation_id)) {
 			nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
