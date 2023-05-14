@@ -517,11 +517,13 @@ public:
 			auto fat_id = dcon::fatten(state.world, rebel_faction_id);
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within()));
+			auto rebelAdj = text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within());
+			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebelAdj));
 			auto culture = fat_id.get_primary_culture();
 			auto defection_target = fat_id.get_defection_target();
 			if(culture.id) {
-				text::add_to_substitution_map(sub, text::variable_type::culture, text::get_name_as_string(state, culture));
+				//auto rebelName = text::get_name_as_string(state, culture);
+				text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
 			} else if(defection_target.id) {
 				auto adjective = text::get_adjective_as_string(state, defection_target);
 				text::add_to_substitution_map(sub, text::variable_type::indep, adjective);
@@ -1424,7 +1426,7 @@ public:
 
 
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::curr, rulingParty);
+		text::add_to_substitution_map(sub, text::variable_type::curr, std::string_view(rulingParty));
 
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_ruling_party"), sub);
@@ -1679,7 +1681,7 @@ public:
 		text::substitution_map sub;
 		auto litChange = (demographics::getMonthlyLitChange(state, nation_id) / 30);
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{litChange});	// TODO - This needs to display the estimated literacy change -breizh
-		auto avgLiteracy = (state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total));
+		auto avgLiteracy = text::format_percentage((state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total)), 1);
 		text::add_to_substitution_map(sub, text::variable_type::avg, text::format_percentage(avgLiteracy, 1));
 
 
