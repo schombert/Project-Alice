@@ -70,7 +70,7 @@ class outliner_element : public listbox_row_element_base<outliner_data> {
         case outliner_filter::gp_influence:
             return "ol_gp_influence";
         case outliner_filter::national_focus:
-            return "ol_view_natfocus";
+            return "ol_view_natfocus_header";
         case outliner_filter::rally_points:
             return "ol_view_rallypoints_header";
         default:
