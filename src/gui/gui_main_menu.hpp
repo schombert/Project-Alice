@@ -188,38 +188,12 @@ enum class main_menu_sub_window {
 	none, controls, audio, graphics, message_settings
 };
 
-class open_controls_button : public button_element_base {
+template<main_menu_sub_window SubWindow>
+class open_main_menu_sub_window_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = main_menu_sub_window::controls;
-			parent->impl_get(state, payload);
-		}
-	}
-};
-class open_audio_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = main_menu_sub_window::audio;
-			parent->impl_get(state, payload);
-		}
-	}
-};
-class open_graphics_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = main_menu_sub_window::graphics;
-			parent->impl_get(state, payload);
-		}
-	}
-};
-class open_message_settings_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = main_menu_sub_window::message_settings;
+			Cyto::Any payload = SubWindow;
 			parent->impl_get(state, payload);
 		}
 	}
@@ -240,7 +214,7 @@ public:
 
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		auto ptr = make_element_by_type<msg_settings_window>(state, state.ui_state.defs_by_name.find("shieldedinformationdialog")->second.definition);
+		auto ptr = make_element_by_type<msg_settings_window>(state, state.ui_state.defs_by_name.find("menu_message_settings")->second.definition);
 		message_settings_menu = ptr.get();
 		add_child_to_front(std::move(ptr));
 	}
@@ -249,13 +223,13 @@ public:
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "graphics") {
-			return make_element_by_type<open_graphics_button>(state, id);
+			return make_element_by_type<open_main_menu_sub_window_button<main_menu_sub_window::graphics>>(state, id);
 		} else if(name == "sound") {
-			return make_element_by_type<open_audio_button>(state, id);
+			return make_element_by_type<open_main_menu_sub_window_button<main_menu_sub_window::audio>>(state, id);
 		} else if(name == "controls") {
-			return make_element_by_type<open_controls_button>(state, id);
+			return make_element_by_type<open_main_menu_sub_window_button<main_menu_sub_window::controls>>(state, id);
 		} else if(name == "message_settings") {
-			return make_element_by_type<open_message_settings_button>(state, id);
+			return make_element_by_type<open_main_menu_sub_window_button<main_menu_sub_window::message_settings>>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "exit") {
