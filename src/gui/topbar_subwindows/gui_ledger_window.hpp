@@ -121,7 +121,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -224,7 +225,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -309,7 +311,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -411,7 +414,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -425,7 +429,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -520,7 +525,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
