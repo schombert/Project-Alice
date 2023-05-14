@@ -936,7 +936,11 @@ namespace text {
 			return std::string(buffer);
 		} else if(std::holds_alternative<fp_three_places>(sub)) {
 			char buffer[200] = { 0 };
-			snprintf(buffer, 200, "%.2f", std::get<fp_three_places>(sub).value);
+			snprintf(buffer, 200, "%.3f", std::get<fp_three_places>(sub).value);	// snprintf used to use "%.2f" this appears to be a clerical mistake so i fixed it -breizh
+			return std::string(buffer);
+		} else if(std::holds_alternative<fp_four_places>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "%.4f", std::get<fp_four_places>(sub).value);
 			return std::string(buffer);
 		} else if(std::holds_alternative<sys::date>(sub)) {
 			return date_to_string(state, std::get<sys::date>(sub));

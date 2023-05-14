@@ -754,7 +754,7 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 			0.0f,
 			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier)
 		);
-	
+
 		auto old_con = state.world.pop_get_consciousness(ids);
 
 		state.world.pop_set_consciousness(ids, ve::min(ve::max(ve::select(owner != dcon::nation_id{}, ((old_con + lx_mod) + (cl_mod + lit_mod)) + (local_mod + sep_mod), 0.0f), 0.0f), 10.f));
@@ -790,6 +790,21 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 
 		state.world.pop_set_literacy(ids, ve::select(owner != dcon::nation_id{}, new_lit, old_lit));
 	});
+}
+
+float getMonthlyLitChange(sys::state& state, dcon::nation_id) {
+	// TODO - We want this to return the estimated monthly change for literacy, note the returned value is already divided by 30
+	return 0.0001;
+}
+
+float getMonthlyMilChange(sys::state& state, dcon::nation_id) {
+	// TODO - We want this to return the estimated monthly change for militancy, note the returned value is already divided by 30
+	return 0.0001;
+}
+
+float getMonthlyConChange(sys::state& state, dcon::nation_id) {
+	// TODO - We want this to return the estimated monthly change for conciousness, note the returned value is already divided by 30
+	return 0.0001;
 }
 
 inline constexpr float ideology_change_rate = 0.10f;
@@ -995,8 +1010,8 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 			Demotion amount:
 			Compute the demotion modifier *additively*. If it it non-positive, there is no demotion for the day. Otherwise, if there is a national focus to to a pop type present in the state and the pop in question could possibly demote into that type, add the national focus effect to the demotion modifier. Then multiply this value by define:PROMOTION_SCALE x pop-size to find out how many demote (although at least one person will demote per day if the result is positive).
 			*/
-			
-			
+
+
 			if(!owner)
 				return;
 
@@ -1027,10 +1042,10 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 			float amount = std::min(current_size, promoting ? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) * state.defines.promotion_scale * current_size)) : (std::ceil(promotion_chance * state.defines.promotion_scale * current_size)));
 			pbuf.amounts.set(p, amount);
 
-			
+
 			tagged_vector<float, dcon::pop_type_id> weights(state.world.pop_type_size());
 
-			
+
 			/*
 			The promotion and demotion factors seem to be computed additively (by taking the sum of all true conditions). If there is a national focus set towards a pop type in the state, that is also added into the chances to promote into that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This obviously has the effect of making those pop types even more likely than they otherwise would be.
 
@@ -1131,7 +1146,7 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 			//pops in an overseas and colonial province do not assimilate
 			if(state.world.province_get_is_colonial(location) && province::is_overseas(state, location))
 				return; // early exit
-			
+
 			/*
 			Amount: define:ASSIMILATION_SCALE x (provincial-assimilation-rate-modifier + 1) x (national-assimilation-rate-modifier + 1) x pop-size x assimilation chance factor (computed additively, and always at least 0.01).
 			*/
