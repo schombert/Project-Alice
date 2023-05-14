@@ -69,9 +69,9 @@ enum class pop_list_sort : uint8_t {
 	issues,
 	unemployment,
 	cash,
-	subsistence,
-	eve,
-	luxury,
+	life_needs,
+	everyday_needs,
+	luxury_needs,
 	revoltrisk,
 	change,
 	literacy
@@ -1151,6 +1151,17 @@ public:
 	}
 };
 
+template<pop_list_sort Sort>
+class pop_sort_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = Sort;
+			parent->impl_set(state, payload);
+		}
+	}
+};
+
 class population_window : public window_element_base {
 private:
 	pop_listbox* country_pop_listbox = nullptr;
@@ -1162,6 +1173,9 @@ private:
 	ankerl::unordered_dense::map<dcon::state_instance_id::value_base_t, bool> view_expanded_state;
 	std::vector<bool> pop_filters;
 	std::vector<dcon::pop_id> shared_pop_list;
+
+	pop_list_sort sort = pop_list_sort::size;
+	bool sort_ascend = true;
 
 	void update_shared_pop_list(sys::state& state) {
 		shared_pop_list.clear();
@@ -1200,10 +1214,126 @@ private:
 	}
 
 	void sort_pop_list(sys::state& state) {
+		std::function<bool(dcon::pop_id, dcon::pop_id)> fn;
+		switch(sort) {
+		case pop_list_sort::type:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_poptype().id.index() > b_fat_id.get_poptype().id.index();
+			};
+			break;
+		case pop_list_sort::size:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_size() > b_fat_id.get_size();
+			};
+			break;
+		case pop_list_sort::con:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_consciousness() > b_fat_id.get_consciousness();
+			};
+			break;
+		case pop_list_sort::mil:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_militancy() > b_fat_id.get_militancy();
+			};
+			break;
+		case pop_list_sort::religion:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_religion().id.index() > b_fat_id.get_religion().id.index();
+			};
+			break;
+		case pop_list_sort::nationality:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_culture().id.index() > b_fat_id.get_culture().id.index();
+			};
+			break;
+		case pop_list_sort::location:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_pop_location_as_pop().id.index() > b_fat_id.get_pop_location_as_pop().id.index();
+			};
+			break;
+		case pop_list_sort::cash:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_savings() > b_fat_id.get_savings();
+			};
+			break;
+		case pop_list_sort::unemployment:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_employment() > b_fat_id.get_employment();
+			};
+			break;
+		case pop_list_sort::ideology:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_dominant_ideology().id.index() > b_fat_id.get_dominant_ideology().id.index();
+			};
+			break;
+		case pop_list_sort::issues:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_dominant_issue_option().id.index() > b_fat_id.get_dominant_issue_option().id.index();
+			};
+			break;
+		case pop_list_sort::life_needs:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_life_needs_satisfaction() > b_fat_id.get_life_needs_satisfaction();
+			};
+			break;
+		case pop_list_sort::everyday_needs:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_everyday_needs_satisfaction() > b_fat_id.get_everyday_needs_satisfaction();
+			};
+			break;
+		case pop_list_sort::luxury_needs:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_luxury_needs_satisfaction() > b_fat_id.get_luxury_needs_satisfaction();
+			};
+			break;
+		case pop_list_sort::literacy:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.get_literacy() > b_fat_id.get_literacy();
+			};
+			break;
+		// TODO: Implement revoltrisk and growth sorts
+		case pop_list_sort::revoltrisk:
+		case pop_list_sort::change:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				return a_fat_id.id.index() > b_fat_id.id.index();
+			};
+			break;
+		}
 		std::sort(country_pop_listbox->row_contents.begin(), country_pop_listbox->row_contents.end(), [&](auto a, auto b) {
-			auto a_fat_id = dcon::fatten(state.world, a);
-			auto b_fat_id = dcon::fatten(state.world, b);
-			return a_fat_id.get_size() > b_fat_id.get_size();
+			bool r = fn(a, b);
+			return sort_ascend ? r : !r;
 		});
 	}
 
@@ -1316,66 +1446,66 @@ public:
 			auto ptr = make_element_by_type<opaque_element_base>(state, id);
 			return ptr;
 		} else if(name == "sortby_size_button") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::size>>(state, id);
 			return ptr;
 		} else if(name == "sortby_type_button") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::type>>(state, id);
 			return ptr;
 		} else if(name == "sortby_nationality_button") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::nationality>>(state, id);
 			return ptr;
 		} else if(name == "sortby_religion_button") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::religion>>(state, id);
 			return ptr;
 		} else if(name == "sortby_location_button") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::location>>(state, id);
 			return ptr;
 		} else if(name == "sortby_mil_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::mil>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_con_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::con>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_ideology_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::ideology>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_issues_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::issues>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_unemployment_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::unemployment>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_cash_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::cash>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_subsistence_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::life_needs>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_eve_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::everyday_needs>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_luxury_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::luxury_needs>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_revoltrisk_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::revoltrisk>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_change_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::change>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_literacy_button") {
-			auto ptr = make_element_by_type<generic_opaque_checkbox_button<dcon::nation_id>>(state, id);
+			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::literacy>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "pop_province_list") {
@@ -1436,6 +1566,13 @@ public:
 			state.world.for_each_pop_type([&](dcon::pop_type_id id) {
 				pop_filters[dcon::pop_type_id::value_base_t(id.index())] = data.value;
 			});
+			on_update(state);
+			return message_result::consumed;
+		}
+		 else if(payload.holds_type<pop_list_sort>()) {
+			auto new_sort = any_cast<pop_list_sort>(payload);
+			sort_ascend = (new_sort == sort) ? !sort_ascend : true;
+			sort = new_sort;
 			on_update(state);
 			return message_result::consumed;
 		}
