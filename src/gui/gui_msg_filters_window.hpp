@@ -56,6 +56,11 @@ protected:
 		return "message_filters_entry";
 	}
 public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base::on_create(state);
+		on_update(state);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
