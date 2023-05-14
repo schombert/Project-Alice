@@ -142,7 +142,7 @@ public:
             building_icon->set_visible(state, false);
 
             auto fat_id = dcon::fatten(state.world, std::get<dcon::state_building_construction_id>(content));
-            factory_icon->frame = uint16_t(fat_id.get_type().get_output().id.index());
+            factory_icon->frame = uint16_t(fat_id.get_type().get_output().get_icon());
             name_text->set_text(state, text::produce_simple_string(state, fat_id.get_type().get_name()));
             state_id = fat_id.get_state();
 
