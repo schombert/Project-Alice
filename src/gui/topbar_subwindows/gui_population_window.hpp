@@ -1462,50 +1462,62 @@ public:
 			return ptr;
 		} else if(name == "sortby_mil_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::mil>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_con_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::con>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_ideology_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::ideology>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_issues_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::issues>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_unemployment_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::unemployment>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_cash_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::cash>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_subsistence_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::life_needs>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_eve_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::everyday_needs>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_luxury_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::luxury_needs>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_revoltrisk_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::revoltrisk>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_change_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::change>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sortby_literacy_button") {
 			auto ptr = make_element_by_type<pop_sort_button<pop_list_sort::literacy>>(state, id);
+			ptr->set_button_text(state, ""); // Nudge clear
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "pop_province_list") {
