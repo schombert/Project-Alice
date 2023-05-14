@@ -72,7 +72,7 @@ class outliner_element : public listbox_row_element_base<outliner_data> {
         case outliner_filter::national_focus:
             return "ol_view_natfocus";
         case outliner_filter::rally_points:
-            return "ol_view_rallypoints";
+            return "ol_view_rallypoints_header";
         default:
             return "???";
         }
@@ -120,7 +120,7 @@ public:
         }
     }
 
-    void on_update(sys::state& state) noexcept override {
+    void update(sys::state& state) noexcept override {
         combat_icon->set_visible(state, false);
         moving_icon->set_visible(state, false);
         rally_land_icon->set_visible(state, false);
@@ -269,34 +269,33 @@ class outliner_filter_checkbox : public checkbox_button {
     static std::string_view get_filter_text_key(outliner_filter f) noexcept {
         switch(f) {
         case outliner_filter::rebel_occupations:
-            return "ol_rebel_occupations_tooltip";
+            return "ol_view_rebel_occupations";
         case outliner_filter::sieges:
-            return "ol_sieges_tooltip";
+            return "remove_ol_view_sieges";
         case outliner_filter::hostile_sieges:
-            return "ol_hostile_sieges_tooltip";
+            return "remove_ol_view_hostile_sieges";
         case outliner_filter::combat:
-            return "ol_combat_tooltip";
+            return "ol_view_combat";
         case outliner_filter::naval_combat:
-            return "ol_naval_combat_tooltip";
+            return "ol_view_navalcombat";
         case outliner_filter::armies:
-            return "ol_armies_tooltip";
+            return "ol_view_armies";
         case outliner_filter::navies:
-            return "ol_navies_tooltip";
+            return "ol_view_navies";
         case outliner_filter::factories:
-            return "ol_statebuilding_construction_tooltip";
+            return "ol_view_factories";
         case outliner_filter::buildings:
-            return "ol_province_construction_tooltip";
+            return "ol_view_buildings";
         case outliner_filter::army_construction:
-            return "ol_army_construction_tooltip";
+            return "ol_view_army_construction";
         case outliner_filter::navy_construction:
-            // Yes it's mispelt like this in the original game - get lucky
-            return "ol_navy_construciton_tooltip";
+            return "ol_view_navy_construction";
         case outliner_filter::gp_influence:
-            return "ol_gp_influence_tooltip";
+            return "ol_view_gp_influence";
         case outliner_filter::national_focus:
-            return "ol_view_natfocus_tooltip";
+            return "ol_view_natfocus";
         case outliner_filter::rally_points:
-            return "ol_view_rallypoints_tooltip";
+            return "ol_view_rallypoints";
         default:
             return "???";
         }
@@ -384,9 +383,7 @@ public:
         if(payload.holds_type<outliner_filter>()) {
             auto filter = any_cast<outliner_filter>(payload);
             filters[uint8_t(filter)] = !filters[uint8_t(filter)];
-            // TODO: Why this needs double updates?
             listbox->on_update(state);
-            on_update(state);
             return message_result::consumed;
         }
         return message_result::unseen;
