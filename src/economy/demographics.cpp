@@ -792,17 +792,17 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	});
 }
 
-float getMonthlyLitChange(sys::state& state, dcon::nation_id) {
+double getMonthlyLitChange(sys::state& state, dcon::nation_id) {
 	// TODO - We want this to return the estimated monthly change for literacy, note the returned value is already divided by 30
 	return 0.0001;
 }
 
-float getMonthlyMilChange(sys::state& state, dcon::nation_id) {
+double getMonthlyMilChange(sys::state& state, dcon::nation_id) {
 	// TODO - We want this to return the estimated monthly change for militancy, note the returned value is already divided by 30
 	return 0.0001;
 }
 
-float getMonthlyConChange(sys::state& state, dcon::nation_id) {
+double getMonthlyConChange(sys::state& state, dcon::nation_id) {
 	// TODO - We want this to return the estimated monthly change for conciousness, note the returned value is already divided by 30
 	return 0.0001;
 }
