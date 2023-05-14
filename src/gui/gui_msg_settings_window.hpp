@@ -143,7 +143,7 @@ public:
 };
 
 enum class msg_settings_category : uint8_t {
-	all, combat, diplomacy, units, provinces, events, others
+	all, combat, diplomacy, units, provinces, events, others, count
 };
 
 class msg_settings_window : public generic_tabbed_window<msg_settings_category> {
@@ -195,6 +195,124 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+};
+
+struct msg_log_data {
+	// TODO: Display message itself
+	msg_settings_category category = msg_settings_category::all;
+};
+
+class msg_log_entry : public listbox_row_element_base<msg_log_data> {
+public:
+};
+
+class msg_log_listbox : public listbox_element_base<msg_log_entry, msg_log_data> {
+protected:
+    std::string_view get_row_element_name() override {
+        return "message_entry";
+    }
+};
+
+template<msg_settings_category Filter>
+class msg_log_filter_checkbox : public checkbox_button {
+    static std::string_view get_filter_text_key(msg_settings_category f) noexcept {
+        switch(f) {
+        case msg_settings_category::all:
+            return "messagesettings_all";
+        case msg_settings_category::combat:
+            return "messagesettings_combat";
+        case msg_settings_category::diplomacy:
+            return "messagesettings_diplomacy";
+        case msg_settings_category::units:
+            return "messagesettings_units";
+        case msg_settings_category::provinces:
+            return "messagesettings_provinces";
+		case msg_settings_category::events:
+            return "messagesettings_events";
+		case msg_settings_category::others:
+            return "messagesettings_other";
+		default:
+			return "???";
+        }
+    }
+public:
+	bool is_active(sys::state& state) noexcept override {
+        if(parent) {
+            Cyto::Any payload = Filter;
+            parent->impl_get(state, payload);
+            return any_cast<bool>(payload);
+        }
+		return false;
+	}
+
+    void button_action(sys::state& state) noexcept override {
+        if(parent) {
+            Cyto::Any payload = Filter;
+            parent->impl_set(state, payload);
+        }
+    }
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto name = get_filter_text_key(Filter);
+		if(auto k = state.key_to_text_sequence.find(name); k != state.key_to_text_sequence.end()) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+class msg_log_window : public window_element_base {
+	std::vector<bool> cat_filters;
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		cat_filters.resize(size_t(msg_settings_category::count));
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "close") {
+		    return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "messagelog") {
+		    return make_element_by_type<msg_log_listbox>(state, id);
+		} else if(name == "messagecat_combat") {
+		    return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::combat>>(state, id);
+		} else if(name == "messagecat_diplomacy") {
+		    return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::diplomacy>>(state, id);
+		} else if(name == "messagecat_units") {
+		    return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::units>>(state, id);
+		} else if(name == "messagecat_provinces") {
+		    return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::provinces>>(state, id);
+		} else if(name == "messagecat_events") {
+		    return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::events>>(state, id);
+		} else if(name == "messagecat_others") {
+		    return make_element_by_type<msg_log_filter_checkbox<msg_settings_category::others>>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<msg_settings_category>()) {
+			auto cat = any_cast<msg_settings_category>(payload);
+			payload.emplace<bool>(cat_filters[uint8_t(cat)]);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<msg_settings_category>()) {
+			auto cat = any_cast<msg_settings_category>(payload);
+			cat_filters[uint8_t(cat)] = !cat_filters[uint8_t(cat)];
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 

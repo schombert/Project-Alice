@@ -236,14 +236,39 @@ public:
 	}
 };
 
+struct open_msg_log_data {
+	int dummy;
+};
+class open_msg_log_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = open_msg_log_data{};
+			parent->impl_get(state, payload);
+			frame = any_cast<bool>(payload) ? 1 : 0;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = open_msg_log_data{};
+			parent->impl_set(state, payload);
+		}
+	}
+};
+
 class minimap_container_window : public window_element_base {
+	const std::string_view mapmode_btn_prefix{ "mapmode_" };
+	element_base* message_log_window = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
-			auto ptr = make_element_immediate(state, id);
+			auto ptr = make_element_by_type<msg_log_window>(state, id);
+			message_log_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
-			//chat_window
+		} else if(name == "openbutton") {
+			return make_element_by_type<open_msg_log_button>(state, id);
 		} else if(name == "chat_window") {
 			auto ptr = make_element_immediate(state, id);
 			ptr->set_visible(state, false);
@@ -277,8 +302,21 @@ public:
 		window_element_base::render(state, x, y);
 	}
 
-private:
-	const std::string_view mapmode_btn_prefix{ "mapmode_" };
+    message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<open_msg_log_data>()) {
+			message_log_window->set_visible(state, !message_log_window->is_visible());
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<open_msg_log_data>()) {
+			payload.emplace<bool>(message_log_window->is_visible());
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
 class minimap_picture_window : public opaque_element_base {
