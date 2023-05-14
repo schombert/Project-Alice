@@ -150,7 +150,7 @@ class msg_settings_window : public generic_tabbed_window<msg_settings_category> 
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window<msg_settings_category>::on_create(state);
-		ptr->base_data.position.y -= 21; // Nudge
+		base_data.position.y -= 21; // Nudge
 		set_visible(state, false);
 	}
 
