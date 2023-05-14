@@ -1794,9 +1794,8 @@ public:
 
 		});*/
 
-		auto name = text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.clergy));
 
-		text::add_to_substitution_map(sub, text::variable_type::poptype, name);
+		text::add_to_substitution_map(sub, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.clergy));
 		text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{sum_from_pops});	// Fixed Code
 		text::add_to_substitution_map(sub, text::variable_type::fraction, text::fp_two_places{total_clergy});
 		text::add_to_substitution_map(sub, text::variable_type::optimal, text::fp_two_places{pop_optimum});
@@ -1866,7 +1865,7 @@ public:
 		for(auto ac : state.world.nation_get_accepted_cultures(nation_id)) {
 			relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
 		}
-		text::add_to_substitution_map(sub1, text::variable_type::num, text::prettify((int64_t)relevant_pop));
+		text::add_to_substitution_map(sub1, text::variable_type::num, text::pretty_integer{(int64_t)relevant_pop});
 		auto fPoints = relevant_pop / state.defines.national_focus_divider;	// NOTE: Occassionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
 		text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
 		text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);

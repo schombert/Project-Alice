@@ -312,8 +312,6 @@ public:
 							state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker))
 						);
 
-						auto popName = text::produce_simple_string(state, popFat.get_name());
-						auto stateName = text::produce_simple_string(state, state_instance.get_definition().get_name());
 						auto percUnemployed = text::fp_two_places{numUnemployed / state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))};
 
 
@@ -325,8 +323,8 @@ public:
 						//auto stateName = text::produce_simple_string(state, stateDef.get_name());
 						//auto percUnemployed = text::format_percentage(numUnemployed / state_instance.get_demographics(demographics::total));
 						text::add_to_substitution_map(sub, text::variable_type::num, numUnemployed);
-						text::add_to_substitution_map(sub, text::variable_type::type, popName);
-						text::add_to_substitution_map(sub, text::variable_type::state, stateName);
+						text::add_to_substitution_map(sub, text::variable_type::type, popFat.get_name());
+						text::add_to_substitution_map(sub, text::variable_type::state, state_instance.get_definition().get_name());
 						text::add_to_substitution_map(sub, text::variable_type::perc, percUnemployed);
 						text::localised_format_box(state, contents, box, std::string_view("topbar_unemployed"), sub);
 					}
@@ -613,7 +611,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::temperature, text::format_float(state.crisis_temperature, 2));
+		text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{state.crisis_temperature});
 		if(state.current_crisis == sys::crisis_type::none) {
 			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_crisis"), sub);
 		} else if(state.crisis_temperature > 0.8f) {
