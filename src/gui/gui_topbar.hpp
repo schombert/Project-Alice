@@ -581,7 +581,7 @@ public:
 				auto colonyName = colState.get_name();
 				text::substitution_map sub;
 				text::add_to_substitution_map(sub, text::variable_type::region, colonyName);
-				text::localised_format_box(state, contents, box, std::string_view("countryalert_colonialbad_influence"), text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("countryalert_colonialbad_influence"), sub);
 			});
 		} else {
 			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_colonial"), text::substitution_map{});
