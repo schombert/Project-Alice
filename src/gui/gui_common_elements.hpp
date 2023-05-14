@@ -371,13 +371,16 @@ public:
 		auto independence_target = fat_id.get_associated_independence();
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
+		std::string movementAdj;
 		if(independence_target.get_cultural_union_of().id) {
 			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_union_movement"));
-			text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective_as_string(state, independence_target));
+			movementAdj = text::get_adjective_as_string(state, independence_target);
+			text::add_to_substitution_map(sub, text::variable_type::country_adj, std::string_view(movementAdj));
 			text::add_to_layout_box(contents, state, box, k->second, sub);
 		} else {
 			auto k = state.key_to_text_sequence.find(std::string_view("nationalist_liberation_movement"));
-			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective_as_string(state, independence_target));
+			movementAdj = text::get_adjective_as_string(state, independence_target);
+			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(movementAdj));
 			text::add_to_layout_box(contents, state, box, k->second, sub);
 		}
 		text::close_layout_box(contents, box);
@@ -519,15 +522,18 @@ public:
 			auto fat_id = dcon::fatten(state.world, rebel_faction_id);
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within()));
+			std::string adjective;
+			auto rebelAdj = text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within());
+			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebelAdj));
 			auto culture = fat_id.get_primary_culture();
 			auto defection_target = fat_id.get_defection_target();
 			if(culture.id) {
-				text::add_to_substitution_map(sub, text::variable_type::culture, text::get_name_as_string(state, culture));
+				//auto rebelName = text::get_name_as_string(state, culture);
+				text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
 			} else if(defection_target.id) {
-				auto adjective = text::get_adjective_as_string(state, defection_target);
-				text::add_to_substitution_map(sub, text::variable_type::indep, adjective);
-				text::add_to_substitution_map(sub, text::variable_type::union_adj, adjective);
+				adjective = text::get_adjective_as_string(state, defection_target);
+				text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
+				text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
 			}
 			text::add_to_layout_box(contents, state, box, fat_id.get_type().get_name(), sub);
 			text::close_layout_box(contents, box);
@@ -1426,7 +1432,7 @@ public:
 
 
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::curr, rulingParty);
+		text::add_to_substitution_map(sub, text::variable_type::curr, std::string_view(rulingParty));
 
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_ruling_party"), sub);
@@ -1555,8 +1561,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
+		auto milChange = (demographics::getMonthlyMilChange(state, nation_id) / 30);
 		text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::militancy) / state.world.nation_get_demographics(nation_id, demographics::total))});
-		text::add_to_substitution_map(sub, text::variable_type::val, std::string_view("PLACEHOLDER"));
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{milChange});	// TODO - This needs to display the estimated militancy change -breizh
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -1583,9 +1590,10 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
+		auto conChange = (demographics::getMonthlyConChange(state, nation_id) / 30);
 		text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
 		//text::add_to_substitution_map(sub, text::variable_type::val, text::format_float(fDailyUpdate, 2);
-		text::add_to_substitution_map(sub, text::variable_type::val, std::string_view("PLACEHOLDER"));
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{conChange});	// TODO - This needs to display the estimated conciousness change -breizh
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -1618,7 +1626,9 @@ public:
 		});
 
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::value, text::prettify(nations::free_colonial_points(state, nation_id)));
+		std::string value;
+		value = text::prettify(nations::free_colonial_points(state, nation_id));
+		text::add_to_substitution_map(sub, text::variable_type::value, std::string_view(value));
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("colonial_points"), sub);
 		text::add_line_break_to_layout_box(contents, state, box);
@@ -1677,8 +1687,10 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::val, std::string_view("PLACEHOLDER"));
-		text::add_to_substitution_map(sub, text::variable_type::avg, text::format_percentage(state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total), 1));
+		auto litChange = (demographics::getMonthlyLitChange(state, nation_id) / 30);
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{litChange});	// TODO - This needs to display the estimated literacy change -breizh
+		auto avgLiteracy = text::format_percentage((state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total)), 1);
+		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avgLiteracy));
 
 
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
@@ -1763,17 +1775,32 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		float sum_from_pops = 0;
+		float total_clergy = 0;
 		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 				auto rp = state.world.pop_type_get_research_points(t);
 				if(rp > 0) {
+					total_clergy += state.world.nation_get_demographics(nation_id, demographics::to_key(state, t));
 					sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, t)) / (state.world.nation_get_demographics(nation_id, demographics::total) * state.world.pop_type_get_research_optimum(t)));
 				}
 		});
 
+		total_clergy = (total_clergy / state.world.nation_get_demographics(nation_id, demographics::total)) * 100;	// TODO - there is most certainly a better way to do this, it also fails to replicate vic2 closely enough, atleast in my opinion -breizh
+
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 
-		text::add_to_substitution_map(sub, text::variable_type::value, text::format_float(sum_from_pops));
+
+		auto fat_id = dcon::fatten(state.world, state.culture_definitions.clergy);
+		auto pop_optimum = fat_id.get_research_optimum() * 100;
+		/*state.world.for_each_pop_type([&](dcon::pop_type_id t) {
+
+		});*/
+
+
+		text::add_to_substitution_map(sub, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.clergy));
+		text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{sum_from_pops});	// Fixed Code
+		text::add_to_substitution_map(sub, text::variable_type::fraction, text::fp_two_places{total_clergy});
+		text::add_to_substitution_map(sub, text::variable_type::optimal, text::fp_two_places{pop_optimum});
 
 		text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub);
 		text::close_layout_box(contents, box);
@@ -1840,7 +1867,7 @@ public:
 		for(auto ac : state.world.nation_get_accepted_cultures(nation_id)) {
 			relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
 		}
-		text::add_to_substitution_map(sub1, text::variable_type::num, text::prettify((int64_t)relevant_pop));
+		text::add_to_substitution_map(sub1, text::variable_type::num, text::pretty_integer{(int64_t)relevant_pop});
 		auto fPoints = relevant_pop / state.defines.national_focus_divider;	// NOTE: Occassionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
 		text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
 		text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);
@@ -1849,7 +1876,25 @@ public:
 		text::add_to_substitution_map(sub2, text::variable_type::focus, nations::max_national_focuses(state, nation_id));
 		text::localised_format_box(state, contents, box, std::string_view("tb_max_focus"), sub2);
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+		if(nations::national_focuses_in_use(state, nation_id) > 0) {
+			text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+			auto nation_fat_id = dcon::fatten(state.world, nation_id);
+			nation_fat_id.for_each_state_ownership([&](dcon::state_ownership_id so) {		// TODO - Verify this works when Natl Focuses are added -breizh
+				auto fat_state_id = dcon::fatten(state.world, so);
+				if(fat_state_id.is_valid()) {
+					auto staat = fat_state_id.get_state();
+					if(staat.is_valid()) {
+						auto natl_fat_id = staat.get_owner_focus();
+						auto fp_fat_id = staat.get_flashpoint_focus();
+
+						if(natl_fat_id.is_valid()) {
+							text::add_line_break_to_layout_box(contents, state, box);
+							text::add_to_layout_box(contents, state, box, natl_fat_id.get_name());
+						}
+					}
+				}
+			});
+		}
 		text::close_layout_box(contents, box);
 	}
 };

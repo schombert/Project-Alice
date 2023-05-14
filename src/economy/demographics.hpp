@@ -62,7 +62,7 @@ struct ideology_buffer {
 			temp_buffers.emplace_back(uint32_t(0));
 		}
 	}
-	
+
 	void update(sys::state& state, uint32_t s) {
 		if(size < s) {
 			size = s;
@@ -152,6 +152,10 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
+
+double getMonthlyLitChange(sys::state& state, dcon::nation_id);
+double getMonthlyMilChange(sys::state& state, dcon::nation_id);
+double getMonthlyConChange(sys::state& state, dcon::nation_id);
 
 void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
 void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf);
