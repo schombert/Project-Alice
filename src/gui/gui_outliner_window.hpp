@@ -428,7 +428,7 @@ public:
 
     void on_update(sys::state& state) noexcept override {
         bottom_image->base_data.position.y = listbox->base_data.position.y;
-        uint32_t offset = listbox->row_contents.size() * 16;
+        uint32_t offset = uint32_t(listbox->row_contents.size()) * 16;
         if(offset >= uint32_t(listbox->base_data.size.y))
             offset = uint32_t(listbox->base_data.size.y);
         bottom_image->base_data.position.y += int16_t(offset);
