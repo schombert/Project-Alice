@@ -205,6 +205,8 @@ public:
 	}
 };
 
+
+
 class topbar_building_factories_icon : public standard_nation_icon {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept override {
@@ -225,8 +227,17 @@ public:
 			text::localised_format_box(state, contents, box, "countryalert_no_isbuildingfactories", text::substitution_map{});
 		} else if(economy::nation_is_constructing_factories(state, nation_id)) {
 			text::localised_format_box(state, contents, box, "countryalert_isbuilding_factories", text::substitution_map{});
-		} else {
-			text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+			auto nation_fat_id = dcon::fatten(state.world, nation_id);
+			nation_fat_id.for_each_state_building_construction([&](dcon::state_building_construction_id building_slim_id) {
+				auto building_fat_id = dcon::fatten(state.world, building_slim_id);
+				auto stateName = building_fat_id.get_state().get_definition().get_name();
+				auto factoryType = building_fat_id.get_type().get_name();
+
+				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_to_layout_box(contents, state, box, stateName);
+				text::add_space_to_layout_box(contents, state, box);
+				text::add_to_layout_box(contents, state, box, factoryType);
+			});
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -252,8 +263,7 @@ public:
 			text::localised_format_box(state, contents, box, "remove_countryalert_no_hasclosedfactories", text::substitution_map{});
 		} else if(economy::nation_has_closed_factories(state, nation_id)) {
 			text::localised_format_box(state, contents, box, "remove_countryalert_hasclosedfactories", text::substitution_map{});
-		} else {
-			text::add_to_layout_box(contents, state, box, std::string_view("Error!"));
+
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -645,12 +655,16 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(nations::sphereing_progress_is_possible(state, nation_id)) {
-			text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"), text::substitution_map{});
-		} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
-			text::add_to_layout_box(contents, state, box, std::string_view("FIXME: gui/gui_topbar.hpp:404"));	// TODO - if a sphere member is having a revolt then we might have to display text -breizh
+		if(!nations::is_great_power(state, nation_id)) {
+			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_gpstatus"), text::substitution_map{});
 		} else {
-			text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"), text::substitution_map{});
+			if(nations::sphereing_progress_is_possible(state, nation_id)) {
+				text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_canincreaseopinion"), text::substitution_map{});
+			} else if(rebel::sphere_member_has_ongoing_revolt(state, nation_id)) {
+				text::add_to_layout_box(contents, state, box, std::string_view("FIXME: gui/gui_topbar.hpp:404"));	// TODO - if a sphere member is having a revolt then we might have to display text -breizh
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("remove_countryalert_no_canincreaseopinion"), text::substitution_map{});
+			}
 		}
 		text::close_layout_box(contents, box);
 	}

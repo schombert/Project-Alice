@@ -55,6 +55,22 @@ public:
 		const auto fat_id = dcon::fatten(state.world, content);
 		set_text(state, text::format_percentage(fat_id.get_literacy(), 2));
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("pop_con_total"), text::substitution_map{});
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, text::dp_percentage{demographics::getMonthlyLitChange(state, state.local_player_nation)});
+		text::close_layout_box(contents, box);
+	}
 };
 
 enum class pop_list_sort : uint8_t {
@@ -121,18 +137,21 @@ public:
 		return 0.0f;
 	}
 
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-
 		auto pfat_id = dcon::fatten(state.world, content);
 		float un_empl = state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content)) ? (1 - pfat_id.get_employment() / pfat_id.get_size()) : 0.0f;
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "unemployment"));
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("unemployment"), text::substitution_map{});
 		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::fp_percentage{ un_empl });
+		text::add_to_layout_box(contents, state, box, text:fp_percentage{un_empl});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -1133,6 +1152,31 @@ public:
 				);
 			}
 		}
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		auto pop_fat_id = dcon::fatten(state.world, content);
+		auto nation_fat = dcon::fatten(state.world, state.local_player_nation);
+		text::add_to_substitution_map(sub, text::variable_type::val, text::pretty_integer{int32_t(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)))});
+		text::add_to_substitution_map(sub, text::variable_type::who, pop_fat_id.get_name());
+		text::add_to_substitution_map(sub, text::variable_type::where, nation_fat.get_name());
+		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+		text::add_line_break_to_layout_box(contents, state, box);
+		// TODO replace $VAL from earlier with a new one showing how many people have signed up recently -breizh
+		text::localised_format_box(state, contents, box, std::string_view("pop_promote_info_on_sel"), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
