@@ -193,67 +193,109 @@ public:
         // TODO: rebel_occupations,
         if(get_filter(state, outliner_filter::rebel_occupations)) {
             row_contents.push_back(outliner_filter::rebel_occupations);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: sieges,
         if(get_filter(state, outliner_filter::sieges)) {
             row_contents.push_back(outliner_filter::sieges);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: hostile_sieges,
         if(get_filter(state, outliner_filter::hostile_sieges)) {
             row_contents.push_back(outliner_filter::hostile_sieges);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: combat,
         if(get_filter(state, outliner_filter::combat)) {
             row_contents.push_back(outliner_filter::combat);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: naval_combat,
         if(get_filter(state, outliner_filter::naval_combat)) {
             row_contents.push_back(outliner_filter::naval_combat);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         if(get_filter(state, outliner_filter::armies)) {
             row_contents.push_back(outliner_filter::armies);
+            auto old_size = row_contents.size();
             state.world.nation_for_each_army_control_as_controller(state.local_player_nation, [&](dcon::army_control_id acid) {
                 auto aid = state.world.army_control_get_army(acid);
                 row_contents.push_back(aid);
             });
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         if(get_filter(state, outliner_filter::navies)) {
             row_contents.push_back(outliner_filter::navies);
+            auto old_size = row_contents.size();
             state.world.nation_for_each_navy_control_as_controller(state.local_player_nation, [&](dcon::navy_control_id ncid) {
                 auto nid = state.world.navy_control_get_navy(ncid);
                 row_contents.push_back(nid);
             });
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: factories,
         if(get_filter(state, outliner_filter::factories)) {
             row_contents.push_back(outliner_filter::factories);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: buildings,
         if(get_filter(state, outliner_filter::buildings)) {
             row_contents.push_back(outliner_filter::buildings);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: army_construction,
         if(get_filter(state, outliner_filter::army_construction)) {
             row_contents.push_back(outliner_filter::army_construction);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: navy_construction,
         if(get_filter(state, outliner_filter::navy_construction)) {
             row_contents.push_back(outliner_filter::navy_construction);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: gp_influence,
         if(get_filter(state, outliner_filter::gp_influence)) {
             row_contents.push_back(outliner_filter::gp_influence);
+            auto old_size = row_contents.size();
             state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation, [&](dcon::gp_relationship_id grid) {
                 row_contents.push_back(grid);
             });
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: national_focus,
         if(get_filter(state, outliner_filter::national_focus)) {
             row_contents.push_back(outliner_filter::national_focus);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
         // TODO: rally_points
         if(get_filter(state, outliner_filter::rally_points)) {
             row_contents.push_back(outliner_filter::rally_points);
+            auto old_size = row_contents.size();
+            if(old_size == row_contents.size())
+                row_contents.pop_back();
         }
 
         update(state);
@@ -333,7 +375,17 @@ public:
 
 class outliner_window : public window_element_base {
     outliner_listbox* listbox = nullptr;
+    image_element_base* bottom_image = nullptr;
 public:
+    void on_create(sys::state& state) noexcept override {
+        window_element_base::on_create(state);
+
+        auto ptr = make_element_by_type<image_element_base>(state, state.ui_state.defs_by_name.find("outliner_bottom")->second.definition);
+        ptr->set_visible(state, true);
+        bottom_image = ptr.get();
+        add_child_to_front(std::move(ptr));
+    }
+
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "outliner_top") {
             return make_element_by_type<outliner_minmax_button>(state, id);
@@ -372,6 +424,14 @@ public:
         } else {
             return nullptr;
         }
+    }
+
+    void on_update(sys::state& state) noexcept override {
+        bottom_image->base_data.position.y = listbox->base_data.position.y;
+        uint32_t offset = uint32_t(listbox->row_contents.size()) * 16;
+        if(offset >= uint32_t(listbox->base_data.size.y))
+            offset = uint32_t(listbox->base_data.size.y);
+        bottom_image->base_data.position.y += int16_t(offset);
     }
 
     message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
