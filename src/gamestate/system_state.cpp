@@ -282,12 +282,18 @@ namespace sys {
 			ptr->impl_set(*this, payload);
 			ui_state.rgos_root->add_child_to_front(std::move(ptr));
 		});
+		
         {
             auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
             ui_state.console_window = window.get();
             window->set_visible(*this, false);
             ui_state.root->add_child_to_front(std::move(window));
         }
+		{
+			auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
+			new_elm->impl_on_update(*this);
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
@@ -302,11 +308,6 @@ namespace sys {
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
-			new_elm->impl_on_update(*this);
-			ui_state.root->add_child_to_front(std::move(new_elm));
-		}
-		{
-			auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}

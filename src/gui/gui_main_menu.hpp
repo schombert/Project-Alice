@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_msg_settings_window.hpp"
 
 namespace ui {
 
@@ -184,36 +185,9 @@ class audio_menu_window : public window_element_base {
 };
 
 enum class main_menu_sub_window {
-	none, controls, audio, graphics
+	controls, audio, graphics, message_settings
 };
 
-class open_controls_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = main_menu_sub_window::controls;
-			parent->impl_get(state, payload);
-		}
-	}
-};
-class open_audio_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = main_menu_sub_window::audio;
-			parent->impl_get(state, payload);
-		}
-	}
-};
-class open_graphics_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = main_menu_sub_window::graphics;
-			parent->impl_get(state, payload);
-		}
-	}
-};
 class close_application_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -221,40 +195,64 @@ public:
 	}
 };
 
-class main_menu_window : public window_element_base {
-public:
+class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
 	controls_menu_window* controls_menu = nullptr;
 	graphics_menu_window* graphics_menu = nullptr;
 	audio_menu_window* audio_menu = nullptr;
+	msg_settings_window* message_settings_menu = nullptr;
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		// Message settings isn't a topmost window...
+		for(size_t i = state.ui_defs.gui.size(); i-- > 0; ) {
+			auto gdef_id = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+			auto key = state.to_string_view(state.ui_defs.gui[gdef_id].name);
+			if(key == "menu_message_settings") {
+				auto ptr = make_element_by_type<msg_settings_window>(state, gdef_id);
+				message_settings_menu = ptr.get();
+				add_child_to_front(std::move(ptr));
+			}
+		}
+	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "graphics") {
-			return make_element_by_type<open_graphics_button>(state, id);
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::graphics;
+			return ptr;
 		} else if(name == "sound") {
-			return make_element_by_type<open_audio_button>(state, id);
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::audio;
+			return ptr;
 		} else if(name == "controls") {
-			return make_element_by_type<open_controls_button>(state, id);
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::controls;
+			return ptr;
+		} else if(name == "message_settings") {
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::message_settings;
+			return ptr;
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "exit") {
 			return make_element_by_type<close_application_button>(state, id);
 		} else if(name == "alice_graphics_menu") {
-			auto tmp = make_element_by_type<graphics_menu_window>(state, id);
-			graphics_menu = tmp.get();
-			tmp->set_visible(state, false);
-			return tmp;
+			auto ptr = make_element_by_type<graphics_menu_window>(state, id);
+			graphics_menu = ptr.get();
+			ptr->set_visible(state, false);
+			return ptr;
 		} else if(name == "alice_controls_menu") {
-			auto tmp = make_element_by_type<controls_menu_window>(state, id);
-			controls_menu = tmp.get();
-			tmp->set_visible(state, false);
-			return tmp;
+			auto ptr = make_element_by_type<controls_menu_window>(state, id);
+			controls_menu = ptr.get();
+			ptr->set_visible(state, false);
+			return ptr;
 		} else if(name == "alice_audio_menu") {
-			auto tmp = make_element_by_type<audio_menu_window>(state, id);
-			tmp->set_visible(state, false);
-			audio_menu = tmp.get();
-			return tmp;
+			auto ptr = make_element_by_type<audio_menu_window>(state, id);
+			audio_menu = ptr.get();
+			ptr->set_visible(state, false);
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -267,6 +265,8 @@ public:
 			graphics_menu->set_visible(state, false);
 		if(audio_menu)
 			audio_menu->set_visible(state, false);
+		if(message_settings_menu)
+			message_settings_menu->set_visible(state, false);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -274,17 +274,18 @@ public:
 			auto enum_val = any_cast<main_menu_sub_window>(payload);
 			hide_subwindows(state);
 			switch(enum_val) {
-				case main_menu_sub_window::none:
-					break;
-				case main_menu_sub_window::controls:
-					controls_menu->set_visible(state, true);
-					break;
-				case main_menu_sub_window::audio:
-					audio_menu->set_visible(state, true);
-					break;
-				case main_menu_sub_window::graphics:
-					graphics_menu->set_visible(state, true);
-					break;
+			case main_menu_sub_window::controls:
+				controls_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::audio:
+				audio_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::graphics:
+				graphics_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::message_settings:
+				message_settings_menu->set_visible(state, true);
+				break;
 			}
 			return message_result::consumed;
 		}
