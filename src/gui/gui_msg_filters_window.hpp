@@ -150,8 +150,8 @@ public:
 			state.world.for_each_nation([&](dcon::nation_id id) {
 				if(state.world.nation_get_owned_province_count(id) != 0) {
 					dcon::nation_fat_id fat_id = dcon::fatten(state.world, id);
-					auto cont_id = fat_id.get_capital().get_continent().id;
-					state.world.nation_set_is_interesting(id, mod_id == cont_id);
+					if(mod_id == fat_id.get_capital().get_continent().id)
+						state.world.nation_set_is_interesting(id, true);
 				}
 			});
 			country_listbox->on_update(state);
