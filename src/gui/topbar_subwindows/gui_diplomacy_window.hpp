@@ -507,7 +507,7 @@ private:
 			fn = [&](dcon::nation_id a, dcon::nation_id b) {
 				auto rid_a = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, a);
 				auto rid_b = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, b);
-				if(!bool(grid_a) || !bool(grid_b))
+				if(!bool(rid_a) || !bool(rid_b))
 					return a.index() < b.index();
 				return state.world.diplomatic_relation_get_value(rid_a) < state.world.diplomatic_relation_get_value(rid_b);
 			};
