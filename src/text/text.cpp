@@ -10,13 +10,20 @@
 namespace text {
 	text_color char_to_color(char in) {
 		switch(in) {
-			case 'W': return text_color::white;
-			case 'G': return text_color::green;
-			case 'R': return text_color::red;
-			case 'Y': return text_color::yellow;
-			case 'b': return text_color::black;
-			default: return text_color::unspecified;
+		case 'W': return text_color::white; // White
+		case 'G': return text_color::green; // Green
+		case 'R': return text_color::red; // Red
+		case 'Y': return text_color::yellow; // Yellow
+		case 'b': return text_color::black; // Black
+		case 'B': return text_color::light_blue; // Blue
+		case 'g': return text_color::dark_blue; // Light gray
+		case '!': return text_color::white; // Return to default colour
+		default: return text_color::unspecified;
 		}
+	}
+
+	inline bool is_qmark_color(char in) {
+		return char_to_color(in) != text_color::unspecified;
 	}
 
 	std::string lowercase_str(std::string_view sv) {
@@ -32,50 +39,61 @@ namespace text {
 		auto start = (file_size != 0 && file_content[0] == '#') ? parsers::csv_advance_to_next_line(file_content, file_content + file_size) : file_content;
 		while(start < file_content + file_size) {
 			start = parsers::parse_first_and_nth_csv_values(language, start, file_content + file_size, ';', [&state](std::string_view key, std::string_view content) {
-
-				char const* section_start = content.data();
 				char const* seq_start = content.data();
 				char const* seq_end = content.data() + content.size();
+				char const* section_start = seq_start;
 
 				const auto component_start_index = state.text_components.size();
-
-				for(const char* pos = seq_start; pos < seq_end; ++pos) {
+				for(char const* pos = seq_start; pos < seq_end; ) {
+					bool colour_esc = false;
 					if(uint8_t(*pos) == 0xA7) {
 						if(section_start != pos) {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
 						}
-						section_start = pos + 2;
-						if(pos + 1 < seq_end)
-							state.text_components.emplace_back( char_to_color(*(pos + 1)) );
-						pos += 1;
+						section_start = pos += 1;
+						colour_esc = true;
+					} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
+						if(section_start != pos) {
+							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+							state.text_components.emplace_back( added_key );
+						}
+						section_start = pos += 3;
+						colour_esc = true;
+					} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
+						if(section_start != pos) {
+							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+							state.text_components.emplace_back( added_key );
+						}
+						section_start = pos += 1;
+						colour_esc = true;
 					} else if(*pos == '$') {
 						if(section_start != pos) {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
 						}
-
 						const char* vend = pos + 1;
-						while(vend != seq_end) {
-							if(*vend == '$')
-								break;
-							++vend;
-						}
-
-						if(vend > pos + 1) {
+						for(; vend != seq_end && *vend != '$'; ++vend)
+							;
+						if(vend > pos + 1)
 							state.text_components.emplace_back( variable_type_from_name(std::string_view(pos + 1, vend - pos - 1)) );
-						}
-						pos = vend;
-						section_start = vend + 1;
-					} else if(*pos == '\\' && pos + 1 != seq_end && *(pos + 1) == 'n') {
+						section_start = pos = vend + 1;
+					} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
 						if(section_start != pos) {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
 						}
-
-						section_start = pos + 2;
 						state.text_components.emplace_back(line_break{});
+						section_start = pos += 2;
+					} else {
 						++pos;
+					}
+
+					// This colour escape sequence must be followed by something, otherwise
+					// we should probably discard the last colour command
+					if(colour_esc && pos < seq_end) {
+						state.text_components.emplace_back( char_to_color(*pos) );
+						section_start = pos += 1;
 					}
 				}
 
@@ -84,25 +102,25 @@ namespace text {
 					state.text_components.emplace_back( added_key );
 				}
 
-
+				// TODO: Emit error when 64K boundary is violated
+				assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
+				assert(state.text_components.size() - component_start_index < std::numeric_limits<uint8_t>::max());
 
 				auto to_lower_temp = lowercase_str(key);
+				auto text_seq = text_sequence{
+					uint32_t(component_start_index),
+					uint8_t(state.text_components.size() - component_start_index)
+				};
 				if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
-					// maybe report an error here -- repeated definition
-					state.text_sequences[it->second] = text_sequence{
-							static_cast<uint16_t>(component_start_index),
-							static_cast<uint16_t>(state.text_components.size() - component_start_index) };
+					// Maybe report an error here -- repeated definition
+					state.text_sequences[it->second] = text_seq;
 				} else {
 					const auto nh = state.text_sequences.size();
-					state.text_sequences.emplace_back(
-						text_sequence{
-							static_cast<uint16_t>(component_start_index),
-							static_cast<uint16_t>(state.text_components.size() - component_start_index) });
+					state.text_sequences.emplace_back(text_seq);
 
 					auto main_key = state.add_to_pool_lowercase(key);
 					state.key_to_text_sequence.insert_or_assign(main_key, dcon::text_sequence_id(uint16_t(nh)));
 				}
-
 			});
 		}
 	}

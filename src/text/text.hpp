@@ -66,8 +66,8 @@ namespace text {
 	};
 
 	struct text_sequence {
-		uint16_t starting_component = 0;
-		uint16_t component_count = 0;
+		uint32_t starting_component = 0;
+		uint8_t component_count = 0;
 	};
 
 	using text_component = std::variant<line_break, text_color, variable_type, dcon::text_key>;
