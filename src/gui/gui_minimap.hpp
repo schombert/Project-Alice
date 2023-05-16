@@ -196,15 +196,119 @@ public:
 		}
 	}
 
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("menubar_message_settings")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
-		}
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_settings"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_combat_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_combat"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_diplo_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_diplo"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_unit_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_unit"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_province_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_province"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_other_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_other"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_event_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_event"), text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -281,6 +385,18 @@ public:
 			return make_element_by_type<minimap_ledger_button>(state, id);
 		} else if(name == "menubar_msg_settings") {
 			return make_element_by_type<minimap_msg_settings_button>(state, id);
+		} else if(name == "menubar_msg_combat") {
+			return make_element_by_type<minimap_msg_combat_button>(state, id);
+		} else if(name == "menubar_msg_diplo") {
+			return make_element_by_type<minimap_msg_diplo_button>(state, id);
+		} else if(name == "menubar_msg_unit") {
+			return make_element_by_type<minimap_msg_unit_button>(state, id);
+		} else if(name == "menubar_msg_province") {
+			return make_element_by_type<minimap_msg_province_button>(state, id);
+		} else if(name == "menubar_msg_event") {
+			return make_element_by_type<minimap_msg_event_button>(state, id);
+		} else if(name == "menubar_msg_other") {
+			return make_element_by_type<minimap_msg_other_button>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);
 			size_t num_index = name.rfind("_") + 1;
