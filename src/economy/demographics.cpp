@@ -1679,4 +1679,19 @@ void remove_size_zero_pops(sys::state& state) {
 	}
 }
 
+	int64_t get_monthly_pop_increase(sys::state& state, dcon::pop_id) {
+		/* TODO -
+		 * This should return the monthly increase of a pop.
+		 * im not sure if it would be better for this to be a daily function? given the monthly may be too obvious/behind...
+		 * the return value is divided by 30 for now, and will need to be changed if it becomes daily.
+		 */
+		return 0;
+	}
+	int64_t get_monthly_pop_increase_of_state(sys::state& state, dcon::nation_id n) {
+		/* TODO -
+		 * This should return the monthly increase of a states pops. the return value is divided by 30
+		 */
+		return 0;
+	}
+
 }

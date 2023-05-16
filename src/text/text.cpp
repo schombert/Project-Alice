@@ -955,6 +955,10 @@ namespace text {
 			char buffer[200] = { 0 };
 			snprintf(buffer, 200, "%.0f%%", std::get<fp_percentage>(sub).value * 100.0f);
 			return std::string(buffer);
+		} else if(std::holds_alternative<dp_percentage>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "%.0f%", std::get<dp_percentage>(sub).value * 100.0f);
+			return std::string(buffer);
 		} else if(std::holds_alternative<int_percentage>(sub)) {
 			return std::to_string(std::get<int_percentage>(sub).value) + "%";
 		} else if(std::holds_alternative<dcon::text_sequence_id>(sub)) {
@@ -1064,6 +1068,14 @@ namespace text {
 
 	// Reduces code repeat
 	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, text::substitution_map sub) {
+		if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+			add_to_layout_box(dest, state, box, k->second, sub);
+		}
+	}
+
+	void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value) {
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, subkey, value);
 		if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
 			add_to_layout_box(dest, state, box, k->second, sub);
 		}

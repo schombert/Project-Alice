@@ -192,10 +192,13 @@ namespace text {
 	struct fp_percentage {
 		float value = 0.0f;
 	};
+	struct dp_percentage {
+		double value = 0.0f;
+	};
 	struct int_percentage {
 		int32_t value = 0;
 	};
-	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places, fp_currency, pretty_integer, fp_percentage, int_percentage, dcon::text_sequence_id>;
+	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places, fp_currency, pretty_integer, dp_percentage, fp_percentage, int_percentage, dcon::text_sequence_id>;
 	using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 	struct text_chunk {
@@ -306,5 +309,6 @@ namespace text {
 	std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
 
 	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, text::substitution_map sub);
+	void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value);
 }
 

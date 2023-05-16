@@ -2563,10 +2563,10 @@ public:
 };
 class religion_type_icon : public generic_settable_element<button_element_base, dcon::religion_id> {
 public:
-    void on_update(sys::state& state) noexcept override {
-        auto fat_id = dcon::fatten(state.world, content);
-        frame = int32_t(fat_id.get_icon() - 1);
-    }
+	void on_update(sys::state& state) noexcept override {
+		auto fat_id = dcon::fatten(state.world, content);
+		frame = int32_t(fat_id.get_icon() - 1);
+	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

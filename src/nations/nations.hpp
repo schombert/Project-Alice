@@ -295,5 +295,7 @@ void reject_crisis_participation(sys::state& state);
 void cleanup_crisis(sys::state& state);
 void update_crisis(sys::state& state);
 
+int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
+
 }
 
