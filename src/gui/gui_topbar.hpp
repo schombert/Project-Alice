@@ -627,7 +627,9 @@ public:
 		} else if(state.crisis_temperature > 0.8f) {
 			text::localised_format_box(state, contents, box, std::string_view("countryalert_crisis"), sub);
 		} else {
-			text::add_to_layout_box(contents, state, box, std::string_view("gui/gui_topbar.hpp:371"));
+#define STRINGIFY(x) #x
+			text::add_to_layout_box(contents, state, box, std::string_view(__FILE__ ":" STRINGIFY(__LINE__)));
+#undef STRINGIFY
 		}
 		text::close_layout_box(contents, box);
 	}

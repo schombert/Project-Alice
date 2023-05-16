@@ -146,11 +146,9 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_totalpop")); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("provinceview_totalpop"), text::substitution_map{ });
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -198,14 +196,11 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_liferating")); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-
-			text::substitution_map lr_sub;
-			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{ float(state.world.province_get_life_rating(prov_id)) });
-			text::add_to_layout_box(contents, state, box, k->second, lr_sub);
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map lr_sub;
+		text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{ float(state.world.province_get_life_rating(prov_id)) });
+		text::localised_format_box(state, contents, box, std::string_view("provinceview_liferating"), lr_sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
