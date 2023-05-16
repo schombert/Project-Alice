@@ -1274,7 +1274,7 @@ void monthly_flashpoint_update(sys::state& state) {
 			auto owner = si.get_nation_from_state_ownership();
 			auto owner_tag = owner.get_identity_from_identity_holder();
 
-			
+
 			auto owner_accepts_culture = [&](dcon::culture_id c) {
 				return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
 			};
@@ -1696,6 +1696,14 @@ void update_crisis(sys::state& state) {
 		// TODO: start crisis war at temperature 100; set mode to none
 	}
 
+}
+
+int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
+	/* TODO -
+	 * This should return the differance of the population of a nation between this month and next month, or this month and last month, depending which one is better to implement
+	 * Used in gui/topbar_subwindows/gui_population_window.hpp - Return value is divided by 30
+	 */
+	return 0;
 }
 
 }

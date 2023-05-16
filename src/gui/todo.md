@@ -1,9 +1,13 @@
 This is just a quick todo/note list for myself -breizh
 GUI Todo:
 - add "about me"s to the various tooltips where present
+- make sure the Topbar UI is 1:1 with Vic2s
 - Create Lists for Colonial Actions, Bankrupt Factories, Buildings be Constructed
 - Factories are closed when their production scale is < 0.05
+== After everything above
 - Factories being built or upgraded = the nation has one or more state_building_construction
+- Add Tooltips inside of Pop WIndow, and then work on budget window if completed
+- Add Province Tooltip
 
 Abandon:
 - top5 production and top3 import/export requires overlapping elements (see diplo war flags)
