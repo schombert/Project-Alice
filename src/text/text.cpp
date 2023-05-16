@@ -1067,7 +1067,7 @@ namespace text {
 	}
 
 	// Reduces code repeat
-	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, text::substitution_map sub) {
+	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, substitution_map const& sub = substitution_map{}) {
 		if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
 			add_to_layout_box(dest, state, box, k->second, sub);
 		}
