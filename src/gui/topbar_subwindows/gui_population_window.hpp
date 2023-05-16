@@ -320,7 +320,7 @@ public:
 };
 class pop_culture_text : public generic_settable_element<simple_text_element_base, dcon::pop_id> {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		const auto fat_id = dcon::fatten(state.world, content);
 		const auto cfat_id = dcon::fatten(state.world, fat_id.get_culture());
 		set_text(state, text::produce_simple_string(state, cfat_id.get_name()));
@@ -357,7 +357,7 @@ public:
 };
 class pop_militancy_text : public generic_settable_element<simple_text_element_base, dcon::pop_id> {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		const auto fat_id = dcon::fatten(state.world, content);
 		set_text(state, text::format_float(fat_id.get_militancy()));
 	}
@@ -380,7 +380,7 @@ public:
 };
 class pop_con_text : public generic_settable_element<simple_text_element_base, dcon::pop_id> {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		const auto fat_id = dcon::fatten(state.world, content);
 		set_text(state, text::format_float(fat_id.get_consciousness()));
 	}
@@ -403,7 +403,7 @@ public:
 };
 class pop_literacy_text : public generic_settable_element<simple_text_element_base, dcon::pop_id> {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		const auto fat_id = dcon::fatten(state.world, content);
 		set_text(state, text::format_percentage(fat_id.get_literacy(), 2));
 	}
@@ -1424,15 +1424,15 @@ public:
 			return make_element_by_type<pop_issues_piechart>(state, id);
 		} else if(name == "pop_unemployment_bar") {
 			return make_element_by_type<pop_unemployment_progress_bar>(state, id);
-		} else if(name == "pop_revolt" && name != "pop_movement_social" && name != "pop_movement_political" && name != "pop_movement_flag") {
+		} else if(name == "pop_revolt" ) {
 			auto ptr = make_element_by_type<pop_revolt_faction>(state, id);
 			revolt = ptr.get();
 			return ptr;
-		} else if(name == "pop_movement_social" && name != "pop_revolt" && name != "pop_movement_political" && name != "pop_movement_flag") {
+		} else if(name == "pop_movement_social") {
 			return make_element_by_type<pop_movement_social>(state, id);
-		} else if(name == "pop_movement_political" && name != "pop_revolt" && name != "pop_movement_flag" && name != "pop_movement_social") {
+		} else if(name == "pop_movement_political") {
 			return make_element_by_type<pop_movement_political>(state, id);
-		} else if(name == "pop_movement_flag" && name != "pop_revolt" && name != "pop_movement_social" && name != "pop_movement_political") {
+		} else if(name == "pop_movement_flag") {
 			return make_element_by_type<pop_movement_flag>(state, id);
 		} else if(name == "pop_cash") {
 			auto ptr = make_element_by_type<pop_cash_reserve>(state, id);

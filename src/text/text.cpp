@@ -957,7 +957,7 @@ namespace text {
 			return std::string(buffer);
 		} else if(std::holds_alternative<dp_percentage>(sub)) {
 			char buffer[200] = { 0 };
-			snprintf(buffer, 200, "%.0f%", std::get<dp_percentage>(sub).value * 100.0f);
+			snprintf(buffer, 200, "%.0f%%", std::get<dp_percentage>(sub).value * 100.0f);
 			return std::string(buffer);
 		} else if(std::holds_alternative<int_percentage>(sub)) {
 			return std::to_string(std::get<int_percentage>(sub).value) + "%";

@@ -193,7 +193,7 @@ public:
 
 		text:: substitution_map sub;
 
-		text::add_to_substitution_map(sub, text::variable_type::cash, text::fp_currency(nations::get_treasury(state, nation_id)));
+		text::add_to_substitution_map(sub, text::variable_type::cash, text::fp_currency{nations::get_treasury(state, nation_id)});
 
 		text::localised_format_box(state, contents, box, std::string_view("topbar_funds"), sub);				// $YESTERDAY && $CASH
 		text::add_line_break_to_layout_box(contents, state, box);
@@ -201,17 +201,17 @@ public:
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_income"), text::variable_type::val, std::string_view("PLACEHOLDER"));			// $VAL
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_poor"), text::variable_type::val, text::fp_currency(economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor)));				// $VAL
+		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_poor"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor)});				// $VAL
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_middle"), text::variable_type::val, text::fp_currency(economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle)));				// $VAL
+		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_middle"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle)});				// $VAL
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_rich"), text::variable_type::val, text::fp_currency(economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich)));				// $VAL
+		text::localised_single_sub_box(state, contents, box, std::string_view("taxes_rich"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich)});				// $VAL
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("tariffs_income"), text::variable_type::val, text::fp_currency(economy::estimate_tariff_income(state, nation_id)));				// $VAL
+		text::localised_single_sub_box(state, contents, box, std::string_view("tariffs_income"), text::variable_type::val, text::fp_currency{economy::estimate_tariff_income(state, nation_id)});				// $VAL
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("budget_exports"), text::substitution_map{});				// $VAL	TODO
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_gold"), text::variable_type::val, text::fp_currency(economy::estimate_gold_income(state, nation_id)));				// $VAL
+		text::localised_single_sub_box(state, contents, box, std::string_view("budget_gold"), text::variable_type::val, text::fp_currency{economy::estimate_gold_income(state, nation_id)});				// $VAL
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("budget_total_expense"), text::substitution_map{});			// $VAL	TODO
 		text::add_line_break_to_layout_box(contents, state, box);
@@ -219,13 +219,13 @@ public:
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("budget_slider_administration"), text::substitution_map{});		// $VAL	TODO
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_social_spending"), text::variable_type::val, text::fp_currency(economy::estimate_social_spending(state, nation_id)));				// $VAL - presumably loan payments == interest (?)
+		text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_social_spending"), text::variable_type::val, text::fp_currency{economy::estimate_social_spending(state, nation_id)});				// $VAL - presumably loan payments == interest (?)
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("budget_slider_military_spending"), text::substitution_map{});	// $VAL	TODO
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_interest"), text::variable_type::val, text::fp_currency(economy::estimate_loan_payments(state, nation_id)));				// $VAL - presumably loan payments == interest (?)
+		text::localised_single_sub_box(state, contents, box, std::string_view("budget_interest"), text::variable_type::val, text::fp_currency{economy::estimate_loan_payments(state, nation_id)});				// $VAL - presumably loan payments == interest (?)
 		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("budget_imports"), text::variable_type::val, text::fp_currency(economy::nation_total_imports(state, nation_id)));				// $VAL - presumably nation_total_imports is for national stockpile (?)
+		text::localised_single_sub_box(state, contents, box, std::string_view("budget_imports"), text::variable_type::val, text::fp_currency{economy::nation_total_imports(state, nation_id)});				// $VAL - presumably nation_total_imports is for national stockpile (?)
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_projected_income"), text::substitution_map{});		// $VAL	TODO
