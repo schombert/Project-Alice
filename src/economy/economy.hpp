@@ -34,6 +34,16 @@ struct naval_base_information {
 enum class province_building_type : uint8_t {
 	railroad, fort, naval_base
 };
+inline std::string_view province_building_type_get_name(economy::province_building_type v) {
+	switch(v) {
+	case economy::province_building_type::railroad:
+		return "railroad";
+	case economy::province_building_type::fort:
+		return "fort";
+	case economy::province_building_type::naval_base:
+		return "naval_base";
+	}
+}
 
 struct global_economy_state {
 	fort_information fort_definition;
