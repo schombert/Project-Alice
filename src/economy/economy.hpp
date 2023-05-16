@@ -43,6 +43,7 @@ inline std::string_view province_building_type_get_name(economy::province_buildi
 	case economy::province_building_type::naval_base:
 		return "naval_base";
 	}
+	return "???";
 }
 
 struct global_economy_state {
