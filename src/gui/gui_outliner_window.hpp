@@ -28,8 +28,64 @@ typedef std::variant<
     outliner_filter,
     dcon::army_id,
     dcon::navy_id,
-    dcon::gp_relationship_id
+    dcon::gp_relationship_id,
+    dcon::state_building_construction_id,
+    dcon::province_building_construction_id,
+    dcon::province_land_construction_id,
+    dcon::province_naval_construction_id
 > outliner_data;
+
+class outliner_element_button : public generic_settable_element<button_element_base, outliner_data> {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+        if(std::holds_alternative<dcon::army_id>(content)) {
+            auto aid = std::get<dcon::army_id>(content);
+
+            auto box = text::open_layout_box(contents, 0);
+		    text::substitution_map sub{};
+            text::add_to_substitution_map(sub, text::variable_type::army_name, state.to_string_view(state.world.army_get_name(aid)));
+            text::add_to_substitution_map(sub, text::variable_type::location, state.world.army_location_get_location(state.world.army_get_army_location(aid)));
+            text::localised_format_box(state, contents, box, std::string_view("ol_armies_tooltip"), sub);
+            text::close_layout_box(contents, box);
+        } else if(std::holds_alternative<dcon::navy_id>(content)) {
+            auto nid = std::get<dcon::navy_id>(content);
+
+            auto box = text::open_layout_box(contents, 0);
+		    text::substitution_map sub{};
+            text::add_to_substitution_map(sub, text::variable_type::navy_name, state.to_string_view(state.world.navy_get_name(nid)));
+            text::add_to_substitution_map(sub, text::variable_type::location, state.world.navy_location_get_location(state.world.navy_get_navy_location(nid)));
+            text::localised_format_box(state, contents, box, std::string_view("ol_navies_tooltip"), sub);
+            text::close_layout_box(contents, box);
+        } else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
+            auto grid = std::get<dcon::gp_relationship_id>(content);
+            auto nid = state.world.gp_relationship_get_influence_target(grid);
+
+        } else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
+            auto sbcid = std::get<dcon::state_building_construction_id>(content);
+            auto ftid = state.world.state_building_construction_get_type(sbcid);
+            
+        } else if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
+            auto pbcid = std::get<dcon::province_building_construction_id>(content);
+            auto btid = state.world.province_building_construction_get_type(pbcid);
+            auto name = province_building_type_get_name(economy::province_building_type(btid));
+            
+        } else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
+            auto plcid = std::get<dcon::province_land_construction_id>(content);
+            auto utid = state.world.province_land_construction_get_type(plcid);
+            auto name = state.military_definitions.unit_base_definitions[utid].name;
+            
+        } else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
+            auto pncid = std::get<dcon::province_naval_construction_id>(content);
+            auto utid = state.world.province_naval_construction_get_type(pncid);
+            auto name = state.military_definitions.unit_base_definitions[utid].name;
+            
+        }
+    }
+};
 
 class outliner_element : public listbox_row_element_base<outliner_data> {
     image_element_base* header_bg = nullptr;
@@ -88,7 +144,7 @@ public:
             header_text = ptr.get();
             return ptr;
         } else if(name == "outliner_standard") {
-            auto ptr = make_element_by_type<image_element_base>(state, id);
+            auto ptr = make_element_by_type<outliner_element_button>(state, id);
             standard_bg = ptr.get();
             return ptr;
         } else if(name == "combat_icon") {
@@ -142,6 +198,9 @@ public:
             entry_text->set_visible(state, true);
             info_text->set_visible(state, true);
 
+            Cyto::Any payload = content;
+            standard_bg->impl_set(state, payload);
+
             if(std::holds_alternative<dcon::army_id>(content)) {
                 auto aid = std::get<dcon::army_id>(content);
                 info_text->set_text(state, std::string{ state.to_string_view(state.world.army_get_name(aid)) });
@@ -168,6 +227,33 @@ public:
                 info_text->set_text(state, text::produce_simple_string(state, state.world.nation_get_name(nid)));
                 auto status = state.world.gp_relationship_get_status(grid);
                 entry_text->set_text(state, text::produce_simple_string(state, nation_player_opinion_text::get_level_text_key(status)));
+            } else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
+                auto sbcid = std::get<dcon::state_building_construction_id>(content);
+                auto ftid = state.world.state_building_construction_get_type(sbcid);
+                info_text->set_text(state, text::produce_simple_string(state, state.world.factory_type_get_name(ftid)));
+                // TODO: Entry displays time left to build factory
+                entry_text->set_text(state, "");
+            } else if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
+                auto pbcid = std::get<dcon::province_building_construction_id>(content);
+                auto btid = state.world.province_building_construction_get_type(pbcid);
+                auto name = province_building_type_get_name(economy::province_building_type(btid));
+                info_text->set_text(state, text::produce_simple_string(state, name));
+                // TODO: Entry displays time left to build building
+                entry_text->set_text(state, "");
+            } else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
+                auto plcid = std::get<dcon::province_land_construction_id>(content);
+                auto utid = state.world.province_land_construction_get_type(plcid);
+                auto name = state.military_definitions.unit_base_definitions[utid].name;
+                info_text->set_text(state, text::produce_simple_string(state, name));
+                // TODO: Entry displays time left to build building
+                entry_text->set_text(state, "");
+            } else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
+                auto pncid = std::get<dcon::province_naval_construction_id>(content);
+                auto utid = state.world.province_naval_construction_get_type(pncid);
+                auto name = state.military_definitions.unit_base_definitions[utid].name;
+                info_text->set_text(state, text::produce_simple_string(state, name));
+                // TODO: Entry displays time left to build building
+                entry_text->set_text(state, "");
             }
         }
     }
@@ -245,31 +331,39 @@ public:
             if(old_size == row_contents.size())
                 row_contents.pop_back();
         }
-        // TODO: factories,
         if(get_filter(state, outliner_filter::factories)) {
             row_contents.push_back(outliner_filter::factories);
             auto old_size = row_contents.size();
+            state.world.nation_for_each_state_building_construction(state.local_player_nation, [&](dcon::state_building_construction_id sbcid) {
+                row_contents.push_back(sbcid);
+            });
             if(old_size == row_contents.size())
                 row_contents.pop_back();
         }
-        // TODO: buildings,
         if(get_filter(state, outliner_filter::buildings)) {
             row_contents.push_back(outliner_filter::buildings);
             auto old_size = row_contents.size();
+            state.world.nation_for_each_province_building_construction(state.local_player_nation, [&](dcon::province_building_construction_id pbcid) {
+                row_contents.push_back(pbcid);
+            });
             if(old_size == row_contents.size())
                 row_contents.pop_back();
         }
-        // TODO: army_construction,
         if(get_filter(state, outliner_filter::army_construction)) {
             row_contents.push_back(outliner_filter::army_construction);
             auto old_size = row_contents.size();
+            state.world.nation_for_each_province_land_construction(state.local_player_nation, [&](dcon::province_land_construction_id plcid) {
+                row_contents.push_back(plcid);
+            });
             if(old_size == row_contents.size())
                 row_contents.pop_back();
         }
-        // TODO: navy_construction,
         if(get_filter(state, outliner_filter::navy_construction)) {
             row_contents.push_back(outliner_filter::navy_construction);
             auto old_size = row_contents.size();
+            state.world.nation_for_each_province_naval_construction(state.local_player_nation, [&](dcon::province_naval_construction_id pncid) {
+                row_contents.push_back(pncid);
+            });
             if(old_size == row_contents.size())
                 row_contents.pop_back();
         }

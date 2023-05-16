@@ -90,7 +90,7 @@ public:
 		return message_result::consumed;
 	}
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::no_tooltip;
@@ -151,6 +151,10 @@ public:
 
 	std::string_view get_text(sys::state& state) const {
 		return stored_text;
+	}
+
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
 	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
