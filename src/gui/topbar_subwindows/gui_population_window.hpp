@@ -1601,7 +1601,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(Sort == pop_list_sort::size || Sort == pop_list_sort::type || Sort == pop_list_sort::nationality || Sort == pop_list_sort::religion || Sort == pop_list_sort::location) { return; }
+		//if(Sort == pop_list_sort::size || Sort == pop_list_sort::type || Sort == pop_list_sort::nationality || Sort == pop_list_sort::religion || Sort == pop_list_sort::location) { return; }
 		auto box = text::open_layout_box(contents, 0);
 		switch(Sort) {
 			case pop_list_sort::literacy:
@@ -1641,7 +1641,7 @@ public:
 				text::localised_format_box(state, contents, box, std::string_view("popv_sort_by_con"), text::substitution_map{});
 				break;
 			default:
-				text::add_to_layout_box(contents, state, box, std::string_view("Not sure how you got here but have a UwU"));
+				//text::add_to_layout_box(contents, state, box, std::string_view("Not sure how you got here but have a UwU"));
 				break;
 		}
 		text::close_layout_box(contents, box);
