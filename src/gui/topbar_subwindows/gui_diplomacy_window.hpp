@@ -181,7 +181,7 @@ public:
 			ptr->base_data.position.y -= 8;
 			return ptr;
 		} else if(name == "country_protected") {
-			auto ptr = make_element_by_type<overlapping_protected_flags>(state, id);
+			auto ptr = make_element_by_type<overlapping_sphere_flags>(state, id);
 			ptr->base_data.position.y -= 8;
 			return ptr;
 		} else if(name == "country_truce") {
@@ -409,12 +409,11 @@ public:
 		if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_flag") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
-			//ptr->base_data.size.x += 3; // Nudge
-			//ptr->base_data.size.y += 4;
-			return ptr;
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "country_puppets") {
-			return make_element_by_type<overlapping_protected_flags>(state, id);
+			auto ptr = make_element_by_type<overlapping_sphere_flags>(state, id);
+			ptr->base_data.position.y -= 8; // Nudge
+			return ptr;
 		} else if(name == "gp_prestige") {
 			return make_element_by_type<nation_prestige_text>(state, id);
 		} else if(name == "gp_economic") {
@@ -514,8 +513,8 @@ private:
 			break;
 		case diplomacy_list_sort::opinion:
 			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				auto grid_a = state.world.get_gp_relationship_by_gp_influence_pair(state.local_player_nation, a);
-				auto grid_b = state.world.get_gp_relationship_by_gp_influence_pair(state.local_player_nation, b);
+				auto grid_a = state.world.get_gp_relationship_by_gp_influence_pair(a, state.local_player_nation);
+				auto grid_b = state.world.get_gp_relationship_by_gp_influence_pair(b, state.local_player_nation);
 				if(!bool(grid_a) || !bool(grid_b))
 					return a.index() < b.index();
 				return state.world.gp_relationship_get_status(grid_a) < state.world.gp_relationship_get_status(grid_b);

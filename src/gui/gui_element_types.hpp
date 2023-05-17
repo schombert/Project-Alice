@@ -341,11 +341,6 @@ protected:
 	void populate_flags(sys::state& state) override;
 };
 
-class overlapping_protected_flags : public overlapping_flags_box {
-protected:
-	void populate_flags(sys::state& state) override;
-};
-
 class overlapping_truce_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override;
