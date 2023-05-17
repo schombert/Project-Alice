@@ -7,6 +7,8 @@ out/
 docs/out/
 .vscode/
 build/
+build-rel/
+mod[s]/
 
 # Generated parsers
 *_generated.hpp
@@ -373,3 +375,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# User's git files
+*.diff

@@ -741,36 +741,46 @@ public:
 	}
 };
 
-class national_focus_icon : public button_element_base {
-private:
-	dcon::national_focus_id focus_id{};
-
+class national_focus_icon : public generic_settable_element<button_element_base, dcon::national_focus_id> {
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::national_focus_id>()) {
-			focus_id = any_cast<dcon::national_focus_id>(payload);
-			auto fat_id = dcon::fatten(state.world, focus_id);
-			frame = fat_id.get_icon() - 1;
-
+			content = any_cast<dcon::national_focus_id>(payload);
+			frame = state.world.national_focus_get_icon(content) - 1;
 			return message_result::consumed;
-		} else {
-			return message_result::unseen;
 		}
+		return message_result::unseen;
 	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(content) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{ });
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
-class province_focus_item : public window_element_base {
+class province_focus_item : public listbox_row_element_base<dcon::national_focus_id> {
+	national_focus_icon* focus_icon = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "focus_icon") {
-			return make_element_by_type<national_focus_icon>(state, id);
+			auto ptr = make_element_by_type<national_focus_icon>(state, id);
+			focus_icon = ptr.get();
+			return ptr;
 		} else {
 			return nullptr;
 		}
+	}
+
+	void update(sys::state& state) noexcept override {
+		Cyto::Any payload = content;
+		focus_icon->impl_set(state, payload);
 	}
 };
 
@@ -785,7 +795,6 @@ class province_focus_category : public window_element_base {
 private:
 	simple_text_element_base* category_label = nullptr;
 	province_focus_category_list* focus_list = nullptr;
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
@@ -809,12 +818,10 @@ public:
 			focus_list->row_contents.clear();
 			state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
 				auto fat_id = dcon::fatten(state.world, focus_id);
-				if(fat_id.get_type() == uint8_t(category)) {
+				if(fat_id.get_type() == uint8_t(category))
 					focus_list->row_contents.push_back(focus_id);
-				}
 			});
 			focus_list->update(state);
-
 			return message_result::consumed;
 		} else {
 			return message_result::unseen;

@@ -341,11 +341,6 @@ protected:
 	void populate_flags(sys::state& state) override;
 };
 
-class overlapping_protected_flags : public overlapping_flags_box {
-protected:
-	void populate_flags(sys::state& state) override;
-};
-
 class overlapping_truce_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override;
@@ -618,7 +613,6 @@ template<class RowConT>
 class listbox_row_button_base : public button_element_base {
 protected:
 	RowConT content{};
-
 public:
 	virtual void update(sys::state& state) noexcept { }
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
@@ -629,7 +623,6 @@ template<class RowWinT, class RowConT>
 class listbox_element_base : public container_base {
 private:
 	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
-
 protected:
 	std::vector<RowWinT*> row_windows{};
 
