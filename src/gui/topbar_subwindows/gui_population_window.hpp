@@ -1658,13 +1658,12 @@ private:
 	// Whetever or not to show provinces below the state element in the listbox!
 	ankerl::unordered_dense::map<dcon::state_instance_id::value_base_t, bool> view_expanded_state;
 	std::vector<bool> pop_filters;
-	std::vector<dcon::pop_id> shared_pop_list;
 
 	pop_list_sort sort = pop_list_sort::size;
 	bool sort_ascend = true;
 
-	void update_shared_pop_list(sys::state& state) {
-		shared_pop_list.clear();
+	void update_pop_list(sys::state& state) {
+		country_pop_listbox->row_contents.clear();
 
 		auto nation_id = std::holds_alternative<dcon::nation_id>(filter)
 			? std::get<dcon::nation_id>(filter)
@@ -1694,7 +1693,7 @@ private:
 				auto pop_id = state.world.pop_location_get_pop(id);
 				auto pt_id = state.world.pop_get_poptype(pop_id);
 				if(pop_filters[dcon::pop_type_id::value_base_t(pt_id.id.index())])
-					shared_pop_list.push_back(pop_id);
+					country_pop_listbox->row_contents.push_back(pop_id);
 			});
 		}
 	}
@@ -2020,10 +2019,8 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		update_shared_pop_list(state);
 		if(country_pop_listbox) {
-			country_pop_listbox->row_contents.clear();
-			country_pop_listbox->row_contents = get_pop_window_list(state);
+			update_pop_list(state);
 			sort_pop_list(state);
 			country_pop_listbox->update(state);
 		}
@@ -2101,7 +2098,7 @@ public:
 const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state) {
 	static const std::vector<dcon::pop_id> empty{};
 	if(state.ui_state.population_subwindow)
-		return static_cast<population_window*>(state.ui_state.population_subwindow)->shared_pop_list;
+		return static_cast<population_window*>(state.ui_state.population_subwindow)->country_pop_listbox->row_contents;
 	return empty;
 }
 
