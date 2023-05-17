@@ -297,5 +297,7 @@ void update_crisis(sys::state& state);
 
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 
+float get_yesterday_income(sys::state& state, dcon::nation_id n);
+
 }
 

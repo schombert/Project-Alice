@@ -1706,4 +1706,18 @@ int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n)
 	return 0;
 }
 
+float get_yesterday_income(sys::state& state, dcon::nation_id n) {
+	/* TODO -
+	 * This is a temporary function (the contents of it), what it should return is yesterdays income
+	 * code below should be replaced with more appropriate when avaliable
+	 * return value is passed to text::fp_currency{}
+	 */
+	float sum = 0;
+	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::poor);
+	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::middle);
+	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::rich);
+	sum =+ economy::estimate_gold_income(state, n);
+	return sum;
+}
+
 }
