@@ -12,31 +12,29 @@ namespace ui {
 class release_nation_description_text : public standard_nation_national_identity_multiline_text {
 public:
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("politics_release_vassal_desc")); k != state.key_to_text_sequence.end()) {
-			int64_t province_count = 0;
-			std::string provinces = "";
-			state.world.national_identity_for_each_core(national_identity_id, [&](dcon::core_id core) {
-				auto province = state.world.core_get_province(core);
-				if(state.world.province_get_nation_from_province_ownership(province) == nation_id && province_count++ < 5) {
-					if(!provinces.empty()) {
-						provinces += ", ";
-					}
-					provinces += text::produce_simple_string(state, state.world.province_get_name(province));
+		int64_t province_count = 0;
+		std::string provinces = "";
+		state.world.national_identity_for_each_core(national_identity_id, [&](dcon::core_id core) {
+			auto province = state.world.core_get_province(core);
+			if(state.world.province_get_nation_from_province_ownership(province) == nation_id && province_count++ < 5) {
+				if(!provinces.empty()) {
+					provinces += ", ";
 				}
-			});
-			auto box = text::open_layout_box(contents);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::tag, national_identity_id);
-			text::add_to_substitution_map(sub, text::variable_type::num, province_count);
-			text::add_to_substitution_map(sub, text::variable_type::provinces, std::string_view(provinces));
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-			if(province_count > 5) {
-				text::add_to_layout_box(contents, state, box, std::string(" and others."), text::text_color::black);
-			} else {
-				text::add_to_layout_box(contents, state, box, std::string("."), text::text_color::black);
+				provinces += text::produce_simple_string(state, state.world.province_get_name(province));
 			}
-			text::close_layout_box(contents, box);
+		});
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::tag, national_identity_id);
+		text::add_to_substitution_map(sub, text::variable_type::num, province_count);
+		text::add_to_substitution_map(sub, text::variable_type::provinces, std::string_view(provinces));
+		text::localised_format_box(state, contents, box, std::string_view("politics_release_vassal_desc"), sub);
+		if(province_count > 5) {
+			text::add_to_layout_box(contents, state, box, std::string(" and others."), text::text_color::black);
+		} else {
+			text::add_to_layout_box(contents, state, box, std::string("."), text::text_color::black);
 		}
+		text::close_layout_box(contents, box);
 	}
 };
 

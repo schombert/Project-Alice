@@ -521,10 +521,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::diplomatic_points(state, nation_id)});	// Does this really need to be a float? -breizh
-		if(auto k = state.key_to_text_sequence.find(std::string_view("topbar_diplopoints")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+		text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::diplomatic_points(state, nation_id)});
+		text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -544,9 +542,7 @@ public:
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
 		text::add_to_substitution_map(sub, text::variable_type::max, (state.world.nation_get_recruitable_regiments(nation_id) + state.world.nation_get_active_regiments(nation_id)));
-		if(auto k = state.key_to_text_sequence.find(std::string_view("topbar_army_tooltip")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+		text::localised_format_box(state, contents, box, std::string_view("topbar_army_tooltip"), sub);
 		text::close_layout_box(contents, box);
 	}
 };

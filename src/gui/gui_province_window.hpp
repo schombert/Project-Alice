@@ -187,28 +187,22 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("pw_colony")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, std::string_view("----------"), text::text_color::white);
-			text::add_line_break_to_layout_box(contents, state, box);
-		}
+		text::localised_format_box(state, contents, box, std::string_view("pw_colony"));
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, std::string_view("----------"), text::text_color::white);
+		text::add_line_break_to_layout_box(contents, state, box);
 
-		if(auto k = state.key_to_text_sequence.find(std::string_view("pw_colony_no_state")); k != state.key_to_text_sequence.end()) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::num, text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
-			float total_pop = state.world.state_instance_get_demographics(state_instance_id, demographics::total);
-			float b_size = province::state_accepted_bureaucrat_size(state, state_instance_id);
-			text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{(b_size / total_pop) * 100.f});
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+		text::substitution_map sub1{};
+		text::add_to_substitution_map(sub1, text::variable_type::num, text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
+		float total_pop = state.world.state_instance_get_demographics(state_instance_id, demographics::total);
+		float b_size = province::state_accepted_bureaucrat_size(state, state_instance_id);
+		text::add_to_substitution_map(sub1, text::variable_type::curr, text::fp_one_place{(b_size / total_pop) * 100.f});
+		text::localised_format_box(state, contents, box, std::string_view("pw_colony_no_state"), sub1);
 
-		if(auto k = state.key_to_text_sequence.find(std::string_view("pw_cant_upgrade_to_state")); k != state.key_to_text_sequence.end()) {
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::value, int32_t(province::colony_integration_cost(state, state_instance_id)));
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::substitution_map sub2{};
+		text::add_to_substitution_map(sub2, text::variable_type::value, int32_t(province::colony_integration_cost(state, state_instance_id)));
+		text::localised_format_box(state, contents, box, std::string_view("pw_cant_upgrade_to_state"), sub2);
 
 		text::close_layout_box(contents, box);
 	}
