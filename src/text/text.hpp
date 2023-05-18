@@ -310,5 +310,6 @@ namespace text {
 
 	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, substitution_map const& sub = substitution_map{});
 	void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value);
+	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 }
 
