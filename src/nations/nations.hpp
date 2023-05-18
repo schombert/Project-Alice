@@ -265,6 +265,7 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
+int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 
 std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
 

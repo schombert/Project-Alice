@@ -12,6 +12,14 @@
 
 namespace nations {
 
+int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
+	/* TODO -
+	 * This should return the differance of the population of a nation between this month and next month, or this month and last month, depending which one is better to implement
+	 * Used in gui/topbar_subwindows/gui_population_window.hpp - Return value is divided by 30
+	 */
+	return 0;
+}
+
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
 	uint16_t count = 0;
 	for(uint16_t i = 0; i < uint16_t(state.nations_by_rank.size()); ++i) {
