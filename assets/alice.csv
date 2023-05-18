@@ -4,6 +4,7 @@ alice_exit;Exit;;;;;;;;;;;;x
 graphics_options;Graphics Options;;;;;;;;;;;;x
 sound_options;Sound Options;;;;;;;;;;;;x
 controls_options;Controls Options;;;;;;;;;;;;x
+message_settings_options;Message Settings;;;;;;;;;;;;x
 window_mode;Window mode;;;;;;;;;;;;x
 map_projection;Map projection;;;;;;;;;;;;x
 map_projection_globe;Orthographic;;;;;;;;;;;;x

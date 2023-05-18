@@ -2811,6 +2811,11 @@ object {
 		name{ is_target_of_some_cb }
 		type{ bitfield }
 	}
+	property{
+		name{ is_interesting }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 relationship{

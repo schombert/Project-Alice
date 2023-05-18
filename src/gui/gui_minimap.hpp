@@ -5,6 +5,7 @@
 #include "gui_ledger_window.hpp"
 #include "gui_search_window.hpp"
 #include "gui_main_menu.hpp"
+#include "gui_msg_filters_window.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
 #include "map_modes.hpp"
@@ -32,92 +33,70 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		switch(target) {
 			case map_mode::mode::admin:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_8")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_8"));
 				break;
 			case map_mode::mode::civilization_level:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_19")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_19"));
 				break;
 			case map_mode::mode::colonial:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_7")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_7"));
 				break;
 			case map_mode::mode::crisis:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_21")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_21"));
 				break;
 			case map_mode::mode::diplomatic:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_4")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_4"));
 				break;
 			case map_mode::mode::infrastructure:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_6")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_6"));
 				break;
 			case map_mode::mode::migration:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_18")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_18"));
 				break;
 			case map_mode::mode::naval:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_22")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_22"));
 				break;
 			case map_mode::mode::nationality:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_13")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_13"));
 				break;
 			case map_mode::mode::national_focus:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_10")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_10"));
 				break;
 			case map_mode::mode::party_loyalty:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_16")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_16"));
 				break;
 			case map_mode::mode::political:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_2")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_2"));
 				break;
 			case map_mode::mode::population:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_12")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_12"));
 				break;
 			case map_mode::mode::rank:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_17")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_17"));
 				break;
 			case map_mode::mode::recruitment:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_9")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_9"));
 				break;
 			case map_mode::mode::region:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_5")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_5"));
 				break;
 			case map_mode::mode::relation:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_20")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_20"));
 				break;
 			case map_mode::mode::revolt:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_3")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_3"));
 				break;
 			case map_mode::mode::rgo_output:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_11")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_11"));
 				break;
 			case map_mode::mode::sphere:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_14")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_14"));
 				break;
 			case map_mode::mode::supply:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_15")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_15"));
 				break;
 			case map_mode::mode::terrain:
-				if(auto k = state.key_to_text_sequence.find(std::string_view("mapmode_1")); k != state.key_to_text_sequence.end())
-					text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
+				text::localised_format_box(state, contents, box, std::string_view("mapmode_1"));
 				break;
 		}
 		text::close_layout_box(contents, box);
@@ -180,6 +159,138 @@ public:
 	}
 };
 
+class minimap_msg_settings_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(!state.ui_state.msg_filters_window) {
+			auto window = make_element_by_type<msg_filters_window>(state, "message_filters");
+			state.ui_state.msg_filters_window = window.get();
+			state.ui_state.root->add_child_to_front(std::move(window));
+		} else if(state.ui_state.msg_filters_window->is_visible()) {
+			state.ui_state.msg_filters_window->set_visible(state, false);
+		} else {
+			state.ui_state.msg_filters_window->set_visible(state, true);
+			state.ui_state.root->move_child_to_front(state.ui_state.msg_filters_window);
+		}
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_settings"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_combat_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_combat"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_diplo_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_diplo"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_unit_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_unit"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_province_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_province"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_other_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_other"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
+class minimap_msg_event_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("sidemenu_menubar_msg_event"), text::substitution_map{});
+		text::close_layout_box(contents, box);
+	}
+};
+
 class minimap_menu_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -207,14 +318,39 @@ public:
 	}
 };
 
+struct open_msg_log_data {
+	int dummy;
+};
+class open_msg_log_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = open_msg_log_data{};
+			parent->impl_get(state, payload);
+			frame = any_cast<bool>(payload) ? 1 : 0;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = open_msg_log_data{};
+			parent->impl_set(state, payload);
+		}
+	}
+};
+
 class minimap_container_window : public window_element_base {
+	const std::string_view mapmode_btn_prefix{ "mapmode_" };
+	element_base* message_log_window = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
-			auto ptr = make_element_immediate(state, id);
+			auto ptr = make_element_by_type<msg_log_window>(state, id);
+			message_log_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
-			//chat_window
+		} else if(name == "openbutton") {
+			return make_element_by_type<open_msg_log_button>(state, id);
 		} else if(name == "chat_window") {
 			auto ptr = make_element_immediate(state, id);
 			ptr->set_visible(state, false);
@@ -225,6 +361,20 @@ public:
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {
 			return make_element_by_type<minimap_ledger_button>(state, id);
+		} else if(name == "menubar_msg_settings") {
+			return make_element_by_type<minimap_msg_settings_button>(state, id);
+		} else if(name == "menubar_msg_combat") {
+			return make_element_by_type<minimap_msg_combat_button>(state, id);
+		} else if(name == "menubar_msg_diplo") {
+			return make_element_by_type<minimap_msg_diplo_button>(state, id);
+		} else if(name == "menubar_msg_unit") {
+			return make_element_by_type<minimap_msg_unit_button>(state, id);
+		} else if(name == "menubar_msg_province") {
+			return make_element_by_type<minimap_msg_province_button>(state, id);
+		} else if(name == "menubar_msg_event") {
+			return make_element_by_type<minimap_msg_event_button>(state, id);
+		} else if(name == "menubar_msg_other") {
+			return make_element_by_type<minimap_msg_other_button>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);
 			size_t num_index = name.rfind("_") + 1;
@@ -246,8 +396,21 @@ public:
 		window_element_base::render(state, x, y);
 	}
 
-private:
-	const std::string_view mapmode_btn_prefix{ "mapmode_" };
+    message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<open_msg_log_data>()) {
+			message_log_window->set_visible(state, !message_log_window->is_visible());
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<open_msg_log_data>()) {
+			payload.emplace<bool>(message_log_window->is_visible());
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
 class minimap_picture_window : public opaque_element_base {

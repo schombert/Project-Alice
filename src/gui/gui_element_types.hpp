@@ -90,7 +90,7 @@ public:
 		return message_result::consumed;
 	}
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::no_tooltip;
@@ -151,6 +151,10 @@ public:
 
 	std::string_view get_text(sys::state& state) const {
 		return stored_text;
+	}
+
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
 	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
@@ -227,10 +231,21 @@ public:
 		return false;
 	}
 
-
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		frame = int32_t(is_active(state));
 		button_element_base::render(state, x, y);
+	}
+};
+
+template<class RowConT>
+class wrapped_listbox_row_content {
+public:
+	RowConT content;
+	wrapped_listbox_row_content() {
+		content = RowConT{};
+	}
+	wrapped_listbox_row_content(RowConT con) {
+		content = con;
 	}
 };
 
@@ -245,11 +260,14 @@ protected:
 	virtual std::string_view get_row_element_name() {
 		return std::string_view{};
 	}
-	virtual void update_subwindow(sys::state& state, ItemWinT* subwindow, ItemConT content) { }
+
+	virtual void update_subwindow(sys::state& state, ItemWinT& subwindow, ItemConT content) {
+		Cyto::Any payload = wrapped_listbox_row_content<ItemConT>(content);
+		subwindow.impl_get(state, payload);
+	}
 
 public:
-	std::vector<ItemConT> contents{};
-
+	std::vector<ItemConT> row_contents{};
 	void update(sys::state& state);
 };
 
@@ -295,8 +313,8 @@ public:
 		return "flag_list_flag";
 	}
 
-	void update_subwindow(sys::state& state, overlapping_flags_flag_button* subwindow, dcon::national_identity_id content) override {
-		subwindow->set_current_nation(state, content);
+	void update_subwindow(sys::state& state, overlapping_flags_flag_button& subwindow, dcon::national_identity_id content) override {
+		subwindow.set_current_nation(state, content);
 	}
 
 	void on_update(sys::state& state) noexcept override;
@@ -319,11 +337,6 @@ protected:
 };
 
 class overlapping_enemy_flags : public overlapping_flags_box {
-protected:
-	void populate_flags(sys::state& state) override;
-};
-
-class overlapping_protected_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override;
 };
@@ -579,18 +592,6 @@ public:
 	}
 };
 
-template<class RowConT>
-class wrapped_listbox_row_content {
-public:
-	RowConT content;
-	wrapped_listbox_row_content() {
-		content = RowConT{};
-	}
-	wrapped_listbox_row_content(RowConT con) {
-		content = con;
-	}
-};
-
 template<class RowWinT, class RowConT>
 class standard_listbox_scrollbar : public autoscaling_scrollbar {
 public:
@@ -612,7 +613,6 @@ template<class RowConT>
 class listbox_row_button_base : public button_element_base {
 protected:
 	RowConT content{};
-
 public:
 	virtual void update(sys::state& state) noexcept { }
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
@@ -623,7 +623,6 @@ template<class RowWinT, class RowConT>
 class listbox_element_base : public container_base {
 private:
 	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
-
 protected:
 	std::vector<RowWinT*> row_windows{};
 

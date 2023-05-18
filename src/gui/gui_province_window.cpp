@@ -7,14 +7,6 @@ void province_national_focus_button::button_action(sys::state& state) noexcept {
     province_window->national_focus_window->set_visible(state, !province_window->national_focus_window->is_visible());
 }
 
-void national_focus_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(focus_id) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(focus_id), text::substitution_map{ });
-		text::close_layout_box(contents, box);
-	}
-}
-
 void province_rgo_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto rgo_good = state.world.province_get_rgo(prov_id);
 	if(rgo_good) {

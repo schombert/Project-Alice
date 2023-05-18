@@ -62,7 +62,7 @@ struct ideology_buffer {
 			temp_buffers.emplace_back(uint32_t(0));
 		}
 	}
-	
+
 	void update(sys::state& state, uint32_t s) {
 		if(size < s) {
 			size = s;
@@ -153,6 +153,11 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
+double getMonthlyLitChange(sys::state& state, dcon::nation_id);
+double getMonthlyMilChange(sys::state& state, dcon::nation_id);
+double getMonthlyConChange(sys::state& state, dcon::nation_id);
+double getMonthlyPopChange(sys::state& state, dcon::nation_id);
+
 void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
 void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf);
 void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
@@ -162,5 +167,8 @@ void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divis
 void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
 void remove_size_zero_pops(sys::state& state);
+
+int64_t get_monthly_pop_increase(sys::state& state, dcon::pop_id);
+int64_t get_monthly_pop_increase_of_state(sys::state& state, dcon::nation_id n);
 
 }
