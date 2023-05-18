@@ -44,8 +44,11 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto pop_increase = nations::get_monthly_pop_increase_of_nation(state, dcon::nation_id{});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, pop_increase);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -70,6 +73,23 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		frame = get_icon_frame(state);
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto pop_increase = demographics::get_monthly_pop_increase_of_state(state, dcon::nation_id{});
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, pop_increase);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -104,8 +124,11 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto pop_increase = demographics::get_monthly_pop_increase(state, content);
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pv_growth"), text::substitution_map{});
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, pop_increase);
 		text::close_layout_box(contents, box);
 	}
 };

@@ -64,7 +64,7 @@ public:
 
     void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 	    auto box = text::open_layout_box(contents, 0);
-	    text::localised_format_box(state, contents, box, std::string_view("alliance_desc"));
+	    can_cancel(state) ? text::localised_format_box(state, contents, box, std::string_view("cancelalliance_desc")) : text::localised_format_box(state, contents, box, std::string_view("alliance_desc"));
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
@@ -126,11 +126,14 @@ public:
 };
 
 class diplomacy_action_military_access_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+    bool can_cancel(sys::state& state) noexcept {
+	    // TODO - test if we local_player_nation has military access to the other country
+        return false;
+    }
 public:
     void on_update(sys::state& state) noexcept override {
-        bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
-            can_cancel ? "cancelaskmilitaryaccess_button"
+            can_cancel(state) ? "cancelaskmilitaryaccess_button"
                 : "askmilitaryaccess_button"));
 
         // TODO: Conditions for enabling/disabling
@@ -158,7 +161,7 @@ public:
 
     void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 	    auto box = text::open_layout_box(contents, 0);
-	    text::localised_format_box(state, contents, box, std::string_view("askmilitaryaccess_desc"));
+	    can_cancel(state) ? text::localised_format_box(state, contents, box, std::string_view("cancelaskmilitaryaccess_desc")) : text::localised_format_box(state, contents, box, std::string_view("askmilitaryaccess_desc"));
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
@@ -172,11 +175,14 @@ public:
 };
 
 class diplomacy_action_give_military_access_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+    bool can_cancel(sys::state& state) noexcept {
+	    // TODO - test if we local_player_nation has military access to the other country
+        return false;
+    }
 public:
     void on_update(sys::state& state) noexcept override {
-        bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
-            can_cancel ? "cancelgivemilitaryaccess_button"
+            can_cancel(state) ? "cancelgivemilitaryaccess_button"
                 : "givemilitaryaccess_button"));
 
         // TODO: Conditions for enabling/disabling
@@ -204,7 +210,7 @@ public:
 
     void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 	    auto box = text::open_layout_box(contents, 0);
-	    text::localised_format_box(state, contents, box, std::string_view("givemilitaryaccess_desc"));
+	    can_cancel(state) ? text::localised_format_box(state, contents, box, std::string_view("cancelgivemilitaryaccess_desc")) : text::localised_format_box(state, contents, box, std::string_view("givemilitaryaccess_desc"));
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
@@ -306,11 +312,14 @@ public:
 };
 
 class diplomacy_action_war_subisides_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+    bool can_cancel(sys::state& state) noexcept {
+	    // TODO - test if we local_player_nation has military access to the other country
+        return false;
+    }
 public:
     void on_update(sys::state& state) noexcept override {
-        bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
-            can_cancel ? "cancel_warsubsidies_button"
+            can_cancel(state) ? "cancel_warsubsidies_button"
                 : "warsubsidies_button"));
 
         // TODO: Conditions for enabling/disabling
@@ -338,7 +347,7 @@ public:
 
     void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 	    auto box = text::open_layout_box(contents, 0);
-	    text::localised_format_box(state, contents, box, std::string_view("warsubsidies_desc"));
+	    can_cancel(state) ? text::localised_format_box(state, contents, box, std::string_view("cancel_warsubsidies_desc")) : text::localised_format_box(state, contents, box, std::string_view("warsubsidies_desc"));
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
@@ -396,11 +405,14 @@ public:
 };
 
 class diplomacy_action_command_units_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+    bool can_cancel(sys::state& state) noexcept {
+	    // TODO - test if we local_player_nation has military access to the other country
+        return false;
+    }
 public:
     void on_update(sys::state& state) noexcept override {
-        bool can_cancel = false;
         set_button_text(state, text::produce_simple_string(state,
-            can_cancel ? "cancel_unit_command_button"
+            can_cancel(state) ? "cancel_unit_command_button"
                 : "give_unit_command_button"));
 
         // TODO: Conditions for enabling/disabling
@@ -428,7 +440,7 @@ public:
 
     void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 	    auto box = text::open_layout_box(contents, 0);
-	    text::localised_format_box(state, contents, box, std::string_view("give_unit_command_desc"));
+	    can_cancel(state) ? text::localised_format_box(state, contents, box, std::string_view("cancel_unit_command_desc")) : text::localised_format_box(state, contents, box, std::string_view("give_unit_command_desc"));
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
@@ -478,6 +490,8 @@ public:
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+	    } else if(!nations::is_great_power(state, state.local_player_nation)) {
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
@@ -524,6 +538,8 @@ public:
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+	    } else if(!nations::is_great_power(state, state.local_player_nation)) {
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
@@ -570,6 +586,8 @@ public:
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+	    } else if(!nations::is_great_power(state, state.local_player_nation)) {
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
@@ -616,6 +634,8 @@ public:
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+	    } else if(!nations::is_great_power(state, state.local_player_nation)) {
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
@@ -662,6 +682,8 @@ public:
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+	    } else if(!nations::is_great_power(state, state.local_player_nation)) {
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
@@ -708,6 +730,8 @@ public:
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+	    } else if(!nations::is_great_power(state, state.local_player_nation)) {
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
@@ -754,6 +778,8 @@ public:
 	    text::add_divider_to_layout_box(state, contents, box);
 	    if(content == state.local_player_nation) {
 		    text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+	    } else if(!nations::is_great_power(state, state.local_player_nation)) {
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);

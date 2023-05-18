@@ -60,6 +60,8 @@ public:
 			return make_element_by_type<national_identity_vassal_type_text>(state, id);
 		} else if(name == "desc") {
 			return make_element_by_type<release_nation_description_text>(state, id);
+		} else if(name == "country_release_vassal") {
+			return make_element_by_type<button_element_base>(state, id);
 		} else {
 			return nullptr;
 		}

@@ -1310,13 +1310,7 @@ void populate_needs_costs(sys::state& state, ve::vectorizable_buffer<float, dcon
 				state.world.for_each_pop_type([&](auto ids) {
 					auto ln = state.world.pop_type_get_luxury_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * mul[state.world.pop_type_get_strata(ids)];
 					state.world.nation_set_luxury_needs_costs(n, ids, ln + state.world.nation_get_luxury_needs_costs(n, ids));
-<<<<<<< HEAD
-
-					assert(!std::isnan(state.world.nation_get_luxury_needs_costs(n, ids)));
-=======
-
 					assert(std::isfinite(state.world.nation_get_luxury_needs_costs(n, ids)));
->>>>>>> a907480218fb50b0d886b2b258e57899e423f151
 				});
 			}
 		}
@@ -1354,13 +1348,7 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i]) {
 							auto amount = base_cost.commodity_amounts[i] / construction_time;
 							auto& source = state.world.nation_get_construction_demand(n, base_cost.commodity_type[i]);
-<<<<<<< HEAD
-							auto delta = std::min(source, base_cost.commodity_amounts[i] / construction_time);
-
-=======
 							auto delta = std::max(0.0f, std::min(source, base_cost.commodity_amounts[i] / construction_time));
-
->>>>>>> a907480218fb50b0d886b2b258e57899e423f151
 							current_purchased.commodity_amounts[i] += delta;
 							source -= delta;
 						}
