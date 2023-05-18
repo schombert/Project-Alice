@@ -467,6 +467,21 @@ public:
 	}
 };
 
+class outliner_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(state.ui_state.outliner_window)
+			frame = state.ui_state.outliner_window->is_visible() ? 1 : 0;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(state.ui_state.outliner_window) {
+			state.ui_state.outliner_window->set_visible(state, !state.ui_state.outliner_window->is_visible());
+			on_update(state);
+		}
+	}
+};
+
 class outliner_window : public window_element_base {
     outliner_listbox* listbox = nullptr;
     image_element_base* bottom_image = nullptr;
