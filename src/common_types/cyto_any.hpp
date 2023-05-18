@@ -59,20 +59,20 @@
 #endif
 #endif
 
-#ifdef __cpp_rtti
-#define ANY_USE_TYPEINFO 1
-#else
+//#ifdef __cpp_rtti
+//#define ANY_USE_TYPEINFO 1
+//#else
 #define ANY_USE_TYPEINFO 0
-#endif
+//#endif
 
-#ifdef __cpp_exceptions
-#define ANY_USE_EXCEPTIONS 1
-#else
+//#ifdef __cpp_exceptions
+//#define ANY_USE_EXCEPTIONS 1
+//#else
 #define ANY_USE_EXCEPTIONS 0
-#endif
+//#endif
 
 #ifndef ANY_USE_SMALL_MEMCPY_STRATEGY
-#define ANY_USE_SMALL_MEMCPY_STRATEGY 0
+#define ANY_USE_SMALL_MEMCPY_STRATEGY 1
 #endif
 
 #define ANY_USE(FEATURE) (defined ANY_USE_##FEATURE && ANY_USE_##FEATURE)
@@ -115,14 +115,16 @@ union Storage {
 	Storage& operator=(Storage&&) = delete;
 
 	StorageBuffer buf;
-	void* ptr = nullptr;
 };
 
 #if !ANY_USE_TYPEINFO
 template <class T>
 struct fallback_typeinfo {
-	static constexpr int id = 0;
+	static int id;
 };
+
+template <class T>
+int fallback_typeinfo<T>::id = 0;
 
 template <class T>
 ANY_ALWAYS_INLINE
@@ -196,14 +198,6 @@ struct AnyTraits {
 	}
 #endif  // ANY_USE(SMALL_MEMCPY_STRATEGY)
 
-	template <class X = T, class... Args,
-		std::enable_if_t<!IsStorageBufferSized<X>, int> = 0>
-	ANY_ALWAYS_INLINE
-		static X& make(Storage* s, std::in_place_type_t<X> vtype, Args &&... args) {
-		s->ptr = new X(std::forward<Args>(args)...);
-		return *static_cast<X*>(s->ptr);
-	}
-
 private:
 	AnyTraits(const AnyTraits&) = default;
 	AnyTraits(AnyTraits&&) = default;
@@ -236,16 +230,6 @@ private:
 		static void* get(Storage* s, const void* type) {
 		if(compare_typeid<X>(type)) {
 			return static_cast<void*>(&s->buf);
-		}
-		return nullptr;
-	}
-
-	template <class X = T,
-		std::enable_if_t<!IsStorageBufferSized<X>, int> = 0>
-	ANY_ALWAYS_INLINE
-		static void* get(Storage* s, const void* type) {
-		if(compare_typeid<X>(type)) {
-			return s->ptr;
 		}
 		return nullptr;
 	}
@@ -283,13 +267,6 @@ private:
 	}
 #endif   // ANY_USE(SMALL_MEMCPY_STRATEGY)
 
-	template <class X = T,
-		std::enable_if_t<!IsStorageBufferSized<X>, int> = 0>
-	ANY_ALWAYS_INLINE
-		static void copy(Storage* dst, const Storage* src) {
-		AnyTraits::make(dst, std::in_place_type_t<X>(), *static_cast<X const*>(static_cast<void const*>(src->ptr)));
-	}
-
 	//
 	// move
 	//
@@ -314,12 +291,6 @@ private:
 	}
 #endif   // ANY_USE(SMALL_MEMCPY_STRATEGY)
 
-	template <class X = T,
-		std::enable_if_t<!IsStorageBufferSized<X>, int> = 0>
-	ANY_ALWAYS_INLINE
-		static void move(Storage* dst, Storage* src) {
-		dst->ptr = src->ptr;
-	}
 
 	//
 	// drop
@@ -340,13 +311,6 @@ private:
 		static void drop(Storage* s) {
 		X& t = *static_cast<X*>(static_cast<void*>(const_cast<StorageBuffer*>(&s->buf)));
 		t.~X();
-	}
-
-	template <class X = T,
-		std::enable_if_t<!IsStorageBufferSized<X>, int> = 0>
-	ANY_ALWAYS_INLINE
-		static void drop(Storage* s) {
-		delete static_cast<X*>(s->ptr);
 	}
 
 public:

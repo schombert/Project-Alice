@@ -69,7 +69,7 @@ if(WIN32)
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
 		target_link_options(Alice PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
-			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
+			$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
 	endif()
 else() # GCC or CLANG
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -93,34 +93,34 @@ message("leftover CMAKE_CXX_FLAGS: \"${CMAKE_CXX_FLAGS}\"")
 message("leftover CMAKE_CXX_FLAGS_DEBUG: \"${CMAKE_CXX_FLAGS_DEBUG}\"")
 message("leftover CMAKE_CXX_FLAGS_RELEASE: \"${CMAKE_CXX_FLAGS_RELEASE}\"")
 
-target_precompile_headers(Alice
-	PRIVATE <stdint.h>
-	PRIVATE <vector>
-	PRIVATE <array>
-	PRIVATE <optional>
-	PRIVATE <memory>
-	PRIVATE <variant>
-	PRIVATE <string>
-	PRIVATE <string_view>
-	PRIVATE <charconv>
-	PRIVATE <algorithm>
-	PRIVATE <iterator>
-	PRIVATE <stdlib.h>
-	PRIVATE <ctype.h>
-	PRIVATE <cmath>
-	PRIVATE <functional>
-	PRIVATE <cstdlib>
-	PRIVATE <atomic>
-	PRIVATE <chrono>
-	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants.hpp"]]
-	PRIVATE [["unordered_dense.h"]]
-	PRIVATE [["dcon_generated.hpp"]]
-	PRIVATE [["container_types.hpp"]]
-	PRIVATE [["parsers_declarations.hpp"]]
-	PRIVATE [["cyto_any.hpp"]]
-	PRIVATE [["date_interface.hpp"]]
-)
+#target_precompile_headers(Alice
+#	PRIVATE <stdint.h>
+#	PRIVATE <vector>
+#	PRIVATE <array>
+#	PRIVATE <optional>
+#	PRIVATE <memory>
+#	PRIVATE <variant>
+#	PRIVATE <string>
+#	PRIVATE <string_view>
+#	PRIVATE <charconv>
+#	PRIVATE <algorithm>
+#	PRIVATE <iterator>
+#	PRIVATE <stdlib.h>
+#	PRIVATE <ctype.h>
+#	PRIVATE <cmath>
+#	PRIVATE <functional>
+#	PRIVATE <cstdlib>
+#	PRIVATE <atomic>
+#	PRIVATE <chrono>
+#	PRIVATE [["simple_fs.hpp"]]
+#	PRIVATE [["constants.hpp"]]
+#	PRIVATE [["unordered_dense.h"]]
+#	PRIVATE [["dcon_generated.hpp"]]
+#	PRIVATE [["container_types.hpp"]]
+#	PRIVATE [["parsers_declarations.hpp"]]
+#	PRIVATE [["cyto_any.hpp"]]
+#	PRIVATE [["date_interface.hpp"]]
+#)
 
 
 target_link_libraries(Alice PRIVATE dependency_DataContainer)

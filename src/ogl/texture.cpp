@@ -441,6 +441,7 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		switch(type) {
 			case culture::flag_type::communist:
 				file_str += NATIVE("_communist"); break;
+			case culture::flag_type::count:
 			case culture::flag_type::default_flag:
 				break;
 			case culture::flag_type::fascist:
