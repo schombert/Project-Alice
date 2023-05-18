@@ -181,6 +181,12 @@ if(auto k = state.key_to_text_sequence.find(std::string_view("some value present
     text::add_to_layout_box(contents, state, box, k->second, sub);
 }
 ```
+- `add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box)` : this function is the same as doing the following code snippet:
+```
+text::add_line_break_to_layout_box(contents, state, box);
+text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+text::add_line_break_to_layout_box(contents, state, box);
+```
 
 ##### Rendering a text layout
 
