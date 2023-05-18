@@ -35,12 +35,12 @@ Positions and Sizes are relative to the parent (thanks leaf!)
 
 
 # Entry Format
-For the sake of simplicity we list the sections and then their properties
-for each property a "tag" is placed after it on the right hand side, for example `(o|v|h|e)` with each of the letters representing one of the following:
-o = optional
-v = vic2        (this means it was *observed* in the vic2 files and does __not__ say its vic2 exclusive)
-h = hoi3        (similar to above)
-e = eu3         (similar to above)
+- For the sake of simplicity we list the sections and then their properties
+- for each property a "tag" is placed after it on the right hand side, for example `(o|v|h|e)` with each of the letters representing one of the following:
+- o = optional
+- v = vic2        (this means it was *observed* in the vic2 files and does __not__ say its vic2 exclusive)
+- h = hoi3        (similar to above)
+- e = eu3         (similar to above)
 
 ## guiTypes section properties:
 Appears to be able to contain:
