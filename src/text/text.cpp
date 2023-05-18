@@ -15,6 +15,7 @@ namespace text {
 			case 'R': return text_color::red;
 			case 'Y': return text_color::yellow;
 			case 'b': return text_color::black;
+			case '!': return text_color::reset;
 			default: return text_color::unspecified;
 		}
 	}
@@ -989,7 +990,10 @@ namespace text {
 			} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
 				add_line_break_to_layout_box(dest, state, box);
 			} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
-				current_color = std::get<text::text_color>(state.text_components[i]);
+				if(std::get<text::text_color>(state.text_components[i]) == text_color::reset)
+					current_color = dest.fixed_parameters.color;
+				else
+					current_color = std::get<text::text_color>(state.text_components[i]);
 			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
 				auto var_type = std::get<text::variable_type>(state.text_components[i]);
 				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {

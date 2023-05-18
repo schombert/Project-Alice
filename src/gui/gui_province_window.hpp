@@ -241,6 +241,33 @@ public:
 	}
 };
 
+class province_name_text_SCH : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id result = Cyto::any_cast<dcon::province_id>(payload);
+
+			set_text(state, text::produce_simple_string(state, state.world.province_get_name(result)));
+		}
+	}
+};
+
+class province_state_name_text_SCH : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id result = Cyto::any_cast<dcon::province_id>(payload);
+
+			set_text(state, text::get_province_state_name(state, result));
+		}
+	}
+};
+
+
 class province_window_header : public window_element_base {
 private:
 	slave_state_icon* slave_icon = nullptr;
@@ -249,9 +276,9 @@ private:
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_name") {
-			return make_element_by_type<province_state_name_text>(state, id);
+			return make_element_by_type<province_state_name_text_SCH>(state, id);
 		} else if(name == "province_name") {
-			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
+			return make_element_by_type<province_name_text_SCH>(state, id);
 		} else if(name == "prov_terrain") {
 			return make_element_by_type<province_terrain_image>(state, id);
 		} else if(name == "slave_state_icon") {
@@ -259,9 +286,13 @@ public:
 			slave_icon = ptr.get();
 			return ptr;
 		} else if(name == "admin_icon") {
-			return make_element_by_type<province_admin_icon>(state, id);
+			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
+			ptr->set_type(state, state.culture_definitions.bureaucrat);
+			return ptr;
 		} else if(name == "owner_icon") {
-			return make_element_by_type<province_owner_icon>(state, id);
+			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
+			ptr->set_type(state, state.culture_definitions.aristocrat);
+			return ptr;
 		} else if(name == "controller_flag") {
 			return make_element_by_type<province_controller_flag>(state, id);
 		} else if(name == "flashpoint_indicator") {
@@ -959,11 +990,23 @@ public:
 		colony_window->update_province_info(state, active_province);
 	}
 
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
+			payload = active_province;
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+
     void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
 			update_province_info(state);
-			set_visible(state, true);
+			if(!is_visible())
+				set_visible(state, true);
+			else
+				impl_on_update(state);
 		} else {
 			set_visible(state, false);
 		}

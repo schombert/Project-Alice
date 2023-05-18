@@ -537,6 +537,15 @@ namespace sys {
 			}
 		}
 
+		{
+			err.file_name = "adjacencies.csv";
+			auto adj_csv_file = open_file(map, NATIVE("adjacencies.csv"));
+			if(adj_csv_file) {
+				auto adj_content = view_contents(*adj_csv_file);
+				parsers::read_map_adjacency(adj_content.data, adj_content.data + adj_content.file_size, err, context);
+			}
+		}
+
 		/*
 		240,208,1 Tsushima --> 240,208,0 Nagasaki
 		128,65,97 Fehmarn--> 128,65,96 Kiel
@@ -1791,6 +1800,8 @@ namespace sys {
 
 					});
 
+					economy::daily_update(*this);
+
 					event::update_events(*this);
 
 					culture::update_reasearch(*this, uint32_t(ymd_date.year));
@@ -1840,8 +1851,6 @@ namespace sys {
 						default:
 							break;
 					}
-
-					economy::daily_update(*this);
 
 					// yearly update : redo the upper house
 					if(ymd_date.day == 1 && ymd_date.month == 1) {

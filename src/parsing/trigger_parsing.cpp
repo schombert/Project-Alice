@@ -683,6 +683,16 @@ dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler
 	return context.outer_context.state.value_modifiers.push_back(sys::value_modifier_description{ overall_factor, uint16_t(old_count), uint16_t(new_count - old_count) });
 }
 
+void trigger_body::is_canal_enabled(association_type a, int32_t value, error_handler& err, int32_t line, trigger_building_context& context) {
+	if(1 <= value && value <= int32_t(context.outer_context.state.province_definitions.canals.size())) {
+		context.compiled_trigger.push_back(uint16_t(trigger::is_canal_enabled | association_to_bool_code(a)));
+		context.compiled_trigger.push_back(trigger::payload(uint16_t(value)).value);
+	} else {
+		err.accumulated_errors += "canal index " + std::to_string(value) + " out of range (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+}
+
 void trigger_body::badboy(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_trigger.push_back(uint16_t(trigger::badboy | association_to_trigger_code(a)));

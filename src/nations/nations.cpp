@@ -12,6 +12,14 @@
 
 namespace nations {
 
+int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
+	/* TODO -
+	 * This should return the differance of the population of a nation between this month and next month, or this month and last month, depending which one is better to implement
+	 * Used in gui/topbar_subwindows/gui_population_window.hpp - Return value is divided by 30
+	 */
+	return 0;
+}
+
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
 	uint16_t count = 0;
 	for(uint16_t i = 0; i < uint16_t(state.nations_by_rank.size()); ++i) {
@@ -876,12 +884,12 @@ bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
 }
 
 void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
-	if(auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b)) {
-		state.world.diplomatic_relation_get_value(rel) += delta;
-	} else {
-		auto nrel = state.world.try_create_diplomatic_relation(a, b);
-		state.world.diplomatic_relation_set_value(nrel, delta);
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+	if(!rel) {
+		rel = state.world.force_create_diplomatic_relation(a, b);
 	}
+	auto& val = state.world.diplomatic_relation_get_value(rel);
+	val = std::clamp(val + delta, -200.0f, 200.0f);
 }
 
 void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon::nation_id base) {
@@ -1087,6 +1095,19 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 	}
 }
 
+void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	if(auto r = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b); r) {
+		break_alliance(state, r);
+	}
+}
+void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	auto r = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+	if(!r) {
+		r = state.world.force_create_diplomatic_relation(a, b);
+	}
+	state.world.diplomatic_relation_set_are_allied(r, true);
+}
+
 bool other_nation_is_influencing(sys::state& state, dcon::nation_id target, dcon::gp_relationship_id rel) {
 	for(auto orel : state.world.nation_get_gp_relationship_as_influence_target(target)) {
 		if(orel != rel) {
@@ -1274,7 +1295,7 @@ void monthly_flashpoint_update(sys::state& state) {
 			auto owner = si.get_nation_from_state_ownership();
 			auto owner_tag = owner.get_identity_from_identity_holder();
 
-
+			
 			auto owner_accepts_culture = [&](dcon::culture_id c) {
 				return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
 			};
@@ -1698,12 +1719,80 @@ void update_crisis(sys::state& state) {
 
 }
 
-int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
-	/* TODO -
-	 * This should return the differance of the population of a nation between this month and next month, or this month and last month, depending which one is better to implement
-	 * Used in gui/topbar_subwindows/gui_population_window.hpp - Return value is divided by 30
-	 */
-	return 0;
+
+void update_pop_acceptance(sys::state& state, dcon::nation_id n) {
+	auto pc = state.world.nation_get_primary_culture(n);
+	auto accepted = state.world.nation_get_accepted_cultures(n);
+
+	for(auto pr : state.world.nation_get_province_ownership(n)) {
+		for(auto pop : pr.get_province().get_pop_location()) {
+			[&]() {
+				if(pc == pop.get_pop().get_culture()) {
+					pop.get_pop().set_is_primary_or_accepted_culture(true);
+					return;
+				}
+				for(auto c : accepted) {
+					if(c == pop.get_pop().get_culture()) {
+						pop.get_pop().set_is_primary_or_accepted_culture(true);
+						return;
+					}
+				}
+				pop.get_pop().set_is_primary_or_accepted_culture(false);
+			}();
+		}
+	}
+}
+
+void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from) {
+	if(!liberated)
+		return;
+	auto holder = state.world.national_identity_get_nation_from_identity_holder(liberated);
+	if(!holder) {
+		holder = state.world.create_nation();
+		state.world.nation_set_identity_from_identity_holder(holder, liberated);
+	}
+	auto lprovs = state.world.nation_get_province_ownership(holder);
+	if(lprovs.begin() == lprovs.end()) {
+		nations::create_nation_based_on_template(state, holder, from);
+	}
+	for(auto c : state.world.national_identity_get_core(liberated)) {
+		if(c.get_province().get_nation_from_province_ownership() == from) {
+			province::change_province_owner(state, c.get_province(), holder);
+		}
+	}
+}
+
+void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from) {
+	if(!liberated)
+		return;
+	auto holder = state.world.national_identity_get_nation_from_identity_holder(liberated);
+	auto source_tag = state.world.nation_get_identity_from_identity_holder(from);
+	if(!holder) {
+		holder = state.world.create_nation();
+		state.world.nation_set_identity_from_identity_holder(holder, liberated);
+	}
+	auto lprovs = state.world.nation_get_province_ownership(holder);
+	if(lprovs.begin() == lprovs.end()) {
+		nations::create_nation_based_on_template(state, holder, from);
+	}
+	for(auto c : state.world.national_identity_get_core(liberated)) {
+		if(c.get_province().get_nation_from_province_ownership() == from && !(state.world.get_core_by_prov_tag_key(c.get_province(), source_tag))) {
+			province::change_province_owner(state, c.get_province(), holder);
+		}
+	}
+}
+
+void perform_nationalization(sys::state& state, dcon::nation_id n) {
+	// TODO
+}
+
+void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
+	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);
+	if(!rel) {
+		rel = state.world.force_create_gp_relationship(target, great_power);
+	}
+	auto& inf = state.world.gp_relationship_get_influence(rel);
+	inf = std::clamp(inf + delta, 0.0f, state.defines.max_influence);
 }
 
 float get_yesterday_income(sys::state& state, dcon::nation_id n) {

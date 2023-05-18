@@ -22,7 +22,7 @@ if(WIN32)
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
 		target_link_options(tests_project PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
-			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
+			$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
 	endif()
 else() # GCC or CLANG
 	target_compile_options(tests_project PRIVATE

@@ -33,10 +33,10 @@ TEST_CASE("effect scope recursion", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::generic_scope));
+		t.push_back(uint16_t(effect::generic_scope));
 		t.push_back(uint16_t(11));
 		t.push_back(uint16_t(effect::no_payload | effect::add_core_from_province));
-		t.push_back(uint16_t(effect::is_scope | effect::state_scope_pop));
+		t.push_back(uint16_t(effect::state_scope_pop));
 		t.push_back(uint16_t(8));
 		t.push_back(uint16_t(effect::add_core_from_province));
 		t.push_back(uint16_t(effect::add_war_goal));
@@ -62,10 +62,10 @@ TEST_CASE("effect scope recursion", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::generic_scope));
+		t.push_back(uint16_t(effect::generic_scope));
 		t.push_back(uint16_t(14));
 		t.push_back(uint16_t(effect::no_payload | effect::add_core_from_province));
-		t.push_back(uint16_t(effect::is_scope | effect::scope_has_limit | effect::integer_scope));
+		t.push_back(uint16_t(effect::scope_has_limit | effect::integer_scope));
 		t.push_back(uint16_t(11));
 		t.push_back(trigger::payload(dcon::trigger_key()).value);
 		t.push_back(uint16_t(100));
@@ -214,7 +214,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::generic_scope));
+		t.push_back(uint16_t( effect::generic_scope));
 		t.push_back(uint16_t(3));
 		t.push_back(uint16_t(effect::add_accepted_culture));
 		t.push_back(uint16_t(2));
@@ -225,7 +225,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::generic_scope));
+		t.push_back(uint16_t(effect::generic_scope));
 		t.push_back(uint16_t(4));
 		t.push_back(uint16_t(effect::add_accepted_culture));
 		t.push_back(uint16_t(2));
@@ -238,7 +238,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::integer_scope));
+		t.push_back(uint16_t(effect::integer_scope));
 		t.push_back(uint16_t(4));
 		t.push_back(uint16_t(400));
 		t.push_back(uint16_t(effect::add_accepted_culture));
@@ -250,7 +250,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::integer_scope));
+		t.push_back(uint16_t( effect::integer_scope));
 		t.push_back(uint16_t(5));
 		t.push_back(uint16_t(400));
 		t.push_back(uint16_t(effect::add_core_from_province));
@@ -263,7 +263,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::scope_has_limit | effect::integer_scope));
+		t.push_back(uint16_t(effect::scope_has_limit | effect::integer_scope));
 		t.push_back(uint16_t(5));
 		t.push_back(trigger::payload(dcon::trigger_key(1)).value);
 		t.push_back(uint16_t(400));
@@ -276,7 +276,7 @@ TEST_CASE("effect scope sizing", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::scope_has_limit | effect::integer_scope));
+		t.push_back(uint16_t( effect::scope_has_limit | effect::integer_scope));
 		t.push_back(uint16_t(7));
 		t.push_back(trigger::payload(dcon::trigger_key(1)).value);
 		t.push_back(uint16_t(0));
@@ -418,10 +418,10 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::scope_has_limit | effect::generic_scope));
+		t.push_back(uint16_t( effect::scope_has_limit | effect::generic_scope));
 		t.push_back(uint16_t(8));
 		t.push_back(trigger::payload(dcon::trigger_key()).value);
-		t.push_back(uint16_t(effect::is_scope | effect::scope_has_limit | effect::x_neighbor_province_scope));
+		t.push_back(uint16_t( effect::scope_has_limit | effect::x_neighbor_province_scope));
 		t.push_back(uint16_t(5));
 		t.push_back(trigger::payload(dcon::trigger_key()).value);
 		t.push_back(uint16_t(effect::add_accepted_culture));
@@ -431,7 +431,7 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 		const auto new_size = parsers::simplify_effect(t.data());
 
 		REQUIRE(5 == new_size);
-		REQUIRE(t[0] == uint16_t(effect::is_scope | effect::x_neighbor_province_scope));
+		REQUIRE(t[0] == uint16_t(effect::x_neighbor_province_scope));
 		REQUIRE(t[1] == uint16_t(4));
 		REQUIRE(t[2] == uint16_t(effect::add_accepted_culture));
 		REQUIRE(t[3] == uint16_t(7));
@@ -440,10 +440,10 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::scope_has_limit | effect::x_neighbor_province_scope));
+		t.push_back(uint16_t( effect::scope_has_limit | effect::x_neighbor_province_scope));
 		t.push_back(uint16_t(8));
 		t.push_back(trigger::payload(dcon::trigger_key()).value);
-		t.push_back(uint16_t(effect::is_scope | effect::scope_has_limit | effect::generic_scope));
+		t.push_back(uint16_t( effect::scope_has_limit | effect::generic_scope));
 		t.push_back(uint16_t(5));
 		t.push_back(trigger::payload(dcon::trigger_key()).value);
 		t.push_back(uint16_t(effect::add_accepted_culture));
@@ -453,9 +453,9 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 		const auto new_size = parsers::simplify_effect(t.data());
 
 		REQUIRE(7 == new_size);
-		REQUIRE(t[0] == uint16_t(effect::is_scope | effect::x_neighbor_province_scope));
+		REQUIRE(t[0] == uint16_t( effect::x_neighbor_province_scope));
 		REQUIRE(t[1] == uint16_t(6));
-		REQUIRE(t[2] == uint16_t(effect::is_scope | effect::generic_scope));
+		REQUIRE(t[2] == uint16_t( effect::generic_scope));
 		REQUIRE(t[3] == uint16_t(4));
 		REQUIRE(t[4] == uint16_t(effect::add_accepted_culture));
 		REQUIRE(t[5] == uint16_t(2));
@@ -464,11 +464,11 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(effect::is_scope | effect::scope_has_limit | effect::integer_scope));
+		t.push_back(uint16_t( effect::scope_has_limit | effect::integer_scope));
 		t.push_back(uint16_t(9));
 		t.push_back(trigger::payload(dcon::trigger_key(3)).value);
 		t.push_back(uint16_t(32));
-		t.push_back(uint16_t(effect::is_scope | effect::generic_scope));
+		t.push_back(uint16_t( effect::generic_scope));
 		t.push_back(uint16_t(5));
 		t.push_back(uint16_t(effect::activate_technology));
 		t.push_back(uint16_t(3));
@@ -478,11 +478,11 @@ TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 		const auto new_size = parsers::simplify_effect(t.data());
 
 		REQUIRE(10 == new_size);
-		REQUIRE(t[0] == uint16_t(effect::is_scope | effect::scope_has_limit | effect::integer_scope));
+		REQUIRE(t[0] == uint16_t(effect::scope_has_limit | effect::integer_scope));
 		REQUIRE(t[1] == uint16_t(9));
 		REQUIRE(trigger::payload(t[2]).tr_id == dcon::trigger_key(3));
 		REQUIRE(t[3] == uint16_t(32));
-		REQUIRE(t[4] == uint16_t(effect::is_scope | effect::generic_scope));
+		REQUIRE(t[4] == uint16_t(effect::generic_scope));
 		REQUIRE(t[5] == uint16_t(5));
 		REQUIRE(t[6] == uint16_t(effect::activate_technology));
 		REQUIRE(t[7] == uint16_t(3));
@@ -556,7 +556,7 @@ TEST_CASE("effect scope", "[effect_tests]") {
 	tc.compiled_effect.resize(static_cast<size_t>(new_size));
 
 	REQUIRE(size_t(6) == tc.compiled_effect.size());
-	REQUIRE(tc.compiled_effect[0] == uint16_t(effect::is_scope | effect::owner_scope_province));
+	REQUIRE(tc.compiled_effect[0] == uint16_t(effect::owner_scope_province));
 	REQUIRE(tc.compiled_effect[1] == uint16_t(5));
 	REQUIRE(tc.compiled_effect[2] == uint16_t(effect::world_wars_enabled_yes | effect::no_payload));
 	REQUIRE(tc.compiled_effect[3] == uint16_t(effect::treasury));
@@ -578,7 +578,7 @@ TEST_CASE("effect with limit", "[effect_tests]") {
 	tc.compiled_effect.resize(static_cast<size_t>(new_size));
 
 	REQUIRE(size_t(6) == tc.compiled_effect.size());
-	REQUIRE(tc.compiled_effect[0] == uint16_t(effect::is_scope | effect::x_country_scope | effect::scope_has_limit));
+	REQUIRE(tc.compiled_effect[0] == uint16_t(effect::x_country_scope | effect::scope_has_limit));
 	REQUIRE(tc.compiled_effect[1] == uint16_t(5));
 	REQUIRE(trigger::payload(tc.compiled_effect[2]).tr_id == dcon::trigger_key(0));
 	REQUIRE(tc.compiled_effect[3] == uint16_t(effect::treasury));

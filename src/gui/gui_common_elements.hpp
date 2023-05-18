@@ -44,15 +44,13 @@ class button_press_notification{};
 
 template<class T, class K>
 class generic_settable_element : public T {
-protected:
-	K content{};
 public:
-	virtual void on_update(sys::state& state) noexcept override {}
+	K content{};
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<K>()) {
 			content = any_cast<K>(payload);
-			on_update(state);
+			T::on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -2023,6 +2021,29 @@ public:
 			return message_result::consumed;
 		} else {
 			return message_result::unseen;
+		}
+	}
+};
+
+class fixed_pop_type_icon : public opaque_element_base {
+public:
+	dcon::pop_type_id type;
+
+	void set_type(sys::state& state, dcon::pop_type_id t) {
+		type = t;
+		frame = int32_t(state.world.pop_type_get_sprite(t) - 1);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto name = state.world.pop_type_get_name(type);
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, name);
+			text::close_layout_box(contents, box);
 		}
 	}
 };
