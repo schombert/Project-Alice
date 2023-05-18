@@ -386,7 +386,7 @@ namespace parsers {
 			auto component_sz = context.full_state.text_components.size();
 			context.full_state.text_components.push_back(new_key);
 			auto seq_size = context.full_state.text_sequences.size();
-			context.full_state.text_sequences.push_back(text::text_sequence{ uint16_t(component_sz), uint16_t(1) });
+			context.full_state.text_sequences.push_back(text::text_sequence{ uint32_t(component_sz), uint16_t(1) });
 			auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
 			target.data.button.txt = new_id;
 			context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
@@ -486,7 +486,7 @@ namespace parsers {
 			auto component_sz = context.full_state.text_components.size();
 			context.full_state.text_components.push_back(new_key);
 			auto seq_size = context.full_state.text_sequences.size();
-			context.full_state.text_sequences.push_back(text::text_sequence{ uint16_t(component_sz), uint16_t(1) });
+			context.full_state.text_sequences.push_back(text::text_sequence{ uint32_t(component_sz), uint16_t(1) });
 			auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
 			target.data.text.txt = new_id;
 			context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
