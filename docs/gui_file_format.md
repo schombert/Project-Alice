@@ -13,14 +13,14 @@ Positions and Sizes are relative to the parent (thanks leaf!)
 ---
 
 # Types Used within the File
-string = a string is the rvalue (right hand value) of the key, this can be any ASCII String, it is surronded by a " on both sides
-bool = a boolean value, with its value being either `no` or `yes`
-int = can be any (presumably signed) integer
-float = can be any (signed) float
-vec2 = surronded by { ... } with space delimiated values within it, for example `position = { x= 2 y = 3}` as seen in interface/alerts.gui
-direction = is not surronded by a " and can be of a value of, `left`, `centre`, `right`
-section = this is simply a placeholder value the document uses to represent that a variable/property is in fact a section and not a actual property as described above, this starts with { and ends with } when the section ends
-action = appears it can represent some action can be substituted here, example = 'close_window
+- string = a string is the rvalue (right hand value) of the key, this can be any ASCII String, it is surronded by a " on both sides
+- bool = a boolean value, with its value being either `no` or `yes`
+- int = can be any (presumably signed) integer
+- float = can be any (signed) float
+- vec2 = surronded by { ... } with space delimiated values within it, for example `position = { x= 2 y = 3}` as seen in interface/alerts.gui
+- direction = is not surronded by a " and can be of a value of, `left`, `centre`, `right`
+- section = this is simply a placeholder value the document uses to represent that a variable/property is in fact a section and not a actual property as described above, this starts with { and ends with } when the section ends
+- action = appears it can represent some action can be substituted here, example = 'close_window
 
 # Files judged
 - airbuilder.gui        (empty)
