@@ -261,11 +261,9 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto name = get_filter_text_key(Filter);
-		if(auto k = state.key_to_text_sequence.find(name); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view(name));
+		text::close_layout_box(contents, box);
 	}
 };
 

@@ -1108,4 +1108,10 @@ namespace text {
 		}
 	}
 
+	// Standardised dividers :3
+	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
+		text::add_line_break_to_layout_box(dest, state, box);
+		text::add_to_layout_box(dest, state, box, std::string_view("--------------"));
+		text::add_line_break_to_layout_box(dest, state, box);
+	}
 }
