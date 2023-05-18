@@ -7,6 +7,7 @@
 #include "gui_pop_sort_buttons_window.hpp"
 #include "gui_goods_filter_window.hpp"
 #include "gui_projects_window.hpp"
+#include "gui_build_factory_window.hpp"
 #include <vector>
 
 namespace ui {
@@ -50,7 +51,7 @@ public:
 		set_visible(state, is_display);
 		if(!is_display)
 			return;
-		
+
 		bool is_closed = false;
 		closed_overlay->set_visible(state, is_closed);
 		closed_text->set_visible(state, is_closed);
@@ -176,6 +177,13 @@ public:
 	}
 };
 
+class production_build_new_factory : public button_element_base {
+public:
+	/*void button_action(sys::state& state) noexcept override {
+		make_element_by_type<factory_build_new_factory_window>(state, id);
+	}*/
+};
+/*factory_build_new_factory_window*/
 class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -186,7 +194,7 @@ public:
 		} else if(name == "factory_count") {
 			return make_element_by_type<state_factory_count_text>(state, id);
 		} else if(name == "build_new_factory") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<production_build_new_factory>(state, id);
 		} else if(name == "avg_infra_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "factory_info_bounds") {
@@ -483,7 +491,7 @@ public:
 			return nullptr;
 		}
 	}
-	
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<production_window_tab>()) {
 			auto enum_val = any_cast<production_window_tab>(payload);

@@ -14,6 +14,25 @@
 
 namespace ui {
 
+class province_liferating : public province_liferating_progress_bar {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"), text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("col_liferate_techs"));
+		text::close_layout_box(contents, box);
+	}
+};
+
 class province_close_button : public generic_close_button {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -159,7 +178,21 @@ public:
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::unseen;
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto prov_fat = dcon::fatten(state.world, province_id);
+		auto controller_name = prov_fat.get_province_control_as_province().get_nation().get_name();
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, controller_name);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -256,7 +289,7 @@ public:
 		} else if(name == "owner_presence") {
 			return make_element_by_type<state_aristocrat_presence_text>(state, id);
 		} else if(name == "liferating") {
-			return make_element_by_type<province_liferating_progress_bar>(state, id);
+			return make_element_by_type<province_liferating>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -755,7 +788,7 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-	
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(content) {
 			auto box = text::open_layout_box(contents, 0);
