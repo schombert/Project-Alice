@@ -66,7 +66,7 @@ namespace text {
 	};
 
 	struct text_sequence {
-		uint16_t starting_component = 0;
+		uint32_t starting_component = 0;
 		uint16_t component_count = 0;
 	};
 
