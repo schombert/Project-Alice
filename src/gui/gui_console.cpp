@@ -181,7 +181,7 @@ static parser_state parse_command(sys::state& state, std::string_view text) {
 		case command_info::argument_info::type::tag: {
 			std::string tag{ ident };
 			std::transform(tag.begin(), tag.end(), tag.begin(), [](auto c) {
-				return toupper(int(c));
+				return char(toupper(char(c)))
 			});
 			pstate.arg_slots[i] = tag;
 			break;
@@ -316,7 +316,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				auto fat_id = dcon::fatten(state.world, id);
 				auto name = text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name());
 				std::transform(name.begin(), name.end(), name.begin(), [](auto c) {
-					return tolower(int(c));
+					return char(tolower(char(c)))
 				});
 				
 				if(name == tag)
@@ -358,7 +358,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			auto fat_id = dcon::fatten(state.world, id);
 			auto name = text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name());
 			std::transform(name.begin(), name.end(), name.begin(), [](auto c) {
-				return tolower(int(c));
+				return char(tolower(char(c)))
 			});
 
 			auto dist = levenshtein_distance(tag, name);
