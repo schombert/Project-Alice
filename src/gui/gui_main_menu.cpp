@@ -110,6 +110,12 @@ void fonts_mode_left::button_action(sys::state& state) noexcept {
 	state.ui_state.root->impl_on_reset_text(state);
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
+
+	if(state.user_settings.use_classic_fonts) {
+		state.ui_state.tooltip_font = text::name_into_font_id(state, "vic_18_black");
+	} else {
+		state.ui_state.tooltip_font = text::name_into_font_id(state, "ToolTip_Font");
+	}
 }
 void fonts_mode_left::on_update(sys::state& state) noexcept {
 }
@@ -123,6 +129,12 @@ void fonts_mode_right::button_action(sys::state& state) noexcept {
 	state.ui_state.root->impl_on_reset_text(state);
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
+
+	if(state.user_settings.use_classic_fonts) {
+		state.ui_state.tooltip_font = text::name_into_font_id(state, "vic_18_black");
+	} else {
+		state.ui_state.tooltip_font = text::name_into_font_id(state, "ToolTip_Font");
+	}
 }
 void fonts_mode_right::on_update(sys::state& state) noexcept {
 }
