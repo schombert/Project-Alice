@@ -36,6 +36,7 @@ std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id) 
 }
 
 ogl::color_modification get_color_modification(bool is_under_mouse, bool is_disabled, bool is_interactable);
+ogl::color3f get_text_color(text::text_color text_color);
 
 class container_base : public element_base {
 public:
