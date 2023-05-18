@@ -121,6 +121,8 @@ float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
 float estimate_construction_spending(sys::state& state, dcon::nation_id n);
 
+float estimate_daily_income(sys::state& state, dcon::nation_id n);
+
 struct construction_status {
 	float progress = 0.0f; // in range [0,1)
 	bool is_under_construction = false;

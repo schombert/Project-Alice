@@ -1,25 +1,28 @@
 ## About Project Alice
 
+### Getting Started
+Please consult docs/contributing.md for more information! it contains information on how to compile the project on both Windows AND Linux
+
 ### Picking up where Open V2 left off
 
-The goal of Project Alice (named after [Alice Roosevelt Longworth](https://en.wikipedia.org/wiki/Alice_Roosevelt_Longworth)) is essentially to create a new version of [open v2](https://github.com/schombert/Open-V2) -- my earlier project to create a Victoria 2 clone -- and then to finish a working, feature complete, version of the game. This means that, at least initially, there will be few departures from doing things as Victoria 2 did them, simply to keep the project focused and on track. Once a 1.0 is complete, we can then use it as a playground for new experiments. 
+The goal of Project Alice (named after [Alice Roosevelt Longworth](https://en.wikipedia.org/wiki/Alice_Roosevelt_Longworth)) is essentially to create a new version of [open v2](https://github.com/schombert/Open-V2) -- my earlier project to create a Victoria 2 clone -- and then to finish a working, feature complete, version of the game. This means that, at least initially, there will be few departures from doing things as Victoria 2 did them, simply to keep the project focused and on track. Once a 1.0 is complete, we can then use it as a playground for new experiments.
 
 Currently we have made some significant progress towards rebuilding open v2, mostly from scratch, but we still haven't caught up to where open v2 was. On the other hand, the work has gone much faster than it did the first time around, partly because of the other people who are now contributing their own talents (open v2 was a one-man show), and partly because I don't have to make all the mistakes I did the first time around.
- 
+
 The programmers working on the project are divided into UI, Map, Core, and Freelancer groups (with possibly Launcher to be added later). The UI and Map teams are, as their names imply, focused mostly one working on the GUI and the map, respectively. The Core team is currently just me, and collects programmers focused mainly on implementing the internal logic of the game. Finally, Freelancer is a catch-all term for people who have made some contributions but who haven't committed to working on one thing in particular. How do you join one of these teams? Just make a PR that is merged into the project (see [Contributing](contributing.md) for more details).
- 
+
 In addition to this, I hope to find a few people to form an art team that can recreate the assets that Victoria 2 uses to give this project its own distinctive visual identity. I know that is a big ask, but on the other hand, there will be no 3d modeling required. We already have access to a set of new flags that we can use, courtesy of the SOE project.
- 
+
 ###  Work ethic
 
-Personally, I am committed to working on the project at least 1/2hr every business day. This doesn't have to be time coding. It could be time spent documenting or researching or even just thinking. But for me, I think that the commitment to doing something on a regular basis is important. 
+Personally, I am committed to working on the project at least 1/2hr every business day. This doesn't have to be time coding. It could be time spent documenting or researching or even just thinking. But for me, I think that the commitment to doing something on a regular basis is important.
 
 ### In comparison to other projects
 
 In comparison to SOE (Symphony of Empires) this project is a more direct Victoria 2 clone, while SOE is its own game. Nevertheless, I tend to think of it as a sister project. We do have some people here involved with both (I myself make the occasional suggestion there), and if you see something that we make that they could use, I am sure that they would appreciate the contribution. Likewise, we will be using at least some of their work.
- 
+
 With regards to the OpenVic2 project, although it "marketed" as a Victoria 2 "clone," that isn't what they are working towards creating. Instead, they intend to provide an entirely new set of assets, including events, decisions, etc., which will make their project more of a Victoria 2-ish game. It is also run with a very different managerial style. If you are interested in both Project Alice and OpenVic2, I suggest spending time with both teams or even joining both projects.
- 
+
 ### Licensing
 
 All code produced as part of this project will be released under the GPL3 license (as was open v2). The license for art assets will be up to the art team, but I would prefer some form of Creative Commons.

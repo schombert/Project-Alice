@@ -304,5 +304,7 @@ void liberate_nation_from(sys::state& state, dcon::national_identity_id liberate
 void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
 void perform_nationalization(sys::state& state, dcon::nation_id n);
 
+float get_yesterday_income(sys::state& state, dcon::nation_id n);
+
 }
 

@@ -124,9 +124,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("goto_goto")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
-		}
+		text::localised_format_box(state, contents, box, std::string_view("goto_goto"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -152,9 +150,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("m_ledger_button")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
-		}
+		text::localised_format_box(state, contents, box, std::string_view("m_ledger_button"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -311,9 +307,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("m_menu_button")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
-		}
+		text::localised_format_box(state, contents, box, std::string_view("m_menu_button"));
 		text::close_layout_box(contents, box);
 	}
 };
