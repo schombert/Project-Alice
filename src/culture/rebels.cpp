@@ -840,6 +840,8 @@ void execute_province_defections(sys::state& state) {
 								}
 							}
 							break;
+						default: // NONE and ANY
+							return dcon::nation_id{};
 					}
 					return dcon::nation_id{};
 				}();

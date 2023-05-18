@@ -3002,7 +3002,7 @@ struct trigger_body {
 				return;
 			}
 			context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
-		} else if(auto it = context.outer_context.map_of_roptions.find(std::string(value)); it != context.outer_context.map_of_roptions.end()) {
+		} else if(auto itb = context.outer_context.map_of_roptions.find(std::string(value)); itb != context.outer_context.map_of_roptions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_trigger.push_back(uint16_t(trigger::is_next_rreform_nation | association_to_bool_code(a)));
 			} else if(context.main_slot == trigger::slot_contents::pop) {
@@ -3011,7 +3011,7 @@ struct trigger_body {
 				err.accumulated_errors += "is_next_reform trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-			context.compiled_trigger.push_back(trigger::payload(it->second.id).value);
+			context.compiled_trigger.push_back(trigger::payload(itb->second.id).value);
 		} else {
 			err.accumulated_errors += "is_next_reform trigger supplied with an invalid issue/reform (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
@@ -3939,7 +3939,7 @@ struct trigger_body {
 				err.accumulated_errors += "named issue trigger used with an invalid option name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-		} else if(auto itf = context.outer_context.map_of_reforms.find(str_label); itf != context.outer_context.map_of_reforms.end()) {
+		} else if(auto ith = context.outer_context.map_of_reforms.find(str_label); ith != context.outer_context.map_of_reforms.end()) {
 			if(auto itopt = context.outer_context.map_of_roptions.find(std::string(value)); itopt != context.outer_context.map_of_roptions.end()) {
 				if(context.main_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(uint16_t(trigger::variable_reform_group_name_nation | association_to_bool_code(a)));
@@ -3953,7 +3953,7 @@ struct trigger_body {
 					err.accumulated_errors += "named reform trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
-				context.compiled_trigger.push_back(trigger::payload(itf->second).value);
+				context.compiled_trigger.push_back(trigger::payload(ith->second).value);
 				context.compiled_trigger.push_back(trigger::payload(itopt->second.id).value);
 			} else {
 				err.accumulated_errors += "named reform trigger used with an invalid option name (" + err.file_name + ", line " + std::to_string(line) + ")\n";
