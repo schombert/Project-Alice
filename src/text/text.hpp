@@ -267,6 +267,8 @@ namespace text {
 		void internal_close_box(layout_box& box) final;
 	};
 
+	text_color char_to_color(char in);
+
 	endless_layout create_endless_layout(layout& dest, layout_parameters const& params);
 	void close_layout_box(endless_layout& dest, layout_box& box);
 

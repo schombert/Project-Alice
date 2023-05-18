@@ -50,6 +50,11 @@ public:
     }
 };
 
+class console_text : public simple_text_element_base {
+public:
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
 class console_list_entry : public listbox_row_element_base<std::string> {
 private:
 	simple_text_element_base* entry_text_box = nullptr;
@@ -57,7 +62,7 @@ private:
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "console_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			auto ptr = make_element_by_type<console_text>(state, id);
 			entry_text_box = ptr.get();
 			entry_text_box->set_text(state, "");
 			return ptr;
