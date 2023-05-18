@@ -27,4 +27,6 @@ float get_faction_revolt_risk(sys::state& state, dcon::rebel_faction_id r);
 void execute_rebel_victories(sys::state& state);
 void execute_province_defections(sys::state& state);
 
+void trigger_revolt(sys::state& state, dcon::nation_id n, dcon::rebel_type_id t, dcon::ideology_id i, dcon::culture_id c, dcon::religion_id r);
+
 }

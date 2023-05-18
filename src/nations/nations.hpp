@@ -281,6 +281,9 @@ void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
 void release_vassal(sys::state& state, dcon::overlord_id rel);
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
+void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);
@@ -294,6 +297,11 @@ void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
 void reject_crisis_participation(sys::state& state);
 void cleanup_crisis(sys::state& state);
 void update_crisis(sys::state& state);
+
+void update_pop_acceptance(sys::state& state, dcon::nation_id n);
+void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from);
+void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
+void perform_nationalization(sys::state& state, dcon::nation_id n);
 
 }
 

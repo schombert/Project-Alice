@@ -506,12 +506,15 @@ float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
 }
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
-	state.adjacency_data_out_of_date = true;
-	state.national_cached_values_out_of_date = true;
-
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(id);
 	auto old_si = state.world.province_get_state_membership(id);
 	auto old_owner = state.world.province_get_nation_from_province_ownership(id);
+
+	if(new_owner == old_owner)
+		return;
+
+	state.adjacency_data_out_of_date = true;
+	state.national_cached_values_out_of_date = true;
 
 	if(new_owner) {
 		dcon::state_instance_id new_si;
@@ -622,6 +625,15 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		auto rng = state.world.province_get_province_naval_construction(id);
 		while(rng.begin() != rng.end()) {
 			state.world.delete_province_naval_construction(*(rng.begin()));
+		}
+	}
+
+	for(auto adj : state.world.province_get_province_adjacency(id)) {
+		auto other = adj.get_connected_provinces(0) != id ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+		if(other.get_nation_from_province_ownership() == new_owner) {
+			adj.set_type(adj.get_type() & ~province::border::national_bit);
+		} else {
+			adj.set_type(adj.get_type() | province::border::national_bit);
 		}
 	}
 }
@@ -799,6 +811,49 @@ bool state_is_coastal(sys::state& state, dcon::state_instance_id s) {
 		}
 	}
 	return false;
+}
+
+void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag) {
+	if(tag && prov) {
+		state.world.try_create_core(prov, tag);
+		if(state.world.province_get_nation_from_province_ownership(prov) == state.world.national_identity_get_nation_from_identity_holder(tag)) {
+			state.world.province_set_is_owner_core(prov, true);
+		}
+	}
+}
+
+void remove_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag) {
+	auto core_rel = state.world.get_core_by_prov_tag_key(prov, tag);
+	if(core_rel) {
+		state.world.delete_core(core_rel);
+		if(state.world.province_get_nation_from_province_ownership(prov) == state.world.national_identity_get_nation_from_identity_holder(tag)) {
+			state.world.province_set_is_owner_core(prov, false);
+		}
+	}
+}
+
+void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
+	auto old_rgo = state.world.province_get_rgo(prov);
+	state.world.province_set_rgo(prov, c);
+	if(state.world.commodity_get_is_mine(old_rgo) != state.world.commodity_get_is_mine(c)) {
+		if(state.world.commodity_get_is_mine(c)) {
+			for(auto pop : state.world.province_get_pop_location(prov)) {
+				if(pop.get_pop().get_poptype() == state.culture_definitions.farmers) {
+					pop.get_pop().set_poptype(state.culture_definitions.laborers);
+				}
+			}
+		} else {
+			for(auto pop : state.world.province_get_pop_location(prov)) {
+				if(pop.get_pop().get_poptype() == state.culture_definitions.laborers) {
+					pop.get_pop().set_poptype(state.culture_definitions.farmers);
+				}
+			}
+		}
+	}
+}
+
+void enable_canal(sys::state& state, int32_t id) {
+	state.world.province_adjacency_get_type(state.province_definitions.canals[id]) &= ~province::border::impassible_bit;
 }
 
 }

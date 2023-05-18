@@ -1,6 +1,7 @@
 #include "military.hpp"
 #include "dcon_generated.hpp"
 #include "prng.hpp"
+#include "effects.hpp"
 
 namespace military {
 
@@ -94,6 +95,17 @@ bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 		}
 	}
 	return false;
+}
+
+dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		auto is_attacker = wa.get_is_attacker();
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_nation() == b && o.get_is_attacker() != is_attacker)
+				wa.get_war().id;
+		}
+	}
+	return dcon::war_id{};
 }
 
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p) {
@@ -776,6 +788,53 @@ dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_t
 	// TODO make name
 	shp.set_strength(state.world.nation_get_unit_stats(n, t).defence_or_hull);
 	return shp.id;
+}
+
+void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
+	auto ur = state.world.get_unilateral_relationship_by_unilateral_pair(target, accessing_nation);
+	if(!ur) {
+		ur = state.world.force_create_unilateral_relationship(target, accessing_nation);
+	}
+	state.world.unilateral_relationship_set_military_access(ur, true);
+}
+void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
+	auto ur = state.world.get_unilateral_relationship_by_unilateral_pair(target, accessing_nation);
+	if(ur) {
+		state.world.unilateral_relationship_set_military_access(ur, false);
+	}
+}
+
+void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	// TODO
+}
+
+dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender, dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state, dcon::national_identity_id primary_wargoal_tag) {
+	auto new_war = fatten(state.world, state.world.create_war());
+	new_war.set_primary_attacker(primary_attacker);
+	new_war.set_primary_defender(primary_defender);
+	new_war.set_start_date(state.current_date);
+	// TODO new_war.set_name(..);
+	add_wargoal(state, new_war, primary_attacker, primary_defender, primary_wargoal, primary_wargoal_state, primary_wargoal_tag);
+	return new_war;
+}
+void call_defender_allies(sys::state& state, dcon::war_id wfor) {
+	// TODO
+}
+void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
+	// TODO
+}
+void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id sd, dcon::national_identity_id tag) {
+	auto new_wg = fatten(state.world, state.world.create_wargoal());
+	new_wg.set_added_by(added_by);
+	new_wg.set_associated_state(sd);
+	new_wg.set_associated_tag(tag);
+	new_wg.set_target_nation(target);
+	new_wg.set_type(type);
+	new_wg.set_war_from_wargoals_attached(wfor);
+
+	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
+		effect::execute(state, on_add, trigger::to_generic(added_by), trigger::to_generic(added_by), trigger::to_generic(target), uint32_t(state.current_date.value), uint32_t((added_by.index() << 7) ^ target.index() ^ (type.index() << 3)));
+	}
 }
 
 }

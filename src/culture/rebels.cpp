@@ -186,7 +186,7 @@ void update_pop_movement_membership(sys::state& state) {
 		// pops in rebel factions don't join movements
 		if(state.world.pop_get_pop_rebellion_membership(p))
 			return;
-		
+
 		auto pop_location = state.world.pop_get_province_from_pop_location(p);
 		//pops in colonial provinces don't join movements
 		if(state.world.province_get_is_colonial(pop_location))
@@ -236,7 +236,7 @@ void update_pop_movement_membership(sys::state& state) {
 				auto co = state.world.nation_get_issues(owner, parent);
 				auto allow = state.world.issue_option_get_allow(io);
 				if(co != io
-					&& (state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() -1 == io.index())
+					&& (state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() - 1 == io.index())
 					&& (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
 					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io));
 					if(sup * 100.0f >= state.defines.issue_movement_join_limit && sup > max_support) {
@@ -249,7 +249,7 @@ void update_pop_movement_membership(sys::state& state) {
 			if(max_option) {
 				if(auto m = get_movement_by_position(state, owner, max_option); m) {
 					add_pop_to_movement(state, p, m);
-				} else if(issue_is_valid_for_movement(state, owner, max_option)){
+				} else if(issue_is_valid_for_movement(state, owner, max_option)) {
 					auto new_movement = fatten(state.world, state.world.create_movement());
 					new_movement.set_associated_issue_option(max_option);
 					state.world.try_create_movement_within(new_movement, owner);
@@ -292,7 +292,7 @@ void update_movements(sys::state& state) { // updates cached values and then pos
 	}
 
 	update_movement_values(state);
-	
+
 	for(auto last = state.world.movement_size(); last-- > 0; ) {
 		dcon::movement_id m{ dcon::movement_id::value_base_t(last) };
 		if(state.world.movement_get_radicalism(m) >= 100.0f) {
@@ -328,7 +328,7 @@ bool rebel_faction_is_valid(sys::state& state, dcon::rebel_faction_id m) {
 		return false;
 
 	auto type = fatten(state.world, state.world.rebel_faction_get_type(m));
-	
+
 	auto tag = state.world.rebel_faction_get_defection_target(m);
 	auto within = fatten(state.world, m).get_rebellion_within().get_ruler();
 	if(within.get_identity_from_identity_holder() == tag)
@@ -558,7 +558,7 @@ void update_pop_rebel_membership(sys::state& state) {
 						}
 					});
 
-					
+
 
 					if(f != temp) {
 						state.world.delete_rebel_faction(temp);
@@ -742,7 +742,7 @@ void execute_province_defections(sys::state& state) {
 			auto reb_type = state.world.rebel_faction_get_type(reb_controller);
 			culture::rebel_defection def_type = culture::rebel_defection(reb_type.get_defection());
 			if(def_type != culture::rebel_defection::none
-				&&  state.world.province_get_last_control_change(p) + reb_type.get_defect_delay() * 31 <= state.current_date) {
+				&& state.world.province_get_last_control_change(p) + reb_type.get_defect_delay() * 31 <= state.current_date) {
 
 				// defection time
 
@@ -839,7 +839,7 @@ void execute_province_defections(sys::state& state) {
 									return t;
 								}
 							}
-							break;	
+							break;
 					}
 					return dcon::nation_id{};
 				}();
@@ -855,7 +855,7 @@ void execute_province_defections(sys::state& state) {
 
 void execute_rebel_victories(sys::state& state) {
 	for(uint32_t i = state.world.rebel_faction_size(); i-- > 0;) {
-		auto reb = dcon::rebel_faction_id{dcon::rebel_faction_id::value_base_t(i) };
+		auto reb = dcon::rebel_faction_id{ dcon::rebel_faction_id::value_base_t(i) };
 		auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
 		auto is_active = state.world.rebel_faction_get_is_active(reb);
 		auto enforce_trigger = state.world.rebel_faction_get_type(reb).get_demands_enforced_trigger();
@@ -867,7 +867,7 @@ void execute_rebel_victories(sys::state& state) {
 			*/
 
 			if(auto k = state.world.rebel_faction_get_type(reb).get_demands_enforced_effect(); k)
-				effect::execute(state, k, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb), uint32_t(state.current_date.value), uint32_t(within.index() ^  (reb.index() << 4)));
+				effect::execute(state, k, trigger::to_generic(within), trigger::to_generic(within), trigger::to_generic(reb), uint32_t(state.current_date.value), uint32_t(within.index() ^ (reb.index() << 4)));
 
 			/*
 			The government type of the nation will change if the rebel type has an associated government (with the same logic for a government type change from a wargoal or other cause).
@@ -900,6 +900,10 @@ void execute_rebel_victories(sys::state& state) {
 			delete_faction(state, reb);
 		}
 	}
+}
+
+void trigger_revolt(sys::state& state, dcon::nation_id n, dcon::rebel_type_id t, dcon::ideology_id i, dcon::culture_id c, dcon::religion_id r) {
+	// TODO
 }
 
 }

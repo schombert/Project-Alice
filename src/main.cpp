@@ -1,10 +1,10 @@
 #ifdef LOCAL_USER_SETTINGS
 #include "local_user_settings.hpp"
 #endif
+#include "system_state.cpp"
 #include "parsers.cpp"
 #include "defines.cpp"
 #include "float_from_chars.cpp"
-#include "system_state.cpp"
 #include "gui_graphics_parsers.cpp"
 #include "text.cpp"
 #include "fonts.cpp"

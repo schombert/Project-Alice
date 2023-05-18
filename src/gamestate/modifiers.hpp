@@ -239,6 +239,17 @@ struct unit_variable_stats {
 		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
 	}
+	void operator-=(unit_variable_stats const& other) {
+		build_time -= other.build_time;
+		default_organisation -= other.default_organisation;
+		maximum_speed -= other.maximum_speed;
+		defence_or_hull -= other.defence_or_hull;
+		attack_or_gun_power -= other.attack_or_gun_power;
+		supply_consumption -= other.supply_consumption;
+		support -= other.support;
+		siege_or_torpedo_attack -= other.siege_or_torpedo_attack;
+		reconnaissance_or_fire_range -= other.reconnaissance_or_fire_range;
+	}
 };
 
 struct unit_modifier : public unit_variable_stats {

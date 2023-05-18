@@ -259,12 +259,7 @@ void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_part
 	culture::update_nation_issue_rules(state, n);
 }
 
-void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
-	state.world.for_each_ideology([&](auto iid) {
-		state.world.nation_set_upper_house(n, iid, 0.0f);
-	});
-	state.world.nation_set_upper_house(n, id, 100.0f);
-
+void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
 	auto tag = state.world.nation_get_identity_from_identity_holder(n);
 	auto start = state.world.national_identity_get_political_party_first(tag).id.index();
 	auto end = start + state.world.national_identity_get_political_party_count(tag);
@@ -276,6 +271,15 @@ void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_
 			return;
 		}
 	}
+}
+
+void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
+	state.world.for_each_ideology([&](auto iid) {
+		state.world.nation_set_upper_house(n, iid, 0.0f);
+	});
+	state.world.nation_set_upper_house(n, id, 100.0f);
+
+	force_ruling_party_ideology(state, n, id);
 }
 
 void update_displayed_identity(sys::state& state, dcon::nation_id id) {
@@ -491,6 +495,13 @@ struct party_vote {
 	float vote = 0.0f;
 };
 
+void start_election(sys::state& state, dcon::nation_id n) {
+	if(state.world.nation_get_election_ends(n) < state.current_date) {
+		state.world.nation_set_election_ends(n, state.current_date + int32_t(state.defines.campaign_duration) * 30);
+		// TODO: Notify player
+	}
+}
+
 void update_elections(sys::state& state) {
 	static std::vector<party_vote> party_votes;
 	static std::vector<party_vote> provincial_party_votes;
@@ -642,13 +653,31 @@ void update_elections(sys::state& state) {
 					set_ruling_party(state, n, party_votes[winner].par);
 				}
 
-			} else if(next_election_date(state, n) >= state.current_date) {
-				n.set_election_ends(state.current_date + int32_t(state.defines.campaign_duration) * 30);
-				// TODO: Notify player
+			} else if(next_election_date(state, n) == state.current_date) {
+				start_election(state, n);
 			}
 		}
 	}
 
+}
+
+void set_issue_option(sys::state& state, dcon::nation_id n, dcon::issue_option_id opt) {
+	auto parent = state.world.issue_option_get_parent_issue(opt);
+	state.world.nation_set_issues(n, parent, opt);
+	auto effect_t = state.world.issue_option_get_on_execute_trigger(opt);
+	auto effect_k = state.world.issue_option_get_on_execute_effect(opt);
+	if(effect_k && (!effect_t || trigger::evaluate(state, effect_t, trigger::to_generic(n), trigger::to_generic(n), 0))) {
+		effect::execute(state, effect_k, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value), uint32_t((opt.index() << 2) ^ n.index()));
+	}
+}
+void set_reform_option(sys::state& state, dcon::nation_id n, dcon::reform_option_id opt) {
+	auto parent = state.world.reform_option_get_parent_reform(opt);
+	state.world.nation_set_reforms(n, parent, opt);
+	auto effect_t = state.world.reform_option_get_on_execute_trigger(opt);
+	auto effect_k = state.world.reform_option_get_on_execute_effect(opt);
+	if(effect_k && (!effect_t || trigger::evaluate(state, effect_t, trigger::to_generic(n), trigger::to_generic(n), 0))) {
+		effect::execute(state, effect_k, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value), uint32_t((opt.index() << 2) ^ n.index()));
+	}
 }
 
 }

@@ -92,6 +92,7 @@ void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state); // must run after determining connectivity
 
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
+dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool has_truce_with(sys::state const& state, dcon::nation_id attacker, dcon::nation_id target);
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 float cb_infamy(sys::state const& state, dcon::cb_type_id t);
@@ -138,5 +139,14 @@ void daily_leaders_update(sys::state& state);
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
+
+void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
+void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
+void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+
+dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender, dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state, dcon::national_identity_id primary_wargoal_tag);
+void call_defender_allies(sys::state& state, dcon::war_id wfor);
+void call_attacker_allies(sys::state& state, dcon::war_id wfor);
+void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id sd, dcon::national_identity_id tag);
 
 }

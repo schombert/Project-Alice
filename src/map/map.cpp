@@ -878,13 +878,6 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	load_province_data(context, provinces_image);
 	load_terrain_data(context);
 	load_border_data(context);
-
-	parsers::error_handler err("adjacencies.csv");
-	auto adj_csv_file = open_file(map_dir, NATIVE("adjacencies.csv"));
-	if(adj_csv_file) {
-		auto adj_content = view_contents(*adj_csv_file);
-		parsers::read_map_adjacency(adj_content.data, adj_content.data + adj_content.file_size, err, context);
-	}
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {

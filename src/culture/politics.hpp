@@ -31,6 +31,8 @@ bool political_party_is_active(sys::state& state, dcon::political_party_id p);
 
 // sets upperhouse to 100% and changes ruling party to match the ideology
 void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id i);
+// just changes ruling party
+void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id);
 
 // use this function for update flag, name, adjective, and color based on government type changes
 void update_displayed_identity(sys::state& state, dcon::nation_id n);
@@ -43,5 +45,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n);
 float party_total_support(sys::state& state, dcon::pop_id pop, dcon::political_party_id par_id, dcon::nation_id nat_id, dcon::province_id prov_id);
 void update_elections(sys::state& state);
 void daily_party_loyalty_update(sys::state& state);
+void start_election(sys::state& state, dcon::nation_id n);
+void set_issue_option(sys::state& state, dcon::nation_id n, dcon::issue_option_id opt);
+void set_reform_option(sys::state& state, dcon::nation_id n, dcon::reform_option_id opt);
 
 }

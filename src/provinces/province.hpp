@@ -76,5 +76,10 @@ void update_crimes(sys::state& state);
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 void update_colonization(sys::state& state);
 
+void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag);
+void remove_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag);
+void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c);
+void enable_canal(sys::state& state, int32_t id);
+
 }
 

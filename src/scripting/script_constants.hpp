@@ -7,7 +7,6 @@
 
 namespace effect {
 //flags
-constexpr inline uint16_t is_scope = 0x8000;
 constexpr inline uint16_t no_payload = 0x4000;
 constexpr inline uint16_t is_random_scope = 0x2000;
 constexpr inline uint16_t scope_has_limit = 0x1000;
@@ -360,67 +359,69 @@ constexpr inline uint16_t secede_province_state = 0x014C;
 constexpr inline uint16_t assimilate_state = 0x014D;
 
 //invalid
-constexpr inline uint16_t first_invalid_code = 0x014E;
+constexpr inline uint16_t first_scope_code = 0x014E;
 
 //scopes
-constexpr inline uint16_t generic_scope = 0x0000; // default grouping of effects (or hidden_tooltip)
-constexpr inline uint16_t x_neighbor_province_scope = 0x0001;
-constexpr inline uint16_t x_neighbor_country_scope = 0x0002;
-constexpr inline uint16_t x_country_scope = 0x0003;
-constexpr inline uint16_t x_country_scope_nation = 0x0004;
-constexpr inline uint16_t x_empty_neighbor_province_scope = 0x0005;
-constexpr inline uint16_t x_greater_power_scope = 0x0006;
-constexpr inline uint16_t poor_strata_scope_nation = 0x0007;
-constexpr inline uint16_t poor_strata_scope_state = 0x0008;
-constexpr inline uint16_t poor_strata_scope_province = 0x0009;
-constexpr inline uint16_t middle_strata_scope_nation = 0x000A;
-constexpr inline uint16_t middle_strata_scope_state = 0x000B;
-constexpr inline uint16_t middle_strata_scope_province = 0x000C;
-constexpr inline uint16_t rich_strata_scope_nation = 0x000D;
-constexpr inline uint16_t rich_strata_scope_state = 0x000E;
-constexpr inline uint16_t rich_strata_scope_province = 0x000F;
-constexpr inline uint16_t x_pop_scope_nation = 0x0010;
-constexpr inline uint16_t x_pop_scope_state = 0x0011;
-constexpr inline uint16_t x_pop_scope_province = 0x0012;
-constexpr inline uint16_t x_owned_scope_nation = 0x0013;
-constexpr inline uint16_t x_owned_scope_state = 0x0014;
-constexpr inline uint16_t x_core_scope = 0x0015;
-constexpr inline uint16_t x_state_scope = 0x0016;
-constexpr inline uint16_t random_list_scope = 0x0017;
-constexpr inline uint16_t random_scope = 0x0018;
-constexpr inline uint16_t owner_scope_state = 0x0019;
-constexpr inline uint16_t owner_scope_province = 0x001A;
-constexpr inline uint16_t controller_scope = 0x001B;
-constexpr inline uint16_t location_scope = 0x001C;
-constexpr inline uint16_t country_scope_pop = 0x001D;
-constexpr inline uint16_t country_scope_state = 0x001E;
-constexpr inline uint16_t capital_scope = 0x001F;
-constexpr inline uint16_t this_scope_nation = 0x0020;
-constexpr inline uint16_t this_scope_state = 0x0021;
-constexpr inline uint16_t this_scope_province = 0x0022;
-constexpr inline uint16_t this_scope_pop = 0x0023;
-constexpr inline uint16_t from_scope_nation = 0x0024;
-constexpr inline uint16_t from_scope_state = 0x0025;
-constexpr inline uint16_t from_scope_province = 0x0026;
-constexpr inline uint16_t from_scope_pop = 0x0027;
-constexpr inline uint16_t sea_zone_scope = 0x0028;
-constexpr inline uint16_t cultural_union_scope = 0x0029;
-constexpr inline uint16_t overlord_scope = 0x002A;
-constexpr inline uint16_t sphere_owner_scope = 0x002B;
-constexpr inline uint16_t independence_scope = 0x002C;
-constexpr inline uint16_t flashpoint_tag_scope = 0x002D;
-constexpr inline uint16_t crisis_state_scope = 0x002E;
-constexpr inline uint16_t state_scope_pop = 0x002F;
-constexpr inline uint16_t state_scope_province = 0x0030;
+constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
+constexpr inline uint16_t x_neighbor_province_scope = first_scope_code + 0x0001;
+constexpr inline uint16_t x_neighbor_country_scope = first_scope_code + 0x0002;
+constexpr inline uint16_t x_country_scope = first_scope_code + 0x0003;
+constexpr inline uint16_t x_country_scope_nation = first_scope_code + 0x0004;
+constexpr inline uint16_t x_empty_neighbor_province_scope = first_scope_code + 0x0005;
+constexpr inline uint16_t x_greater_power_scope = first_scope_code + 0x0006;
+constexpr inline uint16_t poor_strata_scope_nation = first_scope_code + 0x0007;
+constexpr inline uint16_t poor_strata_scope_state = first_scope_code + 0x0008;
+constexpr inline uint16_t poor_strata_scope_province = first_scope_code + 0x0009;
+constexpr inline uint16_t middle_strata_scope_nation = first_scope_code + 0x000A;
+constexpr inline uint16_t middle_strata_scope_state = first_scope_code + 0x000B;
+constexpr inline uint16_t middle_strata_scope_province = first_scope_code + 0x000C;
+constexpr inline uint16_t rich_strata_scope_nation = first_scope_code + 0x000D;
+constexpr inline uint16_t rich_strata_scope_state = first_scope_code + 0x000E;
+constexpr inline uint16_t rich_strata_scope_province = first_scope_code + 0x000F;
+constexpr inline uint16_t x_pop_scope_nation = first_scope_code + 0x0010;
+constexpr inline uint16_t x_pop_scope_state = first_scope_code + 0x0011;
+constexpr inline uint16_t x_pop_scope_province = first_scope_code + 0x0012;
+constexpr inline uint16_t x_owned_scope_nation = first_scope_code + 0x0013;
+constexpr inline uint16_t x_owned_scope_state = first_scope_code + 0x0014;
+constexpr inline uint16_t x_core_scope = first_scope_code + 0x0015;
+constexpr inline uint16_t x_state_scope = first_scope_code + 0x0016;
+constexpr inline uint16_t random_list_scope = first_scope_code + 0x0017;
+constexpr inline uint16_t random_scope = first_scope_code + 0x0018;
+constexpr inline uint16_t owner_scope_state = first_scope_code + 0x0019;
+constexpr inline uint16_t owner_scope_province = first_scope_code + 0x001A;
+constexpr inline uint16_t controller_scope = first_scope_code + 0x001B;
+constexpr inline uint16_t location_scope = first_scope_code + 0x001C;
+constexpr inline uint16_t country_scope_pop = first_scope_code + 0x001D;
+constexpr inline uint16_t country_scope_state = first_scope_code + 0x001E;
+constexpr inline uint16_t capital_scope = first_scope_code + 0x001F;
+constexpr inline uint16_t this_scope_nation = first_scope_code + 0x0020;
+constexpr inline uint16_t this_scope_state = first_scope_code + 0x0021;
+constexpr inline uint16_t this_scope_province = first_scope_code + 0x0022;
+constexpr inline uint16_t this_scope_pop = first_scope_code + 0x0023;
+constexpr inline uint16_t from_scope_nation = first_scope_code + 0x0024;
+constexpr inline uint16_t from_scope_state = first_scope_code + 0x0025;
+constexpr inline uint16_t from_scope_province = first_scope_code + 0x0026;
+constexpr inline uint16_t from_scope_pop = first_scope_code + 0x0027;
+constexpr inline uint16_t sea_zone_scope = first_scope_code + 0x0028;
+constexpr inline uint16_t cultural_union_scope = first_scope_code + 0x0029;
+constexpr inline uint16_t overlord_scope = first_scope_code + 0x002A;
+constexpr inline uint16_t sphere_owner_scope = first_scope_code + 0x002B;
+constexpr inline uint16_t independence_scope = first_scope_code + 0x002C;
+constexpr inline uint16_t flashpoint_tag_scope = first_scope_code + 0x002D;
+constexpr inline uint16_t crisis_state_scope = first_scope_code + 0x002E;
+constexpr inline uint16_t state_scope_pop = first_scope_code + 0x002F;
+constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
 
 
 //variable named scopes
-constexpr inline uint16_t tag_scope = 0x0031;
-constexpr inline uint16_t integer_scope = 0x0032;
-constexpr inline uint16_t pop_type_scope_nation = 0x0033;
-constexpr inline uint16_t pop_type_scope_state = 0x0034;
-constexpr inline uint16_t pop_type_scope_province = 0x0035;
-constexpr inline uint16_t region_scope = 0x0036;
+constexpr inline uint16_t tag_scope = first_scope_code + 0x0031;
+constexpr inline uint16_t integer_scope = first_scope_code + 0x0032;
+constexpr inline uint16_t pop_type_scope_nation = first_scope_code + 0x0033;
+constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0034;
+constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0035;
+constexpr inline uint16_t region_scope = first_scope_code + 0x0036;
+
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0037;
 
 inline constexpr int32_t data_sizes[] = {
 	0, // none
@@ -767,7 +768,7 @@ inline int32_t get_effect_scope_payload_size(const uint16_t* data) {
 	return data[1];
 }
 inline int32_t get_generic_effect_payload_size(const uint16_t* data) {
-	return (data[0] & effect::is_scope) != 0 ? get_effect_scope_payload_size(data) : get_effect_non_scope_payload_size(data);
+	return (data[0] & effect::code_mask) >= first_scope_code ? get_effect_scope_payload_size(data) : get_effect_non_scope_payload_size(data);
 }
 inline int32_t effect_scope_data_payload(uint16_t code) {
 	const auto masked_code = code & effect::code_mask;

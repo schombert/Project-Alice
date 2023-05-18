@@ -129,5 +129,6 @@ void for_each_new_factory(sys::state& state, dcon::state_instance_id s, F&& func
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);
+void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);
 
 }

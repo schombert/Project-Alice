@@ -392,7 +392,7 @@ void make_effect_description(EFFECT_DISPLAY_PARAMS) {
 }
 
 void display_subeffects(EFFECT_DISPLAY_PARAMS) {
-    if((eval[0] & effect::is_scope) == 0)
+    if((eval[0] & effect::code_mask) < effect::first_scope_code)
         return;
     const auto source_size = 1 + effect::get_generic_effect_payload_size(eval);
     // [code+scope] [payload size] [...]
@@ -416,7 +416,7 @@ void ef_##x (EFFECT_DISPLAY_PARAMS) { \
         value for display. */ \
     auto value_p = eval + 1; \
     /* if scope, skip [scope size] and the scope's associated payload */ \
-    if(eval[0] & effect::is_scope) { \
+    if((eval[0] & effect::code_mask) >= effect::first_scope_code) { \
         value_p += effect::get_effect_scope_payload_size(eval) - effect::get_effect_non_scope_payload_size(eval) + 1; \
         switch(eval[0]) { \
         case effect::tag_scope: \

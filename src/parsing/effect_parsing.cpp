@@ -11,7 +11,7 @@ dcon::trigger_key ef_limit(token_generator& gen, error_handler& err, effect_buil
 void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 
-	context.compiled_effect.push_back(uint16_t( effect::generic_scope | effect::is_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t( effect::generic_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 	context.limit_position = context.compiled_effect.size();
@@ -27,7 +27,7 @@ void ef_scope_any_neighbor_province(token_generator& gen, error_handler& err, ef
 	if(context.main_slot == trigger::slot_contents::province) {
 		auto old_limit_offset = context.limit_position;
 
-		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_province_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_province_scope | effect::scope_has_limit));
 		context.compiled_effect.push_back(uint16_t(0));
 		auto payload_size_offset = context.compiled_effect.size() - 1;
 		context.limit_position = context.compiled_effect.size();
@@ -48,7 +48,7 @@ void ef_scope_any_neighbor_country(token_generator& gen, error_handler& err, eff
 	if(context.main_slot == trigger::slot_contents::nation) {
 		auto old_limit_offset = context.limit_position;
 
-		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_country_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_country_scope | effect::scope_has_limit));
 		context.compiled_effect.push_back(uint16_t(0));
 		auto payload_size_offset = context.compiled_effect.size() - 1;
 		context.limit_position = context.compiled_effect.size();
@@ -69,7 +69,7 @@ void ef_scope_any_country(token_generator& gen, error_handler& err, effect_build
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
-	context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::is_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 
@@ -89,9 +89,9 @@ void ef_scope_random_country(token_generator& gen, error_handler& err, effect_bu
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::nation)
-		context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::is_random_scope | effect::scope_has_limit));
 	else
-		context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
 
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -111,7 +111,7 @@ void ef_scope_random_neighbor_province(token_generator& gen, error_handler& err,
 	if(context.main_slot == trigger::slot_contents::province) {
 		auto old_limit_offset = context.limit_position;
 
-		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_province_scope | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_province_scope | effect::is_random_scope | effect::scope_has_limit));
 		context.compiled_effect.push_back(uint16_t(0));
 		auto payload_size_offset = context.compiled_effect.size() - 1;
 		context.limit_position = context.compiled_effect.size();
@@ -132,7 +132,7 @@ void ef_scope_random_empty_neighbor_province(token_generator& gen, error_handler
 	if(context.main_slot == trigger::slot_contents::province) {
 		auto old_limit_offset = context.limit_position;
 
-		context.compiled_effect.push_back(uint16_t(effect::x_empty_neighbor_province_scope | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_empty_neighbor_province_scope | effect::is_random_scope | effect::scope_has_limit));
 		context.compiled_effect.push_back(uint16_t(0));
 		auto payload_size_offset = context.compiled_effect.size() - 1;
 		context.limit_position = context.compiled_effect.size();
@@ -153,7 +153,7 @@ void ef_scope_any_greater_power(token_generator& gen, error_handler& err, effect
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
-	context.compiled_effect.push_back(uint16_t(effect::x_greater_power_scope | effect::is_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::x_greater_power_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 
@@ -173,11 +173,11 @@ void ef_scope_poor_strata(token_generator& gen, error_handler& err, effect_build
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::poor_strata_scope_province | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::poor_strata_scope_province | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::poor_strata_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::poor_strata_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::poor_strata_scope_nation | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::poor_strata_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "poor_strata effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -203,11 +203,11 @@ void ef_scope_middle_strata(token_generator& gen, error_handler& err, effect_bui
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::middle_strata_scope_province | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::middle_strata_scope_province | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::middle_strata_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::middle_strata_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::middle_strata_scope_nation | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::middle_strata_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "middle_strata effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -233,11 +233,11 @@ void ef_scope_rich_strata(token_generator& gen, error_handler& err, effect_build
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::rich_strata_scope_province | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::rich_strata_scope_province | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::rich_strata_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::rich_strata_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::rich_strata_scope_nation | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::rich_strata_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "rich_strata effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -263,11 +263,11 @@ void ef_scope_random_pop(token_generator& gen, error_handler& err, effect_buildi
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_province | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_province | effect::is_random_scope | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_state | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_state | effect::is_random_scope | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_nation | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_nation | effect::is_random_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "random_pop effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -292,9 +292,9 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::is_random_scope | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_nation | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_nation | effect::is_random_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "random_owned effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -320,9 +320,9 @@ void ef_scope_any_owned(token_generator& gen, error_handler& err, effect_buildin
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_nation | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_owned effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -347,7 +347,7 @@ void ef_scope_all_core(token_generator& gen, error_handler& err, effect_building
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_core_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_core_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "all_core effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -372,7 +372,7 @@ void ef_scope_any_state(token_generator& gen, error_handler& err, effect_buildin
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_state_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_state_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_state effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -398,7 +398,7 @@ void ef_scope_random_state(token_generator& gen, error_handler& err, effect_buil
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_state_scope | effect::is_random_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_state_scope | effect::is_random_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "random_state effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -424,11 +424,11 @@ void ef_scope_any_pop(token_generator& gen, error_handler& err, effect_building_
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_province | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_province | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_nation  | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_nation  | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_pop effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -453,9 +453,9 @@ void ef_scope_owner(token_generator& gen, error_handler& err, effect_building_co
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::owner_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::owner_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::owner_scope_province | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::owner_scope_province | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "owner effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -480,7 +480,7 @@ void ef_scope_controller(token_generator& gen, error_handler& err, effect_buildi
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::controller_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::controller_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "controller effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -505,7 +505,7 @@ void ef_scope_location(token_generator& gen, error_handler& err, effect_building
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_effect.push_back(uint16_t(effect::location_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::location_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "location effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -530,9 +530,9 @@ void ef_scope_country(token_generator& gen, error_handler& err, effect_building_
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::country_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::country_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_effect.push_back(uint16_t(effect::country_scope_pop | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::country_scope_pop | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "country effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -557,7 +557,7 @@ void ef_capital_scope(token_generator& gen, error_handler& err, effect_building_
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::capital_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::capital_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "capital_scope effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -582,13 +582,13 @@ void ef_scope_this(token_generator& gen, error_handler& err, effect_building_con
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::this_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::this_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::this_scope_province | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::this_scope_province | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_effect.push_back(uint16_t(effect::this_scope_pop | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::this_scope_pop | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::this_scope_nation | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::this_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "this effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -614,13 +614,13 @@ void ef_scope_from(token_generator& gen, error_handler& err, effect_building_con
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::from_scope_state | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::from_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::from_scope_province | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::from_scope_province | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_effect.push_back(uint16_t(effect::from_scope_pop | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::from_scope_pop | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::from_scope_nation | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::from_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "from effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -645,7 +645,7 @@ void ef_scope_sea_zone(token_generator& gen, error_handler& err, effect_building
 	auto old_limit_offset = context.limit_position;
 
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::sea_zone_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::sea_zone_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "sea_zone effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -668,7 +668,7 @@ void ef_scope_cultural_union(token_generator& gen, error_handler& err, effect_bu
 	auto old_limit_offset = context.limit_position;
 
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::cultural_union_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::cultural_union_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "cultural_union effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -691,7 +691,7 @@ void ef_scope_overlord(token_generator& gen, error_handler& err, effect_building
 	auto old_limit_offset = context.limit_position;
 
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::overlord_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::overlord_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "overlord effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -714,7 +714,7 @@ void ef_scope_sphere_owner(token_generator& gen, error_handler& err, effect_buil
 	auto old_limit_offset = context.limit_position;
 
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::sphere_owner_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::sphere_owner_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "sphere_owner effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -738,7 +738,7 @@ void ef_scope_independence(token_generator& gen, error_handler& err, effect_buil
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::rebel) {
-		context.compiled_effect.push_back(uint16_t(effect::independence_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::independence_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "independence effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -763,7 +763,7 @@ void ef_flashpoint_tag_scope(token_generator& gen, error_handler& err, effect_bu
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::state) {
-		context.compiled_effect.push_back(uint16_t(effect::flashpoint_tag_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::flashpoint_tag_scope | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "flashpoint_tag_scope effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -787,7 +787,7 @@ void ef_crisis_state_scope(token_generator& gen, error_handler& err, effect_buil
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
-	context.compiled_effect.push_back(uint16_t(effect::crisis_state_scope | effect::is_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::crisis_state_scope | effect::scope_has_limit));
 	
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -808,9 +808,9 @@ void ef_state_scope(token_generator& gen, error_handler& err, effect_building_co
 	auto old_main = context.main_slot;
 
 	if(context.main_slot == trigger::slot_contents::province) {
-		context.compiled_effect.push_back(uint16_t(effect::state_scope_province | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::state_scope_province | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_effect.push_back(uint16_t(effect::state_scope_pop | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::state_scope_pop | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "state_scope effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -834,7 +834,7 @@ void ef_state_scope(token_generator& gen, error_handler& err, effect_building_co
 void ef_scope_random(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 
-	context.compiled_effect.push_back(uint16_t(effect::random_scope | effect::is_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::random_scope | effect::scope_has_limit));
 
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -855,7 +855,7 @@ int32_t add_to_random_list(std::string_view label, token_generator& gen, error_h
 	context.compiled_effect.push_back(uint16_t(ivalue));
 
 	auto old_limit_offset = context.limit_position;
-	context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::is_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 	context.limit_position = context.compiled_effect.size();
@@ -872,7 +872,7 @@ int32_t add_to_random_list(std::string_view label, token_generator& gen, error_h
 void ef_scope_random_list(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 
-	context.compiled_effect.push_back(uint16_t(effect::random_list_scope | effect::is_scope));
+	context.compiled_effect.push_back(uint16_t(effect::random_list_scope));
 
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -883,7 +883,7 @@ void ef_scope_random_list(token_generator& gen, error_handler& err, effect_build
 	auto random_set = parse_ef_random_list(gen, err, context);
 
 	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
-	context.compiled_effect[payload_size_offset + 1] = uint16_t(random_set.chances_sum);
+	context.compiled_effect[payload_size_offset + 1] = uint16_t(std::max(random_set.chances_sum, 1));
 
 	context.limit_position = old_limit_offset;
 }
@@ -894,7 +894,7 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 		auto old_limit_offset = context.limit_position;
 		auto old_main = context.main_slot;
 
-		context.compiled_effect.push_back(uint16_t(effect::region_scope | effect::is_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::region_scope | effect::scope_has_limit));
 		
 
 		context.compiled_effect.push_back(uint16_t(0));
@@ -914,11 +914,11 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 	} else if(auto itb = context.outer_context.map_of_poptypes.find(str_label); itb != context.outer_context.map_of_poptypes.end()) {
 
 		if(context.main_slot == trigger::slot_contents::nation)
-			context.compiled_effect.push_back(uint16_t(effect::pop_type_scope_nation | effect::is_scope | effect::scope_has_limit));
+			context.compiled_effect.push_back(uint16_t(effect::pop_type_scope_nation | effect::scope_has_limit));
 		else if(context.main_slot == trigger::slot_contents::state)
-			context.compiled_effect.push_back(uint16_t(effect::pop_type_scope_state | effect::is_scope | effect::scope_has_limit));
+			context.compiled_effect.push_back(uint16_t(effect::pop_type_scope_state | effect::scope_has_limit));
 		else if(context.main_slot == trigger::slot_contents::province)
-			context.compiled_effect.push_back(uint16_t(effect::pop_type_scope_province | effect::is_scope | effect::scope_has_limit));
+			context.compiled_effect.push_back(uint16_t(effect::pop_type_scope_province | effect::scope_has_limit));
 		else {
 			gen.discard_group();
 			err.accumulated_errors += "pop type effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -949,7 +949,7 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 			auto old_limit_offset = context.limit_position;
 			auto old_main = context.main_slot;
 
-			context.compiled_effect.push_back(uint16_t(effect::integer_scope | effect::is_scope | effect::scope_has_limit));
+			context.compiled_effect.push_back(uint16_t(effect::integer_scope | effect::scope_has_limit));
 
 			context.compiled_effect.push_back(uint16_t(0));
 			auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -976,7 +976,7 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 			auto old_limit_offset = context.limit_position;
 			auto old_main = context.main_slot;
 
-			context.compiled_effect.push_back(uint16_t(effect::tag_scope | effect::is_scope | effect::scope_has_limit));
+			context.compiled_effect.push_back(uint16_t(effect::tag_scope | effect::scope_has_limit));
 
 			context.compiled_effect.push_back(uint16_t(0));
 			auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -1005,7 +1005,7 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 
 int32_t simplify_effect(uint16_t* source) {
 	assert(0 <= (*source & effect::code_mask) && (*source & effect::code_mask) < effect::first_invalid_code);
-	if((source[0] & effect::is_scope) != 0) {
+	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
 		auto source_size = 1 + effect::get_effect_scope_payload_size(source);
 
 		if((source[0] & effect::code_mask) == effect::random_list_scope) {
@@ -1068,7 +1068,7 @@ template<typename T>
 void recurse_over_effects(uint16_t* source, const T& f) {
 	f(source);
 
-	if((source[0] & effect::is_scope) != 0) {
+	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
 		if((source[0] & effect::code_mask) == effect::random_list_scope) {
 			const auto source_size = 1 + effect::get_generic_effect_payload_size(source);
 
@@ -1258,6 +1258,14 @@ void effect_body::define_admiral(ef_define_admiral const& value, error_handler& 
 	context.compiled_effect.push_back(trigger::payload(context.outer_context.state.add_unit_name(value.name)).value);
 	context.compiled_effect.push_back(trigger::payload(value.personality_).value);
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
+}
+void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
+	if(1 <= value && value <= int32_t(context.outer_context.state.province_definitions.canals.size())) {
+		context.compiled_effect.push_back(uint16_t(effect::enable_canal));
+		context.compiled_effect.push_back(trigger::payload(uint16_t(value)).value);
+	} else {
+		err.accumulated_errors += "canal index " + std::to_string(value) + " out of range (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+	}
 }
 
 }

@@ -2,12 +2,12 @@
 
 namespace event {
 
-void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi) {
+void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi, int32_t from_slot) {
 	if(auto immediate = state.world.national_event_get_immediate_effect(e); immediate) {
-		effect::execute(state, immediate, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi);
+		effect::execute(state, immediate, trigger::to_generic(n), trigger::to_generic(n), from_slot, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		state.pending_n_event.push_back(pending_human_n_event{e, n, r_lo, r_hi + 1, state.current_date });
+		state.pending_n_event.push_back(pending_human_n_event{e, n, r_lo, r_hi + 1, state.current_date, from_slot });
 		// TODO: notify ui
 	} else {
 		auto& opt = state.world.national_event_get_options(e);
@@ -15,7 +15,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		float odds[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), 0);
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), from_slot);
 				total += odds[i];
 			}
 		}
@@ -26,7 +26,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 				if(opt[i].ai_chance && opt[i].effect) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
-						effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+						effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
 						return;
 					}
 				}
@@ -34,7 +34,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		}
 
 		if(opt[0].effect) {
-			effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+			effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
 		}
 
 		// TODO: notify
@@ -79,10 +79,10 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		// TODO: notify
 	}
 }
-void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo) {
+void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo, int32_t from_slot) {
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		state.pending_p_event.push_back(pending_human_p_event{ e, p, r_lo, r_hi, state.current_date });
+		state.pending_p_event.push_back(pending_human_p_event{ e, p, r_lo, r_hi, state.current_date, from_slot });
 		// TODO: notify ui
 	} else {
 		auto& opt = state.world.provincial_event_get_options(e);
@@ -90,7 +90,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		float odds[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(owner), 0);
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(owner), from_slot);
 				total += odds[i];
 			}
 		}
@@ -101,7 +101,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 				if(opt[i].ai_chance && opt[i].effect) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
-						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(owner), 0, r_lo, r_hi);
+						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(owner), from_slot, r_lo, r_hi);
 						return;
 					}
 				}
@@ -109,7 +109,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		}
 
 		if(opt[0].effect) {
-			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(owner), 0, r_lo, r_hi);
+			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(owner), from_slot, r_lo, r_hi);
 		}
 
 		// TODO: notify
@@ -154,6 +154,12 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 	}
 }
 
+void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, int32_t from_slot, uint32_t r_hi, uint32_t r_lo) {
+
+}
+void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, int32_t from_slot, uint32_t r_hi, uint32_t r_lo) {
+
+}
 void update_events(sys::state& state) {
 	uint32_t n_block_size = state.world.free_national_event_size() / 32;
 	uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
