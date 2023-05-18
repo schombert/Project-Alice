@@ -251,6 +251,23 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		progress = 0.f;
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto tech_id = nations::current_research(state, state.local_player_nation);
+		if(tech_id) {
+			text::substitution_map sub_map;
+			text::add_to_substitution_map(sub_map, text::variable_type::tech, dcon::fatten(state.world, tech_id).get_name());
+			text::localised_format_box(state, contents, box, "technologyview_under_research_tooltip", sub_map);
+		} else {
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_no_research"), text::text_color::white);
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class technology_research_progress_name_text : public simple_text_element_base {
@@ -354,11 +371,11 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto tech_fat_id = dcon::fatten(state.world, tech_id);
 
-		auto previous_tech_id = dcon::technology_id(tech_id.value - 2); // Find 'previous' tech.
+		auto previous_tech_id = dcon::technology_id(static_cast<uint16_t>(tech_id.index()) - 1); // Find 'previous' tech.
 
 		auto previous_tech_fat_id = dcon::fatten(state.world, previous_tech_id);
 
-		bool is_previous_tech_in_same_folder = previous_tech_fat_id.get_folder_index() == tech_fat_id.get_folder_index() && tech_id.value != 1; // The first tech has no 'previous' tech so it is ignored explicitly.
+		bool is_previous_tech_in_same_folder = tech_id != dcon::technology_id{0} && previous_tech_fat_id.get_folder_index() == tech_fat_id.get_folder_index(); // The first tech has no 'previous' tech so it is ignored explicitly.
 
 		if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
 			// Fully researched.
@@ -392,35 +409,101 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
+		auto category = static_cast<culture::tech_category>(state.world.invention_get_technology_type(content));
+		std::string category_name{};
+		switch(category) {
+			case culture::tech_category::army:
+				category_name = "army_tech";
+				break;
+			case culture::tech_category::navy:
+				category_name = "navy_tech";
+				break;
+			case culture::tech_category::commerce:
+				category_name = "commerce_tech";
+				break;
+			case culture::tech_category::culture:
+				category_name = "culture_tech";
+				break;
+			case culture::tech_category::industry:
+				category_name = "industry_tech";
+				break;
+			default:
+				break;
 		}
-		// Evaluate limit condition
-		auto limit_condition = fat_id.get_limit();
-		if(bool(limit_condition))
-			trigger_description(state, contents, limit_condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, category_name), text::text_color::white);
+		text::close_layout_box(contents, box);
 	}
 };
+
+class invention_name_text : public generic_settable_element<simple_text_element_base, dcon::invention_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, stored_text), text::text_color::yellow);
+		text::close_layout_box(contents, box);
+
+		auto invention_fat_id = dcon::fatten(state.world, content);
+		auto mod_id = invention_fat_id.get_modifier().id;
+		if(bool(mod_id))
+			modifier_description(state, contents, mod_id);
+	}
+};
+
 class invention_chance_percent_text : public generic_settable_element<simple_text_element_base, dcon::invention_id> {
 public:
 	void on_update(sys::state& state) noexcept override {
-		// TODO: evaluate modifiers of chances for inventions
 		auto mod_k = state.world.invention_get_chance(content);
 		auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
-		set_text(state, text::format_percentage(chances / 100.f, 1));
+		set_text(state, text::format_percentage(chances / 100.f, 0));
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mod_k = state.world.invention_get_chance(content);
+		auto mod_d = state.value_modifiers[mod_k];
+
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub_map;
+		text::add_to_substitution_map(sub_map, text::variable_type::chance, static_cast<int32_t>(mod_d.base_factor));
+		text::localised_format_box(state, contents, box, "base_chance", sub_map);
+		text::close_layout_box(contents, box);
+
+		for(uint32_t i = 0; i < mod_d.segments_count; ++i) {
+			auto seg = state.value_modifier_segments[mod_d.first_segment_offset + i];
+			if(seg.condition) {
+				trigger_description(state, contents, seg.condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+			}
+		}
 	}
 };
+
 class technology_possible_invention : public listbox_row_element_base<dcon::invention_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "folder_icon") {
 			return make_element_by_type<invention_image>(state, id);
 		} else if(name == "invention_name") {
-			return make_element_by_type<generic_name_text<dcon::invention_id>>(state, id);
+			return make_element_by_type<invention_name_text>(state, id);
 		} else if(name == "invention_percent") {
 			return make_element_by_type<invention_chance_percent_text>(state, id);
 		} else {
@@ -442,7 +525,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_invention([&](dcon::invention_id id) {
-			auto& lim_trigger_k = state.world.invention_get_limit(id);
+			auto lim_trigger_k = state.world.invention_get_limit(id);
 			if(trigger::evaluate(state, lim_trigger_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1))
 				row_contents.push_back(id);
 		});
@@ -492,7 +575,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_invention([&](dcon::invention_id id) {
-			auto& lim_trigger_k = state.world.invention_get_limit(id);
+			auto lim_trigger_k = state.world.invention_get_limit(id);
 			bool activable_by_this_tech = false;
 			trigger::recurse_over_triggers(state.trigger_data.data() + lim_trigger_k.index(), [&](uint16_t* tval) {
 				if((tval[0] & trigger::code_mask) == trigger::technology && trigger::payload(tval[1]).tech_id == content)
@@ -621,6 +704,45 @@ public:
 	}
 };
 
+class technology_sort_by_type_button : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_type_tooltip"), text::text_color::white);
+		text::close_layout_box(contents, box);
+	}
+};
+
+class technology_sort_by_name_button : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_name_tooltip"), text::text_color::white);
+		text::close_layout_box(contents, box);
+	}
+};
+
+class technology_sort_by_percent_button : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_percent_tooltip"), text::text_color::white);
+		text::close_layout_box(contents, box);
+	}
+};
+
 class technology_window : public generic_tabbed_window<culture::tech_category> {
 	technology_selected_tech_window* selected_tech_win = nullptr;
 public:
@@ -654,7 +776,7 @@ public:
 		std::vector<size_t> folder_x_offset(state.culture_definitions.tech_folders.size(), 0);
 		for(const auto& folder_category : folders_by_category) {
 			size_t y_offset = 0;
-			for(const auto& folder_index : folder_category)
+			for(const auto folder_index : folder_category)
 				folder_x_offset[folder_index] = y_offset++;
 		}
 		// Technologies per folder (used for positioning!!!)
@@ -732,11 +854,13 @@ public:
 			selected_tech_win = ptr.get();
 			return ptr;
 		} else if(name == "sort_by_type") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<technology_sort_by_type_button>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
+		} else if(name == "sort_by_name") {
+			return make_element_by_type<technology_sort_by_name_button>(state, id);
 		} else if(name == "sort_by_percent") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<technology_sort_by_percent_button>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "inventions") {

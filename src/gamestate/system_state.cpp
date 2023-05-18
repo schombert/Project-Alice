@@ -1566,7 +1566,7 @@ namespace sys {
 			world.nation_set_is_player_controlled(local_player_nation, true);
 		}
 
-		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
+		ui_state.tooltip_font = text::name_into_font_id(*this, "vic_18_black");
 	}
 
 	constexpr inline int32_t game_speed[] = {
