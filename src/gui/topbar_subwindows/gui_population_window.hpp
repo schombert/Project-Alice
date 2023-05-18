@@ -635,6 +635,7 @@ public:
 			}
 		}
 	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = T{};
@@ -800,12 +801,15 @@ public:
 		if (std::holds_alternative<dcon::nation_id>(content)) {
 			Cyto::Any new_payload = std::get<dcon::nation_id>(content);
 			country_window->impl_set(state, new_payload);
+			country_window->impl_on_update(state);
 		} else if (std::holds_alternative<dcon::state_instance_id>(content)) {
 			Cyto::Any new_payload = std::get<dcon::state_instance_id>(content);
 			state_window->impl_set(state, new_payload);
+			state_window->impl_on_update(state);
 		} else if (std::holds_alternative<dcon::province_id>(content)) {
 			Cyto::Any new_payload = std::get<dcon::province_id>(content);
 			province_window->impl_set(state, new_payload);
+			province_window->impl_on_update(state);
 		}
 	}
 
