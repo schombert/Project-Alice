@@ -1447,6 +1447,11 @@ public:
 			return make_element_by_type<topbar_nation_mobilization_size_text>(state, id);
 		} else if(name == "military_leadership_value") {
 			return make_element_by_type<topbar_nation_leadership_points_text>(state, id);
+		} else if(name == "topbar_outlinerbutton") {
+			// Fake button isn't used - we create it manually instead...
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
 		} else {
 			return nullptr;
 		}
