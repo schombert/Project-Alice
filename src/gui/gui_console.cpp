@@ -7,6 +7,8 @@
 
 
 struct command_info {
+	static constexpr uint32_t max_arg_slots = 4;
+
 	std::string_view name;
 	enum class type : uint8_t {
 		none = 0, reload, abort, clear_log, fps, set_tag, help,
@@ -20,7 +22,7 @@ struct command_info {
 			none = 0, numeric, tag, text
 		} mode = type::none;
 		bool optional = false;
-	} args[4] = {};
+	} args[max_arg_slots] = {};
 };
 
 static const std::vector<command_info> possible_commands = {
@@ -118,7 +120,7 @@ static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 static bool set_active_tag(sys::state& state, std::string_view tag) noexcept {
 	bool found = false;
 	state.world.for_each_national_identity([&](dcon::national_identity_id id) {
-		std::string curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+		auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
 		if(curr == tag) {
 			dcon::national_identity_fat_id fat_id = dcon::fatten(state.world, id);
 			state.local_player_nation = fat_id.get_nation_from_identity_holder().id;
@@ -137,11 +139,17 @@ struct parser_state {
 	command_info cmd{};
 	std::variant<
 		std::monostate, // none
-		std::string_view, // tag/string
+		std::string, // tag/string
 		int32_t // numeric
-	> arg_slots[4] = {};
+	> arg_slots[command_info::max_arg_slots] = {};
 };
-static parser_state parse_command(sys::state& state, std::string_view s) {
+static parser_state parse_command(sys::state& state, std::string_view text) {
+	std::string s{ text };
+	// Makes all text lowercase for proper processing
+	std::transform(s.begin(), s.end(), s.begin(), [](auto c) {
+		return char(tolower(char(c)));
+	});
+
 	// Parse command
 	parser_state pstate{};
 	pstate.cmd = possible_commands[0];
@@ -157,21 +165,34 @@ static parser_state parse_command(sys::state& state, std::string_view s) {
 	char const* position = start + pstate.cmd.name.size();
 	for(; position < end && isspace(*position); ++position)
 		;
-	for(auto i = 0; i < 4; ++i) {
+	for(uint32_t i = 0; i < command_info::max_arg_slots; ++i) {
 		char const* ident_start = position;
 		for(; position < end && !isspace(*position) ; ++position)
 			;
 		char const* ident_end = position;
 		if(ident_start == ident_end)
 			break;
+		
 		std::string_view ident(ident_start, ident_end);
-		if(pstate.cmd.args[i].mode == command_info::argument_info::type::text
-		|| pstate.cmd.args[i].mode == command_info::argument_info::type::tag)
-			pstate.arg_slots[i] = ident;
-		else if(pstate.cmd.args[i].mode == command_info::argument_info::type::numeric)
+		switch(pstate.cmd.args[i].mode) {
+		case command_info::argument_info::type::text:
+			pstate.arg_slots[i] = std::string(ident);
+			break;
+		case command_info::argument_info::type::tag: {
+			std::string tag{ ident };
+			std::transform(tag.begin(), tag.end(), tag.begin(), [](auto c) {
+				return char(toupper(char(c)));
+			});
+			pstate.arg_slots[i] = tag;
+			break;
+		}
+		case command_info::argument_info::type::numeric:
 			pstate.arg_slots[i] = int32_t(std::stoi(std::string(ident)));
-		else
+			break;
+		default:
 			pstate.arg_slots[i] = std::monostate{};
+			break;
+		}
 		// Skip spaces
 		for(; position < end && isspace(*position); ++position)
 			;
@@ -233,22 +254,22 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		return;
 
 	log_to_console(state, parent, s);
-	for(auto i = 0; i < 4; ++i) {
+	for(uint32_t i = 0; i < command_info::max_arg_slots; ++i) {
 		if(pstate.cmd.args[i].optional)
 			continue;
 		if(pstate.cmd.args[i].mode == command_info::argument_info::type::text) {
-			if(!std::holds_alternative<std::string_view>(pstate.arg_slots[i])) {
-				log_to_console(state, parent, "Command requires a text argument at " + std::to_string(i));
+			if(!std::holds_alternative<std::string>(pstate.arg_slots[i])) {
+				log_to_console(state, parent, "Command requires a \xA7Ytext\xA7W argument at " + std::to_string(i));
 				return;
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::tag) {
-			if(!std::holds_alternative<std::string_view>(pstate.arg_slots[i])) {
-				log_to_console(state, parent, "Command requires a tag argument at " + std::to_string(i));
+			if(!std::holds_alternative<std::string>(pstate.arg_slots[i])) {
+				log_to_console(state, parent, "Command requires a \xA7Ytag\xA7W argument at " + std::to_string(i));
 				return;
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::numeric) {
 			if(!std::holds_alternative<int32_t>(pstate.arg_slots[i])) {
-				log_to_console(state, parent, "Command requires a numeric argument at " + std::to_string(i));
+				log_to_console(state, parent, "Command requires a \xA7Ynumeric\xA7W argument at " + std::to_string(i));
 				return;
 			}
 		}
@@ -276,14 +297,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 		break;
 	case command_info::type::set_tag: {
-		auto tag = std::get<std::string_view>(pstate.arg_slots[0]);
+		auto tag = std::get<std::string>(pstate.arg_slots[0]);
 		if(set_active_tag(state, tag) == false) {
 			std::pair<uint32_t, dcon::national_identity_id> closest_match{};
 			bool name_instead_of_tag = false;
 			closest_match.first = std::numeric_limits<uint32_t>::max();
 			// Search for matches on tags
 			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
-				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+				auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
 				auto dist = levenshtein_distance(tag, name);
 				if(dist < closest_match.first) {
 					closest_match.first = dist;
@@ -294,6 +315,10 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
 				auto fat_id = dcon::fatten(state.world, id);
 				auto name = text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name());
+				std::transform(name.begin(), name.end(), name.begin(), [](auto c) {
+					return char(tolower(char(c)));
+				});
+				
 				if(name == tag)
 					name_instead_of_tag = true;
 				auto dist = levenshtein_distance(tag, name);
@@ -304,19 +329,19 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			});
 			// Print results of search
 			auto fat_id = dcon::fatten(state.world, closest_match.second);
-			std::string text = "Closest match might be \"" + nations::int_to_tag(fat_id.get_identifying_int()) + "\" (" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + ") Id #" + std::to_string(closest_match.second.value);
+			std::string text = "Closest match might be \xA7Y\"" + nations::int_to_tag(fat_id.get_identifying_int()) + "\"\xA7W (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_match.second.value);
 			log_to_console(state, parent, text);
 			if(name_instead_of_tag)
 				log_to_console(state, parent, "You need to use tags (3-letters) instead of the full name!");
 			else
 				log_to_console(state, parent, "Is this what you meant?");
 		} else {
-			log_to_console(state, parent, "Switching to " + std::string(tag));
+			log_to_console(state, parent, "Switching to \xA7Y" + std::string(tag) + "\xA7W");
 		}
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
 	case command_info::type::search_tag: {
-		auto tag = std::get<std::string_view>(pstate.arg_slots[0]);
+		auto tag = std::get<std::string>(pstate.arg_slots[0]);
 		std::pair<uint32_t, dcon::national_identity_id> closest_match{};
 		closest_match.first = std::numeric_limits<uint32_t>::max();
 		// Search for matches on tags
@@ -331,8 +356,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		// And on country names themselves
 		state.world.for_each_national_identity([&](dcon::national_identity_id id) {
 			auto fat_id = dcon::fatten(state.world, id);
-			auto name = fat_id.get_nation_from_identity_holder().get_name();
-			auto dist = levenshtein_distance(tag, text::produce_simple_string(state, name));
+			auto name = text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name());
+			std::transform(name.begin(), name.end(), name.begin(), [](auto c) {
+				return char(tolower(char(c)));
+			});
+
+			auto dist = levenshtein_distance(tag, name);
 			if(dist < closest_match.first) {
 				closest_match.first = dist;
 				closest_match.second = id;
@@ -340,24 +369,24 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		});
 		// Print results of search
 		auto fat_id = dcon::fatten(state.world, closest_match.second);
-		log_to_console(state, parent, "Closest match: \"" + nations::int_to_tag(fat_id.get_identifying_int()) + "\" (" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + ") Id #" + std::to_string(closest_match.second.value));
+		log_to_console(state, parent, "Closest match: \xA7Y\"" + nations::int_to_tag(fat_id.get_identifying_int()) + "\"\xA7W (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_match.second.value));
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
 	case command_info::type::help: {
 		auto log_command_info = [&](auto cmd) {
-			std::string text = "* " + std::string(cmd.name) + " ";
+			std::string text = "* \xA7Y" + std::string(cmd.name) + "\xA7W ";
 			for(const auto& arg : cmd.args)
 				if(arg.mode != command_info::argument_info::type::none) {
 					if(arg.optional)
-						text += "[(optional)" + std::string(arg.name) + "] ";
+						text += "\xA7Y[(optional)\xA7W" + std::string(arg.name) + "] ";
 					else
-						text += "(" + std::string(arg.name) + ") ";
+						text += "\xA7G(" + std::string(arg.name) + ")\xA7W ";
 				}
 			text += "- " + std::string(cmd.desc);
 			log_to_console(state, parent, text);
 		};
-		if(std::holds_alternative<std::string_view>(pstate.arg_slots[0])) {
-			auto cmd_name = std::get<std::string_view>(pstate.arg_slots[0]);
+		if(std::holds_alternative<std::string>(pstate.arg_slots[0])) {
+			auto cmd_name = std::get<std::string>(pstate.arg_slots[0]);
 			bool found = false;
 			for(const auto& cmd : possible_commands)
 				if(cmd.name == cmd_name) {
@@ -377,7 +406,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 						closest_match.second = cmd;
 					}
 				}
-				log_to_console(state, parent, "Did you mean " + std::string(closest_match.second.name) + "(" + std::string(closest_match.second.desc) + ")" "?");
+				log_to_console(state, parent, "Did you mean \xA7Y" + std::string(closest_match.second.name) + "\xA7W (" + std::string(closest_match.second.desc) + ")" "?");
 			}
 		} else {
 			log_to_console(state, parent, "Here's some helpful commands ^-^");
@@ -386,7 +415,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 	} break;
 	case command_info::type::show_stats: {
-		if(!std::holds_alternative<std::string_view>(pstate.arg_slots[0])) {
+		if(!std::holds_alternative<std::string>(pstate.arg_slots[0])) {
 			log_to_console(state, parent, "Valid options: demo(graphics), diplo(macy), eco(nomy), event(s), mil(itary)");
 			log_to_console(state, parent, "tech(nology), pol(itics), a(ll)/all");
 			log_to_console(state, parent, "Ex: \"stats pol\"");
@@ -405,7 +434,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			count
 		};
 		uint8_t v = 0;
-		const auto k = std::get<std::string_view>(pstate.arg_slots[0]);
+		const auto k = std::get<std::string>(pstate.arg_slots[0]);
 		if(k[0] == 'd' && k[1] == 'e') { // de(mo)
 			v |= uint8_t(flags::demographics);
 		} else if(k[0] == 'd') { // d(iplo)
@@ -536,6 +565,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			log_to_console(state, parent, "* Decisions: " + std::to_string(state.world.decision_size()));
 		}
 	} break;
+	// State changing events
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
 		break;
@@ -544,6 +574,36 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	log_to_console(state, parent, ""); // space after command
     add_to_history(state, std::string(s));
+}
+
+void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(stored_text.length() > 0) {
+		auto x_offs = 0.f;
+		auto text_color = text::text_color::white;
+
+		for(char const* start_text = stored_text.data(); start_text < stored_text.data() + stored_text.length(); ) {
+			char const* end_text = start_text;
+			for(; *end_text && *end_text != '\xA7'; ++end_text)
+				;
+			std::string_view text(start_text, end_text);
+			if(!text.empty()) {
+				std::string tmp_text{ text };
+				ogl::render_text(
+					state, tmp_text.c_str(), uint32_t(tmp_text.length()),
+					ogl::color_modification::none,
+					float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
+					get_text_color(text_color),
+					base_data.data.button.font_handle
+				);
+				x_offs += state.font_collection.text_extent(state, tmp_text.c_str(), uint32_t(tmp_text.length()), base_data.data.text.font_handle);
+			}
+			if(uint8_t(*end_text) == 0xA7) {
+				text_color = text::char_to_color(*++end_text); // Skip escape, then read colour
+				++end_text; // Skip colour
+			}
+			start_text = end_text;
+		}
+	}
 }
 
 void ui::console_window::show_toggle(sys::state& state) {

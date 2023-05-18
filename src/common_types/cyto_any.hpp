@@ -97,7 +97,7 @@ template <class T>  struct IsInPlaceType_<std::in_place_type_t<T>> : std::true_t
 template <size_t S> struct IsInPlaceType_<std::in_place_index_t<S>> : std::true_type { };
 template <class T>  constexpr bool IsInPlaceType = IsInPlaceType_<T>::value;
 
-constexpr size_t StorageBufferSize = 4 * sizeof(void*);
+constexpr size_t StorageBufferSize = 6 * sizeof(void*);
 using StorageBuffer = std::aligned_storage_t<StorageBufferSize, std::alignment_of_v<void*>>;
 
 template <class T>

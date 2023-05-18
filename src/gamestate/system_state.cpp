@@ -291,8 +291,31 @@ namespace sys {
         }
 		{
 			auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
+			ui_state.outliner_window = new_elm.get();
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
+			// Has to be created AFTER the outliner window
+			// The topbar has this button within, however since the button isn't properly displayed, it is better to make
+			// it into an independent element of it's own, living freely on the UI root so it can be flexibly moved around when
+			// the window is resized for example.
+			for(size_t i = ui_defs.gui.size(); i-- > 0; ) {
+				auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+				if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton_bg") {
+					auto new_bg = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
+					ui_state.root->add_child_to_front(std::move(new_bg));
+					break;
+				}
+			}
+			// Then create button atop
+			for(size_t i = ui_defs.gui.size(); i-- > 0; ) {
+				auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+				if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton") {
+					auto new_btn = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
+					new_btn->impl_on_update(*this);
+					ui_state.root->add_child_to_front(std::move(new_btn));
+					break;
+				}
+			}
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
