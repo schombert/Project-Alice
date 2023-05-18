@@ -1295,7 +1295,7 @@ void monthly_flashpoint_update(sys::state& state) {
 			auto owner = si.get_nation_from_state_ownership();
 			auto owner_tag = owner.get_identity_from_identity_holder();
 
-			
+
 			auto owner_accepts_culture = [&](dcon::culture_id c) {
 				return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
 			};
@@ -1805,7 +1805,7 @@ float get_yesterday_income(sys::state& state, dcon::nation_id n) {
 	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::poor);
 	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::middle);
 	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::rich);
-	sum =+ economy::estimate_gold_income(state, n);
+	sum += economy::estimate_gold_income(state, n);
 	return sum;
 }
 
