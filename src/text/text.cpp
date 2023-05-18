@@ -51,7 +51,8 @@ namespace text {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
 						}
-						section_start = pos += 1;
+						pos += 1;
+						section_start = pos;
 						colour_esc = true;
 					} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
 						if(section_start != pos) {
@@ -65,7 +66,8 @@ namespace text {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
 						}
-						section_start = pos += 1;
+						pos += 1;
+						section_start = pos;
 						colour_esc = true;
 					} else if(*pos == '$') {
 						if(section_start != pos) {
@@ -77,7 +79,8 @@ namespace text {
 							;
 						if(vend > pos + 1)
 							state.text_components.emplace_back( variable_type_from_name(std::string_view(pos + 1, vend - pos - 1)) );
-						section_start = pos = vend + 1;
+						pos = vend + 1;
+						section_start = pos;
 					} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
 						if(section_start != pos) {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
@@ -93,7 +96,8 @@ namespace text {
 					// we should probably discard the last colour command
 					if(colour_esc && pos < seq_end) {
 						state.text_components.emplace_back( char_to_color(*pos) );
-						section_start = pos += 1;
+						pos += 1;
+						section_start = pos;
 					}
 				}
 
