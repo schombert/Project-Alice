@@ -147,7 +147,7 @@ static parser_state parse_command(sys::state& state, std::string_view text) {
 	std::string s{ text };
 	// Makes all text lowercase for proper processing
 	std::transform(s.begin(), s.end(), s.begin(), [](auto c) {
-		return tolower(int(c));
+		return tolower(char(c));
 	});
 
 	// Parse command
