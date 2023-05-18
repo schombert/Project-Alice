@@ -50,7 +50,7 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<K>()) {
 			content = any_cast<K>(payload);
-			T::on_update(state);
+			T::impl_on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
