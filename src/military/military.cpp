@@ -102,7 +102,7 @@ dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {
 			if(o.get_nation() == b && o.get_is_attacker() != is_attacker)
-				wa.get_war().id;
+				return wa.get_war().id;
 		}
 	}
 	return dcon::war_id{};
