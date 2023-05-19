@@ -405,6 +405,11 @@ public:
 
 class diplomacy_join_attackers_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, "");
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -422,6 +427,11 @@ public:
 
 class diplomacy_join_defenders_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, "");
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
