@@ -947,7 +947,7 @@ public:
 		if(name == "close_button") {
 			return make_element_by_type<province_close_button>(state, id);
 		} else if(name == "background") {
-			return make_element_by_type<opaque_element_base>(state, id);
+			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "province_view_header") {
 			auto ptr = make_element_by_type<province_window_header>(state, id);
 			header_window = ptr.get();

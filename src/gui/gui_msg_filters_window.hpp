@@ -77,6 +77,8 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "countries_listbox") {
 			auto ptr = make_element_by_type<msg_filters_country_listbox>(state, id);
 			country_listbox = ptr.get();

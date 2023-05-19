@@ -1005,7 +1005,11 @@ public:
 
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "close") {
-            return make_element_by_type<generic_close_button>(state, id);
+            auto ptr = make_element_by_type<generic_close_button>(state, id);
+            ptr->set_button_text(state, "");
+            return ptr;
+        } else if(name == "ledger_bg") {
+            return make_element_by_type<draggable_target>(state, id);
         } else if(name == "ledger_linegraphs") {
             auto ptr = make_element_by_type<window_element_base>(state, id);
             commodity_linegraph = ptr.get();
