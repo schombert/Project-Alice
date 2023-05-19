@@ -210,6 +210,13 @@ namespace text {
 		int16_t height = 0;
 		text_color color = text_color::black;
 	};
+
+	struct layout_divider {
+		float x = 0.f;
+		int16_t y = 0;
+		text_color color = text_color::black;
+	};
+
 	struct layout_parameters {
 		int16_t left = 0;
 		int16_t top = 0;
@@ -220,8 +227,10 @@ namespace text {
 		alignment align = alignment::left;
 		text_color color = text_color::white;
 	};
+
 	struct layout {
 		std::vector<text_chunk> contents;
+		std::vector<layout_divider> dividers;
 		int32_t number_of_lines = 0;
 		text_chunk const* get_chunk_from_position(int32_t x, int32_t y) const;
 	};

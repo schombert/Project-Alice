@@ -794,6 +794,7 @@ namespace text {
 
 	endless_layout create_endless_layout(layout& dest, layout_parameters const& params) {
 		dest.contents.clear();
+		dest.dividers.clear();
 		dest.number_of_lines = 0;
 		return endless_layout(dest, params);
 	}
@@ -1070,6 +1071,7 @@ namespace text {
 
 	columnar_layout create_columnar_layout(layout& dest, layout_parameters const& params, int32_t column_width) {
 		dest.contents.clear();
+		dest.dividers.clear();
 		dest.number_of_lines = 0;
 		return columnar_layout(dest, params, 0, 0, params.top, 0, column_width );
 	}
@@ -1092,16 +1094,11 @@ namespace text {
 	// Standardised dividers :3
 	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 		text::add_line_break_to_layout_box(dest, state, box);
-		// Obtain the size of each divisor character
-		auto amount = state.font_collection.text_extent(state, "\x97", uint32_t(1), dest.fixed_parameters.font_id);
-		char buffer[200] = {};
-		auto num_chars = int32_t(float(box.x_size) / amount) - int32_t(box.x_position) - 1;
-		if(num_chars >= int32_t(sizeof(buffer) - 1))
-			num_chars = int32_t(sizeof(buffer) - 1);
-		for(int32_t i = 0; i < num_chars; ++i)
-			buffer[i] = '\x97';
-		buffer[num_chars] = '\0';
-		text::add_to_layout_box(dest, state, box, std::string_view(buffer));
 		text::add_line_break_to_layout_box(dest, state, box);
+		layout_divider divider = {};
+		divider.x = float(box.x_position);
+		divider.y = int32_t(box.y_position);
+		divider.color = box.color;
+		dest.base_layout.dividers.push_back(divider);
 	}
 }

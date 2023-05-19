@@ -451,6 +451,20 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			state.ui_state.tooltip_font
 		);
 	}
+	for(auto& t : internal_layout.dividers) {
+		static const std::string_view hline_buffer = "\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97\x97";
+		auto amount = state.font_collection.text_extent(state, "\x97", uint32_t(1), state.ui_state.tooltip_font);
+		auto num_chars = uint32_t((float(base_data.size.x) - t.x) / amount) - 1;
+		if(num_chars >= uint32_t(hline_buffer.length()))
+			num_chars = uint32_t(hline_buffer.length());
+		ogl::render_text(
+			state, hline_buffer.data(), uint32_t(num_chars),
+			ogl::color_modification::none,
+			float(x) + t.x, float(y + t.y),
+			get_text_color(t.color),
+			state.ui_state.tooltip_font
+		);
+	}
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
@@ -471,7 +485,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		auto overshoot =  1.f - float(base_data.size.x) / extent;
 		auto extra_chars = size_t(float(stored_text.length()) * overshoot);
 		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars - 3, size_t(0)));
-		stored_text += "...";
+		stored_text += "\x85";
 	}
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {
