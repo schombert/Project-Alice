@@ -71,7 +71,11 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));	// Always return 0, that way leafs ai ambititions will be stunted :3
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map); // Always return 0, that way leafs ai ambititions will be stunted :3
+            // leaf: Of course this will never occur because the AI would absolutely obliterate the player in 1v1
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -119,7 +123,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -168,7 +175,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -217,7 +227,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -261,7 +274,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -305,7 +321,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -354,7 +373,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+
+		    text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -398,7 +420,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+
+		    text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -447,7 +472,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -495,7 +523,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -543,7 +574,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -591,7 +625,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -639,7 +676,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -687,7 +727,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -735,7 +778,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -783,7 +829,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
@@ -824,7 +873,10 @@ public:
 	    } else {
 		    text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
 		    text::add_line_break_to_layout_box(contents, state, box);
-		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"));
+		    
+            text::substitution_map ai_map{};
+            text::add_to_substitution_map(ai_map, text::variable_type::country, std::string_view(text::produce_simple_string(state, state.world.nation_get_name(content))));
+		    text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 	    }
 	    text::close_layout_box(contents, box);
     }
