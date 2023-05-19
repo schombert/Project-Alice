@@ -1090,18 +1090,12 @@ namespace text {
 	}
 
 	// Standardised dividers :3
+	// Without the Leasion of Post-1.0 Stuff
 	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 		text::add_line_break_to_layout_box(dest, state, box);
-		// Obtain the size of each divisor character
-		auto amount = state.font_collection.text_extent(state, "\x97", uint32_t(1), dest.fixed_parameters.font_id);
-		char buffer[200] = {};
-		auto num_chars = int32_t(float(box.x_size) / amount) - int32_t(box.x_position) - 1;
-		if(num_chars >= int32_t(sizeof(buffer) - 1))
-			num_chars = int32_t(sizeof(buffer) - 1);
-		for(int32_t i = 0; i < num_chars; ++i)
-			buffer[i] = '\x97';
-		buffer[num_chars] = '\0';
-		text::add_to_layout_box(dest, state, box, std::string_view(buffer));
+		// Why do many thing when one can do one thing.
+		// Vote on it, went 6-3, 6 in favour and 3 against the old vic2 way
+		text::add_to_layout_box(dest, state, box, std::string_view("--------------"));
 		text::add_line_break_to_layout_box(dest, state, box);
 	}
 }
