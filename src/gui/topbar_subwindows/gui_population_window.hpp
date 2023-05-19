@@ -170,9 +170,7 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		if(rebel_fact) {
 			text::add_to_layout_box(contents, state, box, rebel_fact.get_name());
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_divider_to_layout_box(state, contents, box);
 			text::add_to_layout_box(contents, state, box, rebel_fact.get_description());
 		}
 		text::close_layout_box(contents, box);
@@ -330,9 +328,7 @@ public:
 		auto fat_id = dcon::fatten(state.world, content);
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val, text::fp_currency{state.world.pop_get_savings(fat_id.id)});
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
-		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_divider_to_layout_box(state, contents, box);
 		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_needs"), text::variable_type::val, text::fp_currency{1984});
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_salary"), text::variable_type::val, text::fp_currency{1984});
@@ -1056,7 +1052,7 @@ public:
 			for(const auto& e : distrib)
 				if(e.second > 0.f)
 					sorted_distrib.emplace_back(T(e.first), e.second);
-			std::sort(sorted_distrib.begin(), sorted_distrib.end(), [&](auto a, auto b) {
+			std::sort(sorted_distrib.begin(), sorted_distrib.end(), [&](std::pair<T, float> a, std::pair<T, float> b) {
 				return a.second > b.second;
 			});
 
@@ -1249,7 +1245,7 @@ public:
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "background") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "pop_type_icon") {
 			auto ptr = make_element_by_type<pop_type_icon>(state, id);
 			type_icon = ptr.get();
@@ -1585,9 +1581,7 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::who, pop_fat_id.get_name());
 		text::add_to_substitution_map(sub, text::variable_type::where, nation_fat.get_name());
 		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
-		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_divider_to_layout_box(state, contents, box);
 		// TODO replace $VAL from earlier with a new one showing how many people have signed up recently -breizh
 		text::localised_format_box(state, contents, box, std::string_view("pop_promote_info_on_sel"), sub);
 		text::close_layout_box(contents, box);
@@ -1843,7 +1837,7 @@ private:
 			};
 			break;
 		}
-		std::stable_sort(country_pop_listbox->row_contents.begin(), country_pop_listbox->row_contents.end(), [&](auto a, auto b) {
+		std::stable_sort(country_pop_listbox->row_contents.begin(), country_pop_listbox->row_contents.end(), [&](dcon::pop_id a, dcon::pop_id b) {
 			bool r = fn(a, b);
 			return sort_ascend ? r : !r;
 		});
@@ -1861,7 +1855,7 @@ private:
 		std::vector<dcon::state_instance_id> state_list;
 		for(auto si : state.world.nation_get_state_ownership(nation_id))
 			state_list.push_back(si.get_state().id);
-		std::sort(state_list.begin(), state_list.end(), [&](auto a, auto b) {
+		std::sort(state_list.begin(), state_list.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
 			// Colonial states go last
 			if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(a)) != state.world.province_get_is_colonial(state.world.state_instance_get_capital(b)))
 				return !state.world.province_get_is_colonial(state.world.state_instance_get_capital(a));
@@ -1877,7 +1871,7 @@ private:
 			province::for_each_province_in_state_instance(state, fat_id, [&](dcon::province_id id) {
 				province_list.push_back(id);
 			});
-			std::sort(province_list.begin(), province_list.end(), [&](auto a, auto b) {
+			std::sort(province_list.begin(), province_list.end(), [&](dcon::province_id a, dcon::province_id b) {
 				return state.world.province_get_demographics(a, demographics::total) > state.world.province_get_demographics(b, demographics::total);
 			});
 			// Only put if the state is "expanded"

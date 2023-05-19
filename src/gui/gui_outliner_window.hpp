@@ -450,6 +450,7 @@ public:
         if(parent) {
             Cyto::Any payload = Filter;
             parent->impl_set(state, payload);
+            state.ui_state.outliner_window->impl_on_update(state);
         }
     }
 

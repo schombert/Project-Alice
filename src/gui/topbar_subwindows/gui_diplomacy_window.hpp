@@ -260,19 +260,19 @@ public:
 			return ptr;
 		} else if(name == "country_wars") {
 			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "country_allies") {
 			auto ptr = make_element_by_type<overlapping_ally_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "country_protected") {
 			auto ptr = make_element_by_type<overlapping_sphere_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "country_truce") {
 			auto ptr = make_element_by_type<overlapping_truce_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "infamy_text") {
 			return make_element_by_type<diplomacy_nation_infamy_text>(state, id);
@@ -409,6 +409,11 @@ public:
 
 class diplomacy_join_attackers_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, "");
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -426,6 +431,11 @@ public:
 
 class diplomacy_join_defenders_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, "");
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
