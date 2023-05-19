@@ -491,6 +491,8 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "trade_flow_bg") {
+			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "material_name") {
 			return make_element_by_type<generic_name_text<dcon::commodity_id>>(state, id);
 		} else if(name == "material_icon_big") {

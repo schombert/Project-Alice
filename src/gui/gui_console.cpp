@@ -11,9 +11,7 @@ struct command_info {
 
 	std::string_view name;
 	enum class type : uint8_t {
-		none = 0, reload, abort, clear_log, fps, set_tag, help,
-		show_stats,
-		search_tag
+		none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -74,14 +72,6 @@ static const std::vector<command_info> possible_commands = {
 			command_info::argument_info{}
 		}
 	},
-	command_info{ "search", command_info::type::search_tag, "Set the current player's country",
-		{
-			command_info::argument_info{ "country", command_info::argument_info::type::tag, false },
-			command_info::argument_info{},
-			command_info::argument_info{},
-			command_info::argument_info{}
-		}
-	},
 	command_info{ "help", command_info::type::help, "Display help",
 		{
 			command_info::argument_info{ "cmd", command_info::argument_info::type::text, true },
@@ -101,20 +91,44 @@ static const std::vector<command_info> possible_commands = {
 };
 
 static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
+	// NOTE: Change parameters as you wish - but these work fine for the majority of mods
+	constexpr uint32_t insertion_cost = 1;
+	constexpr uint32_t deletion_cost = 1;
+	constexpr uint32_t subst_cost = 1;
+
 	if(s1.empty() || s2.empty())
 		return uint32_t(s1.empty() ? s2.size() : s1.size());
 	std::vector<std::vector<uint32_t>> dist(s1.size(), std::vector<uint32_t>(s2.size(), 0));
-	for(size_t i = 0; i < s1.size(); ++i)
+	for(size_t i = 1; i < s1.size(); ++i)
 		dist[i][0] = uint32_t(i);
-	for(size_t j = 0; j < s2.size(); ++j)
+	for(size_t j = 1; j < s2.size(); ++j)
 		dist[0][j] = uint32_t(j);
 	for(size_t j = 1; j < s2.size(); ++j)
 		for(size_t i = 1; i < s1.size(); ++i) {
-			auto cost = s1[i] == s2[j] ? 0 : 1;
-			auto x = std::min(dist[i][j - 1], dist[i - 1][j - 1] + cost);
-			dist[i][j] = std::min(dist[i - 1][j] + 1, x);
+			auto cost = s1[i] == s2[j] ? 0 : subst_cost;
+			auto x = std::min(dist[i - 1][j] + deletion_cost, dist[i][j - 1] + insertion_cost);
+			dist[i][j] = std::min(x, dist[i - 1][j - 1] + cost);
 		}
 	return dist[s1.size() - 1][s2.size() - 1];
+}
+
+// Splits the strings into tokens and treats them as words individually, it is important that
+// the needle DOES NOT have spaces or else the algorithm will not work properly.
+// This is for being able to match country names which might be matchable iff treated as individual
+// words instead of a big giant text.
+static uint32_t levenshtein_tokenized_distance(std::string_view needle, std::string_view haystack) {
+	assert(needle.find(" ") == std::string::npos);
+	uint32_t dist = std::numeric_limits<uint32_t>::max();
+	std::string str{ haystack };
+	size_t pos = 0;
+	while((pos = str.find(" ")) != std::string::npos) {
+		auto token = str.substr(0, pos);
+		auto token_dist = levenshtein_distance(needle, token);
+		dist = std::min<uint32_t>(dist, token_dist);
+		str.erase(0, pos + 1);
+	}
+	auto token_dist = levenshtein_distance(needle, str);
+	return std::min<uint32_t>(dist, token_dist);
 }
 
 static bool set_active_tag(sys::state& state, std::string_view tag) noexcept {
@@ -299,77 +313,48 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::set_tag: {
 		auto tag = std::get<std::string>(pstate.arg_slots[0]);
 		if(set_active_tag(state, tag) == false) {
-			std::pair<uint32_t, dcon::national_identity_id> closest_match{};
-			bool name_instead_of_tag = false;
-			closest_match.first = std::numeric_limits<uint32_t>::max();
-			// Search for matches on tags
-			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
-				auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
-				auto dist = levenshtein_distance(tag, name);
-				if(dist < closest_match.first) {
-					closest_match.first = dist;
-					closest_match.second = id;
-				}
-			});
-			// And on country names themselves
+			std::pair<uint32_t, dcon::national_identity_id> closest_tag_match{};
+			closest_tag_match.first = std::numeric_limits<uint32_t>::max();
+			std::pair<uint32_t, dcon::national_identity_id> closest_name_match{};
+			closest_name_match.first = std::numeric_limits<uint32_t>::max();
 			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
 				auto fat_id = dcon::fatten(state.world, id);
-				auto name = text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name());
-				std::transform(name.begin(), name.end(), name.begin(), [](auto c) {
-					return char(tolower(char(c)));
-				});
-				
-				if(name == tag)
-					name_instead_of_tag = true;
-				auto dist = levenshtein_distance(tag, name);
-				if(dist < closest_match.first) {
-					closest_match.first = dist;
-					closest_match.second = id;
+				{ // Tags
+					auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+					auto dist = levenshtein_distance(tag, name);
+					if(dist < closest_tag_match.first) {
+						closest_tag_match.first = dist;
+						closest_tag_match.second = id;
+					}
+				}
+				{ // Names
+					auto name = text::produce_simple_string(state, fat_id.get_name());
+					std::transform(name.begin(), name.end(), name.begin(), [](auto c) {
+						return char(toupper(char(c)));
+					});
+					auto dist = levenshtein_tokenized_distance(tag, name);
+					if(dist < closest_name_match.first) {
+						closest_name_match.first = dist;
+						closest_name_match.second = id;
+					}
 				}
 			});
 			// Print results of search
-			auto fat_id = dcon::fatten(state.world, closest_match.second);
-			std::string text = "Closest match might be \xA7Y\"" + nations::int_to_tag(fat_id.get_identifying_int()) + "\"\xA7W (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_match.second.value);
-			log_to_console(state, parent, text);
-			if(name_instead_of_tag)
-				log_to_console(state, parent, "You need to use tags (3-letters) instead of the full name!");
+			if(tag.size() == 3) {
+				auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
+				log_to_console(state, parent, "Tag could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_tag_match.second.value));
+			} else {
+				auto fat_id = dcon::fatten(state.world, closest_name_match.second);
+				log_to_console(state, parent, "Name could refer to \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_name_match.second.value));
+			}
+
+			if(tag.size() != 3)
+				log_to_console(state, parent, "You need to use \xA7Ytags\xA7W (3-letters) instead of the full name");
 			else
 				log_to_console(state, parent, "Is this what you meant?");
 		} else {
 			log_to_console(state, parent, "Switching to \xA7Y" + std::string(tag) + "\xA7W");
 		}
-		state.game_state_updated.store(true, std::memory_order::release);
-	} break;
-	case command_info::type::search_tag: {
-		auto tag = std::get<std::string>(pstate.arg_slots[0]);
-		std::pair<uint32_t, dcon::national_identity_id> closest_match{};
-		closest_match.first = std::numeric_limits<uint32_t>::max();
-		// Search for matches on tags
-		state.world.for_each_national_identity([&](dcon::national_identity_id id) {
-			std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
-			auto dist = levenshtein_distance(tag, name);
-			if(dist < closest_match.first) {
-				closest_match.first = dist;
-				closest_match.second = id;
-			}
-		});
-		// And on country names themselves
-		state.world.for_each_national_identity([&](dcon::national_identity_id id) {
-			auto fat_id = dcon::fatten(state.world, id);
-			auto name = text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name());
-			std::transform(name.begin(), name.end(), name.begin(), [](auto c) {
-				return char(tolower(char(c)));
-			});
-
-			auto dist = levenshtein_distance(tag, name);
-			if(dist < closest_match.first) {
-				closest_match.first = dist;
-				closest_match.second = id;
-			}
-		});
-		// Print results of search
-		auto fat_id = dcon::fatten(state.world, closest_match.second);
-		log_to_console(state, parent, "Closest match: \xA7Y\"" + nations::int_to_tag(fat_id.get_identifying_int()) + "\"\xA7W (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_match.second.value));
 		state.game_state_updated.store(true, std::memory_order::release);
 	} break;
 	case command_info::type::help: {
