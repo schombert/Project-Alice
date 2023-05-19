@@ -666,7 +666,7 @@ namespace text {
 
 		for(size_t i = std::extent_v<decltype(mag)>; i-- > 0; ) {
 			if(std::abs(dval) >= mag[i]) {
-				snprintf(buffer, 200, sufx[i], num / mag[i]);
+				snprintf(buffer, sizeof(buffer), sufx[i], num / mag[i]);
 				return std::string(buffer);
 			}
 		}
@@ -708,20 +708,20 @@ namespace text {
 
 	std::string get_focus_category_name(sys::state const& state, nations::focus_type category) {
 		switch(category) {
-			case nations::focus_type::rail_focus:
-				return produce_simple_string(state, "rail_focus");
-			case nations::focus_type::immigration_focus:
-				return produce_simple_string(state, "immigration_focus");
-			case nations::focus_type::diplomatic_focus:
-				return produce_simple_string(state, "diplomatic_focus");
-			case nations::focus_type::promotion_focus:
-				return produce_simple_string(state, "promotion_focus");
-			case nations::focus_type::production_focus:
-				return produce_simple_string(state, "production_focus");
-			case nations::focus_type::party_loyalty_focus:
-				return produce_simple_string(state, "party_loyalty_focus");
-			default:
-				return produce_simple_string(state, "Category");
+		case nations::focus_type::rail_focus:
+			return text::produce_simple_string(state, "rail_focus");
+		case nations::focus_type::immigration_focus:
+			return text::produce_simple_string(state, "immigration_focus");
+		case nations::focus_type::diplomatic_focus:
+			return text::produce_simple_string(state, "diplomatic_focus");
+		case nations::focus_type::promotion_focus:
+			return text::produce_simple_string(state, "promotion_focus");
+		case nations::focus_type::production_focus:
+			return text::produce_simple_string(state, "production_focus");
+		case nations::focus_type::party_loyalty_focus:
+			return text::produce_simple_string(state, "party_loyalty_focus");
+		default:
+			return text::produce_simple_string(state, "category");
 		}
 	}
 
@@ -732,19 +732,19 @@ namespace text {
 	std::string format_float(float num, size_t digits) {
 		char buffer[200] = { 0 };
 		switch(digits) {
-			default:
-				// fallthrough
-			case 3:
-				snprintf(buffer, 200, "%.3f", num);
-				break;
-			case 2:
-				snprintf(buffer, 200, "%.2f", num);
-				break;
-			case 1:
-				snprintf(buffer, 200, "%.1f", num);
-				break;
-			case 0:
-				return std::to_string(int64_t(num));
+		default:
+			// fallthrough
+		case 3:
+			snprintf(buffer, sizeof(buffer), "%.3f", num);
+			break;
+		case 2:
+			snprintf(buffer, sizeof(buffer), "%.2f", num);
+			break;
+		case 1:
+			snprintf(buffer, sizeof(buffer), "%.1f", num);
+			break;
+		case 0:
+			return std::to_string(int64_t(num));
 		}
 		return std::string(buffer);
 	}
@@ -757,7 +757,6 @@ namespace text {
 		} else {
 			amount = prettify(int32_t(num));
 		}
-
 		return "\xA4 " + amount;
 	}
 
@@ -770,34 +769,13 @@ namespace text {
 	}
 
 	std::string localize_month(sys::state const& state, uint16_t month) {
-		switch(month) {
-			case 1:
-				return text::produce_simple_string(state, "January");
-			case 2:
-				return text::produce_simple_string(state, "February");
-			case 3:
-				return text::produce_simple_string(state, "March");
-			case 4:
-				return text::produce_simple_string(state, "April");
-			case 5:
-				return text::produce_simple_string(state, "May");
-			case 6:
-				return text::produce_simple_string(state, "June");
-			case 7:
-				return text::produce_simple_string(state, "July");
-			case 8:
-				return text::produce_simple_string(state, "August");
-			case 9:
-				return text::produce_simple_string(state, "September");
-			case 10:
-				return text::produce_simple_string(state, "October");
-			case 11:
-				return text::produce_simple_string(state, "November");
-			case 12:
-				return text::produce_simple_string(state, "December");
-			default:
-				return text::produce_simple_string(state, "January");
-		}
+		static const std::string_view month_names[12] = {
+			"january", "february", "march", "april", "may", "june", "july",
+			"august", "september", "october", "november", "december"
+		};
+		if(month == 0 || month > 12)
+			return text::produce_simple_string(state, "january");
+		return text::produce_simple_string(state, month_names[month - 1]);
 	}
 
 	std::string date_to_string(sys::state const& state, sys::date date) {
@@ -876,6 +854,12 @@ namespace text {
 			auto next_wb = txt.find_first_of(" \r\n\t", end_position);
 			auto next_word = txt.find_first_not_of(" \r\n\t", next_wb);
 
+			if(txt.data()[end_position] == '\x97'
+			&& end_position + 2 < txt.length()) {
+				next_wb = end_position;
+				next_word = next_wb + 1;
+			}
+
 			auto num_chars = uint32_t(std::min(next_wb, txt.length()) - start_position);
 			std::string_view segment = txt.substr(start_position, num_chars);
 			float extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
@@ -883,7 +867,6 @@ namespace text {
 			if(first_in_line && int32_t(box.x_position + dest.fixed_parameters.left) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
 				// the current word is too long for the text box, just let it overflow
 				dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-
 
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
@@ -995,14 +978,12 @@ namespace text {
 	}
 
 	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
-
 		auto current_color = dest.fixed_parameters.color;
 		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 		auto& font = state.font_collection.fonts[font_index - 1];
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 		auto line_height = text_height + dest.fixed_parameters.leading;
-
 
 		auto seq = state.text_sequences[source_text];
 		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
@@ -1111,7 +1092,16 @@ namespace text {
 	// Standardised dividers :3
 	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 		text::add_line_break_to_layout_box(dest, state, box);
-		text::add_to_layout_box(dest, state, box, std::string_view("--------------"));
+		// Obtain the size of each divisor character
+		auto amount = state.font_collection.text_extent(state, "\x97", uint32_t(1), dest.fixed_parameters.font_id);
+		char buffer[200] = {};
+		auto num_chars = int32_t(float(box.x_size) / amount) - int32_t(box.x_position) - 1;
+		if(num_chars >= int32_t(sizeof(buffer) - 1))
+			num_chars = int32_t(sizeof(buffer) - 1);
+		for(int32_t i = 0; i < num_chars; ++i)
+			buffer[i] = '\x97';
+		buffer[num_chars] = '\0';
+		text::add_to_layout_box(dest, state, box, std::string_view(buffer));
 		text::add_line_break_to_layout_box(dest, state, box);
 	}
 }

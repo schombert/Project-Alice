@@ -170,9 +170,7 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		if(rebel_fact) {
 			text::add_to_layout_box(contents, state, box, rebel_fact.get_name());
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
-			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_divider_to_layout_box(state, contents, box);
 			text::add_to_layout_box(contents, state, box, rebel_fact.get_description());
 		}
 		text::close_layout_box(contents, box);
@@ -330,9 +328,7 @@ public:
 		auto fat_id = dcon::fatten(state.world, content);
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val, text::fp_currency{state.world.pop_get_savings(fat_id.id)});
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
-		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_divider_to_layout_box(state, contents, box);
 		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_needs"), text::variable_type::val, text::fp_currency{1984});
 		text::add_line_break_to_layout_box(contents, state, box);
 		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_salary"), text::variable_type::val, text::fp_currency{1984});
@@ -1585,9 +1581,7 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::who, pop_fat_id.get_name());
 		text::add_to_substitution_map(sub, text::variable_type::where, nation_fat.get_name());
 		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
-		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_divider_to_layout_box(state, contents, box);
 		// TODO replace $VAL from earlier with a new one showing how many people have signed up recently -breizh
 		text::localised_format_box(state, contents, box, std::string_view("pop_promote_info_on_sel"), sub);
 		text::close_layout_box(contents, box);

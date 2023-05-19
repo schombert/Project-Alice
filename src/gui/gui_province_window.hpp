@@ -221,9 +221,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pw_colony"));
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, std::string_view("----------"), text::text_color::white);
-		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_divider_to_layout_box(state, contents, box);
 
 		text::substitution_map sub1{};
 		text::add_to_substitution_map(sub1, text::variable_type::num, text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
