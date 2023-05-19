@@ -468,10 +468,14 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
 	}
 	if (int16_t(extent) > base_data.size.x) {
-		auto overshoot =  1.f - float(base_data.size.x) / extent;
+		// You could improve logic for ... by figuring out the width of ... and when there isn't enough room for all the text, figuring out how much can fit exactly in the width minus the width of ... and then appending ... (rather than figuring out how much fits in the space and subtracting 3 characters, which is what happens now)
+		auto width_of_ellipsis = state.font_collection.text_extent(state, "\x85", uint32_t(1), base_data.data.text.font_handle);
+
+		auto overshoot =  1.f - float(base_data.size.x) / (extent + width_of_ellipsis);
 		auto extra_chars = size_t(float(stored_text.length()) * overshoot);
-		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars - 3, size_t(0)));
-		stored_text += "...";
+		
+		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars, size_t(0)));
+		stored_text += "\x85";
 	}
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {
