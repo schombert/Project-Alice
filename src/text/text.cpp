@@ -1094,6 +1094,7 @@ namespace text {
 	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 		text::add_line_break_to_layout_box(dest, state, box);
 		// Why do many thing when one can do one thing.
+		// Vote on it, went 6-3, 6 in favour and 3 against the old vic2 way
 		text::add_to_layout_box(dest, state, box, std::string_view("--------------"));
 		text::add_line_break_to_layout_box(dest, state, box);
 	}
