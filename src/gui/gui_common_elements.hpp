@@ -1636,8 +1636,8 @@ public:
 
 class nation_ships_text : public standard_nation_text {
 public:
-	int32_t get_ship_number(sys::state& state, dcon::nation_id nation_id) {
-		auto fat_id = dcon::fatten(state.world, nation_id);
+	int32_t get_ship_number(sys::state& state, dcon::nation_id aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa) {
+		auto fat_id = dcon::fatten(state.world, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa);
 
 		int32_t total = 0;
 		for(auto nv : fat_id.get_navy_control()) {
