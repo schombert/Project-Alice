@@ -938,8 +938,8 @@ public:
 				auto fat_state = dcon::fatten(state.world, state_slim);
 				if(fat_state.is_valid()) {
 					auto state_instance = fat_state.get_state();
-					if(get_num_unemployed(state, state.culture_definitions.primary_factory_worker) >= 1.0f &&
-						state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) > 0.0f) {
+					if(get_num_unemployed(state, state.culture_definitions.primary_factory_worker) >= 10.0f &&
+						state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) > 10.0f) {
 						text::add_line_break_to_layout_box(contents, state, box);
 						text::substitution_map sub;
 
@@ -1132,6 +1132,8 @@ public:
 				text::add_to_substitution_map(sub, text::variable_type::date, dcon::fatten(state.world, nation_id).get_election_ends());
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_isinelection"), sub);
 			}
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("term_for_life"));
 		}
 		text::close_layout_box(contents, box);
 	}

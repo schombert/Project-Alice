@@ -754,9 +754,29 @@ public:
 	}
 };
 
+class province_colony_rgo_icon : public image_element_base {
+public:		// goto hell;
+		// Seriously hate this code, just no, this is awful and shouldnt be needed
+		// but i refuse to loose my sanity to something to assining
+	dcon::text_sequence_id rgo_name;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, rgo_name);
+		text::close_layout_box(contents, box);
+	}
+};
+
 class province_window_colony : public window_element_base {
 private:
-	image_element_base* rgo_icon = nullptr;
+	province_colony_rgo_icon* rgo_icon = nullptr;
 	simple_text_element_base* population_box = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 	dcon::province_id stored_province{};
@@ -772,7 +792,7 @@ public:
 			culture_chart = ptr.get();
 			return ptr;
 		} else if(name == "goods_type") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<province_colony_rgo_icon>(state, id);
 			rgo_icon = ptr.get();
 			return ptr;
 		} else {
@@ -788,6 +808,7 @@ public:
 			set_visible(state, false);
 		} else {
 			rgo_icon->frame = fat_id.get_rgo().get_icon();
+			rgo_icon->rgo_name = fat_id.get_rgo().get_name();
 			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
 			population_box->set_text(state, text::prettify(int32_t(total_pop)));
 			culture_chart->on_update(state);
