@@ -76,6 +76,12 @@ namespace sys {
 		great_nation() = default;
 	};
 
+	struct player_data {
+		float last_budget = 0.f;
+		float income_30_days[30] = {};
+		size_t income_cache_i = 0;
+	};
+
 	struct alignas(64) state {
 		// the state struct will eventually include (at least pointers to)
 		// the state of the sound system, the state of the windowing system,
@@ -170,6 +176,7 @@ namespace sys {
 		sys::date current_date = sys::date{0};
 		uint32_t game_seed = 0; // do *not* alter this value, ever
 		float inflation = 1.0f;
+		player_data player_data_cache{};
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information

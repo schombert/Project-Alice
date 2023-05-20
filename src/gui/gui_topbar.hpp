@@ -16,6 +16,7 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include <vector>
 
 namespace ui {
 
@@ -238,6 +239,23 @@ public:
 		text::localised_single_sub_box(state, contents, box, std::string_view("topbar_projected_income"), text::variable_type::val, text::fp_currency{economy::estimate_daily_income(state, nation_id)});		// $VAL	TODO
 
 		text::close_layout_box(contents, box);
+	}
+};
+
+class topbar_budget_line_graph : public line_graph {
+public:
+	void on_create(sys::state& state) noexcept override {
+		count = 30;
+		line_graph::on_create(state);
+		on_update(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		std::vector<float> datapoints = std::vector<float>(count);
+		for(size_t i = 0; i < datapoints.size(); i++) {
+			datapoints[i] = state.player_data_cache.income_30_days[(i + state.player_data_cache.income_cache_i) % 30];
+		}
+		set_data_points(state, datapoints);
 	}
 };
 
@@ -1423,6 +1441,8 @@ public:
 			return make_element_by_type<topbar_closed_factories_icon>(state, id);
 		} else if(name == "alert_unemployed_workers") {
 			return make_element_by_type<topbar_unemployment_icon>(state, id);
+		} else if(name == "budget_linechart") {
+			return make_element_by_type<topbar_budget_line_graph>(state, id);
 		} else if(name == "budget_funds") {
 			return make_element_by_type<topbar_nation_budget_funds_text>(state, id);
 		} else if(name == "tech_current_research") {

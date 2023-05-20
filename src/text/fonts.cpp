@@ -409,14 +409,13 @@ void font::make_glyph(char ch_in) {
 float font::text_extent(const char* codepoints, uint32_t count, int32_t size) const {
 	float total = 0.0f;
 	for(; count-- > 0; ) {
-
-		total +=
-			this->glyph_advances[uint8_t(codepoints[count])] * size / 64.0f +
-			((count != 0) ? kerning(codepoints[count - 1], codepoints[count]) * size / 64.0f : 0.0f);
+		auto c = uint8_t(codepoints[count]);
+		if(c == 0x01 || c == 0x02)
+			c = 0x4D;
+		total += this->glyph_advances[c] * size / 64.0f + ((count != 0) ? kerning(codepoints[count - 1], c) * size / 64.0f : 0.0f);
 	}
 	return total;
 }
-
 
 void load_standard_fonts(sys::state& state) {
 	auto root = get_root(state.common_fs);
@@ -433,6 +432,7 @@ void load_standard_fonts(sys::state& state) {
 }
 
 void load_bmfonts(sys::state& state) {
+
 }
 
 void font_manager::load_all_glyphs() {

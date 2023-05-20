@@ -145,6 +145,10 @@ struct color3f {
 		GLuint global_square_left_flipped_buffer = 0;
 
 		GLuint sub_square_buffers[64] = { 0 };
+
+		GLuint money_icon_tex = 0;
+		GLuint cross_icon_tex = 0;
+		GLuint checkmark_icon_tex = 0;
 	};
 
 	void notify_user_of_fatal_opengl_error(std::string message); // this function calls std::abort

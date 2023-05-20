@@ -588,7 +588,7 @@ namespace text {
 	char16_t win1250toUTF16(char in) {
 		constexpr static char16_t converted[256] =
 			//       0       1         2         3         4         5         6         7         8         9         A         B         C         D         E         F
-			/*0*/{ u' ' ,  u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u'\t' ,   u'\n' ,   u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,
+			/*0*/{ u' ' ,  u'\u0001',u'\u0002',u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u'\t' ,   u'\n' ,   u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,
 			/*1*/  u' ' ,  u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,
 			/*2*/  u' ' ,  u'!' ,    u'\"',    u'#' ,    u'$' ,    u'%' ,    u'&' ,    u'\'',    u'(' ,    u')' ,    u'*' ,    u'+' ,    u',' ,    u'-' ,    u'.' ,    u'/' ,
 			/*3*/  u'0' ,  u'1' ,    u'2' ,    u'3' ,    u'4' ,    u'5' ,    u'6' ,    u'7' ,    u'8' ,    u'9' ,    u':' ,    u';' ,    u'<' ,    u'=' ,    u'>' ,    u'?' ,
@@ -864,7 +864,7 @@ namespace text {
 			std::string_view segment = txt.substr(start_position, num_chars);
 			float extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
 
-			if(first_in_line && int32_t(box.x_position + dest.fixed_parameters.left) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
+			if(first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) {
 				// the current word is too long for the text box, just let it overflow
 				dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
