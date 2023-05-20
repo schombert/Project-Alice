@@ -1,11 +1,16 @@
 #pragma once
 
-#include "system_state.hpp"
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
-#include "parsers_declarations.hpp"
 #include "map.hpp"
+
+namespace sys {
+	struct state;
+};
+namespace parsers {
+	struct scenario_building_context;
+};
 
 namespace map {
 

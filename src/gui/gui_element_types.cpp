@@ -16,6 +16,7 @@
 #include "nations.hpp"
 #include "opengl_wrapper.hpp"
 #include "text.hpp"
+#include "sound.hpp"
 
 namespace ui {
 
@@ -617,6 +618,8 @@ state::state() {
 	tooltip->flags |= element_base::is_invisible_mask;
 }
 
+state::~state() = default;
+
 void window_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::window) {
 		auto first_child = base_data.data.window.first_child;
@@ -662,7 +665,7 @@ void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 	if(enabled) {
 		ogl::render_piechart(
 			state,
-			ogl::color_modification::none, 
+			ogl::color_modification::none,
 			float(x), float(y), float(base_data.size.x),
 			data_texture
 		);
@@ -757,7 +760,7 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 			auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
 			total_pops = 1.f;
 		}
-		
+
 		if(total_pops <= 0.f)
 			return distrib;
 		for_each_demo(state, [&](DemoT demo_id) {
@@ -771,7 +774,7 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 				volume = state.world.nation_get_demographics(nat_id, demo_key);
 			}
-			
+
 			if constexpr(std::is_same_v<SrcT, dcon::pop_id>) {
 				if(obj_id_payload.holds_type<dcon::pop_id>()) {
 					auto demo_key = pop_demographics::to_key(state, demo_id);

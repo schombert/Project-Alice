@@ -1,12 +1,59 @@
 #pragma once
 
-#include "system_state.hpp"
+// #include "system_state.hpp"
+
+#ifdef _WIN64
+
+// Probably better to forward declare HWND and HDC instead
+#include "Windows.h"
+#include "Windowsx.h"
+#include "wglew.h"
+#include "sound.hpp"
 
 namespace window {
+	class window_data_impl {
+	public:
+		HWND hwnd = nullptr;
+		HDC opengl_window_dc = nullptr;
+
+		int32_t creation_x_size = 600;
+		int32_t creation_y_size = 400;
+
+		bool in_fullscreen = false;
+		bool left_mouse_down = false;
+	};
+}
+#else
+struct GLFWwindow;
+
+namespace window {
+class window_data_impl {
+public:
+	// HWND hwnd = nullptr;
+	// HDC opengl_window_dc = nullptr;
+	GLFWwindow* window = nullptr;
+
+	int32_t creation_x_size = 600;
+	int32_t creation_y_size = 400;
+
+	bool in_fullscreen = false;
+	bool left_mouse_down = false;
+};
+}
+#endif
+
+namespace sys {
+	struct state;
+}
+
+namespace window {
+	enum class window_state : uint8_t {
+		normal, maximized, minimized
+	};
 	struct creation_parameters {
 		int32_t size_x = 1024;
 		int32_t size_y = 768;
-		sys::window_state initial_state = sys::window_state::maximized;
+		window_state initial_state = window_state::maximized;
 		bool borderless_fullscreen = false;
 	};
 

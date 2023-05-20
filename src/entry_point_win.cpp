@@ -49,7 +49,7 @@ int WINAPI wWinMain(
 			add_root(game_state->common_fs, NATIVE(".")); // for the moment this lets us find the shader files
 			RegCloseKey(hKey);
 		}
-		
+
 
 		if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("development_test_file.bin"))) {
 			// scenario making functions
@@ -70,7 +70,7 @@ int WINAPI wWinMain(
 		});
 
 		// entire game runs during this line
-		window::create_window(*game_state, window::creation_parameters{ 1024, 780, sys::window_state::maximized, game_state->user_settings.prefer_fullscreen });
+		window::create_window(*game_state, window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state->user_settings.prefer_fullscreen });
 
 		game_state->quit_signaled.store(true, std::memory_order_release);
 		update_thread.join();

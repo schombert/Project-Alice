@@ -2,14 +2,18 @@
 
 #include <stdint.h>
 
+#ifdef _WIN64
+// Fix for windows
+#else
+#include "sound_nix.hpp"
+#endif
+
+
 namespace sys {
-struct state;
+	struct state;
 }
 
 namespace sound {
-
-class sound_impl; // use this to store implementation dependent data
-class audio_instance; // implementation dependent structure for storing a single music/audio file
 
 // called on startup and shutdown -- initialize should also load the list of available music files and load sound effects
 void initialize_sound_system(sys::state& state); // should be called *after* the window has been created

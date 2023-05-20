@@ -5,18 +5,6 @@
 #include <unordered_map>
 
 namespace window {
-class window_data_impl {
-public:
-	// HWND hwnd = nullptr;
-	// HDC opengl_window_dc = nullptr;
-	GLFWwindow* window = nullptr;
-
-	int32_t creation_x_size = 600;
-	int32_t creation_y_size = 400;
-
-	bool in_fullscreen = false;
-	bool left_mouse_down = false;
-};
 
 static const std::unordered_map<int, sys::virtual_key> glfw_key_to_virtual_key = {
 	{ GLFW_KEY_UNKNOWN, sys::virtual_key::NONE },
@@ -283,11 +271,11 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
 void on_window_change(GLFWwindow* window) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 
-	sys::window_state t = sys::window_state::normal;
+	window_state t = window_state::normal;
 	if(glfwGetWindowAttrib(window, GLFW_MAXIMIZED) == GLFW_MAXIMIZED)
-		t = sys::window_state::maximized;
+		t = window_state::maximized;
 	else if(glfwGetWindowAttrib(window, GLFW_ICONIFIED) == GLFW_ICONIFIED)
-		t = sys::window_state::minimized;
+		t = window_state::minimized;
 
 	// redo OpenGL viewport
 	int width, height;

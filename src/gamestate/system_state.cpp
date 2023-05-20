@@ -96,8 +96,8 @@ namespace sys {
 			ui_state.drag_target = nullptr;
 		}
 	}
-	void state::on_resize(int32_t x, int32_t y, window_state win_state) {
-		if(win_state != window_state::minimized) {
+	void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
+		if(win_state != window::window_state::minimized) {
 			ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 			ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
 		}
@@ -145,7 +145,7 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
-			
+
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
@@ -282,7 +282,7 @@ namespace sys {
 			ptr->impl_set(*this, payload);
 			ui_state.rgos_root->add_child_to_front(std::move(ptr));
 		});
-		
+
         {
             auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
             ui_state.console_window = window.get();

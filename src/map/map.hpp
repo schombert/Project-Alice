@@ -1,10 +1,20 @@
 #pragma once
 
-#include "system_state.hpp"
+#ifndef GLEW_STATIC
+#define GLEW_STATIC
+#endif
+#include "glew.h"
+
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
-#include "parsers_declarations.hpp"
+
+namespace sys {
+	struct state;
+};
+namespace parsers {
+	struct scenario_building_context;
+};
 
 namespace map {
 
