@@ -1895,6 +1895,7 @@ history_war_goal
 	casus_belli                     value      text                              member_fn
 	actor                           value      text                              member_fn
 	receiver                        value      text                              member_fn
+	state_province_id               value      int                               member_fn
 
 war_block
 	add_attacker                    value      text                              member_fn

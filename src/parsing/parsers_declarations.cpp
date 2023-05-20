@@ -2410,6 +2410,11 @@ void history_war_goal::casus_belli(association_type, std::string_view value, err
 	}
 }
 
+void history_war_goal::state_province_id(association_type, int32_t value, error_handler& err, int32_t line, war_history_context& context) {
+	auto amid = context.outer_context.state.world.province_get_abstract_state_membership_as_province(dcon::province_id(dcon::province::value_base_t(value)));
+	state_id = context.outer_context.state.world.abstract_state_membership_get_state(amid);
+}
+
 void war_block::add_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context) {
 	if(tag.length() == 3) {
 		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
@@ -2497,6 +2502,7 @@ void war_history_file::finish(war_history_context& context) {
 			new_wg.set_added_by(wg.actor_);
 			new_wg.set_target_nation(wg.receiver_);
 			new_wg.set_type(wg.casus_belli_);
+			new_wg.set_associated_state(wg.state_id);
 			context.outer_context.state.world.force_create_wargoals_attached(new_war, new_wg);
 		}
 

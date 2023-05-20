@@ -2353,10 +2353,12 @@ namespace parsers {
 		dcon::nation_id actor_;
 		dcon::nation_id receiver_;
 		dcon::cb_type_id casus_belli_;
+		dcon::state_definition_id state_id;
 
 		void receiver(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 		void actor(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 		void casus_belli(association_type, std::string_view value, error_handler& err, int32_t line, war_history_context& context);
+		void state_province_id(association_type, int32_t value, error_handler& err, int32_t line, war_history_context& context);
 
 		void finish(war_history_context&) { }
 	};
