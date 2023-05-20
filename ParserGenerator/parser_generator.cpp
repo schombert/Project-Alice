@@ -582,27 +582,42 @@ std::string construct_match_tree_outer(auto const& vector, auto const& generator
 void file_write_out(std::fstream& stream, std::vector<group_contents>& groups) {
 	//	process the parsed content into the generated file
 	std::string output;
-	output += "// parser generator 2.0 electric boogaloo\n";
-	output += "#include \"parsers.hpp\"\n\n";
+	output += "#include \"parsers.hpp\"\n";
 	// output += "#pragma warning( push )\n";
 	// output += "#pragma warning( disable : 4065 )\n";
 	// output += "#pragma warning( disable : 4189 )\n";
 	output += "\n";
 	output += "namespace parsers {\n";
-	// declare fns
-	for(auto& g : groups) {
-		output += "template<typename C>\n";
-		output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, error_handler& err, C&& context);\n";
-	}
-	output += "\n";
 	// fn bodies
-	for(auto& g : groups) {
+	std::vector<bool> declared_groups(groups.size(), false);
+	for(size_t i = 0; i < groups.size(); i++) {
+		auto const& g = groups[i];
+		// declare fns only when needed
+		for(size_t j = 0; j < groups.size(); j++)
+			if(!declared_groups[j]) {
+				bool fwd_decl = false;
+				auto const& f = groups[j];
+				fwd_decl = f.group_object_type == g.any_group_handler.handler.opt
+					|| f.group_object_type == g.set_handler.handler.opt
+					|| f.group_object_type == g.any_value_handler.handler.opt;
+				for(const auto& e : g.groups)
+					fwd_decl = fwd_decl || f.group_object_type == e.handler.opt;
+				for(const auto& e : g.values)
+					fwd_decl = fwd_decl || f.group_object_type == e.handler.opt;
+				if(fwd_decl) {
+					declared_groups[j] = fwd_decl;
+					output += "template<typename C>\n";
+					output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, error_handler& err, C&& context);\n";
+				}
+			}
+		declared_groups[i] = true;
+
 		output += "template<typename C>\n";
 		output += g.group_object_type + " parse_" + g.group_object_type + "(token_generator& gen, error_handler& err, C&& context) {\n";
-		output += "\t " + g.group_object_type + " cobj;\n";
-		output += "\t for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {\n";
+		output += "\t" + g.group_object_type + " cobj;\n";
+		output += "\tfor(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {\n";
 		// case: free group
-		output += "\t\t if(cur.type == token_type::open_brace) { \n";
+		output += "\t\tif(cur.type == token_type::open_brace) { \n";
 		{
 			// set_handler.handler.value = discard | member | ...
 			// set_handler.handler.opt = name of non default member target / fn name to call w/ results
@@ -645,16 +660,16 @@ void file_write_out(std::fstream& stream, std::vector<group_contents>& groups) {
 					set_effect = "err.unhandled_free_group(cur); gen.discard_group();";
 				}
 			}
-			output += "\t\t\t " + set_effect + "\n";
-			output += "\t\t\t continue;\n";
-			output += "\t\t }\n";
+			output += "\t\t\t" + set_effect + "\n";
+			output += "\t\t\tcontinue;\n";
+			output += "\t\t}\n";
 		}
-		output += "\t\t auto peek_result = gen.next();\n";
-		output += "\t\t if(peek_result.type == token_type::special_identifier) {\n"; // start next token if
-		output += "\t\t\t auto peek2_result = gen.next_next();\n";
-		output += "\t\t\t if(peek2_result.type == token_type::open_brace) {\n";
+		output += "\t\tauto peek_result = gen.next();\n";
+		output += "\t\tif(peek_result.type == token_type::special_identifier) {\n"; // start next token if
+		output += "\t\t\tauto peek2_result = gen.next_next();\n";
+		output += "\t\t\tif(peek2_result.type == token_type::open_brace) {\n";
 		// match groups
-		output += "\t\t\t\t gen.get(); gen.get();\n";
+		output += "\t\t\t\tgen.get(); gen.get();\n";
 		{
 			/*
 				#any: type, opt, handler_type (handler_opt)
@@ -759,10 +774,10 @@ void file_write_out(std::fstream& stream, std::vector<group_contents>& groups) {
 			tabulate_decrement();
 			tabulate_decrement();
 		}
-		output += "\t\t\t } else {\n"; // next next != open brace
-		output += "\t\t\t\t auto const assoc_token = gen.get();\n";
-		output += "\t\t\t\t auto const assoc_type = parse_association_type(assoc_token.content, assoc_token.line, err);\n";
-		output += "\t\t\t\t auto const rh_token = gen.get();\n";
+		output += "\t\t\t} else {\n"; // next next != open brace
+		output += "\t\t\t\tauto const assoc_token = gen.get();\n";
+		output += "\t\t\t\tauto const assoc_type = parse_association_type(assoc_token.content, assoc_token.line, err);\n";
+		output += "\t\t\t\tauto const rh_token = gen.get();\n";
 		// match values
 		{
 			std::string no_match_effect;
@@ -819,36 +834,37 @@ void file_write_out(std::fstream& stream, std::vector<group_contents>& groups) {
 			tabulate_decrement();
 			tabulate_decrement();
 		}
-		output += "\t\t\t }\n"; // end next next
-		output += "\t\t } else {\n"; // next != special identifier
+		output += "\t\t\t}\n"; // end next next
+		output += "\t\t} else {\n"; // next != special identifier
 		// case: free value;
 		if(g.single_value_handler_result.value.length() > 0) {
 			if(g.single_value_handler_result.value == "discard") {
 				// do nothing
 			} else if(g.single_value_handler_result.value == "member") {
-				output += "\t\t\t cobj." +
+				output += "\t\t\tcobj." +
 					(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("free_value")) +
 					"= parse_" + g.single_value_handler_type + "(cur.content, cur.line, err);\n";
 			} else if(g.single_value_handler_result.value == "member_fn") {
-				output += "\t\t\t cobj." +
+				output += "\t\t\tcobj." +
 					(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("free_value")) +
 					"(parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, cur.line, context);\n";
 			} else if(g.single_value_handler_result.value == "function") {
-				output += "\t\t\t " +
+				output += "\t\t\t" +
 					(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("free_value")) +
 					"(cobj, parse_" + g.single_value_handler_type + "(cur.content, cur.line, err), err, cur.line, context);\n";
 			}
 		} else {
-			output += "\t\t\t err.unhandled_free_value(cur);\n"; // end next token if
+			output += "\t\t\terr.unhandled_free_value(cur);\n"; // end next token if
 		}
-		output += "\t\t }\n"; // end next token if
-		output += "\t }\n"; // end token loop
-		output += "\t cobj.finish(context);\n";
-		output += "\t return cobj;\n";
+		output += "\t\t}\n"; // end next token if
+		output += "\t}\n"; // end token loop
+		output += "\tcobj.finish(context);\n";
+		output += "\treturn cobj;\n";
 		output += "}\n"; // end fn
 	}
 	output += "}\n"; // end namespace
 	// output += "#pragma warning( pop )\n";
+
 	//newline at end of file
 	output += "\n";
 	stream.write(output.data(), output.size());
