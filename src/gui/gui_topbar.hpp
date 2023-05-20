@@ -881,6 +881,29 @@ public:
 			text::localised_format_box(state, contents, box, "remove_countryalert_no_hasclosedfactories", text::substitution_map{});
 		} else if(economy::nation_has_closed_factories(state, nation_id)) {
 			text::localised_format_box(state, contents, box, "remove_countryalert_hasclosedfactories", text::substitution_map{});
+			text::add_line_break_to_layout_box(contents, state, box);
+			auto nation_fat = dcon::fatten(state.world, nation_id);
+			for(auto staat_owner : nation_fat.get_state_ownership()) {
+				auto staat = staat_owner.get_state().get_definition();
+				bool new_staat = true;
+				for(auto abstract : staat.get_abstract_state_membership()) {
+					auto prov = abstract.get_province();
+					for(auto factloc : prov.get_factory_location()) {
+						auto scale = factloc.get_factory().get_production_scale();
+						if(scale < 0.05) {
+							if(new_staat) {
+								text::add_to_layout_box(contents, state, box, staat.get_name(), text::text_color::yellow);
+								//text::add_divider_to_layout_box(state, contents, box);		// TODO - Parity needed!
+								text::add_line_break_to_layout_box(contents, state, box);
+								new_staat = false;
+							}
+							text::add_to_layout_box(contents, state, box, std::string_view(" - "));
+							text::add_to_layout_box(contents, state, box, factloc.get_factory().get_building_type().get_name(), text::text_color::yellow);
+							text::add_line_break_to_layout_box(contents, state, box);
+						}
+					}
+				}
+			}
 
 		}
 		text::close_layout_box(contents, box);
@@ -1071,7 +1094,6 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candodecisions"), text::substitution_map{});
 		} else if(nations::has_decision_available(state, nation_id)) {
 			text::localised_format_box(state, contents, box, std::string_view("countryalert_candodecisions"), text::substitution_map{});
-			text::add_divider_to_layout_box(state, contents, box);
 			//Display Avaliable Decisions
 			state.world.for_each_decision([&](dcon::decision_id di) {
 				if(nation_id != state.local_player_nation || !state.world.decision_get_hide_notification(di)) {
@@ -1081,7 +1103,7 @@ public:
 						if(!allow || trigger::evaluate(state, allow, trigger::to_generic(nation_id), trigger::to_generic(nation_id), 0)) {
 							text::add_line_break_to_layout_box(contents, state, box);
 							auto fat_id = dcon::fatten(state.world, di);
-							text::add_to_layout_box(contents, state, box, fat_id.get_name());
+							text::add_to_layout_box(contents, state, box, fat_id.get_name(), text::text_color::yellow);
 						}
 					}
 				}
