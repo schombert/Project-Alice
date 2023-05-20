@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string_view>
 #include <unordered_map>
 #include <variant>
@@ -10,6 +12,7 @@
 #include "cyto_any.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
+#include "gui_element_base.hpp"
 #include "gui_element_types.hpp"
 #include "fonts.hpp"
 #include "gui_graphics.hpp"
@@ -451,6 +454,41 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			state.ui_state.tooltip_font
 		);
 	}
+}
+
+void line_graph::set_data_points(sys::state& state, std::vector<float> datapoints) noexcept {
+	float min = datapoints[0];
+	float max = datapoints[0];
+	for(size_t i = 0; i < datapoints.size(); i++) {
+		min = std::min(min, datapoints[i]);
+		max = std::max(max, datapoints[i]);
+	}
+	float y_height = std::max(std::abs(min), std::abs(max));
+	std::vector<float> scaled_datapoints = std::vector<float>(count);
+	if (y_height == 0.f) {
+		for(size_t i = 0; i < datapoints.size(); i++) {
+			scaled_datapoints[i] = .5f;
+		}
+	} else {
+		for(size_t i = 0; i < datapoints.size(); i++) {
+			scaled_datapoints[i] = datapoints[i] / (y_height * 2.f) + .5f;
+		}
+	}
+	lines.set_y(scaled_datapoints.data());
+}
+
+void line_graph::on_create(sys::state& state) noexcept {
+	element_base::on_create(state);
+	lines = ogl::lines(count);
+}
+
+void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	ogl::render_linegraph(
+		state,
+		ogl::color_modification::none,
+		float(x), float(y), base_data.size.x, base_data.size.y,
+		lines
+	);
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {

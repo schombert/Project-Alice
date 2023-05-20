@@ -3,7 +3,9 @@
 #include "dcon_generated.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
+#include "opengl_wrapper.hpp"
 #include "sound.hpp"
+#include "system_state.hpp"
 #include "text.hpp"
 #include "texture.hpp"
 #include <cstdint>
@@ -135,6 +137,16 @@ public:
 			return message_result::unseen;
 		}
 	}
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+class line_graph : public element_base {
+private:
+	ogl::lines lines = ogl::lines(16);
+public:
+	uint32_t count = 16;
+	void set_data_points(sys::state& state, std::vector<float> datapoints) noexcept;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
