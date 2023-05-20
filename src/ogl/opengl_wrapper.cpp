@@ -17,7 +17,7 @@ void load_special_icons(sys::state& state) {
 	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
 
 	auto interface_dir = simple_fs::open_directory(gfx_dir, NATIVE("interface"));
-	auto money_dds = simple_fs::open_file(interface_dir, "icon_money_big.dds");
+	auto money_dds = simple_fs::open_file(interface_dir, NATIVE("icon_money_big.dds"));
 	if(money_dds) {
 		auto content = simple_fs::view_contents(*money_dds);
 		uint32_t size_x, size_y;
@@ -25,13 +25,13 @@ void load_special_icons(sys::state& state) {
 	}
 
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
-	auto cross_dds = simple_fs::open_file(assets_dir, "trigger_not.dds");
+	auto cross_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_not.dds"));
 	if(cross_dds) {
 		auto content = simple_fs::view_contents(*cross_dds);
 		uint32_t size_x, size_y;
 		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
 	}
-	auto checkmark_dds = simple_fs::open_file(assets_dir, "trigger_yes.dds");
+	auto checkmark_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes.dds"));
 	if(checkmark_dds) {
 		auto content = simple_fs::view_contents(*checkmark_dds);
 		uint32_t size_x, size_y;
