@@ -2411,7 +2411,7 @@ void history_war_goal::casus_belli(association_type, std::string_view value, err
 }
 
 void history_war_goal::state_province_id(association_type, int32_t value, error_handler& err, int32_t line, war_history_context& context) {
-	auto amid = context.outer_context.state.world.province_get_abstract_state_membership_as_province(dcon::province_id(dcon::province::value_base_t(value)));
+	auto amid = context.outer_context.state.world.province_get_abstract_state_membership_as_province(dcon::province_id(dcon::province_id::value_base_t(value - 1)));
 	state_id = context.outer_context.state.world.abstract_state_membership_get_state(amid);
 }
 
