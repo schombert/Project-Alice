@@ -2478,7 +2478,7 @@ uint32_t ef_plurality(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::localised_format_box(ws, layout, box, "plurality", m);
 		text::add_space_to_layout_box(layout, ws, box);
-		display_value(text::fp_percentage(amount), true, ws, layout, box);
+		display_value(text::fp_percentage{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
