@@ -479,6 +479,24 @@ public:
 			on_update(state);
 		}
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!state.ui_state.outliner_window->is_visible()) {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_open_outliner"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_close_outliner"));
+		}
+		text::close_layout_box(contents, box);
+	}
 };
 
 class outliner_window : public window_element_base {

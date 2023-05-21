@@ -487,7 +487,7 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pop_mil_total"), text::substitution_map{});
 		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::dp_percentage{demographics::getMonthlyMilChange(state, state.local_player_nation)});
+		text::add_to_layout_box(contents, state, box, text::dp_percentage{demographics::getEstimateMilChange(state, state.local_player_nation)});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -510,7 +510,7 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pop_con_total"), text::substitution_map{});
 		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::dp_percentage{demographics::getMonthlyConChange(state, state.local_player_nation)});
+		text::add_to_layout_box(contents, state, box, text::dp_percentage{demographics::getEstimateConChange(state, state.local_player_nation)});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -533,7 +533,7 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pop_con_total"), text::substitution_map{});	// There is no POP_LIT_TOTAL in the CSV files soo...
 		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::dp_percentage{demographics::getMonthlyLitChange(state, state.local_player_nation)});
+		text::add_to_layout_box(contents, state, box, text::dp_percentage{demographics::getEstimateLitChange(state, state.local_player_nation)});
 		text::close_layout_box(contents, box);
 	}
 };

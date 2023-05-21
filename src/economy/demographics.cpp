@@ -792,18 +792,28 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	});
 }
 
-double getMonthlyLitChange(sys::state& state, dcon::nation_id) {
+double getEstimateLitChange(sys::state& state, dcon::nation_id n) {
 	// TODO - We want this to return the estimated monthly change for literacy, note the returned value is already divided by 30
-	return 0.0001;
+	double sum = 0.0;
+	auto fat_id = dcon::fatten(state.world, n);
+	// Algorithm:
+	// sum = 0.01 * define:LITERACY_CHANGE_SPEED * education_spending * ((total-province-clergy / total-province-population - define:BASE_CLERGY_FOR_LITERACY) / (define:MAX_CLERGY_FOR_LITERACY - define:BASE_CLERGY_FOR_LITERACY))
+	// ^1*(national-modifier-to-education-efficiency + 1.0) * (tech-education-effiency + 1.0)
+	for(auto prov_control : fat_id.get_province_control()) {
+		auto prov = prov_control.get_province();
+		sum += (0.01 * state.defines.literacy_change_speed * state.world.nation_get_education_spending(n) * ((prov.get_demographics(demographics::to_key(state, state.culture_definitions.clergy)) / prov.get_demographics(demographics::total) - state.defines.base_clergy_for_literacy) / (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)) * ((state.world.nation_get_modifier_values(n, sys::national_mod_offsets::education_efficiency) + 1.0f) * (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f)));
+	}
+	return sum;
 }
 
-double getMonthlyMilChange(sys::state& state, dcon::nation_id) {
+double getEstimateMilChange(sys::state& state, dcon::nation_id n) {
 	// TODO - We want this to return the estimated monthly change for militancy, note the returned value is already divided by 30
 	return 0.0001;
 }
 
-double getMonthlyConChange(sys::state& state, dcon::nation_id) {
+double getEstimateConChange(sys::state& state, dcon::nation_id n) {
 	// TODO - We want this to return the estimated monthly change for conciousness, note the returned value is already divided by 30
+
 	return 0.0001;
 }
 
