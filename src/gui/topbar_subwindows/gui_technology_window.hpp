@@ -418,10 +418,16 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
-class invention_image : public generic_settable_element<opaque_element_base, dcon::invention_id> {
+class invention_image : public opaque_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		frame = int32_t(state.world.invention_get_technology_type(content));
+		if(parent) {
+			Cyto::Any payload = dcon::invention_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::invention_id>(payload);
+
+			frame = int32_t(state.world.invention_get_technology_type(content));
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -429,30 +435,36 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto category = static_cast<culture::tech_category>(state.world.invention_get_technology_type(content));
-		std::string category_name{};
-		switch(category) {
-			case culture::tech_category::army:
-				category_name = "army_tech";
-				break;
-			case culture::tech_category::navy:
-				category_name = "navy_tech";
-				break;
-			case culture::tech_category::commerce:
-				category_name = "commerce_tech";
-				break;
-			case culture::tech_category::culture:
-				category_name = "culture_tech";
-				break;
-			case culture::tech_category::industry:
-				category_name = "industry_tech";
-				break;
-			default:
-				break;
+		if(parent) {
+			Cyto::Any payload = dcon::invention_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::invention_id>(payload);
+		
+			auto category = static_cast<culture::tech_category>(state.world.invention_get_technology_type(content));
+			std::string category_name{};
+			switch(category) {
+				case culture::tech_category::army:
+					category_name = "army_tech";
+					break;
+				case culture::tech_category::navy:
+					category_name = "navy_tech";
+					break;
+				case culture::tech_category::commerce:
+					category_name = "commerce_tech";
+					break;
+				case culture::tech_category::culture:
+					category_name = "culture_tech";
+					break;
+				case culture::tech_category::industry:
+					category_name = "industry_tech";
+					break;
+				default:
+					break;
+			}
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, category_name), text::text_color::white);
+			text::close_layout_box(contents, box);
 		}
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, category_name), text::text_color::white);
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -493,12 +505,18 @@ public:
 	}
 };
 
-class invention_chance_percent_text : public generic_settable_element<simple_text_element_base, dcon::invention_id> {
+class invention_chance_percent_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto mod_k = state.world.invention_get_chance(content);
-		auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
-		set_text(state, text::format_percentage(chances / 100.f, 0));
+		if(parent) {
+			Cyto::Any payload = dcon::invention_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::invention_id>(payload);
+
+			auto mod_k = state.world.invention_get_chance(content);
+			auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+			set_text(state, text::format_percentage(chances / 100.f, 0));
+		}
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -510,19 +528,25 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto mod_k = state.world.invention_get_chance(content);
-		auto mod_d = state.value_modifiers[mod_k];
+		if(parent) {
+			Cyto::Any payload = dcon::invention_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::invention_id>(payload);
 
-		auto box = text::open_layout_box(contents, 0);
-		text::substitution_map sub_map;
-		text::add_to_substitution_map(sub_map, text::variable_type::chance, static_cast<int32_t>(mod_d.base_factor));
-		text::localised_format_box(state, contents, box, "base_chance", sub_map);
-		text::close_layout_box(contents, box);
+			auto mod_k = state.world.invention_get_chance(content);
+			auto mod_d = state.value_modifiers[mod_k];
 
-		for(uint32_t i = 0; i < mod_d.segments_count; ++i) {
-			auto seg = state.value_modifier_segments[mod_d.first_segment_offset + i];
-			if(seg.condition) {
-				trigger_description(state, contents, seg.condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map sub_map;
+			text::add_to_substitution_map(sub_map, text::variable_type::chance, static_cast<int32_t>(mod_d.base_factor));
+			text::localised_format_box(state, contents, box, "base_chance", sub_map);
+			text::close_layout_box(contents, box);
+
+			for(uint32_t i = 0; i < mod_d.segments_count; ++i) {
+				auto seg = state.value_modifier_segments[mod_d.first_segment_offset + i];
+				if(seg.condition) {
+					trigger_description(state, contents, seg.condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+				}
 			}
 		}
 	}

@@ -169,6 +169,7 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 void remove_size_zero_pops(sys::state& state);
 
 int64_t get_monthly_pop_increase(sys::state& state, dcon::pop_id);
-int64_t get_monthly_pop_increase_of_state(sys::state& state, dcon::nation_id n);
+int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n);
+int64_t get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n);
 
 }
