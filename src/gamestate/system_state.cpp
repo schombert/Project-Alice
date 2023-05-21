@@ -1873,6 +1873,9 @@ namespace sys {
 						case 10:
 							province::update_crimes(*this);
 							break;
+						case 11:
+							province::update_nationalism(*this);
+							break;
 						case 15:
 							culture::discover_inventions(*this);
 							break;

@@ -638,6 +638,14 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	}
 }
 
+void update_nationalism(sys::state& state) {
+	province::ve_for_each_land_province(state, [&](auto ids) {
+		auto old_n = state.world.province_get_nationalism(ids);
+		auto new_nat = ve::max(old_n - 0.083f, 0.0f);
+		state.world.province_set_nationalism(ids, new_nat);
+	});
+}
+
 void update_crimes(sys::state& state) {
 	for_each_land_province(state, [&](dcon::province_id p) {
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
