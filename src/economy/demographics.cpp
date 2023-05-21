@@ -814,7 +814,7 @@ double getEstimateMilChange(sys::state& state, dcon::nation_id n) {
 double getEstimateConChange(sys::state& state, dcon::nation_id n) {
 	// TODO - We want this to return the estimated monthly change for conciousness, note the returned value is already divided by 30
 
-	return sum;
+	return 0.0001;
 }
 
 inline constexpr float ideology_change_rate = 0.10f;
