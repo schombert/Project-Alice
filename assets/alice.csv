@@ -38,8 +38,8 @@ singular_nation;that nation
 singular_state;that state
 singular_province;that province
 singular_pop;that pop
-core_of;core of
-state_of;state of
+core_of;core of ;
+state_of;state of ;
 one_of_the_following;One of the following effects:
 chance_of;chance of:
 owner_of;Owner of
@@ -71,6 +71,7 @@ rebel;rebel
 remove_x_core;remove $adj$ core
 remove_core_from;remove core from
 change_name_to;change name to $text$
+change_state_name_to;change state name to $text$
 change_rgo_production_to;change rgo production to $text$
 make_accepted_culture;$text$ becomes an accepted culture
 primary_culture_changes_to;primary culture changes to $text$
@@ -86,18 +87,24 @@ research_points;research points
 change_tech_school;technology school changes to $text$
 change_government_to;government changes to $text$
 add_to_treasury;added to treasury
+o_add_to_treasury;added to province owner's treasury
 war_exhaustion;war exhaustion
 become_blank;becomes $text$
 cultural_union_nation;the cultural union nation for its primary culture
 player_control_change;player control changes to $text$
 set_national_flag;$text$ is set for this nation
 remove_national_flag;$text$ is unset for this nation
+o_set_national_flag;$text$ is set for the owner
+o_remove_national_flag;$text$ is unset for the owner
+get_access_with;gain military access to $text$
+lose_access_with;lose military access to $text$
 infamy;infamy
 change_province_owner;change province owner to $text$
+change_state_owner;change state owner to $text$
 annex_effect:annex $text$
 annexed_by_effect:is annexed by $text$
-core_return:$adj$ cores are returned to $text$
-core_return_short:$adj$ cores are returned
+core_return:cores are returned to $text$
+core_return_short:cores are returned
 change_province_controller;change province controller to $text$
 railroad_level;railroad level
 pop_savings;pop savings
@@ -106,6 +113,7 @@ release_as_vassal;release $text$ as a vassal
 end_alliance;end alliance with $text$
 end_war_with;end war with $text$
 enable_blank;enable $text$
+disable_blank;disable $text$
 change_ruling_party;change ruling party to $text$
 remove_prov_mod;remove provincial modifier $text$
 remove_nat_mod;remove national modifier $text$
@@ -156,14 +164,17 @@ where_religion_is;where its religion is $text$
 of_type;of type $text$
 diplomatic_influence_with;diplomatic influence with $text$
 relations_with;relationship with $text$
+o_relations_with;province owner's relationship with $text$
 add_modifier_until;gets $text$ until $date$
 add_modifier;gets $text$
-add_cb_months;gets a $name$ casus belli against $text$ for $value$ months
+o_add_modifier_until;province owner gets $text$ until $date$
+o_add_modifier;province owner gets $text$
+add_cb_months;gets a $name$ casus belli against $text$ until $date$
 add_cb_no_months;gets a $name$ casus belli against $text$
-add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope for $value$ months
+add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in scope until $date$
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope
-remove_cb_reversed;loses any $name$ casus bellis against $text$
-remove_cb;$text$ loses any $name$ casus bellis against the nation in scope
+remove_cb;loses any $name$ casus belli against $text$
+remove_cb_reversed;$text$ loses any $name$ casus belli against the nation in scope
 no_nation;no nation
 declare_war_on;declare war on $text$
 attacker_wg_label;attacker war goal: $text$
@@ -173,10 +184,10 @@ attacker_no_allies;attacker's allies will not be called in
 attacker_yes_allies;attacker's allies will be called in
 event_fires;event $text$ is triggered
 event_fires_in_days;event $text$ is triggered in $value$ days
-support_for_blank;support for $text$
-up_to;up to ;
-scaled_support; proportional to support of $text$
-scaled_unemployment; proportional to unemployment
+support_for_blank;support for $text$ ;
+uh_support_for_blank;upperhouse support for $text$ ;
+scaled_support;$text$ changed by up to $value$ proportional to support of $name$
+scaled_unemployment;$text$ changed by up to $value$ proportional to unemployment
 stockpile_of;to national stockpile of ;
 create_general;a new general is created
 create_admiral;a new admiral is created
@@ -187,9 +198,9 @@ railroad_in_capital;+1 railroad level in capital
 railroad_in_capital_state;+1 railroad level in capital state
 fort_in_capital;+1 fort level in capital
 fort_in_capital_state;+1 fort level in capital state
-set_national_variable_to;set national variable $text$ to ;
-increase_national_variable_by;increase national variable $text$ by ;
-decrease_national_variable_by;decrease national variable $text$ by ;
+set_national_variable_to;set national variable $text$ to $value$;
+increase_national_variable_by;increase national variable $text$ by $value$;
+decrease_national_variable_by;decrease national variable $text$ by $value$;
 cmp_ge;is at least
 cmp_le;is at most
 cmp_gt;is greater than
@@ -285,6 +296,9 @@ in;in
 a_casus_belli_against;a casus belli against
 military_access_with;military access with
 prestige_of;the prestige of
+prestige;prestige
+consciousness;consciousness
+militancy;militancy
 a_railroad;a railroad
 a_fort;a fort
 a_naval_base;a naval base

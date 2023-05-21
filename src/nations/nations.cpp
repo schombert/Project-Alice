@@ -823,7 +823,7 @@ void update_monthly_points(sys::state& state) {
 		auto wmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::war_exhaustion);
 		auto wmax_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::max_war_exhaustion);
 		state.world.nation_set_war_exhaustion(ids,
-			ve::min(state.world.nation_get_war_exhaustion(ids) + wmod, wmax_mod));
+			ve::max(ve::min(state.world.nation_get_war_exhaustion(ids) + wmod, wmax_mod), 0.0f));
 	});
 	/*
 	- Monthly plurality increase: plurality increases by average consciousness / 45 per month.

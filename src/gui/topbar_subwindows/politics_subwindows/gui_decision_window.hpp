@@ -29,7 +29,7 @@ public:
 
 			auto ef = fat_id.get_effect();
 			if(bool(ef))
-				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
 		}
 	}
 };
