@@ -833,6 +833,20 @@ public:
 			state.ui_state.held_game_speed = std::min(5, state.ui_state.held_game_speed + 1);
 		}
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("topbar_inc_speed"));
+		text::close_layout_box(contents, box);
+	}
 };
 
 class topbar_speeddown_button : public button_element_base {
@@ -848,6 +862,20 @@ public:
 		} else {
 			state.ui_state.held_game_speed = std::max(1, state.ui_state.held_game_speed - 1);
 		}
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("remove_topbar_dec_speed"));
+		text::close_layout_box(contents, box);
 	}
 };
 
