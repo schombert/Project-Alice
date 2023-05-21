@@ -72,6 +72,7 @@ float revolt_risk(sys::state& state, dcon::province_id id);
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 
 void update_crimes(sys::state& state);
+void update_nationalism(sys::state& state);
 
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 void update_colonization(sys::state& state);
