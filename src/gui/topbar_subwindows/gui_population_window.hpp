@@ -1105,7 +1105,7 @@ template<size_t N>
 class pop_details_promotion_window : public window_element_base {
 	dcon::pop_type_id content{};
 	float chance = 0.f;
-	pop_type_icon* type_icon = nullptr;
+	fixed_pop_type_icon* type_icon = nullptr;
 	pop_details_promotion_percent_text* percent_text = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

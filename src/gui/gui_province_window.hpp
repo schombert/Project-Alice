@@ -827,7 +827,23 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		// TODO: Set national focus
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			auto sdef = state.world.province_get_state_from_abstract_state_membership(content);
+			dcon::state_instance_id sid{};
+			// TODO: Better way to obtain state instance from state def
+			state.world.for_each_state_instance([&](dcon::state_instance_id id) {
+				sid = state.world.state_instance_get_definition(id) == sdef ? id : sid;
+			});
+
+			Cyto::Any nf_payload = dcon::national_focus_id{};
+			parent->impl_get(state, nf_payload);
+			auto nat_focus = any_cast<dcon::national_focus_id>(nf_payload);
+
+			command::set_national_focus(state, state.local_player_nation, sid, nat_focus);
+		}
 	}
 };
 
