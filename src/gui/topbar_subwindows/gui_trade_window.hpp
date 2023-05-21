@@ -441,7 +441,7 @@ public:
 	}
 };
 
-class trade_flow_total_produced_text : public standard_commodity_text {
+class trade_flow_total_produced_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = 0.f;
@@ -461,7 +461,7 @@ public:
 		return text::format_float(amount, 3);
 	}
 };
-class trade_flow_total_used_text : public standard_commodity_text {
+class trade_flow_total_used_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = economy::nation_factory_consumption(state, state.local_player_nation, commodity_id);

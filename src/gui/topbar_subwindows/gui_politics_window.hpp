@@ -106,10 +106,11 @@ protected:
 	std::string_view get_row_element_name() override {
         return "party_issue_option_window";
     }
-
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::political_party_id>()) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::political_party_id{};
+			parent->impl_get(state, payload);
 			auto party = any_cast<dcon::political_party_id>(payload);
 			row_contents.clear();
 			for(auto& issue : state.culture_definitions.party_issues) {
@@ -119,9 +120,6 @@ public:
 				}
 			}
 			update(state);
-			return message_result::consumed;
-		} else {
-			return listbox_element_base<politics_party_issue_entry, dcon::issue_option_id>::set(state, payload);
 		}
 	}
 
@@ -130,10 +128,15 @@ public:
 	}
 };
 
-class politics_choose_party_button : public standard_party_button {
+class politics_choose_party_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_button_text(state, text::produce_simple_string(state, state.world.political_party_get_name(political_party_id)));
+		if(parent) {
+			Cyto::Any payload = dcon::political_party_id{};
+			parent->impl_get(state, payload);
+			auto political_party_id = any_cast<dcon::political_party_id>(payload);
+			set_button_text(state, text::produce_simple_string(state, state.world.political_party_get_name(political_party_id)));
+		}
 	}
 
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
@@ -153,6 +156,14 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::ideology_id>()) {
+			payload.emplace<dcon::ideology_id>(state.world.political_party_get_ideology(content));
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
 	}
 
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
@@ -213,6 +224,8 @@ public:
 		} else {
 			all_party_window->set_visible(state, !all_party_window->is_visible());
 		}
+		if(all_party_window && all_party_window->is_visible())
+			all_party_window->impl_on_update(state);
 	}
 };
 

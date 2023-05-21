@@ -1105,13 +1105,12 @@ template<size_t N>
 class pop_details_promotion_window : public window_element_base {
 	dcon::pop_type_id content{};
 	float chance = 0.f;
-
 	pop_type_icon* type_icon = nullptr;
 	pop_details_promotion_percent_text* percent_text = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "pop_type") {
-			auto ptr = make_element_by_type<pop_type_icon>(state, id);
+			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
 			type_icon = ptr.get();
 			return ptr;
 		} else if(name == "percentage") {
@@ -1124,8 +1123,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		type_icon->impl_set(state, payload);
+		type_icon->set_type(state, content);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {

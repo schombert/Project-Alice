@@ -17,7 +17,6 @@ enum class movements_sort_order {
 class movements_sort_order_button : public button_element_base {
 public:
 	movements_sort_order order = movements_sort_order::size;
-
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = order;
@@ -31,7 +30,6 @@ private:
 	flag_button* nationalist_flag = nullptr;
 	movement_nationalist_name_text* nationalist_name = nullptr;
 	movement_issue_name_text* issue_name = nullptr;
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
@@ -65,8 +63,6 @@ public:
 			nationalist_name->set_visible(state, false);
 			issue_name->set_visible(state, true);
 		}
-		Cyto::Any payload = content;
-		impl_set(state, payload);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {

@@ -44,11 +44,17 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value, get_ship_count(state, nation_id));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("navy_technology_levels"));
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value, get_ship_count(state, nation_id));
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("navy_technology_levels"));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -63,14 +69,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto num = dcon::fatten(state.world, nation_id).get_active_regiments();
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_brigades"), text::variable_type::value, num);
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("army_technology_levels"));
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+		
+			auto num = dcon::fatten(state.world, nation_id).get_active_regiments();
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_brigades"), text::variable_type::value, num);
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("army_technology_levels"));
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -85,14 +97,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"), text::variable_type::value, text::fp_percentage{num});
-		// TODO - check if the nation is at peace, if it is then we display stuff
-		if(nation_id == state.local_player_nation) {
-			text::add_divider_to_layout_box(state, contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+		
+			auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"), text::variable_type::value, text::fp_percentage{num});
+			// TODO - check if the nation is at peace, if it is then we display stuff
+			if(nation_id == state.local_player_nation) {
+				text::add_divider_to_layout_box(state, contents, box);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -107,14 +125,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy2"), text::variable_type::value, text::fp_percentage{num});
-		if(nation_id == state.local_player_nation) {
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+		
+			auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy2"), text::variable_type::value, text::fp_percentage{num});
+			if(nation_id == state.local_player_nation) {
+				text::add_divider_to_layout_box(state, contents, box);
+				text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 

@@ -64,7 +64,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
+			T content = any_cast<T>(payload);
 			auto fat_id = dcon::fatten(state.world, content);
 			simple_text_element_base::set_text(state, text::get_name_as_string(state, fat_id));
 		}
@@ -78,8 +78,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-
+			T content = any_cast<T>(payload);
 			auto color = multiline_text_element_base::black_text ? text::text_color::black : text::text_color::white;
 			auto container = text::create_endless_layout(
 				multiline_text_element_base::internal_layout,
@@ -93,31 +92,52 @@ public:
 	}
 };
 
-class standard_state_instance_text : public simple_text_element_base {
+template<typename T>
+class generic_simple_text : public simple_text_element_base {
 public:
-	virtual std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept {
+	virtual std::string get_text(sys::state& state, T content) noexcept {
 		return "";
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
+			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
+			T content = any_cast<T>(payload);
 			auto fat_id = dcon::fatten(state.world, content);
 			simple_text_element_base::set_text(state, get_text(state, content));
 		}
 	}
 };
 
-class state_name_text : public standard_state_instance_text {
+template<typename T>
+class generic_multiline_text : public multiline_text_element_base {
+public:
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents, T id) noexcept { }
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<T>(payload);
+			auto color = black_text ? text::text_color::black : text::text_color::white;
+			auto container = text::create_endless_layout(
+				internal_layout,
+				text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
+			);
+			populate_layout(state, container, content);
+		}
+	}
+};
+
+class state_name_text : public generic_simple_text<dcon::state_instance_id> {
 public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
 		return text::get_dynamic_state_name(state, content);
 	}
 };
 
-class state_factory_count_text : public standard_state_instance_text {
+class state_factory_count_text : public generic_simple_text<dcon::state_instance_id> {
 public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
 		uint8_t count = 0;
@@ -132,14 +152,14 @@ public:
 	}
 };
 
-class state_admin_efficiency_text : public standard_state_instance_text {
+class state_admin_efficiency_text : public generic_simple_text<dcon::state_instance_id> {
 public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
 		return text::format_percentage(province::state_admin_efficiency(state, content), 1);
 	}
 };
 
-class state_aristocrat_presence_text : public standard_state_instance_text {
+class state_aristocrat_presence_text : public generic_simple_text<dcon::state_instance_id> {
 public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
 		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
@@ -149,7 +169,7 @@ public:
 	}
 };
 
-class state_population_text : public standard_state_instance_text {
+class state_population_text : public generic_simple_text<dcon::state_instance_id> {
 public:
 	std::string get_text(sys::state& state, dcon::state_instance_id content) noexcept override {
 		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
@@ -168,32 +188,24 @@ public:
 };
 
 class standard_province_progress_bar : public progress_bar {
-protected:
-	dcon::province_id prov_id{};
-
 public:
-	virtual float get_progress(sys::state& state) noexcept {
+	virtual float get_progress(sys::state& state, dcon::province_id prov_id) noexcept {
 		return 0.f;
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		progress = get_progress(state);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::province_id>()) {
-			prov_id = any_cast<dcon::province_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto prov_id = any_cast<dcon::province_id>(payload);
+			progress = get_progress(state, prov_id);
 		}
 	}
 };
 
 class province_liferating_progress_bar : public standard_province_progress_bar {
 public:
-	float get_progress(sys::state& state) noexcept override {
+	float get_progress(sys::state& state, dcon::province_id prov_id) noexcept override {
 		return state.world.province_get_life_rating(prov_id) / 100.f;
 	}
 
@@ -202,41 +214,40 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::substitution_map lr_sub;
-		text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{ float(state.world.province_get_life_rating(prov_id)) });
-		text::localised_format_box(state, contents, box, std::string_view("provinceview_liferating"), lr_sub);
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto prov_id = any_cast<dcon::province_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map lr_sub;
+			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{ float(state.world.province_get_life_rating(prov_id)) });
+			text::localised_format_box(state, contents, box, std::string_view("provinceview_liferating"), lr_sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
 class standard_province_icon : public opaque_element_base {
-protected:
-	dcon::province_id prov_id{};
-
 public:
-	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+	virtual int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept {
 		return 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
-	}
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto prov_id = any_cast<dcon::province_id>(payload);
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::province_id>()) {
-			prov_id = any_cast<dcon::province_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+			frame = get_icon_frame(state, prov_id);
 		}
 	}
 };
 
 class province_rgo_employment_progress_icon : public standard_province_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
 		return int32_t(10.f * employment_ratio);
 	}
@@ -244,19 +255,34 @@ public:
 
 class province_rgo_icon : public standard_province_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_rgo().get_icon();
 	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto prov_id = any_cast<dcon::province_id>(payload);
+
+			auto rgo_good = state.world.province_get_rgo(prov_id);
+			if(rgo_good) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, state.world.commodity_get_name(rgo_good), text::substitution_map{ });
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
 };
 
 class province_fort_icon : public standard_province_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_fort_level();
 	}
@@ -264,7 +290,7 @@ public:
 
 class province_naval_base_icon : public standard_province_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_naval_base_level();
 	}
@@ -272,7 +298,7 @@ public:
 
 class province_railroad_icon : public standard_province_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_railroad_level();
 	}
@@ -280,43 +306,31 @@ public:
 
 class province_crime_icon : public standard_province_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		return fat_id.get_crime().index();
 	}
 };
 
 class standard_movement_text : public simple_text_element_base {
-protected:
-	dcon::movement_id movement_id{};
-
 public:
-	virtual std::string get_text(sys::state& state) noexcept {
+	virtual std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept {
 		return "";
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::movement_id>()) {
-			movement_id = any_cast<dcon::movement_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::movement_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::movement_id>(payload);
+			set_text(state, get_text(state, content));
 		}
 	}
 };
 
 class movement_size_text : public standard_movement_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
 		auto size = state.world.movement_get_pop_support(movement_id);
 		return text::prettify(int64_t(size));
 	}
@@ -324,7 +338,7 @@ public:
 
 class movement_radicalism_text : public standard_movement_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
 		auto radicalism = state.world.movement_get_radicalism(movement_id);
 		return text::format_float(radicalism, 1);
 	}
@@ -332,7 +346,7 @@ public:
 
 class movement_issue_name_text : public standard_movement_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
 		auto issue = state.world.movement_get_associated_issue_option(movement_id);
 		return text::produce_simple_string(state, issue.get_movement_name());
 	}
@@ -343,31 +357,27 @@ protected:
 	dcon::movement_id movement_id{};
 
 public:
-	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept { }
 
 	void on_update(sys::state& state) noexcept override {
-		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
-			internal_layout,
-			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
-		);
-		populate_layout(state, container);
-	}
+		if(parent) {
+			Cyto::Any payload = dcon::movement_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::movement_id>(payload);
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::movement_id>()) {
-			movement_id = any_cast<dcon::movement_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+			auto color = black_text ? text::text_color::black : text::text_color::white;
+			auto container = text::create_endless_layout(
+				internal_layout,
+				text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
+			);
+			populate_layout(state, container, movement_id);
 		}
 	}
 };
 
 class movement_nationalist_name_text : public standard_movement_multiline_text {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, movement_id);
 		auto independence_target = fat_id.get_associated_independence();
 		auto box = text::open_layout_box(contents);
@@ -388,68 +398,37 @@ public:
 	}
 };
 
-class standard_rebel_type_icon : public opaque_element_base {
-protected:
-	dcon::rebel_type_id rebel_type_id{};
-
+class rebel_type_icon : public opaque_element_base {
 public:
-	virtual int32_t get_icon_frame(sys::state& state) noexcept {
-		return 0;
-	}
-
 	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::rebel_type_id>()) {
-			rebel_type_id = any_cast<dcon::rebel_type_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::rebel_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::rebel_type_id>(payload);
+			frame = int32_t(state.world.rebel_type_get_icon(content) - 1);
 		}
 	}
 };
 
-class rebel_type_icon : public standard_rebel_type_icon {
-public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
-		return int32_t(state.world.rebel_type_get_icon(rebel_type_id) - 1);
-	}
-};
-
 class standard_rebel_faction_text : public simple_text_element_base {
-protected:
-	dcon::rebel_faction_id rebel_faction_id{};
-
 public:
-	virtual std::string get_text(sys::state& state) noexcept {
+	virtual std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept {
 		return "";
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::rebel_faction_id>()) {
-			rebel_faction_id = any_cast<dcon::rebel_faction_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::rebel_faction_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::rebel_faction_id>(payload);
+			set_text(state, get_text(state, content));
 		}
 	}
 };
 
 class rebel_faction_size_text : public standard_rebel_faction_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		float total = 0.f;
 		for(auto member : state.world.rebel_faction_get_pop_rebellion_membership(rebel_faction_id)) {
 			total += member.get_pop().get_size();
@@ -460,7 +439,7 @@ public:
 
 class rebel_faction_active_brigade_count_text : public standard_rebel_faction_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto count = rebel::get_faction_brigades_active(state, rebel_faction_id);
 		return text::prettify(count);
 	}
@@ -468,7 +447,7 @@ public:
 
 class rebel_faction_ready_brigade_count_text : public standard_rebel_faction_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto count = rebel::get_faction_brigades_ready(state, rebel_faction_id);
 		return text::prettify(count);
 	}
@@ -476,7 +455,7 @@ public:
 
 class rebel_faction_organization_text : public standard_rebel_faction_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto org = rebel::get_faction_organization(state, rebel_faction_id);
 		return text::format_percentage(org, 1);
 	}
@@ -484,42 +463,15 @@ public:
 
 class rebel_faction_revolt_risk_text : public standard_rebel_faction_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto risk = rebel::get_faction_revolt_risk(state, rebel_faction_id);
 		return text::format_percentage(risk, 1);
 	}
 };
 
-class standard_rebel_faction_multiline_text : public multiline_text_element_base {
-protected:
-	dcon::rebel_faction_id rebel_faction_id{};
-
+class rebel_faction_name_text : public generic_multiline_text<dcon::rebel_faction_id> {
 public:
-	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
-
-	void on_update(sys::state& state) noexcept override {
-		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
-			internal_layout,
-			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
-		);
-		populate_layout(state, container);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::rebel_faction_id>()) {
-			rebel_faction_id = any_cast<dcon::rebel_faction_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
-class rebel_faction_name_text : public standard_rebel_faction_multiline_text {
-public:
-	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::rebel_faction_id rebel_faction_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, rebel_faction_id);
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
@@ -853,74 +805,15 @@ public:
 	}
 };
 
-class standard_nation_national_identity_multiline_text : public multiline_text_element_base {
-protected:
-	dcon::nation_id nation_id{};
-	dcon::national_identity_id national_identity_id{};
-
+class national_identity_vassal_type_text : public generic_simple_text<dcon::national_identity_id> {
 public:
-	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
-
-	void on_update(sys::state& state) noexcept override {
-		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
-			internal_layout,
-			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
-		);
-		populate_layout(state, container);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::national_identity_id>()) {
-			national_identity_id = any_cast<dcon::national_identity_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::nation_id>()) {
-			nation_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
-class standard_national_identity_text : public simple_text_element_base {
-protected:
-	dcon::national_identity_id national_identity_id{};
-
-public:
-	virtual std::string get_text(sys::state& state) noexcept {
-		return "";
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::national_identity_id>()) {
-			national_identity_id = any_cast<dcon::national_identity_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
-class national_identity_vassal_type_text : public standard_national_identity_text {
-public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::national_identity_id content) noexcept override {
 		// TODO: figure out if it should be a substate
 		return text::produce_simple_string(state, "satellite");
 	}
 };
 
 class standard_nation_text : public simple_text_element_base {
-protected:
-	dcon::nation_id nation_id{};
-
 public:
 	virtual std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept {
 		return "";
@@ -1761,30 +1654,6 @@ public:
 	}
 };
 
-class standard_party_button : public button_element_base {
-protected:
-	dcon::political_party_id political_party_id{};
-
-public:
-	virtual int32_t get_icon_frame(sys::state& state) noexcept {
-		return 0;
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::political_party_id>()) {
-			political_party_id = any_cast<dcon::political_party_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
 class fixed_pop_type_icon : public opaque_element_base {
 public:
 	dcon::pop_type_id type{};
@@ -1961,51 +1830,35 @@ public:
 	}
 };
 
-class standard_commodity_text : public simple_text_element_base {
-public:
-	virtual std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept {
-		return "";
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::commodity_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::commodity_id>(payload);
-			set_text(state, get_text(state, content));
-		}
-	}
-};
-
-class commodity_price_text : public standard_commodity_text {
+class commodity_price_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		return text::format_money(state.world.commodity_get_current_price(commodity_id));
 	}
 };
 
-class commodity_player_availability_text : public standard_commodity_text {
+class commodity_player_availability_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		return text::format_percentage(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
 	}
 };
 
-class commodity_player_real_demand_text : public standard_commodity_text {
+class commodity_player_real_demand_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		return text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1);
 	}
 };
 
-class commodity_player_production_text : public standard_commodity_text {
+class commodity_player_production_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		return text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1);
 	}
 };
 
-class commodity_national_player_stockpile_text : public standard_commodity_text {
+class commodity_national_player_stockpile_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		if(commodity_id) {
@@ -2017,7 +1870,7 @@ public:
 	}
 };
 
-class commodity_player_stockpile_increase_text : public standard_commodity_text {
+class commodity_player_stockpile_increase_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		float amount = economy::stockpile_commodity_daily_increase(state, commodity_id, state.local_player_nation);
@@ -2025,7 +1878,7 @@ public:
 	}
 };
 
-class commodity_market_increase_text : public standard_commodity_text {
+class commodity_market_increase_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		float amount = economy::global_market_commodity_daily_increase(state, commodity_id);
@@ -2033,7 +1886,7 @@ public:
 	}
 };
 
-class commodity_global_market_text : public standard_commodity_text {
+class commodity_global_market_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		float amount = state.world.commodity_get_global_market_pool(commodity_id);
@@ -2041,7 +1894,7 @@ public:
 	}
 };
 
-class commodity_player_domestic_market_text : public standard_commodity_text {
+class commodity_player_domestic_market_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		float amount = state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id);
@@ -2049,7 +1902,7 @@ public:
 	}
 };
 
-class commodity_player_factory_needs_text : public standard_commodity_text {
+class commodity_player_factory_needs_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = economy::nation_factory_consumption(state, state.local_player_nation, commodity_id);
@@ -2057,7 +1910,7 @@ public:
 	}
 };
 
-class commodity_player_pop_needs_text : public standard_commodity_text {
+class commodity_player_pop_needs_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = economy::nation_pop_consumption(state, state.local_player_nation, commodity_id);
@@ -2065,7 +1918,7 @@ public:
 	}
 };
 
-class commodity_player_government_needs_text : public standard_commodity_text {
+class commodity_player_government_needs_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = economy::government_consumption(state, state.local_player_nation, commodity_id);
