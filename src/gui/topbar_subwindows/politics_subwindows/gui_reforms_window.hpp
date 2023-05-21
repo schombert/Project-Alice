@@ -6,15 +6,20 @@
 
 namespace ui {
 
-class reforms_reform_button : public standard_nation_issue_option_button {
+class reforms_reform_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		standard_nation_issue_option_button::on_update(state);
-		auto issue_type = state.world.issue_option_get_parent_issue(issue_option_id).get_issue_type();
-		if(issue_type == uint8_t(culture::issue_type::political)) {
-			disabled = !politics::can_enact_political_reform(state, nation_id, issue_option_id);
-		} else {
-			disabled = !politics::can_enact_social_reform(state, nation_id, issue_option_id);
+		if(parent) {
+			Cyto::Any payload = dcon::issue_option_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::issue_option_id>(payload);
+
+			auto issue_type = state.world.issue_option_get_parent_issue(content).get_issue_type();
+			if(issue_type == uint8_t(culture::issue_type::political)) {
+				disabled = !politics::can_enact_political_reform(state, state.local_player_nation, content);
+			} else {
+				disabled = !politics::can_enact_social_reform(state, state.local_player_nation, content);
+			}
 		}
 	}
 
@@ -23,27 +28,40 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, issue_option_id);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::issue_option_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::issue_option_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, content);
+			auto name = fat_id.get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
+			auto mod_id = fat_id.get_modifier().id;
+			if(bool(mod_id)) {
+				modifier_description(state, contents, mod_id);
+			}
 		}
-		auto mod_id = fat_id.get_modifier().id;
-		if(bool(mod_id)) {
-			modifier_description(state, contents, mod_id);
+	}
+};
+
+class issue_selected_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::issue_option_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::issue_option_id>(payload);
+			set_visible(state, politics::issue_is_selected(state, state.local_player_nation, content));
 		}
 	}
 };
 
 class reforms_option : public listbox_row_element_base<dcon::issue_option_id> {
 public:
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
 			return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
@@ -62,7 +80,6 @@ protected:
 	std::string_view get_row_element_name() override {
         return "reform_option_window";
     }
-
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::issue_id>()) {

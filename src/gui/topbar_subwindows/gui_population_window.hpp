@@ -63,8 +63,7 @@ public:
 		auto result = demographics::get_monthly_pop_increase_of_state(state, dcon::nation_id{});
 		if(result > 0) {
 			return 0;
-		} else
-		if(result < 0) {
+		} else if(result < 0) {
 			return 2;
 		} else {
 			return 1;
@@ -103,8 +102,7 @@ public:
 		auto result = demographics::get_monthly_pop_increase(state, content);
 		if(result > 0) {
 			return 0;
-		} else
-		if(result < 0) {
+		} else if(result < 0) {
 			return 2;
 		} else {
 			return 1;
@@ -960,16 +958,19 @@ public:
 			return nullptr;
 		}
 	}
+
 	void update(sys::state& state) noexcept override {
-		auto& content = listbox_row_element_base<std::pair<T, float>>::content;
-		for(auto& c : listbox_row_element_base<std::pair<T, float>>::children) {
-			Cyto::Any payload = content.first;
-			c->impl_set(state, payload);
+		value_text->set_text(state, text::format_percentage(listbox_row_element_base<std::pair<T, float>>::content.second, 1));
+		for(auto& c : listbox_row_element_base<std::pair<T, float>>::children)
+			c->impl_on_update(state);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<T>()) {
+			payload.emplace<T>(listbox_row_element_base<std::pair<T, float>>::content.first);
+			return message_result::consumed;
 		}
-		if(listbox_row_element_base<std::pair<T, float>>::parent) {
-			auto& pop_list = get_pop_window_list(state);
-			value_text->set_text(state, text::format_percentage(content.second, 1));
-		}
+		return listbox_row_element_base<std::pair<T, float>>::get(state, payload);
 	}
 };
 template<typename T>
@@ -1167,9 +1168,15 @@ public:
 	}
 
 	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content.first;
-		commodity_icon->impl_set(state, payload);
 		value_text->set_text(state, text::format_float(content.second, 1));
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			payload.emplace<dcon::commodity_id>(content.first);
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<pop_details_needs_data>::get(state, payload);
 	}
 };
 class pop_details_needs_listbox : public listbox_element_base<pop_details_needs_item, pop_details_needs_data> {
@@ -1247,9 +1254,7 @@ public:
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "pop_type_icon") {
-			auto ptr = make_element_by_type<pop_type_icon>(state, id);
-			type_icon = ptr.get();
-			return ptr;
+			return make_element_by_type<pop_type_icon>(state, id);
 		} else if(name == "pop_size") {
 			return make_element_by_type<pop_size_text>(state, id);
 		} else if(name == "pop_culture") {
@@ -1263,9 +1268,7 @@ public:
 		} else if(name == "literacy_value") {
 			return make_element_by_type<pop_literacy_text>(state, id);
 		} else if(name == "icon_religion") {
-			auto ptr = make_element_by_type<religion_type_icon>(state, id);
-			religion_icon = ptr.get();
-			return ptr;
+			return make_element_by_type<religion_type_icon>(state, id);
 		} else if(name == "bank_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			savings_text = ptr.get();
@@ -1291,9 +1294,7 @@ public:
 			luxury_needs_list = ptr.get();
 			return ptr;
 		} else if(name == "religion") {
-			auto ptr = make_element_by_type<generic_name_text<dcon::religion_id>>(state, id);
-			religion_text = ptr.get();
-			return ptr;
+			return make_element_by_type<generic_name_text<dcon::religion_id>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1304,12 +1305,6 @@ public:
 			return;
 
 		auto fat_id = dcon::fatten(state.world, std::get<dcon::pop_id>(content));
-		Cyto::Any tpayload = fat_id.get_poptype().id;
-		type_icon->impl_set(state, tpayload);
-		// updated below ...
-		Cyto::Any rpayload = fat_id.get_religion().id;
-		religion_icon->impl_set(state, rpayload);
-		religion_text->impl_set(state, rpayload);
 		// updated below ...
 		savings_text->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
 		Cyto::Any payload = fat_id.id;
@@ -1377,6 +1372,16 @@ public:
 			if(!std::holds_alternative<dcon::pop_id>(content))
 				return message_result::unseen;
 			payload.emplace<dcon::pop_id>(std::get<dcon::pop_id>(content));
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::religion_id>()) {
+			if(!std::holds_alternative<dcon::pop_id>(content))
+				return message_result::unseen;
+			payload.emplace<dcon::religion_id>(state.world.pop_get_religion(std::get<dcon::pop_id>(content)));
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::pop_type_id>()) {
+			if(!std::holds_alternative<dcon::pop_id>(content))
+				return message_result::unseen;
+			payload.emplace<dcon::pop_type_id>(state.world.pop_get_poptype(std::get<dcon::pop_id>(content)).id);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

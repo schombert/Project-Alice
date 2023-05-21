@@ -17,11 +17,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
 };
 class trade_market_activity_listbox : public listbox_element_base<trade_market_activity_entry, dcon::commodity_id> {
 protected:
@@ -31,7 +26,6 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
-
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			row_contents.push_back(id);
@@ -53,11 +47,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
 };
 class trade_stockpile_listbox : public listbox_element_base<trade_stockpile_entry, dcon::commodity_id> {
 protected:
@@ -67,7 +56,6 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
-
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			row_contents.push_back(id);
@@ -91,11 +79,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
 };
 class trade_common_market_listbox : public listbox_element_base<trade_common_market_entry, dcon::commodity_id> {
 protected:
@@ -105,7 +88,6 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
-
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			row_contents.push_back(id);
@@ -125,11 +107,6 @@ public:
 		} else {
 			return nullptr;
 		}
-	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
 	}
 };
 
@@ -196,13 +173,15 @@ public:
 	}
 };
 
+struct trade_details_select_commodity {
+	dcon::commodity_id commodity_id{};
+};
 class trade_commodity_entry_button : public button_element_base {
 	dcon::commodity_id commodity_id{};
 public:
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = commodity_id;
-		// ThisButton -> CommodityEntry -> CommodityGroupWindow -> TradeWindow
-		parent->parent->parent->impl_get(state, payload);
+		Cyto::Any payload = trade_details_select_commodity{ commodity_id };
+		state.ui_state.trade_subwindow->impl_get(state, payload);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -231,6 +210,15 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::commodity_id>()) {
 			commodity_id = any_cast<dcon::commodity_id>(payload);
+			on_update(state);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			payload.emplace<dcon::commodity_id>(commodity_id);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -455,7 +443,7 @@ public:
 
 class trade_flow_total_produced_text : public standard_commodity_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = 0.f;
 		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
 			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
@@ -475,13 +463,14 @@ public:
 };
 class trade_flow_total_used_text : public standard_commodity_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = economy::nation_factory_consumption(state, state.local_player_nation, commodity_id);
 		return text::format_float(amount, 3);
 	}
 };
 
 class trade_flow_window : public window_element_base {
+	dcon::commodity_id content{};
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -533,6 +522,21 @@ public:
 			return nullptr;
 		}
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			payload.emplace<dcon::commodity_id>(content);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			content = any_cast<dcon::commodity_id>(payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
 template<sys::commodity_group Group>
@@ -540,13 +544,11 @@ class trade_commodity_group_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-
 		xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("goods_entry_offset")->second.definition].position;
 		xy_pair offset{ 0, 0 };
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != Group)
 				return;
-
 			auto ptr = make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
 			ptr->base_data.position = offset;
 			offset.x += cell_size.x;
@@ -558,7 +560,6 @@ public:
 					offset.y = 0;
 				}
 			}
-
 			Cyto::Any payload = id;
 			ptr->impl_set(state, payload);
 			add_child_to_front(std::move(ptr));
@@ -566,18 +567,15 @@ public:
 	}
 };
 
-class trade_details_open_window {
-public:
+struct trade_details_open_window {
 	dcon::commodity_id commodity_id{};
 };
 class trade_details_button : public button_element_base {
 	dcon::commodity_id commodity_id{};
 public:
 	void button_action(sys::state& state) noexcept override {
-		trade_details_open_window data{};
-		data.commodity_id = commodity_id;
-		Cyto::Any payload = data;
-		parent->impl_get(state, payload);
+		Cyto::Any payload = trade_details_open_window{ commodity_id };
+		state.ui_state.trade_subwindow->impl_get(state, payload);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -666,9 +664,12 @@ public:
 			trade_flow_win->set_visible(state, true);
 			Cyto::Any new_payload = any_cast<trade_details_open_window>(payload).commodity_id;
 			trade_flow_win->impl_set(state, new_payload);
+			trade_flow_win->impl_on_update(state);
 			return message_result::consumed;
-		} else if(payload.holds_type<dcon::commodity_id>()) {
-			details_win->impl_set(state, payload);
+		} else if(payload.holds_type<trade_details_select_commodity>()) {
+			Cyto::Any new_payload = any_cast<trade_details_select_commodity>(payload).commodity_id;
+			details_win->impl_set(state, new_payload);
+			details_win->impl_on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

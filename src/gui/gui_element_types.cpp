@@ -904,6 +904,15 @@ void standard_listbox_scrollbar<RowWinT, RowConT>::on_value_change(sys::state& s
 
 template<class RowConT>
 message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<RowConT>()) {
+		payload.emplace<RowConT>(content);
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+
+template<class RowConT>
+message_result listbox_row_element_base<RowConT>::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
 		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
 		update(state);
@@ -919,6 +928,15 @@ message_result listbox_row_element_base<RowConT>::on_scroll(sys::state& state, i
 
 template<class RowConT>
 message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<RowConT>()) {
+		payload.emplace<RowConT>(content);
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+
+template<class RowConT>
+message_result listbox_row_button_base<RowConT>::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
 		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
 		update(state);
@@ -951,7 +969,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
 			if(i >= 0) {
 				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ row_contents[i--] };
-				row_windows[rw_i]->impl_get(state, payload);
+				row_windows[rw_i]->impl_set(state, payload);
 				row_windows[rw_i]->set_visible(state, true);
 			} else {
 				row_windows[rw_i]->set_visible(state, false);
@@ -962,7 +980,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		for(RowWinT* row_window : row_windows) {
 			if(i < row_contents.size()) {
 				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ row_contents[i++] };
-				row_window->impl_get(state, payload);
+				row_window->impl_set(state, payload);
 				row_window->set_visible(state, true);
 			} else {
 				row_window->set_visible(state, false);
@@ -1163,21 +1181,19 @@ void overlapping_truce_flags::populate_flags(sys::state& state) {
 }
 
 dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
-	if(parent != nullptr) {
-		Cyto::Any identity_payload = dcon::national_identity_id{};
-		parent->impl_get(state, identity_payload);
-		auto identity = any_cast<dcon::national_identity_id>(identity_payload);
-		if(identity) {
-			return identity;
-		} else {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation = any_cast<dcon::nation_id>(payload);
+	if(parent) {
+		Cyto::Any payload = dcon::nation_id{};
+		parent->impl_get(state, payload);
+		auto nation = any_cast<dcon::nation_id>(payload);
+		if(bool(nation)) {
 			return state.world.nation_get_identity_from_identity_holder(nation);
+		} else {
+			Cyto::Any identity_payload = dcon::national_identity_id{};
+			parent->impl_get(state, identity_payload);
+			return any_cast<dcon::national_identity_id>(identity_payload);
 		}
-	} else {
-		return dcon::national_identity_id{};
 	}
+	return dcon::national_identity_id{};
 }
 
 void flag_button::button_action(sys::state& state) noexcept {

@@ -353,6 +353,38 @@ public:
 	}
 };
 
+class standard_nation_issue_option_text : public simple_text_element_base {
+protected:
+	dcon::issue_option_id issue_option_id{};
+public:
+	virtual std::string get_text(sys::state& state) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::issue_option_id{};
+			parent->impl_get(state, payload);
+			issue_option_id = any_cast<dcon::issue_option_id>(payload);
+			set_text(state, get_text(state));
+		}
+	}
+};
+
+class issue_option_popular_support : public standard_nation_issue_option_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(politics::get_popular_support(state, state.local_player_nation, issue_option_id), 1);
+	}
+};
+
+class issue_option_voter_support : public standard_nation_issue_option_text {
+public:
+	std::string get_text(sys::state& state) noexcept override {
+		return text::format_percentage(politics::get_voter_support(state, state.local_player_nation, issue_option_id), 1);
+	}
+};
+
 class politics_issue_support_item : public listbox_row_element_base<dcon::issue_option_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

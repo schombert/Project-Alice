@@ -831,17 +831,11 @@ public:
 
 class topbar_at_peace_text : public standard_nation_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
-		if(state.world.nation_get_is_at_war(nation_id)) {
-			set_visible(state, false);
-		} else {
-			set_visible(state, true);
-		}
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		set_visible(state, state.world.nation_get_is_at_war(nation_id));
 		return text::produce_simple_string(state, "atpeace");
 	}
 };
-
-
 
 class topbar_building_factories_icon : public standard_nation_icon {
 public:
@@ -1341,6 +1335,8 @@ public:
 
 			auto tab = make_element_by_type<technology_window>(state, "country_technology");
 			btn->topbar_subwindow = tab.get();
+
+			state.ui_state.technology_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_politics") {
@@ -1363,6 +1359,8 @@ public:
 
 			auto tab = make_element_by_type<trade_window>(state, "country_trade");
 			btn->topbar_subwindow = tab.get();
+
+			state.ui_state.trade_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_diplomacy") {

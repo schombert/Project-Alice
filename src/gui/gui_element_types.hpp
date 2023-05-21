@@ -286,7 +286,6 @@ protected:
 		Cyto::Any payload = wrapped_listbox_row_content<ItemConT>(content);
 		subwindow.impl_get(state, payload);
 	}
-
 public:
 	std::vector<ItemConT> row_contents{};
 	void update(sys::state& state);
@@ -627,6 +626,7 @@ protected:
 public:
 	virtual void update(sys::state& state) noexcept { }
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 };
 
@@ -637,6 +637,7 @@ protected:
 public:
 	virtual void update(sys::state& state) noexcept { }
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 };
 
@@ -664,6 +665,11 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
+};
+
+template<typename T>
+struct element_selection_wrapper {
+	T data{};
 };
 
 }

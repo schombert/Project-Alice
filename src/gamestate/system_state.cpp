@@ -526,7 +526,7 @@ namespace sys {
 	}
 
 	void state::open_diplomacy(dcon::nation_id target) {
-		Cyto::Any payload = target;
+		Cyto::Any payload = ui::element_selection_wrapper<dcon::nation_id>{ target };
 		if(ui_state.diplomacy_subwindow != nullptr) {
 			if(ui_state.topbar_subwindow != nullptr) {
 				ui_state.topbar_subwindow->set_visible(*this, false);

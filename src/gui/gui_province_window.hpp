@@ -110,36 +110,6 @@ public:
 	}
 };
 
-class slave_state_icon : public pop_type_icon {
-public:
-	void on_create(sys::state& state) noexcept override {
-		pop_type_icon::on_create(state);
-		auto fat_id = dcon::fatten(state.world, state.culture_definitions.slaves);
-		content = fat_id.id;
-		on_update(state);
-	}
-};
-
-class province_admin_icon : public pop_type_icon {
-public:
-	void on_create(sys::state& state) noexcept override {
-		pop_type_icon::on_create(state);
-		auto fat_id = dcon::fatten(state.world, state.culture_definitions.bureaucrat);
-		content = fat_id.id;
-		on_update(state);
-	}
-};
-
-class province_owner_icon : public pop_type_icon {
-public:
-	void on_create(sys::state& state) noexcept override {
-		pop_type_icon::on_create(state);
-		auto fat_id = dcon::fatten(state.world, state.culture_definitions.aristocrat);
-		content = fat_id.id;
-		on_update(state);
-	}
-};
-
 class province_flashpoint_indicator : public standard_province_icon {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -267,7 +237,7 @@ public:
 
 class province_window_header : public window_element_base {
 private:
-	slave_state_icon* slave_icon = nullptr;
+	fixed_pop_type_icon* slave_icon = nullptr;
 	province_colony_button* colony_button = nullptr;
 
 public:
@@ -279,8 +249,9 @@ public:
 		} else if(name == "prov_terrain") {
 			return make_element_by_type<province_terrain_image>(state, id);
 		} else if(name == "slave_state_icon") {
-			auto ptr = make_element_by_type<slave_state_icon>(state, id);
+			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
 			slave_icon = ptr.get();
+			ptr->set_type(state, state.culture_definitions.slaves);
 			return ptr;
 		} else if(name == "admin_icon") {
 			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);

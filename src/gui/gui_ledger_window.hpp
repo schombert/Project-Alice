@@ -324,7 +324,7 @@ public:
 class nation_selected_issue_text : public standard_nation_text {
     dcon::issue_id issue_id{};
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
         // Obtain the active issue option for this issue id
         auto active_issue_option = state.world.nation_get_issues(nation_id, issue_id);
         return text::produce_simple_string(state, active_issue_option.get_name());
@@ -442,7 +442,7 @@ public:
 class nation_population_per_pop_type_text : public standard_nation_text {
     dcon::pop_type_id pop_type_id{};
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, pop_type_id));
 		return text::prettify(int32_t(total_pop));
 	}
@@ -604,6 +604,14 @@ public:
         }
     }
 
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::province_id>()) {
+            payload.emplace<dcon::province_id>(content);
+            return message_result::consumed;
+        }
+        return listbox_row_element_base::get(state, payload);
+    }
+
     void update(sys::state& state) noexcept override {
         Cyto::Any payload = content;
         impl_set(state, payload);
@@ -631,7 +639,7 @@ public:
 class province_population_per_pop_type_text : public standard_province_text {
     dcon::pop_type_id pop_type_id{};
 public:
-	std::string get_text(sys::state& state) noexcept override {
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::to_key(state, pop_type_id));
 		return text::prettify(int32_t(total_pop));
 	}
@@ -679,6 +687,14 @@ public:
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         });
+    }
+
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::province_id>()) {
+            payload.emplace<dcon::province_id>(content);
+            return message_result::consumed;
+        }
+        return listbox_row_element_base::get(state, payload);
     }
 
     void update(sys::state& state) noexcept override {
@@ -760,6 +776,14 @@ public:
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         }
+    }
+
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+        if(payload.holds_type<dcon::province_id>()) {
+            payload.emplace<dcon::province_id>(content);
+            return message_result::consumed;
+        }
+        return listbox_row_element_base::get(state, payload);
     }
 
     void update(sys::state& state) noexcept override {
@@ -861,6 +885,19 @@ public:
     }
 };
 
+class ledger_commodity_plupp : public tinted_image_element_base {
+public:
+	uint32_t get_tint_color(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::commodity_id>(payload);
+			state.world.commodity_get_color(content);
+		}
+		return 0;
+	}
+};
+
 //
 // Commodity price
 //
@@ -870,15 +907,10 @@ public:
         if(name == "ledger_default_textbox") {
             return make_element_by_type<generic_name_text<dcon::commodity_id>>(state, id);
         } else if(name == "ledger_legend_plupp") {
-            return make_element_by_type<commodity_plupp>(state, id);
+            return make_element_by_type<ledger_commodity_plupp>(state, id);
         } else {
             return nullptr;
         }
-    }
-
-    void update(sys::state& state) noexcept override {
-        Cyto::Any payload = content;
-        impl_set(state, payload);
     }
 };
 class ledger_commodity_price_listbox : public listbox_element_base<ledger_commodity_price_entry, dcon::commodity_id> {

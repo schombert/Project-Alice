@@ -226,7 +226,7 @@ public:
                 auto nid = state.world.gp_relationship_get_influence_target(grid);
                 info_text->set_text(state, text::produce_simple_string(state, state.world.nation_get_name(nid)));
                 auto status = state.world.gp_relationship_get_status(grid);
-                entry_text->set_text(state, text::produce_simple_string(state, nation_player_opinion_text::get_level_text_key(status)));
+                entry_text->set_text(state, text::produce_simple_string(state, text::get_influence_level_name(state, status)));
             } else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
                 auto sbcid = std::get<dcon::state_building_construction_id>(content);
                 auto ftid = state.world.state_building_construction_get_type(sbcid);
