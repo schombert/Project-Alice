@@ -150,15 +150,6 @@ public:
 	}
 };
 
-class standard_unit_progress_bar : public progress_bar {
-public:
-    void on_create(sys::state& state) noexcept override {
-        std::swap(base_data.size.x, base_data.size.y);
-        base_data.position.x -= base_data.size.x;
-		base_data.position.y -= (base_data.size.y - base_data.size.x);
-    }
-};
-
 class standard_province_progress_bar : public progress_bar {
 protected:
 	dcon::province_id prov_id{};

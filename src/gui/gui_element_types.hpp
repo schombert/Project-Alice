@@ -104,7 +104,15 @@ class progress_bar : public opaque_element_base {
 public:
 	float progress = 0.f;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
 
+class vertical_progress_bar : public progress_bar {
+public:
+    void on_create(sys::state& state) noexcept override {
+        std::swap(base_data.size.x, base_data.size.y);
+        base_data.position.x -= base_data.size.x;
+		base_data.position.y -= (base_data.size.y - base_data.size.x);
+    }
 };
 
 class button_element_base : public opaque_element_base {
