@@ -332,11 +332,11 @@ namespace sys {
 		}
 		{
 			auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
-			new_elm_army->set_visible(state, false);
+			new_elm_army->set_visible(*this, false);
 			ui_state.root->add_child_to_front(std::move(new_elm_army));
 			
 			auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
-			new_elm_navy->set_visible(state, false);
+			new_elm_navy->set_visible(*this, false);
 			ui_state.root->add_child_to_front(std::move(new_elm_navy));
 		}
 		{
