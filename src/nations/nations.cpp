@@ -506,7 +506,7 @@ void update_great_powers(sys::state& state) {
 			if(n && !state.world.nation_get_is_great_power(n)) {
 				state.world.nation_set_is_great_power(n, true);
 				state.great_nations.push_back(sys::great_nation(state.current_date, n));
-
+				state.world.nation_set_state_from_flashpoint_focus(n, dcon::state_instance_id{});
 				auto possible_events = state.national_definitions.on_new_great_nation.size();
 				if(possible_events > 0) {
 					int32_t total_chances = 0;
@@ -578,8 +578,14 @@ int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
 }
 
 int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
-	// TODO
-	return 0;
+	int32_t total = 0;
+	if(state.world.nation_get_state_from_flashpoint_focus(n))
+		++total;
+	for(auto si : state.world.nation_get_state_ownership(n)) {
+		if(si.get_state().get_owner_focus())
+			++total;
+	}
+	return total;
 }
 
 float diplomatic_points(sys::state const& state, dcon::nation_id n) {
@@ -1335,20 +1341,17 @@ bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_i
 	if(owner == fp_nation)
 		return false;
 
-	auto owner_accepts_culture = [&](dcon::culture_id c) {
-		return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
-	};
+	if(nations::nation_accepts_culture(state, owner, fp_ident.get_primary_culture()))
+		return false;
+	if(fp_ident.get_is_not_releasable())
+		return false;
 
 	if(fp_focus_nation.get_rank() > uint16_t(state.defines.colonial_rank)) {
 		auto d = si.get_definition();
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(p.get_province().get_nation_from_province_ownership() == owner) {
-				for(auto cores : p.get_province().get_core()) {
-					if(cores.get_identity() == fp_ident && !fp_ident.get_is_not_releasable() && !owner_accepts_culture(fp_ident.get_primary_culture())) {
-
-						return true;
-					}
-				}
+				if(state.world.get_core_by_prov_tag_key(p.get_province(), fp_ident))
+					return true;
 			}
 		}
 	}

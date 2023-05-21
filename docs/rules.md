@@ -1077,3 +1077,21 @@ It may be expedient to create some structures tracking properties of pathing / c
 - whether any two nations each have a colonial province adjacent to a colonial province of the other
 - how many regiments total could possibly be recruited, and what number actually have been recruited
 - total number of allies, vassals, substates, etc
+
+## Commands
+
+This section describes all the actions that a player can take that affect the state of the game (i.e. anything that isn't just user interface navigation).
+
+### Set national focus
+
+This includes both setting the national focus in a state you own as well as setting the flashpoint focus in a state owned by another nation.
+
+#### Conditions
+
+If you are setting a focus for one of your states, then it must not be the flashpoint focus, the ideology must be available if it is a party loyalty focus (enabled and not restricted to civs only if you are an unciv), and either there must be a focus already in the state or fewer than your maximum number of available focus must be set in other states.
+
+If it is the flashpoint focus, the state must not be owned by you, you must be less than colonial rank, you must have a core in that state, the owner must not accept your primary culture, your tag must be releasable, another nation must not already have a flashpoint focus there, and either you have fewer than your maximum number of focuses already active *or* you have a flashpoint focus active somewhere else (setting a flashpoint focus in one state will cancel any flashpoint focuses you have set in other states).
+
+#### Effect
+
+Changes the national focus active in the state
