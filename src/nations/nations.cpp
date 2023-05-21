@@ -123,12 +123,17 @@ void restore_cached_values(sys::state& state) {
 }
 
 void update_cached_values(sys::state& state) {
-	if(!state.diplomatic_cached_values_out_of_date)
-		return;
+	auto player_treasury = nations::get_treasury(state, state.local_player_nation);
+	auto player_income = player_treasury - state.player_data_cache.last_budget;
+	state.player_data_cache.income_30_days[state.player_data_cache.income_cache_i] = player_income;
+	state.player_data_cache.income_cache_i++;
+	state.player_data_cache.income_cache_i %= 30;
+	state.player_data_cache.last_budget = player_treasury;
 
-	state.diplomatic_cached_values_out_of_date = false;
-
-	restore_cached_values(state);
+	if(state.diplomatic_cached_values_out_of_date) {
+		state.diplomatic_cached_values_out_of_date = false;
+		restore_cached_values(state);
+	}
 }
 
 void restore_unsaved_values(sys::state& state) {
@@ -1295,7 +1300,7 @@ void monthly_flashpoint_update(sys::state& state) {
 			auto owner = si.get_nation_from_state_ownership();
 			auto owner_tag = owner.get_identity_from_identity_holder();
 
-			
+
 			auto owner_accepts_culture = [&](dcon::culture_id c) {
 				return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
 			};
@@ -1793,6 +1798,20 @@ void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nati
 	}
 	auto& inf = state.world.gp_relationship_get_influence(rel);
 	inf = std::clamp(inf + delta, 0.0f, state.defines.max_influence);
+}
+
+float get_yesterday_income(sys::state& state, dcon::nation_id n) {
+	/* TODO -
+	 * This is a temporary function (the contents of it), what it should return is yesterdays income
+	 * code below should be replaced with more appropriate when avaliable
+	 * return value is passed to text::fp_currency{}
+	 */
+	float sum = 0;
+	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::poor);
+	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::middle);
+	sum += economy::estimate_tax_income_by_strata(state, n, culture::pop_strata::rich);
+	sum += economy::estimate_gold_income(state, n);
+	return sum;
 }
 
 }

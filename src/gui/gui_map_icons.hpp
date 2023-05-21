@@ -64,31 +64,28 @@ public:
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
 		glm::vec2 screen_pos;
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;
-		}
 		auto new_position = xy_pair{ int16_t(screen_pos.x - generic_settable_element<T, dcon::province_id>::base_data.size.x / 2), int16_t(screen_pos.y - generic_settable_element<T, dcon::province_id>::base_data.size.y / 2) };
 		auto xdiff = (generic_settable_element<T, dcon::province_id>::base_data.position.x - new_position.x);
 		auto ydiff = (generic_settable_element<T, dcon::province_id>::base_data.position.y - new_position.y);
 		generic_settable_element<T, dcon::province_id>::base_data.position = new_position;
 		generic_settable_element<T, dcon::province_id>::impl_render(state, x - xdiff, y - ydiff);
-
-		
 	}
 };
 
 class unit_icon_window : public map_element_base<window_element_base> {
     unit_strength_text* strength_text = nullptr;
     unit_country_flag* country_flag = nullptr;
+    image_element_base* attr_icon = nullptr;
 public:
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(generic_settable_element<window_element_base, dcon::province_id>::content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
 		glm::vec2 screen_pos;
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos)) {
+		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;
-		}
 		auto new_position = xy_pair{ int16_t(screen_pos.x - 25), int16_t(screen_pos.y - 40) };
 		auto xdiff = (map_element_base<window_element_base>::base_data.position.x - new_position.x);
 		auto ydiff = (map_element_base<window_element_base>::base_data.position.y - new_position.y);
@@ -103,18 +100,26 @@ public:
             ptr->base_data.position.y -= 1; // Nudge
             country_flag = ptr.get();
             return ptr;
-        } else if(name == "unit_panel_color")
+        } else if(name == "unit_panel_color") {
             return make_element_by_type<unit_panel_color>(state, id);
-        else if(name == "unit_strength") {
+        } else if(name == "unit_strength") {
             auto ptr = make_element_by_type<unit_strength_text>(state, id);
             ptr->base_data.position.y -= 1; // Nudge
             strength_text = ptr.get();
+            return ptr;
+        } else if(name == "unit_panel_org_bar") {
+            return make_element_by_type<vertical_progress_bar>(state, id);
+        } else if(name == "unit_panel_attr") {
+            auto ptr = make_element_by_type<image_element_base>(state, id);
+            attr_icon = ptr.get();
             return ptr;
         } else
             return nullptr;
     }
 
     void on_update(sys::state& state) noexcept override {
+        bool has_attrition = false; // TODO: Attrition
+
         // Idempotency prohibits the widget from setting too much the elements into
         // otherwise redundant data, so only the first unit on a province will be shown
         // and only the first ship will be shown. Ships are given priority over armies.
@@ -158,6 +163,8 @@ public:
             strength_text->impl_set(state, payload);
         }
         set_visible(state, has_navy || has_army);
+
+        attr_icon->set_visible(state, has_attrition);
     }
 };
 

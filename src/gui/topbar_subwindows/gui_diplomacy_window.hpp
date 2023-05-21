@@ -31,6 +31,92 @@ public:
 	}
 };
 
+class diplomacy_nation_ships_text : public nation_ships_text {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto num_ships = get_ship_number(state, nation_id);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value, get_ship_number(state, nation_id));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("navy_technology_levels"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class diplomacy_nation_brigades_text : public nation_brigades_text {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto num = dcon::fatten(state.world, nation_id).get_active_regiments();
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_brigades"), text::variable_type::value, num);
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("army_technology_levels"));
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class diplomacy_nation_war_exhaustion_text : public nation_war_exhaustion_text {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"), text::variable_type::value, text::fp_percentage{num});
+		// TODO - check if the nation is at peace, if it is then we display stuff
+		if(nation_id == state.local_player_nation) {
+			text::add_divider_to_layout_box(state, contents, box);
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
+class diplomacy_nation_infamy_text : public nation_infamy_text {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy2"), text::variable_type::value, text::fp_percentage{num});
+		if(nation_id == state.local_player_nation) {
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
 private:
 	flag_button* country_flag = nullptr;
@@ -174,28 +260,28 @@ public:
 			return ptr;
 		} else if(name == "country_wars") {
 			auto ptr = make_element_by_type<overlapping_enemy_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "country_allies") {
 			auto ptr = make_element_by_type<overlapping_ally_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "country_protected") {
 			auto ptr = make_element_by_type<overlapping_sphere_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "country_truce") {
 			auto ptr = make_element_by_type<overlapping_truce_flags>(state, id);
-			ptr->base_data.position.y -= 8;
+			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "infamy_text") {
-			return make_element_by_type<nation_infamy_text>(state, id);
+			return make_element_by_type<diplomacy_nation_infamy_text>(state, id);
 		} else if(name == "warexhastion_text") {
-			return make_element_by_type<nation_war_exhaustion_text>(state, id);
+			return make_element_by_type<diplomacy_nation_war_exhaustion_text>(state, id);
 		} else if(name == "brigade_text") {
-			return make_element_by_type<nation_brigades_text>(state, id);
+			return make_element_by_type<diplomacy_nation_brigades_text>(state, id);
 		} else if(name == "ships_text") {
-			return make_element_by_type<nation_ships_text>(state, id);
+			return make_element_by_type<diplomacy_nation_ships_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -237,7 +323,7 @@ public:
 
 			country_relation->set_visible(state, active_nation != state.local_player_nation);
 			country_relation_icon->set_visible(state, active_nation != state.local_player_nation);
-			
+
 			on_update(state);
 			return message_result::consumed;
 		} else {
@@ -321,6 +407,50 @@ public:
 	}
 };
 
+class diplomacy_join_attackers_button : public button_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, "");
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("diplomacy_can_intervene"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class diplomacy_join_defenders_button : public button_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, "");
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("diplomacy_can_intervene"));
+		text::close_layout_box(contents, box);
+	}
+};
+
 class diplomacy_war_info : public listbox_row_element_base<dcon::war_id> {
 	simple_text_element_base* war_name = nullptr;
 	simple_text_element_base* attackers_strength_text = nullptr;
@@ -369,9 +499,9 @@ public:
 			defenders_flags->base_data.position.y -= 8 - 2;
 			return ptr;
 		} else if(name == "join_attackers") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<diplomacy_join_attackers_button>(state, id);
 		} else if(name == "join_defenders") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<diplomacy_join_defenders_button>(state, id);
 		} else {
 			return nullptr;
 		}

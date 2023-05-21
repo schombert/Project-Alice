@@ -14,6 +14,25 @@
 
 namespace ui {
 
+class province_liferating : public province_liferating_progress_bar {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"), text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("col_liferate_techs"));
+		text::close_layout_box(contents, box);
+	}
+};
+
 class province_close_button : public generic_close_button {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -159,7 +178,21 @@ public:
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::unseen;
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto prov_fat = dcon::fatten(state.world, province_id);
+		auto controller_name = prov_fat.get_province_control_as_province().get_nation().get_name();
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
+		text::add_space_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, controller_name);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -187,28 +220,20 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("pw_colony")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second);
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::add_to_layout_box(contents, state, box, std::string_view("----------"), text::text_color::white);
-			text::add_line_break_to_layout_box(contents, state, box);
-		}
+		text::localised_format_box(state, contents, box, std::string_view("pw_colony"));
+		text::add_divider_to_layout_box(state, contents, box);
 
-		if(auto k = state.key_to_text_sequence.find(std::string_view("pw_colony_no_state")); k != state.key_to_text_sequence.end()) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::num, text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
-			float total_pop = state.world.state_instance_get_demographics(state_instance_id, demographics::total);
-			float b_size = province::state_accepted_bureaucrat_size(state, state_instance_id);
-			text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{(b_size / total_pop) * 100.f});
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+		text::substitution_map sub1{};
+		text::add_to_substitution_map(sub1, text::variable_type::num, text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
+		float total_pop = state.world.state_instance_get_demographics(state_instance_id, demographics::total);
+		float b_size = province::state_accepted_bureaucrat_size(state, state_instance_id);
+		text::add_to_substitution_map(sub1, text::variable_type::curr, text::fp_one_place{(b_size / total_pop) * 100.f});
+		text::localised_format_box(state, contents, box, std::string_view("pw_colony_no_state"), sub1);
 
-		if(auto k = state.key_to_text_sequence.find(std::string_view("pw_cant_upgrade_to_state")); k != state.key_to_text_sequence.end()) {
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::value, int32_t(province::colony_integration_cost(state, state_instance_id)));
-			text::add_to_layout_box(contents, state, box, k->second, sub);
-		}
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::substitution_map sub2{};
+		text::add_to_substitution_map(sub2, text::variable_type::value, int32_t(province::colony_integration_cost(state, state_instance_id)));
+		text::localised_format_box(state, contents, box, std::string_view("pw_cant_upgrade_to_state"), sub2);
 
 		text::close_layout_box(contents, box);
 	}
@@ -239,7 +264,6 @@ public:
 		}
 	}
 };
-
 
 class province_window_header : public window_element_base {
 private:
@@ -293,7 +317,7 @@ public:
 		} else if(name == "owner_presence") {
 			return make_element_by_type<state_aristocrat_presence_text>(state, id);
 		} else if(name == "liferating") {
-			return make_element_by_type<province_liferating_progress_bar>(state, id);
+			return make_element_by_type<province_liferating>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -727,9 +751,29 @@ public:
 	}
 };
 
+class province_colony_rgo_icon : public image_element_base {
+public:		// goto hell;
+		// Seriously hate this code, just no, this is awful and shouldnt be needed
+		// but i refuse to loose my sanity to something to assining
+	dcon::text_sequence_id rgo_name;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, rgo_name);
+		text::close_layout_box(contents, box);
+	}
+};
+
 class province_window_colony : public window_element_base {
 private:
-	image_element_base* rgo_icon = nullptr;
+	province_colony_rgo_icon* rgo_icon = nullptr;
 	simple_text_element_base* population_box = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 	dcon::province_id stored_province{};
@@ -745,7 +789,7 @@ public:
 			culture_chart = ptr.get();
 			return ptr;
 		} else if(name == "goods_type") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<province_colony_rgo_icon>(state, id);
 			rgo_icon = ptr.get();
 			return ptr;
 		} else {
@@ -761,6 +805,7 @@ public:
 			set_visible(state, false);
 		} else {
 			rgo_icon->frame = fat_id.get_rgo().get_icon();
+			rgo_icon->rgo_name = fat_id.get_rgo().get_name();
 			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
 			population_box->set_text(state, text::prettify(int32_t(total_pop)));
 			culture_chart->on_update(state);
@@ -792,7 +837,7 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-	
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(content) {
 			auto box = text::open_layout_box(contents, 0);
@@ -920,7 +965,7 @@ public:
 		if(name == "close_button") {
 			return make_element_by_type<province_close_button>(state, id);
 		} else if(name == "background") {
-			return make_element_by_type<opaque_element_base>(state, id);
+			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "province_view_header") {
 			auto ptr = make_element_by_type<province_window_header>(state, id);
 			header_window = ptr.get();

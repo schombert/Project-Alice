@@ -7,9 +7,10 @@
 #include <algorithm>
 #include <functional>
 #include "parsers_declarations.hpp"
-#include "gui_minimap.hpp"
-#include "gui_topbar.hpp"
 #include "gui_console.hpp"
+#include "gui_minimap.hpp"
+#include "gui_unit_panel.hpp"
+#include "gui_topbar.hpp"
 #include "gui_province_window.hpp"
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
@@ -291,8 +292,31 @@ namespace sys {
         }
 		{
 			auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
+			ui_state.outliner_window = new_elm.get();
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
+			// Has to be created AFTER the outliner window
+			// The topbar has this button within, however since the button isn't properly displayed, it is better to make
+			// it into an independent element of it's own, living freely on the UI root so it can be flexibly moved around when
+			// the window is resized for example.
+			for(size_t i = ui_defs.gui.size(); i-- > 0; ) {
+				auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+				if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton_bg") {
+					auto new_bg = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
+					ui_state.root->add_child_to_front(std::move(new_bg));
+					break;
+				}
+			}
+			// Then create button atop
+			for(size_t i = ui_defs.gui.size(); i-- > 0; ) {
+				auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+				if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton") {
+					auto new_btn = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
+					new_btn->impl_on_update(*this);
+					ui_state.root->add_child_to_front(std::move(new_btn));
+					break;
+				}
+			}
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
@@ -307,12 +331,27 @@ namespace sys {
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 		{
+			auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
+			new_elm_army->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(new_elm_army));
+			
+			auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
+			new_elm_navy->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(new_elm_navy));
+		}
+		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 
 		map_mode::set_map_mode(*this, map_mode::mode::political);
+
+		if(user_settings.use_classic_fonts) {
+			ui_state.tooltip_font = text::name_into_font_id(*this, "vic_18_black");
+		} else {
+			ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
+		}
 	}
 	//
 	// string pool functions
@@ -1565,8 +1604,6 @@ namespace sys {
 		if(local_player_nation) {
 			world.nation_set_is_player_controlled(local_player_nation, true);
 		}
-
-		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 	}
 
 	constexpr inline int32_t game_speed[] = {

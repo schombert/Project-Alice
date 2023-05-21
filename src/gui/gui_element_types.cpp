@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string_view>
 #include <unordered_map>
 #include <variant>
@@ -10,6 +12,7 @@
 #include "cyto_any.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
+#include "gui_element_base.hpp"
 #include "gui_element_types.hpp"
 #include "fonts.hpp"
 #include "gui_graphics.hpp"
@@ -453,6 +456,41 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 }
 
+void line_graph::set_data_points(sys::state& state, std::vector<float> datapoints) noexcept {
+	float min = datapoints[0];
+	float max = datapoints[0];
+	for(size_t i = 0; i < datapoints.size(); i++) {
+		min = std::min(min, datapoints[i]);
+		max = std::max(max, datapoints[i]);
+	}
+	float y_height = std::max(std::abs(min), std::abs(max));
+	std::vector<float> scaled_datapoints = std::vector<float>(count);
+	if (y_height == 0.f) {
+		for(size_t i = 0; i < datapoints.size(); i++) {
+			scaled_datapoints[i] = .5f;
+		}
+	} else {
+		for(size_t i = 0; i < datapoints.size(); i++) {
+			scaled_datapoints[i] = datapoints[i] / (y_height * 2.f) + .5f;
+		}
+	}
+	lines.set_y(scaled_datapoints.data());
+}
+
+void line_graph::on_create(sys::state& state) noexcept {
+	element_base::on_create(state);
+	lines = ogl::lines(count);
+}
+
+void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	ogl::render_linegraph(
+		state,
+		ogl::color_modification::none,
+		float(x), float(y), base_data.size.x, base_data.size.y,
+		lines
+	);
+}
+
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
 	stored_text = new_text;
 	on_reset_text(state);
@@ -468,10 +506,14 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
 	}
 	if (int16_t(extent) > base_data.size.x) {
-		auto overshoot =  1.f - float(base_data.size.x) / extent;
+		// You could improve logic for ... by figuring out the width of ... and when there isn't enough room for all the text, figuring out how much can fit exactly in the width minus the width of ... and then appending ... (rather than figuring out how much fits in the space and subtracting 3 characters, which is what happens now)
+		auto width_of_ellipsis = state.font_collection.text_extent(state, "\x85", uint32_t(1), base_data.data.text.font_handle);
+
+		auto overshoot =  1.f - float(base_data.size.x) / (extent + width_of_ellipsis);
 		auto extra_chars = size_t(float(stored_text.length()) * overshoot);
-		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars - 3, size_t(0)));
-		stored_text += "...";
+		
+		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars, size_t(0)));
+		stored_text += "\x85";
 	}
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {

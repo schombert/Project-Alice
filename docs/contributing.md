@@ -54,6 +54,45 @@ https://stackoverflow.com/questions/67712376/after-updating-gcc-clang-cant-find-
 
 (Linux only) The version of Intel's TBB library we use seems to fail to compile if you have any spaces in the path, so you need to make sure that wherever you put the project has no spaces anywhere in its path (yes, this seems dumb to me too).
 
+#### Linux (Generic)
+
+This is for non-Debian based distrobutions, utilities needed:
+Basic Compiling Tools, (C Compiler & C++ Compiler)
+Cmake
+Git
+onetbb
+GLFW3
+X11 (support *should* exist for wayland but there is not guarantee.)
+
+From here compiling is straightforward
+1. `cd Project-Alice`
+2. `cmake -E make_directory build`
+3. `cmake -E chdir build cmake ..`
+4. `touch src/local_user_settings.hpp`
+5. `nano src/local_user_settings.hpp` or use the text editor of your choice
+6. add the following lines:
+    ```cpp
+        #ifndef GAME_DIR
+        #define GAME_DIR "[insert file path here]"
+        #endif
+    ```
+    substitute the value otherwise ALice wont work, if you downloaded it on steam then you can just right click Victoria 2 and browse local files
+    copy the file path and replace [insert file path here] with it, then save.
+7. `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
+8. `cmake --build . -j$(nproc)`
+
+#### Note on Non-x86 Platforms
+
+PA Does not support non-x86 platforms, as it utilises some optimisations which are specific to x86
+
+##### Do I have a x86 platform?
+
+Chances are you do, examples of non-x86 platform that is somewhat more common nowadays
+Apple M1 and onwards (This is present in their newer iMacs)
+Raspberry Pi (All of them, these all dont use x86)
+
+Other platforms (ppc, mips, sparc etc) are likewise unsupported.
+
 #### Final touches
 
 Because the project in its current state needs to use the existing game files (as a source of graphics, for starters), everyone needs to tell the compiler where their copy of the game is installed. You do this by creating a file named `local_user_settings.hpp` in the directory `src`.

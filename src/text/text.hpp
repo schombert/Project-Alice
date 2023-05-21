@@ -66,7 +66,7 @@ namespace text {
 	};
 
 	struct text_sequence {
-		uint16_t starting_component = 0;
+		uint32_t starting_component = 0;
 		uint16_t component_count = 0;
 	};
 
@@ -267,6 +267,8 @@ namespace text {
 		void internal_close_box(layout_box& box) final;
 	};
 
+	text_color char_to_color(char in);
+
 	endless_layout create_endless_layout(layout& dest, layout_parameters const& params);
 	void close_layout_box(endless_layout& dest, layout_box& box);
 
@@ -310,5 +312,6 @@ namespace text {
 
 	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, substitution_map const& sub = substitution_map{});
 	void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value);
+	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 }
 

@@ -67,22 +67,22 @@ public:
         } else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
             auto sbcid = std::get<dcon::state_building_construction_id>(content);
             auto ftid = state.world.state_building_construction_get_type(sbcid);
-            
+
         } else if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
             auto pbcid = std::get<dcon::province_building_construction_id>(content);
             auto btid = state.world.province_building_construction_get_type(pbcid);
             auto name = province_building_type_get_name(economy::province_building_type(btid));
-            
+
         } else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
             auto plcid = std::get<dcon::province_land_construction_id>(content);
             auto utid = state.world.province_land_construction_get_type(plcid);
             auto name = state.military_definitions.unit_base_definitions[utid].name;
-            
+
         } else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
             auto pncid = std::get<dcon::province_naval_construction_id>(content);
             auto utid = state.world.province_naval_construction_get_type(pncid);
             auto name = state.military_definitions.unit_base_definitions[utid].name;
-            
+
         }
     }
 };
@@ -450,6 +450,7 @@ public:
         if(parent) {
             Cyto::Any payload = Filter;
             parent->impl_set(state, payload);
+            state.ui_state.outliner_window->impl_on_update(state);
         }
     }
 
@@ -459,10 +460,23 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto name = get_filter_text_key(Filter);
-        if(auto k = state.key_to_text_sequence.find(name); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
-			text::close_layout_box(contents, box);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view(name));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class outliner_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(state.ui_state.outliner_window)
+			frame = state.ui_state.outliner_window->is_visible() ? 1 : 0;
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(state.ui_state.outliner_window) {
+			state.ui_state.outliner_window->set_visible(state, !state.ui_state.outliner_window->is_visible());
+			on_update(state);
 		}
 	}
 };

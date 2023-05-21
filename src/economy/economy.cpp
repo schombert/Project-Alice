@@ -146,7 +146,7 @@ void initialize(sys::state& state) {
 
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto fp = fatten(state.world, p);
-		
+
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 
 		auto amount = std::ceil(1.1f * (state.world.province_get_demographics(p, demographics::to_key(state, is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers)) +
@@ -185,7 +185,7 @@ void initialize(sys::state& state) {
 	update_rgo_employment(state);
 	update_factory_employment(state);
 
-	
+
 	populate_army_consumption(state);
 	populate_navy_consumption(state);
 	populate_construction_consumption(state);
@@ -240,7 +240,7 @@ void absorb_sphere_member_production(sys::state& state, dcon::nation_id n) {
 void give_sphere_leader_production(sys::state& state, dcon::nation_id n) {
 	if(auto sl = state.world.nation_get_in_sphere_of(n); sl) {
 		//- Every nation in a sphere (after the above has been calculated for the entire sphere) has their effective domestic supply set to (1 - its-share-factor) x original-domestic-supply + sphere-leader's-domestic supply
-		
+
 		float share = sphere_leader_share_factor(state, sl, n);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			state.world.nation_get_domestic_market_pool(n, c) *= (1.0f - share);
@@ -519,7 +519,7 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 
 	float output_total = fac_type.get_output_amount() * state.world.commodity_get_current_price(fac_type.get_output());
 
-	
+
 	float total_state_pop = std::max(0.01f, state.world.state_instance_get_demographics(s, demographics::total));
 	float owner_fraction = total_state_pop > 0 ? std::min(0.05f, state.world.state_instance_get_demographics(s, demographics::to_key(state, state.culture_definitions.capitalists)) / total_state_pop) : 0.0f;
 
@@ -528,8 +528,8 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 		+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_factory_input)
 		+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)
 		+ owner_fraction * -2.5f);
-	
-	float throughput_multiplier = 
+
+	float throughput_multiplier =
 		state.world.nation_get_factory_goods_throughput(n, fac_type.get_output())
 		+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_factory_throughput)
 		+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_throughput)
@@ -541,7 +541,7 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 		+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_output)
 		+ fac.get_secondary_employment() * (1.0f - state.economy_definitions.craftsmen_fraction) * 1.5f
 		+ 1.0f;
-	
+
 
 	float max_production_scale = fac.get_primary_employment() * fac.get_level() * (occupied ? 0.0f : 1.0f) * std::max(0.0f, (mobilization_impact - (overseas ? state.world.nation_get_overseas_penalty(n) : 0)));
 
@@ -662,7 +662,7 @@ void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon
 void update_province_artisan_consumption(sys::state& state, dcon::province_id p, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, float mobilization_impact, float expected_min_wage, bool occupied) {
 
 	if((state.current_date.to_raw_value() & 63) == (p.value & 63)) {
-		randomly_assign_artisan_production(state, p); // randomly switch once every other month 
+		randomly_assign_artisan_production(state, p); // randomly switch once every other month
 	}
 
 	float input_total = 0.0f;
@@ -749,7 +749,7 @@ void update_province_artisan_production(sys::state& state, dcon::province_id p, 
 		auto money_made = min_input * state.world.province_get_artisan_full_profit(p);
 		state.world.province_set_artisan_full_profit(p, money_made);
 	} else {
-		
+
 	}
 }
 
@@ -849,7 +849,7 @@ void populate_construction_consumption(sys::state& state) {
 				auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
 				auto& current_purchased = c.get_purchased_goods();
 				float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
-				
+
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 					if(base_cost.commodity_type[i]) {
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
@@ -1310,7 +1310,6 @@ void populate_needs_costs(sys::state& state, ve::vectorizable_buffer<float, dcon
 				state.world.for_each_pop_type([&](auto ids) {
 					auto ln = state.world.pop_type_get_luxury_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * mul[state.world.pop_type_get_strata(ids)];
 					state.world.nation_set_luxury_needs_costs(n, ids, ln + state.world.nation_get_luxury_needs_costs(n, ids));
-					
 					assert(std::isfinite(state.world.nation_get_luxury_needs_costs(n, ids)));
 				});
 			}
@@ -1350,7 +1349,6 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 							auto amount = base_cost.commodity_amounts[i] / construction_time;
 							auto& source = state.world.nation_get_construction_demand(n, base_cost.commodity_type[i]);
 							auto delta = std::max(0.0f, std::min(source, base_cost.commodity_amounts[i] / construction_time));
-							
 							current_purchased.commodity_amounts[i] += delta;
 							source -= delta;
 						}
@@ -1570,7 +1568,7 @@ void daily_update(sys::state& state) {
 				break;
 		}
 	});
-	
+
 	/* end initialization parallel block */
 
 	auto const num_nation = state.world.nation_size();
@@ -1722,7 +1720,7 @@ void daily_update(sys::state& state) {
 
 		{
 			// update national spending
-			// 
+			//
 			// step 1: figure out total
 			float total = full_spending_cost(state, n, effective_prices);
 
@@ -2088,7 +2086,7 @@ void daily_update(sys::state& state) {
 					// FARMER / LABORER
 					bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 					auto const worker = is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers;
-					
+
 					auto const min_wage = (is_mine ? laborer_min_wage : farmer_min_wage) / needs_scaling_factor;
 
 					float total_min_to_workers = min_wage * state.world.province_get_demographics(p, demographics::to_employment_key(state, worker));
@@ -2097,7 +2095,7 @@ void daily_update(sys::state& state) {
 					float total_worker_wage = 0.0f;
 
 					float num_workers = state.world.province_get_demographics(p, demographics::to_key(state, worker));
-					
+
 
 					if(total_min_to_workers <= total_rgo_profit && num_rgo_owners > 0) {
 						total_worker_wage = total_min_to_workers + (total_rgo_profit - total_min_to_workers) * 0.2f;
@@ -2469,7 +2467,7 @@ float nation_total_imports(sys::state& state, dcon::nation_id n) {
 }
 
 float pop_income(sys::state& state, dcon::pop_id p) {
-	
+
 	auto saved = state.world.pop_get_savings(p);
 
 	if(saved <= 0.0f)
@@ -2658,7 +2656,7 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f) {
 				total += goods.commodity_amounts[i];
 				purchased += st_con.get_purchased_goods().commodity_amounts[i];
 			}
-			
+
 			return construction_status{ total > 0.0f ? purchased / total : 0.0f, true };
 		}
 	}
@@ -2952,6 +2950,14 @@ void resolve_constructions(sys::state& state) {
 			}
 		}
 	}
+}
+
+float estimate_daily_income(sys::state& state, dcon::nation_id n) {
+	/* TODO -
+	 * This should return what we think the income will be next day, and as a result wont account for any unprecedented actions
+	 * return value is passed directly into text::fp_currency{} without adulteration.
+	 */
+	return 0;
 }
 
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t) {

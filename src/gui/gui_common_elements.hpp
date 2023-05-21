@@ -50,7 +50,7 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<K>()) {
 			content = any_cast<K>(payload);
-			T::on_update(state);
+			T::impl_on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -148,15 +148,6 @@ public:
 		text::localised_format_box(state, contents, box, std::string_view("provinceview_totalpop"), text::substitution_map{ });
 		text::close_layout_box(contents, box);
 	}
-};
-
-class standard_unit_progress_bar : public progress_bar {
-public:
-    void on_create(sys::state& state) noexcept override {
-        std::swap(base_data.size.x, base_data.size.y);
-        base_data.position.x -= base_data.size.x;
-		base_data.position.y -= (base_data.size.y - base_data.size.x);
-    }
 };
 
 class standard_province_progress_bar : public progress_bar {
@@ -573,11 +564,9 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_totalpop")); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("provinceview_totalpop"));
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -681,11 +670,9 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_supply_limit")); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("provinceview_supply_limit"));
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -712,13 +699,9 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_crimefight")); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map cf_sub;
-			text::add_to_substitution_map(cf_sub, text::variable_type::value, text::fp_one_place{ province::crime_fighting_efficiency(state, province_id) * 100 });
-			text::add_to_layout_box(contents, state, box, k->second, cf_sub);
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_crimefight"), text::variable_type::value, text::fp_one_place{province::crime_fighting_efficiency(state, province_id) * 100});
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -734,13 +717,9 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can substitute.
-		if(auto k = state.key_to_text_sequence.find(std::string_view("avg_mil_on_map")); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map cf_sub;
-			text::add_to_substitution_map(cf_sub, text::variable_type::value, text::fp_one_place{ province::revolt_risk(state, province_id) * 100 });
-			text::add_to_layout_box(contents, state, box, k->second, cf_sub);
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value, text::fp_one_place{province::revolt_risk(state, province_id) * 100});
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -755,11 +734,9 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(auto k = state.key_to_text_sequence.find(std::string_view("provinceview_employment")); k != state.key_to_text_sequence.end()) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{ });
-			text::close_layout_box(contents, box);
-		}
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("provinceview_employment"));
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1650,14 +1627,20 @@ public:
 
 class nation_ships_text : public standard_nation_text {
 public:
-	std::string get_text(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, nation_id);
+	int32_t get_ship_number(sys::state& state, dcon::nation_id aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa) {
+		auto fat_id = dcon::fatten(state.world, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa);
 
 		int32_t total = 0;
-		for(auto nv : fat_id.get_navy_control())
-			for(auto shp : nv.get_navy().get_navy_membership())
+		for(auto nv : fat_id.get_navy_control()) {
+			for(auto shp : nv.get_navy().get_navy_membership()) {
 				total++;
-		return std::to_string(total);
+			}
+		}
+		return total;
+	}
+
+	std::string get_text(sys::state& state) noexcept override {
+		return std::to_string(get_ship_number(state, nation_id));
 	}
 };
 
