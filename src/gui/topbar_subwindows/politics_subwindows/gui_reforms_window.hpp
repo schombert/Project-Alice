@@ -93,13 +93,13 @@ public:
 			}
 			update(state);
 			return message_result::consumed;
-		} else {
-			return message_result::unseen;
 		}
+		return message_result::unseen;
 	}
 };
 
 class reforms_reform_window : public window_element_base {
+	dcon::issue_id issue_id{};
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
@@ -117,6 +117,22 @@ public:
 		make_size_from_graphics(state, reforms_box->base_data);
 		reforms_box->on_create(state);
 		add_child_to_front(std::move(reforms_box));
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_id>()) {
+			payload.emplace<dcon::issue_id>(issue_id);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_id>()) {
+			issue_id = any_cast<dcon::issue_id>(payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 

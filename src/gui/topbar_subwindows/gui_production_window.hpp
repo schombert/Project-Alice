@@ -20,8 +20,8 @@ enum class production_window_tab : uint8_t {
 };
 
 class production_factory_info : public window_element_base {
-	commodity_factory_image* output_icon = nullptr;
-	commodity_factory_image* input_icons[economy::commodity_set::set_size] = { nullptr };
+	image_element_base* output_icon = nullptr;
+	image_element_base* input_icons[economy::commodity_set::set_size] = { nullptr };
 	image_element_base* input_lack_icons[economy::commodity_set::set_size] = { nullptr };
 	image_element_base* closed_overlay = nullptr;
 	simple_text_element_base* closed_text = nullptr;
@@ -30,26 +30,28 @@ class production_factory_info : public window_element_base {
 	button_element_base* cancel_progress_btn = nullptr;
 	progress_bar* upgrade_bar = nullptr;
 	image_element_base* upgrade_overlay = nullptr;
+
+	dcon::factory_id get_factory(sys::state& state) noexcept {
+		dcon::factory_id fid{};
+		uint8_t count = index;
+		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {
+			auto fat_id = dcon::fatten(state.world, pid);
+			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+				if(count == 0)
+					fid = state.world.factory_location_get_factory(flid);
+				--count;
+			});
+		});
+		return fid;
+	}
 public:
 	dcon::state_instance_id state_id{};
 	uint8_t index = 0; // from 0 to 8
 
 	void on_update(sys::state& state) noexcept override {
-		dcon::factory_id fid{};
-		uint8_t count = index;
-		bool is_display = false;
-		province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {
-			auto fat_id = dcon::fatten(state.world, pid);
-			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-				if(count == 0) {
-					fid = state.world.factory_location_get_factory(flid);
-					is_display = true;
-				}
-				--count;
-			});
-		});
-		set_visible(state, is_display);
-		if(!is_display)
+		dcon::factory_id fid = get_factory(state);
+		set_visible(state, bool(fid));
+		if(!bool(fid))
 			return;
 
 		bool is_closed = false;
@@ -67,21 +69,15 @@ public:
 
 		auto fat_btid = state.world.factory_get_building_type(fid);
 		{
-			Cyto::Any payload = fid;
-			impl_set(state, payload);
-		}
-		{
 			auto cid = fat_btid.get_output().id;
-			Cyto::Any payload = cid;
-			output_icon->impl_set(state, payload);
+			output_icon->frame = int32_t(state.world.commodity_get_icon(cid));
 		}
 		// Commodity set
 		auto cset = fat_btid.get_inputs();
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i)
 			if(input_icons[size_t(i)]) {
 				auto cid = cset.commodity_type[size_t(i)];
-				Cyto::Any payload = cid;
-				input_icons[size_t(i)]->impl_set(state, payload);
+				input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
 				bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f : false;
 				input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 			}
@@ -142,6 +138,14 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::factory_id>()) {
+			payload.emplace<dcon::factory_id>(get_factory(state));
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -305,6 +309,14 @@ public:
 		// Display red-overlay if not producing
 		good_not_producing_overlay->set_visible(state, !is_producing);
 		good_output_total->set_visible(state, is_producing);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			payload.emplace<dcon::commodity_id>(commodity_id);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {

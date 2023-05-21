@@ -470,7 +470,6 @@ public:
 };
 
 class trade_flow_window : public window_element_base {
-	dcon::commodity_id content{};
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -521,21 +520,6 @@ public:
 		} else {
 			return nullptr;
 		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			payload.emplace<dcon::commodity_id>(content);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			content = any_cast<dcon::commodity_id>(payload);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
 	}
 };
 
@@ -603,18 +587,12 @@ public:
 			return nullptr;
 		}
 	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			return window_element_base::set(state, payload);
-		}
-		return message_result::unseen;
-	}
 };
 
 class trade_window : public window_element_base {
 	trade_flow_window* trade_flow_win = nullptr;
 	trade_details_window* details_win = nullptr;
+	dcon::commodity_id commodity_id{};
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -660,15 +638,16 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		// Special mesage rebroadcasted by the details button from the hierachy
-		if(payload.holds_type<trade_details_open_window>()) {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			payload.emplace<dcon::commodity_id>(commodity_id);
+			return message_result::consumed;
+		} else if(payload.holds_type<trade_details_open_window>()) {
+			commodity_id = any_cast<trade_details_open_window>(payload).commodity_id;
 			trade_flow_win->set_visible(state, true);
-			Cyto::Any new_payload = any_cast<trade_details_open_window>(payload).commodity_id;
-			trade_flow_win->impl_set(state, new_payload);
 			trade_flow_win->impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<trade_details_select_commodity>()) {
-			Cyto::Any new_payload = any_cast<trade_details_select_commodity>(payload).commodity_id;
-			details_win->impl_set(state, new_payload);
+			commodity_id = any_cast<trade_details_select_commodity>(payload).commodity_id;
 			details_win->impl_on_update(state);
 			return message_result::consumed;
 		}

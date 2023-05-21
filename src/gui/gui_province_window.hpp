@@ -209,19 +209,6 @@ public:
 	}
 };
 
-class province_name_text_SCH : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
-			parent->impl_get(state, payload);
-			dcon::province_id result = Cyto::any_cast<dcon::province_id>(payload);
-
-			set_text(state, text::produce_simple_string(state, state.world.province_get_name(result)));
-		}
-	}
-};
-
 class province_state_name_text_SCH : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -239,13 +226,12 @@ class province_window_header : public window_element_base {
 private:
 	fixed_pop_type_icon* slave_icon = nullptr;
 	province_colony_button* colony_button = nullptr;
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_name") {
 			return make_element_by_type<province_state_name_text_SCH>(state, id);
 		} else if(name == "province_name") {
-			return make_element_by_type<province_name_text_SCH>(state, id);
+			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else if(name == "prov_terrain") {
 			return make_element_by_type<province_terrain_image>(state, id);
 		} else if(name == "slave_state_icon") {
@@ -748,7 +734,6 @@ private:
 	simple_text_element_base* population_box = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 	dcon::province_id stored_province{};
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "total_population") {
@@ -788,21 +773,20 @@ public:
 		if(payload.holds_type<dcon::province_id>()) {
 			payload.emplace<dcon::province_id>(stored_province);
 			return message_result::consumed;
-		} else {
-			return message_result::unseen;
 		}
+		return message_result::unseen;
 	}
 };
 
-class national_focus_icon : public generic_settable_element<button_element_base, dcon::national_focus_id> {
+class national_focus_icon : public button_element_base {
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::national_focus_id>()) {
-			content = any_cast<dcon::national_focus_id>(payload);
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::national_focus_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::national_focus_id>(payload);
 			frame = state.world.national_focus_get_icon(content) - 1;
-			return message_result::consumed;
 		}
-		return message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -810,30 +794,31 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(content) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{ });
-			text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::national_focus_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::national_focus_id>(payload);
+			if(bool(content)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{ });
+				text::close_layout_box(contents, box);
+			}
 		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		// TODO: Set national focus
 	}
 };
 
 class province_focus_item : public listbox_row_element_base<dcon::national_focus_id> {
-	national_focus_icon* focus_icon = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "focus_icon") {
-			auto ptr = make_element_by_type<national_focus_icon>(state, id);
-			focus_icon = ptr.get();
-			return ptr;
+			return make_element_by_type<national_focus_icon>(state, id);
 		} else {
 			return nullptr;
 		}
-	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		focus_icon->impl_set(state, payload);
 	}
 };
 

@@ -851,16 +851,12 @@ class pop_distrobution_plupp : public tinted_image_element_base {
 	T content{};
 public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
-		return ogl::get_ui_color<T>(state, content);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<T>()) {
-			content = any_cast<T>(payload);
-			on_update(state);
-			return message_result::consumed;
+		if(parent) {
+			Cyto::Any id_payload = T{};
+			parent->impl_get(state, id_payload);
+			return ogl::get_ui_color<T>(state, any_cast<T>(id_payload));
 		}
-		return message_result::unseen;
+		return 0;
 	}
 };
 
