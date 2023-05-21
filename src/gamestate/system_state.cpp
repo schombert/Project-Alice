@@ -7,9 +7,10 @@
 #include <algorithm>
 #include <functional>
 #include "parsers_declarations.hpp"
-#include "gui_minimap.hpp"
-#include "gui_topbar.hpp"
 #include "gui_console.hpp"
+#include "gui_minimap.hpp"
+#include "gui_unit_panel.hpp"
+#include "gui_topbar.hpp"
 #include "gui_province_window.hpp"
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
@@ -155,7 +156,7 @@ namespace sys {
 				auto type = ui_state.last_tooltip->has_tooltip(*this);
 				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
+						text::layout_parameters{ 16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
 					ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -328,6 +329,15 @@ namespace sys {
 		{
 			auto new_elm = ui::make_element_by_type<ui::province_view_window>(*this, "province_view");
 			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
+			new_elm_army->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(new_elm_army));
+			
+			auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
+			new_elm_navy->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(new_elm_navy));
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
@@ -1613,6 +1623,7 @@ namespace sys {
 				auto entry_time = std::chrono::steady_clock::now();
 				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
 
+				command::execute_pending_commands(*this);
 				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
 					last_update = entry_time;
 
@@ -1862,6 +1873,9 @@ namespace sys {
 							break;
 						case 10:
 							province::update_crimes(*this);
+							break;
+						case 11:
+							province::update_nationalism(*this);
 							break;
 						case 15:
 							culture::discover_inventions(*this);

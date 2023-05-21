@@ -1601,6 +1601,7 @@ void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, 
 				auto o = nations::owner_of_pop(state, p);
 				auto cul = state.world.nation_get_primary_culture(o);
 				auto rel = state.world.nation_get_religion(o);
+				assert(state.world.pop_get_poptype(p));
 				auto target_pop = impl::find_or_make_pop(state,
 					state.world.pop_get_province_from_pop_location(p),
 					cul,
@@ -1617,6 +1618,7 @@ void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divis
 	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
 		ve::apply([&](dcon::pop_id p) {
 			if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
+				assert(state.world.pop_get_poptype(p));
 				auto target_pop = impl::find_or_make_pop(state,
 					pbuf.destinations.get(p),
 					state.world.pop_get_culture(p),
@@ -1635,6 +1637,7 @@ void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divis
 	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
 		ve::apply([&](dcon::pop_id p) {
 			if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
+				assert(state.world.pop_get_poptype(p));
 				auto target_pop = impl::find_or_make_pop(state,
 					pbuf.destinations.get(p),
 					state.world.pop_get_culture(p),
@@ -1653,6 +1656,7 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
 		ve::apply([&](dcon::pop_id p) {
 			if(pbuf.amounts.get(p) > 0.0f && pbuf.destinations.get(p)) {
+				assert(state.world.pop_get_poptype(p));
 				auto target_pop = impl::find_or_make_pop(state,
 					pbuf.destinations.get(p),
 					state.world.pop_get_culture(p),

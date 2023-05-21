@@ -27,7 +27,7 @@ typedef std::variant<
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
 void value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
-void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
+void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 
 // Filters used on both production and diplomacy tabs for the country lists
 enum class country_list_filter : uint8_t {
@@ -148,15 +148,6 @@ public:
 		text::localised_format_box(state, contents, box, std::string_view("provinceview_totalpop"), text::substitution_map{ });
 		text::close_layout_box(contents, box);
 	}
-};
-
-class standard_unit_progress_bar : public progress_bar {
-public:
-    void on_create(sys::state& state) noexcept override {
-        std::swap(base_data.size.x, base_data.size.y);
-        base_data.position.x -= base_data.size.x;
-		base_data.position.y -= (base_data.size.y - base_data.size.x);
-    }
 };
 
 class standard_province_progress_bar : public progress_bar {

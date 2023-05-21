@@ -506,7 +506,7 @@ void update_great_powers(sys::state& state) {
 			if(n && !state.world.nation_get_is_great_power(n)) {
 				state.world.nation_set_is_great_power(n, true);
 				state.great_nations.push_back(sys::great_nation(state.current_date, n));
-
+				state.world.nation_set_state_from_flashpoint_focus(n, dcon::state_instance_id{});
 				auto possible_events = state.national_definitions.on_new_great_nation.size();
 				if(possible_events > 0) {
 					int32_t total_chances = 0;
@@ -578,8 +578,14 @@ int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
 }
 
 int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n) {
-	// TODO
-	return 0;
+	int32_t total = 0;
+	if(state.world.nation_get_state_from_flashpoint_focus(n))
+		++total;
+	for(auto si : state.world.nation_get_state_ownership(n)) {
+		if(si.get_state().get_owner_focus())
+			++total;
+	}
+	return total;
 }
 
 float diplomatic_points(sys::state const& state, dcon::nation_id n) {
@@ -801,6 +807,15 @@ std::vector<dcon::political_party_id> get_active_political_parties(sys::state& s
 	return parties;
 }
 
+void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+	if(!rel) {
+		rel = state.world.force_create_diplomatic_relation(a, b);
+	}
+	auto& val = state.world.diplomatic_relation_get_value(rel);
+	val = std::clamp(val + delta, -200.0f, std::max(val, 100.0f));
+}
+
 void update_monthly_points(sys::state& state) {
 	/*
 	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
@@ -823,7 +838,7 @@ void update_monthly_points(sys::state& state) {
 		auto wmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::war_exhaustion);
 		auto wmax_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::max_war_exhaustion);
 		state.world.nation_set_war_exhaustion(ids,
-			ve::min(state.world.nation_get_war_exhaustion(ids) + wmod, wmax_mod));
+			ve::max(ve::min(state.world.nation_get_war_exhaustion(ids) + wmod, wmax_mod), 0.0f));
 	});
 	/*
 	- Monthly plurality increase: plurality increases by average consciousness / 45 per month.
@@ -850,6 +865,63 @@ void update_monthly_points(sys::state& state) {
 
 		state.world.nation_set_suppression_points(ids, ve::min(state.world.nation_get_suppression_points(ids) + cmod, state.defines.max_suppression));
 	});
+	/*
+	- Monthly relations adjustment = +0.25 for subjects/overlords, -0.01 for being at war, +0.05 if adjacent and both are at peace, +0.025 for having military access, -0.15 for being able to use a CB against each other (-0.30 if it goes both ways)
+	- Once relations are at 100, monthly increases cannot take them higher
+	*/
+	for(auto so : state.world.in_overlord) {
+		monthly_adjust_relationship(state, so.get_ruler(), so.get_subject(), 0.25f);
+	}
+	for(auto an : state.world.in_nation_adjacency) {
+		if(an.get_connected_nations(0).get_is_at_war() == false && an.get_connected_nations(1).get_is_at_war() == false)
+			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), 0.05f);
+		if(military::can_use_cb_against(state, an.get_connected_nations(0), an.get_connected_nations(1))) {
+			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), -0.15f);
+		}
+		if(military::can_use_cb_against(state, an.get_connected_nations(1), an.get_connected_nations(0))) {
+			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), -0.15f);
+		}
+	}
+	for(auto i : state.world.in_unilateral_relationship) {
+		if(i.get_military_access()) {
+			monthly_adjust_relationship(state, i.get_source(), i.get_target(), 0.025f);
+		}
+	}
+	for(auto w : state.world.in_war) {
+		for(auto n : w.get_war_participant()) {
+			for(auto m : w.get_war_participant()) {
+				if(n.get_is_attacker() != m.get_is_attacker()) {
+					monthly_adjust_relationship(state, n.get_nation(), m.get_nation(), -0.005f);
+				}
+			}
+		}
+	}
+
+	/*
+	- revanchism: you get one point per unowned core if your primary culture is the dominant culture (culture with the most population) in the province, 0.25 points if it is not the dominant culture, and then that total is divided by the total number of your cores to get your revanchism percentage
+	*/
+	for(auto n : state.world.in_nation) {
+		auto owned = n.get_province_ownership();
+		if(owned.begin() != owned.end()) {
+			auto pc = n.get_primary_culture();
+			int32_t total_num_cores = 0;
+			float rpts = 0.0f;
+			for(auto core : n.get_identity_from_identity_holder().get_core()) {
+				++total_num_cores;
+				if(core.get_province().get_nation_from_province_ownership() != n) {
+					if(core.get_province().get_dominant_culture() == pc)
+						rpts += 1.0f;
+					else
+						rpts += 0.25f;
+				}
+			}
+			if(total_num_cores > 0) {
+				n.set_revanchism(rpts / float(total_num_cores));
+			} else {
+				n.set_revanchism(0.0f);
+			}
+		}
+	}
 }
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
@@ -1269,20 +1341,17 @@ bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_i
 	if(owner == fp_nation)
 		return false;
 
-	auto owner_accepts_culture = [&](dcon::culture_id c) {
-		return owner.get_primary_culture() == c || nations::nation_accepts_culture(state, owner, c);
-	};
+	if(nations::nation_accepts_culture(state, owner, fp_ident.get_primary_culture()))
+		return false;
+	if(fp_ident.get_is_not_releasable())
+		return false;
 
 	if(fp_focus_nation.get_rank() > uint16_t(state.defines.colonial_rank)) {
 		auto d = si.get_definition();
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(p.get_province().get_nation_from_province_ownership() == owner) {
-				for(auto cores : p.get_province().get_core()) {
-					if(cores.get_identity() == fp_ident && !fp_ident.get_is_not_releasable() && !owner_accepts_culture(fp_ident.get_primary_culture())) {
-
-						return true;
-					}
-				}
+				if(state.world.get_core_by_prov_tag_key(p.get_province(), fp_ident))
+					return true;
 			}
 		}
 	}
