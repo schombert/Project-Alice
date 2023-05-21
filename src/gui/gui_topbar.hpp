@@ -347,33 +347,34 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
 
+			auto box = text::open_layout_box(contents, 0);
+			bool bClergyPassed = false;	// Ugly fix but it should work -breizh
+			if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))) > 1.0f) {
+				text::substitution_map sub1;
+				bClergyPassed = true;
+				text::add_to_substitution_map(sub1, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.clergy));
+				text::add_to_substitution_map(sub1, text::variable_type::value, text::fp_two_places{getResearchPointsFromPop(state, state.culture_definitions.clergy, nation_id)});
+				text::add_to_substitution_map(sub1, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
+				text::add_to_substitution_map(sub1, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.clergy) * 100)});
+				text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub1);
+			}
 
-		bool bClergyPassed = false;	// Ugly fix but it should work -breizh
-
-		if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))) > 1.0f) {
-			text::substitution_map sub1;
-			bClergyPassed = true;
-			text::add_to_substitution_map(sub1, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.clergy));
-			text::add_to_substitution_map(sub1, text::variable_type::value, text::fp_two_places{getResearchPointsFromPop(state, state.culture_definitions.clergy, nation_id)});
-			text::add_to_substitution_map(sub1, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
-			text::add_to_substitution_map(sub1, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.clergy) * 100)});
-			text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub1);
+			if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker))) > 1.0f) {
+				text::substitution_map sub2;
+				if(bClergyPassed) { text::add_line_break_to_layout_box(contents, state, box); }
+				text::add_to_substitution_map(sub2, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
+				text::add_to_substitution_map(sub2, text::variable_type::value, text::fp_two_places{getResearchPointsFromPop(state, state.culture_definitions.secondary_factory_worker, nation_id)});
+				text::add_to_substitution_map(sub2, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
+				text::add_to_substitution_map(sub2, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.secondary_factory_worker) * 100)});
+				text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub2);
+			}
+			text::close_layout_box(contents, box);
 		}
-
-		if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker))) > 1.0f) {
-			text::substitution_map sub2;
-			if(bClergyPassed) { text::add_line_break_to_layout_box(contents, state, box); }
-			text::add_to_substitution_map(sub2, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
-			text::add_to_substitution_map(sub2, text::variable_type::value, text::fp_two_places{getResearchPointsFromPop(state, state.culture_definitions.secondary_factory_worker, nation_id)});
-			text::add_to_substitution_map(sub2, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
-			text::add_to_substitution_map(sub2, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.secondary_factory_worker) * 100)});
-			text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub2);
-		}
-
-
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -395,7 +396,7 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
-			auto litChange = (demographics::getEstimateLitChange(state, nation_id) / 30);
+			auto litChange = (demographics::get_estimated_literacy_change(state, nation_id) / 30);
 			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{litChange});	// TODO - This needs to display the estimated literacy change -breizh
 			auto avgLiteracy = text::format_percentage((state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total)), 1);
 			text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avgLiteracy));
@@ -596,7 +597,7 @@ public:
 		
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
-			auto milChange = (demographics::getEstimateMilChange(state, nation_id) / 30);
+			auto milChange = (demographics::get_estimated_mil_change(state, nation_id) / 30);
 			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::militancy) / state.world.nation_get_demographics(nation_id, demographics::total))});
 			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{milChange});	// TODO - This needs to display the estimated militancy change -breizh
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
@@ -625,7 +626,7 @@ public:
 		
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
-			auto conChange = (demographics::getEstimateConChange(state, nation_id) / 30);
+			auto conChange = (demographics::get_estimated_con_change(state, nation_id) / 30);
 			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
 			//text::add_to_substitution_map(sub, text::variable_type::val, text::format_float(fDailyUpdate, 2);
 			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{conChange});	// TODO - This needs to display the estimated conciousness change -breizh

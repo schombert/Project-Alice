@@ -153,10 +153,9 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
-double getEstimateLitChange(sys::state& state, dcon::nation_id n);
-double getEstimateMilChange(sys::state& state, dcon::nation_id n);
-double getEstimateConChange(sys::state& state, dcon::nation_id n);
-double getMonthlyPopChange(sys::state& state, dcon::nation_id);
+float get_estimated_literacy_change(sys::state& state, dcon::nation_id n);
+float get_estimated_mil_change(sys::state& state, dcon::nation_id n);
+float get_estimated_con_change(sys::state& state, dcon::nation_id n);
 
 void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
 void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf);
