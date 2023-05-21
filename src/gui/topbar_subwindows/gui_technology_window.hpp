@@ -336,8 +336,8 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::technology_id>(payload);
 			if(state.ui_state.technology_subwindow) {
-				Cyto::Any payload = technology_select_tech{ content };
-				state.ui_state.technology_subwindow->impl_set(state, payload);
+				Cyto::Any sl_payload = technology_select_tech{ content };
+				state.ui_state.technology_subwindow->impl_set(state, sl_payload);
 			}
 		}
 	}
@@ -571,9 +571,9 @@ public:
 			if(state.world.nation_get_active_inventions(state.local_player_nation, content))
 				frame = 2; // This invention's been discovered
 			else {
-				Cyto::Any payload = dcon::technology_id{};
-				parent->impl_get(state, payload);
-				auto tech_id = any_cast<dcon::technology_id>(payload);
+				Cyto::Any tech_payload = dcon::technology_id{};
+				parent->impl_get(state, tech_payload);
+				auto tech_id = any_cast<dcon::technology_id>(tech_payload);
 				if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
 					frame = 1; // Active technology but not invention
 			} 

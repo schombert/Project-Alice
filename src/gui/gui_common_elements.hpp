@@ -353,9 +353,6 @@ public:
 };
 
 class standard_movement_multiline_text : public multiline_text_element_base {
-protected:
-	dcon::movement_id movement_id{};
-
 public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept { }
 
@@ -370,7 +367,7 @@ public:
 				internal_layout,
 				text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
 			);
-			populate_layout(state, container, movement_id);
+			populate_layout(state, container, content);
 		}
 	}
 };
@@ -398,18 +395,6 @@ public:
 	}
 };
 
-class rebel_type_icon : public opaque_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::rebel_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::rebel_type_id>(payload);
-			frame = int32_t(state.world.rebel_type_get_icon(content) - 1);
-		}
-	}
-};
-
 class standard_rebel_faction_text : public simple_text_element_base {
 public:
 	virtual std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept {
@@ -423,73 +408,6 @@ public:
 			auto content = any_cast<dcon::rebel_faction_id>(payload);
 			set_text(state, get_text(state, content));
 		}
-	}
-};
-
-class rebel_faction_size_text : public standard_rebel_faction_text {
-public:
-	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
-		float total = 0.f;
-		for(auto member : state.world.rebel_faction_get_pop_rebellion_membership(rebel_faction_id)) {
-			total += member.get_pop().get_size();
-		}
-		return text::prettify(int64_t(total));
-	}
-};
-
-class rebel_faction_active_brigade_count_text : public standard_rebel_faction_text {
-public:
-	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
-		auto count = rebel::get_faction_brigades_active(state, rebel_faction_id);
-		return text::prettify(count);
-	}
-};
-
-class rebel_faction_ready_brigade_count_text : public standard_rebel_faction_text {
-public:
-	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
-		auto count = rebel::get_faction_brigades_ready(state, rebel_faction_id);
-		return text::prettify(count);
-	}
-};
-
-class rebel_faction_organization_text : public standard_rebel_faction_text {
-public:
-	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
-		auto org = rebel::get_faction_organization(state, rebel_faction_id);
-		return text::format_percentage(org, 1);
-	}
-};
-
-class rebel_faction_revolt_risk_text : public standard_rebel_faction_text {
-public:
-	std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept override {
-		auto risk = rebel::get_faction_revolt_risk(state, rebel_faction_id);
-		return text::format_percentage(risk, 1);
-	}
-};
-
-class rebel_faction_name_text : public generic_multiline_text<dcon::rebel_faction_id> {
-public:
-	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::rebel_faction_id rebel_faction_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, rebel_faction_id);
-		auto box = text::open_layout_box(contents);
-		text::substitution_map sub;
-		std::string adjective;
-		auto rebelAdj = text::get_adjective_as_string(state, fat_id.get_ruler_from_rebellion_within());
-		text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(rebelAdj));
-		auto culture = fat_id.get_primary_culture();
-		auto defection_target = fat_id.get_defection_target();
-		if(culture.id) {
-			//auto rebelName = text::get_name_as_string(state, culture);
-			text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
-		} else if(defection_target.id) {
-			adjective = text::get_adjective_as_string(state, defection_target);
-			text::add_to_substitution_map(sub, text::variable_type::indep, std::string_view(adjective));
-			text::add_to_substitution_map(sub, text::variable_type::union_adj, std::string_view(adjective));
-		}
-		text::add_to_layout_box(contents, state, box, fat_id.get_type().get_name(), sub);
-		text::close_layout_box(contents, box);
 	}
 };
 

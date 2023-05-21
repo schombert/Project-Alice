@@ -70,9 +70,6 @@ public:
 };
 
 class province_terrain_image : public opaque_element_base {
-private:
-	dcon::province_id province_id{};
-
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {

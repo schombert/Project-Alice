@@ -12,13 +12,11 @@ namespace ui {
 class release_nation_description_text : public generic_multiline_text<dcon::national_identity_id> {
 public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::national_identity_id id) noexcept override {
-		auto nation_id = state.world.national_identity_get_nation_from_identity_holder(id);
-
 		int64_t province_count = 0;
 		std::string provinces = "";
 		state.world.national_identity_for_each_core(id, [&](dcon::core_id core) {
 			auto province = state.world.core_get_province(core);
-			if(state.world.province_get_nation_from_province_ownership(province) == nation_id && province_count++ < 5) {
+			if(state.world.province_get_nation_from_province_ownership(province) == state.local_player_nation && province_count++ < 5) {
 				if(!provinces.empty()) {
 					provinces += ", ";
 				}
