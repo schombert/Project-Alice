@@ -265,7 +265,6 @@ public:
 	}
 };
 
-
 class province_window_header : public window_element_base {
 private:
 	slave_state_icon* slave_icon = nullptr;

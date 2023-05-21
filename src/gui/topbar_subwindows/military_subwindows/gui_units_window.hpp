@@ -69,11 +69,11 @@ public:
             unit_progress = ptr.get();
             return ptr;
         } else if(name == "morale_progress") {
-			auto ptr = make_element_by_type<standard_unit_progress_bar>(state, id);
+			auto ptr = make_element_by_type<vertical_progress_bar>(state, id);
             unit_morale_progress = ptr.get();
             return ptr;
         } else if(name == "strength_progress") {
-			auto ptr = make_element_by_type<standard_unit_progress_bar>(state, id);
+			auto ptr = make_element_by_type<vertical_progress_bar>(state, id);
             unit_strength_progress = ptr.get();
             return ptr;
         } else if(name == "regiments") {

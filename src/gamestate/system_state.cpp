@@ -7,9 +7,10 @@
 #include <algorithm>
 #include <functional>
 #include "parsers_declarations.hpp"
-#include "gui_minimap.hpp"
-#include "gui_topbar.hpp"
 #include "gui_console.hpp"
+#include "gui_minimap.hpp"
+#include "gui_unit_panel.hpp"
+#include "gui_topbar.hpp"
 #include "gui_province_window.hpp"
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
@@ -328,6 +329,15 @@ namespace sys {
 		{
 			auto new_elm = ui::make_element_by_type<ui::province_view_window>(*this, "province_view");
 			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
+			new_elm_army->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(new_elm_army));
+			
+			auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
+			new_elm_navy->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(new_elm_navy));
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
