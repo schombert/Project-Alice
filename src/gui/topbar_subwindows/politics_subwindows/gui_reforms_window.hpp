@@ -49,14 +49,26 @@ public:
 };
 
 class issue_selected_icon : public image_element_base {
+private:
+	dcon::issue_option_id content{};
 public:
+	void on_create(sys::state& state) noexcept override {
+		image_element_base::on_create(state);
+		frame = 0;
+	}
+
+	int32_t get_icon_frame(sys::state& state) noexcept {
+		return 0;
+	}
+
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::issue_option_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::issue_option_id>(payload);
-			set_visible(state, politics::issue_is_selected(state, state.local_player_nation, content));
-		}
+		Cyto::Any payload = dcon::issue_option_id{};
+		parent->impl_get(state, payload);
+		content = any_cast<dcon::issue_option_id>(payload);
+
+		frame = get_icon_frame(state);
+		disabled = !politics::issue_is_selected(state, state.local_player_nation, content);
+		set_visible(state, politics::issue_is_selected(state, state.local_player_nation, content));
 	}
 };
 
