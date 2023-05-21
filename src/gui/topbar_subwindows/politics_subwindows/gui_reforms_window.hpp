@@ -48,7 +48,7 @@ public:
 	}
 };
 
-class issue_selected_icon : public image_element_base {
+class reforms_reform_selected_icon : public image_element_base {
 private:
 	dcon::issue_option_id content{};
 public:
@@ -78,7 +78,7 @@ public:
 		if(name == "reform_name") {
 			return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
 		} else if(name == "selected") {
-			return make_element_by_type<issue_selected_icon>(state, id);
+			return make_element_by_type<reforms_reform_selected_icon>(state, id);
 		} else if(name == "reform_option") {
 			return make_element_by_type<reforms_reform_button>(state, id);
 		} else {
@@ -98,11 +98,9 @@ public:
 			auto issue_id = any_cast<dcon::issue_id>(payload);
 			row_contents.clear();
 			auto fat_id = dcon::fatten(state.world, issue_id);
-			for(auto& option : fat_id.get_options()) {
-				if(option) {
+			for(auto& option : fat_id.get_options())
+				if(option)
 					row_contents.push_back(option);
-				}
-			}
 			update(state);
 			return message_result::consumed;
 		}
