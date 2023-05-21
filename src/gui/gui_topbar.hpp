@@ -391,13 +391,9 @@ public:
 		std::string rulingParty = text::get_name_as_string(state, fat_id.get_ruling_party());
 		rulingParty = rulingParty + " (" + text::get_name_as_string(state, state.world.political_party_get_ideology(state.world.nation_get_ruling_party(nation_id))) + ")";
 
-
-
-		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::curr, std::string_view(rulingParty));
-
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("topbar_ruling_party"), sub);
+		text::localised_single_sub_box(state, contents, box, std::string_view("topbar_ruling_party"), text::variable_type::curr, std::string_view(rulingParty));
+		text::add_divider_to_layout_box(state, contents, box);
 		text::close_layout_box(contents, box);
 	}
 };
