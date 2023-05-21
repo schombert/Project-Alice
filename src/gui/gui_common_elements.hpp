@@ -1575,111 +1575,79 @@ public:
 };
 
 class standard_nation_icon : public image_element_base {
-protected:
-	dcon::nation_id nation_id{};
-
 public:
-	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept {
 		return 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			nation_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+			frame = get_icon_frame(state, nation_id);
 		}
 	}
 };
 
 class standard_nation_progress_bar : public progress_bar {
-protected:
-	dcon::nation_id nation_id{};
-
 public:
-	virtual float get_progress(sys::state& state) noexcept {
+	virtual float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept {
 		return 0.f;
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		progress = get_progress(state);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			nation_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+			progress = get_progress(state, nation_id);
 		}
 	}
 };
 
 class nation_westernization_progress_bar : public standard_nation_progress_bar {
 public:
-	float get_progress(sys::state& state) noexcept override {
+	float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier);
 	}
 };
 
 class standard_state_instance_button : public button_element_base {
-protected:
-	dcon::state_instance_id state_instance_id{};
-
 public:
-	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+	virtual int32_t get_icon_frame(sys::state& state, dcon::state_instance_id state_instance_id) noexcept {
 		return 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::state_instance_id>()) {
-			state_instance_id = any_cast<dcon::state_instance_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto state_instance_id = any_cast<dcon::state_instance_id>(payload);
+			frame = get_icon_frame(state, state_instance_id);
 		}
 	}
 };
 
 class standard_nation_button : public button_element_base {
-protected:
-	dcon::nation_id nation_id{};
-
 public:
-	virtual int32_t get_icon_frame(sys::state& state) noexcept {
+	virtual int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept {
 		return 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		frame = get_icon_frame(state);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			nation_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+			frame = get_icon_frame(state, nation_id);
 		}
 	}
 };
 
 class nation_flag_frame : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto status = nations::get_status(state, nation_id);
 		return std::min(3, int32_t(status));
 	}
@@ -1687,7 +1655,7 @@ public:
 
 class nation_national_value_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto nat_val = state.world.nation_get_national_value(nation_id);
 		return nat_val.get_icon();
 	}
@@ -1697,67 +1665,66 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
-		}
-		auto mod_id = fat_id.get_national_value().id;
-		if(bool(mod_id)) {
-			modifier_description(state, contents, mod_id);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, nation_id);
+			auto name = fat_id.get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
+			auto mod_id = fat_id.get_national_value().id;
+			if(bool(mod_id)) {
+				modifier_description(state, contents, mod_id);
+			}
 		}
 	}
 };
 
 class nation_can_do_social_reform_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!nations::has_social_reform_available(state, nation_id));
 	}
 };
 
 class nation_can_do_political_reform_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!nations::has_political_reform_available(state, nation_id));
 	}
 };
 
 class nation_military_reform_multiplier_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(politics::get_military_reform_multiplier(state, nation_id) <= 0.f);
 	}
 };
 
 class nation_economic_reform_multiplier_icon : public standard_nation_icon {
 public:
-	int32_t get_icon_frame(sys::state& state) noexcept override {
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(politics::get_economic_reform_multiplier(state, nation_id) <= 0.f);
 	}
 };
 
 class nation_ruling_party_ideology_plupp : public tinted_image_element_base {
-protected:
-	dcon::nation_id nation_id{};
-
 public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
-		auto ruling_party = state.world.nation_get_ruling_party(nation_id);
-		auto ideology = state.world.political_party_get_ideology(ruling_party);
-		return state.world.ideology_get_color(ideology);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			nation_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+			auto ruling_party = state.world.nation_get_ruling_party(nation_id);
+			auto ideology = state.world.political_party_get_ideology(ruling_party);
+			return state.world.ideology_get_color(ideology);
 		}
+		return 0;
 	}
 };
 
@@ -1772,7 +1739,6 @@ public:
 class nation_gp_flag : public flag_button {
 public:
 	uint16_t rank = 0;
-
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		const auto nat_id = nations::get_nth_great_power(state, rank);
 		if(!bool(nat_id))
@@ -1783,22 +1749,15 @@ public:
 };
 
 class ideology_plupp : public tinted_image_element_base {
-protected:
-	dcon::ideology_id ideology_id{};
-
 public:
 	uint32_t get_tint_color(sys::state& state) noexcept override {
-		return state.world.ideology_get_color(ideology_id);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::ideology_id>()) {
-			ideology_id = any_cast<dcon::ideology_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+		if(parent) {
+			Cyto::Any payload = dcon::ideology_id{};
+			parent->impl_get(state, payload);
+			auto ideology_id = any_cast<dcon::ideology_id>(payload);
+			return state.world.ideology_get_color(ideology_id);
 		}
+		return 0;
 	}
 };
 
@@ -1915,29 +1874,20 @@ public:
 };
 
 class nation_ideology_percentage_text : public simple_text_element_base {
-protected:
-	dcon::nation_id nation_id{};
-	dcon::ideology_id ideology_id{};
-
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(nation_id && ideology_id) {
-			auto percentage = .01f * state.world.nation_get_upper_house(nation_id, ideology_id);
-			set_text(state, text::format_percentage(percentage, 1));
-		}
-	}
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::ideology_id>()) {
-			ideology_id = any_cast<dcon::ideology_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::nation_id>()) {
-			nation_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}  else {
-			return message_result::unseen;
+			Cyto::Any i_payload = dcon::ideology_id{};
+			parent->impl_get(state, i_payload);
+			auto ideology_id = any_cast<dcon::ideology_id>(i_payload);
+			if(nation_id && ideology_id) {
+				auto percentage = .01f * state.world.nation_get_upper_house(nation_id, ideology_id);
+				set_text(state, text::format_percentage(percentage, 1));
+			}
 		}
 	}
 };

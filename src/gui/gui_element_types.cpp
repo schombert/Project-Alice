@@ -907,13 +907,7 @@ message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::A
 	if(payload.holds_type<RowConT>()) {
 		payload.emplace<RowConT>(content);
 		return message_result::consumed;
-	}
-	return message_result::unseen;
-}
-
-template<class RowConT>
-message_result listbox_row_element_base<RowConT>::set(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
+	} else if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
 		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
 		update(state);
 		return message_result::consumed;
@@ -931,13 +925,7 @@ message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::An
 	if(payload.holds_type<RowConT>()) {
 		payload.emplace<RowConT>(content);
 		return message_result::consumed;
-	}
-	return message_result::unseen;
-}
-
-template<class RowConT>
-message_result listbox_row_button_base<RowConT>::set(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
+	} else if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
 		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
 		update(state);
 		return message_result::consumed;
@@ -968,9 +956,10 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
 		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
 			if(i >= 0) {
-				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ row_contents[i--] };
-				row_windows[rw_i]->impl_set(state, payload);
 				row_windows[rw_i]->set_visible(state, true);
+				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ row_contents[i--] };
+				row_windows[rw_i]->impl_get(state, payload);
+				row_windows[rw_i]->impl_on_update(state);
 			} else {
 				row_windows[rw_i]->set_visible(state, false);
 			}
@@ -979,9 +968,10 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		auto i = size_t(scroll_pos);
 		for(RowWinT* row_window : row_windows) {
 			if(i < row_contents.size()) {
-				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ row_contents[i++] };
-				row_window->impl_set(state, payload);
 				row_window->set_visible(state, true);
+				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{ row_contents[i++] };
+				row_window->impl_get(state, payload);
+				row_window->impl_on_update(state);
 			} else {
 				row_window->set_visible(state, false);
 			}

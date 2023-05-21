@@ -1384,16 +1384,28 @@ public:
 	}
 };
 
-class pop_details_icon : public generic_settable_element<button_element_base, dcon::pop_id> {
+class pop_details_icon : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, state.world.pop_get_poptype(content));
-		frame = int32_t(fat_id.get_sprite() - 1);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, state.world.pop_get_poptype(content));
+			frame = int32_t(fat_id.get_sprite() - 1);
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = pop_details_data(content);
-		state.ui_state.population_subwindow->impl_set(state, payload);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			Cyto::Any dt_payload = pop_details_data(content);
+			state.ui_state.population_subwindow->impl_set(state, dt_payload);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1401,29 +1413,28 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, name);
-			text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			auto name = state.world.pop_type_get_name(state.world.pop_get_poptype(content));
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, name);
+				text::close_layout_box(contents, box);
+			}
 		}
 	}
 };
 
 class pop_item : public listbox_row_element_base<dcon::pop_id> {
 private:
-	pop_details_icon* type = nullptr;
-	image_element_base* religion = nullptr;
 	pop_cash_reserve* cash = nullptr;
 	pop_revolt_faction* revolt = nullptr;
 	pop_growth_indicator* growth = nullptr;
 public:
-	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base<dcon::pop_id>::on_create(state);
-	}
-
-	std::unique_ptr<element_base>
-		make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "pop_size") {
 			return make_element_by_type<pop_size_text>(state, id);
 		} else if(name == "pop_nation") {
@@ -1435,13 +1446,9 @@ public:
 		} else if(name == "pop_con") {
 			return make_element_by_type<pop_con_text>(state, id);
 		} else if(name == "pop_type") {
-			auto ptr = make_element_by_type<pop_details_icon>(state, id);
-			type = ptr.get();
-			return ptr;
+			return make_element_by_type<pop_details_icon>(state, id);
 		} else if(name == "pop_religion") {
-			auto ptr = make_element_by_type<religion_type_icon>(state, id);
-			religion = ptr.get();
-			return ptr;
+			return make_element_by_type<religion_type_icon>(state, id);
 		} else if(name == "pop_ideology") {
 			return make_element_by_type<pop_ideology_piechart>(state, id);
 		} else if(name == "pop_issues") {
@@ -1482,11 +1489,6 @@ public:
 	void update(sys::state& state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 
-		Cyto::Any tpayload = fat_id.get_poptype().id;
-		type->impl_set(state, tpayload);
-		// updated below...
-		Cyto::Any rpayload = fat_id.get_religion().id;
-		religion->impl_set(state, rpayload);
 		// updated below...
 		cash->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
 
@@ -1504,8 +1506,11 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::pop_id>()) {
-			payload.emplace<dcon::pop_id>(content);
+		if(payload.holds_type<dcon::religion_id>()) {
+			payload.emplace<dcon::religion_id>(state.world.pop_get_religion(content));
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::pop_type_id>()) {
+			payload.emplace<dcon::pop_type_id>(state.world.pop_get_poptype(content).id);
 			return message_result::consumed;
 		}
 		return listbox_row_element_base<dcon::pop_id>::get(state, payload);

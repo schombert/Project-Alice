@@ -18,7 +18,17 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier) < 1.f;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			disabled = state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier) < 1.f;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		// TODO: Westernize button action
 	}
 };
 

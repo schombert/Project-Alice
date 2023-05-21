@@ -500,10 +500,12 @@ public:
 		} else if(name == "total_produced_text") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
 			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_produced");
+			ptr->base_data.position.x += 32; // Nudge
 			return ptr;
 		} else if(name == "total_used_text") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
 			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_used");
+			ptr->base_data.position.x += 32; // Nudge
 			return ptr;
 		} else if(name == "total_produced_value") {
 			return make_element_by_type<trade_flow_total_produced_text>(state, id);

@@ -39,23 +39,12 @@ public:
 };
 
 class release_nation_option : public listbox_row_element_base<dcon::national_identity_id> {
-private:
-	flag_button* country_flag = nullptr;
-
 public:
-	void update(sys::state& state) noexcept override {
-		country_flag->set_current_nation(state, content);
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
 			return make_element_by_type<generic_name_text<dcon::national_identity_id>>(state, id);
 		} else if(name == "country_flag") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
-			country_flag = ptr.get();
-			return ptr;
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "type") {
 			return make_element_by_type<national_identity_vassal_type_text>(state, id);
 		} else if(name == "desc") {
@@ -64,15 +53,6 @@ public:
 			return make_element_by_type<button_element_base>(state, id);
 		} else {
 			return nullptr;
-		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::national_identity_id>()) {
-			payload.emplace<dcon::national_identity_id>(content);
-			return message_result::consumed;
-		} else {
-			return listbox_row_element_base<dcon::national_identity_id>::get(state, payload);
 		}
 	}
 };
