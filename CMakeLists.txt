@@ -125,7 +125,6 @@ target_precompile_headers(Alice
 
 target_link_libraries(Alice PRIVATE dependency_DataContainer)
 target_link_libraries(Alice PRIVATE libglew_static)
-target_link_libraries(Alice PRIVATE dependency_unordered_dense)
 target_link_libraries(Alice PRIVATE stb_image)
 target_link_libraries(Alice PRIVATE freetype)
 target_link_libraries(Alice PRIVATE glm)
