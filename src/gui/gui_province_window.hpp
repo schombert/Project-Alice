@@ -56,23 +56,20 @@ public:
 			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
 
 			if(state.ui_state.population_subwindow != nullptr) {
-				Cyto::Any payload = pop_list_filter(province_id);
-				state.ui_state.population_subwindow->impl_set(state, payload);
+				Cyto::Any fl_payload = pop_list_filter(province_id);
+				state.ui_state.population_subwindow->impl_set(state, fl_payload);
 				if(state.ui_state.topbar_subwindow != nullptr)
-				state.ui_state.topbar_subwindow->set_visible(state, false);
+					state.ui_state.topbar_subwindow->set_visible(state, false);
 				state.ui_state.topbar_subwindow = state.ui_state.population_subwindow;
 				state.ui_state.population_subwindow->set_visible(state, true);
 				state.ui_state.root->move_child_to_front(state.ui_state.population_subwindow);
-				//ui_state.population_subwindow->impl_get(*this, payload);
+				//ui_state.population_subwindow->impl_get(*this, fl_payload);
 			}
 		}
 	}
 };
 
 class province_terrain_image : public opaque_element_base {
-private:
-	dcon::province_id province_id{};
-
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
