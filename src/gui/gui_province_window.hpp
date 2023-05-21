@@ -29,7 +29,7 @@ public:
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
 			dcon::province_id prov_id = Cyto::any_cast<dcon::province_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"), text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
 			text::add_divider_to_layout_box(state, contents, box);
@@ -166,7 +166,7 @@ public:
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
 			auto province_id = any_cast<dcon::province_id>(payload);
-		
+
 			auto prov_fat = dcon::fatten(state.world, province_id);
 			auto controller_name = prov_fat.get_province_control_as_province().get_nation().get_name();
 			auto box = text::open_layout_box(contents, 0);
@@ -180,7 +180,39 @@ public:
 
 class province_national_focus_button : public button_element_base {
 public:
+	int32_t get_icon_frame(sys::state& state) noexcept {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+
+			return bool(dcon::fatten(state.world, content).get_state_membership().get_owner_focus()) ? (dcon::fatten(state.world, content).get_state_membership().get_owner_focus().get_icon() - 1) : 0;
+		}
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
 	void button_action(sys::state& state) noexcept override;
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+
+			dcon::national_focus_fat_id focus = dcon::fatten(state.world, content).get_state_membership().get_owner_focus();
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, focus.get_name());
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class province_colony_button : public standard_state_instance_button {
@@ -208,7 +240,7 @@ public:
 			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
 			auto state_instance_id = any_cast<dcon::state_instance_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("pw_colony"));
 			text::add_divider_to_layout_box(state, contents, box);
@@ -833,10 +865,7 @@ public:
 			auto content = any_cast<dcon::province_id>(payload);
 			auto sdef = state.world.province_get_state_from_abstract_state_membership(content);
 			dcon::state_instance_id sid{};
-			// TODO: Better way to obtain state instance from state def
-			state.world.for_each_state_instance([&](dcon::state_instance_id id) {
-				sid = state.world.state_instance_get_definition(id) == sdef ? id : sid;
-			});
+			sid = dcon::fatten(state.world, content).get_state_membership();
 
 			Cyto::Any nf_payload = dcon::national_focus_id{};
 			parent->impl_get(state, nf_payload);
