@@ -117,6 +117,31 @@ public:
 	}
 };
 
+class diplomacy_priority_button : public button_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!nations::is_great_power(state, state.local_player_nation)) {
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio"));
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_dailyinflulence_gain"));
+		}
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio_desc"));
+		text::close_layout_box(contents, box);
+	}
+};
+
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
 private:
 	flag_button* country_flag = nullptr;
@@ -137,6 +162,8 @@ public:
 			return ptr;
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
+		} else if(name == "country_prio") {
+			return make_element_by_type<diplomacy_priority_button>(state, id);
 		} else if(name == "country_boss_flag") {
 			return make_element_by_type<nation_overlord_flag>(state, id);
 		} else if(name == "country_prestige") {

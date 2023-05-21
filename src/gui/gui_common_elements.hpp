@@ -1515,72 +1515,10 @@ public:
 };
 
 class nation_daily_research_points_text : public standard_nation_text {
-private:
-	float getResearchPointsFromPop() {
-		float sum = 0.0f;
-		/*state.world.for_each_pop_type([&](dcon::pop_type_id t) {
-			auto rp = state.world.pop_type_get_research_points(t);
-			if(rp > 0) {
-				sum += rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, t)) /
-						(state.world.nation_get_demographics(nation_id, demographics::total) * state.world.pop_type_get_research_optimum(t)));
-			}
-		});*/
-		return sum;
-	}
 public:
 	std::string get_text(sys::state& state) noexcept override {
 		auto points = nations::daily_research_points(state, nation_id);
 		return text::format_float(points, 2);
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		float sum_from_pops = 0;
-		float total_clergy = 0;
-		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
-				auto rp = state.world.pop_type_get_research_points(t);
-				if(rp > 0) {
-					total_clergy += state.world.nation_get_demographics(nation_id, demographics::to_key(state, t));
-					sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, t)) / (state.world.nation_get_demographics(nation_id, demographics::total) * state.world.pop_type_get_research_optimum(t)));
-				}
-		});
-
-		total_clergy = (total_clergy / state.world.nation_get_demographics(nation_id, demographics::total)) * 100;	// TODO - there is most certainly a better way to do this, it also fails to replicate vic2 closely enough, atleast in my opinion -breizh
-
-		auto box = text::open_layout_box(contents, 0);
-
-
-		bool bClergyPassed = false;	// Ugly fix but it should work -breizh
-
-		if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))) > 1.0f) {
-			text::substitution_map sub1;
-			bClergyPassed = true;
-			text::add_to_substitution_map(sub1, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.clergy));
-			text::add_to_substitution_map(sub1, text::variable_type::value, std::string_view("PLACEHOLDER"));
-			text::add_to_substitution_map(sub1, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
-			text::add_to_substitution_map(sub1, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.clergy) * 100)});
-			text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub1);
-		}
-
-		if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker))) > 1.0f) {
-			text::substitution_map sub2;
-			if(bClergyPassed) { text::add_line_break_to_layout_box(contents, state, box); }
-			text::add_to_substitution_map(sub2, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
-			text::add_to_substitution_map(sub2, text::variable_type::value, std::string_view("PLACEHOLDER"));
-			text::add_to_substitution_map(sub2, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
-			text::add_to_substitution_map(sub2, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.secondary_factory_worker) * 100)});
-			text::localised_format_box(state, contents, box, std::string_view("tech_daily_researchpoints_tooltip"), sub2);
-		}
-
-
-		text::close_layout_box(contents, box);
 	}
 };
 
