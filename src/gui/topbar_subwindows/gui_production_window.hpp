@@ -285,14 +285,14 @@ public:
 
 class production_good_info : public window_element_base {
 	dcon::commodity_id commodity_id{};
-	commodity_output_total_text* good_output_total = nullptr;
+	commodity_player_production_text* good_output_total = nullptr;
 	image_element_base* good_not_producing_overlay = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "output_factory") {
 			return make_element_by_type<commodity_factory_image>(state, id);
 		} else if(name == "output_total") {
-			auto ptr = make_element_by_type<commodity_output_total_text>(state, id);
+			auto ptr = make_element_by_type<commodity_player_production_text>(state, id);
 			good_output_total = ptr.get();
 			return ptr;
 		} else if(name == "prod_producing_not_total") {
