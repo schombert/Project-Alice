@@ -387,6 +387,15 @@ public:
 
 class pop_cash_reserve_text : public simple_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+			set_text(state, text::format_money(state.world.pop_get_savings(content)));
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -468,11 +477,17 @@ public:
 		}
 	}
 };
-class pop_militancy_text : public generic_settable_element<simple_text_element_base, dcon::pop_id> {
+class pop_militancy_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		const auto fat_id = dcon::fatten(state.world, content);
-		set_text(state, text::format_float(fat_id.get_militancy()));
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			const auto fat_id = dcon::fatten(state.world, content);
+			set_text(state, text::format_float(fat_id.get_militancy()));
+		}
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -491,11 +506,17 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
-class pop_con_text : public generic_settable_element<simple_text_element_base, dcon::pop_id> {
+class pop_con_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		const auto fat_id = dcon::fatten(state.world, content);
-		set_text(state, text::format_float(fat_id.get_consciousness()));
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			const auto fat_id = dcon::fatten(state.world, content);
+			set_text(state, text::format_float(fat_id.get_consciousness()));
+		}
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -514,11 +535,17 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
-class pop_literacy_text : public generic_settable_element<simple_text_element_base, dcon::pop_id> {
+class pop_literacy_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		const auto fat_id = dcon::fatten(state.world, content);
-		set_text(state, text::format_percentage(fat_id.get_literacy(), 2));
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			const auto fat_id = dcon::fatten(state.world, content);
+			set_text(state, text::format_percentage(fat_id.get_literacy(), 2));
+		}
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -558,14 +585,19 @@ enum class pop_list_sort : uint8_t {
 	literacy
 };
 
-class standard_pop_progress_bar : public generic_settable_element<progress_bar, dcon::pop_id> {
+class standard_pop_progress_bar : public progress_bar {
 public:
-    virtual float get_progress(sys::state& state) noexcept {
+    virtual float get_progress(sys::state& state, dcon::pop_id content) noexcept {
         return 0.f;
     }
 
     void on_update(sys::state& state) noexcept override {
-        progress = get_progress(state);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+        	progress = get_progress(state, content);
+		}
     }
 
     void on_create(sys::state& state) noexcept override {
@@ -575,14 +607,19 @@ public:
         base_data.size.x = 13;
     }
 };
-class standard_pop_needs_progress_bar : public generic_settable_element<progress_bar, dcon::pop_id> {
+class standard_pop_needs_progress_bar : public progress_bar {
 public:
-    virtual float get_progress(sys::state& state) noexcept {
+    virtual float get_progress(sys::state& state, dcon::pop_id content) noexcept {
         return 0.f;
     }
 
     void on_update(sys::state& state) noexcept override {
-        progress = get_progress(state);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+			progress = get_progress(state, content);
+		}
     }
 
     void on_create(sys::state& state) noexcept override {
@@ -595,7 +632,7 @@ public:
 
 class pop_unemployment_progress_bar : public standard_pop_progress_bar {
 public:
-	float get_progress(sys::state& state) noexcept override {
+	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto pfat_id = dcon::fatten(state.world, content);
 		if(state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content)))
 			return (1 - pfat_id.get_employment() / pfat_id.get_size());
@@ -611,18 +648,24 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto pfat_id = dcon::fatten(state.world, content);
-		float un_empl = state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content)) ? (1 - pfat_id.get_employment() / pfat_id.get_size()) : 0.0f;
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("unemployment"), text::substitution_map{});
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, text::fp_percentage{un_empl});
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			auto pfat_id = dcon::fatten(state.world, content);
+			float un_empl = state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content)) ? (1 - pfat_id.get_employment() / pfat_id.get_size()) : 0.0f;
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("unemployment"), text::substitution_map{});
+			text::add_space_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, text::fp_percentage{un_empl});
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 class pop_life_needs_progress_bar : public standard_pop_needs_progress_bar {
 public:
-	float get_progress(sys::state& state) noexcept override {
+	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_life_needs_satisfaction();
 	}
@@ -636,19 +679,25 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::need, state.key_to_text_sequence.find(std::string_view("life_needs"))->second);
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction()});
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, content);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::need, state.key_to_text_sequence.find(std::string_view("life_needs"))->second);
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction()});
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
 class pop_everyday_needs_progress_bar : public standard_pop_needs_progress_bar {
 public:
-	float get_progress(sys::state& state) noexcept override {
+	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_everyday_needs_satisfaction();
 	}
@@ -662,19 +711,25 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::need, state.key_to_text_sequence.find(std::string_view("everyday_needs"))->second);
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction()});
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, content);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::need, state.key_to_text_sequence.find(std::string_view("everyday_needs"))->second);
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction()});
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
 class pop_luxury_needs_progress_bar : public standard_pop_needs_progress_bar {
 public:
-	float get_progress(sys::state& state) noexcept override {
+	float get_progress(sys::state& state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_luxury_needs_satisfaction();
 	}
@@ -688,13 +743,19 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::need, state.key_to_text_sequence.find(std::string_view("luxury_needs"))->second);
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction()});
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::pop_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::pop_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, content);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::need, state.key_to_text_sequence.find(std::string_view("luxury_needs"))->second);
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction()});
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
