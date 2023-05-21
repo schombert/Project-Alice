@@ -11,12 +11,12 @@ namespace ui {
 
 class release_nation_description_text : public generic_multiline_text<dcon::national_identity_id> {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::national_identity_id national_identity_id) noexcept override {
-		auto nation_id = state.world.national_identity_get_nation_from_identity_holder(national_identity_id);
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::national_identity_id id) noexcept override {
+		auto nation_id = state.world.national_identity_get_nation_from_identity_holder(id);
 
 		int64_t province_count = 0;
 		std::string provinces = "";
-		state.world.national_identity_for_each_core(national_identity_id, [&](dcon::core_id core) {
+		state.world.national_identity_for_each_core(id, [&](dcon::core_id core) {
 			auto province = state.world.core_get_province(core);
 			if(state.world.province_get_nation_from_province_ownership(province) == nation_id && province_count++ < 5) {
 				if(!provinces.empty()) {
@@ -27,7 +27,7 @@ public:
 		});
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::tag, national_identity_id);
+		text::add_to_substitution_map(sub, text::variable_type::tag, id);
 		text::add_to_substitution_map(sub, text::variable_type::num, province_count);
 		text::add_to_substitution_map(sub, text::variable_type::provinces, std::string_view(provinces));
 		text::localised_format_box(state, contents, box, std::string_view("politics_release_vassal_desc"), sub);

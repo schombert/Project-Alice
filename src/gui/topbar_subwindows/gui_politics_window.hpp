@@ -53,14 +53,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			payload.emplace<dcon::nation_id>(state.local_player_nation);
-			return message_result::consumed;
-		}
-		return listbox_row_element_base<dcon::ideology_id>::get(state, payload);
-	}
 };
 
 class politics_upper_house_listbox : public listbox_element_base<politics_upper_house_entry, dcon::ideology_id> {
@@ -68,7 +60,6 @@ protected:
 	std::string_view get_row_element_name() override {
         return "ideology_option_window";
     }
-
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
@@ -251,12 +242,19 @@ public:
 			return nullptr;
 		}
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::political_party_id>()) {
+			payload.emplace<dcon::political_party_id>(state.world.nation_get_ruling_party(state.local_player_nation));
+			return message_result::consumed;
+		}
+		return window_element_base::get(state, payload);
+	}
 };
 
 class nation_government_description_text : public standard_nation_multiline_text {
 public:
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
-		
 		if(politics::can_appoint_ruling_party(state, nation_id)) {
 			auto k = state.key_to_text_sequence.find(std::string_view("can_appoint_ruling_party"));
 			if(k != state.key_to_text_sequence.end()) {
@@ -337,11 +335,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any issue_option_payload = content;
-		impl_set(state, issue_option_payload);
-	}
 };
 
 class politics_issue_support_listbox : public listbox_element_base<politics_issue_support_item, dcon::issue_option_id> {
@@ -349,7 +342,6 @@ protected:
 	std::string_view get_row_element_name() override {
         return "issue_option_window";
     }
-
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base<politics_issue_support_item, dcon::issue_option_id>::on_create(state);
@@ -374,23 +366,18 @@ public:
 
 class politics_window : public generic_tabbed_window<politics_window_tab> {
 private:
-	dcon::nation_id nation_id{};
 	reforms_window* reforms_win = nullptr;
 	unciv_reforms_window* unciv_reforms_win = nullptr;
 	movements_window* movements_win = nullptr;
 	decision_window* decision_win = nullptr;
 	release_nation_window* release_nation_win = nullptr;
 	politics_issue_support_listbox* issues_listbox = nullptr;
-
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 		auto ptr = make_element_by_type<politics_ruling_party_window>(state, "party_window");
 		add_child_to_front(std::move(ptr));
 		set_visible(state, false);
-		nation_id = state.local_player_nation;
-		Cyto::Any payload = nation_id;
-		impl_set(state, payload);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
@@ -485,19 +472,15 @@ public:
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
-		if(nation_id != state.local_player_nation) {
-			nation_id = state.local_player_nation;
-			Cyto::Any payload = nation_id;
-			impl_set(state, payload);
-		}
-		if(state.world.nation_get_is_civilized(nation_id) && unciv_reforms_win->is_visible()) {
+		if(state.world.nation_get_is_civilized(state.local_player_nation) && unciv_reforms_win->is_visible()) {
 			unciv_reforms_win->set_visible(state, false);
 			reforms_win->set_visible(state, true);
-		} else if(!state.world.nation_get_is_civilized(nation_id) && reforms_win->is_visible()) {
+		} else if(!state.world.nation_get_is_civilized(state.local_player_nation) && reforms_win->is_visible()) {
 			reforms_win->set_visible(state, false);
 			unciv_reforms_win->set_visible(state, true);
 		}
 	}
+	
 	void hide_sub_windows(sys::state& state) {
 		reforms_win->set_visible(state, false);
 		unciv_reforms_win->set_visible(state, false);
@@ -505,13 +488,14 @@ public:
 		movements_win->set_visible(state, false);
 		release_nation_win->set_visible(state, false);
 	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<politics_window_tab>()) {
 			auto enum_val = any_cast<politics_window_tab>(payload);
 			hide_sub_windows(state);
 			switch(enum_val) {
 				case politics_window_tab::reforms:
-					if(state.world.nation_get_is_civilized(nation_id)) {
+					if(state.world.nation_get_is_civilized(state.local_player_nation)) {
 						reforms_win->set_visible(state, true);
 					} else {
 						unciv_reforms_win->set_visible(state, true);
@@ -530,7 +514,7 @@ public:
 			active_tab = enum_val;
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
-			payload.emplace<dcon::nation_id>(nation_id);
+			payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
 		} else if(payload.holds_type<politics_issue_sort_order>()) {
 			auto enum_val = any_cast<politics_issue_sort_order>(payload);
@@ -545,16 +529,16 @@ public:
 					break;
 				case politics_issue_sort_order::popular_support:
 					std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(), [&](dcon::issue_option_id a, dcon::issue_option_id b) {
-						auto a_support = politics::get_popular_support(state, nation_id, a);
-						auto b_support = politics::get_popular_support(state, nation_id, b);
+						auto a_support = politics::get_popular_support(state, state.local_player_nation, a);
+						auto b_support = politics::get_popular_support(state, state.local_player_nation, b);
 						return a_support > b_support;
 					});
 					issues_listbox->update(state);
 					break;
 				case politics_issue_sort_order::voter_support:
 					std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(), [&](dcon::issue_option_id a, dcon::issue_option_id b) {
-						auto a_support = politics::get_voter_support(state, nation_id, a);
-						auto b_support = politics::get_voter_support(state, nation_id, b);
+						auto a_support = politics::get_voter_support(state, state.local_player_nation, a);
+						auto b_support = politics::get_voter_support(state, state.local_player_nation, b);
 						return a_support > b_support;
 					});
 					issues_listbox->update(state);

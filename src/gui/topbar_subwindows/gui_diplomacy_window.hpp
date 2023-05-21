@@ -753,8 +753,7 @@ public:
 		gp_action_dialog_win = new_win2.get();
 		add_child_to_front(std::move(new_win2));
 
-		Cyto::Any payload = state.local_player_nation;
-		impl_get(state, payload);
+		facts_nation_id = state.local_player_nation;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

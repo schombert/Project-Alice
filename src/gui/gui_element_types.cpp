@@ -1172,15 +1172,15 @@ void overlapping_truce_flags::populate_flags(sys::state& state) {
 
 dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
 	if(parent) {
-		Cyto::Any payload = dcon::nation_id{};
-		parent->impl_get(state, payload);
-		auto nation = any_cast<dcon::nation_id>(payload);
+		Cyto::Any identity_payload = dcon::national_identity_id{};
+		parent->impl_get(state, identity_payload);
+		auto nation = any_cast<dcon::national_identity_id>(identity_payload);
 		if(bool(nation)) {
-			return state.world.nation_get_identity_from_identity_holder(nation);
+			return nation;
 		} else {
-			Cyto::Any identity_payload = dcon::national_identity_id{};
-			parent->impl_get(state, identity_payload);
-			return any_cast<dcon::national_identity_id>(identity_payload);
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			return state.world.nation_get_identity_from_identity_holder(any_cast<dcon::nation_id>(payload));
 		}
 	}
 	return dcon::national_identity_id{};

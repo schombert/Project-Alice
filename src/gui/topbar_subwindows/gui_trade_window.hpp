@@ -252,7 +252,6 @@ class trade_flow_entry : public listbox_row_element_base<trade_flow_data> {
 	simple_text_element_base* title = nullptr;
 	simple_text_element_base* value = nullptr;
 	image_element_base* output_icon = nullptr;
-	dcon::commodity_id commodity_id{};
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "icon") {
@@ -277,156 +276,169 @@ public:
 	}
 
 	void update(sys::state& state) noexcept override {
-		icon->frame = int32_t(content.type);
-		if(content.type == trade_flow_data::type::military_navy)
-			icon->frame = int32_t(trade_flow_data::type::military_army);
-		
-		output_icon->set_visible(state, content.value_type != trade_flow_data::value_type::produced_by);
-		value->set_visible(state, content.value_type != trade_flow_data::value_type::may_be_used_by);
-		float amount = 0.f;
-		switch(content.type) {
-		case trade_flow_data::type::factory: {
-			auto fid = content.data.factory_id;
-			auto ftid = state.world.factory_get_building_type(fid);
-			switch(content.value_type) {
-			case trade_flow_data::value_type::produced_by: {
-				amount += state.world.factory_get_actual_production(fid);
-			} break;
-			case trade_flow_data::value_type::used_by: {
-				auto& inputs = state.world.factory_type_get_inputs(ftid);
-				for(uint32_t i = 0; i < inputs.set_size; ++i)
-					if(inputs.commodity_type[i] == commodity_id)
-						amount += inputs.commodity_amounts[i];
-				output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
-			} break;
-			case trade_flow_data::value_type::may_be_used_by: {
-				auto& inputs = state.world.factory_type_get_inputs(ftid);
-				output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
-			} break;
-			default:
-				break;
-			}
-			auto name = state.world.factory_type_get_name(ftid);
-			title->set_text(state, text::produce_simple_string(state, name));
-		} break;
-		case trade_flow_data::type::province: {
-			auto pid = content.data.province_id;
-			switch(content.value_type) {
-			case trade_flow_data::value_type::produced_by: {
-				amount += state.world.province_get_rgo_actual_production(pid);
-			} break;
-			case trade_flow_data::value_type::used_by:
-			case trade_flow_data::value_type::may_be_used_by:
-			default:
-				break;
-			}
-			auto name = state.world.province_get_name(pid);
-			title->set_text(state, text::produce_simple_string(state, name));
-		} break;
-		case trade_flow_data::type::pop:
-			break;
-		case trade_flow_data::type::military_army:
-			break;
-		case trade_flow_data::type::military_navy:
-			break;
-		default:
-			break;
-		}
-		if(value->is_visible())
-			value->set_text(state, text::format_float(amount, 2));
-	}
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto commodity_id = any_cast<dcon::commodity_id>(payload);
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			return message_result::consumed;
+			icon->frame = int32_t(content.type);
+			if(content.type == trade_flow_data::type::military_navy)
+				icon->frame = int32_t(trade_flow_data::type::military_army);
+			
+			output_icon->set_visible(state, content.value_type != trade_flow_data::value_type::produced_by);
+			value->set_visible(state, content.value_type != trade_flow_data::value_type::may_be_used_by);
+			float amount = 0.f;
+			switch(content.type) {
+			case trade_flow_data::type::factory: {
+				auto fid = content.data.factory_id;
+				auto ftid = state.world.factory_get_building_type(fid);
+				switch(content.value_type) {
+				case trade_flow_data::value_type::produced_by: {
+					amount += state.world.factory_get_actual_production(fid);
+				} break;
+				case trade_flow_data::value_type::used_by: {
+					auto& inputs = state.world.factory_type_get_inputs(ftid);
+					for(uint32_t i = 0; i < inputs.set_size; ++i)
+						if(inputs.commodity_type[i] == commodity_id)
+							amount += inputs.commodity_amounts[i];
+					output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
+				} break;
+				case trade_flow_data::value_type::may_be_used_by: {
+					auto& inputs = state.world.factory_type_get_inputs(ftid);
+					output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
+				} break;
+				default:
+					break;
+				}
+				auto name = state.world.factory_type_get_name(ftid);
+				title->set_text(state, text::produce_simple_string(state, name));
+			} break;
+			case trade_flow_data::type::province: {
+				auto pid = content.data.province_id;
+				switch(content.value_type) {
+				case trade_flow_data::value_type::produced_by: {
+					amount += state.world.province_get_rgo_actual_production(pid);
+				} break;
+				case trade_flow_data::value_type::used_by:
+				case trade_flow_data::value_type::may_be_used_by:
+				default:
+					break;
+				}
+				auto name = state.world.province_get_name(pid);
+				title->set_text(state, text::produce_simple_string(state, name));
+			} break;
+			case trade_flow_data::type::pop:
+				break;
+			case trade_flow_data::type::military_army:
+				break;
+			case trade_flow_data::type::military_navy:
+				break;
+			default:
+				break;
+			}
+			if(value->is_visible())
+				value->set_text(state, text::format_float(amount, 2));
 		}
-		return message_result::unseen;
 	}
 };
 class trade_flow_listbox_base : public listbox_element_base<trade_flow_entry, trade_flow_data> {
 protected:
-	dcon::commodity_id commodity_id{};
 	std::string_view get_row_element_name() override {
         return "trade_flow_entry";
     }
 
 	template<typename F>
 	void populate_rows(sys::state& state, F&& factory_func, enum trade_flow_data::value_type vt) {
-		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
-				auto fat_id = dcon::fatten(state.world, pid);
-				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-					auto fid = state.world.factory_location_get_factory(flid);
-					if(factory_func(fid)) {
-						trade_flow_data td{};
-						td.type = trade_flow_data::type::factory;
-						td.value_type = vt;
-						td.data.factory_id = fid;
-						row_contents.push_back(td);
-					}
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto commodity_id = any_cast<dcon::commodity_id>(payload);
+
+			for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+				province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
+					auto fat_id = dcon::fatten(state.world, pid);
+					fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+						auto fid = state.world.factory_location_get_factory(flid);
+						if(factory_func(fid)) {
+							trade_flow_data td{};
+							td.type = trade_flow_data::type::factory;
+							td.value_type = vt;
+							td.data.factory_id = fid;
+							row_contents.push_back(td);
+						}
+					});
+					if(vt == trade_flow_data::value_type::produced_by)
+						if(state.world.province_get_rgo(pid) == commodity_id) {
+							trade_flow_data td{};
+							td.type = trade_flow_data::type::province;
+							td.value_type = vt;
+							td.data.province_id = pid;
+							row_contents.push_back(td);
+						}
 				});
-				if(vt == trade_flow_data::value_type::produced_by)
-					if(state.world.province_get_rgo(pid) == commodity_id) {
-						trade_flow_data td{};
-						td.type = trade_flow_data::type::province;
-						td.value_type = vt;
-						td.data.province_id = pid;
-						row_contents.push_back(td);
-					}
-			});
+			}
 		}
 	}
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
 };
 
 class trade_flow_produced_by_listbox : public trade_flow_listbox_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		populate_rows(state, [&](dcon::factory_id fid) -> bool {
-			auto ftid = state.world.factory_get_building_type(fid);
-			return state.world.factory_type_get_output(ftid) == commodity_id;
-		}, trade_flow_data::value_type::produced_by);
-		update(state);
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto commodity_id = any_cast<dcon::commodity_id>(payload);
+
+			row_contents.clear();
+			populate_rows(state, [&](dcon::factory_id fid) -> bool {
+				auto ftid = state.world.factory_get_building_type(fid);
+				return state.world.factory_type_get_output(ftid) == commodity_id;
+			}, trade_flow_data::value_type::produced_by);
+			update(state);
+		}
 	}
 };
 class trade_flow_used_by_listbox : public trade_flow_listbox_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		populate_rows(state, [&](dcon::factory_id fid) -> bool {
-			auto ftid = state.world.factory_get_building_type(fid);
-			auto& inputs = state.world.factory_type_get_inputs(ftid);
-			for(uint32_t i = 0; i < inputs.set_size; ++i)
-				if(inputs.commodity_type[i] == commodity_id)
-					return inputs.commodity_amounts[i] > 0.f; // Some inputs taken
-			return false;
-		}, trade_flow_data::value_type::used_by);
-		update(state);
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto commodity_id = any_cast<dcon::commodity_id>(payload);
+
+			row_contents.clear();
+			populate_rows(state, [&](dcon::factory_id fid) -> bool {
+				auto ftid = state.world.factory_get_building_type(fid);
+				auto& inputs = state.world.factory_type_get_inputs(ftid);
+				for(uint32_t i = 0; i < inputs.set_size; ++i)
+					if(inputs.commodity_type[i] == commodity_id)
+						return inputs.commodity_amounts[i] > 0.f; // Some inputs taken
+				return false;
+			}, trade_flow_data::value_type::used_by);
+			update(state);
+		}
 	}
 };
 class trade_flow_may_be_used_by_listbox : public trade_flow_listbox_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		populate_rows(state, [&](dcon::factory_id fid) -> bool {
-			auto ftid = state.world.factory_get_building_type(fid);
-			auto& inputs = state.world.factory_type_get_inputs(ftid);
-			for(uint32_t i = 0; i < inputs.set_size; ++i)
-				if(inputs.commodity_type[i] == commodity_id)
-					return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
-			return false;
-		}, trade_flow_data::value_type::may_be_used_by);
-		update(state);
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto commodity_id = any_cast<dcon::commodity_id>(payload);
+		
+			row_contents.clear();
+			populate_rows(state, [&](dcon::factory_id fid) -> bool {
+				auto ftid = state.world.factory_get_building_type(fid);
+				auto& inputs = state.world.factory_type_get_inputs(ftid);
+				for(uint32_t i = 0; i < inputs.set_size; ++i)
+					if(inputs.commodity_type[i] == commodity_id)
+						return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
+				return false;
+			}, trade_flow_data::value_type::may_be_used_by);
+			update(state);
+		}
 	}
 };
 
@@ -557,19 +569,16 @@ struct trade_details_open_window {
 	dcon::commodity_id commodity_id{};
 };
 class trade_details_button : public button_element_base {
-	dcon::commodity_id commodity_id{};
 public:
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = trade_details_open_window{ commodity_id };
-		state.ui_state.trade_subwindow->impl_get(state, payload);
-	}
+		if(parent) {
+			Cyto::Any payload = dcon::commodity_id{};
+			parent->impl_get(state, payload);
+			auto commodity_id = any_cast<dcon::commodity_id>(payload);
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::commodity_id>()) {
-			commodity_id = any_cast<dcon::commodity_id>(payload);
-			return message_result::consumed;
+			Cyto::Any dt_payload = trade_details_open_window{ commodity_id };
+			state.ui_state.trade_subwindow->impl_get(state, dt_payload);
 		}
-		return message_result::unseen;
 	}
 };
 class trade_details_window : public window_element_base {

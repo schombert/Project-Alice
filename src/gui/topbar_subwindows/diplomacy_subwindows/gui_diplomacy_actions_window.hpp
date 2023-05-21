@@ -412,29 +412,38 @@ public:
 	}
 };
 
-class diplomacy_action_war_subisides_button : public generic_settable_element<button_element_base, dcon::nation_id> {
-	bool can_cancel(sys::state& state) noexcept {
+class diplomacy_action_war_subisides_button : public button_element_base {
+	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
 		// TODO - test if we local_player_nation has military access to the other country
 		return false;
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_button_text(state, text::produce_simple_string(state,
-			can_cancel(state) ? "cancel_warsubsidies_button"
-				: "warsubsidies_button"));
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
 
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
+			set_button_text(state, text::produce_simple_string(state,
+				can_cancel(state, content) ? "cancel_warsubsidies_button"
+					: "warsubsidies_button"));
+
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		bool can_cancel = false;
 		if(parent) {
-			Cyto::Any payload = can_cancel ? diplomacy_action::cancel_war_subsidies
-				: diplomacy_action::war_subsidies;
+			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			Cyto::Any ac_payload = can_cancel(state, content) ? diplomacy_action::cancel_war_subsidies
+				: diplomacy_action::war_subsidies;
+			parent->impl_get(state, ac_payload);
 		}
 	}
 
@@ -447,20 +456,26 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		can_cancel(state) ? text::localised_format_box(state, contents, box, std::string_view("cancel_warsubsidies_desc")) : text::localised_format_box(state, contents, box, std::string_view("warsubsidies_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			can_cancel(state, content) ? text::localised_format_box(state, contents, box, std::string_view("cancel_warsubsidies_desc")) : text::localised_format_box(state, contents, box, std::string_view("warsubsidies_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
 
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -590,7 +605,7 @@ public:
 	}
 };
 
-class diplomacy_action_discredit_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class diplomacy_action_discredit_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -598,12 +613,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
-		else if(!nations::is_great_power(state, state.local_player_nation))
-			disabled = true;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+			else if(!nations::is_great_power(state, state.local_player_nation))
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -622,26 +643,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("discredit_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else if(!nations::is_great_power(state, state.local_player_nation)) {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("discredit_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else if(!nations::is_great_power(state, state.local_player_nation)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
+				
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
-class diplomacy_action_expel_advisors_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class diplomacy_action_expel_advisors_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -649,12 +676,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
-		else if(!nations::is_great_power(state, state.local_player_nation))
-			disabled = true;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+			else if(!nations::is_great_power(state, state.local_player_nation))
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -673,26 +706,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("expeladvisors_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else if(!nations::is_great_power(state, state.local_player_nation)) {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("expeladvisors_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else if(!nations::is_great_power(state, state.local_player_nation)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
+				
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
-class diplomacy_action_ban_embassy_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class diplomacy_action_ban_embassy_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -700,12 +739,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
-		else if(!nations::is_great_power(state, state.local_player_nation))
-			disabled = true;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+			else if(!nations::is_great_power(state, state.local_player_nation))
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -724,26 +769,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("banembassy_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else if(!nations::is_great_power(state, state.local_player_nation)) {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("banembassy_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else if(!nations::is_great_power(state, state.local_player_nation)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
+				
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
-class diplomacy_action_increase_opinion_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class diplomacy_action_increase_opinion_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -751,12 +802,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
-		else if(!nations::is_great_power(state, state.local_player_nation))
-			disabled = true;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+			else if(!nations::is_great_power(state, state.local_player_nation))
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -775,26 +832,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("increaseopinion_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else if(!nations::is_great_power(state, state.local_player_nation)) {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("increaseopinion_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else if(!nations::is_great_power(state, state.local_player_nation)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
+				
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
-class diplomacy_action_decrease_opinion_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class diplomacy_action_decrease_opinion_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -802,12 +865,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
-		else if(!nations::is_great_power(state, state.local_player_nation))
-			disabled = true;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+			else if(!nations::is_great_power(state, state.local_player_nation))
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -826,26 +895,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("decreaseopinion_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else if(!nations::is_great_power(state, state.local_player_nation)) {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("decreaseopinion_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else if(!nations::is_great_power(state, state.local_player_nation)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
+				
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
-class diplomacy_action_add_to_sphere_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class diplomacy_action_add_to_sphere_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -853,12 +928,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
-		else if(!nations::is_great_power(state, state.local_player_nation))
-			disabled = true;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+			else if(!nations::is_great_power(state, state.local_player_nation))
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -877,26 +958,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("addtosphere_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else if(!nations::is_great_power(state, state.local_player_nation)) {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("addtosphere_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else if(!nations::is_great_power(state, state.local_player_nation)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
+				
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
-class diplomacy_action_remove_from_sphere_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class diplomacy_action_remove_from_sphere_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -904,12 +991,18 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
-		else if(!nations::is_great_power(state, state.local_player_nation))
-			disabled = true;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+			else if(!nations::is_great_power(state, state.local_player_nation))
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -928,26 +1021,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("removefromsphere_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else if(!nations::is_great_power(state, state.local_player_nation)) {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("removefromsphere_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else if(!nations::is_great_power(state, state.local_player_nation)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
+				
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
-class diplomacy_action_justify_war_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class diplomacy_action_justify_war_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -955,10 +1054,16 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		// TODO: Conditions for enabling/disabling
-		disabled = false;
-		if(content == state.local_player_nation)
-			disabled = true;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			// TODO: Conditions for enabling/disabling
+			disabled = false;
+			if(content == state.local_player_nation)
+				disabled = true;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -974,20 +1079,26 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("make_cb_desc"));
-		text::add_divider_to_layout_box(state, contents, box);
-		if(content == state.local_player_nation) {
-			text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			
-			text::substitution_map ai_map{};
-			text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("make_cb_desc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::add_line_break_to_layout_box(contents, state, box);
+				
+				text::substitution_map ai_map{};
+				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1138,12 +1249,8 @@ public:
 	}
 };
 // Country's flag
-class diplomacy_action_dialog_right_flag_image : public generic_settable_element<flag_button, dcon::nation_id> {
+class diplomacy_action_dialog_right_flag_image : public flag_button {
 public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		return state.world.nation_get_identity_from_identity_holder(content);
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		flag_button::set_current_nation(state, get_current_nation(state));
 	}
@@ -1195,11 +1302,6 @@ public:
 			return message_result::consumed;
 		}
 		return window_element_base::get(state, payload);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = nations::get_nth_great_power(state, rank);
-		impl_set(state, payload);
 	}
 };
 
