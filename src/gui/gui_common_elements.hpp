@@ -1949,4 +1949,157 @@ public:
 	}
 };
 
+// -----------------------------------------------------------------------------
+// National focuses
+class national_focus_icon : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::national_focus_id{};
+			parent->impl_get(state, payload);
+			auto nfid = any_cast<dcon::national_focus_id>(payload);
+
+			Cyto::Any s_payload = dcon::state_instance_id{};
+			parent->impl_get(state, s_payload);
+			auto sid = any_cast<dcon::state_instance_id>(s_payload);
+
+			disabled = !command::can_set_national_focus(state, state.local_player_nation, sid, nfid);
+			frame = state.world.national_focus_get_icon(nfid) - 1;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::national_focus_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::national_focus_id>(payload);
+			if(bool(content)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{ });
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+
+			Cyto::Any nf_payload = dcon::national_focus_id{};
+			parent->impl_get(state, nf_payload);
+			auto nat_focus = any_cast<dcon::national_focus_id>(nf_payload);
+			command::set_national_focus(state, state.local_player_nation, content, nat_focus);
+		}
+	}
+};
+
+class national_focus_item : public listbox_row_element_base<dcon::national_focus_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "focus_icon") {
+			return make_element_by_type<national_focus_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class national_focus_category_list : public overlapping_listbox_element_base<national_focus_item, dcon::national_focus_id> {
+public:
+	std::string_view get_row_element_name() override {
+		return "focus_item";
+	}
+};
+
+class national_focus_category : public window_element_base {
+private:
+	simple_text_element_base* category_label = nullptr;
+	national_focus_category_list* focus_list = nullptr;
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			category_label = ptr.get();
+			return ptr;
+		} else if(name == "focus_icons") {
+			auto ptr = make_element_by_type<national_focus_category_list>(state, id);
+			focus_list = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<nations::focus_type>()) {
+			auto category = any_cast<nations::focus_type>(payload);
+			category_label->set_text(state, text::get_focus_category_name(state, category));
+
+			focus_list->row_contents.clear();
+			state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
+				auto fat_id = dcon::fatten(state.world, focus_id);
+				if(fat_id.get_type() == uint8_t(category))
+					focus_list->row_contents.push_back(focus_id);
+			});
+			focus_list->update(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
+class national_focus_remove_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+			command::set_national_focus(state, state.local_player_nation, content, dcon::national_focus_id{});
+		}
+	}
+};
+
+class national_focus_window : public window_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		auto start = make_element_by_type<window_element_base>(state, "focuscategory_start");
+		auto current_pos = start->base_data.position;
+		auto step = make_element_by_type<window_element_base>(state, "focuscategory_step");
+		auto step_y = step->base_data.position.y;
+
+		for(uint8_t i = 1; i <= uint8_t(nations::focus_type::party_loyalty_focus); i++) {
+			auto ptr = make_element_by_type<national_focus_category>(state, "focus_category");
+			ptr->base_data.position = current_pos;
+			current_pos = xy_pair{current_pos.x, int16_t(current_pos.y + step_y)};
+
+			Cyto::Any foc_type_payload = nations::focus_type(i);
+			ptr->impl_set(state, foc_type_payload);
+
+			add_child_to_front(std::move(ptr));
+		}
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "close_button") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type<draggable_target>(state, id);
+		} else if(name == "cancel_button") {
+			return make_element_by_type<national_focus_remove_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+// -----------------------------------------------------------------------------
+
 }
