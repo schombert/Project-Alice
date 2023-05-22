@@ -1618,6 +1618,7 @@ namespace sys {
 		while(quit_signaled.load(std::memory_order::acquire) == false) {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			if(speed <= 0 || internally_paused == true) {
+				command::execute_pending_commands(*this);
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
 				auto entry_time = std::chrono::steady_clock::now();

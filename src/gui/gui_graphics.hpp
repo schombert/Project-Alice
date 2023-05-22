@@ -368,6 +368,7 @@ namespace ui {
 		element_base* ledger_window = nullptr;
 		element_base* diplomacy_subwindow = nullptr;
         element_base* population_subwindow = nullptr;
+		element_base* production_subwindow = nullptr;
 		element_base* trade_subwindow = nullptr;
 		element_base* unit_window_army = nullptr;
 		element_base* unit_window_navy = nullptr;

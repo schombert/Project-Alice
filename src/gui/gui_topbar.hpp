@@ -1590,7 +1590,7 @@ public:
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
 
 			auto tab = make_element_by_type<production_window>(state, "country_production");
-			state.ui_state.topbar_subwindow = btn->topbar_subwindow = tab.get();
+			state.ui_state.production_subwindow = state.ui_state.topbar_subwindow = btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_budget") {

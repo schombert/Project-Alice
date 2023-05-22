@@ -324,11 +324,49 @@ public:
 	}*/
 };
 /*factory_build_new_factory_window*/
+
+class production_national_focus_button : public button_element_base {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+
+			return bool(state.world.state_instance_get_owner_focus(content).id) ? state.world.state_instance_get_owner_focus(content).get_icon() - 1 : 0;
+		}
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	void button_action(sys::state& state) noexcept override;
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+
+			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, focus.get_name());
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_focus") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<production_national_focus_button>(state, id);
 		} else if(name == "state_name") {
 			return make_element_by_type<state_name_text>(state, id);
 		} else if(name == "factory_count") {
@@ -419,6 +457,7 @@ public:
 	}
 };
 
+
 class production_good_info : public window_element_base {
 	dcon::commodity_id commodity_id{};
 	commodity_player_production_text* good_output_total = nullptr;
@@ -466,8 +505,10 @@ public:
 
 class production_window : public generic_tabbed_window<production_window_tab> {
 	production_state_listbox* state_listbox = nullptr;
+	element_base* nf_win = nullptr;
 
 	sys::commodity_group curr_commodity_group{};
+	dcon::state_instance_id focus_state{};
 	xy_pair base_commodity_offset{ 33, 50 };
 	xy_pair commodity_offset{ 33, 50 };
 
@@ -545,6 +586,13 @@ public:
 			// Has atleast 1 good on this row? skip to next row then...
 			if(commodity_offset.x > base_commodity_offset.x)
 				commodity_offset.y += cell_height;
+		}
+
+		{
+			auto ptr = make_element_by_type<national_focus_window>(state, "state_focus_window");
+			ptr->set_visible(state, false);
+			nf_win = ptr.get();
+			add_child_to_front(std::move(ptr));
 		}
 
 		set_visible(state, false);
@@ -645,24 +693,42 @@ public:
 			auto enum_val = any_cast<production_window_tab>(payload);
 			hide_sub_windows(state);
 			switch(enum_val) {
-				case production_window_tab::factories:
-					set_visible_vector_elements(state, factory_elements, true);
-					break;
-				case production_window_tab::investments:
-					set_visible_vector_elements(state, investment_brow_elements, true);
-					break;
-				case production_window_tab::projects:
-					set_visible_vector_elements(state, project_elements, true);
-					break;
-				case production_window_tab::goods:
-					set_visible_vector_elements(state, good_elements, true);
-					break;
+			case production_window_tab::factories:
+				set_visible_vector_elements(state, factory_elements, true);
+				break;
+			case production_window_tab::investments:
+				set_visible_vector_elements(state, investment_brow_elements, true);
+				break;
+			case production_window_tab::projects:
+				set_visible_vector_elements(state, project_elements, true);
+				break;
+			case production_window_tab::goods:
+				set_visible_vector_elements(state, good_elements, true);
+				break;
 			}
 			active_tab = enum_val;
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::state_instance_id>()) {
+			payload.emplace<dcon::state_instance_id>(focus_state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
+	friend class production_national_focus_button;
 };
+
+void production_national_focus_button::button_action(sys::state& state) noexcept {
+	if(parent) {
+		Cyto::Any payload = dcon::state_instance_id{};
+		parent->impl_get(state, payload);
+
+		auto prod_window = static_cast<production_window*>(state.ui_state.production_subwindow);
+		prod_window->focus_state = any_cast<dcon::state_instance_id>(payload);
+		prod_window->nf_win->set_visible(state, !prod_window->nf_win->is_visible());
+		prod_window->nf_win->base_data.position = base_data.position;
+		prod_window->move_child_to_front(prod_window->nf_win);
+		prod_window->impl_on_update(state);
+	}
+}
 
 }
