@@ -991,6 +991,82 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				fid.set_is_major(event_result.major);
 				fid.get_options() = event_result.options;
 
+				for(auto& r : context.state.national_definitions.on_yearly_pulse) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_quarterly_pulse) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_surrender) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_new_great_nation) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_lost_great_nation) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_election_tick) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_colony_to_state) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_state_conquest) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_colony_to_state_free_slaves) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_debtor_default) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_debtor_default_small) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_debtor_default_second) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_civilize) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_my_factories_nationalized) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_crisis_declare_interest) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+
 				if(context.map_of_national_events.size() != fixed_size)
 					break;
 			}
@@ -1012,6 +1088,17 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				fid.set_description(event_result.desc_);
 				fid.set_name(event_result.title_);
 				fid.get_options() = event_result.options;
+
+				for(auto& r : context.state.national_definitions.on_battle_won) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_battle_lost) {
+					if(r.id == e.second.id) {
+						r.condition = event_result.trigger;
+					}
+				}
 
 				if(context.map_of_provincial_events.size() != fixed_size)
 					break;

@@ -252,10 +252,14 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 	auto rp_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::research_points);
 
 	float sum_from_pops = 0;
+	auto total_pop = state.world.nation_get_demographics(n, demographics::total);
+	if(total_pop <= 0.0f)
+		return 0.0f;
+
 	state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 		auto rp = state.world.pop_type_get_research_points(t);
 		if(rp > 0) {
-			sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(n, demographics::to_key(state, t)) / (state.world.nation_get_demographics(n, demographics::total) * state.world.pop_type_get_research_optimum(t)));
+			sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(n, demographics::to_key(state, t)) / (total_pop * state.world.pop_type_get_research_optimum(t)));
 		}
 	});
 
@@ -272,16 +276,18 @@ void update_research_points(sys::state& state) {
 		auto rp_mod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::research_points);
 
 		ve::fp_vector sum_from_pops;
+		auto total_pop = state.world.nation_get_demographics(ids, demographics::total);
+
 		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
 			auto rp = state.world.pop_type_get_research_points(t);
 			if(rp > 0) {
 				sum_from_pops = ve::multiply_and_add(
 					rp,
-					ve::min(1.0f, state.world.nation_get_demographics(ids, demographics::to_key(state, t)) / (state.world.nation_get_demographics(ids, demographics::total) * state.world.pop_type_get_research_optimum(t))),
+					ve::min(1.0f, state.world.nation_get_demographics(ids, demographics::to_key(state, t)) / (total_pop * state.world.pop_type_get_research_optimum(t))),
 					sum_from_pops);
 			}
 		});
-		auto amount = ve::select(state.world.nation_get_owned_province_count(ids) != 0, (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
+		auto amount = ve::select(total_pop >= 0.0f && state.world.nation_get_owned_province_count(ids) != 0, (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
 		/*
 		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x daily research points, for civs, or define:MAX_RESEARCH_POINTS for uncivs.
 		*/
@@ -474,23 +480,7 @@ void update_great_powers(sys::state& state) {
 
 			state.world.nation_set_is_great_power(n, false);
 
-			auto possible_events = state.national_definitions.on_lost_great_nation.size();
-			if(possible_events > 0) {
-				int32_t total_chances = 0;
-
-				for(auto& fe : state.national_definitions.on_lost_great_nation)
-					total_chances += fe.chance;
-
-				int32_t random_value = int32_t(rng::get_random(state, uint32_t(n.index() + (state.world.nation_get_owned_province_count(n) << 3))) % total_chances);
-
-				for(auto& fe : state.national_definitions.on_lost_great_nation) {
-					random_value -= fe.chance;
-					if(random_value < 0) {
-						event::trigger_national_event(state, fe.id, n, state.current_date.value, uint32_t(n.index()));
-						break;
-					}
-				}
-			}
+			event::fire_fixed_event(state, state.national_definitions.on_lost_great_nation, trigger::to_generic(n), n, -1);
 
 			// kill gp relationships
 			auto rels = state.world.nation_get_gp_relationship_as_great_power(n);
@@ -507,23 +497,8 @@ void update_great_powers(sys::state& state) {
 				state.world.nation_set_is_great_power(n, true);
 				state.great_nations.push_back(sys::great_nation(state.current_date, n));
 				state.world.nation_set_state_from_flashpoint_focus(n, dcon::state_instance_id{});
-				auto possible_events = state.national_definitions.on_new_great_nation.size();
-				if(possible_events > 0) {
-					int32_t total_chances = 0;
 
-					for(auto& fe : state.national_definitions.on_new_great_nation)
-						total_chances += fe.chance;
-
-					int32_t random_value = int32_t(rng::get_random(state, uint32_t(n.index() + (state.world.nation_get_owned_province_count(n) << 3))) % total_chances);
-
-					for(auto& fe : state.national_definitions.on_new_great_nation) {
-						random_value -= fe.chance;
-						if(random_value < 0) {
-							event::trigger_national_event(state, fe.id, n, state.current_date.value, uint32_t(n.index()));
-							break;
-						}
-					}
-				}
+				event::fire_fixed_event(state, state.national_definitions.on_new_great_nation, trigger::to_generic(n), n, -1);
 			}
 		}
 	}
@@ -1745,23 +1720,7 @@ void update_crisis(sys::state& state) {
 						state.crisis_participants[added_count].merely_interested = true;
 						++added_count;
 
-						auto possible_events = state.national_definitions.on_crisis_declare_interest.size();
-						if(possible_events > 0) {
-							int32_t total_chances = 0;
-
-							for(auto& fe : state.national_definitions.on_crisis_declare_interest)
-								total_chances += fe.chance;
-
-							int32_t random_value = int32_t(rng::get_random(state, uint32_t(gp.nation.index() + 1 + (state.world.nation_get_owned_province_count(gp.nation) << 3))) % total_chances);
-
-							for(auto& fe : state.national_definitions.on_crisis_declare_interest) {
-								random_value -= fe.chance;
-								if(random_value < 0) {
-									event::trigger_national_event(state, fe.id, gp.nation, state.current_date.value, uint32_t(gp.nation.index()));
-									break;
-								}
-							}
-						}
+						event::fire_fixed_event(state, state.national_definitions.on_crisis_declare_interest, trigger::to_generic(gp.nation), gp.nation, -1);
 					}
 				}
 			}
@@ -1867,6 +1826,15 @@ void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nati
 	}
 	auto& inf = state.world.gp_relationship_get_influence(rel);
 	inf = std::clamp(inf + delta, 0.0f, state.defines.max_influence);
+}
+
+void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta) {
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, great_power);
+	if(!rel) {
+		rel = state.world.force_create_unilateral_relationship(target, great_power);
+	}
+	auto& invest = state.world.unilateral_relationship_get_foreign_investment(rel);
+	invest = std::max(0.0f, invest + delta);
 }
 
 float get_yesterday_income(sys::state& state, dcon::nation_id n) {

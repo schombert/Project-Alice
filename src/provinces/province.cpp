@@ -305,14 +305,90 @@ bool has_railroads_being_built(sys::state& state, dcon::province_id id) {
 	}
 	return false;
 }
-bool can_build_railroads(sys::state& state, dcon::province_id id) {
-	auto nation = state.world.province_get_nation_from_province_ownership(id);
+bool can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_id n) {
+	auto owner = state.world.province_get_nation_from_province_ownership(id);
+
+	if(owner != state.world.province_get_nation_from_province_control(id))
+		return false;
+	if(military::province_is_under_siege(state, id))
+		return false;
+
+	if(owner != n) {
+		if(state.world.nation_get_is_great_power(n) == false || state.world.nation_get_is_great_power(owner) == true)
+			return false;
+
+		auto rules = state.world.nation_get_combined_issue_rules(owner);
+		if((rules & issue_rule::allow_foreign_investment) == 0)
+			return false;
+
+		if(military::are_at_war(state, n, owner))
+			return false;
+	} else {
+		auto rules = state.world.nation_get_combined_issue_rules(n);
+		if((rules & issue_rule::build_railway) == 0)
+			return false;
+	}
+
 	int32_t current_rails_lvl = state.world.province_get_railroad_level(id);
-	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(nation);
+	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(n);
 	int32_t min_build_railroad = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
 
 	return (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0) && !has_railroads_being_built(state, id);
 }
+bool has_fort_being_built(sys::state& state, dcon::province_id id) {
+	for(auto pb : state.world.province_get_province_building_construction(id)) {
+		if(economy::province_building_type(pb.get_type()) == economy::province_building_type::fort)
+			return true;
+	}
+	return false;
+}
+bool can_build_fort(sys::state& state, dcon::province_id id, dcon::nation_id n) {
+	if(state.world.province_get_nation_from_province_ownership(id) != n)
+		return false;
+	if(state.world.province_get_nation_from_province_ownership(id) != state.world.province_get_nation_from_province_control(id))
+		return false;
+	if(military::province_is_under_siege(state, id))
+		return false;
+
+	int32_t current_lvl = state.world.province_get_fort_level(id);
+	int32_t max_local_lvl = state.world.nation_get_max_fort_level(n);
+	int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_fort));
+
+	return (max_local_lvl - current_lvl - min_build > 0) && !has_fort_being_built(state, id);
+}
+bool has_naval_base_being_built(sys::state& state, dcon::province_id id) {
+	for(auto pb : state.world.province_get_province_building_construction(id)) {
+		if(economy::province_building_type(pb.get_type()) == economy::province_building_type::naval_base)
+			return true;
+	}
+	return false;
+}
+bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_id n) {
+	if(state.world.province_get_nation_from_province_ownership(id) != n)
+		return false;
+	if(state.world.province_get_is_coast(id) == false)
+		return false;
+	if(state.world.province_get_nation_from_province_ownership(id) != state.world.province_get_nation_from_province_control(id))
+		return false;
+	if(military::province_is_under_siege(state, id))
+		return false;
+
+	auto si = state.world.province_get_state_membership(id);
+	auto d = state.world.state_instance_get_definition(si);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == n && p.get_province() != id) {
+			if(p.get_province().get_naval_base_level() != 0 || has_naval_base_being_built(state, p.get_province()))
+				return false;
+		}
+	}
+
+	int32_t current_lvl = state.world.province_get_naval_base_level(id);
+	int32_t max_local_lvl = state.world.nation_get_max_naval_base_level(n);
+	int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_naval_base));
+
+	return (max_local_lvl - current_lvl - min_build > 0) && !has_naval_base_being_built(state, id);
+}
+
 bool has_an_owner(sys::state& state, dcon::province_id id) {
 	// TODO: not sure if this is the most efficient way
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
@@ -516,8 +592,12 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	state.adjacency_data_out_of_date = true;
 	state.national_cached_values_out_of_date = true;
 
+	bool state_is_new = false;
+	dcon::state_instance_id new_si;
+
+	bool will_be_colonial = state.world.province_get_is_colonial(id) || (old_owner && state.world.nation_get_is_civilized(old_owner) == false && state.world.nation_get_is_civilized(new_owner) == true);
+
 	if(new_owner) {
-		dcon::state_instance_id new_si;
 		for(auto si : state.world.nation_get_state_ownership(new_owner)) {
 			if(si.get_state().get_definition().id == state_def) {
 				new_si = si.get_state().id;
@@ -528,7 +608,17 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			new_si = state.world.create_state_instance();
 			state.world.state_instance_set_definition(new_si, state_def);
 			state.world.try_create_state_ownership(new_si, new_owner);
+			state.world.state_instance_set_capital(new_si, id);
+			state.world.province_set_is_colonial(id, will_be_colonial);
+			state.world.province_set_is_slave(id, false);
+
+			state_is_new = true;
+		} else {
+			auto sc = state.world.state_instance_get_capital(new_si);
+			state.world.province_set_is_colonial(id, state.world.province_get_is_colonial(sc));
+			state.world.province_set_is_slave(id, state.world.province_get_is_slave(sc));
 		}
+
 		int32_t factories_in_new_state = 0;
 		province::for_each_province_in_state_instance(state, new_si, [&](dcon::province_id pr) {
 			auto fac_range = state.world.province_get_factory_location(pr);
@@ -569,6 +659,14 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
 	} else {
 		state.world.province_set_state_membership(id, dcon::state_instance_id{});
+		state.world.province_set_railroad_level(id, uint8_t(0));
+		state.world.province_set_fort_level(id, uint8_t(0));
+		state.world.province_set_naval_base_level(id, uint8_t(0));
+
+		auto province_fac_range = state.world.province_get_factory_location(id);
+		while(province_fac_range.begin() != province_fac_range.end()) {
+			state.world.delete_factory((*province_fac_range.begin()).get_factory().id);
+		}
 	}
 
 	for(auto p : state.world.province_get_pop_location(id)) {
@@ -590,12 +688,14 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	state.world.province_set_is_owner_core(id, bool(state.world.get_core_by_prov_tag_key(id, state.world.nation_get_identity_from_identity_holder(new_owner))));
 
 	if(old_si) {
-		int32_t provinces_in_old_si = 0;
-		province::for_each_province_in_state_instance(state, old_si, [&](auto) { ++provinces_in_old_si; });
-		if(provinces_in_old_si == 0) {
+		dcon::province_id a_province;
+		province::for_each_province_in_state_instance(state, old_si, [&](auto p) { a_province = p; });
+		if(a_province) {
 			if(old_si == state.crisis_state)
 				nations::cleanup_crisis(state);
 			state.world.delete_state_instance(old_si);
+		} else if(state.world.state_instance_get_capital(old_si) == id) {
+			state.world.state_instance_set_capital(old_si, a_province);
 		}
 	}
 
@@ -638,6 +738,57 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			adj.set_type(adj.get_type() | province::border::national_bit);
 		}
 	}
+
+	if(state_is_new) {
+		/*
+		spawn event
+		*/
+		event::fire_fixed_event(state, state.national_definitions.on_state_conquest, trigger::to_generic(new_si), new_owner, -1);
+	}
+}
+
+void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
+	bool was_colonial = state.world.province_get_is_colonial(id);
+
+	change_province_owner(state, id, new_owner);
+
+	/*
+	- The conqueror may gain research points:
+	First, figure out how many research points the pops in the province would generate as if they were a tiny nation (i.e. for each pop type that generates research points, multiply that number by the fraction of the population it is compared to its optimal fraction (capped at one) and sum them all together). Then multiply that value by (1.0 + national modifier to research points modifier + tech increase research modifier). That value is then multiplied by define:RESEARCH_POINTS_ON_CONQUER_MULT and added to the conquering nation's research points. Ok, so what about the nations research points on conquer modifier?? Yeah, that appears to be bugged. The nation gets research points only if that multiplier is positive, but otherwise it doesn't affect the result.
+	*/
+
+	if(state.world.nation_get_modifier_values(new_owner, sys::national_mod_offsets::research_points_on_conquer) > 0.0f) {
+		auto rp_mod_mod = state.world.nation_get_modifier_values(new_owner, sys::national_mod_offsets::research_points_modifier);
+
+		float sum_from_pops = 0;
+		float total_pop = state.world.province_get_demographics(id, demographics::total);
+		state.world.for_each_pop_type([&](dcon::pop_type_id t) {
+			auto rp = state.world.pop_type_get_research_points(t);
+			if(rp > 0) {
+				sum_from_pops += rp * std::min(1.0f, state.world.province_get_demographics(id, demographics::to_key(state, t)) / (total_pop * state.world.pop_type_get_research_optimum(t)));
+			}
+		});
+
+		auto amount = total_pop > 0.0f ? (state.defines.research_points_on_conquer_mult * sum_from_pops) * (rp_mod_mod + 1.0f) : 0.0f;
+		state.world.nation_get_research_points(new_owner) += amount;
+	}
+
+	/*
+	- If the province is not a core of the new owner and is not a colonial province (prior to conquest), any pops that are not of an accepted or primary culture get define:MIL_HIT_FROM_CONQUEST militancy
+	*/
+	if(state.world.province_get_is_owner_core(id) == false && !was_colonial) {
+		for(auto pop : state.world.province_get_pop_location(id)) {
+			if(!pop.get_pop().get_is_primary_or_accepted_culture()) {
+				pop.get_pop().set_militancy(std::clamp(pop.get_pop().get_militancy() + state.defines.mil_hit_from_conquest, 0.0f, 10.0f));
+			}
+		}
+	}
+
+	/*
+	- The province gets nationalism equal to define:YEARS_OF_NATIONALISM
+	*/
+	state.world.province_set_nationalism(id, state.defines.years_of_nationalism);
+
 }
 
 void update_nationalism(sys::state& state) {
