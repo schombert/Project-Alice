@@ -43,7 +43,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("rank_prestige"), text::substitution_map{});
 			text::add_line_break_to_layout_box(contents, state, box);
@@ -95,7 +95,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("rank_industry"), text::substitution_map{});
 			text::add_divider_to_layout_box(state, contents, box);
@@ -120,7 +120,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("rank_military"), text::substitution_map{});
 			text::add_divider_to_layout_box(state, contents, box);
@@ -209,7 +209,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 
 			text:: substitution_map sub{};
@@ -432,7 +432,7 @@ public:
 
 			std::string ruling_party = text::get_name_as_string(state, fat_id.get_ruling_party());
 			ruling_party = ruling_party + " (" + text::get_name_as_string(state, state.world.political_party_get_ideology(state.world.nation_get_ruling_party(nation_id))) + ")";
-			
+
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_ruling_party"), text::variable_type::curr, std::string_view(ruling_party));
 			text::add_divider_to_layout_box(state, contents, box);
@@ -456,7 +456,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "suppression_points", text::substitution_map{});
 			text::add_space_to_layout_box(contents, state, box);
@@ -508,7 +508,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 
 			text::substitution_map sub;
@@ -537,7 +537,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub1;
 			float relevant_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.world.nation_get_primary_culture(nation_id)));
@@ -564,8 +564,8 @@ public:
 							auto fp_fat_id = staat.get_flashpoint_focus();
 
 							if(natl_fat_id.is_valid()) {
-								text::add_line_break_to_layout_box(contents, state, box);
 								text::add_to_layout_box(contents, state, box, natl_fat_id.get_name());
+								text::add_line_break_to_layout_box(contents, state, box);
 							}
 						}
 					}
@@ -594,7 +594,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
 			auto milChange = (demographics::get_estimated_mil_change(state, nation_id) / 30);
@@ -623,7 +623,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
 			auto conChange = (demographics::get_estimated_con_change(state, nation_id) / 30);
@@ -657,7 +657,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::diplomatic_points(state, nation_id)});
@@ -708,7 +708,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::curr, military::naval_supply_points_used(state, nation_id));

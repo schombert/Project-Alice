@@ -19,6 +19,130 @@ enum class production_window_tab : uint8_t {
 	goods = 0x3
 };
 
+class factory_employment_image : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_id>(payload);
+			frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
+		}
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		Cyto::Any payload = dcon::factory_id{};
+		parent->impl_get(state, payload);
+		auto fid = any_cast<dcon::factory_id>(payload);
+		auto fat = dcon::fatten(state.world, fid);
+
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("production_factory_employeecount_tooltip"));
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, std::string_view(" -"));
+		text::localised_format_box(state, contents, box, std::string_view("craftsmen"));
+		text::add_to_layout_box(contents, state, box, int64_t(fat.get_primary_employment()));
+		text::add_line_break_to_layout_box(contents, state, box);
+		text::add_to_layout_box(contents, state, box, std::string_view(" -"));
+		text::localised_format_box(state, contents, box, std::string_view("clerks"));
+		text::add_to_layout_box(contents, state, box, int64_t(fat.get_secondary_employment()));
+		text::close_layout_box(contents, box);
+	}
+};
+
+
+
+class factory_priority_button : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		Cyto::Any payload = dcon::factory_id{};
+		parent->impl_get(state, payload);
+		auto fid = any_cast<dcon::factory_id>(payload);
+		auto fat = dcon::fatten(state.world, fid);
+
+		auto box = text::open_layout_box(contents, 0);
+		// TODO - check if we can change the priority,
+		// 	- This appears to depend only on if the ruling party is kosher with it
+		text::localised_format_box(state, contents, box, std::string_view("production_allowed_to_change_prio_tooltip"));
+		//text::localised_format_box(state, contents, box, std::string_view("production_not_allowed_to_change_prio_tooltip"));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("production_prio_factory_desc_tooltip"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class factory_upgrade_button : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("production_expand_factory_tooltip"));
+		// TODO - check if we can expand the factory
+		// What we need to check:
+		// 	- Ruling party opinion on expanding factories
+		// 	- if we got enough money to expand
+		// 	- if our level is < 99
+		text::localised_format_box(state, contents, box, std::string_view("production_expand_factory_because_tooltip"));
+		//text::localised_format_box(state, contents, box, std::string_view("production_not_expand_factory_because_tooltip"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class factory_shutdown_button : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, std::string_view("UwU"));
+		text::close_layout_box(contents, box);
+	}
+};
+
+class factory_subsidise_button : public button_element_base {	// Got a problem with mixed variants? too bad, Vic2 does same thing
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			if(dcon::fatten(state.world, fid).get_subsidized()) {
+				text::localised_format_box(state, contents, box, std::string_view("production_cancel_subsidies"));
+			} else {
+				// TODO - check if the ruling party likes subsidising parties, if it does then allow subisdising otherwise dont
+				//text::localised_format_box(state, contents, box, std::string_view("production_not_allowed_to_subsidise_tooltip"));
+				text::localised_format_box(state, contents, box, std::string_view("production_allowed_to_subsidise_tooltip"));
+			}
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("production_subsidies_desc"));
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class production_factory_info : public window_element_base {
 	image_element_base* output_icon = nullptr;
 	image_element_base* input_icons[economy::commodity_set::set_size] = { nullptr };
@@ -30,6 +154,7 @@ class production_factory_info : public window_element_base {
 	button_element_base* cancel_progress_btn = nullptr;
 	progress_bar* upgrade_bar = nullptr;
 	image_element_base* upgrade_overlay = nullptr;
+	factory_build_new_factory_window* new_factory = nullptr;
 
 	dcon::factory_id get_factory(sys::state& state) noexcept {
 		dcon::factory_id fid{};
@@ -55,6 +180,11 @@ public:
 			return;
 
 		bool is_closed = false;
+		if(dcon::fatten(state.world, fid).get_production_scale() < 0.05) {
+			is_closed = true;
+		} else {
+			is_closed = false;
+		}
 		closed_overlay->set_visible(state, is_closed);
 		closed_text->set_visible(state, is_closed);
 
@@ -123,7 +253,13 @@ public:
 		} else if(name == "employment_ratio") {
 			return make_element_by_type<factory_employment_image>(state, id);
 		} else if(name == "priority") {
-			return make_element_by_type<factory_priority_image>(state, id);
+			return make_element_by_type<factory_priority_button>(state, id);
+		} else if(name == "upgrade") {
+			return make_element_by_type<factory_upgrade_button>(state, id);
+		} else if(name == "subsidise") {
+			return make_element_by_type<factory_subsidise_button>(state, id);
+		} else if(name == "open_close") {
+			return make_element_by_type<factory_shutdown_button>(state, id);
 		} else if(name.substr(0, 6) == "input_") {
 			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
 			if(name.ends_with("_lack2")) {

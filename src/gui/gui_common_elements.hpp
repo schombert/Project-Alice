@@ -263,7 +263,7 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-	
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -1937,16 +1937,4 @@ public:
 		}
 	}
 };
-class factory_employment_image : public image_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_id>(payload);
-			frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
-		}
-	}
-};
-
 }
