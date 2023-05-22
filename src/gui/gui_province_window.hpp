@@ -519,6 +519,27 @@ public:
 	}
 };
 
+class province_invest_railroad_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			command::begin_province_building_construction(state, state.local_player_nation, content, economy::province_building_type::railroad);
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			disabled = !command::can_begin_province_building_construction(state, state.local_player_nation, content, economy::province_building_type::railroad);
+		}
+	}
+};
+
 class province_view_foreign_details : public window_element_base {
 private:
 	flag_button* country_flag_button = nullptr;
@@ -590,9 +611,7 @@ public:
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "invest_build_infra") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->disabled = true;
-			return ptr;
+			return make_element_by_type<province_invest_railroad_button>(state, id);
 		} else if(name == "invest_factory_button") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			ptr->disabled = true;
