@@ -82,25 +82,13 @@ bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technol
 		return false; // Must be civilized
 	if(state.current_date.to_ymd(state.start_date).year >= state.world.technology_get_year(tech)) {
 		// Find previous technology before this one
-		bool past_tech = false;
-		dcon::technology_id prev_tech{};
-		state.world.for_each_technology([&](dcon::technology_id id) {
-			if(state.world.technology_get_folder_index(id) == state.world.technology_get_folder_index(tech)) {
-				if(id == tech) {
-					past_tech = true;
-				} else if(!past_tech) {
-					prev_tech = id;
-				}
-			}
-		});
-		// Second, third, etc research in the tech tree
-		if(bool(prev_tech)) {
+		dcon::technology_id prev_tech = dcon::technology_id(dcon::technology_id::value_base_t(tech_id.index() - 1));
+		// Previous technology is from the same folder so we have to check that we have researched it beforehand
+		if(tech_id.index() != 0 && state.world.technology_get_folder_index(prev_tech) == state.world.technology_get_folder_index(tech)) {
 			// Only allow if all previously researched techs are researched
 			return state.world.nation_get_active_technologies(source, prev_tech);
-		} else {
-			// First tech, can be researched
-			return true;
 		}
+		return true; // First technology on folder can always be researched
 	}
 	return false;
 }
