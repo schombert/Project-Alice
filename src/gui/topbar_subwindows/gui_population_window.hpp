@@ -880,6 +880,44 @@ public:
 		}
 	}
 };
+
+class pop_national_focus_button : public button_element_base {
+public:
+	int32_t get_icon_frame(sys::state& state) noexcept {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+
+			return bool(state.world.state_instance_get_owner_focus(content).id) ? state.world.state_instance_get_owner_focus(content).get_icon() - 1 : 0;
+		}
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
+	void button_action(sys::state& state) noexcept override;
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+
+			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, focus.get_name());
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class pop_left_side_state_window : public generic_settable_element<window_element_base, dcon::state_instance_id> {
 	image_element_base* colonial_icon = nullptr;
 public:
@@ -895,7 +933,7 @@ public:
 			colonial_icon = ptr.get();
 			return ptr;
 		} else if(name == "state_focus") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<pop_national_focus_button>(state, id);
 		} else if(name == "expand") {
 			return make_element_by_type<pop_left_side_expand_button>(state, id);
 		} else if(name == "growth_indicator") {
@@ -1803,11 +1841,12 @@ private:
 	pop_left_side_listbox* left_side_listbox = nullptr;
 	pop_list_filter filter = std::monostate{};
 	pop_details_window* details_win = nullptr;
+	element_base* nf_win = nullptr;
 	std::vector<element_base*> dist_windows;
 	// Whetever or not to show provinces below the state element in the listbox!
 	ankerl::unordered_dense::map<dcon::state_instance_id::value_base_t, bool> view_expanded_state;
 	std::vector<bool> pop_filters;
-
+	dcon::state_instance_id focus_state{};
 	pop_list_sort sort = pop_list_sort::size;
 	bool sort_ascend = true;
 
@@ -2067,6 +2106,13 @@ public:
 		auto win7 = make_element_by_type<pop_details_window>(state, state.ui_state.defs_by_name.find("pop_details_win")->second.definition);
 		details_win = win7.get();
 		add_child_to_front(std::move(win7));
+
+		{
+			auto ptr = make_element_by_type<national_focus_window>(state, "state_focus_window");
+			ptr->set_visible(state, false);
+			nf_win = ptr.get();
+			add_child_to_front(std::move(ptr));
+		}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -2236,13 +2282,31 @@ public:
 			auto ptid = std::get<dcon::pop_type_id>(data);
 			payload.emplace<pop_filter_data>(pop_filter_data(bool(pop_filters[dcon::pop_type_id::value_base_t(ptid.index())])));
 			return message_result::consumed;
+		} else if(payload.holds_type<dcon::state_instance_id>()) {
+			payload.emplace<dcon::state_instance_id>(focus_state);
+			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
 
+	friend class pop_national_focus_button;
 	friend const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state);
 	friend dcon::pop_id get_pop_details_pop(sys::state& state);
 };
+
+void pop_national_focus_button::button_action(sys::state& state) noexcept {
+	if(parent) {
+    	Cyto::Any payload = dcon::state_instance_id{};
+		parent->impl_get(state, payload);
+
+		auto pop_window = static_cast<population_window*>(state.ui_state.population_subwindow);
+    	pop_window->focus_state = any_cast<dcon::state_instance_id>(payload);
+		pop_window->nf_win->set_visible(state, !pop_window->nf_win->is_visible());
+		pop_window->nf_win->base_data.position = base_data.position;
+		pop_window->move_child_to_front(pop_window->nf_win);
+		pop_window->impl_on_update(state);
+	}
+}
 
 const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state) {
 	static const std::vector<dcon::pop_id> empty{};
