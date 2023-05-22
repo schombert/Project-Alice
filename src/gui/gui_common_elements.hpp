@@ -1947,18 +1947,6 @@ public:
 	}
 };
 
-class factory_employment_image : public image_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_id>(payload);
-			frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
-		}
-	}
-};
-
 // -----------------------------------------------------------------------------
 // National focuses
 class national_focus_icon : public button_element_base {
