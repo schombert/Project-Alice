@@ -1424,6 +1424,35 @@ public:
 	}
 };
 
+class nation_technology_research_progress : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto tech_id = nations::current_research(state, state.local_player_nation);
+		if(bool(tech_id)) {
+			progress = state.world.nation_get_research_points(state.local_player_nation) / state.world.technology_get_cost(tech_id);
+		} else {
+			progress = 0.f;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto tech_id = nations::current_research(state, state.local_player_nation);
+		if(tech_id) {
+			text::substitution_map sub_map;
+			text::add_to_substitution_map(sub_map, text::variable_type::tech, dcon::fatten(state.world, tech_id).get_name());
+			text::localised_format_box(state, contents, box, "technologyview_under_research_tooltip", sub_map);
+		} else {
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_no_research"), text::text_color::white);
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 class standard_state_instance_button : public button_element_base {
 public:
 	virtual int32_t get_icon_frame(sys::state& state, dcon::state_instance_id state_instance_id) noexcept {
