@@ -2314,17 +2314,7 @@ void daily_update(sys::state& state) {
 		if(n.get_private_investment() > 0.001 &&  (nation_rules & (issue_rule::pop_build_factory | issue_rule::pop_expand_factory)) != 0) {
 
 			bool found_investment = false;
-			if((nation_rules & issue_rule::pop_build_factory) != 0) {
-				for(auto p : n.get_province_ownership()) {
-					if(province::can_build_railroads(state, p.get_province())) {
-						auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.get_province(), n));
-						new_rr.set_is_pop_project(true);
-						new_rr.set_type(uint8_t(province_building_type::railroad));
-						found_investment = true;
-						break;
-					}
-				}
-			}
+			
 			if(!found_investment) {
 				static std::vector<dcon::state_instance_id> states_in_order;
 				states_in_order.clear();
@@ -2405,6 +2395,19 @@ void daily_update(sys::state& state) {
 
 					if(found_investment) {
 						break;
+					}
+				}
+			}
+			if(!found_investment) {
+				if((nation_rules & issue_rule::pop_build_factory) != 0) {
+					for(auto p : n.get_province_ownership()) {
+						if(province::can_build_railroads(state, p.get_province(), n)) {
+							auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.get_province(), n));
+							new_rr.set_is_pop_project(true);
+							new_rr.set_type(uint8_t(province_building_type::railroad));
+							found_investment = true;
+							break;
+						}
 					}
 				}
 			}

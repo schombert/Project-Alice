@@ -99,6 +99,74 @@ void execute_start_research(sys::state& state, dcon::nation_id source, dcon::tec
 	state.world.nation_set_current_research(source, tech);
 }
 
+void make_leader(sys::state& state, dcon::nation_id source, bool general) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::make_leader;
+	p.source = source;
+	p.data.make_leader.is_general = general;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+bool can_make_leader(sys::state& state, dcon::nation_id source, bool general) {
+	return state.world.nation_get_leadership_points(source) >= state.defines.leader_recruit_cost;
+}
+
+void execute_make_leader(sys::state& state, dcon::nation_id source, bool general) {
+	if(!can_make_leader(state, source, general))
+		return;
+
+	military::make_new_leader(state, source, general);
+}
+
+void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov, economy::province_building_type type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::begin_province_building_construction;
+	p.source = source;
+	p.data.start_province_building.location = prov;
+	p.data.start_province_building.type = type;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type) {
+
+	switch(type) {
+		case economy::province_building_type::railroad:
+			return province::can_build_railroads(state, p, source);
+		case economy::province_building_type::fort:
+			return province::can_build_fort(state, p, source);
+		case economy::province_building_type::naval_base:
+			return province::can_build_naval_base(state, p, source);
+	}
+
+	return false;
+}
+void execute_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type) {
+
+	if(!can_begin_province_building_construction(state, source, p, type))
+		return;
+
+	if(type == economy::province_building_type::railroad && source != state.world.province_get_nation_from_province_ownership(p)) {
+		float amount = 0.0f;
+
+		auto& base_cost = state.economy_definitions.railroad_definition.cost;
+
+		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
+			if(base_cost.commodity_type[j]) {
+				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_current_price(base_cost.commodity_type[j]);
+			} else {
+				break;
+			}
+		}
+
+		nations::adjust_foreign_investment(state, source, state.world.province_get_nation_from_province_ownership(p), amount);
+	}
+
+	auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p, source));
+	new_rr.set_is_pop_project(false);
+	new_rr.set_type(uint8_t(type));
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -114,6 +182,12 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::start_research:
 				execute_start_research(state, c->source, c->data.start_research.tech);
+				break;
+			case command_type::make_leader:
+				execute_make_leader(state, c->source, c->data.make_leader.is_general);
+				break;
+			case command_type::begin_province_building_construction:
+				execute_begin_province_building_construction(state, c->source, c->data.start_province_building.location, c->data.start_province_building.type);
 				break;
 		}
 

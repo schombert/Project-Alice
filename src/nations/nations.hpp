@@ -22,10 +22,12 @@ struct triggered_modifier {
 struct fixed_event {
 	int16_t chance;
 	dcon::national_event_id id;
+	dcon::trigger_key condition;
 };
 struct fixed_province_event {
 	int16_t chance;
 	dcon::provincial_event_id id;
+	dcon::trigger_key condition;
 };
 
 enum class focus_type : uint8_t {
@@ -285,6 +287,7 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
 void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
+void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);
