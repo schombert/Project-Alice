@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "system_state.hpp"
 #include "date_interface.hpp"
+#include "cyto_any.hpp"
 
 TEST_CASE("string pool tests", "[misc_tests]") {
 	std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
@@ -57,4 +58,39 @@ TEST_CASE("date tests", "[misc_tests]") {
 	REQUIRE(ymdc.year == 2027);
 	REQUIRE(ymdc.month == 8);
 	REQUIRE(ymdc.day == 16);
+}
+
+TEST_CASE("cyto payload tests", "[misc_tests]") {
+	SECTION("int_emplace") {
+		Cyto::Any payload = int(64);
+		REQUIRE(payload.holds_type<int>() == true);
+		REQUIRE(any_cast<int>(payload) == 64);
+	}
+    SECTION("same_struct_type_diff") {
+        struct ctest_c1 {
+			int a = 42;
+			int b = 64;
+		};
+		struct ctest_c2 {
+			int a = 42;
+			int b = 64;
+		};
+		Cyto::Any payload = ctest_c1{};
+		REQUIRE(payload.holds_type<ctest_c1>());
+		REQUIRE(!payload.holds_type<ctest_c2>());
+		REQUIRE(!payload.holds_type<int>());
+		REQUIRE(any_cast<ctest_c1>(payload).a == 42);
+		REQUIRE(any_cast<ctest_c1>(payload).b == 64);
+		payload.emplace<ctest_c2>(ctest_c2{});
+		REQUIRE(!payload.holds_type<ctest_c1>());
+		REQUIRE(payload.holds_type<ctest_c2>());
+		REQUIRE(!payload.holds_type<int>());
+		REQUIRE(any_cast<ctest_c2>(payload).a == 42);
+		REQUIRE(any_cast<ctest_c2>(payload).b == 64);
+		payload.emplace<int>(12);
+		REQUIRE(!payload.holds_type<ctest_c1>());
+		REQUIRE(!payload.holds_type<ctest_c2>());
+		REQUIRE(payload.holds_type<int>());
+		REQUIRE(any_cast<int>(payload) == 12);
+	}
 }
