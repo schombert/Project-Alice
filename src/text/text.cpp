@@ -997,6 +997,9 @@ namespace text {
 	}
 
 	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
+		if(!source_text)
+			return;
+
 		auto current_color = dest.fixed_parameters.color;
 		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
