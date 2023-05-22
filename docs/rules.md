@@ -1133,11 +1133,29 @@ Irrelevant note: it is POP_BUILD_FACTORY that allows pops to build railroads aft
 
 #### Conditions
 
-The nation must have the tech level required to build up to the new level in the target province. There must be no existing construction project for that building. The province must be controlled by its owner. The province must not be under siege. If not owned by the nation doing the building, it must be a railroad, the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation.
+The nation must have the tech level required to build up to the new level in the target province. There must be no existing construction project for that building. The province must be controlled by its owner. The province must not be under siege. If not owned by the nation doing the building, it must be a railroad, the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation being invested in must be civilized.
 
 For naval bases: only one per state (check ongoing constructions in state too), and only on the coast.
 
 For railroads: nations must have RULE_BUILD_RAILROAD to start a project.
+
+#### Effect
+
+Start the building construction project. If the province is in a foreign nation, get foreign investment credit equal to the projected total cost.
+
+### Start building or upgrading a factory
+
+#### Conditions
+
+The nation must have the rule set to allow building / upgrading if this is a domestic target.
+
+For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation being invested in must be civilized.
+
+The factory building must be unlocked by the nation.
+Factories cannot be built in a colonial state.
+
+For new factories: no more than 7 existing + under construction new factories must be present.
+For upgrades: no upgrading past max level.
 
 #### Effect
 

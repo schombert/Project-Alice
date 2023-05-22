@@ -10,6 +10,7 @@ enum class command_type : uint8_t {
 	start_research = 2,
 	make_leader = 3,
 	begin_province_building_construction = 4,
+	begin_factory_building_construction = 5,
 };
 
 struct national_focus_data {
@@ -29,6 +30,11 @@ struct province_building_data {
 	dcon::province_id location;
 	economy::province_building_type type;
 };
+struct factory_building_data {
+	dcon::state_instance_id location;
+	dcon::factory_type_id type;
+	bool is_upgrade;
+};
 
 struct payload {
 	union dtype {
@@ -36,6 +42,7 @@ struct payload {
 		start_research_data start_research;
 		make_leader_data make_leader;
 		province_building_data start_province_building;
+		factory_building_data start_factory_building;
 
 		dtype() {}
 	} data;
@@ -56,6 +63,9 @@ bool can_make_leader(sys::state& state, dcon::nation_id source, bool general);
 
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type);
 bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type);
+
+void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
+bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
 
 void execute_pending_commands(sys::state& state);
 

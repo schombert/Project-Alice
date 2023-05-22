@@ -316,6 +316,8 @@ bool can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_i
 	if(owner != n) {
 		if(state.world.nation_get_is_great_power(n) == false || state.world.nation_get_is_great_power(owner) == true)
 			return false;
+		if(state.world.nation_get_is_civilized(owner) == false)
+			return false;
 
 		auto rules = state.world.nation_get_combined_issue_rules(owner);
 		if((rules & issue_rule::allow_foreign_investment) == 0)
