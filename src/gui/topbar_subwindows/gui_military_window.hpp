@@ -7,6 +7,18 @@
 
 namespace ui {
 
+template<bool B>
+class military_make_leader_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		disabled = command::can_make_leader(state, state.local_player_nation, B);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		command::make_leader(state, state.local_player_nation, B);
+	}
+};
+
 class military_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -49,6 +61,10 @@ public:
 			auto ptr = make_element_by_type<leaders_window>(state, id);
 			ptr->set_visible(state, true);
 			return ptr;
+		} else if(name == "new_general") {
+			return make_element_by_type<military_make_leader_button<true>>(state, id);
+		} else if(name == "new_admiral") {
+			return make_element_by_type<military_make_leader_button<false>>(state, id);
 		} else {
 			return nullptr;
 		}
