@@ -60,8 +60,17 @@ bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n) {
 	// TODO
 	return false;
 }
-bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) {
-	// TODO
+bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) {	// TODO - should be "good" now
+	auto nation_fat = dcon::fatten(state.world, n);
+	for(auto prov_owner : nation_fat.get_province_ownership()) {
+		auto prov = prov_owner.get_province();
+		for(auto factloc : prov.get_factory_location()) {
+			auto scale = factloc.get_factory().get_production_scale();
+			if(scale < 0.05) {
+				return true;
+			}
+		}
+	}
 	return false;
 }
 

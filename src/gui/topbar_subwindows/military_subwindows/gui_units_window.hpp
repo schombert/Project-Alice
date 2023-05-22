@@ -22,6 +22,7 @@ public:
 		}
 	}
 };
+
 template<class TypeId>
 class military_unit_entry : public listbox_row_element_base<TypeId> {
     simple_text_element_base* unit_name = nullptr;
@@ -100,6 +101,7 @@ public:
 			return nullptr;
 		}
 	}
+
 	void update(sys::state& state) noexcept override {
         bool is_building = false;
         bool is_moving = false;
@@ -222,7 +224,6 @@ public:
 			state.ui_state.build_unit_window->impl_set(state, payload);
 		}
 	}
-
 };
 
 template<class TypeId>

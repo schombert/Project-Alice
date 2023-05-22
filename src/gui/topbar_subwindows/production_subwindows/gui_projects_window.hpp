@@ -18,13 +18,10 @@ struct production_project_input_data {
 
 class production_project_input_item : public listbox_row_element_base<production_project_input_data> {
     simple_text_element_base* amount_text = nullptr;
-    commodity_factory_image* type_icon = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
-			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
-            type_icon = ptr.get();
-            return ptr;
+			return make_element_by_type<commodity_factory_image>(state, id);
         } else if(name == "goods_amount") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
             amount_text = ptr.get();
@@ -36,9 +33,15 @@ public:
 
     void update(sys::state& state) noexcept override {
         amount_text->set_text(state, text::format_float(content.satisfied, 1) + "/" + text::format_float(content.needed, 1));
-        Cyto::Any payload = content.cid;
-        type_icon->impl_set(state, payload);
     }
+
+    message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::commodity_id>()) {
+			payload.emplace<dcon::commodity_id>(content.cid);
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<production_project_input_data>::get(state, payload);
+	}
 };
 
 class production_project_input_listbox : public overlapping_listbox_element_base<production_project_input_item, production_project_input_data> {
@@ -63,6 +66,23 @@ class production_project_info : public listbox_row_element_base<production_proje
                 total += state.world.commodity_get_current_price(cid) * cset.commodity_amounts[i];
         }
         return total;
+    }
+
+    dcon::state_instance_id get_state_instance_id(sys::state& state) {
+         if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
+            auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
+            auto sdef = state.world.province_get_state_from_abstract_state_membership(fat_id.get_province());
+            dcon::state_instance_id state_id{};
+            state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
+                if(state.world.state_instance_get_definition(sid) == sdef)
+                    state_id = sid;
+            });
+            return state_id;
+        } else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
+            auto fat_id = dcon::fatten(state.world, std::get<dcon::state_building_construction_id>(content));
+            return fat_id.get_state();
+        }
+        return dcon::state_instance_id{};
     }
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -104,17 +124,13 @@ public:
 	}
     
     void on_update(sys::state& state) noexcept override {
-        dcon::state_instance_id state_id{};
         economy::commodity_set satisfied_commodities{};
         economy::commodity_set needed_commodities{};
-
         if(std::holds_alternative<dcon::province_building_construction_id>(content)) {
             factory_icon->set_visible(state, false);
             building_icon->set_visible(state, true);
-
             auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
             factory_icon->frame = uint16_t(fat_id.get_type());
-
             name_text->set_text(state, text::produce_simple_string(state, province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
             auto total_cost = 0.f;
             switch(economy::province_building_type(fat_id.get_type())) {
@@ -128,22 +144,12 @@ public:
                 needed_commodities = state.economy_definitions.naval_base_definition.cost;
                 break;
             }
-
-            // TODO: better way to get definition from instance
-            auto sdef = state.world.province_get_state_from_abstract_state_membership(fat_id.get_province());
-            state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
-                if(state.world.state_instance_get_definition(sid) == sdef)
-                    state_id = sid;
-            });
         } else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
             factory_icon->set_visible(state, true);
             building_icon->set_visible(state, false);
-
             auto fat_id = dcon::fatten(state.world, std::get<dcon::state_building_construction_id>(content));
             factory_icon->frame = uint16_t(fat_id.get_type().get_output().get_icon());
             name_text->set_text(state, text::produce_simple_string(state, fat_id.get_type().get_name()));
-            state_id = fat_id.get_state();
-
             needed_commodities = fat_id.get_type().get_construction_costs();
             satisfied_commodities = fat_id.get_purchased_goods();
         }
@@ -163,14 +169,11 @@ public:
         auto cost = get_cost(state, satisfied_commodities);
         auto total_cost = get_cost(state, needed_commodities);
         cost_text->set_text(state, text::format_money(cost) + "/" + text::format_money(total_cost));
-
-        Cyto::Any payload = state_id;
-        impl_set(state, payload);
     }
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<production_project_data>()) {
-			payload.emplace<production_project_data>(content);
+		if(payload.holds_type<dcon::state_instance_id>()) {
+			payload.emplace<dcon::state_instance_id>(get_state_instance_id(state));
 			return message_result::consumed;
 		}
 		return listbox_row_element_base<production_project_data>::get(state, payload);
