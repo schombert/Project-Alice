@@ -100,11 +100,13 @@ struct promotion_buffer {
 	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
 	ve::vectorizable_buffer<dcon::pop_type_id, dcon::pop_id> types;
 	uint32_t size = 0;
+	uint32_t reserved = 0;
 
 	promotion_buffer() : amounts(0), types(0), size(0) { }
 	void update(uint32_t s) {
-		if(size < s) {
-			size = s;
+		size = s;
+		if(reserved < s) {
+			reserved = s;
 			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 			types = ve::vectorizable_buffer<dcon::pop_type_id, dcon::pop_id>(s);
 		}
@@ -114,11 +116,13 @@ struct promotion_buffer {
 struct assimilation_buffer {
 	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
 	uint32_t size = 0;
+	uint32_t reserved = 0;
 
 	assimilation_buffer() : amounts(0), size(0) { }
 	void update(uint32_t s) {
-		if(size < s) {
-			size = s;
+		size = s;
+		if(reserved < s) {
+			reserved = s;
 			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 		}
 	}

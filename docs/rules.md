@@ -1095,3 +1095,24 @@ If it is the flashpoint focus, the state must not be owned by you, you must be l
 #### Effect
 
 Changes the national focus active in the state
+
+### Conquering a province
+
+Strictly speaking, this is not a command that we would expect the ui to ever send directly (except maybe via the console). However, it can be thought of as a component of the more complex commands that will eventually execute a peace deal, for example.
+
+#### Conditions
+
+Depends on the context it is generated in
+
+#### Effect
+
+In addition to transferring province ownership: (TODO: prevent more than one naval base per state)
+- All pops in the province lose all their savings
+- If the province is not a core of the new owner and is not a colonial province (prior to conquest), any pops that are not of an accepted or primary culture get define:MIL_HIT_FROM_CONQUEST militancy
+- Provinces conquered from an unciv by a civ become colonial
+- The conquerer may gain research points:
+First, figure out how many research points the pops in the province would generate as if they were a tiny nation (i.e. for each pop type that generates research points, multiply that number by the fraction of the population it is compared to its optimal fraction (capped at one) and sum them all together). Then multiply that value by (1.0 + national modifier to research points modifier + tech increase research modifier). That value is then multiplied by define:RESEARCH_POINTS_ON_CONQUER_MULT and added to the conquering nation's research points. Ok, so what about the nations research points on conquer modifier?? Yeah, that appears to be bugged. The nation gets research points only if that multiplier is positive, but otherwise it doesn't affect the result.
+- The province gets nationalism equal to define:YEARS_OF_NATIONALISM
+- Pops leave any movements / rebellions
+- Timed modifiers are removed; constructions are cancelled
+- When new states are created by conquest, the nation gets an `on_state_conquest` event

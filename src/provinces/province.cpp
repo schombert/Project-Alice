@@ -566,6 +566,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			}
 			p.get_pop().set_is_primary_or_accepted_culture(false);
 		}
+		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
 	} else {
 		state.world.province_set_state_membership(id, dcon::state_instance_id{});
 	}
@@ -599,6 +600,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	}
 
 	if(old_owner) {
+		state.world.nation_get_owned_province_count(old_owner) -= uint16_t(1);
 		auto old_owner_rem_provs = state.world.nation_get_province_ownership(old_owner);
 		if(old_owner_rem_provs.begin() == old_owner_rem_provs.end()) {
 			nations::cleanup_nation(state, old_owner);

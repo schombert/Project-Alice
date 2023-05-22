@@ -104,7 +104,7 @@ dcon::issue_id get_issue_by_name(sys::state& state, std::string_view name) {
 
 bool reform_is_selected(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option) {
     auto reform = state.world.reform_option_get_parent_reform(reform_option);
-    return reform_option == state.world.nation_get_reforms(nation, reform.id).id;
+    return reform && reform_option == state.world.nation_get_reforms(nation, reform);
 }
 
 bool issue_is_selected(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
