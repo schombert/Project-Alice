@@ -74,30 +74,26 @@ public:
 	}
 };
 
-class unciv_reform_selected_icon : public image_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::reform_option_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::reform_option_id>(payload);
-			set_visible(state, politics::reform_is_selected(state, state.local_player_nation, content));
-		}
-	}
-};
-
 class unciv_reforms_option : public listbox_row_element_base<dcon::reform_option_id> {
+	image_element_base* selected_icon = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
 			return make_element_by_type<generic_name_text<dcon::reform_option_id>>(state, id);
 		} else if(name == "selected") {
-			return make_element_by_type<unciv_reform_selected_icon>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			selected_icon = ptr.get();
+			return ptr;
 		} else if(name == "reform_option") {
 			return make_element_by_type<unciv_reforms_reform_button>(state, id);
 		} else {
 			return nullptr;
 		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		selected_icon->set_visible(state, politics::reform_is_selected(state, state.local_player_nation, content));
+		update(state);
 	}
 };
 
