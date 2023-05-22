@@ -1758,21 +1758,30 @@ public:
 class commodity_player_availability_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		return text::format_percentage(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
+		if(commodity_id)
+			return text::format_percentage(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
+		else
+			return "";
 	}
 };
 
 class commodity_player_real_demand_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		return text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1);
+		if(commodity_id)
+			return text::format_float(state.world.nation_get_real_demand(state.local_player_nation, commodity_id), 1);
+		else
+			return "";
 	}
 };
 
 class commodity_player_production_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		return text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1);
+		if(commodity_id)
+			return text::format_float(state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id), 1);
+		else
+			return "";
 	}
 };
 
@@ -1815,7 +1824,7 @@ public:
 class commodity_player_domestic_market_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		float amount = state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id);
+		float amount = commodity_id ? state.world.nation_get_domestic_market_pool(state.local_player_nation, commodity_id) : 0.0f;
 		return text::format_float(amount, 1);
 	}
 };
@@ -1823,7 +1832,7 @@ public:
 class commodity_player_factory_needs_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = economy::nation_factory_consumption(state, state.local_player_nation, commodity_id);
+		auto amount = commodity_id ? economy::nation_factory_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
 		return text::format_float(amount, 3);
 	}
 };
@@ -1831,7 +1840,7 @@ public:
 class commodity_player_pop_needs_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = economy::nation_pop_consumption(state, state.local_player_nation, commodity_id);
+		auto amount = commodity_id ? economy::nation_pop_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
 		return text::format_float(amount, 3);
 	}
 };
@@ -1839,7 +1848,7 @@ public:
 class commodity_player_government_needs_text : public generic_simple_text<dcon::commodity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
-		auto amount = economy::government_consumption(state, state.local_player_nation, commodity_id);
+		auto amount = commodity_id ? economy::government_consumption(state, state.local_player_nation, commodity_id) : 0.0f;
 		return text::format_float(amount, 3);
 	}
 };
