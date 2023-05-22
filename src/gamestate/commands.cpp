@@ -11,7 +11,6 @@ void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_i
 	p.source = source;
 	p.data.nat_focus.focus = focus;
 	p.data.nat_focus.target_state = target_state;
-
 	auto b = state.incoming_commands.try_push(p);
 }
 
@@ -62,6 +61,43 @@ void execute_set_national_focus(sys::state& state, dcon::nation_id source, dcon:
 	}
 }
 
+void start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::start_research;
+	p.source = source;
+	p.data.start_research.tech = tech;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech) {
+	/* Nations can only start researching technologies if, they are not uncivilized, the tech
+	   activation date is past by, and all the previous techs (if any) of the same folder index
+	   are already researched fully. And they are not already researched. */
+	if(state.world.nation_get_active_technologies(source, tech))
+		return false; // Already researched
+	if(nations::current_research(state, source) == tech)
+		return false; // Already being researched
+	if(!state.world.nation_get_is_civilized(source))
+		return false; // Must be civilized
+	if(state.current_date.to_ymd(state.start_date).year >= state.world.technology_get_year(tech)) {
+		// Find previous technology before this one
+		dcon::technology_id prev_tech = dcon::technology_id(dcon::technology_id::value_base_t(tech.index() - 1));
+		// Previous technology is from the same folder so we have to check that we have researched it beforehand
+		if(tech.index() != 0 && state.world.technology_get_folder_index(prev_tech) == state.world.technology_get_folder_index(tech)) {
+			// Only allow if all previously researched techs are researched
+			return state.world.nation_get_active_technologies(source, prev_tech);
+		}
+		return true; // First technology on folder can always be researched
+	}
+	return false;
+}
+
+void execute_start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech) {
+	if(!can_start_research(state, source, tech))
+		return;
+	state.world.nation_set_current_research(source, tech);
+}
 
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
@@ -75,6 +111,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::change_nat_focus:
 				execute_set_national_focus(state, c->source, c->data.nat_focus.target_state, c->data.nat_focus.focus);
+				break;
+			case command_type::start_research:
+				execute_start_research(state, c->source, c->data.start_research.tech);
 				break;
 		}
 

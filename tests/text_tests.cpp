@@ -42,6 +42,7 @@ TEST_CASE("text from csv", "[parsers]") {
     }
 }
 
+#ifndef IGNORE_REAL_FILES_TESTS
 TEST_CASE("text game files parsing", "[parsers]") {
     SECTION("empty_file_with_types") {
         std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
@@ -65,3 +66,4 @@ TEST_CASE("text game files parsing", "[parsers]") {
         }
     }
 }
+#endif
