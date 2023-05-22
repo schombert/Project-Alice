@@ -280,30 +280,6 @@ public:
 	}
 };
 
-class province_fort_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		return fat_id.get_fort_level();
-	}
-};
-
-class province_naval_base_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		return fat_id.get_naval_base_level();
-	}
-};
-
-class province_railroad_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		return fat_id.get_railroad_level();
-	}
-};
-
 class province_crime_icon : public standard_province_icon {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
