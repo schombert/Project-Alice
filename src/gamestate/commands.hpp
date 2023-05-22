@@ -10,6 +10,8 @@ enum class command_type : uint8_t {
 	start_research = 2,
 	make_leader = 3,
 	begin_province_building_construction = 4,
+	increase_relations = 5,
+	decrease_relations = 6,
 };
 
 struct national_focus_data {
@@ -30,12 +32,17 @@ struct province_building_data {
 	economy::province_building_type type;
 };
 
+struct diplo_action_data {
+	dcon::nation_id target;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
 		start_research_data start_research;
 		make_leader_data make_leader;
 		province_building_data start_province_building;
+		diplo_action_data diplo_action;
 
 		dtype() {}
 	} data;
@@ -53,6 +60,9 @@ bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technol
 
 void make_leader(sys::state& state, dcon::nation_id source, bool general);
 bool can_make_leader(sys::state& state, dcon::nation_id source, bool general);
+
+void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type);
 bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type);

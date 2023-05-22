@@ -107,16 +107,44 @@ void make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	p.data.make_leader.is_general = general;
 	auto b = state.incoming_commands.try_push(p);
 }
-
 bool can_make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	return state.world.nation_get_leadership_points(source) >= state.defines.leader_recruit_cost;
 }
-
 void execute_make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	if(!can_make_leader(state, source, general))
 		return;
 
 	military::make_new_leader(state, source, general);
+}
+
+void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::make_leader;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And not done to self. */
+	if(source == target)
+		return false; // Can't negotiate with self
+	if(military::are_at_war(state, source, target))
+		return false; // Can't be at war
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	if(rel && state.world.diplomatic_relation_get_value(rel) <= 200.f)
+		return false; // Maxxed out
+	return state.world.nation_get_diplomatic_points(source) >= state.defines.decreaserelation_diplomatic_cost; // Enough diplomatic points
+}
+void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_decrease_relations(state, source, target))
+		return;
+	
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	if(!rel)
+		rel = state.world.force_create_diplomatic_relation(source, target);
+	nations::adjust_relationship(state, source, target, state.defines.decreaserelation_relation_on_accept);
+	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
 }
 
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov, economy::province_building_type type) {
@@ -188,6 +216,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::begin_province_building_construction:
 				execute_begin_province_building_construction(state, c->source, c->data.start_province_building.location, c->data.start_province_building.type);
+				break;
+			case command_type::decrease_relations:
+				execute_decrease_relations(state, c->source, c->data.diplo_action.target);
 				break;
 		}
 
