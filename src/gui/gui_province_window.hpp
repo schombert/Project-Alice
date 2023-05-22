@@ -25,11 +25,17 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"), text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("col_liferate_techs"));
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id prov_id = Cyto::any_cast<dcon::province_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"), text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("col_liferate_techs"));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -37,58 +43,46 @@ class province_close_button : public generic_close_button {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.map_state.set_selected_province(dcon::province_id{});
-        generic_close_button::button_action(state);
+		generic_close_button::button_action(state);
 	}
 };
 
 class province_pop_button : public button_element_base {
-protected:
-    dcon::province_id province_id;
 public:
-    void button_action(sys::state& state) noexcept override {
-        if(state.ui_state.population_subwindow != nullptr) {
-            Cyto::Any payload = pop_list_filter(province_id);
-            state.ui_state.population_subwindow->impl_set(state, payload);
-            if(state.ui_state.topbar_subwindow != nullptr)
-               state.ui_state.topbar_subwindow->set_visible(state, false);
-            state.ui_state.topbar_subwindow = state.ui_state.population_subwindow;
-            state.ui_state.population_subwindow->set_visible(state, true);
-            state.ui_state.root->move_child_to_front(state.ui_state.population_subwindow);
-            //ui_state.population_subwindow->impl_get(*this, payload);
-        }
-    }
-    message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-        if(payload.holds_type<dcon::province_id>()) {
-            province_id = any_cast<dcon::province_id>(payload);
-            on_update(state);
-            return message_result::consumed;
-        } else {
-            return message_result::unseen;
-        }
-    }
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
+
+			if(state.ui_state.population_subwindow != nullptr) {
+				Cyto::Any fl_payload = pop_list_filter(province_id);
+				state.ui_state.population_subwindow->impl_set(state, fl_payload);
+				if(state.ui_state.topbar_subwindow != nullptr)
+					state.ui_state.topbar_subwindow->set_visible(state, false);
+				state.ui_state.topbar_subwindow = state.ui_state.population_subwindow;
+				state.ui_state.population_subwindow->set_visible(state, true);
+				state.ui_state.root->move_child_to_front(state.ui_state.population_subwindow);
+				//ui_state.population_subwindow->impl_get(*this, fl_payload);
+			}
+		}
+	}
 };
 
 class province_terrain_image : public opaque_element_base {
-private:
-	dcon::province_id province_id{};
-
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, province_id);
-		auto terrain_id = fat_id.get_terrain().id;
-		auto terrain_image = state.province_definitions.terrain_to_gfx_map[terrain_id];
-		if(base_data.get_element_type() == element_type::image) {
-			base_data.data.image.gfx_object = terrain_image;
-		}
-	}
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::province_id>()) {
-			province_id = any_cast<dcon::province_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+			auto fat_id = dcon::fatten(state.world, province_id);
+			auto terrain_id = fat_id.get_terrain().id;
+			auto terrain_image = state.province_definitions.terrain_to_gfx_map[terrain_id];
+			if(base_data.get_element_type() == element_type::image) {
+				base_data.data.image.gfx_object = terrain_image;
+			}
 		}
 	}
 
@@ -97,46 +91,22 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, province_id);
-		auto name = fat_id.get_terrain().get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, province_id);
+			auto name = fat_id.get_terrain().get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
+			auto mod_id = fat_id.get_terrain().id;
+			if(bool(mod_id))
+				modifier_description(state, contents, mod_id);
 		}
-		auto mod_id = fat_id.get_terrain().id;
-		if(bool(mod_id))
-			modifier_description(state, contents, mod_id);
-	}
-};
-
-class slave_state_icon : public pop_type_icon {
-public:
-	void on_create(sys::state& state) noexcept override {
-		pop_type_icon::on_create(state);
-		auto fat_id = dcon::fatten(state.world, state.culture_definitions.slaves);
-		content = fat_id.id;
-		on_update(state);
-	}
-};
-
-class province_admin_icon : public pop_type_icon {
-public:
-	void on_create(sys::state& state) noexcept override {
-		pop_type_icon::on_create(state);
-		auto fat_id = dcon::fatten(state.world, state.culture_definitions.bureaucrat);
-		content = fat_id.id;
-		on_update(state);
-	}
-};
-
-class province_owner_icon : public pop_type_icon {
-public:
-	void on_create(sys::state& state) noexcept override {
-		pop_type_icon::on_create(state);
-		auto fat_id = dcon::fatten(state.world, state.culture_definitions.aristocrat);
-		content = fat_id.id;
-		on_update(state);
 	}
 };
 
@@ -144,37 +114,40 @@ class province_flashpoint_indicator : public standard_province_icon {
 public:
 	void on_update(sys::state& state) noexcept override {
 		standard_province_icon::on_update(state);
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		auto tension = fat_id.get_state_membership().get_flashpoint_tension();
-		set_visible(state, tension > 0.f);
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
+			auto fat_id = dcon::fatten(state.world, province_id);
+			auto tension = fat_id.get_state_membership().get_flashpoint_tension();
+			set_visible(state, tension > 0.f);
+		}
 	}
 };
 
 class province_controller_flag : public flag_button {
-private:
-	dcon::province_id province_id{};
-
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, province_id);
-		auto controller_id = fat_id.get_province_control_as_province().get_nation();
-		return controller_id.get_identity_from_identity_holder().id;
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			dcon::province_id province_id = Cyto::any_cast<dcon::province_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, province_id);
+			auto controller_id = fat_id.get_province_control_as_province().get_nation();
+			return controller_id.get_identity_from_identity_holder().id;
+		}
+		return dcon::national_identity_id{};
 	}
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::province_id>()) {
-			province_id = any_cast<dcon::province_id>(payload);
-			auto nation = get_current_nation(state);
-			if(bool(nation)) {
-				flag_button::set_current_nation(state, get_current_nation(state));
-				set_visible(state, true);
-			} else {
-				set_visible(state, false);
-			}
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+	void on_update(sys::state& state) noexcept override {
+		flag_button::on_update(state);
+
+		auto nation = get_current_nation(state);
+		if(bool(nation)) {
+			flag_button::set_current_nation(state, get_current_nation(state));
 		}
+		set_visible(state, bool(nation));
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -186,19 +159,57 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto prov_fat = dcon::fatten(state.world, province_id);
-		auto controller_name = prov_fat.get_province_control_as_province().get_nation().get_name();
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
-		text::add_space_to_layout_box(contents, state, box);
-		text::add_to_layout_box(contents, state, box, controller_name);
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto province_id = any_cast<dcon::province_id>(payload);
+
+			auto prov_fat = dcon::fatten(state.world, province_id);
+			auto controller_name = prov_fat.get_province_control_as_province().get_nation().get_name();
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
+			text::add_space_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, controller_name);
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
 class province_national_focus_button : public button_element_base {
 public:
+	int32_t get_icon_frame(sys::state& state) noexcept {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+
+			return bool(dcon::fatten(state.world, content).get_state_membership().get_owner_focus()) ? (dcon::fatten(state.world, content).get_state_membership().get_owner_focus().get_icon() - 1) : 0;
+		}
+		return 0;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		frame = get_icon_frame(state);
+	}
+
 	void button_action(sys::state& state) noexcept override;
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+
+			dcon::national_focus_fat_id focus = dcon::fatten(state.world, content).get_state_membership().get_owner_focus();
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, focus.get_name());
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class province_colony_button : public standard_state_instance_button {
@@ -209,9 +220,12 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled =
-			state.world.state_instance_get_nation_from_state_ownership(state_instance_id) != state.local_player_nation
-			|| !province::can_integrate_colony(state, state_instance_id);
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto state_instance_id = any_cast<dcon::state_instance_id>(payload);
+			disabled = state.world.state_instance_get_nation_from_state_ownership(state_instance_id) != state.local_player_nation || !province::can_integrate_colony(state, state_instance_id);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -219,35 +233,28 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("pw_colony"));
-		text::add_divider_to_layout_box(state, contents, box);
-
-		text::substitution_map sub1{};
-		text::add_to_substitution_map(sub1, text::variable_type::num, text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
-		float total_pop = state.world.state_instance_get_demographics(state_instance_id, demographics::total);
-		float b_size = province::state_accepted_bureaucrat_size(state, state_instance_id);
-		text::add_to_substitution_map(sub1, text::variable_type::curr, text::fp_one_place{(b_size / total_pop) * 100.f});
-		text::localised_format_box(state, contents, box, std::string_view("pw_colony_no_state"), sub1);
-
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::substitution_map sub2{};
-		text::add_to_substitution_map(sub2, text::variable_type::value, int32_t(province::colony_integration_cost(state, state_instance_id)));
-		text::localised_format_box(state, contents, box, std::string_view("pw_cant_upgrade_to_state"), sub2);
-
-		text::close_layout_box(contents, box);
-	}
-};
-
-class province_name_text_SCH : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::province_id{};
+			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
-			dcon::province_id result = Cyto::any_cast<dcon::province_id>(payload);
+			auto state_instance_id = any_cast<dcon::state_instance_id>(payload);
 
-			set_text(state, text::produce_simple_string(state, state.world.province_get_name(result)));
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("pw_colony"));
+			text::add_divider_to_layout_box(state, contents, box);
+
+			text::substitution_map sub1{};
+			text::add_to_substitution_map(sub1, text::variable_type::num, text::fp_one_place{state.defines.state_creation_admin_limit * 100.f});
+			float total_pop = state.world.state_instance_get_demographics(state_instance_id, demographics::total);
+			float b_size = province::state_accepted_bureaucrat_size(state, state_instance_id);
+			text::add_to_substitution_map(sub1, text::variable_type::curr, text::fp_one_place{(b_size / total_pop) * 100.f});
+			text::localised_format_box(state, contents, box, std::string_view("pw_colony_no_state"), sub1);
+
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::substitution_map sub2{};
+			text::add_to_substitution_map(sub2, text::variable_type::value, int32_t(province::colony_integration_cost(state, state_instance_id)));
+			text::localised_format_box(state, contents, box, std::string_view("pw_cant_upgrade_to_state"), sub2);
+
+			text::close_layout_box(contents, box);
 		}
 	}
 };
@@ -259,7 +266,6 @@ public:
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
 			dcon::province_id result = Cyto::any_cast<dcon::province_id>(payload);
-
 			set_text(state, text::get_province_state_name(state, result));
 		}
 	}
@@ -267,20 +273,20 @@ public:
 
 class province_window_header : public window_element_base {
 private:
-	slave_state_icon* slave_icon = nullptr;
+	fixed_pop_type_icon* slave_icon = nullptr;
 	province_colony_button* colony_button = nullptr;
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_name") {
 			return make_element_by_type<province_state_name_text_SCH>(state, id);
 		} else if(name == "province_name") {
-			return make_element_by_type<province_name_text_SCH>(state, id);
+			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else if(name == "prov_terrain") {
 			return make_element_by_type<province_terrain_image>(state, id);
 		} else if(name == "slave_state_icon") {
-			auto ptr = make_element_by_type<slave_state_icon>(state, id);
+			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
 			slave_icon = ptr.get();
+			ptr->set_type(state, state.culture_definitions.slaves);
 			return ptr;
 		} else if(name == "admin_icon") {
 			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
@@ -480,7 +486,7 @@ public:
 		}
 	}
 
-    void update_province_info(sys::state& state, dcon::province_id prov_id) {
+	void update_province_info(sys::state& state, dcon::province_id prov_id) {
 		stored_province = prov_id;
 		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 		auto nation_id = fat_id.get_nation_from_province_ownership();
@@ -528,8 +534,8 @@ public:
 		if(name == "goods_type") {
 			return make_element_by_type<province_rgo_icon>(state, id);
 		}  else if(name == "open_popscreen"){
-            return make_element_by_type<province_pop_button>(state, id);
-        } else if(name == "total_population") {
+			return make_element_by_type<province_pop_button>(state, id);
+		} else if(name == "total_population") {
 			return make_element_by_type<province_population_text>(state, id);
 		} else if(name == "workforce_chart") {
 			auto ptr = make_element_by_type<workforce_piechart<dcon::province_id>>(state, id);
@@ -700,7 +706,7 @@ public:
 			ptr->base_data.position.y = 71;
 			add_child_to_front(std::move(ptr));
 		}
-    }
+	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "army_progress") {
@@ -777,7 +783,6 @@ private:
 	simple_text_element_base* population_box = nullptr;
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
 	dcon::province_id stored_province{};
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "total_population") {
@@ -797,7 +802,7 @@ public:
 		}
 	}
 
-    void update_province_info(sys::state& state, dcon::province_id prov_id) {
+	void update_province_info(sys::state& state, dcon::province_id prov_id) {
 		stored_province = prov_id;
 		dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 		auto nation_id = fat_id.get_nation_from_province_ownership();
@@ -817,21 +822,20 @@ public:
 		if(payload.holds_type<dcon::province_id>()) {
 			payload.emplace<dcon::province_id>(stored_province);
 			return message_result::consumed;
-		} else {
-			return message_result::unseen;
 		}
+		return message_result::unseen;
 	}
 };
 
-class national_focus_icon : public generic_settable_element<button_element_base, dcon::national_focus_id> {
+class national_focus_icon : public button_element_base {
 public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::national_focus_id>()) {
-			content = any_cast<dcon::national_focus_id>(payload);
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::national_focus_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::national_focus_id>(payload);
 			frame = state.world.national_focus_get_icon(content) - 1;
-			return message_result::consumed;
 		}
-		return message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -839,30 +843,44 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(content) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{ });
-			text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::national_focus_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::national_focus_id>(payload);
+			if(bool(content)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{ });
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			auto sdef = state.world.province_get_state_from_abstract_state_membership(content);
+			dcon::state_instance_id sid{};
+			sid = dcon::fatten(state.world, content).get_state_membership();
+
+			Cyto::Any nf_payload = dcon::national_focus_id{};
+			parent->impl_get(state, nf_payload);
+			auto nat_focus = any_cast<dcon::national_focus_id>(nf_payload);
+
+			command::set_national_focus(state, state.local_player_nation, sid, nat_focus);
 		}
 	}
 };
 
 class province_focus_item : public listbox_row_element_base<dcon::national_focus_id> {
-	national_focus_icon* focus_icon = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "focus_icon") {
-			auto ptr = make_element_by_type<national_focus_icon>(state, id);
-			focus_icon = ptr.get();
-			return ptr;
+			return make_element_by_type<national_focus_icon>(state, id);
 		} else {
 			return nullptr;
 		}
-	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		focus_icon->impl_set(state, payload);
 	}
 };
 
@@ -955,13 +973,13 @@ private:
 public:
 	province_national_focus_window* national_focus_window = nullptr;
 
-    void on_create(sys::state& state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		state.ui_state.province_window = this;
 		set_visible(state, false);
-    }
+	}
 
-    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<province_close_button>(state, id);
 		} else if(name == "background") {
@@ -1017,7 +1035,7 @@ public:
 		}
 	}
 
-    void set_active_province(sys::state& state, dcon::province_id map_province) {
+	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
 			update_province_info(state);

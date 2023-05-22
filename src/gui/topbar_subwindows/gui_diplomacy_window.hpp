@@ -26,8 +26,10 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = button_press_notification{};
-		parent->impl_get(state, payload);
+		if(parent) {
+			Cyto::Any payload = button_press_notification{};
+			parent->impl_get(state, payload);
+		}
 	}
 };
 
@@ -42,12 +44,17 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto num_ships = get_ship_number(state, nation_id);
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value, get_ship_number(state, nation_id));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("navy_technology_levels"));
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+		
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value, get_ship_count(state, nation_id));
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("navy_technology_levels"));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -62,14 +69,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto num = dcon::fatten(state.world, nation_id).get_active_regiments();
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_brigades"), text::variable_type::value, num);
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("army_technology_levels"));
-		text::add_line_break_to_layout_box(contents, state, box);
-		text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
-		text::close_layout_box(contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+		
+			auto num = dcon::fatten(state.world, nation_id).get_active_regiments();
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_brigades"), text::variable_type::value, num);
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("army_technology_levels"));
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -84,14 +97,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"), text::variable_type::value, text::fp_percentage{num});
-		// TODO - check if the nation is at peace, if it is then we display stuff
-		if(nation_id == state.local_player_nation) {
-			text::add_divider_to_layout_box(state, contents, box);
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+		
+			auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"), text::variable_type::value, text::fp_percentage{num});
+			// TODO - check if the nation is at peace, if it is then we display stuff
+			if(nation_id == state.local_player_nation) {
+				text::add_divider_to_layout_box(state, contents, box);
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -106,14 +125,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy2"), text::variable_type::value, text::fp_percentage{num});
-		if(nation_id == state.local_player_nation) {
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+		
+			auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy2"), text::variable_type::value, text::fp_percentage{num});
+			if(nation_id == state.local_player_nation) {
+				text::add_divider_to_layout_box(state, contents, box);
+				text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
+			}
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -143,8 +168,6 @@ public:
 };
 
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
-private:
-	flag_button* country_flag = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<dcon::nation_id>::on_create(state);
@@ -158,7 +181,6 @@ public:
 		} else if(name == "country_flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.y -= 2; // Nudge
-			country_flag = ptr.get();
 			return ptr;
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
@@ -187,22 +209,13 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
-		country_flag->on_update(state);
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
-
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			payload.emplace<dcon::nation_id>(content);
+		if(payload.holds_type<button_press_notification>()) {
+			Cyto::Any new_payload = element_selection_wrapper<dcon::nation_id>{ content };
+			parent->impl_get(state, new_payload);
 			return message_result::consumed;
-		} else if(payload.holds_type<button_press_notification>()) {
-			Cyto::Any new_payload = content;
-			return parent->impl_get(state, new_payload);
-		} else {
-			return listbox_row_element_base<dcon::nation_id>::get(state, payload);
 		}
+		return listbox_row_element_base<dcon::nation_id>::get(state, payload);
 	}
 };
 
@@ -222,19 +235,9 @@ private:
 	simple_text_element_base* country_primary_cultures = nullptr;
 	simple_text_element_base* country_accepted_cultures = nullptr;
 public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		if(bool(state.local_player_nation)) {
-			Cyto::Any payload = state.local_player_nation;
-			set(state, payload);
-		}
-	}
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_flag") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
-			country_flag = ptr.get();
-			return ptr;
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "country_flag_overlay") {
 			return make_element_by_type<nation_flag_frame>(state, id);
 		} else if(name == "country_name") {
@@ -315,46 +318,27 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, active_nation);
-
-		{
-			const auto culture_id = fat_id.get_primary_culture();
-			auto culture = dcon::fatten(state.world, culture_id);
-			const auto text = text::produce_simple_string(state, culture.get_name());
-			country_primary_cultures->set_text(state, text);
-		}
-
-		{
-			std::string text{};
-			for(const auto culture_id : fat_id.get_accepted_cultures()) {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat_id = dcon::fatten(state.world, content);
+			country_relation->set_visible(state, content != state.local_player_nation);
+			country_relation_icon->set_visible(state, content != state.local_player_nation);
+			{
+				const auto culture_id = fat_id.get_primary_culture();
 				auto culture = dcon::fatten(state.world, culture_id);
-				text += text::produce_simple_string(state, culture.get_name()) + ", ";
+				const auto text = text::produce_simple_string(state, culture.get_name());
+				country_primary_cultures->set_text(state, text);
 			}
-			country_accepted_cultures->set_text(state, "");
-		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			payload.emplace<dcon::nation_id>(active_nation);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			active_nation = any_cast<dcon::nation_id>(payload);
-			country_flag->on_update(state);
-
-			country_relation->set_visible(state, active_nation != state.local_player_nation);
-			country_relation_icon->set_visible(state, active_nation != state.local_player_nation);
-
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
+			{
+				std::string text{};
+				for(const auto culture_id : fat_id.get_accepted_cultures()) {
+					auto culture = dcon::fatten(state.world, culture_id);
+					text += text::produce_simple_string(state, culture.get_name()) + ", ";
+				}
+				country_accepted_cultures->set_text(state, "");
+			}
 		}
 	}
 };
@@ -626,6 +610,7 @@ private:
 
 	diplomacy_list_sort sort = diplomacy_list_sort::country;
 	bool sort_ascend = true;
+	dcon::nation_id facts_nation_id{};
 
 	void sort_countries(sys::state& state) {
 		std::function<bool(dcon::nation_id, dcon::nation_id)> fn;
@@ -795,8 +780,7 @@ public:
 		gp_action_dialog_win = new_win2.get();
 		add_child_to_front(std::move(new_win2));
 
-		Cyto::Any payload = state.local_player_nation;
-		impl_get(state, payload);
+		facts_nation_id = state.local_player_nation;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -952,17 +936,17 @@ public:
 			filter_by_continent(state, mod_id);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
-			for(const auto e : action_buttons)
-				e->impl_set(state, payload);
-			return country_facts->impl_set(state, payload);
+			payload.emplace<dcon::nation_id>(facts_nation_id);
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<dcon::nation_id>>()) {
+			facts_nation_id = any_cast<element_selection_wrapper<dcon::nation_id>>(payload).data;
+			impl_on_update(state);
+			return message_result::consumed;
 		} else if(payload.holds_type<diplomacy_action>()) {
 			auto v = any_cast<diplomacy_action>(payload);
-			Cyto::Any new_payload = dcon::nation_id{};
-			country_facts->impl_get(state, new_payload);
-
 			gp_action_dialog_win->set_visible(state, false);
 			action_dialog_win->set_visible(state, false);
-
+			Cyto::Any new_payload = facts_nation_id;
 			switch(v) {
 			case diplomacy_action::discredit:
 			case diplomacy_action::expel_advisors:
@@ -971,11 +955,13 @@ public:
 				gp_action_dialog_win->set_visible(state, true);
 				gp_action_dialog_win->impl_set(state, new_payload);
 				gp_action_dialog_win->impl_set(state, payload);
+				gp_action_dialog_win->impl_on_update(state);
 				break;
 			default:
 				action_dialog_win->set_visible(state, true);
 				action_dialog_win->impl_set(state, new_payload);
 				action_dialog_win->impl_set(state, payload);
+				action_dialog_win->impl_on_update(state);
 				break;
 			}
 			return message_result::consumed;

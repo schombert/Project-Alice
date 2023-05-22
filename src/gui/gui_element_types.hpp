@@ -286,7 +286,6 @@ protected:
 		Cyto::Any payload = wrapped_listbox_row_content<ItemConT>(content);
 		subwindow.impl_get(state, payload);
 	}
-
 public:
 	std::vector<ItemConT> row_contents{};
 	void update(sys::state& state);
@@ -664,6 +663,11 @@ public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
+};
+
+template<typename T>
+struct element_selection_wrapper {
+	T data{};
 };
 
 }
