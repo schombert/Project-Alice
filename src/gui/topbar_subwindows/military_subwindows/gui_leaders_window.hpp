@@ -94,7 +94,7 @@ template<bool B>
 class military_make_leader_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		disabled = command::can_make_leader(state, state.local_player_nation, B);
+		disabled = !command::can_make_leader(state, state.local_player_nation, B);
 	}
 
 	void button_action(sys::state& state) noexcept override {
