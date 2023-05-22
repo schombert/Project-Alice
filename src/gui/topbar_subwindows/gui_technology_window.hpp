@@ -873,8 +873,8 @@ public:
 			}
 
 			// Add technologies
-			state.world.for_each_technology([&](dcon::technology_id tech_id) {
-				auto tech = dcon::fatten(state.world, tech_id);
+			state.world.for_each_technology([&](dcon::technology_id tid) {
+				auto tech = dcon::fatten(state.world, tid);
 				size_t folder_id = static_cast<size_t>(tech.get_folder_index());
 				const auto& folder = state.culture_definitions.tech_folders[folder_id];
 				if(folder.category != cat)
@@ -882,7 +882,7 @@ public:
 				
 				auto ptr = make_element_by_type<technology_item_window>(state, state.ui_state.defs_by_name.find("tech_window")->second.definition);
 
-				Cyto::Any payload = tech_id;
+				Cyto::Any payload = tid;
 				ptr->impl_set(state, payload);
 
 				ptr->base_data.position.x = static_cast<int16_t>(base_group_offset.x + (folder_x_offset[folder_id] * ptr->base_data.size.x));

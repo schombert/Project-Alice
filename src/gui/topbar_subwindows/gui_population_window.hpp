@@ -14,7 +14,6 @@ dcon::pop_id get_pop_details_pop(sys::state& state);
 
 class nation_growth_indicator : public opaque_element_base {
 public:
-	dcon::pop_id content;
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -66,7 +65,6 @@ public:
 
 class state_growth_indicator : public opaque_element_base {
 public:
-	dcon::pop_id content;
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -168,8 +166,6 @@ public:
 
 class pop_revolt_faction : public opaque_element_base {
 public:
-	dcon::pop_id content;
-
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		if(parent) {
 			Cyto::Any payload = dcon::pop_id{};
