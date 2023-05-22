@@ -1957,8 +1957,14 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_focus_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::national_focus_id>(payload);
-			frame = state.world.national_focus_get_icon(content) - 1;
+			auto nfid = any_cast<dcon::national_focus_id>(payload);
+
+			Cyto::Any s_payload = dcon::state_instance_id{};
+			parent->impl_get(state, s_payload);
+			auto sid = any_cast<dcon::state_instance_id>(s_payload);
+
+			disabled = !command::can_set_national_focus(state, state.local_player_nation, sid, nfid);
+			frame = state.world.national_focus_get_icon(nfid) - 1;
 		}
 	}
 
