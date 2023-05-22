@@ -394,6 +394,7 @@ public:
 				return fat_id.get_naval_base_level();
 			}
 		}
+		return 0;
 	}
 };
 template<economy::province_building_type Value>
@@ -450,6 +451,7 @@ class province_building_window : public window_element_base {
 			case economy::province_building_type::naval_base:
 				return "build_icon2";
 		}
+		return "???";
 	}
 
 	std::string get_description(sys::state& state) noexcept {
@@ -461,6 +463,7 @@ class province_building_window : public window_element_base {
 			case economy::province_building_type::naval_base:
 				return text::produce_simple_string(state, "naval_base");
 		}
+		return "???";
 	}
 
 	bool is_being_built(sys::state& state, dcon::province_id id) noexcept {
