@@ -111,9 +111,13 @@ bool state_has_naval_base(sys::state const& state, dcon::state_instance_id di);
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p);
 int32_t regiments_created_from_province(sys::state& state, dcon::province_id p); // does not include mobilized regiments
 int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p);
+int32_t main_culture_regiments_created_from_province(sys::state& state, dcon::province_id p);
+int32_t main_culture_regiments_max_possible_from_province(sys::state& state, dcon::province_id p);
+int32_t regiments_under_construction_in_province(sys::state& state, dcon::province_id p);
+int32_t main_culture_regiments_under_construction_in_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
-dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p);
+dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, bool require_accepted);
 
 dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id t);
 dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id t);

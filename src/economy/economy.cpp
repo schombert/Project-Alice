@@ -2351,7 +2351,7 @@ void daily_update(sys::state& state) {
 						if(p.get_province().get_nation_from_province_ownership() == n) {
 							for(auto f : p.get_province().get_factory_location()) {
 								++num_factories;
-								if((nation_rules & issue_rule::pop_expand_factory) != 0 && f.get_factory().get_production_scale() >= 0.9f) {
+								if((nation_rules & issue_rule::pop_expand_factory) != 0 && f.get_factory().get_production_scale() >= 0.9f && f.get_factory().get_level() < uint8_t(255)) {
 									if(auto new_p = f.get_factory().get_full_profit() / f.get_factory().get_level(); new_p > profit) {
 										profit = new_p;
 										selected_factory = f.get_factory();
@@ -2401,7 +2401,7 @@ void daily_update(sys::state& state) {
 			if(!found_investment) {
 				if((nation_rules & issue_rule::pop_build_factory) != 0) {
 					for(auto p : n.get_province_ownership()) {
-						if(province::can_build_railroads(state, p.get_province(), n)) {
+						if(province::generic_can_build_railroads(state, p.get_province(), n)) {
 							auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.get_province(), n));
 							new_rr.set_is_pop_project(true);
 							new_rr.set_type(uint8_t(province_building_type::railroad));
@@ -2786,7 +2786,8 @@ void resolve_constructions(sys::state& state) {
 				}
 
 				if(all_finished) {
-					auto free_pop = military::find_available_soldier(state, p);
+					auto is_culture_restricted = state.military_definitions.unit_base_definitions[c.get_type()].primary_culture;
+					auto free_pop = military::find_available_soldier(state, p, is_culture_restricted);
 					if(free_pop) {
 						auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
 						auto a = [&]() {

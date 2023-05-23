@@ -1096,6 +1096,42 @@ If it is the flashpoint focus, the state must not be owned by you, you must be l
 
 Changes the national focus active in the state
 
+### Start research
+
+This starts researching an specific technology.
+
+#### Conditions
+
+Nations can only start researching technologies if, they are not uncivilized, the corresponding date that the technology is activated at is already past by, and all the previous techs (if any) of the same folder are already researched fully. And the technology isn't already being researched.
+
+#### Effect
+
+Sets the current research of the country to the specified technology.
+
+### Increase relations
+
+This increases relations between the two countries and requires no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the relation value isn't maxxed out at 200, and has defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender.
+
+#### Effect
+
+Increase relations value by the value of defines:INCREASERELATION_RELATION_ON_ACCEPT (normally set at 100) and decreases diplomatic points by defines:INCREASERELATION_DIPLOMATIC_COST.
+
+### Decrease relations
+
+This decreases relations between the two countries and requires no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender.
+
+#### Effect
+
+Increase relations value by the value of defines:DECREASERELATION_RELATION_ON_ACCEPT (normally set at -20) and decreases diplomatic points by defines:DECREASERELATION_DIPLOMATIC_COST.
+
 ### Conquering a province
 
 Strictly speaking, this is not a command that we would expect the ui to ever send directly (except maybe via the console). However, it can be thought of as a component of the more complex commands that will eventually execute a peace deal, for example.
@@ -1114,7 +1150,7 @@ In addition to transferring province ownership: (TODO: prevent more than one nav
 First, figure out how many research points the pops in the province would generate as if they were a tiny nation (i.e. for each pop type that generates research points, multiply that number by the fraction of the population it is compared to its optimal fraction (capped at one) and sum them all together). Then multiply that value by (1.0 + national modifier to research points modifier + tech increase research modifier). That value is then multiplied by define:RESEARCH_POINTS_ON_CONQUER_MULT and added to the conquering nation's research points. Ok, so what about the nations research points on conquer modifier?? Yeah, that appears to be bugged. The nation gets research points only if that multiplier is positive, but otherwise it doesn't affect the result.
 - The province gets nationalism equal to define:YEARS_OF_NATIONALISM
 - Pops leave any movements / rebellions
-- Timed modifiers are removed; constructions are cancelled
+- Timed modifiers are removed; constructions are canceled
 - When new states are created by conquest, the nation gets an `on_state_conquest` event
 
 ### Create a military leader (either general or admiral)
@@ -1153,6 +1189,7 @@ For foreign investment: the target nation must allow foreign investment, the nat
 
 The factory building must be unlocked by the nation.
 Factories cannot be built in a colonial state.
+Coastal factories can only be built in coastal states.
 
 For new factories: no more than 7 existing + under construction new factories must be present.
 For upgrades: no upgrading past max level.
@@ -1172,3 +1209,48 @@ The nation must have the appropriate rule to allow the destruction set.
 #### Effect
 
 Factory goes away
+
+### Change factory settings
+
+Change the hiring priority or subsidized status of a factory
+
+#### Conditions
+
+Relevant national rules
+
+#### Effect
+
+Status changes
+
+### Start unit construction
+
+#### Conditions
+
+The province must be owned and controlled by the building nation, without an ongoing siege.
+The unit type must be available from start / unlocked by the nation
+
+Land units:
+
+Each soldier pop can only support so many regiments (including under construction and rebel regiments)
+If the unit is culturally restricted, there must be an available primary culture/accepted culture soldier pop with space
+
+Naval units:
+
+The province must be coastal
+The province must have a naval base of sufficient level, depending on the unit type
+The province may not be overseas for some unit types
+Some units have a maximum number per port where they can built that must be respected
+
+#### Effect
+
+Starts condition
+
+### Cancel unit construction
+
+#### Conditions
+
+Must be the owner of the province where the unit is being built
+
+#### Effect
+
+Cancels construction

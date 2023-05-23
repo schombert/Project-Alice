@@ -107,16 +107,41 @@ void make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	p.data.make_leader.is_general = general;
 	auto b = state.incoming_commands.try_push(p);
 }
-
 bool can_make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	return state.world.nation_get_leadership_points(source) >= state.defines.leader_recruit_cost;
 }
-
 void execute_make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	if(!can_make_leader(state, source, general))
 		return;
 
 	military::make_new_leader(state, source, general);
+}
+
+void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::decrease_relations;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And not done to self. */
+	if(source == target)
+		return false; // Can't negotiate with self
+	if(military::are_at_war(state, source, target))
+		return false; // Can't be at war
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	if(rel && state.world.diplomatic_relation_get_value(rel) <= -200.f)
+		return false; // Maxxed out
+	return state.world.nation_get_diplomatic_points(source) >= state.defines.decreaserelation_diplomatic_cost; // Enough diplomatic points
+}
+void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_decrease_relations(state, source, target))
+		return;
+	
+	nations::adjust_relationship(state, source, target, state.defines.decreaserelation_relation_on_accept);
+	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
 }
 
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov, economy::province_building_type type) {
@@ -187,7 +212,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	Factories cannot be built in a colonial state.
 	*/
 
-	if(state.world.nation_get_active_building(source, type) == false)
+	if(state.world.nation_get_active_building(source, type) == false && !state.world.factory_type_get_is_available_from_start(type))
 		return false;
 	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)))
 		return false;
@@ -211,6 +236,9 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		/*
 		The nation must have the rule set to allow building / upgrading if this is a domestic target.
 		*/
+		if(state.world.nation_get_is_civilized(source) == false)
+			return false;
+
 		auto rules = state.world.nation_get_combined_issue_rules(owner);
 		if(is_upgrade) {
 			if((rules & issue_rule::expand_factory) == 0)
@@ -243,6 +271,12 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 		return false;
 	} else {
+		// coastal factories must be built on coast
+		if(state.world.factory_type_get_is_coastal(type)) {
+			if(!province::state_is_coastal(state, location))
+				return false;
+		}
+
 		//For new factories: no more than 7 existing + under construction new factories must be present.
 		int32_t num_factories = 0;
 
@@ -289,6 +323,212 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 	}
 }
 
+void start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::begin_unit_construction;
+	p.source = source;
+	p.data.unit_construction.location = location;
+	p.data.unit_construction.type = type;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+bool can_start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	/*
+	The province must be owned and controlled by the building nation, without an ongoing siege.
+	The unit type must be available from start / unlocked by the nation
+	*/
+
+	if(state.world.province_get_nation_from_province_ownership(location) != source)
+		return false;
+	if(state.world.province_get_nation_from_province_control(location) != source)
+		return false;
+	if(state.world.nation_get_active_unit(source, type) == false && state.military_definitions.unit_base_definitions[type].active == false)
+		return false;
+
+	if(state.military_definitions.unit_base_definitions[type].is_land) {
+		/*
+		Each soldier pop can only support so many regiments (including under construction and rebel regiments)
+		If the unit is culturally restricted, there must be an available primary culture/accepted culture soldier pop with space
+		*/
+		if(state.military_definitions.unit_base_definitions[type].primary_culture) {
+			auto total_built = military::main_culture_regiments_created_from_province(state, location);
+			auto under_const = military::main_culture_regiments_under_construction_in_province(state, location);
+			auto possible = military::main_culture_regiments_max_possible_from_province(state, location);
+			return possible > total_built + under_const;
+		} else {
+			auto total_built = military::regiments_created_from_province(state, location);
+			auto under_const = military::regiments_under_construction_in_province(state, location);
+			auto possible = military::regiments_max_possible_from_province(state, location);
+			return possible > total_built + under_const;
+		}
+	} else {
+		/*
+		The province must be coastal
+		The province must have a naval base of sufficient level, depending on the unit type
+		The province may not be overseas for some unit types
+		Some units have a maximum number per port where they can built that must be respected
+		*/
+		if(!state.world.province_get_is_coast(location))
+			return false;
+
+		auto overseas_allowed = state.military_definitions.unit_base_definitions[type].can_build_overseas;
+		auto level_req = state.military_definitions.unit_base_definitions[type].min_port_level;
+
+		if(state.world.province_get_naval_base_level(location) < level_req)
+			return false;
+
+		if(!overseas_allowed && province::is_overseas(state, location))
+			return false;
+
+		return true;
+	}
+}
+
+void execute_start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	if(!can_start_unit_construction(state, source, location, type))
+		return;
+
+	if(state.military_definitions.unit_base_definitions[type].is_land) {
+		auto c = fatten(state.world, state.world.try_create_province_land_construction(location, source));
+		c.set_type(type);
+	} else {
+		auto c = fatten(state.world, state.world.try_create_province_naval_construction(location, source));
+		c.set_type(type);
+	}
+}
+
+
+void cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_unit_construction;
+	p.source = source;
+	p.data.unit_construction.location = location;
+	p.data.unit_construction.type = type;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+bool can_cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	return state.world.province_get_nation_from_province_ownership(location) == source;
+}
+
+void execute_cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	if(!can_cancel_unit_construction(state, source, location, type))
+		return;
+
+	if(state.military_definitions.unit_base_definitions[type].is_land) {
+		dcon::province_land_construction_id c;
+		for(auto lc : state.world.province_get_province_land_construction(location)) {
+			if(lc.get_type() == type) {
+				c = lc.id;
+			}
+		}
+		state.world.delete_province_land_construction(c);
+	} else {
+		dcon::province_naval_construction_id c;
+		for(auto lc : state.world.province_get_province_naval_construction(location)) {
+			if(lc.get_type() == type) {
+				c = lc.id;
+			}
+		}
+		state.world.delete_province_naval_construction(c);
+	}
+}
+
+void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::delete_factory;
+	p.source = source;
+	p.data.factory.location = state.world.factory_get_province_from_factory_location(f);
+	p.data.factory.type = state.world.factory_get_building_type(f);
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
+	auto loc = state.world.factory_get_province_from_factory_location(f);
+	if(state.world.province_get_nation_from_province_ownership(loc) != source)
+		return false;
+	auto rules = state.world.nation_get_combined_issue_rules(source);
+	if((rules & issue_rule::destroy_factory) == 0)
+		return false;
+	return true;
+}
+void execute_delete_factory(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
+	if(state.world.province_get_nation_from_province_ownership(location) != source)
+		return;
+
+	auto rules = state.world.nation_get_combined_issue_rules(source);
+	if((rules & issue_rule::destroy_factory) == 0)
+		return;
+
+	for(auto f : state.world.province_get_factory_location(location)) {
+		if(f.get_factory().get_building_type() == type) {
+			state.world.delete_factory(f.get_factory());
+			return;
+		}
+	}
+}
+
+void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_factory_settings;
+	p.source = source;
+	p.data.factory.location = state.world.factory_get_province_from_factory_location(f);
+	p.data.factory.type = state.world.factory_get_building_type(f);
+	p.data.factory.priority = priority;
+	p.data.factory.subsidize = subsidized;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized) {
+	auto loc = state.world.factory_get_province_from_factory_location(f);
+	if(state.world.province_get_nation_from_province_ownership(loc) != source)
+		return false;
+
+	auto rules = state.world.nation_get_combined_issue_rules(source);
+
+	auto current_priority = economy::factory_priority(state, f);
+	if(priority >= 4)
+		return false;
+
+	if(current_priority != priority) {
+		if((rules & issue_rule::factory_priority) == 0)
+			return false;
+	}
+
+	if(subsidized && (rules & issue_rule::can_subsidise) == 0) {
+		return false;
+	}
+
+	return true;
+}
+void execute_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type, uint8_t priority, bool subsidized) {
+
+	if(state.world.province_get_nation_from_province_ownership(location) != source)
+		return;
+
+	auto rules = state.world.nation_get_combined_issue_rules(source);
+
+
+	if(subsidized && (rules & issue_rule::can_subsidise) == 0) {
+		return;
+	}
+
+	for(auto f : state.world.province_get_factory_location(location)) {
+		if(f.get_factory().get_building_type() == type) {
+			auto current_priority = economy::factory_priority(state, f.get_factory());
+			if(current_priority != priority) {
+				if((rules & issue_rule::factory_priority) == 0)
+					return;
+				economy::set_factory_priority(state, f.get_factory(), priority);
+			}
+			f.get_factory().set_subsidized(subsidized);
+			return;
+		}
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -311,9 +551,23 @@ void execute_pending_commands(sys::state& state) {
 			case command_type::begin_province_building_construction:
 				execute_begin_province_building_construction(state, c->source, c->data.start_province_building.location, c->data.start_province_building.type);
 				break;
+			case command_type::decrease_relations:
+				execute_decrease_relations(state, c->source, c->data.diplo_action.target);
+				break;
 			case command_type::begin_factory_building_construction:
 				execute_begin_factory_building_construction(state, c->source, c->data.start_factory_building.location, c->data.start_factory_building.type, c->data.start_factory_building.is_upgrade);
 				break;
+			case command_type::begin_unit_construction:
+				execute_start_unit_construction(state, c->source, c->data.unit_construction.location, c->data.unit_construction.type);
+				break;
+			case command_type::cancel_unit_construction:
+				execute_cancel_unit_construction(state, c->source, c->data.unit_construction.location, c->data.unit_construction.type);
+				break;
+			case command_type::delete_factory:
+				execute_delete_factory(state, c->source, c->data.factory.location, c->data.factory.type);
+				break;
+			case command_type::change_factory_settings:
+				execute_change_factory_settings(state, c->source, c->data.factory.location, c->data.factory.type, c->data.factory.priority, c->data.factory.subsidize);
 		}
 
 		state.incoming_commands.pop();
