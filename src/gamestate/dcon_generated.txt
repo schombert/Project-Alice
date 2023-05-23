@@ -2848,6 +2848,11 @@ relationship{
 		tag{ save }
 	}
 	property{
+		name{ war_subsidies }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
 		name{ truce_until }
 		type{ sys::date }
 		tag{ save }
