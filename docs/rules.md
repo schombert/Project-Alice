@@ -1108,6 +1108,18 @@ Nations can only start researching technologies if, they are not uncivilized, th
 
 Sets the current research of the country to the specified technology.
 
+### War subsidies
+
+This helps funding the war efforts of the target country, requiring no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the nation isn't already being given war subsidies, and there is defines:WARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender.
+
+#### Effect
+
+The sender will give the target `defines:WARSUBSIDIES_PERCENT x total-expenses-of-target` every tick.
+
 ### Increase relations
 
 This increases relations between the two countries and requires no agreement between each.

@@ -10,13 +10,15 @@ enum class command_type : uint8_t {
 	start_research = 2,
 	make_leader = 3,
 	begin_province_building_construction = 4,
-	increase_relations = 5,
-	decrease_relations = 6,
-	begin_factory_building_construction = 7,
-	begin_unit_construction = 8,
-	cancel_unit_construction = 9,
-	change_factory_settings = 10,
-	delete_factory = 11,
+	war_subsidies = 5,
+	cancel_war_subsidies = 6,
+	increase_relations = 7,
+	decrease_relations = 8,
+	begin_factory_building_construction = 9,
+	begin_unit_construction = 10,
+	cancel_unit_construction = 11,
+	change_factory_settings = 12,
+	delete_factory = 13,
 };
 
 struct national_focus_data {
@@ -86,6 +88,15 @@ bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technol
 
 void make_leader(sys::state& state, dcon::nation_id source, bool general);
 bool can_make_leader(sys::state& state, dcon::nation_id source, bool general);
+
+void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
