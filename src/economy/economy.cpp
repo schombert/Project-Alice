@@ -2619,6 +2619,20 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
+float estimate_total_spending(sys::state& state, dcon::nation_id n) {
+	float v = 0.f;
+	v += economy::estimate_construction_spending(state, state.local_player_nation);
+	v += economy::estimate_land_spending(state, state.local_player_nation);
+	v += economy::estimate_naval_spending(state, state.local_player_nation);
+	v += economy::estimate_social_spending(state, state.local_player_nation);
+	v += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+	v += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+	v += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+	v += economy::estimate_loan_payments(state, state.local_player_nation);
+	v += economy::estimate_subsidy_spending(state, state.local_player_nation);
+	return v;
+}
+
 construction_status province_building_construction(sys::state& state, dcon::province_id p, province_building_type t) {
 	for(auto pb_con : state.world.province_get_province_building_construction(p)) {
 		if(pb_con.get_type() == uint8_t(t)) {
