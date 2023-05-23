@@ -280,30 +280,6 @@ public:
 	}
 };
 
-class province_fort_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		return fat_id.get_fort_level();
-	}
-};
-
-class province_naval_base_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		return fat_id.get_naval_base_level();
-	}
-};
-
-class province_railroad_icon : public standard_province_icon {
-public:
-	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		return fat_id.get_railroad_level();
-	}
-};
-
 class province_crime_icon : public standard_province_icon {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::province_id prov_id) noexcept override {
@@ -1421,6 +1397,35 @@ class nation_westernization_progress_bar : public standard_nation_progress_bar {
 public:
 	float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier);
+	}
+};
+
+class nation_technology_research_progress : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto tech_id = nations::current_research(state, state.local_player_nation);
+		if(bool(tech_id)) {
+			progress = state.world.nation_get_research_points(state.local_player_nation) / state.world.technology_get_cost(tech_id);
+		} else {
+			progress = 0.f;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto tech_id = nations::current_research(state, state.local_player_nation);
+		if(tech_id) {
+			text::substitution_map sub_map;
+			text::add_to_substitution_map(sub_map, text::variable_type::tech, dcon::fatten(state.world, tech_id).get_name());
+			text::localised_format_box(state, contents, box, "technologyview_under_research_tooltip", sub_map);
+		} else {
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_no_research"), text::text_color::white);
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 

@@ -288,11 +288,6 @@ public:
 
 class topbar_nation_current_research_text : public nation_current_research_text {
 public:
-	/*message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		parent->on_lbutton_down(state, x, y, mods);
-		return message_result::consumed;
-	}*/
-
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -1692,6 +1687,8 @@ public:
 			return make_element_by_type<topbar_budget_line_graph>(state, id);
 		} else if(name == "budget_funds") {
 			return make_element_by_type<topbar_nation_budget_funds_text>(state, id);
+		} else if(name == "topbar_tech_progress") {
+			return make_element_by_type<nation_technology_research_progress>(state, id);
 		} else if(name == "tech_current_research") {
 			return make_element_by_type<topbar_nation_current_research_text>(state, id);
 		} else if(name == "topbar_researchpoints_value") {

@@ -246,30 +246,6 @@ public:
 	}
 };
 
-class technology_research_progress : public progress_bar {
-public:
-	void on_update(sys::state& state) noexcept override {
-		progress = 0.f;
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		auto tech_id = nations::current_research(state, state.local_player_nation);
-		if(tech_id) {
-			text::substitution_map sub_map;
-			text::add_to_substitution_map(sub_map, text::variable_type::tech, dcon::fatten(state.world, tech_id).get_name());
-			text::localised_format_box(state, contents, box, "technologyview_under_research_tooltip", sub_map);
-		} else {
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_no_research"), text::text_color::white);
-		}
-		text::close_layout_box(contents, box);
-	}
-};
-
 class technology_research_progress_name_text : public simple_text_element_base {
 	std::string get_text(sys::state& state) noexcept {
 		auto tech_id = nations::current_research(state, state.local_player_nation);
@@ -384,22 +360,13 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto tech_fat_id = dcon::fatten(state.world, tech_id);
-
-		auto previous_tech_id = dcon::technology_id(static_cast<uint16_t>(tech_id.index()) - 1); // Find 'previous' tech.
-
-		auto previous_tech_fat_id = dcon::fatten(state.world, previous_tech_id);
-
-		bool is_previous_tech_in_same_folder = tech_id != dcon::technology_id{0} && previous_tech_fat_id.get_folder_index() == tech_fat_id.get_folder_index(); // The first tech has no 'previous' tech so it is ignored explicitly.
 		if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
 			// Fully researched.
 			tech_button->frame = 1;
 		} else if(nations::current_research(state, state.local_player_nation) == tech_id) {
 			// Research in progress.
 			tech_button->frame = 0;
-		} else if( // A tech can be researched if...
-			(state.current_date.to_ymd(state.start_date).year >= tech_fat_id.get_year()) && // The unlock date of the tech has been reached and...
-			(!is_previous_tech_in_same_folder || state.world.nation_get_active_technologies(state.local_player_nation, previous_tech_id)) // This tech is the first tech of its folder or the previous tech has been fully researched.
-			) {
+		} else if(command::can_start_research(state, state.local_player_nation, tech_id)) {
 			// Can be researched.
 			tech_button->frame = 2;
 		} else {
@@ -710,6 +677,27 @@ public:
 	}
 };
 
+class technology_start_research : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::technology_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::technology_id>(payload);
+			disabled = !command::can_start_research(state, state.local_player_nation, content);
+		}
+	}
+	
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::technology_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::technology_id>(payload);
+			command::start_research(state, state.local_player_nation, content);
+		}
+	}
+};
+
 class technology_selected_tech_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -730,7 +718,7 @@ public:
 		} else if(name == "year") {
 			return make_element_by_type<technology_year_text>(state, id);
 		} else if(name == "start") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<technology_start_research>(state, id);
 		} else if(name == "inventions") {
 			return make_element_by_type<technology_selected_inventions_listbox>(state, id);
 		} else {
@@ -906,7 +894,7 @@ public:
 		} else if(name == "administration_type") {
 			return make_element_by_type<nation_technology_admin_type_text>(state, id);
 		} else if(name == "research_progress") {
-			return make_element_by_type<technology_research_progress>(state, id);
+			return make_element_by_type<nation_technology_research_progress>(state, id);
 		} else if(name == "research_progress_name") {
 			return make_element_by_type<technology_research_progress_name_text>(state, id);
 		} else if(name == "research_progress_category") {
