@@ -2401,7 +2401,7 @@ void daily_update(sys::state& state) {
 			if(!found_investment) {
 				if((nation_rules & issue_rule::pop_build_factory) != 0) {
 					for(auto p : n.get_province_ownership()) {
-						if(province::can_build_railroads(state, p.get_province(), n)) {
+						if(province::generic_can_build_railroads(state, p.get_province(), n)) {
 							auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.get_province(), n));
 							new_rr.set_is_pop_project(true);
 							new_rr.set_type(uint8_t(province_building_type::railroad));

@@ -15,6 +15,8 @@ enum class command_type : uint8_t {
 	begin_factory_building_construction = 7,
 	begin_unit_construction = 8,
 	cancel_unit_construction = 9,
+	change_factory_settings = 10,
+	delete_factory = 11,
 };
 
 struct national_focus_data {
@@ -50,6 +52,13 @@ struct unit_construction_data {
 	dcon::unit_type_id type;
 };
 
+struct factory_data {
+	dcon::province_id location;
+	dcon::factory_type_id type;
+	uint8_t priority;
+	bool subsidize;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -59,6 +68,7 @@ struct payload {
 		diplo_action_data diplo_action;
 		factory_building_data start_factory_building;
 		unit_construction_data unit_construction;
+		factory_data factory;
 
 		dtype() {}
 	} data;
@@ -91,6 +101,12 @@ bool can_start_unit_construction(sys::state& state, dcon::nation_id source, dcon
 
 void cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
 bool can_cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+
+void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f);
+bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f);
+
+void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized);
+bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized);
 
 void execute_pending_commands(sys::state& state);
 

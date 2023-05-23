@@ -305,6 +305,18 @@ bool has_railroads_being_built(sys::state& state, dcon::province_id id) {
 	}
 	return false;
 }
+bool generic_can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_id n) {
+	if(n != state.world.province_get_nation_from_province_control(id))
+		return false;
+	if(military::province_is_under_siege(state, id))
+		return false;
+
+	int32_t current_rails_lvl = state.world.province_get_railroad_level(id);
+	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(n);
+	int32_t min_build_railroad = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
+
+	return (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0) && !has_railroads_being_built(state, id);
+}
 bool can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_id n) {
 	auto owner = state.world.province_get_nation_from_province_ownership(id);
 

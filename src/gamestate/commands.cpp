@@ -436,6 +436,99 @@ void execute_cancel_unit_construction(sys::state& state, dcon::nation_id source,
 	}
 }
 
+void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::delete_factory;
+	p.source = source;
+	p.data.factory.location = state.world.factory_get_province_from_factory_location(f);
+	p.data.factory.type = state.world.factory_get_building_type(f);
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
+	auto loc = state.world.factory_get_province_from_factory_location(f);
+	if(state.world.province_get_nation_from_province_ownership(loc) != source)
+		return false;
+	auto rules = state.world.nation_get_combined_issue_rules(source);
+	if((rules & issue_rule::destroy_factory) == 0)
+		return false;
+	return true;
+}
+void execute_delete_factory(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
+	if(state.world.province_get_nation_from_province_ownership(location) != source)
+		return;
+
+	auto rules = state.world.nation_get_combined_issue_rules(source);
+	if((rules & issue_rule::destroy_factory) == 0)
+		return;
+
+	for(auto f : state.world.province_get_factory_location(location)) {
+		if(f.get_factory().get_building_type() == type) {
+			state.world.delete_factory(f.get_factory());
+			return;
+		}
+	}
+}
+
+void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_factory_settings;
+	p.source = source;
+	p.data.factory.location = state.world.factory_get_province_from_factory_location(f);
+	p.data.factory.type = state.world.factory_get_building_type(f);
+	p.data.factory.priority = priority;
+	p.data.factory.subsidize = subsidized;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized) {
+	auto loc = state.world.factory_get_province_from_factory_location(f);
+	if(state.world.province_get_nation_from_province_ownership(loc) != source)
+		return false;
+
+	auto rules = state.world.nation_get_combined_issue_rules(source);
+
+	auto current_priority = economy::factory_priority(state, f);
+	if(priority >= 4)
+		return false;
+
+	if(current_priority != priority) {
+		if((rules & issue_rule::factory_priority) == 0)
+			return false;
+	}
+
+	if(subsidized && (rules & issue_rule::can_subsidise) == 0) {
+		return false;
+	}
+
+	return true;
+}
+void execute_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type, uint8_t priority, bool subsidized) {
+
+	if(state.world.province_get_nation_from_province_ownership(location) != source)
+		return;
+
+	auto rules = state.world.nation_get_combined_issue_rules(source);
+
+
+	if(subsidized && (rules & issue_rule::can_subsidise) == 0) {
+		return;
+	}
+
+	for(auto f : state.world.province_get_factory_location(location)) {
+		if(f.get_factory().get_building_type() == type) {
+			auto current_priority = economy::factory_priority(state, f.get_factory());
+			if(current_priority != priority) {
+				if((rules & issue_rule::factory_priority) == 0)
+					return;
+				economy::set_factory_priority(state, f.get_factory(), priority);
+			}
+			f.get_factory().set_subsidized(subsidized);
+			return;
+		}
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -470,6 +563,11 @@ void execute_pending_commands(sys::state& state) {
 			case command_type::cancel_unit_construction:
 				execute_cancel_unit_construction(state, c->source, c->data.unit_construction.location, c->data.unit_construction.type);
 				break;
+			case command_type::delete_factory:
+				execute_delete_factory(state, c->source, c->data.factory.location, c->data.factory.type);
+				break;
+			case command_type::change_factory_settings:
+				execute_change_factory_settings(state, c->source, c->data.factory.location, c->data.factory.type, c->data.factory.priority, c->data.factory.subsidize);
 		}
 
 		state.incoming_commands.pop();

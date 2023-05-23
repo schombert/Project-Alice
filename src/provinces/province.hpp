@@ -53,6 +53,7 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 
 bool has_railroads_being_built(sys::state& state, dcon::province_id id);
 bool can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_id n);
+bool generic_can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_id n);
 bool has_fort_being_built(sys::state& state, dcon::province_id id);
 bool can_build_fort(sys::state& state, dcon::province_id id, dcon::nation_id n);
 bool has_naval_base_being_built(sys::state& state, dcon::province_id id);

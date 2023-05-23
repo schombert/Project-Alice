@@ -1150,7 +1150,7 @@ In addition to transferring province ownership: (TODO: prevent more than one nav
 First, figure out how many research points the pops in the province would generate as if they were a tiny nation (i.e. for each pop type that generates research points, multiply that number by the fraction of the population it is compared to its optimal fraction (capped at one) and sum them all together). Then multiply that value by (1.0 + national modifier to research points modifier + tech increase research modifier). That value is then multiplied by define:RESEARCH_POINTS_ON_CONQUER_MULT and added to the conquering nation's research points. Ok, so what about the nations research points on conquer modifier?? Yeah, that appears to be bugged. The nation gets research points only if that multiplier is positive, but otherwise it doesn't affect the result.
 - The province gets nationalism equal to define:YEARS_OF_NATIONALISM
 - Pops leave any movements / rebellions
-- Timed modifiers are removed; constructions are cancelled
+- Timed modifiers are removed; constructions are canceled
 - When new states are created by conquest, the nation gets an `on_state_conquest` event
 
 ### Create a military leader (either general or admiral)
