@@ -121,6 +121,7 @@ float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
 float estimate_construction_spending(sys::state& state, dcon::nation_id n);
 float estimate_total_spending(sys::state& state, dcon::nation_id n);
+float estimate_war_subsidies(sys::state& state, dcon::nation_id n);
 
 float estimate_daily_income(sys::state& state, dcon::nation_id n);
 

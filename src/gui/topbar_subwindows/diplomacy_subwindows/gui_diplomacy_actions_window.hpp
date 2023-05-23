@@ -468,7 +468,7 @@ public:
 		
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map ws_map{};
-			text::add_to_substitution_map(ws_map, text::variable_type::money, text::fp_currency{ economy::estimate_total_spending(state, content) });
+			text::add_to_substitution_map(ws_map, text::variable_type::money, text::fp_currency{ economy::estimate_war_subsidies(state, content) });
 			text::localised_format_box(state, contents, box, std::string_view(can_cancel(state, content) ? "cancel_warsubsidies_desc" : "warsubsidies_desc"), ws_map);
 
 			text::add_divider_to_layout_box(state, contents, box);

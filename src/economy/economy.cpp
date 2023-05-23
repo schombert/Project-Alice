@@ -2633,6 +2633,11 @@ float estimate_total_spending(sys::state& state, dcon::nation_id n) {
 	return v;
 }
 
+float estimate_war_subsidies(sys::state& state, dcon::nation_id n) {
+	/* total-nation-expenses x defines:WARSUBSIDIES_PERCENT */
+	return estimate_total_spending(state, n) * state.defines.warsubsidies_percent;
+}
+
 construction_status province_building_construction(sys::state& state, dcon::province_id p, province_building_type t) {
 	for(auto pb_con : state.world.province_get_province_building_construction(p)) {
 		if(pb_con.get_type() == uint8_t(t)) {
