@@ -1096,6 +1096,30 @@ If it is the flashpoint focus, the state must not be owned by you, you must be l
 
 Changes the national focus active in the state
 
+### Start research
+
+This starts researching an specific technology.
+
+#### Conditions
+
+Nations can only start researching technologies if, they are not uncivilized, the corresponding date that the technology is activated at is already past by, and all the previous techs (if any) of the same folder are already researched fully. And the technology isn't already being researched.
+
+#### Effect
+
+Sets the current research of the country to the specified technology.
+
+### Decrease relations
+
+This decreases relations between the two countries and requires no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender.
+
+#### Effect
+
+Increase relations value by the value of defines:DECREASERELATION_RELATION_ON_ACCEPT (normally set at -20) and decreases diplomatic points by defines:DECREASERELATION_DIPLOMATIC_COST.
+
 ### Conquering a province
 
 Strictly speaking, this is not a command that we would expect the ui to ever send directly (except maybe via the console). However, it can be thought of as a component of the more complex commands that will eventually execute a peace deal, for example.
