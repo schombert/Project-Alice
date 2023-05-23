@@ -187,7 +187,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	Factories cannot be built in a colonial state.
 	*/
 
-	if(state.world.nation_get_active_building(source, type) == false)
+	if(state.world.nation_get_active_building(source, type) == false && !state.world.factory_type_get_is_available_from_start(type))
 		return false;
 	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)))
 		return false;
@@ -211,6 +211,9 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		/*
 		The nation must have the rule set to allow building / upgrading if this is a domestic target.
 		*/
+		if(state.world.nation_get_is_civilized(source) == false)
+			return false;
+
 		auto rules = state.world.nation_get_combined_issue_rules(owner);
 		if(is_upgrade) {
 			if((rules & issue_rule::expand_factory) == 0)
@@ -243,6 +246,12 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		}
 		return false;
 	} else {
+		// coastal factories must be built on coast
+		if(state.world.factory_type_get_is_coastal(type)) {
+			if(!province::state_is_coastal(state, location))
+				return false;
+		}
+
 		//For new factories: no more than 7 existing + under construction new factories must be present.
 		int32_t num_factories = 0;
 

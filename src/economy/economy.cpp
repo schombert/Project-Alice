@@ -2351,7 +2351,7 @@ void daily_update(sys::state& state) {
 						if(p.get_province().get_nation_from_province_ownership() == n) {
 							for(auto f : p.get_province().get_factory_location()) {
 								++num_factories;
-								if((nation_rules & issue_rule::pop_expand_factory) != 0 && f.get_factory().get_production_scale() >= 0.9f) {
+								if((nation_rules & issue_rule::pop_expand_factory) != 0 && f.get_factory().get_production_scale() >= 0.9f && f.get_factory().get_level() < uint8_t(255)) {
 									if(auto new_p = f.get_factory().get_full_profit() / f.get_factory().get_level(); new_p > profit) {
 										profit = new_p;
 										selected_factory = f.get_factory();
