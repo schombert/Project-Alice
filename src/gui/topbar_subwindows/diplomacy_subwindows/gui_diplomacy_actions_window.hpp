@@ -424,8 +424,8 @@ public:
 
 class diplomacy_action_war_subisides_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, nation_id);
-		return rel && state.world.diplomatic_relation_get_war_subsidies(rel);
+		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, nation_id);
+		return rel && state.world.unilateral_relationship_get_war_subsidies(rel);
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
