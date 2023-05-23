@@ -365,11 +365,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
+			disabled = !command::can_decrease_relations(state, state.local_player_nation, content);
 		}
 	}
 
@@ -1220,9 +1216,60 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if (parent)
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto target = any_cast<dcon::nation_id>(payload);
+
+			switch(content) {
+			case diplomacy_action::ally:
+				break;
+			case diplomacy_action::cancel_ally:
+				break;
+			case diplomacy_action::call_ally:
+				break;
+			case diplomacy_action::declare_war:
+				break;
+			case diplomacy_action::military_access:
+				break;
+			case diplomacy_action::cancel_military_access:
+				break;
+			case diplomacy_action::give_military_access:
+				break;
+			case diplomacy_action::cancel_give_military_access:
+				break;
+			case diplomacy_action::increase_relations:
+				break;
+			case diplomacy_action::decrease_relations:
+				command::decrease_relations(state, state.local_player_nation, target);
+				break;
+			case diplomacy_action::war_subsidies:
+				break;
+			case diplomacy_action::cancel_war_subsidies:
+				break;
+			case diplomacy_action::discredit:
+				break;
+			case diplomacy_action::expel_advisors:
+				break;
+			case diplomacy_action::ban_embassy:
+				break;
+			case diplomacy_action::increase_opinion:
+				break;
+			case diplomacy_action::decrease_opinion:
+				break;
+			case diplomacy_action::add_to_sphere:
+				break;
+			case diplomacy_action::remove_from_sphere:
+				break;
+			case diplomacy_action::justify_war:
+				break;
+			case diplomacy_action::command_units:
+				break;
+			case diplomacy_action::cancel_command_units:
+				break;
+			}
 			parent->set_visible(state, false);
-		// TODO: agree action
+		}
 	}
 };
 class diplomacy_action_dialog_decline_button : public button_element_base {
