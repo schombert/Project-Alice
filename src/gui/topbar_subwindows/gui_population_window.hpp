@@ -819,7 +819,7 @@ public:
 		}
 	}
 };
-class pop_left_side_country_window : public generic_settable_element<window_element_base, dcon::nation_id> {
+class pop_left_side_country_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "poplistbutton") {
@@ -833,14 +833,6 @@ public:
 		} else {
 			return nullptr;
 		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			payload.emplace<dcon::nation_id>(content);
-			return message_result::consumed;
-		}
-		return window_element_base::get(state, payload);
 	}
 };
 typedef std::variant<
@@ -888,7 +880,6 @@ public:
 			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::state_instance_id>(payload);
-
 			return bool(state.world.state_instance_get_owner_focus(content).id) ? state.world.state_instance_get_owner_focus(content).get_icon() - 1 : 0;
 		}
 		return 0;
@@ -918,7 +909,7 @@ public:
 	}
 };
 
-class pop_left_side_state_window : public generic_settable_element<window_element_base, dcon::state_instance_id> {
+class pop_left_side_state_window : public window_element_base {
 	image_element_base* colonial_icon = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -944,18 +935,15 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		colonial_icon->set_visible(state, state.world.province_get_is_colonial(state.world.state_instance_get_capital(content)));
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::state_instance_id>()) {
-			payload.emplace<dcon::state_instance_id>(content);
-			return message_result::consumed;
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+			colonial_icon->set_visible(state, state.world.province_get_is_colonial(state.world.state_instance_get_capital(content)));
 		}
-		return window_element_base::get(state, payload);
 	}
 };
-class pop_left_side_province_window : public generic_settable_element<window_element_base, dcon::province_id> {
+class pop_left_side_province_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "poplistbutton") {
@@ -969,14 +957,6 @@ public:
 		} else {
 			return nullptr;
 		}
-	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::province_id>()) {
-			payload.emplace<dcon::province_id>(content);
-			return message_result::consumed;
-		}
-		return window_element_base::get(state, payload);
 	}
 };
 
@@ -1006,24 +986,23 @@ public:
 		country_window->set_visible(state, std::holds_alternative<dcon::nation_id>(content));
 		state_window->set_visible(state, std::holds_alternative<dcon::state_instance_id>(content));
 		province_window->set_visible(state, std::holds_alternative<dcon::province_id>(content));
-		if (std::holds_alternative<dcon::nation_id>(content)) {
-			Cyto::Any new_payload = std::get<dcon::nation_id>(content);
-			country_window->impl_set(state, new_payload);
-			country_window->impl_on_update(state);
-		} else if (std::holds_alternative<dcon::state_instance_id>(content)) {
-			Cyto::Any new_payload = std::get<dcon::state_instance_id>(content);
-			state_window->impl_set(state, new_payload);
-			state_window->impl_on_update(state);
-		} else if (std::holds_alternative<dcon::province_id>(content)) {
-			Cyto::Any new_payload = std::get<dcon::province_id>(content);
-			province_window->impl_set(state, new_payload);
-			province_window->impl_on_update(state);
-		}
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<pop_left_side_data>()) {
 			payload.emplace<pop_left_side_data>(content);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::province_id>()) {
+			if(std::holds_alternative<dcon::province_id>(content))
+				payload.emplace<dcon::province_id>(std::get<dcon::province_id>(content));
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::state_instance_id>()) {
+			if(std::holds_alternative<dcon::state_instance_id>(content))
+				payload.emplace<dcon::state_instance_id>(std::get<dcon::state_instance_id>(content));
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			if(std::holds_alternative<dcon::nation_id>(content))
+				payload.emplace<dcon::nation_id>(std::get<dcon::nation_id>(content));
 			return message_result::consumed;
 		}
 		return listbox_row_element_base<pop_left_side_data>::get(state, payload);

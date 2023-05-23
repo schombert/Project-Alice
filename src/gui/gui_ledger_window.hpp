@@ -209,12 +209,6 @@ public:
         }
         return listbox_row_element_base::get(state, payload);
     }
-
-    void update(sys::state& state) noexcept override {
-        country_flag->on_update(state);
-        Cyto::Any payload = content;
-        impl_set(state, payload);
-    }
 };
 class ledger_nation_comparison_listbox : public listbox_element_base<ledger_nation_comparison_entry, dcon::nation_id> {
 protected:
@@ -294,12 +288,6 @@ public:
             return message_result::consumed;
         }
         return listbox_row_element_base::get(state, payload);
-    }
-
-    void update(sys::state& state) noexcept override {
-        country_flag->on_update(state);
-        Cyto::Any payload = content;
-        impl_set(state, payload);
     }
 };
 class ledger_nation_political_systems_listbox : public listbox_element_base<ledger_nation_political_systems_entry, dcon::nation_id> {
@@ -382,10 +370,8 @@ public:
                 return;
 
             auto ptr = make_element_by_type<nation_selected_issue_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
-
             Cyto::Any payload = id;
             ptr->impl_set(state, payload);
-
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         });
@@ -397,12 +383,6 @@ public:
             return message_result::consumed;
         }
         return listbox_row_element_base::get(state, payload);
-    }
-
-    void update(sys::state& state) noexcept override {
-        country_flag->on_update(state);
-        Cyto::Any payload = content;
-        impl_set(state, payload);
     }
 };
 class ledger_nation_political_reforms_listbox : public listbox_element_base<ledger_nation_reforms_entry<true>, dcon::nation_id> {
@@ -493,10 +473,8 @@ public:
         // For each pop type generate
         state.world.for_each_pop_type([&](dcon::pop_type_id id) {
             auto ptr = make_element_by_type<nation_population_per_pop_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
-
             Cyto::Any payload = id;
             ptr->impl_set(state, payload);
-
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         });
@@ -508,12 +486,6 @@ public:
             return message_result::consumed;
         }
         return listbox_row_element_base::get(state, payload);
-    }
-
-    void update(sys::state& state) noexcept override {
-        country_flag->on_update(state);
-        Cyto::Any payload = content;
-        impl_set(state, payload);
     }
 };
 class ledger_nation_population_listbox : public listbox_element_base<ledger_nation_population_entry, dcon::nation_id> {
@@ -680,10 +652,8 @@ public:
         // For each pop type generate
         state.world.for_each_pop_type([&](dcon::pop_type_id id) {
             auto ptr = make_element_by_type<province_population_per_pop_type_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
-
             Cyto::Any payload = id;
             ptr->impl_set(state, payload);
-
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         });
@@ -695,11 +665,6 @@ public:
             return message_result::consumed;
         }
         return listbox_row_element_base::get(state, payload);
-    }
-
-    void update(sys::state& state) noexcept override {
-        Cyto::Any payload = content;
-        impl_set(state, payload);
     }
 };
 class ledger_province_population_listbox : public listbox_element_base<ledger_province_population_entry, dcon::province_id> {
@@ -859,11 +824,6 @@ public:
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         }
-    }
-
-    void update(sys::state& state) noexcept override {
-        Cyto::Any payload = content;
-        impl_set(state, payload);
     }
 };
 class ledger_factories_production_listbox : public listbox_element_base<ledger_factories_production_entry, dcon::factory_id> {
@@ -1135,7 +1095,7 @@ public:
             page_num = any_cast<ledger_page_number>(payload);
             for(auto& child : children)
                 child->impl_set(state, payload);
-            on_update(state);
+            impl_on_update(state);
             return message_result::consumed;
         }
         return message_result::unseen;
