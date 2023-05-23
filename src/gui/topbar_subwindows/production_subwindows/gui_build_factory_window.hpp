@@ -4,12 +4,14 @@
 
 namespace ui {
 
+namespace build_factory {
+
 
 			//move_child_to_front(new_factory);
 			//new_factory->set_visible(state, true);
 			//new_factory->impl_set(state, payload);
 
-class factory_build_cancel_button : public button_element_base {
+class cancel_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		parent->set_visible(state, false);
@@ -26,11 +28,25 @@ public:
 	}
 };
 
-class factory_build_build_button : public button_element_base {
+class build_button : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_type_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+
+			if(!fat.is_valid()) {
+				disabled = true;
+			} else {
+				disabled = false;
+			}
+		}
+	}
 };
 
-class factory_build_output_name_text : public simple_text_element_base {
+class build_output_name_text : public simple_text_element_base {
 public:
 	std::string get_text(sys::state& state, dcon::factory_type_id ftid) noexcept {
 		auto fat = dcon::fatten(state.world, ftid);
@@ -48,7 +64,7 @@ public:
 	}
 };
 
-class factory_build_cost_text : public simple_text_element_base {
+class build_cost_text : public simple_text_element_base {
 public:
 	std::string get_text(sys::state& state, dcon::factory_type_id ftid) noexcept {
 		auto fat = dcon::fatten(state.world, ftid);
@@ -73,7 +89,7 @@ public:
 	}
 };
 
-class factory_build_time_text : public simple_text_element_base {
+class build_time_text : public simple_text_element_base {
 public:
 	std::string get_text(sys::state& state, dcon::factory_type_id ftid) noexcept {
 		auto fat = dcon::fatten(state.world, ftid);
@@ -91,17 +107,29 @@ public:
 	}
 };
 
-class factory_build_new_factory_option : public listbox_row_element_base<dcon::factory_type_id> {
+class new_factory_option_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_type_id>(payload);
+			Cyto::Any payload2 = element_selection_wrapper<dcon::factory_type_id>{content};
+			parent->impl_get(state, payload2);
+		}
+	}
+};
+
+class new_factory_option : public listbox_row_element_base<dcon::factory_type_id> {
 private:
 	image_element_base* output_icon = nullptr;
 public:
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
-			return make_element_by_type<button_element_base>(state, id);
-			//auto ptr = make_element_by_type<button_element_base>(state, id);
-			//ptr->base_data.size.x = parent->base_data.size.x;
-			//return ptr;
+			//return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<new_factory_option_button>(state, id);
+			ptr->base_data.size.x = base_data.size.x;
+			return ptr;
 
 		} else if(name == "output") {
 			//auto ptr = make_element_by_type<image_element_base>(state, id);
@@ -110,14 +138,14 @@ public:
 			return make_element_by_type<commodity_factory_image>(state, id);
 
 		} else if(name == "name") {
-			return make_element_by_type<factory_build_output_name_text>(state, id);
+			return make_element_by_type<build_output_name_text>(state, id);
 
 
 		} else if(name == "total_build_cost") {
-			return make_element_by_type<factory_build_cost_text>(state, id);
+			return make_element_by_type<build_cost_text>(state, id);
 
 		} else if(name == "buildtime") {
-			return make_element_by_type<factory_build_time_text>(state, id);
+			return make_element_by_type<build_time_text>(state, id);
 
 		} else {
 			return nullptr;
@@ -136,7 +164,7 @@ public:
 	}
 };
 
-class factory_build_new_factory_list : public listbox_element_base<factory_build_new_factory_option, dcon::factory_type_id> {
+class new_factory_list : public listbox_element_base<new_factory_option, dcon::factory_type_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "new_factory_option";
@@ -153,11 +181,33 @@ public:
 	}
 };
 
+class state_name : public simple_text_element_base {
+public:
+	std::string get_text(sys::state& state, dcon::state_instance_id sid) noexcept {
+		return "The Glorious State of UwU";
+	}
 
-class factory_build_new_factory_window : public window_element_base {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+			set_text(state, get_text(state, content));
+		}
+	}
+};
+
+
+
+class build_new_factory_window : public window_element_base {
 private:
 	dcon::state_instance_id state_id;
+	dcon::factory_type_id factory_to_build;
 public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		set_visible(state, false);
+	}
 
 	/*
 	 * There are only two hard things in Computer Science:
@@ -168,10 +218,10 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 		} else
 		if(name == "state_name") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<state_name>(state, id);
 		} else
 		if(name == "factory_type") {
-			return make_element_by_type<factory_build_new_factory_list>(state, id);
+			return make_element_by_type<new_factory_list>(state, id);
 		} else
 		if(name == "input_label") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -181,7 +231,7 @@ public:
 			// input_2_amount
 			// input_3_amount
 		if(name == "output") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<commodity_factory_image>(state, id);
 		} else
 		if(name == "building_name") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -245,22 +295,34 @@ public:
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else
 		if(name == "cancel") {
-			return make_element_by_type<factory_build_cancel_button>(state, id);
+			return make_element_by_type<cancel_button>(state, id);
 		} else
 		if(name == "build") {
-			return make_element_by_type<factory_build_build_button>(state, id);
+			return make_element_by_type<build_button>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::state_instance_id>()) {
+		if(payload.holds_type<element_selection_wrapper<dcon::state_instance_id>>()) {
 			state_id = any_cast<dcon::state_instance_id>(payload);
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<dcon::factory_type_id>>()) {
+			//factory_to_build = any_cast<dcon::factory_type_id>(payload).data;
+			factory_to_build = any_cast<element_selection_wrapper<dcon::factory_type_id>>(payload).data;
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::factory_type_id>()) {
+			payload.emplace<dcon::factory_type_id>(factory_to_build);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::commodity_id>()) {
+			payload.emplace<dcon::commodity_id>(dcon::fatten(state.world, factory_to_build).get_output());
 			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
 };
+
+}
 
 }

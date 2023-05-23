@@ -753,7 +753,7 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 
-		auto win1337 = make_element_by_type<factory_build_new_factory_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
+		auto win1337 = make_element_by_type<build_factory::build_new_factory_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
 		state.ui_state.build_factory_window = win1337.get();
 		add_child_to_front(std::move(win1337));
 
