@@ -195,6 +195,128 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 	new_rr.set_type(uint8_t(type));
 }
 
+void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::begin_factory_building_construction;
+	p.source = source;
+	p.data.start_factory_building.location = location;
+	p.data.start_factory_building.type = type;
+	p.data.start_factory_building.is_upgrade = is_upgrade;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+
+	auto owner = state.world.state_instance_get_nation_from_state_ownership(location);
+
+	/*
+	The factory building must be unlocked by the nation.
+	Factories cannot be built in a colonial state.
+	*/
+
+	if(state.world.nation_get_active_building(source, type) == false)
+		return false;
+	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)))
+		return false;
+
+	if(owner != source) {
+		/*
+		For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation being invested in must be civilized.
+		*/
+		if(state.world.nation_get_is_great_power(source) == false || state.world.nation_get_is_great_power(owner) == true)
+			return false;
+		if(state.world.nation_get_is_civilized(owner) == false)
+			return false;
+
+		auto rules = state.world.nation_get_combined_issue_rules(owner);
+		if((rules & issue_rule::allow_foreign_investment) == 0)
+			return false;
+
+		if(military::are_at_war(state, source, owner))
+			return false;
+	} else {
+		/*
+		The nation must have the rule set to allow building / upgrading if this is a domestic target.
+		*/
+		auto rules = state.world.nation_get_combined_issue_rules(owner);
+		if(is_upgrade) {
+			if((rules & issue_rule::expand_factory) == 0)
+				return false;
+		} else {
+			if((rules & issue_rule::build_factory) == 0)
+				return false;
+		}
+	}
+
+	if(is_upgrade) {
+		// no double upgrade
+		for(auto p : state.world.state_instance_get_state_building_construction(location)) {
+			if(p.get_type() == type)
+				return false;
+		}
+
+		// must already exist as a factory
+		// For upgrades: no upgrading past max level.
+		auto d = state.world.state_instance_get_definition(location);
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == owner) {
+				for(auto f : p.get_province().get_factory_location()) {
+					if(f.get_factory().get_building_type() == type && f.get_factory().get_level() < uint8_t(255)) {
+						return true;
+					}
+					
+				}
+			}
+		}
+		return false;
+	} else {
+		//For new factories: no more than 7 existing + under construction new factories must be present.
+		int32_t num_factories = 0;
+
+		auto d = state.world.state_instance_get_definition(location);
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(p.get_province().get_nation_from_province_ownership() == owner) {
+				for(auto f : p.get_province().get_factory_location()) {
+					++num_factories;
+				}
+			}
+		}
+		for(auto p : state.world.state_instance_get_state_building_construction(location)) {
+			if(p.get_is_upgrade() == false)
+				++num_factories;
+		}
+		return num_factories <= 7;
+	}
+}
+
+void execute_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
+
+	if(!can_begin_factory_building_construction(state, source, location, type, is_upgrade))
+		return;
+
+	auto new_up = fatten(state.world, state.world.force_create_state_building_construction(location, source));
+	new_up.set_is_pop_project(false);
+	new_up.set_is_upgrade(is_upgrade);
+	new_up.set_type(type);
+
+	if(source != state.world.state_instance_get_nation_from_state_ownership(location)) {
+		float amount = 0.0f;
+
+		auto& base_cost = state.world.factory_type_get_construction_costs(type);
+
+		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
+			if(base_cost.commodity_type[j]) {
+				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_current_price(base_cost.commodity_type[j]);
+			} else {
+				break;
+			}
+		}
+
+		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location), amount);
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -219,6 +341,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::decrease_relations:
 				execute_decrease_relations(state, c->source, c->data.diplo_action.target);
+				break;
+			case command_type::begin_factory_building_construction:
+				execute_begin_factory_building_construction(state, c->source, c->data.start_factory_building.location, c->data.start_factory_building.type, c->data.start_factory_building.is_upgrade);
 				break;
 		}
 

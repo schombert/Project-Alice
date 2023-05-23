@@ -12,6 +12,7 @@ enum class command_type : uint8_t {
 	begin_province_building_construction = 4,
 	increase_relations = 5,
 	decrease_relations = 6,
+	begin_factory_building_construction = 7,
 };
 
 struct national_focus_data {
@@ -31,6 +32,11 @@ struct province_building_data {
 	dcon::province_id location;
 	economy::province_building_type type;
 };
+struct factory_building_data {
+	dcon::state_instance_id location;
+	dcon::factory_type_id type;
+	bool is_upgrade;
+};
 
 struct diplo_action_data {
 	dcon::nation_id target;
@@ -43,6 +49,7 @@ struct payload {
 		make_leader_data make_leader;
 		province_building_data start_province_building;
 		diplo_action_data diplo_action;
+		factory_building_data start_factory_building;
 
 		dtype() {}
 	} data;
@@ -66,6 +73,9 @@ bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nat
 
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type);
 bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type);
+
+void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
+bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
 
 void execute_pending_commands(sys::state& state);
 
