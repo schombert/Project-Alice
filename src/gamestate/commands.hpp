@@ -13,6 +13,8 @@ enum class command_type : uint8_t {
 	increase_relations = 5,
 	decrease_relations = 6,
 	begin_factory_building_construction = 7,
+	begin_unit_construction = 8,
+	cancel_unit_construction = 9,
 };
 
 struct national_focus_data {
@@ -32,6 +34,7 @@ struct province_building_data {
 	dcon::province_id location;
 	economy::province_building_type type;
 };
+
 struct factory_building_data {
 	dcon::state_instance_id location;
 	dcon::factory_type_id type;
@@ -42,6 +45,11 @@ struct diplo_action_data {
 	dcon::nation_id target;
 };
 
+struct unit_construction_data {
+	dcon::province_id location;
+	dcon::unit_type_id type;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -50,6 +58,7 @@ struct payload {
 		province_building_data start_province_building;
 		diplo_action_data diplo_action;
 		factory_building_data start_factory_building;
+		unit_construction_data unit_construction;
 
 		dtype() {}
 	} data;
@@ -76,6 +85,12 @@ bool can_begin_province_building_construction(sys::state& state, dcon::nation_id
 
 void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
 bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
+
+void start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+bool can_start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+
+void cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+bool can_cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
 
 void execute_pending_commands(sys::state& state);
 

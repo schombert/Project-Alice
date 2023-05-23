@@ -2786,7 +2786,8 @@ void resolve_constructions(sys::state& state) {
 				}
 
 				if(all_finished) {
-					auto free_pop = military::find_available_soldier(state, p);
+					auto is_culture_restricted = state.military_definitions.unit_base_definitions[c.get_type()].primary_culture;
+					auto free_pop = military::find_available_soldier(state, p, is_culture_restricted);
 					if(free_pop) {
 						auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
 						auto a = [&]() {

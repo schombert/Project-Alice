@@ -1197,3 +1197,48 @@ The nation must have the appropriate rule to allow the destruction set.
 #### Effect
 
 Factory goes away
+
+### Change factory settings
+
+Change the hiring priority or subsidized status of a factory
+
+#### Conditions
+
+Relevant national rules
+
+#### Effect
+
+Status changes
+
+### Start unit construction
+
+#### Conditions
+
+The province must be owned and controlled by the building nation, without an ongoing siege.
+The unit type must be available from start / unlocked by the nation
+
+Land units:
+
+Each soldier pop can only support so many regiments (including under construction and rebel regiments)
+If the unit is culturally restricted, there must be an available primary culture/accepted culture soldier pop with space
+
+Naval units:
+
+The province must be coastal
+The province must have a naval base of sufficient level, depending on the unit type
+The province may not be overseas for some unit types
+Some units have a maximum number per port where they can built that must be respected
+
+#### Effect
+
+Starts condition
+
+### Cancel unit construction
+
+#### Conditions
+
+Must be the owner of the province where the unit is being built
+
+#### Effect
+
+Cancels construction
