@@ -1108,6 +1108,18 @@ Nations can only start researching technologies if, they are not uncivilized, th
 
 Sets the current research of the country to the specified technology.
 
+### Increase relations
+
+This increases relations between the two countries and requires no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the relation value isn't maxxed out at 200, and has defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender.
+
+#### Effect
+
+Increase relations value by the value of defines:INCREASERELATION_RELATION_ON_ACCEPT (normally set at 100) and decreases diplomatic points by defines:INCREASERELATION_DIPLOMATIC_COST.
+
 ### Decrease relations
 
 This decreases relations between the two countries and requires no agreement between each.
