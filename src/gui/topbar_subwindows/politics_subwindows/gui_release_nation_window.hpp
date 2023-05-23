@@ -16,6 +16,33 @@ struct release_emplace_wrapper {
 	dcon::nation_id content;
 };
 
+class release_play_as_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::national_identity_id{};
+			parent->impl_get(state, payload);
+			auto niid = any_cast<dcon::national_identity_id>(payload);
+			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			// TODO: Release nation command
+			// TODO: Play as-switch command
+		}
+	}
+};
+
+class release_agree_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::national_identity_id{};
+			parent->impl_get(state, payload);
+			auto niid = any_cast<dcon::national_identity_id>(payload);
+			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			// TODO: Release nation command
+		}
+	}
+};
+
 class politics_release_nation_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -29,27 +56,20 @@ public:
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size; // Nudge
 			return ptr;
-		} else
-		if(name == "default_popup_banner") {
+		} else if(name == "default_popup_banner")
 			return make_element_by_type<image_element_base>(state, id);
-		} else
-		if(name == "title") {
+		else if(name == "title")
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else
-		if(name == "description") {
+		else if(name == "description")
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else
-		if(name == "agreebutton") {
-			return make_element_by_type<button_element_base>(state, id);
-		} else
-		if(name == "declinebutton") {
-			return make_element_by_type<button_element_base>(state, id);
-		} else
-		if(name == "playasbutton") {
-			return make_element_by_type<button_element_base>(state, id);
-		} else {
+		else if(name == "agreebutton")
+			return make_element_by_type<release_agree_button>(state, id);
+		else if(name == "declinebutton")
+			return make_element_by_type<generic_close_button>(state, id);
+		else if(name == "playasbutton")
+			return make_element_by_type<release_play_as_button>(state, id);
+		else
 			return nullptr;
-		}
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
