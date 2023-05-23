@@ -132,7 +132,7 @@ bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nat
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
-	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, sorce);
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel && state.world.unilateral_relationship_get_war_subsidies(rel))
 		return false; // Can't already be giving war subsidies
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.warsubsidy_diplomatic_cost; // Enough diplomatic points
@@ -171,7 +171,7 @@ void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dco
 		return;
 	nations::adjust_relationship(state, source, target, state.defines.cancelwarsubsidy_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelwarsubsidy_diplomatic_cost;
-	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target5, source);
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	state.world.unilateral_relationship_set_war_subsidies(rel, false);
 }
 
