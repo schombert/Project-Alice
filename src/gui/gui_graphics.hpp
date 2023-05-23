@@ -378,6 +378,10 @@ namespace ui {
 		element_base* outliner_window = nullptr;
 		element_base* technology_subwindow = nullptr;
 
+		element_base* build_factory_window = nullptr;
+		element_base* release_nation_popup = nullptr;
+
+
 		// Event windows that are reused
 		std::vector<std::unique_ptr<element_base>> spare_major_event_subwindows;
 		std::vector<std::unique_ptr<element_base>> spare_national_event_subwindows;

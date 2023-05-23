@@ -320,7 +320,12 @@ class production_build_new_factory : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::state_instance_id{};
-		state.ui_state.production_subwindow->impl_set(state, payload);
+		state.ui_state.production_subwindow->impl_get(state, payload);
+
+		//state.ui_state.production_subwindow->move_child_to_front();
+		//move_child_to_front();
+		state.ui_state.build_factory_window->set_visible(state, true);
+		state.ui_state.build_factory_window->impl_get(state, payload);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -520,7 +525,6 @@ public:
 class production_window : public generic_tabbed_window<production_window_tab> {
 	production_state_listbox* state_listbox = nullptr;
 	element_base* nf_win = nullptr;
-	factory_build_new_factory_window* new_factory = nullptr;
 
 	sys::commodity_group curr_commodity_group{};
 	dcon::state_instance_id focus_state{};
@@ -611,7 +615,7 @@ public:
 		}
 
 		auto win1337 = make_element_by_type<factory_build_new_factory_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
-		new_factory = win1337.get();
+		state.ui_state.build_factory_window = win1337.get();
 		add_child_to_front(std::move(win1337));
 
 		set_visible(state, false);
@@ -734,15 +738,6 @@ public:
 		return message_result::unseen;
 	}
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		 if(payload.holds_type<dcon::state_instance_id>()) {
-			move_child_to_front(new_factory);
-			new_factory->set_visible(state, true);
-			new_factory->impl_set(state, payload);
-			return message_result::consumed;
-		 }
-		 return message_result::unseen;
-	}
 
 	friend class production_national_focus_button;
 };

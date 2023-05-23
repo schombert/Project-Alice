@@ -32,7 +32,7 @@ public:
 
 class factory_build_new_factory_option_name : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_type_id{};
 			parent->impl_get(state, payload);
@@ -81,7 +81,9 @@ private:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto fat_btid = dcon::fatten(state.world, content);
-		output_icon->frame = fat_btid.get_output().get_icon();
+		int32_t icon = fat_btid.get_output().get_icon();
+		if(icon > 48) { icon = 1; }
+		output_icon->frame = icon;
 		//auto cid = fat_btid.get_output().id;
 		//output_icon->frame = int32_t(state.world.commodity_get_icon(cid));
 	}
@@ -144,10 +146,13 @@ public:
 
 
 class factory_build_new_factory_window : public window_element_base {
+private:
+	dcon::state_instance_id state_id;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
+
 	}
 
 	/*
@@ -159,7 +164,7 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 		} else
 		if(name == "state_name") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<simple_text_element_base>(state, id);
 		} else
 		if(name == "factory_type") {
 			return make_element_by_type<factory_build_new_factory_list>(state, id);
@@ -243,6 +248,14 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::state_instance_id>()) {
+			state_id = any_cast<dcon::state_instance_id>(payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 

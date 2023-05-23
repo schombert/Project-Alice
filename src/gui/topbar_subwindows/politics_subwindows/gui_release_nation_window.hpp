@@ -10,6 +10,8 @@
 namespace ui {
 
 class politics_release_nation_window : public window_element_base {
+private:
+	dcon::national_identity_id natl_id;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -41,6 +43,14 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::national_identity_id>()) {
+			natl_id = any_cast<dcon::national_identity_id>(payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
@@ -76,10 +86,10 @@ public:
 class release_nation_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		// TODO: Release nation command
 		Cyto::Any payload = dcon::national_identity_id{};
 		parent->impl_get(state, payload);
-		state.ui_state.politics_subwindow->show_release_window(state, payload);
+		state.ui_state.release_nation_popup->set_visible(state, true);
+		state.ui_state.release_nation_popup->impl_get(state, payload);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
