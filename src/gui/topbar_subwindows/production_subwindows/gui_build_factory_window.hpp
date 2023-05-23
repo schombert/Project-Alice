@@ -34,29 +34,24 @@ class factory_build_new_factory_option : public listbox_row_element_base<dcon::f
 private:
 	image_element_base* output_icon = nullptr;
 public:
-	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base<dcon::factory_type_id>::on_create(state);
-	}
-
-	void on_update(sys::state& state) noexcept override {
+	/*void update(sys::state& state) noexcept override {
 		auto fat_btid = dcon::fatten(state.world, content);
 		auto good = fat_btid.get_output();
 		int32_t icon = good.get_icon();
-		if(icon > 48) { icon = 1; }
 		output_icon->frame = icon;
 		//auto cid = fat_btid.get_output().id;
 		//output_icon->frame = int32_t(state.world.commodity_get_icon(cid));
-	}
+	}*/
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
 			return make_element_by_type<button_element_base>(state, id);
 
 		} else if(name == "output") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			output_icon = ptr.get();
-			return ptr;
-			//return make_element_by_type<commodity_factory_image>(state, id);
+			//auto ptr = make_element_by_type<image_element_base>(state, id);
+			//output_icon = ptr.get();
+			//return ptr;
+			return make_element_by_type<commodity_factory_image>(state, id);
 
 		} else if(name == "name") {
 			//return make_element_by_type<factory_output_name_text>(state, id);
@@ -77,14 +72,11 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::factory_type_id>()) {
-			payload.emplace<dcon::factory_type_id>(content);
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::commodity_id>()) {
+		if(payload.holds_type<dcon::commodity_id>()) {
 			payload.emplace<dcon::commodity_id>(dcon::fatten(state.world, content).get_output().id);
 			return message_result::consumed;
 		}
-		return message_result::unseen;
+		return listbox_row_element_base<dcon::factory_type_id>::get(state, payload);
 	}
 };
 
@@ -94,9 +86,9 @@ protected:
 		return "new_factory_option";
 	}
 public:
-	void on_update(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override{
 		if(parent) {
-			listbox_element_base<factory_build_new_factory_option, dcon::factory_type_id>::on_create(state);
+			//listbox_element_base<factory_build_new_factory_option, dcon::factory_type_id>::on_create(state);
 			row_contents.clear();
 			state.world.for_each_factory_type([&](dcon::factory_type_id ident) {
 				row_contents.push_back(ident);
@@ -111,11 +103,11 @@ class factory_build_new_factory_window : public window_element_base {
 private:
 	dcon::state_instance_id state_id;
 public:
-	void on_create(sys::state& state) noexcept override {
+	/*void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
 
-	}
+	}*/
 
 	/*
 	 * There are only two hard things in Computer Science:

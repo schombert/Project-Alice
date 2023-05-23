@@ -62,6 +62,39 @@ public:
 
 class factory_priority_button : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+			auto fat = dcon::fatten(state.world, fid);
+			frame = economy::factory_priority(state, fid);
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+			auto fat = dcon::fatten(state.world, fid);
+			switch (economy::factory_priority(state, fid)) {
+				case 0:
+					command::change_factory_settings(state, state.local_player_nation, fid, 1, fat.get_subsidized());
+					break;
+				case 1:
+					command::change_factory_settings(state, state.local_player_nation, fid, 2, fat.get_subsidized());
+					break;
+				case 2:
+					command::change_factory_settings(state, state.local_player_nation, fid, 3, fat.get_subsidized());
+					break;
+				case 3:
+					command::change_factory_settings(state, state.local_player_nation, fid, 0, fat.get_subsidized());
+					break;
+			}
+		}
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -76,6 +109,23 @@ public:
 		// TODO - check if we can change the priority,
 		// 	- This appears to depend only on if the ruling party is kosher with it
 		text::localised_format_box(state, contents, box, std::string_view("production_allowed_to_change_prio_tooltip"));
+		// Why pdx, why must the diplomacy priority be used instead of having a seperate priority for prod. ?
+		// just why
+		switch (economy::factory_priority(state, fid)) {
+			case 0:
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_prio_none"));
+				break;
+			case 1:
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_prio_low"));
+				break;
+			case 2:
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_prio_middle"));
+				break;
+			case 3:
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_prio_high"));
+				break;
+		}
+
 		//text::localised_format_box(state, contents, box, std::string_view("production_not_allowed_to_change_prio_tooltip"));
 		text::add_divider_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("production_prio_factory_desc_tooltip"));
@@ -85,6 +135,19 @@ public:
 
 class factory_upgrade_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::factory_id{};
+		parent->impl_get(state, payload);
+		auto fid = any_cast<dcon::factory_id>(payload);
+		auto fat = dcon::fatten(state.world, fid);
+
+		Cyto::Any payload1 = dcon::state_instance_id{};
+		parent->impl_get(state, payload1);
+		auto sid = any_cast<dcon::state_instance_id>(payload1);
+
+		command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -105,19 +168,70 @@ public:
 
 class factory_shutdown_button : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::factory_id{};
+		parent->impl_get(state, payload);
+		auto fid = any_cast<dcon::factory_id>(payload);
+		auto fat = dcon::fatten(state.world, fid);
+
+		if(fat.get_production_scale() < 0.05) {
+			frame = 0;
+		} else {
+			frame = 1;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		/*if(parent) {	TODO - We want to open/close the factory if we press this button, depending on if its closed/opened respectively
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+			auto fat = dcon::fatten(state.world, fid);
+		}*/
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		Cyto::Any payload = dcon::factory_id{};
+		parent->impl_get(state, payload);
+		auto fid = any_cast<dcon::factory_id>(payload);
+		auto fat = dcon::fatten(state.world, fid);
+
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, std::string_view("UwU"));
+		if(fat.get_production_scale() < 0.05) {
+			text::localised_format_box(state, contents, box, std::string_view("production_open_factory_tooltip"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("production_close_factory_tooltip"));
+		}
+
 		text::close_layout_box(contents, box);
 	}
 };
 
 class factory_subsidise_button : public button_element_base {	// Got a problem with mixed variants? too bad, Vic2 does same thing
 public:
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::factory_id{};
+		parent->impl_get(state, payload);
+		auto fid = any_cast<dcon::factory_id>(payload);
+		auto fat = dcon::fatten(state.world, fid);
+
+		if(fat.get_subsidized()) {	// TODO - we want to check if the player can *even* subside the factory, the tooltip function details this afaik
+			if(command::can_change_factory_settings(state, state.local_player_nation, fid, economy::factory_priority(state, fid), false)) {
+				command::change_factory_settings(state, state.local_player_nation, fid, economy::factory_priority(state, fid), false);
+				frame = 0;
+			}
+		} else {
+			if(command::can_change_factory_settings(state, state.local_player_nation, fid, economy::factory_priority(state, fid), true)) {
+				command::change_factory_settings(state, state.local_player_nation, fid, economy::factory_priority(state, fid), true);
+				frame = 1;
+			}
+		}
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -143,6 +257,26 @@ public:
 	}
 };
 
+class factory_delete_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::factory_id{};
+		parent->impl_get(state, payload);
+		auto fid = any_cast<dcon::factory_id>(payload);
+
+		command::delete_factory(state, state.local_player_nation, fid);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::close_layout_box(contents, box);
+	}
+};
+
 class production_factory_info : public window_element_base {
 	image_element_base* output_icon = nullptr;
 	image_element_base* input_icons[economy::commodity_set::set_size] = { nullptr };
@@ -154,6 +288,8 @@ class production_factory_info : public window_element_base {
 	button_element_base* cancel_progress_btn = nullptr;
 	progress_bar* upgrade_bar = nullptr;
 	image_element_base* upgrade_overlay = nullptr;
+
+	factory_delete_button* delete_factory = nullptr;
 
 	dcon::factory_id get_factory(sys::state& state) noexcept {
 		dcon::factory_id fid{};
@@ -186,6 +322,7 @@ public:
 		}
 		closed_overlay->set_visible(state, is_closed);
 		closed_text->set_visible(state, is_closed);
+		is_closed ? delete_factory->set_visible(state, is_closed) : delete_factory->set_visible(state, is_closed);
 
 		bool is_building = false;
 		inprogress_bar->set_visible(state, is_building);
@@ -257,6 +394,10 @@ public:
 			return make_element_by_type<factory_upgrade_button>(state, id);
 		} else if(name == "subsidise") {
 			return make_element_by_type<factory_subsidise_button>(state, id);
+		} else if(name == "delete_factory") {
+			auto ptr = make_element_by_type<factory_delete_button>(state, id);
+			delete_factory = ptr.get();
+			return ptr;
 		} else if(name == "open_close") {
 			return make_element_by_type<factory_shutdown_button>(state, id);
 		} else if(name.substr(0, 6) == "input_") {
@@ -279,6 +420,13 @@ public:
 		if(payload.holds_type<dcon::factory_id>()) {
 			payload.emplace<dcon::factory_id>(get_factory(state));
 			return message_result::consumed;
+		} else if(payload.holds_type<dcon::state_instance_id>()) {
+			if(dcon::fatten(state.world, state_id).is_valid()) {
+				payload.emplace<dcon::state_instance_id>(state_id);
+				return message_result::consumed;
+			} else {
+				return message_result::unseen;
+			}
 		}
 		return message_result::unseen;
 	}
