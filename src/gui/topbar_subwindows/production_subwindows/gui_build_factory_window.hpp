@@ -97,33 +97,30 @@ private:
 public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(parent) {
-			if(name == "bg") {
-				auto ptr = make_element_by_type<button_element_base>(state, id);
-				ptr->base_data.size.x = parent->base_data.size.x;
-				return ptr;
+		if(name == "bg") {
+			return make_element_by_type<button_element_base>(state, id);
+			//auto ptr = make_element_by_type<button_element_base>(state, id);
+			//ptr->base_data.size.x = parent->base_data.size.x;
+			//return ptr;
 
-			} else if(name == "output") {
-				//auto ptr = make_element_by_type<image_element_base>(state, id);
-				//output_icon = ptr.get();
-				//return ptr;
-				return make_element_by_type<commodity_factory_image>(state, id);
+		} else if(name == "output") {
+			//auto ptr = make_element_by_type<image_element_base>(state, id);
+			//output_icon = ptr.get();
+			//return ptr;
+			return make_element_by_type<commodity_factory_image>(state, id);
 
-			} else if(name == "name") {
-				return make_element_by_type<factory_build_output_name_text>(state, id);
+		} else if(name == "name") {
+			return make_element_by_type<factory_build_output_name_text>(state, id);
 
 
-			} else if(name == "total_build_cost") {
-				return make_element_by_type<factory_build_cost_text>(state, id);
+		} else if(name == "total_build_cost") {
+			return make_element_by_type<factory_build_cost_text>(state, id);
 
-			} else if(name == "buildtime") {
-				return make_element_by_type<factory_build_time_text>(state, id);
+		} else if(name == "buildtime") {
+			return make_element_by_type<factory_build_time_text>(state, id);
 
-			} else {
-				return nullptr;
-			}
 		} else {
-		return nullptr;
+			return nullptr;
 		}
 	}
 
