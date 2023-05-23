@@ -544,15 +544,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
-
-	message_result set(sys::state& state) noexcept {
-		return message_result::unseen;
-	}
 };
 
 class production_state_listbox : public listbox_element_base<production_state_info, dcon::state_instance_id> {

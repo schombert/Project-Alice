@@ -9,19 +9,26 @@
 
 namespace ui {
 
+struct release_query_wrapper {
+	dcon::nation_id content;
+};
+struct release_emplace_wrapper {
+	dcon::nation_id content;
+};
+
 class politics_release_nation_window : public window_element_base {
-private:
-	dcon::national_identity_id natl_id;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
+		base_data.position.x = base_data.position.y = 0;
 	}
 
-	// TODO - this window doesnt appear!?!?
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<draggable_target>(state, id);
+			ptr->base_data.size = base_data.size; // Nudge
+			return ptr;
 		} else
 		if(name == "default_popup_banner") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -47,7 +54,16 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::national_identity_id>()) {
-			natl_id = any_cast<dcon::national_identity_id>(payload);
+			Cyto::Any n_payload = release_query_wrapper{};
+			parent->impl_get(state, n_payload);
+			auto content = state.world.nation_get_identity_from_identity_holder(any_cast<dcon::nation_id>(n_payload));
+			payload.emplace<dcon::national_identity_id>(content);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			Cyto::Any n_payload = release_query_wrapper{};
+			parent->impl_get(state, n_payload);
+			auto content = any_cast<release_query_wrapper>(n_payload).content;
+			payload.emplace<dcon::nation_id>(content);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -86,10 +102,14 @@ public:
 class release_nation_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::national_identity_id{};
-		parent->impl_get(state, payload);
-		state.ui_state.release_nation_popup->set_visible(state, true);
-		state.ui_state.release_nation_popup->impl_get(state, payload);
+		if(parent) {
+			Cyto::Any payload = dcon::national_identity_id{};
+			parent->impl_get(state, payload);
+			auto niid = any_cast<dcon::national_identity_id>(payload);
+			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			Cyto::Any e_payload = release_emplace_wrapper{ nid };
+			parent->impl_get(state, e_payload);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {

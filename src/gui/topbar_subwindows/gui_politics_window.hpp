@@ -372,15 +372,21 @@ private:
 	decision_window* decision_win = nullptr;
 	release_nation_window* release_nation_win = nullptr;
 	politics_issue_support_listbox* issues_listbox = nullptr;
+	element_base* release_win = nullptr;
+	dcon::nation_id release_nation_id{};
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
-		auto ptr = make_element_by_type<politics_ruling_party_window>(state, "party_window");
-		add_child_to_front(std::move(ptr));
+		{
+			auto ptr = make_element_by_type<politics_ruling_party_window>(state, "party_window");
+			add_child_to_front(std::move(ptr));
+		}
 
-		auto win1337 = make_element_by_type<politics_release_nation_window>(state, state.ui_state.defs_by_name.find("releaseconfirm")->second.definition);
-		state.ui_state.release_nation_popup = win1337.get();
-		add_child_to_front(std::move(win1337));
+		{
+			auto ptr = make_element_by_type<politics_release_nation_window>(state, "releaseconfirm");
+			release_win = ptr.get();
+			add_child_to_front(std::move(ptr));
+		}
 
 		set_visible(state, false);
 	}
@@ -520,6 +526,14 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
+			return message_result::consumed;
+		} else if(payload.holds_type<release_query_wrapper>()) {
+			payload.emplace<dcon::nation_id>(release_nation_id);
+			return message_result::consumed;
+		} else if(payload.holds_type<release_emplace_wrapper>()) {
+			release_nation_id = any_cast<release_emplace_wrapper>(payload).content;
+			release_win->set_visible(state, true);
+			move_child_to_front(release_win);
 			return message_result::consumed;
 		} else if(payload.holds_type<politics_issue_sort_order>()) {
 			auto enum_val = any_cast<politics_issue_sort_order>(payload);
