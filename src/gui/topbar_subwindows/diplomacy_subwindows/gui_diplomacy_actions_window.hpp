@@ -306,11 +306,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
+			disabled = command::can_increase_relations(state, state.local_player_nation, content);
 		}
 	}
 
@@ -410,8 +406,8 @@ public:
 
 class diplomacy_action_war_subisides_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		// TODO - test if we local_player_nation has military access to the other country
-		return false;
+		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, nation_id);
+		return rel && state.world.diplomatic_relation_get_war_subsidies(rel);
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -420,14 +416,9 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			set_button_text(state, text::produce_simple_string(state,
-				can_cancel(state, content) ? "cancel_warsubsidies_button"
-					: "warsubsidies_button"));
+			set_button_text(state, text::produce_simple_string(state, can_cancel(state, content) ? "cancel_warsubsidies_button" : "warsubsidies_button"));
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
+			disabled = can_cancel(state, content) ? command::can_cancel_war_subsidies(state, state.local_player_nation, content) : command::can_give_war_subsidies(state, state.local_player_nation, content);
 		}
 	}
 
@@ -1239,13 +1230,16 @@ public:
 			case diplomacy_action::cancel_give_military_access:
 				break;
 			case diplomacy_action::increase_relations:
+				command::increase_relations(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::decrease_relations:
 				command::decrease_relations(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::war_subsidies:
+				command::give_war_subsidies(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::cancel_war_subsidies:
+				command::cancel_war_subsidies(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::discredit:
 				break;
