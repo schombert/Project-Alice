@@ -9,6 +9,41 @@
 
 namespace ui {
 
+class politics_release_nation_window : public window_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		set_visible(state, false);
+	}
+
+	// TODO - this window doesnt appear!?!?
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "background") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else
+		if(name == "default_popup_banner") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else
+		if(name == "title") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else
+		if(name == "description") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else
+		if(name == "agreebutton") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else
+		if(name == "declinebutton") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else
+		if(name == "playasbutton") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 class release_nation_description_text : public generic_multiline_text<dcon::national_identity_id> {
 public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::national_identity_id id) noexcept override {
@@ -42,6 +77,19 @@ class release_nation_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		// TODO: Release nation command
+		Cyto::Any payload = dcon::national_identity_id{};
+		parent->impl_get(state, payload);
+		state.ui_state.politics_subwindow->show_release_window(state, payload);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, std::string_view("Rewease me"));
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -67,8 +115,8 @@ public:
 class release_nation_listbox : public listbox_element_base<release_nation_option, dcon::national_identity_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "vassal_nation";
-    }
+		return "vassal_nation";
+	}
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();

@@ -1611,9 +1611,10 @@ public:
 			return btn;
 		} else if(name == "topbarbutton_politics") {
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
-
 			auto tab = make_element_by_type<politics_window>(state, "country_politics");
 			btn->topbar_subwindow = tab.get();
+
+			state.ui_state.politics_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_pops") {
@@ -1621,7 +1622,7 @@ public:
 			auto tab = make_element_by_type<population_window>(state, "country_pop");
 			btn->topbar_subwindow = tab.get();
 
-            state.ui_state.population_subwindow = tab.get();
+            		state.ui_state.population_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_trade") {

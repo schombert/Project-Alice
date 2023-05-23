@@ -154,7 +154,6 @@ class production_factory_info : public window_element_base {
 	button_element_base* cancel_progress_btn = nullptr;
 	progress_bar* upgrade_bar = nullptr;
 	image_element_base* upgrade_overlay = nullptr;
-	factory_build_new_factory_window* new_factory = nullptr;
 
 	dcon::factory_id get_factory(sys::state& state) noexcept {
 		dcon::factory_id fid{};
@@ -319,9 +318,20 @@ public:
 
 class production_build_new_factory : public button_element_base {
 public:
-	/*void button_action(sys::state& state) noexcept override {
-		make_element_by_type<factory_build_new_factory_window>(state, id);
-	}*/
+	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::state_instance_id{};
+		state.ui_state.production_subwindow->impl_set(state, payload);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(contents, state, box, std::string_view("OwO *notices you building new factory*"));
+		text::close_layout_box(contents, box);
+	}
 };
 /*factory_build_new_factory_window*/
 
@@ -385,6 +395,10 @@ public:
 	void update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
+	}
+
+	message_result set(sys::state& state) noexcept {
+		return message_result::unseen;
 	}
 };
 
@@ -506,6 +520,7 @@ public:
 class production_window : public generic_tabbed_window<production_window_tab> {
 	production_state_listbox* state_listbox = nullptr;
 	element_base* nf_win = nullptr;
+	factory_build_new_factory_window* new_factory = nullptr;
 
 	sys::commodity_group curr_commodity_group{};
 	dcon::state_instance_id focus_state{};
@@ -594,6 +609,10 @@ public:
 			nf_win = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
+
+		auto win1337 = make_element_by_type<factory_build_new_factory_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
+		new_factory = win1337.get();
+		add_child_to_front(std::move(win1337));
 
 		set_visible(state, false);
 	}
@@ -714,6 +733,17 @@ public:
 		}
 		return message_result::unseen;
 	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		 if(payload.holds_type<dcon::state_instance_id>()) {
+			move_child_to_front(new_factory);
+			new_factory->set_visible(state, true);
+			new_factory->impl_set(state, payload);
+			return message_result::consumed;
+		 }
+		 return message_result::unseen;
+	}
+
 	friend class production_national_focus_button;
 };
 

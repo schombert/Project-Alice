@@ -372,12 +372,17 @@ private:
 	decision_window* decision_win = nullptr;
 	release_nation_window* release_nation_win = nullptr;
 	politics_issue_support_listbox* issues_listbox = nullptr;
+	politics_release_nation_window* release_nation_popup = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 		auto ptr = make_element_by_type<politics_ruling_party_window>(state, "party_window");
 		add_child_to_front(std::move(ptr));
 		set_visible(state, false);
+
+		auto win1337 = make_element_by_type<politics_release_nation_window>(state, state.ui_state.defs_by_name.find("releaseconfirm")->second.definition);
+		release_nation_popup = win1337.get();
+		add_child_to_front(std::move(win1337));
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
@@ -480,7 +485,7 @@ public:
 			unciv_reforms_win->set_visible(state, true);
 		}
 	}
-	
+
 	void hide_sub_windows(sys::state& state) {
 		reforms_win->set_visible(state, false);
 		unciv_reforms_win->set_visible(state, false);
@@ -547,6 +552,13 @@ public:
 			return message_result::consumed;
 		}
 		return message_result::unseen;
+	}
+
+	void show_release_window(sys::state& state, dcon::national_identity_id n) {
+		Cyto::Any payload = n;
+		move_child_to_front(release_nation_popup);
+		release_nation_popup->set_visible(state, true);
+		release_nation_popup->impl_set(state, payload);
 	}
 };
 
