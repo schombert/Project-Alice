@@ -120,7 +120,7 @@ void execute_make_leader(sys::state& state, dcon::nation_id source, bool general
 void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::make_leader;
+	p.type = command_type::decrease_relations;
 	p.source = source;
 	p.data.diplo_action.target = target;
 	auto b = state.incoming_commands.try_push(p);
@@ -132,7 +132,7 @@ bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nat
 	if(military::are_at_war(state, source, target))
 		return false; // Can't be at war
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
-	if(rel && state.world.diplomatic_relation_get_value(rel) <= 200.f)
+	if(rel && state.world.diplomatic_relation_get_value(rel) <= -200.f)
 		return false; // Maxxed out
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.decreaserelation_diplomatic_cost; // Enough diplomatic points
 }
@@ -140,9 +140,6 @@ void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon:
 	if(!can_decrease_relations(state, source, target))
 		return;
 	
-	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
-	if(!rel)
-		rel = state.world.force_create_diplomatic_relation(source, target);
 	nations::adjust_relationship(state, source, target, state.defines.decreaserelation_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
 }
