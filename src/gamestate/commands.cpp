@@ -117,6 +117,92 @@ void execute_make_leader(sys::state& state, dcon::nation_id source, bool general
 	military::make_new_leader(state, source, general);
 }
 
+// -----------------------------------------------------------------------------
+void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::war_subsidies;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	/* Can only perform if, the nations are not at war, the nation isn't already being given war subsidies, and there is defines:WARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender. */
+	if(source == target)
+		return false; // Can't negotiate with self
+	if(military::are_at_war(state, source, target))
+		return false; // Can't be at war
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	if(rel && state.world.diplomatic_relation_get_war_subsidies(rel))
+		return false; // Can't already be giving war subsidies
+	return state.world.nation_get_diplomatic_points(source) >= state.defines.warsubsidy_diplomatic_cost; // Enough diplomatic points
+}
+void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_give_war_subsidies(state, source, target))
+		return;
+	nations::adjust_relationship(state, source, target, state.defines.warsubsidy_relation_on_accept);
+	state.world.nation_get_diplomatic_points(source) -= state.defines.warsubsidy_diplomatic_cost;
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	state.world.diplomatic_relation_set_war_subsidies(rel, true);
+}
+
+// -----------------------------------------------------------------------------
+void cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_war_subsidies;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	/* Can only perform if, the nations are not at war, the nation is already being given war subsidies, and there is defines:CANCELWARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender. */
+	if(source == target)
+		return false; // Can't negotiate with self
+	if(military::are_at_war(state, source, target))
+		return false; // Can't be at war
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	if(rel && !state.world.diplomatic_relation_get_war_subsidies(rel))
+		return false; // Must already be giving war subsidies
+	return state.world.nation_get_diplomatic_points(source) >= state.defines.cancelwarsubsidy_diplomatic_cost; // Enough diplomatic points
+}
+void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_cancel_war_subsidies(state, source, target))
+		return;
+	nations::adjust_relationship(state, source, target, state.defines.cancelwarsubsidy_relation_on_accept);
+	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelwarsubsidy_diplomatic_cost;
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	state.world.diplomatic_relation_set_war_subsidies(rel, false);
+}
+
+// -----------------------------------------------------------------------------
+void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::increase_relations;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at 200, and has defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender. */
+	if(source == target)
+		return false; // Can't negotiate with self
+	if(military::are_at_war(state, source, target))
+		return false; // Can't be at war
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	if(rel && state.world.diplomatic_relation_get_value(rel) >= 200.f)
+		return false; // Maxxed out
+	return state.world.nation_get_diplomatic_points(source) >= state.defines.increaserelation_diplomatic_cost; // Enough diplomatic points
+}
+void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_increase_relations(state, source, target))
+		return;
+	nations::adjust_relationship(state, source, target, state.defines.increaserelation_relation_on_accept);
+	state.world.nation_get_diplomatic_points(source) -= state.defines.increaserelation_diplomatic_cost;
+}
+
+// -----------------------------------------------------------------------------
 void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -144,6 +230,7 @@ void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon:
 	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
 }
 
+// -----------------------------------------------------------------------------
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov, economy::province_building_type type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -550,6 +637,15 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::begin_province_building_construction:
 				execute_begin_province_building_construction(state, c->source, c->data.start_province_building.location, c->data.start_province_building.type);
+				break;
+			case command_type::war_subsidies:
+				execute_give_war_subsidies(state, c->source, c->data.diplo_action.target);
+				break;
+			case command_type::cancel_war_subsidies:
+				execute_cancel_war_subsidies(state, c->source, c->data.diplo_action.target);
+				break;
+			case command_type::increase_relations:
+				execute_increase_relations(state, c->source, c->data.diplo_action.target);
 				break;
 			case command_type::decrease_relations:
 				execute_decrease_relations(state, c->source, c->data.diplo_action.target);
