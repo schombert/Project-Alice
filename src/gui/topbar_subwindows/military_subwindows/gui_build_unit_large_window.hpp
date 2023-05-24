@@ -23,15 +23,30 @@ public:
 
 class unit_folder_button : public button_element_base {
 public:
-	dcon::unit_type_id unit_type;
+	int unit_type;
 	void button_action(sys::state& state) noexcept override {
+		Cyto::Any payload = unit_type;
+		impl_get(state, payload);
 
+		Cyto::Any deactivate = true;
+		impl_get(state, deactivate);
+		frame = 1;
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<bool>()) {
+			frame = 0;
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
 class buildable_units : public listbox_row_element_base<dcon::pop_id> {
 public:
+	int unit_type;
 	ui::simple_text_element_base* unit_name = nullptr;
+	ui::image_element_base* unit_icon = nullptr;
 
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
@@ -48,6 +63,10 @@ public:
 		} else if(name == "name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			unit_name = ptr.get();
+			return ptr;
+		} else if(name == "unit_strip") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			unit_icon = ptr.get();
 			return ptr;
 		} else {
 			return nullptr;
@@ -79,12 +98,25 @@ public:
 			location->set_text(state, std::string(location_content));
 		}*/
 
+		//state.military_definitions.unit_base_definitions[dcon::unit_type_id(1)]
+
+		//unit_icon->frame = 16;
+
 		auto name_id = state.world.pop_get_culture(content);
 		auto name_content = text::produce_simple_string(state, name_id.get_name());
 		unit_name->set_text(state, name_content);
 
 		Cyto::Any payload = content;
 		impl_set(state, payload);
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<int>()) {
+			unit_type = Cyto::any_cast<int>(payload);
+			unit_icon->frame = unit_type-1;
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
@@ -153,47 +185,57 @@ public:
 		} else if(name == "unit_folder_17") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
 			ptr->frame = 1;
-			//state.military_definitions.unit_base_definitions
+			ptr->unit_type = 17;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_1") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 1;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_2") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 2;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_3") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 3;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_16") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 16;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_18") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 18;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_14") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 14;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_13") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 13;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_15") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 15;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_20") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 20;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_19") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 19;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		}
@@ -296,6 +338,17 @@ public:
 			set_army_invisible(state);
 			set_navy_visible(state);
 
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<int>()) {
+			impl_set(state, payload);
+			return message_result::consumed;
+		} else if(payload.holds_type<bool>()) {
+			impl_set(state, payload);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
