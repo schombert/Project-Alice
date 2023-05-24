@@ -206,7 +206,7 @@ class output_amount_text : public simple_text_element_base {
 public:
 	std::string get_text(sys::state& state, dcon::factory_type_id fid) noexcept {
 		auto fat = dcon::fatten(state.world, fid);
-		return text::prettify(fat.get_output_amount());
+		return text::prettify(int64_t(fat.get_output_amount()));
 	}
 
 	void on_update(sys::state& state) noexcept override {
