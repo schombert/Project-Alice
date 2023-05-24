@@ -228,6 +228,30 @@ namespace sys {
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+		// Find the object id for the main_bg displayed (so we display it before the map)
+		dcon::gfx_object_id bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
+		if(bg_gfx_id) {
+			// Render default background
+			glUseProgram(open_gl.ui_shader_program);
+			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glViewport(0, 0, x_size, y_size);
+			glDepthRange(-1.0, 1.0);
+			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
+			if(gfx_def.primary_texture_handle) {
+				ogl::render_textured_rect(
+					*this,
+					ui::get_color_modification(false, false, false),
+					0.f, 0.f, float(x_size), float(y_size),
+					ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					ui::rotation::upright,
+					gfx_def.is_vertically_flipped()
+				);
+			}
+		}
+
 		map_state.render(*this, x_size, y_size);
 
 		// UI rendering
@@ -239,7 +263,6 @@ namespace sys {
 
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0, 1.0);
-
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
