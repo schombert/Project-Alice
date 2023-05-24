@@ -227,9 +227,6 @@ namespace sys {
 
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		// Find the object id for the main_bg displayed (so we display it before the map)
-		dcon::gfx_object_id bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 		if(bg_gfx_id) {
 			// Render default background
 			glUseProgram(open_gl.ui_shader_program);
@@ -295,6 +292,9 @@ namespace sys {
 		// Allow mobility of those windows who can be moved, and shall be moved
 		ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+
+		// Find the object id for the main_bg displayed (so we display it before the map)
+		bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 
 		world.for_each_province([&](dcon::province_id id) {
 			auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
