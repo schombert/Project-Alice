@@ -146,7 +146,7 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
-			
+
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
@@ -265,8 +265,10 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("new_factory_option")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("project_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		// Allow mobility of those windows who can be moved, and shall be moved
 		ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
@@ -283,7 +285,7 @@ namespace sys {
 			ptr->impl_set(*this, payload);
 			ui_state.rgos_root->add_child_to_front(std::move(ptr));
 		});
-		
+
         {
             auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
             ui_state.console_window = window.get();
@@ -334,7 +336,7 @@ namespace sys {
 			auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
 			new_elm_army->set_visible(*this, false);
 			ui_state.root->add_child_to_front(std::move(new_elm_army));
-			
+
 			auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
 			new_elm_navy->set_visible(*this, false);
 			ui_state.root->add_child_to_front(std::move(new_elm_navy));

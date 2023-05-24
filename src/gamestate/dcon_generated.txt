@@ -2899,6 +2899,11 @@ relationship{
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ war_subsidies }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 relationship{
