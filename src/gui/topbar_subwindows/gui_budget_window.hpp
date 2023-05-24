@@ -76,7 +76,7 @@ protected:
 		enabled = true;
 		if(parent == nullptr)
 			return distrib;
-		
+
 		parent->impl_get(state, nat_id_payload);
 		if(nat_id_payload.holds_type<dcon::nation_id>()) {
 			auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
@@ -85,7 +85,7 @@ protected:
 			state.world.for_each_province([&](dcon::province_id province) {
 				if(nat_id != state.world.province_get_nation_from_province_ownership(province))
 					return;
-				
+
 				for(auto pop_loc : state.world.province_get_pop_location(province)) {
 					auto pop_id = pop_loc.get_pop();
 					auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
@@ -155,11 +155,29 @@ struct budget_slider_signal {
 template<budget_slider_target SliderTarget>
 class budget_slider : public scrollbar {
 public:
+	float amount = 0.0f;
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
-			float amount = float(v) / 100.f;
-			Cyto::Any payload = budget_slider_signal{ SliderTarget, amount };
-			parent->impl_set(state, payload);
+			amount = float(v) / 100.f;
+			//Cyto::Any payload = budget_slider_signal{ SliderTarget, amount };
+			//parent->impl_set(state, payload);
+			//Cyto::Any payload = element_selection_wrapper<budget_slider_signal>{budget_slider_signal{SliderTarget, amount}};
+			//parent->impl_get(state, payload);
+/*
+ *			Cyto::Any payload = dcon::factory_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_type_id>(payload);
+
+			Cyto::Any payload2 = element_selection_wrapper<dcon::factory_type_id>{content};
+			parent->impl_get(state, payload2);
+			*/
+		}
+	}
+
+	void on_drag_finish(sys::state& state) noexcept {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<budget_slider_signal>{budget_slider_signal{SliderTarget, amount}};
+			parent->impl_get(state, payload);
 		}
 	}
 
@@ -479,9 +497,74 @@ public:
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<budget_slider_signal>>()) {
+			budget_slider_signal slider = any_cast<element_selection_wrapper<budget_slider_signal>>(payload).data;
+
+			command::budget_settings_data slidermania = command::make_empty_budget_settings();
+			switch(slider.target) {
+				case budget_slider_target::poor_tax:
+					slidermania.poor_tax = int8_t(slider.amount);
+					break;
+				case budget_slider_target::middle_tax:
+					slidermania.middle_tax = int8_t(slider.amount);
+					break;
+				case budget_slider_target::rich_tax:
+					slidermania.rich_tax = int8_t(slider.amount);
+					break;
+				case budget_slider_target::army_stock:
+					slidermania.land_spending = int8_t(slider.amount);
+					break;
+				case budget_slider_target::navy_stock:
+					slidermania.naval_spending = int8_t(slider.amount);
+					break;
+				case budget_slider_target::construction_stock:
+					slidermania.construction_spending = int8_t(slider.amount);
+					break;
+				case budget_slider_target::education:
+					slidermania.education_spending = int8_t(slider.amount);
+					break;
+				case budget_slider_target::admin:
+					slidermania.administrative_spending = int8_t(slider.amount);
+					break;
+				case budget_slider_target::social:
+					slidermania.social_spending = int8_t(slider.amount);
+					break;
+				case budget_slider_target::military:
+					slidermania.military_spending = int8_t(slider.amount);
+					break;
+				case budget_slider_target::tariffs:
+					slidermania.tariffs = int8_t(slider.amount);
+					break;
+				default:
+					break;
+			}// :3333333333333333333333333
+			command::change_budget_settings(state, state.local_player_nation, slidermania);
+			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
+	/*
+	 *	if(parent) {
+			Cyto::Any payload = dcon::factory_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_type_id>(payload);
+
+			Cyto::Any payload2 = element_selection_wrapper<dcon::factory_type_id>{content};
+			parent->impl_get(state, payload2);
+		}
+
+		if(payload.holds_type<element_selection_wrapper<dcon::factory_type_id>>()) {
+			factory_to_build = any_cast<element_selection_wrapper<dcon::factory_type_id>>(payload).data;
+			impl_on_update(state);
+			return message_result::consumed;
+		}
+
+
+	struct budget_slider_signal {
+		budget_slider_target target;
+		float amount;
+	};
+	*/
 };
 
 }

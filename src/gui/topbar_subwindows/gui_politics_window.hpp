@@ -564,7 +564,11 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<election_emplace_wrapper>()) {
 			//release_nation_id = any_cast<election_emplace_wrapper>(payload).content;
-			election_win->set_visible(state, true);
+			if(!election_win->is_visible()) {
+				election_win->set_visible(state, true);
+			} else {
+				election_win->set_visible(state, false);
+			}
 			move_child_to_front(election_win);
 			return message_result::consumed;
 		} else if(payload.holds_type<politics_issue_sort_order>()) {
