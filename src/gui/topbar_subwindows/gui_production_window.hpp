@@ -226,13 +226,13 @@ public:
 		auto fat = dcon::fatten(state.world, fid);
 
 		if(fat.get_subsidized()) {	// TODO - we want to check if the player can *even* subside the factory, the tooltip function details this afaik
-			if(command::can_change_factory_settings(state, state.local_player_nation, fid, economy::factory_priority(state, fid), false)) {
-				command::change_factory_settings(state, state.local_player_nation, fid, economy::factory_priority(state, fid), false);
+			if(command::can_change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
+				command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), false);
 				frame = 0;
 			}
 		} else {
-			if(command::can_change_factory_settings(state, state.local_player_nation, fid, economy::factory_priority(state, fid), true)) {
-				command::change_factory_settings(state, state.local_player_nation, fid, economy::factory_priority(state, fid), true);
+			if(command::can_change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), true)) {
+				command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), true);
 				frame = 1;
 			}
 		}
