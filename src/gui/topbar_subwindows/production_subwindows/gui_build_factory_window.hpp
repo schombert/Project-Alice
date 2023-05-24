@@ -164,7 +164,22 @@ public:
 	}
 };
 
+class factory_title : public simple_text_element_base {
+public:
+	std::string get_text(sys::state& state, dcon::factory_type_id fid) noexcept {
+		auto fat = dcon::fatten(state.world, fid);
+		return text::produce_simple_string(state, fat.get_name());
+	}
 
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_type_id>(payload);
+			set_text(state, get_text(state, content));
+		}
+	}
+};
 
 class needed_workers_count_text : public simple_text_element_base {
 public:
@@ -197,6 +212,17 @@ public:
 			auto content = any_cast<dcon::factory_type_id>(payload);
 			set_text(state, get_text(state, content));
 		}
+	}
+};
+
+class factory_current_funds_text : public simple_text_element_base {
+public:
+	std::string get_text(sys::state& state) noexcept {
+		return text::format_money(nations::get_treasury(state, state.local_player_nation));
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state));
 	}
 };
 
@@ -241,14 +267,14 @@ public:
 
 		} else
 		if(name == "building_name") {
-			return make_element_by_type<factory_output_name_text>(state, id);
+			return make_element_by_type<factory_title>(state, id);
 
 		} else
 		if(name == "output_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 
 		} else
-		if(name == "output_ammount") {
+		if(name == "output_amount") {
 			return make_element_by_type<output_amount_text>(state, id);
 
 		} else
@@ -293,7 +319,7 @@ public:
 
 		} else
 		if(name == "current_funds_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<factory_current_funds_text>(state, id);
 
 		} else
 		if(name == "base_price") {
