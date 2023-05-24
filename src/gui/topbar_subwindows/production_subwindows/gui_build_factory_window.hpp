@@ -119,7 +119,11 @@ class factory_build_item : public listbox_row_element_base<dcon::factory_type_id
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
-			return make_element_by_type<factory_build_item_button>(state, id);
+			auto ptr = make_element_by_type<factory_build_item_button>(state, id);
+			ptr->base_data.size.x *= 2; // Nudge
+			ptr->base_data.size.x += 42; // Nudge
+			ptr->base_data.size.y += 5; // Nudge
+			return ptr;
 
 		} else if(name == "output") {
 			return make_element_by_type<commodity_factory_image>(state, id);
