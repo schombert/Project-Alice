@@ -256,7 +256,12 @@ bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
 
 void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
 	state.world.nation_set_ruling_party(n, p);
+	for(auto pi : state.culture_definitions.party_issues) {
+		state.world.nation_set_issues(n, pi, state.world.political_party_get_party_issues(p, pi));
+	}
 	culture::update_nation_issue_rules(state, n);
+	sys::update_single_nation_modifiers(state, n);
+	economy::bound_budget_settings(state, n);
 }
 
 void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {

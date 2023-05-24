@@ -675,6 +675,55 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
+void change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_budget;
+	p.source = source;
+	p.data.budget_data = values;
+	auto b = state.incoming_commands.try_push(p);
+	std::abort(); // Yeah, this is just here to make sure you tested things. You did make sure that this command is being sent only when necessary, and not with every twitch of the scrollbar slider as the player moves it, right?
+}
+void execute_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
+	if(!can_change_budget_settings(state, source, values))
+		return;
+
+	if(values.administrative_spending != int8_t(-127)) {
+		state.world.nation_set_administrative_spending(source, std::clamp(values.administrative_spending, int8_t(0), int8_t(100)));
+	}
+	if(values.construction_spending != int8_t(-127)) {
+		state.world.nation_set_construction_spending(source, std::clamp(values.construction_spending, int8_t(0), int8_t(100)));
+	}
+	if(values.education_spending != int8_t(-127)) {
+		state.world.nation_set_education_spending(source, std::clamp(values.education_spending, int8_t(0), int8_t(100)));
+	}
+	if(values.land_spending != int8_t(-127)) {
+		state.world.nation_set_land_spending(source, std::clamp(values.land_spending, int8_t(0), int8_t(100)));
+	}
+	if(values.middle_tax != int8_t(-127)) {
+		state.world.nation_set_middle_tax(source, std::clamp(values.middle_tax, int8_t(0), int8_t(100)));
+	}
+	if(values.poor_tax != int8_t(-127)) {
+		state.world.nation_set_poor_tax(source, std::clamp(values.poor_tax, int8_t(0), int8_t(100)));
+	}
+	if(values.rich_tax != int8_t(-127)) {
+		state.world.nation_set_rich_tax(source, std::clamp(values.rich_tax, int8_t(0), int8_t(100)));
+	}
+	if(values.military_spending != int8_t(-127)) {
+		state.world.nation_set_military_spending(source, std::clamp(values.military_spending, int8_t(0), int8_t(100)));
+	}
+	if(values.naval_spending != int8_t(-127)) {
+		state.world.nation_set_naval_spending(source, std::clamp(values.naval_spending, int8_t(0), int8_t(100)));
+	}
+	if(values.social_spending != int8_t(-127)) {
+		state.world.nation_set_social_spending(source, std::clamp(values.social_spending, int8_t(0), int8_t(100)));
+	}
+	if(values.tariffs != int8_t(-127)) {
+		state.world.nation_set_tariffs(source, std::clamp(values.tariffs, int8_t(-100), int8_t(100)));
+	}
+	economy::bound_budget_settings(state, source);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -729,6 +778,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::release_and_play_nation:
 				execute_release_and_play_as(state, c->source, c->data.tag_target.ident);
+				break;
+			case command_type::change_budget:
+				execute_change_budget_settings(state, c->source, c->data.budget_data);
 				break;
 		}
 

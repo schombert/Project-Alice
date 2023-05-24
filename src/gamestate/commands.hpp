@@ -21,6 +21,7 @@ enum class command_type : uint8_t {
 	release_and_play_nation = 13,
 	war_subsidies = 14,
 	cancel_war_subsidies = 15,
+	change_budget = 16,
 };
 
 struct national_focus_data {
@@ -67,6 +68,20 @@ struct tag_target_data {
 	dcon::national_identity_id ident;
 };
 
+struct budget_settings_data {
+	int8_t education_spending;
+	int8_t military_spending;
+	int8_t administrative_spending;
+	int8_t social_spending;
+	int8_t land_spending;
+	int8_t naval_spending;
+	int8_t construction_spending;
+	int8_t poor_tax;
+	int8_t middle_tax;
+	int8_t rich_tax;
+	int8_t tariffs;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -78,6 +93,7 @@ struct payload {
 		unit_construction_data unit_construction;
 		tag_target_data tag_target;
 		factory_data factory;
+		budget_settings_data budget_data;
 
 		dtype() {}
 	} data;
@@ -131,6 +147,20 @@ bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::n
 
 void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+inline budget_settings_data make_empty_budget_settings() {
+	return budget_settings_data{ int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127) };
+}
+// when sending new budget settings, leaving any value as int8_t(-127) will cause it to be ignored, leaving the setting the same
+// You can use the function above to easily make an instance of the settings struct that will change no values
+// Also, in consideration for future networking performance, do not send this command as the slider moves; only send it when the
+// player has stopped dragging the slider, in the case of drag, or maybe even only when the window closes / a day passes while the window
+// is open, if you think we can get away with it. In any case, we want to try to minimize how many times the command is sent per
+// average interaction with the budget.
+void change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values);
+inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
+	return true;
+}
 
 void execute_pending_commands(sys::state& state);
 
