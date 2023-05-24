@@ -11,6 +11,7 @@
 #include "gui_reforms_window.hpp"
 #include "gui_release_nation_window.hpp"
 #include "gui_unciv_reforms_window.hpp"
+#include "gui_election_window.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
@@ -51,6 +52,24 @@ public:
 			return make_element_by_type<nation_ideology_percentage_text>(state, id);
 		} else {
 			return nullptr;
+		}
+	}
+};
+
+struct election_emplace_wrapper {
+	dcon::nation_id content;
+};
+
+class politics_hold_election : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::national_identity_id{};
+			parent->impl_get(state, payload);
+			auto niid = any_cast<dcon::national_identity_id>(payload);
+			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
+			Cyto::Any e_payload = election_emplace_wrapper{ nid };
+			parent->impl_get(state, e_payload);
 		}
 	}
 };
@@ -373,6 +392,7 @@ private:
 	release_nation_window* release_nation_win = nullptr;
 	politics_issue_support_listbox* issues_listbox = nullptr;
 	element_base* release_win = nullptr;
+	element_base* election_win = nullptr;
 	dcon::nation_id release_nation_id{};
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -385,6 +405,11 @@ public:
 		{
 			auto ptr = make_element_by_type<politics_release_nation_window>(state, "releaseconfirm");
 			release_win = ptr.get();
+			add_child_to_front(std::move(ptr));
+		}
+		{
+			auto ptr = make_element_by_type<politics_election_window>(state, "event_election_window");
+			election_win = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
 
@@ -478,6 +503,8 @@ public:
 			auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
 			ptr->order = politics_issue_sort_order::voter_support;
 			return ptr;
+		} else if(name == "hold_election") {
+			return make_element_by_type<politics_hold_election>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -534,6 +561,11 @@ public:
 			release_nation_id = any_cast<release_emplace_wrapper>(payload).content;
 			release_win->set_visible(state, true);
 			move_child_to_front(release_win);
+			return message_result::consumed;
+		} else if(payload.holds_type<election_emplace_wrapper>()) {
+			//release_nation_id = any_cast<election_emplace_wrapper>(payload).content;
+			election_win->set_visible(state, true);
+			move_child_to_front(election_win);
 			return message_result::consumed;
 		} else if(payload.holds_type<politics_issue_sort_order>()) {
 			auto enum_val = any_cast<politics_issue_sort_order>(payload);

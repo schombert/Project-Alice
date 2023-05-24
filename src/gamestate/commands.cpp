@@ -225,7 +225,7 @@ bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nat
 void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_decrease_relations(state, source, target))
 		return;
-	
+
 	nations::adjust_relationship(state, source, target, state.defines.decreaserelation_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
 }
@@ -352,7 +352,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 					if(f.get_factory().get_building_type() == type && f.get_factory().get_level() < uint8_t(255)) {
 						return true;
 					}
-					
+
 				}
 			}
 		}
@@ -683,6 +683,7 @@ void change_budget_settings(sys::state& state, dcon::nation_id source, budget_se
 	p.data.budget_data = values;
 	auto b = state.incoming_commands.try_push(p);
 	std::abort(); // Yeah, this is just here to make sure you tested things. You did make sure that this command is being sent only when necessary, and not with every twitch of the scrollbar slider as the player moves it, right?
+		      // ^-^ Nyu
 }
 void execute_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
 	if(!can_change_budget_settings(state, source, values))

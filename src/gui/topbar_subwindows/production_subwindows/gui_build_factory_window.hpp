@@ -230,6 +230,27 @@ public:
 	}
 };
 
+class factory_build_description : public multiline_text_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		multiline_text_element_base::on_create(state);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::factory_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_type_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+
+			auto layout = text::create_endless_layout(internal_layout, text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
+			auto box = text::open_layout_box(layout, 0);
+			text::add_to_layout_box(layout, state, box, fat.get_description());
+			text::close_layout_box(layout, box);
+		}
+	}
+};
+
 
 
 class factory_build_window : public window_element_base {
@@ -287,7 +308,7 @@ public:
 			// input_2
 			// input_3
 		if(name == "description_text") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<factory_build_description>(state, id);
 
 		} else
 		if(name == "needed_workers") {
