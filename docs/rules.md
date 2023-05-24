@@ -1077,3 +1077,217 @@ It may be expedient to create some structures tracking properties of pathing / c
 - whether any two nations each have a colonial province adjacent to a colonial province of the other
 - how many regiments total could possibly be recruited, and what number actually have been recruited
 - total number of allies, vassals, substates, etc
+
+## Commands
+
+This section describes all the actions that a player can take that affect the state of the game (i.e. anything that isn't just user interface navigation).
+
+### Set national focus
+
+This includes both setting the national focus in a state you own as well as setting the flashpoint focus in a state owned by another nation.
+
+#### Conditions
+
+If you are setting a focus for one of your states, then it must not be the flashpoint focus, the ideology must be available if it is a party loyalty focus (enabled and not restricted to civs only if you are an unciv), and either there must be a focus already in the state or fewer than your maximum number of available focus must be set in other states.
+
+If it is the flashpoint focus, the state must not be owned by you, you must be less than colonial rank, you must have a core in that state, the owner must not accept your primary culture, your tag must be releasable, another nation must not already have a flashpoint focus there, and either you have fewer than your maximum number of focuses already active *or* you have a flashpoint focus active somewhere else (setting a flashpoint focus in one state will cancel any flashpoint focuses you have set in other states).
+
+#### Effect
+
+Changes the national focus active in the state
+
+### Start research
+
+This starts researching an specific technology.
+
+#### Conditions
+
+Nations can only start researching technologies if, they are not uncivilized, the corresponding date that the technology is activated at is already past by, and all the previous techs (if any) of the same folder are already researched fully. And the technology isn't already being researched.
+
+#### Effect
+
+Sets the current research of the country to the specified technology.
+
+### War subsidies
+
+This helps funding the war efforts of the target country, requiring no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the nation isn't already being given war subsidies, and there is defines:WARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender.
+
+#### Effect
+
+The sender will give the target `defines:WARSUBSIDIES_PERCENT x total-expenses-of-target` every tick.
+
+### Increase relations
+
+This increases relations between the two countries and requires no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the relation value isn't maxxed out at 200, and has defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender.
+
+#### Effect
+
+Increase relations value by the value of defines:INCREASERELATION_RELATION_ON_ACCEPT (normally set at 100) and decreases diplomatic points by defines:INCREASERELATION_DIPLOMATIC_COST.
+
+### Decrease relations
+
+This decreases relations between the two countries and requires no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender.
+
+#### Effect
+
+Increase relations value by the value of defines:DECREASERELATION_RELATION_ON_ACCEPT (normally set at -20) and decreases diplomatic points by defines:DECREASERELATION_DIPLOMATIC_COST.
+
+### Conquering a province
+
+Strictly speaking, this is not a command that we would expect the ui to ever send directly (except maybe via the console). However, it can be thought of as a component of the more complex commands that will eventually execute a peace deal, for example.
+
+#### Conditions
+
+Depends on the context it is generated in
+
+#### Effect
+
+In addition to transferring province ownership: (TODO: prevent more than one naval base per state)
+- All pops in the province lose all their savings
+- If the province is not a core of the new owner and is not a colonial province (prior to conquest), any pops that are not of an accepted or primary culture get define:MIL_HIT_FROM_CONQUEST militancy
+- Provinces conquered from an unciv by a civ become colonial
+- The conqueror may gain research points:
+First, figure out how many research points the pops in the province would generate as if they were a tiny nation (i.e. for each pop type that generates research points, multiply that number by the fraction of the population it is compared to its optimal fraction (capped at one) and sum them all together). Then multiply that value by (1.0 + national modifier to research points modifier + tech increase research modifier). That value is then multiplied by define:RESEARCH_POINTS_ON_CONQUER_MULT and added to the conquering nation's research points. Ok, so what about the nations research points on conquer modifier?? Yeah, that appears to be bugged. The nation gets research points only if that multiplier is positive, but otherwise it doesn't affect the result.
+- The province gets nationalism equal to define:YEARS_OF_NATIONALISM
+- Pops leave any movements / rebellions
+- Timed modifiers are removed; constructions are canceled
+- When new states are created by conquest, the nation gets an `on_state_conquest` event
+
+### Create a military leader (either general or admiral)
+
+#### Conditions
+
+The nation must have define:LEADER_RECRUIT_COST leadership points available.
+
+#### Effect
+
+The same as for automatic leader creation, except that you get to choose the type. The nation loses define: LEADER_RECRUIT_COST leadership points. (There is also a MILITARY_CREATE_GENERAL message)
+
+### Start building a province building (naval base, fort, railroad)
+
+Irrelevant note: it is POP_BUILD_FACTORY that allows pops to build railroads after all
+
+#### Conditions
+
+The nation must have the tech level required to build up to the new level in the target province. There must be no existing construction project for that building. The province must be controlled by its owner. The province must not be under siege. If not owned by the nation doing the building, it must be a railroad, the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation being invested in must be civilized.
+
+For naval bases: only one per state (check ongoing constructions in state too), and only on the coast.
+
+For railroads: nations must have RULE_BUILD_RAILROAD to start a project.
+
+#### Effect
+
+Start the building construction project. If the province is in a foreign nation, get foreign investment credit equal to the projected total cost.
+
+### Start building or upgrading a factory
+
+#### Conditions
+
+The nation must have the rule set to allow building / upgrading if this is a domestic target.
+
+For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation being invested in must be civilized.
+
+The factory building must be unlocked by the nation.
+Factories cannot be built in a colonial state.
+Coastal factories can only be built in coastal states.
+
+For new factories: no more than 7 existing + under construction new factories must be present.
+For upgrades: no upgrading past max level.
+
+#### Effect
+
+Start the building construction project. If the province is in a foreign nation, get foreign investment credit equal to the projected total cost.
+
+### Destroy Factory
+
+Complication: factory must be identified by its location and type, since other factory commands may be in flight
+
+#### Conditions
+
+The nation must have the appropriate rule to allow the destruction set.
+
+#### Effect
+
+Factory goes away
+
+### Change factory settings
+
+Change the hiring priority or subsidized status of a factory
+
+#### Conditions
+
+Relevant national rules
+
+#### Effect
+
+Status changes
+
+### Start unit construction
+
+#### Conditions
+
+The province must be owned and controlled by the building nation, without an ongoing siege.
+The unit type must be available from start / unlocked by the nation
+
+Land units:
+
+Each soldier pop can only support so many regiments (including under construction and rebel regiments)
+If the unit is culturally restricted, there must be an available primary culture/accepted culture soldier pop with space
+
+Naval units:
+
+The province must be coastal
+The province must have a naval base of sufficient level, depending on the unit type
+The province may not be overseas for some unit types
+Some units have a maximum number per port where they can built that must be respected
+
+#### Effect
+
+Starts condition
+
+### Cancel unit construction
+
+#### Conditions
+
+Must be the owner of the province where the unit is being built
+
+#### Effect
+
+Cancels construction
+
+### Release a nation as a vassal
+
+#### Conditions
+
+Must not be at war and the country being released must not already exist. The associated tag must be releasable, and you must own some cores belonging to that tag.
+
+#### Effect
+
+Release the nation from any cores owned by the sender of the command. The command sender loses all cores on those provinces. The command sender gains define:RELEASE_NATION_PRESTIGE. The command sender gains define:RELEASE_NATION_INFAMY. The released nation has the same government as the releaser (this may force changing the ruling party, and thus changing the active party issues).
+
+### Change budget settings
+
+#### Conditions
+
+No setting can be brought outside the permissible range
+
+#### Effect
+
+Settings are changed (by being clamped to the permissible range).
+
+### Change stockpile setting
+
+Change whether the stockpile is filling, and what its target amount its
+

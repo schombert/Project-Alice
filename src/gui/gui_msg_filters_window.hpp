@@ -5,7 +5,7 @@
 
 namespace ui {
 
-class msg_filters_country_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class msg_filters_country_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -13,14 +13,24 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		frame = state.world.nation_get_is_interesting(content) ? 1 : 0;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);	
+			frame = state.world.nation_get_is_interesting(content) ? 1 : 0;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		fat_id.set_is_interesting(!fat_id.get_is_interesting());
-		if(parent)
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);	
+			
+			auto fat_id = dcon::fatten(state.world, content);
+			fat_id.set_is_interesting(!fat_id.get_is_interesting());
 			parent->impl_on_update(state);
+		}
 	}
 };
 
@@ -34,11 +44,6 @@ public:
 		} else {
 			return nullptr;
 		}
-	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {

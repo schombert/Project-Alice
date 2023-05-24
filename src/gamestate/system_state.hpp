@@ -22,6 +22,8 @@
 #include "defines.hpp"
 #include "province.hpp"
 #include "events.hpp"
+#include "SPSCQueue.h"
+#include "commands.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -188,6 +190,8 @@ namespace sys {
 		std::atomic<bool> game_state_updated = false; // game state -> ui signal
 		std::atomic<bool> quit_signaled = false; // ui -> game state signal
 		std::atomic<int32_t> actual_game_speed = 0; // ui -> game state message
+		rigtorp::SPSCQueue<command::payload> incoming_commands; // ui or network -> local gamestate
+
 
 		// internal game timer / update logic
 		std::chrono::time_point<std::chrono::steady_clock> last_update = std::chrono::steady_clock::now();
@@ -202,6 +206,7 @@ namespace sys {
 
 		// map data
 		map::map_state map_state;
+		dcon::gfx_object_id bg_gfx_id{};
 
 		// graphics data
 		ogl::data open_gl;
@@ -249,7 +254,7 @@ namespace sys {
 		dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 		dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)) {}
+		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024) {}
 		~state();
 
 		void save_user_settings() const;

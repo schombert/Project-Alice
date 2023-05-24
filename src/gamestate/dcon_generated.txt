@@ -399,6 +399,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ description }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ construction_costs }
 		type{ economy::commodity_set }
 		tag{ scenario }
@@ -2891,6 +2896,11 @@ relationship{
 	}
 	property{
 		name{ military_access }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ war_subsidies }
 		type{ bitfield }
 		tag{ save }
 	}

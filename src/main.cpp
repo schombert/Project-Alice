@@ -40,9 +40,10 @@
 #include "parsers_declarations.cpp"
 #include "politics.cpp"
 #include "events.cpp"
-#include "gui_effect_tooltips.cpp"
 #include "gui_trigger_tooltips.cpp"
+#include "gui_effect_tooltips.cpp"
 #include "gui_modifier_tooltips.cpp"
+#include "commands.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

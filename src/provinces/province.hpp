@@ -52,9 +52,16 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 // void update_state_administrative_efficiency(sys::state& state);
 
 bool has_railroads_being_built(sys::state& state, dcon::province_id id);
-bool can_build_railroads(sys::state& state, dcon::province_id id);
+bool can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_id n);
+bool generic_can_build_railroads(sys::state& state, dcon::province_id id, dcon::nation_id n);
+bool has_fort_being_built(sys::state& state, dcon::province_id id);
+bool can_build_fort(sys::state& state, dcon::province_id id, dcon::nation_id n);
+bool has_naval_base_being_built(sys::state& state, dcon::province_id id);
+bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_id n);
 bool has_an_owner(sys::state& state, dcon::province_id id);
 bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
+
+dcon::province_id pick_capital(sys::state& state, dcon::nation_id n);
 
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
 float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
@@ -70,8 +77,10 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
 float revolt_risk(sys::state& state, dcon::province_id id);
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
+void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 
 void update_crimes(sys::state& state);
+void update_nationalism(sys::state& state);
 
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 void update_colonization(sys::state& state);

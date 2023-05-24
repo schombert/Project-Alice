@@ -309,6 +309,7 @@ namespace text {
 	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 	std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 	std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
+	std::string get_influence_level_name(sys::state const& state, uint8_t v);
 
 	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, substitution_map const& sub = substitution_map{});
 	void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value);

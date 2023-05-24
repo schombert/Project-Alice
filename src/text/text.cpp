@@ -725,6 +725,25 @@ namespace text {
 		}
 	}
 
+	std::string get_influence_level_name(sys::state const& state, uint8_t v) {
+		switch(v & nations::influence::level_mask) {
+		case nations::influence::level_neutral:
+			return text::produce_simple_string(state, "rel_neutral");
+		case nations::influence::level_opposed:
+			return text::produce_simple_string(state, "rel_opposed");
+		case nations::influence::level_hostile:
+			return text::produce_simple_string(state, "rel_hostile");
+		case nations::influence::level_cordial:
+			return text::produce_simple_string(state, "rel_cordial");
+		case nations::influence::level_friendly:
+			return text::produce_simple_string(state, "rel_friendly");
+		case nations::influence::level_in_sphere:
+			return text::produce_simple_string(state, "rel_sphere_of_influence");
+		default:
+			return text::produce_simple_string(state, "rel_neutral");
+		}
+	}
+
 	std::string format_percentage(float num, size_t digits) {
 		return format_float(num * 100.f, digits) + '%';
 	}
@@ -978,6 +997,9 @@ namespace text {
 	}
 
 	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
+		if(!source_text)
+			return;
+
 		auto current_color = dest.fixed_parameters.color;
 		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);

@@ -226,7 +226,7 @@ public:
                 auto nid = state.world.gp_relationship_get_influence_target(grid);
                 info_text->set_text(state, text::produce_simple_string(state, state.world.nation_get_name(nid)));
                 auto status = state.world.gp_relationship_get_status(grid);
-                entry_text->set_text(state, text::produce_simple_string(state, nation_player_opinion_text::get_level_text_key(status)));
+                entry_text->set_text(state, text::produce_simple_string(state, text::get_influence_level_name(state, status)));
             } else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
                 auto sbcid = std::get<dcon::state_building_construction_id>(content);
                 auto ftid = state.world.state_building_construction_get_type(sbcid);
@@ -478,6 +478,24 @@ public:
 			state.ui_state.outliner_window->set_visible(state, !state.ui_state.outliner_window->is_visible());
 			on_update(state);
 		}
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+		return message_result::consumed;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		if(!state.ui_state.outliner_window->is_visible()) {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_open_outliner"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_close_outliner"));
+		}
+		text::close_layout_box(contents, box);
 	}
 };
 

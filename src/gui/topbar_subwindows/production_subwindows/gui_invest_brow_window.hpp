@@ -59,12 +59,6 @@ public:
 		}
 	}
 
-	void update(sys::state& state) noexcept override {
-		country_flag->on_update(state);
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
-
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(content);

@@ -104,7 +104,7 @@ dcon::issue_id get_issue_by_name(sys::state& state, std::string_view name) {
 
 bool reform_is_selected(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option) {
     auto reform = state.world.reform_option_get_parent_reform(reform_option);
-    return reform_option == state.world.nation_get_reforms(nation, reform.id).id;
+    return reform && reform_option == state.world.nation_get_reforms(nation, reform);
 }
 
 bool issue_is_selected(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
@@ -256,7 +256,12 @@ bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
 
 void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
 	state.world.nation_set_ruling_party(n, p);
+	for(auto pi : state.culture_definitions.party_issues) {
+		state.world.nation_set_issues(n, pi, state.world.political_party_get_party_issues(p, pi));
+	}
 	culture::update_nation_issue_rules(state, n);
+	sys::update_single_nation_modifiers(state, n);
+	economy::bound_budget_settings(state, n);
 }
 
 void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
@@ -653,7 +658,7 @@ void update_elections(sys::state& state) {
 					set_ruling_party(state, n, party_votes[winner].par);
 				}
 
-			} else if(next_election_date(state, n) == state.current_date) {
+			} else if(next_election_date(state, n) <= state.current_date) {
 				start_election(state, n);
 			}
 		}

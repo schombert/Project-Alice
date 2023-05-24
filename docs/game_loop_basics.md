@@ -23,3 +23,8 @@ auto game_state_was_updated = game_state_updated.exchange(false, std::memory_ord
 ```
 The part that is currently updated pushes an `update` message through the ui hierarchy, and any properly implemented control will respond to it by updating any data it is storing locally from the game state, recreating its text content if necessary, and so on. Also necessary, but currently unimplemented, the map will have to update the data it is basing the current map mode off of, and tooltips, which are likely stored in a different ui root container, will have to be updated as well.
 
+### Sending commands
+
+The ui may transmit the player's actions to the game state by sending commands through the functions provided in `commands.hpp`. Each distinct command has two functions associated with it: a function with a name describing what the command does (e.g. `set_national_focus`) and then another function named `can_...`. The first function sends the command to the game state. The second function returns a boolean indicating whether that command is currently valid. Although you can send invalid commands, they will be silently rejected by the game. This second function is useful for determining when you should disable a button, for example. However, since tooltips will often needs to explain *why* the button is disabled, the function can be equally useful as a reference to look at all of the conditions, in code, that may block a particular command from being executed.
+
+Documentation for which commands are possible and what they do in plain English can be found at the [end of the rules document](rules.md#Commands).

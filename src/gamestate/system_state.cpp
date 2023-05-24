@@ -7,9 +7,10 @@
 #include <algorithm>
 #include <functional>
 #include "parsers_declarations.hpp"
-#include "gui_minimap.hpp"
-#include "gui_topbar.hpp"
 #include "gui_console.hpp"
+#include "gui_minimap.hpp"
+#include "gui_unit_panel.hpp"
+#include "gui_topbar.hpp"
 #include "gui_province_window.hpp"
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
@@ -145,7 +146,7 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
-			
+
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
@@ -155,7 +156,7 @@ namespace sys {
 				auto type = ui_state.last_tooltip->has_tooltip(*this);
 				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, 250, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
+						text::layout_parameters{ 16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white },
 						250);
 					ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -226,6 +227,27 @@ namespace sys {
 
 		glClearColor(0.5, 0.5, 0.5, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		if(bg_gfx_id) {
+			// Render default background
+			glUseProgram(open_gl.ui_shader_program);
+			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glViewport(0, 0, x_size, y_size);
+			glDepthRange(-1.0, 1.0);
+			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
+			if(gfx_def.primary_texture_handle) {
+				ogl::render_textured_rect(
+					*this,
+					ui::get_color_modification(false, false, false),
+					0.f, 0.f, float(x_size), float(y_size),
+					ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+					ui::rotation::upright,
+					gfx_def.is_vertically_flipped()
+				);
+			}
+		}
 
 		map_state.render(*this, x_size, y_size);
 
@@ -238,7 +260,6 @@ namespace sys {
 
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0, 1.0);
-
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
@@ -264,11 +285,16 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("new_factory_option")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("project_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		// Allow mobility of those windows who can be moved, and shall be moved
 		ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+
+		// Find the object id for the main_bg displayed (so we display it before the map)
+		bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 
 		world.for_each_province([&](dcon::province_id id) {
 			auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
@@ -282,7 +308,7 @@ namespace sys {
 			ptr->impl_set(*this, payload);
 			ui_state.rgos_root->add_child_to_front(std::move(ptr));
 		});
-		
+
         {
             auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
             ui_state.console_window = window.get();
@@ -328,6 +354,15 @@ namespace sys {
 		{
 			auto new_elm = ui::make_element_by_type<ui::province_view_window>(*this, "province_view");
 			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
+			new_elm_army->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(new_elm_army));
+
+			auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
+			new_elm_navy->set_visible(*this, false);
+			ui_state.root->add_child_to_front(std::move(new_elm_navy));
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
@@ -516,7 +551,7 @@ namespace sys {
 	}
 
 	void state::open_diplomacy(dcon::nation_id target) {
-		Cyto::Any payload = target;
+		Cyto::Any payload = ui::element_selection_wrapper<dcon::nation_id>{ target };
 		if(ui_state.diplomacy_subwindow != nullptr) {
 			if(ui_state.topbar_subwindow != nullptr) {
 				ui_state.topbar_subwindow->set_visible(*this, false);
@@ -1608,11 +1643,13 @@ namespace sys {
 		while(quit_signaled.load(std::memory_order::acquire) == false) {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			if(speed <= 0 || internally_paused == true) {
+				command::execute_pending_commands(*this);
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
 				auto entry_time = std::chrono::steady_clock::now();
 				auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
 
+				command::execute_pending_commands(*this);
 				if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
 					last_update = entry_time;
 
@@ -1862,6 +1899,9 @@ namespace sys {
 							break;
 						case 10:
 							province::update_crimes(*this);
+							break;
+						case 11:
+							province::update_nationalism(*this);
 							break;
 						case 15:
 							culture::discover_inventions(*this);

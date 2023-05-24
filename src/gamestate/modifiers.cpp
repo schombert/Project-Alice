@@ -636,11 +636,17 @@ void recreate_province_modifiers(sys::state& state) {
 void repopulate_modifier_effects(sys::state& state) {
 	recreate_national_modifiers(state);
 	recreate_province_modifiers(state);
+	for(auto n : state.world.in_nation) {
+		economy::bound_budget_settings(state, n);
+	}
 }
 
 void update_modifier_effects(sys::state& state) {
 	recreate_national_modifiers(state);
 	recreate_province_modifiers(state);
+	for(auto n : state.world.in_nation) {
+		economy::bound_budget_settings(state, n);
+	}
 }
 
 }

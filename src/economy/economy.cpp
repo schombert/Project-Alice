@@ -60,8 +60,17 @@ bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n) {
 	// TODO
 	return false;
 }
-bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) {
-	// TODO
+bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) {	// TODO - should be "good" now
+	auto nation_fat = dcon::fatten(state.world, n);
+	for(auto prov_owner : nation_fat.get_province_ownership()) {
+		auto prov = prov_owner.get_province();
+		for(auto factloc : prov.get_factory_location()) {
+			auto scale = factloc.get_factory().get_production_scale();
+			if(scale < 0.05) {
+				return true;
+			}
+		}
+	}
 	return false;
 }
 
@@ -2305,17 +2314,7 @@ void daily_update(sys::state& state) {
 		if(n.get_private_investment() > 0.001 &&  (nation_rules & (issue_rule::pop_build_factory | issue_rule::pop_expand_factory)) != 0) {
 
 			bool found_investment = false;
-			if((nation_rules & issue_rule::pop_build_factory) != 0) {
-				for(auto p : n.get_province_ownership()) {
-					if(province::can_build_railroads(state, p.get_province())) {
-						auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.get_province(), n));
-						new_rr.set_is_pop_project(true);
-						new_rr.set_type(uint8_t(province_building_type::railroad));
-						found_investment = true;
-						break;
-					}
-				}
-			}
+			
 			if(!found_investment) {
 				static std::vector<dcon::state_instance_id> states_in_order;
 				states_in_order.clear();
@@ -2352,7 +2351,7 @@ void daily_update(sys::state& state) {
 						if(p.get_province().get_nation_from_province_ownership() == n) {
 							for(auto f : p.get_province().get_factory_location()) {
 								++num_factories;
-								if((nation_rules & issue_rule::pop_expand_factory) != 0 && f.get_factory().get_production_scale() >= 0.9f) {
+								if((nation_rules & issue_rule::pop_expand_factory) != 0 && f.get_factory().get_production_scale() >= 0.9f && f.get_factory().get_level() < uint8_t(255)) {
 									if(auto new_p = f.get_factory().get_full_profit() / f.get_factory().get_level(); new_p > profit) {
 										profit = new_p;
 										selected_factory = f.get_factory();
@@ -2396,6 +2395,19 @@ void daily_update(sys::state& state) {
 
 					if(found_investment) {
 						break;
+					}
+				}
+			}
+			if(!found_investment) {
+				if((nation_rules & issue_rule::pop_build_factory) != 0) {
+					for(auto p : n.get_province_ownership()) {
+						if(province::generic_can_build_railroads(state, p.get_province(), n)) {
+							auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.get_province(), n));
+							new_rr.set_is_pop_project(true);
+							new_rr.set_type(uint8_t(province_building_type::railroad));
+							found_investment = true;
+							break;
+						}
 					}
 				}
 			}
@@ -2607,6 +2619,25 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
+float estimate_total_spending(sys::state& state, dcon::nation_id n) {
+	float v = 0.f;
+	v += economy::estimate_construction_spending(state, state.local_player_nation);
+	v += economy::estimate_land_spending(state, state.local_player_nation);
+	v += economy::estimate_naval_spending(state, state.local_player_nation);
+	v += economy::estimate_social_spending(state, state.local_player_nation);
+	v += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+	v += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+	v += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+	v += economy::estimate_loan_payments(state, state.local_player_nation);
+	v += economy::estimate_subsidy_spending(state, state.local_player_nation);
+	return v;
+}
+
+float estimate_war_subsidies(sys::state& state, dcon::nation_id n) {
+	/* total-nation-expenses x defines:WARSUBSIDIES_PERCENT */
+	return estimate_total_spending(state, n) * state.defines.warsubsidies_percent;
+}
+
 construction_status province_building_construction(sys::state& state, dcon::province_id p, province_building_type t) {
 	for(auto pb_con : state.world.province_get_province_building_construction(p)) {
 		if(pb_con.get_type() == uint8_t(t)) {
@@ -2774,7 +2805,8 @@ void resolve_constructions(sys::state& state) {
 				}
 
 				if(all_finished) {
-					auto free_pop = military::find_available_soldier(state, p);
+					auto is_culture_restricted = state.military_definitions.unit_base_definitions[c.get_type()].primary_culture;
+					auto free_pop = military::find_available_soldier(state, p, is_culture_restricted);
 					if(free_pop) {
 						auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
 						auto a = [&]() {
@@ -2992,6 +3024,98 @@ void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon
 	if(num_factories < 8) {
 		add_factory_level_to_state(state, s, t, false);
 	}
+}
+
+void bound_budget_settings(sys::state& state, dcon::nation_id n) {
+	{
+		auto min_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
+		auto max_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tariff));
+		max_tariff = std::max(min_tariff, max_tariff);
+
+		auto& tariff = state.world.nation_get_tariffs(n);
+		tariff = int8_t(std::clamp(std::clamp(int32_t(tariff), min_tariff, max_tariff), -100, 100));
+	}
+	{
+		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
+		auto max_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tariff));
+		if(max_tax <= 0)
+			max_tax = 100;
+		max_tax = std::max(min_tax, max_tax);
+
+		auto& ptax = state.world.nation_get_poor_tax(n);
+		ptax = int8_t(std::clamp(std::clamp(int32_t(ptax), min_tax, max_tax), 0, 100));
+		auto& mtax = state.world.nation_get_middle_tax(n);
+		mtax = int8_t(std::clamp(std::clamp(int32_t(mtax), min_tax, max_tax), 0, 100));
+		auto& rtax = state.world.nation_get_rich_tax(n);
+		rtax = int8_t(std::clamp(std::clamp(int32_t(rtax), min_tax, max_tax), 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_military_spending));
+		auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_military_spending));
+		if(max_spend <= 0)
+			max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		auto& v = state.world.nation_get_military_spending(n);
+		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_social_spending));
+		auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_social_spending));
+		if(max_spend <= 0)
+			max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		auto& v = state.world.nation_get_social_spending(n);
+		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
+	}
+	/*
+	}
+	property {
+		name{ education_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ military_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ administrative_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ social_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ land_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ naval_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ construction_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ poor_tax }
+		type{ int8_t }
+	}
+	property {
+		name{ middle_tax }
+		type{ int8_t }
+	}
+	property {
+		name{ rich_tax }
+		type{ int8_t }
+	}
+	property {
+		name{ tariffs }
+		type{ int8_t }
+	}
+	*/
 }
 
 }
