@@ -17,6 +17,8 @@ enum class command_type : uint8_t {
 	cancel_unit_construction = 9,
 	change_factory_settings = 10,
 	delete_factory = 11,
+	make_vassal = 12,
+	release_and_play_nation = 13,
 };
 
 struct national_focus_data {
@@ -59,6 +61,10 @@ struct factory_data {
 	bool subsidize;
 };
 
+struct tag_target_data {
+	dcon::national_identity_id ident;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -68,6 +74,7 @@ struct payload {
 		diplo_action_data diplo_action;
 		factory_building_data start_factory_building;
 		unit_construction_data unit_construction;
+		tag_target_data tag_target;
 		factory_data factory;
 
 		dtype() {}
@@ -107,6 +114,12 @@ bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory
 
 void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized);
 bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized);
+
+void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+
+void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 
 void execute_pending_commands(sys::state& state);
 

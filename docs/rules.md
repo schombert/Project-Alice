@@ -1254,3 +1254,13 @@ Must be the owner of the province where the unit is being built
 #### Effect
 
 Cancels construction
+
+### Release a nation as a vassal
+
+#### Conditions
+
+Must not be at war and the country being released must not already exist. The associated tag must be releasable, and you must own some cores belonging to that tag.
+
+#### Effect
+
+Release the nation from any cores owned by the sender of the command. The command sender loses all cores on those provinces. The command sender gains define:RELEASE_NATION_PRESTIGE. The command sender gains define:RELEASE_NATION_INFAMY. The released nation has the same government as the releaser (this may force changing the ruling party, and thus changing the active party issues).

@@ -1815,6 +1815,14 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 	}
 }
 
+void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag) {
+	for(auto prov : state.world.nation_get_province_ownership(n)) {
+		if(auto core = state.world.get_core_by_prov_tag_key(prov.get_province(), tag); core) {
+			state.world.delete_core(core);
+		}
+	}
+}
+
 void perform_nationalization(sys::state& state, dcon::nation_id n) {
 	// TODO
 }

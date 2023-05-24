@@ -1803,11 +1803,11 @@ uint32_t ef_annex_to_from_province(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_release(EFFECT_PARAMTERS) {
-	nations::release_nation_from(ws, trigger::payload(tval[1]).tag_id, trigger::to_nation(primary_slot));
+	nations::liberate_nation_from(ws, trigger::payload(tval[1]).tag_id, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_release_this_nation(EFFECT_PARAMTERS) {
-	nations::release_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot)), trigger::to_nation(primary_slot));
+	nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot)), trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_release_this_state(EFFECT_PARAMTERS) {
@@ -1823,7 +1823,7 @@ uint32_t ef_release_this_pop(EFFECT_PARAMTERS) {
 	return ef_release_this_nation(tval, ws, primary_slot, trigger::to_generic(owner), 0, r_hi, r_lo);
 }
 uint32_t ef_release_from_nation(EFFECT_PARAMTERS) {
-	nations::release_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(from_slot)), trigger::to_nation(primary_slot));
+	nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(from_slot)), trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_release_from_province(EFFECT_PARAMTERS) {
@@ -2042,8 +2042,13 @@ uint32_t ef_release_vassal(EFFECT_PARAMTERS) {
 		return 0;
 	auto hprovs = ws.world.nation_get_province_ownership(holder);
 	if(hprovs.begin() == hprovs.end()) {
-		nations::release_nation_from(ws, trigger::payload(tval[1]).tag_id, trigger::to_nation(primary_slot));
+		nations::liberate_nation_from(ws, trigger::payload(tval[1]).tag_id, trigger::to_nation(primary_slot));
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
+			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
+			auto& flags = ws.world.gp_relationship_get_status(sr);
+			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
 		if(rel) {
@@ -2056,8 +2061,13 @@ uint32_t ef_release_vassal(EFFECT_PARAMTERS) {
 uint32_t ef_release_vassal_this_nation(EFFECT_PARAMTERS) {
 	auto hprovs = ws.world.nation_get_province_ownership(trigger::to_nation(this_slot));
 	if(hprovs.begin() == hprovs.end()) {
-		nations::release_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot)), trigger::to_nation(primary_slot));
+		nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot)), trigger::to_nation(primary_slot));
 		ws.world.force_create_overlord(trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
+			auto sr = ws.world.force_create_gp_relationship(trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
+			auto& flags = ws.world.gp_relationship_get_status(sr);
+			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(trigger::to_nation(this_slot));
 		if(rel) {
@@ -2073,8 +2083,13 @@ uint32_t ef_release_vassal_this_province(EFFECT_PARAMTERS) {
 		return 0;
 	auto hprovs = ws.world.nation_get_province_ownership(holder);
 	if(hprovs.begin() == hprovs.end()) {
-		nations::release_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(holder), trigger::to_nation(primary_slot));
+		nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(holder), trigger::to_nation(primary_slot));
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
+			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
+			auto& flags = ws.world.gp_relationship_get_status(sr);
+			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
 		if(rel) {
@@ -2087,8 +2102,13 @@ uint32_t ef_release_vassal_this_province(EFFECT_PARAMTERS) {
 uint32_t ef_release_vassal_from_nation(EFFECT_PARAMTERS) {
 	auto hprovs = ws.world.nation_get_province_ownership(trigger::to_nation(from_slot));
 	if(hprovs.begin() == hprovs.end()) {
-		nations::release_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot)), trigger::to_nation(primary_slot));
+		nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot)), trigger::to_nation(primary_slot));
 		ws.world.force_create_overlord(trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
+			auto sr = ws.world.force_create_gp_relationship(trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
+			auto& flags = ws.world.gp_relationship_get_status(sr);
+			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(trigger::to_nation(from_slot));
 		if(rel) {
@@ -2104,8 +2124,13 @@ uint32_t ef_release_vassal_from_province(EFFECT_PARAMTERS) {
 		return 0;
 	auto hprovs = ws.world.nation_get_province_ownership(holder);
 	if(hprovs.begin() == hprovs.end()) {
-		nations::release_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(holder), trigger::to_nation(primary_slot));
+		nations::liberate_nation_from(ws, ws.world.nation_get_identity_from_identity_holder(holder), trigger::to_nation(primary_slot));
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
+			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
+			auto& flags = ws.world.gp_relationship_get_status(sr);
+			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
 		if(rel) {
@@ -2122,8 +2147,13 @@ uint32_t ef_release_vassal_reb(EFFECT_PARAMTERS) {
 		return 0;
 	auto hprovs = ws.world.nation_get_province_ownership(holder);
 	if(hprovs.begin() == hprovs.end()) {
-		nations::release_nation_from(ws, itag, trigger::to_nation(primary_slot));
+		nations::liberate_nation_from(ws, itag, trigger::to_nation(primary_slot));
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
+		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
+			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
+			auto& flags = ws.world.gp_relationship_get_status(sr);
+			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
 		if(rel) {

@@ -529,6 +529,59 @@ void execute_change_factory_settings(sys::state& state, dcon::nation_id source, 
 	}
 }
 
+void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::make_vassal;
+	p.source = source;
+	p.data.tag_target.ident = t;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	return nations::can_release_as_vassal(state, source, t);
+}
+void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	nations::liberate_nation_from(state, t, source);
+	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
+	state.world.force_create_overlord(holder, source);
+	if(state.world.nation_get_is_great_power(source)) {
+		auto sr = state.world.force_create_gp_relationship(holder, source);
+		auto& flags = state.world.gp_relationship_get_status(sr);
+		flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+	}
+	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
+	auto& inf = state.world.nation_get_infamy(source);
+	inf = std::max(0.0f, inf + state.defines.release_nation_infamy);
+	nations::adjust_prestige(state, source, state.defines.release_nation_prestige);
+}
+
+void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::release_and_play_nation;
+	p.source = source;
+	p.data.tag_target.ident = t;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	return nations::can_release_as_vassal(state, source, t);
+}
+void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	nations::liberate_nation_from(state, t, source);
+	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
+	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
+
+	auto old_controller = state.world.nation_get_is_player_controlled(holder);
+	state.world.nation_set_is_player_controlled(holder, state.world.nation_get_is_player_controlled(source));
+	state.world.nation_set_is_player_controlled(source, old_controller);
+
+	if(state.local_player_nation == source) {
+		state.local_player_nation = holder;
+	} else if(state.local_player_nation == holder) {
+		state.local_player_nation = source;
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -568,6 +621,13 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::change_factory_settings:
 				execute_change_factory_settings(state, c->source, c->data.factory.location, c->data.factory.type, c->data.factory.priority, c->data.factory.subsidize);
+				break;
+			case command_type::make_vassal:
+				execute_make_vassal(state, c->source, c->data.tag_target.ident);
+				break;
+			case command_type::release_and_play_nation:
+				execute_release_and_play_as(state, c->source, c->data.tag_target.ident);
+				break;
 		}
 
 		state.incoming_commands.pop();

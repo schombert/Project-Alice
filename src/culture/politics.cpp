@@ -653,7 +653,7 @@ void update_elections(sys::state& state) {
 					set_ruling_party(state, n, party_votes[winner].par);
 				}
 
-			} else if(next_election_date(state, n) == state.current_date) {
+			} else if(next_election_date(state, n) <= state.current_date) {
 				start_election(state, n);
 			}
 		}
