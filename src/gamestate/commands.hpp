@@ -19,6 +19,8 @@ enum class command_type : uint8_t {
 	delete_factory = 11,
 	make_vassal = 12,
 	release_and_play_nation = 13,
+	war_subsidies = 14,
+	cancel_war_subsidies = 15,
 };
 
 struct national_focus_data {
@@ -120,6 +122,15 @@ bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_i
 
 void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+
+void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void execute_pending_commands(sys::state& state);
 
