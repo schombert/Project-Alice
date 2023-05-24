@@ -66,13 +66,13 @@ namespace ui {
 	};
 
 	enum class element_type : uint8_t {  // 3 bits
-		button = 0x01, 
-		text = 0x02, 
-		image = 0x03, 
-		position = 0x04, 
-		overlapping = 0x05, 
+		button = 0x01,
+		text = 0x02,
+		image = 0x03,
+		position = 0x04,
+		overlapping = 0x05,
 		listbox = 0x06,
-		scrollbar = 0x07, 
+		scrollbar = 0x07,
 		window = 0x00
 	};
 
@@ -234,7 +234,7 @@ namespace ui {
 		static constexpr uint8_t is_dialog_mask = 0x01;
 		static constexpr uint8_t is_fullscreen_mask = 0x02;
 		static constexpr uint8_t is_moveable_mask = 0x04;
-		
+
 		dcon::gui_def_id first_child;
 		uint8_t num_children = 0;
 		uint8_t flags = 0;
@@ -276,14 +276,14 @@ namespace ui {
 			window_data window; // +4
 			position_data position; //+0
 
-			internal_data() { 
+			internal_data() {
 				position = position_data{};
 			}
 		} data; // +12 = 24
 
 		uint8_t flags = 0; // 25
 		uint8_t ex_flags = 0; // 26
-		
+
 
 		element_data() {
 			memset(this, 0, sizeof(element_data));
@@ -367,7 +367,8 @@ namespace ui {
 		element_base* search_window = nullptr;
 		element_base* ledger_window = nullptr;
 		element_base* diplomacy_subwindow = nullptr;
-        element_base* population_subwindow = nullptr;
+		element_base* politics_subwindow = nullptr;
+		element_base* population_subwindow = nullptr;
 		element_base* production_subwindow = nullptr;
 		element_base* trade_subwindow = nullptr;
 		element_base* unit_window_army = nullptr;
