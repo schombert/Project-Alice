@@ -14,6 +14,125 @@ public:
 	}
 };
 
+class unit_build_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		
+	}
+};
+
+class unit_folder_button : public button_element_base {
+public:
+	dcon::unit_type_id unit_type;
+	void button_action(sys::state& state) noexcept override {
+
+	}
+};
+
+class buildable_units : public listbox_row_element_base<dcon::pop_id> {
+public:
+	ui::simple_text_element_base* unit_name = nullptr;
+
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base::on_create(state);
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "build_button") {
+			auto ptr = make_element_by_type<unit_build_button>(state, id);
+			return ptr;
+		} else if(name == "build_button_group") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			unit_name = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	void update(sys::state& state) noexcept override {
+		/*auto name_id = state.world.leader_get_name(content);
+		auto name_content = state.to_string_view(name_id);
+		leader_name->set_text(state, std::string(name_content));
+
+		auto background_id = state.world.leader_get_background(content).get_name();
+		auto background_content = text::produce_simple_string(state, background_id);
+		background->set_text(state, background_content);
+
+		auto personality_id = state.world.leader_get_personality(content).get_name();
+		auto personality_content = text::produce_simple_string(state, personality_id);
+		personality->set_text(state, personality_content);
+
+		auto army_id = state.world.leader_get_army_from_army_leadership(content);
+		if(army_id.value == 0) {
+			army->set_text(state, "Unassigned");
+			location->set_text(state, "");
+		} else {
+			auto army_content = state.to_string_view(state.world.army_get_name(army_id));
+			army->set_text(state, std::string(army_content));
+
+			auto location_content = text::produce_simple_string(state, state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
+			location->set_text(state, std::string(location_content));
+		}*/
+
+		auto name_id = state.world.pop_get_culture(content);
+		auto name_content = text::produce_simple_string(state, name_id.get_name());
+		unit_name->set_text(state, name_content);
+
+		Cyto::Any payload = content;
+		impl_set(state, payload);
+	}
+};
+
+class build_units_listbox : public listbox_element_base<buildable_units, dcon::pop_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "build_unit_entry_wide";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+
+		for(const auto fat_id : state.world.nation_get_province_ownership(state.local_player_nation)) {
+			if(fat_id.get_province().get_province_control().get_nation() == fat_id.get_nation()) {
+				for(const auto fat_id2 : state.world.province_get_pop_location(fat_id.get_province().id)) {
+					if(fat_id2.get_pop().get_poptype().id == state.culture_definitions.soldiers) {
+						if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment) {
+							int32_t total = int32_t(((fat_id2.get_pop().get_size() / state.defines.pop_size_per_regiment))+1);
+							for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+								total--;
+							}
+							for(int32_t i = 0; i < total; i++) {
+								row_contents.push_back(fat_id2.get_pop().id);
+							}
+						}
+						else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment){
+							int32_t total = int32_t(1);
+							for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+								total--;
+							}
+							for(int32_t i = 0; i < total; i++) {
+								row_contents.push_back(fat_id2.get_pop().id);
+							}
+						}
+					}
+				}
+			}
+		}
+		//for(uint16_t i = 0; i < state.world.nation_get_recruitable_regiments(state.local_player_nation); i++){
+
+			//row_contents.push_back(state.world.nation_get_recruitable_regiments(state.local_player_nation));
+
+		//}
+
+		update(state);
+	}
+};
+
 class build_unit_large_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -32,11 +151,13 @@ public:
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_17") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->frame = 1;
+			//state.military_definitions.unit_base_definitions
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_1") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_2") {
@@ -123,6 +244,18 @@ public:
 			return ptr;
 		} else if(name == "close") {
 			auto ptr = make_element_by_type<build_unit_close_button>(state, id);
+			return ptr;
+		} else if(name == "list") {
+			auto ptr = make_element_by_type<build_units_listbox>(state, id);
+			army_elements.push_back(ptr.get());
+			return ptr;
+		} else if(name == "external_scroll_slider_list") {
+			auto ptr = make_element_by_type<element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "external_scroll_slider_queue") {
+			auto ptr = make_element_by_type<element_base>(state, id);
+			ptr->set_visible(state, false);
 			return ptr;
 		} else {
 			return nullptr;

@@ -158,8 +158,10 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
-					total += int32_t(pop.get_pop().get_size() / divisor);
+				if(pop.get_pop().get_size() >= divisor) {
+					total += int32_t((pop.get_pop().get_size() / divisor)+1);
+				} else if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					total++;
 				}
 			}
 		}
@@ -167,8 +169,10 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
-					total += int32_t(pop.get_pop().get_size() / divisor);
+				if(pop.get_pop().get_size() >= divisor) {
+					total += int32_t((pop.get_pop().get_size() / divisor)+1);
+				} else if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					total++;
 				}
 			}
 		}
@@ -176,8 +180,10 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 		float divisor = state.defines.pop_size_per_regiment;
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
-					total += int32_t(pop.get_pop().get_size() / divisor);
+				if(pop.get_pop().get_size() >= state.defines.pop_size_per_regiment) {
+					total += int32_t((pop.get_pop().get_size() / divisor)+1);
+				} else if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					total++;
 				}
 			}
 		}
