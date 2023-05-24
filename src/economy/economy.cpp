@@ -3026,4 +3026,96 @@ void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon
 	}
 }
 
+void bound_budget_settings(sys::state& state, dcon::nation_id n) {
+	{
+		auto min_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
+		auto max_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tariff));
+		max_tariff = std::max(min_tariff, max_tariff);
+
+		auto& tariff = state.world.nation_get_tariffs(n);
+		tariff = int8_t(std::clamp(std::clamp(int32_t(tariff), min_tariff, max_tariff), -100, 100));
+	}
+	{
+		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
+		auto max_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tariff));
+		if(max_tax <= 0)
+			max_tax = 100;
+		max_tax = std::max(min_tax, max_tax);
+
+		auto& ptax = state.world.nation_get_poor_tax(n);
+		ptax = int8_t(std::clamp(std::clamp(int32_t(ptax), min_tax, max_tax), 0, 100));
+		auto& mtax = state.world.nation_get_middle_tax(n);
+		mtax = int8_t(std::clamp(std::clamp(int32_t(mtax), min_tax, max_tax), 0, 100));
+		auto& rtax = state.world.nation_get_rich_tax(n);
+		rtax = int8_t(std::clamp(std::clamp(int32_t(rtax), min_tax, max_tax), 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_military_spending));
+		auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_military_spending));
+		if(max_spend <= 0)
+			max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		auto& v = state.world.nation_get_military_spending(n);
+		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
+	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_social_spending));
+		auto max_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_social_spending));
+		if(max_spend <= 0)
+			max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		auto& v = state.world.nation_get_social_spending(n);
+		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
+	}
+	/*
+	}
+	property {
+		name{ education_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ military_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ administrative_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ social_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ land_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ naval_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ construction_spending }
+		type{ int8_t }
+	}
+	property {
+		name{ poor_tax }
+		type{ int8_t }
+	}
+	property {
+		name{ middle_tax }
+		type{ int8_t }
+	}
+	property {
+		name{ rich_tax }
+		type{ int8_t }
+	}
+	property {
+		name{ tariffs }
+		type{ int8_t }
+	}
+	*/
+}
+
 }

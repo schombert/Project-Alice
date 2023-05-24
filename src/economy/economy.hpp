@@ -145,5 +145,6 @@ bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);
+void bound_budget_settings(sys::state& state, dcon::nation_id n);
 
 }
