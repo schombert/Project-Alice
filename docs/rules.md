@@ -1276,3 +1276,18 @@ Must not be at war and the country being released must not already exist. The as
 #### Effect
 
 Release the nation from any cores owned by the sender of the command. The command sender loses all cores on those provinces. The command sender gains define:RELEASE_NATION_PRESTIGE. The command sender gains define:RELEASE_NATION_INFAMY. The released nation has the same government as the releaser (this may force changing the ruling party, and thus changing the active party issues).
+
+### Change budget settings
+
+#### Conditions
+
+No setting can be brought outside the permissible range
+
+#### Effect
+
+Settings are changed (by being clamped to the permissible range).
+
+### Change stockpile setting
+
+Change whether the stockpile is filling, and what its target amount its
+
