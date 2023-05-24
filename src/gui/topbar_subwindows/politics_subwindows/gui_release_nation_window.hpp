@@ -26,6 +26,9 @@ public:
 			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
 			// TODO: Release nation command
 			// TODO: Play as-switch command
+			if(command::can_release_and_play_as(state, state.local_player_nation, niid)) {
+				command::release_and_play_as(state, state.local_player_nation, niid);
+			}
 		}
 	}
 };
@@ -39,6 +42,9 @@ public:
 			auto niid = any_cast<dcon::national_identity_id>(payload);
 			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
 			// TODO: Release nation command
+			if(command::can_make_vassal(state, state.local_player_nation, niid)) {
+				command::make_vassal(state, state.local_player_nation, niid);
+			}
 		}
 	}
 };
