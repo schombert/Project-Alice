@@ -43,6 +43,18 @@ public:
 	}
 };
 
+class politics_release_nation_window_title : public simple_text_element_base {
+public:
+	std::string get_text(sys::state& state) noexcept {
+		if(auto k = state.key_to_text_sequence.find(std::string_view("politics_release_vassal")); k != state.key_to_text_sequence.end()) {
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, get_text(state, content));
+	}
+};
+
 class politics_release_nation_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -57,11 +69,11 @@ public:
 			ptr->base_data.size = base_data.size; // Nudge
 			return ptr;
 		} else if(name == "default_popup_banner")
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<image_element_base>(state, id);	// Not used in Vic2?
 		else if(name == "title")
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<politics_release_nation_window_title>(state, id);
 		else if(name == "description")
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<release_nation_description_text>(state, id);
 		else if(name == "agreebutton")
 			return make_element_by_type<release_agree_button>(state, id);
 		else if(name == "declinebutton")
