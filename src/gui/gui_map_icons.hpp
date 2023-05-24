@@ -151,7 +151,7 @@ public:
                 // Calculate strength
                 state.world.army_for_each_army_membership_as_army(aid, [&](dcon::army_membership_id amid) {
                     auto rid = state.world.army_membership_get_regiment(amid);
-                    strength += state.world.regiment_get_strength(rid) * state.defines.pop_size_per_regiment;
+                    strength += state.world.regiment_get_strength(rid);// * state.defines.pop_size_per_regiment;
                 });
             });
             Cyto::Any payload = unit_strength_wrapper(strength);

@@ -208,9 +208,12 @@ float BMFont::GetStringWidth(const char* string, uint32_t count) const {
 	float total = 0;
 
 	for(uint32_t i = 0; i < count; ++i) {
-		total += Chars[uint8_t(string[i])].XAdvance;
+		auto c = uint8_t(string[i]);
+		if(c == 0x01 || c == 0x02)
+			c = 0x4D;
+		total += Chars[c].XAdvance;
 		if(i != 0) {
-			total += GetKerningPair(string[i-1], string[i]);
+			total += GetKerningPair(string[i-1], c);
 		}
 	}
 	return total;

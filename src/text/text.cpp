@@ -15,8 +15,15 @@ namespace text {
 			case 'R': return text_color::red;
 			case 'Y': return text_color::yellow;
 			case 'b': return text_color::black;
+			case 'B': return text_color::light_blue;
+			case 'g': return text_color::dark_blue;
+			case '!': return text_color::reset;
 			default: return text_color::unspecified;
 		}
+	}
+
+	inline bool is_qmark_color(char in) {
+		return char_to_color(in) != text_color::unspecified;
 	}
 
 	std::string lowercase_str(std::string_view sv) {
@@ -32,50 +39,65 @@ namespace text {
 		auto start = (file_size != 0 && file_content[0] == '#') ? parsers::csv_advance_to_next_line(file_content, file_content + file_size) : file_content;
 		while(start < file_content + file_size) {
 			start = parsers::parse_first_and_nth_csv_values(language, start, file_content + file_size, ';', [&state](std::string_view key, std::string_view content) {
-
-				char const* section_start = content.data();
 				char const* seq_start = content.data();
 				char const* seq_end = content.data() + content.size();
+				char const* section_start = seq_start;
 
 				const auto component_start_index = state.text_components.size();
-
-				for(const char* pos = seq_start; pos < seq_end; ++pos) {
+				for(char const* pos = seq_start; pos < seq_end; ) {
+					bool colour_esc = false;
 					if(uint8_t(*pos) == 0xA7) {
 						if(section_start != pos) {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
 						}
-						section_start = pos + 2;
-						if(pos + 1 < seq_end)
-							state.text_components.emplace_back( char_to_color(*(pos + 1)) );
 						pos += 1;
+						section_start = pos;
+						colour_esc = true;
+					} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
+						if(section_start != pos) {
+							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+							state.text_components.emplace_back( added_key );
+						}
+						section_start = pos += 3;
+						colour_esc = true;
+					} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
+						if(section_start != pos) {
+							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+							state.text_components.emplace_back( added_key );
+						}
+						pos += 1;
+						section_start = pos;
+						colour_esc = true;
 					} else if(*pos == '$') {
 						if(section_start != pos) {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
 						}
-
 						const char* vend = pos + 1;
-						while(vend != seq_end) {
-							if(*vend == '$')
-								break;
-							++vend;
-						}
-
-						if(vend > pos + 1) {
+						for(; vend != seq_end && *vend != '$'; ++vend)
+							;
+						if(vend > pos + 1)
 							state.text_components.emplace_back( variable_type_from_name(std::string_view(pos + 1, vend - pos - 1)) );
-						}
-						pos = vend;
-						section_start = vend + 1;
-					} else if(*pos == '\\' && pos + 1 != seq_end && *(pos + 1) == 'n') {
+						pos = vend + 1;
+						section_start = pos;
+					} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
 						if(section_start != pos) {
 							auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
 							state.text_components.emplace_back( added_key );
 						}
-
-						section_start = pos + 2;
 						state.text_components.emplace_back(line_break{});
+						section_start = pos += 2;
+					} else {
 						++pos;
+					}
+
+					// This colour escape sequence must be followed by something, otherwise
+					// we should probably discard the last colour command
+					if(colour_esc && pos < seq_end) {
+						state.text_components.emplace_back( char_to_color(*pos) );
+						pos += 1;
+						section_start = pos;
 					}
 				}
 
@@ -84,19 +106,21 @@ namespace text {
 					state.text_components.emplace_back( added_key );
 				}
 
-
+				// TODO: Emit error when 64K boundary is violated
+				assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
+				assert(state.text_components.size() - component_start_index < std::numeric_limits<uint8_t>::max());
 
 				auto to_lower_temp = lowercase_str(key);
 				if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
 					// maybe report an error here -- repeated definition
 					state.text_sequences[it->second] = text_sequence{
-							static_cast<uint16_t>(component_start_index),
+							static_cast<uint32_t>(component_start_index),
 							static_cast<uint16_t>(state.text_components.size() - component_start_index) };
 				} else {
 					const auto nh = state.text_sequences.size();
 					state.text_sequences.emplace_back(
 						text_sequence{
-							static_cast<uint16_t>(component_start_index),
+							static_cast<uint32_t>(component_start_index),
 							static_cast<uint16_t>(state.text_components.size() - component_start_index) });
 
 					auto main_key = state.add_to_pool_lowercase(key);
@@ -564,7 +588,7 @@ namespace text {
 	char16_t win1250toUTF16(char in) {
 		constexpr static char16_t converted[256] =
 			//       0       1         2         3         4         5         6         7         8         9         A         B         C         D         E         F
-			/*0*/{ u' ' ,  u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u'\t' ,   u'\n' ,   u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,
+			/*0*/{ u' ' ,  u'\u0001',u'\u0002',u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u'\t' ,   u'\n' ,   u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,
 			/*1*/  u' ' ,  u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,    u' ' ,
 			/*2*/  u' ' ,  u'!' ,    u'\"',    u'#' ,    u'$' ,    u'%' ,    u'&' ,    u'\'',    u'(' ,    u')' ,    u'*' ,    u'+' ,    u',' ,    u'-' ,    u'.' ,    u'/' ,
 			/*3*/  u'0' ,  u'1' ,    u'2' ,    u'3' ,    u'4' ,    u'5' ,    u'6' ,    u'7' ,    u'8' ,    u'9' ,    u':' ,    u';' ,    u'<' ,    u'=' ,    u'>' ,    u'?' ,
@@ -623,7 +647,7 @@ namespace text {
 			auto component_sz = state.text_components.size();
 			state.text_components.push_back(new_key);
 			auto seq_size = state.text_sequences.size();
-			state.text_sequences.push_back(text::text_sequence{ uint16_t(component_sz), uint16_t(1) });
+			state.text_sequences.push_back(text::text_sequence{ uint32_t(component_sz), uint16_t(1) });
 			auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
 			state.key_to_text_sequence.insert_or_assign(new_key, new_id);
 			return new_id;
@@ -642,7 +666,7 @@ namespace text {
 
 		for(size_t i = std::extent_v<decltype(mag)>; i-- > 0; ) {
 			if(std::abs(dval) >= mag[i]) {
-				snprintf(buffer, 200, sufx[i], num / mag[i]);
+				snprintf(buffer, sizeof(buffer), sufx[i], num / mag[i]);
 				return std::string(buffer);
 			}
 		}
@@ -684,20 +708,20 @@ namespace text {
 
 	std::string get_focus_category_name(sys::state const& state, nations::focus_type category) {
 		switch(category) {
-			case nations::focus_type::rail_focus:
-				return produce_simple_string(state, "rail_focus");
-			case nations::focus_type::immigration_focus:
-				return produce_simple_string(state, "immigration_focus");
-			case nations::focus_type::diplomatic_focus:
-				return produce_simple_string(state, "diplomatic_focus");
-			case nations::focus_type::promotion_focus:
-				return produce_simple_string(state, "promotion_focus");
-			case nations::focus_type::production_focus:
-				return produce_simple_string(state, "production_focus");
-			case nations::focus_type::party_loyalty_focus:
-				return produce_simple_string(state, "party_loyalty_focus");
-			default:
-				return produce_simple_string(state, "Category");
+		case nations::focus_type::rail_focus:
+			return text::produce_simple_string(state, "rail_focus");
+		case nations::focus_type::immigration_focus:
+			return text::produce_simple_string(state, "immigration_focus");
+		case nations::focus_type::diplomatic_focus:
+			return text::produce_simple_string(state, "diplomatic_focus");
+		case nations::focus_type::promotion_focus:
+			return text::produce_simple_string(state, "promotion_focus");
+		case nations::focus_type::production_focus:
+			return text::produce_simple_string(state, "production_focus");
+		case nations::focus_type::party_loyalty_focus:
+			return text::produce_simple_string(state, "party_loyalty_focus");
+		default:
+			return text::produce_simple_string(state, "category");
 		}
 	}
 
@@ -708,19 +732,19 @@ namespace text {
 	std::string format_float(float num, size_t digits) {
 		char buffer[200] = { 0 };
 		switch(digits) {
-			default:
-				// fallthrough
-			case 3:
-				snprintf(buffer, 200, "%.3f", num);
-				break;
-			case 2:
-				snprintf(buffer, 200, "%.2f", num);
-				break;
-			case 1:
-				snprintf(buffer, 200, "%.1f", num);
-				break;
-			case 0:
-				return std::to_string(int64_t(num));
+		default:
+			// fallthrough
+		case 3:
+			snprintf(buffer, sizeof(buffer), "%.3f", num);
+			break;
+		case 2:
+			snprintf(buffer, sizeof(buffer), "%.2f", num);
+			break;
+		case 1:
+			snprintf(buffer, sizeof(buffer), "%.1f", num);
+			break;
+		case 0:
+			return std::to_string(int64_t(num));
 		}
 		return std::string(buffer);
 	}
@@ -733,7 +757,6 @@ namespace text {
 		} else {
 			amount = prettify(int32_t(num));
 		}
-
 		return "\xA4 " + amount;
 	}
 
@@ -746,34 +769,13 @@ namespace text {
 	}
 
 	std::string localize_month(sys::state const& state, uint16_t month) {
-		switch(month) {
-			case 1:
-				return text::produce_simple_string(state, "January");
-			case 2:
-				return text::produce_simple_string(state, "February");
-			case 3:
-				return text::produce_simple_string(state, "March");
-			case 4:
-				return text::produce_simple_string(state, "April");
-			case 5:
-				return text::produce_simple_string(state, "May");
-			case 6:
-				return text::produce_simple_string(state, "June");
-			case 7:
-				return text::produce_simple_string(state, "July");
-			case 8:
-				return text::produce_simple_string(state, "August");
-			case 9:
-				return text::produce_simple_string(state, "September");
-			case 10:
-				return text::produce_simple_string(state, "October");
-			case 11:
-				return text::produce_simple_string(state, "November");
-			case 12:
-				return text::produce_simple_string(state, "December");
-			default:
-				return text::produce_simple_string(state, "January");
-		}
+		static const std::string_view month_names[12] = {
+			"january", "february", "march", "april", "may", "june", "july",
+			"august", "september", "october", "november", "december"
+		};
+		if(month == 0 || month > 12)
+			return text::produce_simple_string(state, "january");
+		return text::produce_simple_string(state, month_names[month - 1]);
 	}
 
 	std::string date_to_string(sys::state const& state, sys::date date) {
@@ -852,14 +854,19 @@ namespace text {
 			auto next_wb = txt.find_first_of(" \r\n\t", end_position);
 			auto next_word = txt.find_first_not_of(" \r\n\t", next_wb);
 
+			if(txt.data()[end_position] == '\x97'
+			&& end_position + 2 < txt.length()) {
+				next_wb = end_position;
+				next_word = next_wb + 1;
+			}
+
 			auto num_chars = uint32_t(std::min(next_wb, txt.length()) - start_position);
 			std::string_view segment = txt.substr(start_position, num_chars);
 			float extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
 
-			if(first_in_line && int32_t(box.x_position + dest.fixed_parameters.left) == box.x_offset && box.x_position + extent >= dest.fixed_parameters.right) {
+			if(first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) {
 				// the current word is too long for the text box, just let it overflow
 				dest.base_layout.contents.push_back(text_chunk{ std::string(segment), box.x_position, source, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-
 
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
 				box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
@@ -936,7 +943,11 @@ namespace text {
 			return std::string(buffer);
 		} else if(std::holds_alternative<fp_three_places>(sub)) {
 			char buffer[200] = { 0 };
-			snprintf(buffer, 200, "%.2f", std::get<fp_three_places>(sub).value);
+			snprintf(buffer, 200, "%.3f", std::get<fp_three_places>(sub).value);	// snprintf used to use "%.2f" this appears to be a clerical mistake so i fixed it -breizh
+			return std::string(buffer);
+		} else if(std::holds_alternative<fp_four_places>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "%.4f", std::get<fp_four_places>(sub).value);
 			return std::string(buffer);
 		} else if(std::holds_alternative<sys::date>(sub)) {
 			return date_to_string(state, std::get<sys::date>(sub));
@@ -951,8 +962,14 @@ namespace text {
 			char buffer[200] = { 0 };
 			snprintf(buffer, 200, "%.0f%%", std::get<fp_percentage>(sub).value * 100.0f);
 			return std::string(buffer);
+		} else if(std::holds_alternative<dp_percentage>(sub)) {
+			char buffer[200] = { 0 };
+			snprintf(buffer, 200, "%.0f%%", std::get<dp_percentage>(sub).value * 100.0f);
+			return std::string(buffer);
 		} else if(std::holds_alternative<int_percentage>(sub)) {
 			return std::to_string(std::get<int_percentage>(sub).value) + "%";
+		} else if(std::holds_alternative<dcon::text_sequence_id>(sub)) {
+			return produce_simple_string(state, std::get<dcon::text_sequence_id>(sub));
 		} else {
 			return std::string("?");
 		}
@@ -961,14 +978,12 @@ namespace text {
 	}
 
 	void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp) {
-
 		auto current_color = dest.fixed_parameters.color;
 		auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 		auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 		auto& font = state.font_collection.fonts[font_index - 1];
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 		auto line_height = text_height + dest.fixed_parameters.leading;
-
 
 		auto seq = state.text_sequences[source_text];
 		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
@@ -979,7 +994,10 @@ namespace text {
 			} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
 				add_line_break_to_layout_box(dest, state, box);
 			} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
-				current_color = std::get<text::text_color>(state.text_components[i]);
+				if(std::get<text::text_color>(state.text_components[i]) == text_color::reset)
+					current_color = dest.fixed_parameters.color;
+				else
+					current_color = std::get<text::text_color>(state.text_components[i]);
 			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
 				auto var_type = std::get<text::variable_type>(state.text_components[i]);
 				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
@@ -1056,4 +1074,28 @@ namespace text {
 		return columnar_layout(dest, params, 0, 0, params.top, 0, column_width );
 	}
 
+	// Reduces code repeat
+	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, text::substitution_map const& sub) {
+		if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+			add_to_layout_box(dest, state, box, k->second, sub);
+		}
+	}
+
+	void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value) {
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, subkey, value);
+		if(auto k = state.key_to_text_sequence.find(key); k != state.key_to_text_sequence.end()) {
+			add_to_layout_box(dest, state, box, k->second, sub);
+		}
+	}
+
+	// Standardised dividers :3
+	// Without the Leasion of Post-1.0 Stuff
+	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
+		text::add_line_break_to_layout_box(dest, state, box);
+		// Why do many thing when one can do one thing.
+		// Vote on it, went 6-3, 6 in favour and 3 against the old vic2 way
+		text::add_to_layout_box(dest, state, box, std::string_view("--------------"));
+		text::add_line_break_to_layout_box(dest, state, box);
+	}
 }

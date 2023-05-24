@@ -92,14 +92,12 @@ class invest_brow_window : public window_element_base {
 		if(country_listbox) {
 			country_listbox->row_contents.clear();
 			state.world.for_each_nation([&](dcon::nation_id id) {
-				if(filter_fun(id)) {
+				if(state.world.nation_get_owned_province_count(id) != 0 && filter_fun(id))
 					country_listbox->row_contents.push_back(id);
-				}
 			});
-			std::sort(country_listbox->row_contents.begin(), country_listbox->row_contents.end(), [&](auto a, auto b) {
+			std::sort(country_listbox->row_contents.begin(), country_listbox->row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 				dcon::nation_fat_id a_fat_id = dcon::fatten(state.world, a);
 				auto a_name = text::produce_simple_string(state, a_fat_id.get_name());
-
 				dcon::nation_fat_id b_fat_id = dcon::fatten(state.world, b);
 				auto b_name = text::produce_simple_string(state, b_fat_id.get_name());
 				return a_name < b_name;

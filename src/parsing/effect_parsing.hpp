@@ -700,7 +700,7 @@ struct effect_body {
 	void life_rating(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(uint16_t(effect::life_rating));
-			context.compiled_effect.push_back(uint16_t(value));
+			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors += "life_rating effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -795,7 +795,7 @@ struct effect_body {
 	void war_exhaustion(association_type t, float value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_effect.push_back(uint16_t(effect::war_exhaustion));
-			context.add_float_to_payload(value / 100.0f);
+			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors += "war_exhaustion effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -1378,7 +1378,7 @@ struct effect_body {
 	void plurality(association_type t, float value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_effect.push_back(uint16_t(effect::plurality));
-			context.add_float_to_payload(value / 100.0f);
+			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors += "plurality effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -1507,15 +1507,7 @@ struct effect_body {
 		auto name = text::find_or_add_key(context.outer_context.state, value);
 		context.compiled_effect.push_back(trigger::payload(name).value);
 	}
-	void enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
-		if(0 <= value && size_t(value) < context.outer_context.original_id_to_prov_id_map.size()) {
-			context.compiled_effect.push_back(uint16_t(effect::enable_canal));
-			context.compiled_effect.push_back(trigger::payload(context.outer_context.original_id_to_prov_id_map[value]).value);
-		} else {
-			err.accumulated_errors += "enable_canal effect given an invalid province id (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			context.compiled_effect.push_back(trigger::payload(dcon::province_id()).value);
-		}
-	}
+	void enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context);
 	void set_global_flag(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
 		context.compiled_effect.push_back(uint16_t(effect::set_global_flag));
 		context.compiled_effect.push_back(trigger::payload(context.outer_context.get_global_flag(std::string(value))).value);
@@ -2287,7 +2279,7 @@ struct effect_body {
 	}
 	void war(ef_war const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "remove_casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "war effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		if(is_from(value.target)) {

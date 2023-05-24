@@ -265,6 +265,7 @@ bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
+int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 
 std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
 
@@ -281,12 +282,29 @@ void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
 void release_vassal(sys::state& state, dcon::overlord_id rel);
 void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
+void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);
 
 void monthly_flashpoint_update(sys::state& state);
 void daily_update_flashpoint_tension(sys::state& state);
+void update_crisis(sys::state& state);
+
+void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n);
+void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
+void reject_crisis_participation(sys::state& state);
+void cleanup_crisis(sys::state& state);
+void update_crisis(sys::state& state);
+
+void update_pop_acceptance(sys::state& state, dcon::nation_id n);
+void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from);
+void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
+void perform_nationalization(sys::state& state, dcon::nation_id n);
+
+float get_yesterday_income(sys::state& state, dcon::nation_id n);
 
 }
 

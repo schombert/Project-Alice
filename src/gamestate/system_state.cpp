@@ -11,6 +11,7 @@
 #include "gui_topbar.hpp"
 #include "gui_console.hpp"
 #include "gui_province_window.hpp"
+#include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "demographics.hpp"
@@ -264,6 +265,10 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("project_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+		// Allow mobility of those windows who can be moved, and shall be moved
+		ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 
 		world.for_each_province([&](dcon::province_id id) {
 			auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
@@ -277,12 +282,41 @@ namespace sys {
 			ptr->impl_set(*this, payload);
 			ui_state.rgos_root->add_child_to_front(std::move(ptr));
 		});
+		
         {
             auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
             ui_state.console_window = window.get();
             window->set_visible(*this, false);
             ui_state.root->add_child_to_front(std::move(window));
         }
+		{
+			auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
+			ui_state.outliner_window = new_elm.get();
+			new_elm->impl_on_update(*this);
+			ui_state.root->add_child_to_front(std::move(new_elm));
+			// Has to be created AFTER the outliner window
+			// The topbar has this button within, however since the button isn't properly displayed, it is better to make
+			// it into an independent element of it's own, living freely on the UI root so it can be flexibly moved around when
+			// the window is resized for example.
+			for(size_t i = ui_defs.gui.size(); i-- > 0; ) {
+				auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+				if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton_bg") {
+					auto new_bg = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
+					ui_state.root->add_child_to_front(std::move(new_bg));
+					break;
+				}
+			}
+			// Then create button atop
+			for(size_t i = ui_defs.gui.size(); i-- > 0; ) {
+				auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+				if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton") {
+					auto new_btn = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
+					new_btn->impl_on_update(*this);
+					ui_state.root->add_child_to_front(std::move(new_btn));
+					break;
+				}
+			}
+		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
 			ui_state.root->add_child_to_front(std::move(new_elm));
@@ -299,6 +333,14 @@ namespace sys {
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+
+		map_mode::set_map_mode(*this, map_mode::mode::political);
+
+		if(user_settings.use_classic_fonts) {
+			ui_state.tooltip_font = text::name_into_font_id(*this, "vic_18_black");
+		} else {
+			ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 		}
 	}
 	//
@@ -524,6 +566,15 @@ namespace sys {
 			}
 		}
 
+		{
+			err.file_name = "adjacencies.csv";
+			auto adj_csv_file = open_file(map, NATIVE("adjacencies.csv"));
+			if(adj_csv_file) {
+				auto adj_content = view_contents(*adj_csv_file);
+				parsers::read_map_adjacency(adj_content.data, adj_content.data + adj_content.file_size, err, context);
+			}
+		}
+
 		/*
 		240,208,1 Tsushima --> 240,208,0 Nagasaki
 		128,65,97 Fehmarn--> 128,65,96 Kiel
@@ -621,7 +672,7 @@ namespace sys {
 			}
 		}
 		// read buildings.text
-		world.factory_type_resize_construction_costs(world.commodity_size());
+		// world.factory_type_resize_construction_costs(world.commodity_size());
 		{
 			auto buildings = open_file(common, NATIVE("buildings.txt"));
 			if(buildings) {
@@ -1543,8 +1594,6 @@ namespace sys {
 		if(local_player_nation) {
 			world.nation_set_is_player_controlled(local_player_nation, true);
 		}
-
-		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 	}
 
 	constexpr inline int32_t game_speed[] = {
@@ -1778,6 +1827,10 @@ namespace sys {
 
 					});
 
+					economy::daily_update(*this);
+
+					event::update_events(*this);
+
 					culture::update_reasearch(*this, uint32_t(ymd_date.year));
 
 					nations::update_military_scores(*this); // depends on ship score, land unit average
@@ -1786,8 +1839,10 @@ namespace sys {
 					nations::update_influence(*this); // depends on rankings, great powers
 
 					nations::update_colonial_points(*this); // depends on rankings, naval supply values
+					province::update_colonization(*this);
 					military::update_cbs(*this); // may add/remove cbs to a nation
 
+					nations::update_crisis(*this);
 					politics::update_elections(*this);
 
 					// Once per month updates, spread out over the month
@@ -1823,8 +1878,6 @@ namespace sys {
 						default:
 							break;
 					}
-
-					economy::daily_update(*this);
 
 					// yearly update : redo the upper house
 					if(ymd_date.day == 1 && ymd_date.month == 1) {

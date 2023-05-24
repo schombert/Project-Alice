@@ -15,7 +15,7 @@ namespace sys {
 
 namespace text {
 	enum class text_color : uint8_t {
-		black, white, red, green, yellow, unspecified, light_blue, dark_blue
+		black, white, red, green, yellow, unspecified, light_blue, dark_blue, reset
 	};
 	enum class alignment : uint8_t {
 		left, right, center
@@ -66,7 +66,7 @@ namespace text {
 	};
 
 	struct text_sequence {
-		uint16_t starting_component = 0;
+		uint32_t starting_component = 0;
 		uint16_t component_count = 0;
 	};
 
@@ -84,7 +84,7 @@ namespace text {
 			return ankerl::unordered_dense::detail::wyhash::hash(sv.data(), sv.size());
 		}
 		auto operator()(dcon::text_key tag) const noexcept -> uint64_t {
-			auto sv = [&]() { 
+			auto sv = [&]() {
 				if(!tag)
 					return std::string_view();
 				auto start_position = text_data.data() + tag.index();
@@ -105,7 +105,7 @@ namespace text {
 		std::vector<char>& text_data;
 
 		vector_backed_eq(std::vector<char>& text_data) : text_data(text_data) {}
-		
+
 		bool operator()(dcon::text_key l, dcon::text_key r) const noexcept {
 			return l == r;
 		}
@@ -180,6 +180,9 @@ namespace text {
 	struct fp_three_places {
 		float value = 0.0f;
 	};
+	struct fp_four_places {
+		double value = 0.0f;
+	};
 	struct fp_currency {
 		float value = 0.0f;
 	};
@@ -189,10 +192,13 @@ namespace text {
 	struct fp_percentage {
 		float value = 0.0f;
 	};
+	struct dp_percentage {
+		double value = 0.0f;
+	};
 	struct int_percentage {
 		int32_t value = 0;
 	};
-	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_currency, pretty_integer, fp_percentage, int_percentage>;
+	using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places, fp_currency, pretty_integer, dp_percentage, fp_percentage, int_percentage, dcon::text_sequence_id>;
 	using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 	struct text_chunk {
@@ -261,6 +267,8 @@ namespace text {
 		void internal_close_box(layout_box& box) final;
 	};
 
+	text_color char_to_color(char in);
+
 	endless_layout create_endless_layout(layout& dest, layout_parameters const& params);
 	void close_layout_box(endless_layout& dest, layout_box& box);
 
@@ -278,7 +286,8 @@ namespace text {
 	void close_layout_box(layout_base& dest, layout_box& box);
 
 	void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
-	
+	void add_to_substitution_map(substitution_map &mp, variable_type key, std::string const&);	// DO NOT USE THIS FUNCTION
+
 	void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size);
 	variable_type variable_type_from_name(std::string_view);
 	void load_text_data(sys::state& state, uint32_t language);
@@ -300,5 +309,9 @@ namespace text {
 	std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 	std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 	std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
+
+	void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, substitution_map const& sub = substitution_map{});
+	void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value);
+	void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 }
 

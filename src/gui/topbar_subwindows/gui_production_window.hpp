@@ -6,6 +6,8 @@
 #include "gui_invest_buttons_window.hpp"
 #include "gui_pop_sort_buttons_window.hpp"
 #include "gui_goods_filter_window.hpp"
+#include "gui_projects_window.hpp"
+#include "gui_build_factory_window.hpp"
 #include <vector>
 
 namespace ui {
@@ -49,7 +51,7 @@ public:
 		set_visible(state, is_display);
 		if(!is_display)
 			return;
-		
+
 		bool is_closed = false;
 		closed_overlay->set_visible(state, is_closed);
 		closed_text->set_visible(state, is_closed);
@@ -80,9 +82,7 @@ public:
 				auto cid = cset.commodity_type[size_t(i)];
 				Cyto::Any payload = cid;
 				input_icons[size_t(i)]->impl_set(state, payload);
-				bool is_lack = state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f;
-				if(cid == dcon::commodity_id{})
-					is_lack = false;
+				bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f : false;
 				input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 			}
 	}
@@ -177,6 +177,13 @@ public:
 	}
 };
 
+class production_build_new_factory : public button_element_base {
+public:
+	/*void button_action(sys::state& state) noexcept override {
+		make_element_by_type<factory_build_new_factory_window>(state, id);
+	}*/
+};
+/*factory_build_new_factory_window*/
 class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -187,7 +194,7 @@ public:
 		} else if(name == "factory_count") {
 			return make_element_by_type<state_factory_count_text>(state, id);
 		} else if(name == "build_new_factory") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<production_build_new_factory>(state, id);
 		} else if(name == "avg_infra_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "factory_info_bounds") {
@@ -315,12 +322,33 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	sys::commodity_group curr_commodity_group{};
 	xy_pair base_commodity_offset{ 33, 50 };
 	xy_pair commodity_offset{ 33, 50 };
+
+	std::vector<element_base*> factory_elements;
+	std::vector<element_base*> investment_brow_elements;
+	std::vector<element_base*> investment_button_elements;
+	std::vector<element_base*> project_elements;
+	std::vector<element_base*> good_elements;
+
+	void set_visible_vector_elements(sys::state& state, std::vector<element_base*>& elements, bool v) noexcept {
+		for(auto element : elements)
+			element->set_visible(state, v);
+	}
+
+	void hide_sub_windows(sys::state& state) noexcept {
+		set_visible_vector_elements(state, factory_elements, false);
+		set_visible_vector_elements(state, investment_brow_elements, false);
+		set_visible_vector_elements(state, investment_button_elements, false);
+		set_visible_vector_elements(state, project_elements, false);
+		set_visible_vector_elements(state, good_elements, false);
+	}
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 
 		{
-			auto ptr = make_child(state, "goods_filter_template", state.ui_state.defs_by_name.find("goods_filter_template")->second.definition);
+			auto ptr = make_element_by_type<goods_filter_window>(state, state.ui_state.defs_by_name.find("goods_filter_template")->second.definition);
+			ptr->set_visible(state, true);
+			factory_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
 
@@ -331,8 +359,13 @@ public:
 			commodity_offset.x = base_commodity_offset.x;
 
 			// Place legend for this category...
-			auto ptr = make_child(state, "production_goods_name", state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
+			auto ptr = make_element_by_type<production_goods_category_name>(state, state.ui_state.defs_by_name.find("production_goods_name")->second.definition);
+			ptr->base_data.position = commodity_offset;
+			Cyto::Any payload = curr_commodity_group;
+			ptr->impl_set(state, payload);
+			ptr->set_visible(state, false);
 			commodity_offset.y += ptr->base_data.size.y;
+			good_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 
 			int16_t cell_height = 0;
@@ -342,7 +375,9 @@ public:
 				|| !bool(id))
 					return;
 
-				auto info_ptr = make_child(state, "production_info", state.ui_state.defs_by_name.find("production_info")->second.definition);
+				auto info_ptr = make_element_by_type<production_good_info>(state, state.ui_state.defs_by_name.find("production_info")->second.definition);
+				info_ptr->base_data.position = commodity_offset;
+				info_ptr->set_visible(state, false);
 
 				int16_t cell_width = info_ptr->base_data.size.x;
 				cell_height = info_ptr->base_data.size.y;
@@ -355,7 +390,8 @@ public:
 
 				Cyto::Any payload = id;
 				info_ptr->impl_set(state, payload);
-				
+
+				good_elements.push_back(info_ptr.get());
 				add_child_to_front(std::move(info_ptr));
 			});
 			// Has atleast 1 good on this row? skip to next row then...
@@ -446,25 +482,9 @@ public:
 			factory_elements.push_back(ptr.get());
 			ptr->set_visible(state, true);
 			return ptr;
-		} else if(name == "goods_filter_template") {
-			auto ptr = make_element_by_type<goods_filter_window>(state, id);
-			factory_elements.push_back(ptr.get());
-			ptr->set_visible(state, true);
-			return ptr;
-		} else if(name == "production_goods_name") {
-			auto ptr = make_element_by_type<production_goods_category_name>(state, id);
-			ptr->base_data.position = commodity_offset;
-			
-			Cyto::Any payload = curr_commodity_group;
-			ptr->impl_set(state, payload);
-
-			good_elements.push_back(ptr.get());
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "production_info") {
-			auto ptr = make_element_by_type<production_good_info>(state, id);
-			ptr->base_data.position = commodity_offset;
-			good_elements.push_back(ptr.get());
+		} else if(name == "project_listbox") {
+			auto ptr = make_element_by_type<production_project_listbox>(state, id);
+			project_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
 		} else {
@@ -472,42 +492,22 @@ public:
 		}
 	}
 
-	void hide_vector_elements(sys::state& state, std::vector<element_base*>& elements) {
-		for(auto element : elements) {
-			element->set_visible(state, false);
-		}
-	}
-
-	void show_vector_elements(sys::state& state, std::vector<element_base*>& elements) {
-		for(auto element : elements) {
-			element->set_visible(state, true);
-		}
-	}
-
-	void hide_sub_windows(sys::state& state) {
-		hide_vector_elements(state, factory_elements);
-		hide_vector_elements(state, investment_brow_elements);
-		hide_vector_elements(state, investment_button_elements);
-		hide_vector_elements(state, project_elements);
-		hide_vector_elements(state, good_elements);
-	}
-	
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<production_window_tab>()) {
 			auto enum_val = any_cast<production_window_tab>(payload);
 			hide_sub_windows(state);
 			switch(enum_val) {
 				case production_window_tab::factories:
-					show_vector_elements(state, factory_elements);
+					set_visible_vector_elements(state, factory_elements, true);
 					break;
 				case production_window_tab::investments:
-					show_vector_elements(state, investment_brow_elements);
+					set_visible_vector_elements(state, investment_brow_elements, true);
 					break;
 				case production_window_tab::projects:
-					show_vector_elements(state, project_elements);
+					set_visible_vector_elements(state, project_elements, true);
 					break;
 				case production_window_tab::goods:
-					show_vector_elements(state, good_elements);
+					set_visible_vector_elements(state, good_elements, true);
 					break;
 			}
 			active_tab = enum_val;
@@ -515,12 +515,6 @@ public:
 		}
 		return message_result::unseen;
 	}
-	
-	std::vector<element_base*> factory_elements;
-	std::vector<element_base*> investment_brow_elements;
-	std::vector<element_base*> investment_button_elements;
-	std::vector<element_base*> project_elements;
-	std::vector<element_base*> good_elements;
 };
 
 }

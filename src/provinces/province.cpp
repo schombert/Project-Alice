@@ -299,6 +299,10 @@ void update_state_administrative_efficiency(sys::state& state) {
 }
 */
 bool has_railroads_being_built(sys::state& state, dcon::province_id id) {
+	for(auto pb : state.world.province_get_province_building_construction(id)) {
+		if(economy::province_building_type(pb.get_type()) == economy::province_building_type::railroad)
+			return true;
+	}
 	return false;
 }
 bool can_build_railroads(sys::state& state, dcon::province_id id) {
@@ -307,7 +311,7 @@ bool can_build_railroads(sys::state& state, dcon::province_id id) {
 	int32_t max_local_rails_lvl = state.world.nation_get_max_railroad_level(nation);
 	int32_t min_build_railroad = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_railroad));
 
-	return !has_railroads_being_built(state, id) && (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0);
+	return (max_local_rails_lvl - current_rails_lvl - min_build_railroad > 0) && !has_railroads_being_built(state, id);
 }
 bool has_an_owner(sys::state& state, dcon::province_id id) {
 	// TODO: not sure if this is the most efficient way
@@ -502,12 +506,15 @@ float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
 }
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
-	state.adjacency_data_out_of_date = true;
-	state.national_cached_values_out_of_date = true;
-
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(id);
 	auto old_si = state.world.province_get_state_membership(id);
 	auto old_owner = state.world.province_get_nation_from_province_ownership(id);
+
+	if(new_owner == old_owner)
+		return;
+
+	state.adjacency_data_out_of_date = true;
+	state.national_cached_values_out_of_date = true;
 
 	if(new_owner) {
 		dcon::state_instance_id new_si;
@@ -585,6 +592,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		int32_t provinces_in_old_si = 0;
 		province::for_each_province_in_state_instance(state, old_si, [&](auto) { ++provinces_in_old_si; });
 		if(provinces_in_old_si == 0) {
+			if(old_si == state.crisis_state)
+				nations::cleanup_crisis(state);
 			state.world.delete_state_instance(old_si);
 		}
 	}
@@ -593,6 +602,38 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		auto old_owner_rem_provs = state.world.nation_get_province_ownership(old_owner);
 		if(old_owner_rem_provs.begin() == old_owner_rem_provs.end()) {
 			nations::cleanup_nation(state, old_owner);
+		}
+	}
+
+	// cancel constructions
+
+	{
+		auto rng = state.world.province_get_province_building_construction(id);
+		while(rng.begin() != rng.end()) {
+			state.world.delete_province_building_construction(*(rng.begin()));
+		}
+	}
+
+	{
+		auto rng = state.world.province_get_province_land_construction(id);
+		while(rng.begin() != rng.end()) {
+			state.world.delete_province_land_construction(*(rng.begin()));
+		}
+	}
+
+	{
+		auto rng = state.world.province_get_province_naval_construction(id);
+		while(rng.begin() != rng.end()) {
+			state.world.delete_province_naval_construction(*(rng.begin()));
+		}
+	}
+
+	for(auto adj : state.world.province_get_province_adjacency(id)) {
+		auto other = adj.get_connected_provinces(0) != id ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+		if(other.get_nation_from_province_ownership() == new_owner) {
+			adj.set_type(adj.get_type() & ~province::border::national_bit);
+		} else {
+			adj.set_type(adj.get_type() | province::border::national_bit);
 		}
 	}
 }
@@ -636,6 +677,183 @@ void update_crimes(sys::state& state) {
 			}
 		}
 	});
+}
+
+bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d) {
+	if(state.world.state_definition_get_colonization_stage(d) > uint8_t(1))
+		return false; // too late
+
+	// Your country must be of define:COLONIAL_RANK or less.
+	if(state.world.nation_get_rank(n) > uint16_t(state.defines.colonial_rank))
+		return false; // too low rank to colonize;
+
+	// The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
+	if(state.crisis_colony == d)
+		return false;
+	for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
+		if(par.get_nation() == n)
+			return false;
+	}
+
+	float max_life_rating = -1.0f;
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(!p.get_province().get_nation_from_province_ownership()) {
+			max_life_rating = std::max(max_life_rating, float(p.get_province().get_life_rating()));
+		}
+	}
+
+	if(max_life_rating < 0.0f) {
+		return false; // no uncolonized province
+	}
+
+	/*
+	You must have colonial life rating points from technology + define:COLONIAL_LIFERATING less than or equal to the *greatest* life rating of an unowned province in the state
+	*/
+
+	if(state.defines.colonial_liferating + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::colonial_life_rating) > max_life_rating) {
+		return false;
+	}
+
+	auto colonizers = state.world.state_definition_get_colonization(d);
+	auto num_colonizers = colonizers.end() - colonizers.begin();
+
+	// You can invest colonially in a region if there are fewer than 4 other colonists there (or you already have a colonist there)
+	if(num_colonizers >= 4)
+		return false;
+
+	for(auto c : colonizers) {
+		if(c.get_colonizer() == n)
+			return false; // already started a colony
+	}
+
+	/*
+	If you haven't yet put a colonist into the region, you must be in range of the region. Any region adjacent to your country or to one of your vassals or substates is considered to be in range. Otherwise it must be in range of one of your naval bases, with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
+	*/
+	bool nation_has_port = state.world.nation_get_central_ports(n) != 0;
+	bool adjacent_or_coastal = [&]() {
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(!p.get_province().get_nation_from_province_ownership()) {
+				if(nation_has_port && p.get_province().get_is_coast())
+					return true;
+
+				for(auto adj : p.get_province().get_province_adjacency()) {
+					auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
+					auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
+					if(o == n)
+						return true;
+					if(o.get_overlord_as_subject().get_ruler() == n)
+						return true;
+				}
+			}
+		}
+		return false;
+	}();
+
+	if(!adjacent_or_coastal)
+		return false;
+
+
+	return true;
+}
+
+void update_colonization(sys::state& state) {
+	for(auto d : state.world.in_state_definition) {
+		auto colonizers = state.world.state_definition_get_colonization(d);
+		auto num_colonizers = colonizers.end() - colonizers.begin();
+
+		if(num_colonizers == 0 && d.get_colonization_stage() != 0) {
+			d.set_colonization_stage(uint8_t(0));
+		} else if(num_colonizers > 1 && d.get_colonization_stage() == uint8_t(2)) {
+			/*
+			In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY (if either of the two colonizers are at war or disarmed)
+			*/
+
+			int32_t max_points = 0;
+			float at_war_adjust = 0.0f;
+			for(auto c : colonizers) {
+				max_points = std::max(max_points, int32_t(c.get_level()));
+				if(state.world.nation_get_is_at_war(c.get_colonizer()) || (state.world.nation_get_disarmed_until(c.get_colonizer()) && state.current_date <= state.world.nation_get_disarmed_until(c.get_colonizer()))) {
+					at_war_adjust = state.defines.at_war_tension_decay;
+				}
+			}
+
+			float adjust = state.defines.colonization_influence_temperature_per_day + float(max_points) * state.defines.colonization_influence_temperature_per_level + (state.current_crisis != sys::crisis_type::none ? state.defines.tension_while_crisis : 0.0f) + at_war_adjust;
+
+			d.set_colonization_temperature(std::clamp(d.get_colonization_temperature() + adjust, 0.0f, 100.0f));
+		} else if(num_colonizers == 1 && (*colonizers.begin()).get_last_investment() + int32_t(state.defines.colonization_days_for_initial_investment) <= state.current_date) {
+			/*
+			If you have put in a colonist in a region and it goes at least define:COLONIZATION_DAYS_FOR_INITIAL_INVESTMENT without any other colonizers, it then moves into phase 3 with define:COLONIZATION_INTEREST_LEAD points.
+			*/
+
+			d.set_colonization_stage(uint8_t(3));
+		} else if(d.get_colonization_stage() == uint8_t(3) && num_colonizers != 0) {
+			/*
+			If you leave a colony in phase 3 for define:COLONIZATION_MONTHS_TO_COLONIZE months, the colonization will reset to phase 0 (no colonization in progress).
+			*/
+			if((*colonizers.begin()).get_last_investment() + 31 * int32_t(state.defines.colonization_months_to_colonize) <= state.current_date) {
+
+				d.set_colonization_stage(uint8_t(0));
+				do {
+					state.world.delete_colonization(*(colonizers.begin()));
+				} while(colonizers.end() != colonizers.begin());
+			}
+		}
+	}
+}
+
+bool state_is_coastal(sys::state& state, dcon::state_instance_id s) {
+	auto d = state.world.state_instance_get_definition(s);
+	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
+	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+		if(p.get_province().get_nation_from_province_ownership() == o) {
+			if(p.get_province().get_is_coast())
+				return true;
+		}
+	}
+	return false;
+}
+
+void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag) {
+	if(tag && prov) {
+		state.world.try_create_core(prov, tag);
+		if(state.world.province_get_nation_from_province_ownership(prov) == state.world.national_identity_get_nation_from_identity_holder(tag)) {
+			state.world.province_set_is_owner_core(prov, true);
+		}
+	}
+}
+
+void remove_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag) {
+	auto core_rel = state.world.get_core_by_prov_tag_key(prov, tag);
+	if(core_rel) {
+		state.world.delete_core(core_rel);
+		if(state.world.province_get_nation_from_province_ownership(prov) == state.world.national_identity_get_nation_from_identity_holder(tag)) {
+			state.world.province_set_is_owner_core(prov, false);
+		}
+	}
+}
+
+void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
+	auto old_rgo = state.world.province_get_rgo(prov);
+	state.world.province_set_rgo(prov, c);
+	if(state.world.commodity_get_is_mine(old_rgo) != state.world.commodity_get_is_mine(c)) {
+		if(state.world.commodity_get_is_mine(c)) {
+			for(auto pop : state.world.province_get_pop_location(prov)) {
+				if(pop.get_pop().get_poptype() == state.culture_definitions.farmers) {
+					pop.get_pop().set_poptype(state.culture_definitions.laborers);
+				}
+			}
+		} else {
+			for(auto pop : state.world.province_get_pop_location(prov)) {
+				if(pop.get_pop().get_poptype() == state.culture_definitions.laborers) {
+					pop.get_pop().set_poptype(state.culture_definitions.farmers);
+				}
+			}
+		}
+	}
+}
+
+void enable_canal(sys::state& state, int32_t id) {
+	state.world.province_adjacency_get_type(state.province_definitions.canals[id]) &= ~province::border::impassible_bit;
 }
 
 }

@@ -1,6 +1,7 @@
 #include "military.hpp"
 #include "dcon_generated.hpp"
 #include "prng.hpp"
+#include "effects.hpp"
 
 namespace military {
 
@@ -96,6 +97,17 @@ bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	return false;
 }
 
+dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		auto is_attacker = wa.get_is_attacker();
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_nation() == b && o.get_is_attacker() != is_attacker)
+				return wa.get_war().id;
+		}
+	}
+	return dcon::war_id{};
+}
+
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p) {
 	/*
 	(province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
@@ -189,6 +201,48 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 		}
 	}
 	return total;
+}
+
+dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p) {
+	if(state.world.province_get_is_colonial(p)) {
+		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					auto amount = int32_t(pop.get_pop().get_size() / divisor);
+					auto regs = pop.get_pop().get_regiment_source();
+					if(amount > (regs.end() - regs.begin()))
+						return pop.get_pop().id;
+				}
+			}
+		}
+	} else if(!state.world.province_get_is_owner_core(p)) {
+		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					auto amount = int32_t(pop.get_pop().get_size() / divisor);
+					auto regs = pop.get_pop().get_regiment_source();
+					if(amount > (regs.end() - regs.begin()))
+						return pop.get_pop().id;
+				}
+			}
+		}
+	} else {
+		float divisor = state.defines.pop_size_per_regiment;
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				if(pop.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+					auto amount = int32_t(pop.get_pop().get_size() / divisor);
+					auto regs = pop.get_pop().get_regiment_source();
+					if(amount > (regs.end() - regs.begin()))
+						return pop.get_pop().id;
+				}
+			}
+		}
+	}
+
+	return dcon::pop_id{};
 }
 
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p) {
@@ -567,7 +621,7 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 
 	for(auto si : state.world.nation_get_state_ownership(target)) {
 		if(si.get_state().get_flashpoint_tag()) {
-			si.get_state().get_flashpoint_tension() += state.defines.tension_on_cb_discovered;
+			si.get_state().set_flashpoint_tension(std::min(100.0f, si.get_state().get_flashpoint_tension() + state.defines.tension_on_cb_discovered));
 		}
 	}
 
@@ -725,6 +779,68 @@ void daily_leaders_update(sys::state& state) {
 bool has_truce_with(sys::state const& state, dcon::nation_id attacker, dcon::nation_id target) {
 	// TODO
 	return false;
+}
+
+dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id t) {
+	auto reg = fatten(state.world, state.world.create_regiment());
+	reg.set_type(t);
+	// TODO make name
+	reg.set_strength(1.0f);
+	return reg.id;
+}
+dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id t) {
+	auto shp = fatten(state.world, state.world.create_ship());
+	shp.set_type(t);
+	// TODO make name
+	shp.set_strength(state.world.nation_get_unit_stats(n, t).defence_or_hull);
+	return shp.id;
+}
+
+void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
+	auto ur = state.world.get_unilateral_relationship_by_unilateral_pair(target, accessing_nation);
+	if(!ur) {
+		ur = state.world.force_create_unilateral_relationship(target, accessing_nation);
+	}
+	state.world.unilateral_relationship_set_military_access(ur, true);
+}
+void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
+	auto ur = state.world.get_unilateral_relationship_by_unilateral_pair(target, accessing_nation);
+	if(ur) {
+		state.world.unilateral_relationship_set_military_access(ur, false);
+	}
+}
+
+void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	// TODO
+}
+
+dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender, dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state, dcon::national_identity_id primary_wargoal_tag) {
+	auto new_war = fatten(state.world, state.world.create_war());
+	new_war.set_primary_attacker(primary_attacker);
+	new_war.set_primary_defender(primary_defender);
+	new_war.set_start_date(state.current_date);
+	// TODO new_war.set_name(..);
+	add_wargoal(state, new_war, primary_attacker, primary_defender, primary_wargoal, primary_wargoal_state, primary_wargoal_tag);
+	return new_war;
+}
+void call_defender_allies(sys::state& state, dcon::war_id wfor) {
+	// TODO
+}
+void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
+	// TODO
+}
+void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id sd, dcon::national_identity_id tag) {
+	auto new_wg = fatten(state.world, state.world.create_wargoal());
+	new_wg.set_added_by(added_by);
+	new_wg.set_associated_state(sd);
+	new_wg.set_associated_tag(tag);
+	new_wg.set_target_nation(target);
+	new_wg.set_type(type);
+	new_wg.set_war_from_wargoals_attached(wfor);
+
+	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
+		effect::execute(state, on_add, trigger::to_generic(added_by), trigger::to_generic(added_by), trigger::to_generic(target), uint32_t(state.current_date.value), uint32_t((added_by.index() << 7) ^ target.index() ^ (type.index() << 3)));
+	}
 }
 
 }

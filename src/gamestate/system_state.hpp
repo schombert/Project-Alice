@@ -21,6 +21,7 @@
 #include "date_interface.hpp"
 #include "defines.hpp"
 #include "province.hpp"
+#include "events.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -48,7 +49,7 @@ namespace sys {
 		bool dummy2 = false;
 		bool dummy3 = false;
 		bool use_classic_fonts = false;
-
+		bool outliner_views[14] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 	};
 
 	struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -58,9 +59,13 @@ namespace sys {
 	struct crisis_member_def {
 		dcon::nation_id id;
 		bool supports_attacker = false;
+		bool merely_interested = false;
 	};
 	enum class crisis_type : uint32_t {
 		none = 0, claim = 1, liberation = 2, colonial = 3
+	};
+	enum class crisis_mode : uint32_t {
+		inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3
 	};
 
 	struct great_nation {
@@ -69,6 +74,12 @@ namespace sys {
 
 		great_nation(sys::date last_greatness, dcon::nation_id nation) : last_greatness(last_greatness), nation(nation) { }
 		great_nation() = default;
+	};
+
+	struct player_data {
+		float last_budget = 0.f;
+		float income_30_days[30] = {};
+		size_t income_cache_i = 0;
 	};
 
 	struct alignas(64) state {
@@ -117,12 +128,31 @@ namespace sys {
 		std::vector<dcon::nation_id> nations_by_prestige_score;
 		std::vector<great_nation> great_nations;
 
+		//
+		// Crisis data
+		//
+
 		dcon::state_instance_id crisis_state;
 		std::vector<crisis_member_def> crisis_participants;
 		crisis_type current_crisis = crisis_type::none;
 		float crisis_temperature = 0;
 		dcon::nation_id primary_crisis_attacker;
 		dcon::nation_id primary_crisis_defender;
+		crisis_mode current_crisis_mode;
+		uint32_t crisis_last_checked_gp = 0;
+		dcon::war_id crisis_war;
+		sys::date last_crisis_end_date{0}; // initial grace period
+		dcon::national_identity_id crisis_liberation_tag;
+		dcon::state_definition_id crisis_colony;
+
+		//
+		// Event data
+		//
+
+		std::vector<event::pending_human_n_event> pending_n_event;
+		std::vector<event::pending_human_f_n_event> pending_f_n_event;
+		std::vector<event::pending_human_p_event> pending_p_event;
+		std::vector<event::pending_human_f_p_event> pending_f_p_event;
 
 		std::vector<int32_t> unit_names_indices; // indices for the names
 		std::vector<char> unit_names; // a second text buffer, this time for just the unit names
@@ -146,6 +176,7 @@ namespace sys {
 		sys::date current_date = sys::date{0};
 		uint32_t game_seed = 0; // do *not* alter this value, ever
 		float inflation = 1.0f;
+		player_data player_data_cache{};
 
 		simple_fs::file_system common_fs; // file system for looking up graphics assets, etc
 		std::unique_ptr<window::window_data_impl> win_ptr = nullptr; // platform-dependent window information

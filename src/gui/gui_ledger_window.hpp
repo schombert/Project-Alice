@@ -121,7 +121,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -224,7 +225,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -309,7 +311,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -411,7 +414,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -425,7 +429,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -520,7 +525,8 @@ public:
     void on_update(sys::state& state) noexcept override {
         row_contents.clear();
         state.world.for_each_nation([&](dcon::nation_id id) {
-            row_contents.push_back(id);
+            if(state.world.nation_get_owned_province_count(id) != 0)
+                row_contents.push_back(id);
         });
         update(state);
     }
@@ -584,8 +590,18 @@ public:
             apply_offset(ptr);
             add_child_to_front(std::move(ptr));
         }
-        // TODO: Issues
-        // TODO: Ideology
+        // Issues
+        {
+            auto ptr = make_element_by_type<province_dominant_issue_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
+        // Ideology
+        {
+            auto ptr = make_element_by_type<province_dominant_ideology_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+            apply_offset(ptr);
+            add_child_to_front(std::move(ptr));
+        }
     }
 
     void update(sys::state& state) noexcept override {
@@ -989,7 +1005,11 @@ public:
 
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "close") {
-            return make_element_by_type<generic_close_button>(state, id);
+            auto ptr = make_element_by_type<generic_close_button>(state, id);
+            ptr->set_button_text(state, "");
+            return ptr;
+        } else if(name == "ledger_bg") {
+            return make_element_by_type<draggable_target>(state, id);
         } else if(name == "ledger_linegraphs") {
             auto ptr = make_element_by_type<window_element_base>(state, id);
             commodity_linegraph = ptr.get();

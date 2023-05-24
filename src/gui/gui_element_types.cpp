@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string_view>
 #include <unordered_map>
 #include <variant>
@@ -10,6 +12,7 @@
 #include "cyto_any.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
+#include "gui_element_base.hpp"
 #include "gui_element_types.hpp"
 #include "fonts.hpp"
 #include "gui_graphics.hpp"
@@ -453,6 +456,41 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 }
 
+void line_graph::set_data_points(sys::state& state, std::vector<float> datapoints) noexcept {
+	float min = datapoints[0];
+	float max = datapoints[0];
+	for(size_t i = 0; i < datapoints.size(); i++) {
+		min = std::min(min, datapoints[i]);
+		max = std::max(max, datapoints[i]);
+	}
+	float y_height = std::max(std::abs(min), std::abs(max));
+	std::vector<float> scaled_datapoints = std::vector<float>(count);
+	if (y_height == 0.f) {
+		for(size_t i = 0; i < datapoints.size(); i++) {
+			scaled_datapoints[i] = .5f;
+		}
+	} else {
+		for(size_t i = 0; i < datapoints.size(); i++) {
+			scaled_datapoints[i] = datapoints[i] / (y_height * 2.f) + .5f;
+		}
+	}
+	lines.set_y(scaled_datapoints.data());
+}
+
+void line_graph::on_create(sys::state& state) noexcept {
+	element_base::on_create(state);
+	lines = ogl::lines(count);
+}
+
+void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	ogl::render_linegraph(
+		state,
+		ogl::color_modification::none,
+		float(x), float(y), base_data.size.x, base_data.size.y,
+		lines
+	);
+}
+
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
 	stored_text = new_text;
 	on_reset_text(state);
@@ -461,6 +499,22 @@ void simple_text_element_base::set_text(sys::state& state, std::string const& ne
 void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	if(stored_text.length() == 0)
 		return;
+	float extent = 0.f;
+	if(base_data.get_element_type() == element_type::button) {
+		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle);
+	} else if(base_data.get_element_type() == element_type::text) {
+		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
+	}
+	if (int16_t(extent) > base_data.size.x) {
+		// You could improve logic for ... by figuring out the width of ... and when there isn't enough room for all the text, figuring out how much can fit exactly in the width minus the width of ... and then appending ... (rather than figuring out how much fits in the space and subtracting 3 characters, which is what happens now)
+		auto width_of_ellipsis = state.font_collection.text_extent(state, "\x85", uint32_t(1), base_data.data.text.font_handle);
+
+		auto overshoot =  1.f - float(base_data.size.x) / (extent + width_of_ellipsis);
+		auto extra_chars = size_t(float(stored_text.length()) * overshoot);
+		
+		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars, size_t(0)));
+		stored_text += "\x85";
+	}
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {
 			case alignment::centered:
@@ -473,7 +527,6 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			case alignment::left:
 				text_offset = 0.0f;
 				break;
-
 		}
 	} else if(base_data.get_element_type() == element_type::text) {
 		switch(base_data.data.button.get_alignment()) {
@@ -487,48 +540,16 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			case alignment::left:
 				text_offset = base_data.data.text.border_size.x;
 				break;
-
 		}
 	}
 }
 void simple_text_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
-		auto base_text_handle = base_data.data.button.txt;
-		stored_text = text::produce_simple_string(state, base_text_handle);
+		set_text(state, text::produce_simple_string(state, base_data.data.button.txt));
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-
-		switch(base_data.data.button.get_alignment()) {
-			case alignment::centered:
-			case alignment::justified:
-				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
-				break;
-			case alignment::right:
-				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle));
-				break;
-			case alignment::left:
-				text_offset = 0.0f;
-				break;
-
-		}
-
 	} else if(base_data.get_element_type() == element_type::text) {
-		auto base_text_handle = base_data.data.text.txt;
-		stored_text = text::produce_simple_string(state, base_text_handle);
+		set_text(state, text::produce_simple_string(state, base_data.data.text.txt));
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
-
-		switch(base_data.data.button.get_alignment()) {
-			case alignment::centered:
-			case alignment::justified:
-				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) - base_data.data.text.border_size.x) / 2.0f;
-				break;
-			case alignment::right:
-				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) - base_data.data.text.border_size.x);
-				break;
-			case alignment::left:
-				text_offset = base_data.data.text.border_size.x;
-				break;
-
-		}
 	}
 }
 void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -573,7 +594,7 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 				ogl::render_text(
 					state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()),
 					ogl::color_modification::none,
-					float(x) + t.x, float(y + t.y),
+					float(x) + t.x, float(y + line_offset),
 					get_text_color(t.color),
 					base_data.data.text.font_handle
 				);
@@ -702,33 +723,34 @@ void piechart<T>::on_create(sys::state& state) noexcept {
 template<class T>
 void piechart<T>::on_update(sys::state& state) noexcept {
 	get_distribution(state).swap(distribution);
+
 	std::vector<uint8_t> colors = std::vector<uint8_t>(resolution * channels);
-	{
-		T last_t{};
-		size_t i = 0;
-		for(auto& [index, quant]: distribution) {
-			T t = T(index);
-			uint32_t color = ogl::get_ui_color(state, t);
-			auto slice_count = std::min(size_t(quant * resolution), i + resolution);
-			for(size_t j = 0; j < slice_count; j++) {
-				spread[j + i] = t;
-				colors[(j + i) * channels] = uint8_t(color & 0xFF);
-				colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
-				colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
-			}
-			if(slice_count) {
-				i += slice_count;
-				last_t = t;
-			}
+	T last_t{};
+	size_t i = 0;
+	for(auto& [index, quant]: distribution) {
+		T t(index);
+		uint32_t color = ogl::get_ui_color<T>(state, t);
+		auto slice_count = std::min(size_t(quant * resolution), resolution - i);
+		for(size_t j = 0; j < slice_count; j++) {
+			spread[j + i] = t;
+			colors[(j + i) * channels] = uint8_t(color & 0xFF);
+			colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
+			colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
+			assert((j + i) * channels + 1 < colors.size() && "Exceeded 100% total for piechart");
 		}
-		uint32_t last_color = ogl::get_ui_color(state, last_t);
-		for(; i < resolution; i++) {
-			spread[i] = last_t;
-			colors[i * channels] = uint8_t(last_color & 0xFF);
-			colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
-			colors[i * channels + 2] = uint8_t(last_color >> 16 & 0xFF);
+		if(slice_count) {
+			i += slice_count;
+			last_t = t;
 		}
 	}
+	uint32_t last_color = ogl::get_ui_color(state, last_t);
+	for(; i < resolution; i++) {
+		spread[i] = last_t;
+		colors[i * channels] = uint8_t(last_color & 0xFF);
+		colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
+		colors[i * channels + 2] = uint8_t(last_color >> 16 & 0xFF);
+	}
+
 	generate_data_texture(state, colors);
 }
 
@@ -773,20 +795,31 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 		} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
 			auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 			total_pops = state.world.nation_get_demographics(nat_id, demographics::total);
+		} else if(obj_id_payload.holds_type<dcon::pop_id>()) {
+			auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
+			total_pops = 1.f;
 		}
 		
-		if(total_pops <= 0) {
+		if(total_pops <= 0.f)
 			return distrib;
-		}
 		for_each_demo(state, [&](DemoT demo_id) {
-			auto demo_key = demographics::to_key(state, demo_id);
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
+				auto demo_key = demographics::to_key(state, demo_id);
 				auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
 				volume = state.world.province_get_demographics(prov_id, demo_key);
 			} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
+				auto demo_key = demographics::to_key(state, demo_id);
 				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 				volume = state.world.nation_get_demographics(nat_id, demo_key);
+			}
+			
+			if constexpr(std::is_same_v<SrcT, dcon::pop_id>) {
+				if(obj_id_payload.holds_type<dcon::pop_id>()) {
+					auto demo_key = pop_demographics::to_key(state, demo_id);
+					auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
+					volume = state.world.pop_get_demographics(pop_id, demo_key);
+				}
 			}
 			distrib[static_cast<typename DemoT::value_base_t>(demo_id.index())] = volume / total_pops;
 		});
@@ -794,8 +827,7 @@ std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<Src
 	return distrib;
 }
 
-template<class RowWinT, class RowConT>
-void standard_listbox_scrollbar<RowWinT, RowConT>::scale_to_parent() {
+void autoscaling_scrollbar::scale_to_parent() {
 	base_data.size.y = parent->base_data.size.y;
 	base_data.data.scrollbar.border_size = base_data.size;
 	base_data.position.x = parent->base_data.size.x; // base_data.size.x / 3;
@@ -810,6 +842,59 @@ void standard_listbox_scrollbar<RowWinT, RowConT>::scale_to_parent() {
 
 	left->step_size = -settings.scaling_factor;
 	right->step_size = -settings.scaling_factor;
+}
+
+void multiline_text_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
+	Cyto::Any payload = multiline_text_scroll_event{int32_t(scaled_value())};
+	impl_get(state, payload);
+}
+
+void scrollable_text::on_create(sys::state& state) noexcept {
+	auto res = std::make_unique<multiline_text_element_base>();
+	std::memcpy(&(res->base_data), &(base_data), sizeof(ui::element_data));
+	make_size_from_graphics(state, res->base_data);
+	res->base_data.position.x = 0;
+	res->base_data.position.y = 0;
+	res->on_create(state);
+	delegate = res.get();
+	add_child_to_front(std::move(res));
+
+	auto ptr = make_element_by_type<multiline_text_scrollbar>(state, "standardlistbox_slider");
+	text_scrollbar = static_cast<multiline_text_scrollbar*>(ptr.get());
+	add_child_to_front(std::move(ptr));
+	text_scrollbar->scale_to_parent();
+}
+
+void scrollable_text::calibrate_scrollbar(sys::state& state) noexcept {
+	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
+		text_scrollbar->set_visible(state, true);
+		text_scrollbar->change_settings(state, mutable_scrollbar_settings{
+			0, delegate->internal_layout.number_of_lines - delegate->visible_lines, 0, 0, false
+		});
+	} else {
+		text_scrollbar->set_visible(state, false);
+		delegate->current_line = 0;
+	}
+}
+
+message_result scrollable_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
+		text_scrollbar->update_scaled_value(state, text_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
+		delegate->current_line = int32_t(text_scrollbar->scaled_value());
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
+
+message_result scrollable_text::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<multiline_text_scroll_event>()) {
+		auto event = any_cast<multiline_text_scroll_event>(payload);
+		delegate->current_line = event.new_value;
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
 }
 
 template<class RowWinT, class RowConT>
@@ -950,7 +1035,7 @@ template<class ItemWinT, class ItemConT>
 void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& state) {
 	auto spacing = int16_t(base_data.data.overlapping.spacing);
 	if(base_data.get_element_type() == element_type::overlapping) {
-		while(contents.size() > windows.size()) {
+		while(row_contents.size() > windows.size()) {
 			auto ptr = make_element_by_type<ItemWinT>(state, get_row_element_name());
 			if(subwindow_width <= 0) {
 				subwindow_width = ptr->base_data.size.x;
@@ -959,18 +1044,18 @@ void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& st
 			add_child_to_front(std::move(ptr));
 		}
 
-		float size_ratio = float(contents.size() * (subwindow_width + spacing)) / float(base_data.size.x);
+		float size_ratio = float(row_contents.size() * (subwindow_width + spacing)) / float(base_data.size.x);
 		int16_t offset = spacing + subwindow_width;
 		if(size_ratio > 1.f) {
 			offset = int16_t(float(subwindow_width) / size_ratio);
 		}
 		int16_t current_x = 0;
 		if(base_data.data.overlapping.image_alignment == alignment::right) {
-			current_x = base_data.size.x - subwindow_width - offset * int16_t(contents.size() - 1);
+			current_x = base_data.size.x - subwindow_width - offset * int16_t(row_contents.size() - 1);
 		}
 		for(size_t i = 0; i < windows.size(); i++) {
-			if(i < contents.size()) {
-				update_subwindow(state, windows[i], contents[i]);
+			if(i < row_contents.size()) {
+				update_subwindow(state, *windows[i], row_contents[i]);
 				windows[i]->base_data.position.x = current_x;
 				current_x += offset;
 				windows[i]->set_visible(state, true);
@@ -997,12 +1082,12 @@ message_result overlapping_flags_box::set(sys::state& state, Cyto::Any& payload)
 
 void overlapping_sphere_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		int32_t sphereling_count = 0;  // this is a hack that's only getting used because checking if a nation is a GP doesn't work yet.
 		state.world.for_each_nation([&](dcon::nation_id other) {
 			auto other_fat = dcon::fatten(state.world, other);
 			if(other_fat.get_in_sphere_of().id == current_nation) {
-				contents.push_back(other_fat.get_identity_from_identity_holder().id);
+				row_contents.push_back(other_fat.get_identity_from_identity_holder().id);
 				sphereling_count++;
 			}
 		});
@@ -1010,7 +1095,7 @@ void overlapping_sphere_flags::populate_flags(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, current_nation);
 			auto sphere_lord = fat_id.get_in_sphere_of();
 			if(sphere_lord.id) {
-				contents.push_back(sphere_lord.get_identity_from_identity_holder().id);
+				row_contents.push_back(sphere_lord.get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);
@@ -1019,15 +1104,15 @@ void overlapping_sphere_flags::populate_flags(sys::state& state) {
 
 void overlapping_puppet_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		auto fat_id = dcon::fatten(state.world, current_nation);
 		auto overlord = state.world.nation_get_overlord_as_subject(current_nation);
 		auto overlord_nation = dcon::fatten(state.world, overlord).get_ruler();
 		if(bool(overlord_nation)) {
-			contents.push_back(overlord_nation.get_identity_from_identity_holder().id);
+			row_contents.push_back(overlord_nation.get_identity_from_identity_holder().id);
 		} else {
 			for(auto puppet : state.world.nation_get_overlord_as_ruler(current_nation)) {
-				contents.push_back(puppet.get_subject().get_identity_from_identity_holder().id);
+				row_contents.push_back(puppet.get_subject().get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);
@@ -1036,12 +1121,12 @@ void overlapping_puppet_flags::populate_flags(sys::state& state) {
 
 void overlapping_ally_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
 			if(rel.get_are_allied()) {
 				auto ally = nations::get_relationship_partner(state, rel.id, current_nation);
 				auto fat_ally = dcon::fatten(state.world, ally);
-				contents.push_back(fat_ally.get_identity_from_identity_holder().id);
+				row_contents.push_back(fat_ally.get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);
@@ -1050,36 +1135,12 @@ void overlapping_ally_flags::populate_flags(sys::state& state) {
 
 void overlapping_enemy_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		for(auto wa : state.world.nation_get_war_participant(current_nation)) {
 			bool is_attacker = wa.get_is_attacker();
 			for(auto o : wa.get_war().get_war_participant()) {
 				if(o.get_is_attacker() != is_attacker) {
-					contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
-				}
-			}
-		}
-		update(state);
-	}
-}
-
-void overlapping_protected_flags::populate_flags(sys::state& state) {
-	if(bool(current_nation)) {
-		contents.clear();
-		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
-			if(rel.get_truce_until()) {
-				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
-				auto fat_id = dcon::fatten(state.world, nat_id);
-				contents.push_back(fat_id.get_identity_from_identity_holder().id);
-			}
-		}
-
-		for(auto gpr : state.world.nation_get_gp_relationship_as_great_power(current_nation)) {
-			if((nations::influence::level_mask & gpr.get_status()) == nations::influence::level_in_sphere) {
-				if(gpr.get_influence_target().id == current_nation) {
-					auto nat_id = gpr.get_great_power();
-					auto fat_id = dcon::fatten(state.world, nat_id);
-					contents.push_back(fat_id.get_identity_from_identity_holder().id);
+					row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 				}
 			}
 		}
@@ -1089,12 +1150,12 @@ void overlapping_protected_flags::populate_flags(sys::state& state) {
 
 void overlapping_truce_flags::populate_flags(sys::state& state) {
 	if(bool(current_nation)) {
-		contents.clear();
+		row_contents.clear();
 		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
 			if(rel.get_truce_until()) {
 				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
 				auto fat_id = dcon::fatten(state.world, nat_id);
-				contents.push_back(fat_id.get_identity_from_identity_holder().id);
+				row_contents.push_back(fat_id.get_identity_from_identity_holder().id);
 			}
 		}
 		update(state);

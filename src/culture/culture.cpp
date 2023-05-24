@@ -323,6 +323,77 @@ void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::te
 	}
 }
 
+void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id t_id) {
+	auto tech_id = fatten(state.world, t_id);
+
+	state.world.nation_set_active_technologies(target_nation, t_id, false);
+
+	auto tech_mod = tech_id.get_modifier();
+	if(tech_mod) {
+		auto& tech_nat_values = tech_mod.get_national_values();
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(!(tech_nat_values.offsets[i]))
+				break; // no more modifier values attached to this tech
+
+			auto fixed_offset = tech_nat_values.offsets[i];
+			auto modifier_amount = tech_nat_values.values[i];
+
+			state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
+		}
+	}
+
+	if(tech_id.get_increase_railroad()) {
+		state.world.nation_get_max_railroad_level(target_nation) -= 1;
+	}
+	if(tech_id.get_increase_fort()) {
+		state.world.nation_get_max_fort_level(target_nation) -= 1;
+	}
+	if(tech_id.get_increase_naval_base()) {
+		state.world.nation_get_max_naval_base_level(target_nation) -= 1;
+	}
+
+	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
+		if(tech_id.get_activate_building(id)) {
+			state.world.nation_set_active_building(target_nation, id, false);
+		}
+	});
+	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		if(tech_id.get_activate_unit(uid)) {
+			state.world.nation_set_active_unit(target_nation, uid, false);
+		}
+	}
+
+	for(auto cmod : tech_id.get_rgo_goods_output()) {
+		state.world.nation_get_rgo_goods_output(target_nation, cmod.type) -= cmod.amount;
+	}
+	for(auto cmod : tech_id.get_factory_goods_output()) {
+		state.world.nation_get_factory_goods_output(target_nation, cmod.type) -= cmod.amount;
+	}
+	for(auto cmod : tech_id.get_rgo_size()) {
+		state.world.nation_get_rgo_size(target_nation, cmod.type) -= cmod.amount;
+	}
+	for(auto& umod : tech_id.get_modified_units()) {
+		if(umod.type == state.military_definitions.base_army_unit) {
+			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+				dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+				if(state.military_definitions.unit_base_definitions[uid].is_land) {
+					state.world.nation_get_unit_stats(target_nation, uid) -= umod;
+				}
+			}
+		} else if(umod.type == state.military_definitions.base_naval_unit) {
+			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+				dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+				if(!state.military_definitions.unit_base_definitions[uid].is_land) {
+					state.world.nation_get_unit_stats(target_nation, uid) -= umod;
+				}
+			}
+		} else {
+			state.world.nation_get_unit_stats(target_nation, umod.type) -= umod;
+		}
+	}
+}
+
 void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id i_id) { //  TODO: shared prestige effect
 	auto inv_id = fatten(state.world, i_id);
 
@@ -414,6 +485,100 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 			}
 		}
 		nations::adjust_prestige(state, target_nation, p / float(total));
+	}
+}
+
+void remove_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id i_id) { //  TODO: shared prestige effect
+	auto inv_id = fatten(state.world, i_id);
+
+	state.world.nation_set_active_inventions(target_nation, i_id, false);
+
+	// apply modifiers from active inventions
+	auto inv_mod = inv_id.get_modifier();
+	if(inv_mod) {
+		auto& inv_nat_values = inv_mod.get_national_values();
+		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
+			if(!(inv_nat_values.offsets[i]))
+				break; // no more modifier values attached to this tech
+
+			auto fixed_offset = inv_nat_values.offsets[i];
+			auto modifier_amount = inv_nat_values.values[i];
+
+			state.world.nation_get_modifier_values(target_nation, fixed_offset) -= modifier_amount;
+		}
+	}
+
+	if(inv_id.get_enable_gas_attack()) {
+		state.world.nation_set_has_gas_attack(target_nation, false);
+	}
+	if(inv_id.get_enable_gas_defense()) {
+		state.world.nation_set_has_gas_defense(target_nation, false);
+	}
+
+	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
+		if(inv_id.get_activate_building(id)) {
+			state.world.nation_set_active_building(target_nation, id, false);
+		}
+	});
+	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+		dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+		if(inv_id.get_activate_unit(uid)) {
+			state.world.nation_set_active_unit(target_nation, uid, false);
+		}
+	}
+	for(uint32_t i = 0; i < state.culture_definitions.crimes.size(); ++i) {
+		dcon::crime_id uid = dcon::crime_id{ dcon::crime_id::value_base_t(i) };
+		if(inv_id.get_activate_crime(uid)) {
+			state.world.nation_set_active_crime(target_nation, uid, false);
+		}
+	}
+
+	for(auto cmod : inv_id.get_rgo_goods_output()) {
+		state.world.nation_get_rgo_goods_output(target_nation, cmod.type) -= cmod.amount;
+	}
+	for(auto cmod : inv_id.get_factory_goods_output()) {
+		state.world.nation_get_factory_goods_output(target_nation, cmod.type) -= cmod.amount;
+	}
+	for(auto cmod : inv_id.get_factory_goods_throughput()) {
+		state.world.nation_get_factory_goods_throughput(target_nation, cmod.type) -= cmod.amount;
+	}
+	for(auto cmod : inv_id.get_rebel_org()) {
+		if(cmod.type) {
+			state.world.nation_get_rebel_org_modifier(target_nation, cmod.type) -= cmod.amount;
+		} else {
+			state.world.for_each_rebel_type([&](dcon::rebel_type_id rt) {
+				state.world.nation_get_rebel_org_modifier(target_nation, rt) -= cmod.amount;
+			});
+		}
+	}
+	for(auto& umod : inv_id.get_modified_units()) {
+		if(umod.type == state.military_definitions.base_army_unit) {
+			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+				dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+				if(state.military_definitions.unit_base_definitions[uid].is_land) {
+					state.world.nation_get_unit_stats(target_nation, uid) -= umod;
+				}
+			}
+		} else if(umod.type == state.military_definitions.base_naval_unit) {
+			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+				dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+				if(!state.military_definitions.unit_base_definitions[uid].is_land) {
+					state.world.nation_get_unit_stats(target_nation, uid) -= umod;
+				}
+			}
+		} else {
+			state.world.nation_get_unit_stats(target_nation, umod.type) -= umod;
+		}
+	}
+
+	if(auto p = inv_id.get_shared_prestige(); p > 0) {
+		int32_t total = 0;
+		for(auto n : state.world.in_nation) {
+			if(n.get_active_inventions(i_id)) {
+				++total;
+			}
+		}
+		nations::adjust_prestige(state, target_nation, -(p / float(total + 1)));
 	}
 }
 
@@ -640,6 +805,18 @@ void discover_inventions(sys::state& state) {
 				}
 			});
 		}
+	}
+}
+
+void replace_cores(sys::state& state, dcon::national_identity_id old_tag, dcon::national_identity_id new_tag) {
+	if(new_tag) {
+		for(auto cores_of : state.world.national_identity_get_core(old_tag)) {
+			state.world.try_create_core(cores_of.get_province(), new_tag);
+		}
+	}
+	auto core_list = state.world.national_identity_get_core(old_tag);
+	while(core_list.begin() != core_list.end()) {
+		state.world.delete_core((*core_list.begin()).id);
 	}
 }
 

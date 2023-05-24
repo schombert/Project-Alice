@@ -58,13 +58,19 @@ pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wr
 	return pop_satisfaction_wrapper_fat{ id.value };
 }
 }
+namespace ogl {
+template<>
+uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id){
+	return ogl::color_from_hash(uint32_t(id.index()));
+}
+}
 
 namespace ui {
 template<culture::pop_strata Strata>
 class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
-	std::unordered_map<uint8_t, float> get_distribution(sys::state& state) noexcept override {
-		std::unordered_map<uint8_t, float> distrib = {};
+	std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> get_distribution(sys::state& state) noexcept override {
+		std::unordered_map<dcon::pop_satisfaction_wrapper_id::value_base_t, float> distrib = {};
 		Cyto::Any nat_id_payload = dcon::nation_id{};
 
 		enabled = true;
@@ -107,7 +113,7 @@ protected:
 			}
 
 			for(size_t i = 0; i < sat_pool.size(); i++)
-				distrib[uint8_t(i)] = sat_pool[i] / total;
+				distrib[dcon::pop_satisfaction_wrapper_id::value_base_t(i)] = sat_pool[i] / total;
 		}
 		return distrib;
 	}

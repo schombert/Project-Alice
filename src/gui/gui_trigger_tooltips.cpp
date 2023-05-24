@@ -146,18 +146,14 @@ void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
 		//evaluate(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot)
 		if(trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot)) {
-			text::add_to_layout_box(layout, ws, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(layout, ws, box, std::string_view("*"), text::text_color::green);
-			text::add_to_layout_box(layout, ws, box, std::string_view(")"), text::text_color::white);
+			text::add_to_layout_box(layout, ws, box, std::string_view("\x01"), text::text_color::green);
 			text::add_space_to_layout_box(layout, ws, box);
 		} else {
-			text::add_to_layout_box(layout, ws, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(layout, ws, box, std::string_view("x"), text::text_color::red);
-			text::add_to_layout_box(layout, ws, box, std::string_view(")"), text::text_color::white);
+			text::add_to_layout_box(layout, ws, box, std::string_view("\x02"), text::text_color::red);
 			text::add_space_to_layout_box(layout, ws, box);
 		}
 	} else {
-		text::add_to_layout_box(layout, ws, box, std::string_view("(?)"), text::text_color::white);
+		text::add_to_layout_box(layout, ws, box, std::string_view("\x95"), text::text_color::white);
 		text::add_space_to_layout_box(layout, ws, box);
 	}
 }
@@ -6752,6 +6748,37 @@ void make_trigger_description(
 
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
 	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + k.index(), primary_slot, this_slot, from_slot, 0, true);
+}
+
+void value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+
+	{
+		auto it = state.key_to_text_sequence.find(std::string_view("comwid_base"));
+		if(it != state.key_to_text_sequence.end()) {
+			text::substitution_map map;
+			text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{ base.base_factor });
+			auto box = text::open_layout_box(layout, 0);
+			text::add_to_layout_box(layout, state, box, it->second, map);
+			text::close_layout_box(layout, box);
+		}
+	}
+
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			auto it = state.key_to_text_sequence.find(std::string_view("comwid_base"));
+			if(it != state.key_to_text_sequence.end()) {
+				text::substitution_map map;
+				text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{ seg.factor });
+				auto box = text::open_layout_box(layout, 0);
+				text::add_to_layout_box(layout, state, box, it->second, map);
+				text::close_layout_box(layout, box);
+			}
+
+			trigger_description(state, layout, seg.condition, primary_slot, this_slot, from_slot);
+		}
+	}
 }
 
 }

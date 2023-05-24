@@ -105,10 +105,6 @@ void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 	} else if(keycode == sys::virtual_key::DOWN) {
 		pos_velocity.y = +1.f;
 		down_arrow_key_down = true;
-	} else if(keycode == sys::virtual_key::Q) {
-		zoom_change = zoom * 1.1f;
-	} else if(keycode == sys::virtual_key::E) {
-		zoom_change = zoom * 0.9f;
 	}
 }
 

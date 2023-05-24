@@ -144,11 +144,11 @@ struct mutable_scrollbar_settings {
 
 You can render simple text with the following function:
 `ogl::render_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f)`
-The `count` parameter contains the number of characters to render from `codepoints` (the string *does not* have to be null terminated). The `color_modification` enum parameter must be one of `none`, `disabled`, `interactable`, or `interactable_disabled` (`interactable` and `interactable_disabled` are for when a clickable element is under the mouse) and should be chosen to match the way the rest of the element is currently being displayed. `x` and `y` position the text on the screen (you should strive to pick integral values for `y` whenever possible). 
+The `count` parameter contains the number of characters to render from `codepoints` (the string *does not* have to be null terminated). The `color_modification` enum parameter must be one of `none`, `disabled`, `interactable`, or `interactable_disabled` (`interactable` and `interactable_disabled` are for when a clickable element is under the mouse) and should be chosen to match the way the rest of the element is currently being displayed. `x` and `y` position the text on the screen (you should strive to pick integral values for `y` whenever possible).
 
 #### Complex text
 
-The functions and classes described in this section are declared in `text.hpp` and are part of the `text` namespace. For anything beyond the trivial, we have to be able to arrange text so that we can later draw it with multiple calls to `render_text` in order to display text that spans more than a single line and/or is in more than a single color. To do this, we create a `text::layout` object. This object stores text along with positioning and color information. Layout objects should not be populated manually. Instead you should use either an endless or columnar layout. 
+The functions and classes described in this section are declared in `text.hpp` and are part of the `text` namespace. For anything beyond the trivial, we have to be able to arrange text so that we can later draw it with multiple calls to `render_text` in order to display text that spans more than a single line and/or is in more than a single color. To do this, we create a `text::layout` object. This object stores text along with positioning and color information. Layout objects should not be populated manually. Instead you should use either an endless or columnar layout.
 
 The contents of the layout can be imagined as boxes, with each box containing a single item (a single logical unit of text, even if it takes more than one line to display it all). These boxes are then positioned from top to bottom within the boundaries of the imaginary page described by the `layout_parameters` (a struct, described below). In an endless layout, these boxes are allowed to spill off the bottom of the available page, with the assumption that it will be possible for the user to scroll the hidden contents into view by some means. In a columnar layout, reaching the end of the imaginary page instead starts a new column to the right of the column just completed, moving rightwards by `column_width` pixels (see below). The inter-column space is thus the difference between `column_width` and the right margin of the imaginary page.
 
@@ -168,13 +168,25 @@ To create an endless layout you must call the function `text::create_endless_lay
 
 ##### Layout box functions
 
-As described above, text is added to a layout by populating a series of layout boxes. Each box must be created by a call to `layout_box text::open_layout_box(𝘭𝘢𝘺𝘰𝘶𝘵_𝘵𝘺𝘱𝘦& dest, int32_t indent = 0)`. `indent` is a measurement of how far the box should be positioned to the right of the left margin. When you aren't adding the contents of a list, an `indent` of 0 is probably what you want. When you have finished adding text to an individual layout box, you must close it with `text::close_layout_box(𝘭𝘢𝘺𝘰𝘶𝘵_𝘵𝘺𝘱𝘦& dest, layout_box& box)` before starting the next box or finishing the layout. Forgetting to close a box will result in a layout containing improperly positioned text. 
+As described above, text is added to a layout by populating a series of layout boxes. Each box must be created by a call to `layout_box text::open_layout_box(𝘭𝘢𝘺𝘰𝘶𝘵_𝘵𝘺𝘱𝘦& dest, int32_t indent = 0)`. `indent` is a measurement of how far the box should be positioned to the right of the left margin. When you aren't adding the contents of a list, an `indent` of 0 is probably what you want. When you have finished adding text to an individual layout box, you must close it with `text::close_layout_box(𝘭𝘢𝘺𝘰𝘶𝘵_𝘵𝘺𝘱𝘦& dest, layout_box& box)` before starting the next box or finishing the layout. Forgetting to close a box will result in a layout containing improperly positioned text.
 
 While the layout box is open, you can add content to it with any combination of the following functions (calling each as many times as you wish):
 
 - `add_to_layout_box(𝘭𝘢𝘺𝘰𝘶𝘵_𝘵𝘺𝘱𝘦& dest, sys::state const& state, layout_box& box, std::string_view, text_color color, substitution source = std::monostate{})` : this function adds plain text to the box. The `substitution` parameter is only there for making text behave *as if* it came from substituting a variable, which is probably something that you do not have a need for.
 - `add_to_layout_box(𝘭𝘢𝘺𝘰𝘶𝘵_𝘵𝘺𝘱𝘦& dest, sys::state const& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const& mp)` : adds complicated text to the layout box. This text will change color according to any color change commands embedded in the source text. Additionally, any variables in the source can be replaced at this point by populating the substitution map parameter. The easiest way to populate a substitution map is with `text::add_to_substitution_map(substitution_map& mp, variable_type key, substitution value)`. `substituion` is a `std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id, int64_t, float, sys::date, std::monostate>;`. Values of nations, provinces, etc will be converted to their current name upon substitution, dates will turn into a textual representation, etc. (See hit testing, below, for how to get the source of a substitution back out.)
 - `add_line_break_to_layout_box(𝘭𝘢𝘺𝘰𝘶𝘵_𝘵𝘺𝘱𝘦& dest, sys::state& state, layout_box& box)` : this function adds a line break within a layout box (useful in columnar layouts if you want to create two or more lines that must end up in the same column).
+- `localised_format_box(sys::state& state, layout_type& dest, layout_box& box, std::string_view key, text::substitution_map sub)` : this function is equivalent to doing the following code snippet:
+```
+if(auto k = state.key_to_text_sequence.find(std::string_view("some value present in CSV files...")); k != state.key_to_text_sequence.end()) {
+    text::add_to_layout_box(contents, state, box, k->second, sub);
+}
+```
+- `add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box)` : this function is the same as doing the following code snippet:
+```
+text::add_line_break_to_layout_box(contents, state, box);
+text::add_to_layout_box(contents, state, box, std::string_view("--------------"));
+text::add_line_break_to_layout_box(contents, state, box);
+```
 
 ##### Rendering a text layout
 

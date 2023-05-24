@@ -54,6 +54,7 @@ float state_accepted_bureaucrat_size(sys::state& state, dcon::state_instance_id 
 bool has_railroads_being_built(sys::state& state, dcon::province_id id);
 bool can_build_railroads(sys::state& state, dcon::province_id id);
 bool has_an_owner(sys::state& state, dcon::province_id id);
+bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
 
 float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
 float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
@@ -71,6 +72,14 @@ float revolt_risk(sys::state& state, dcon::province_id id);
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 
 void update_crimes(sys::state& state);
+
+bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
+void update_colonization(sys::state& state);
+
+void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag);
+void remove_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag);
+void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c);
+void enable_canal(sys::state& state, int32_t id);
 
 }
 

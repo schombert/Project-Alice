@@ -12,6 +12,33 @@ void notify_user_of_fatal_opengl_error(std::string message) {
 	std::abort();
 }
 
+void load_special_icons(sys::state& state) {
+	auto root = get_root(state.common_fs);
+	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
+
+	auto interface_dir = simple_fs::open_directory(gfx_dir, NATIVE("interface"));
+	auto money_dds = simple_fs::open_file(interface_dir, NATIVE("icon_money_big.dds"));
+	if(money_dds) {
+		auto content = simple_fs::view_contents(*money_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.money_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+	}
+
+	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
+	auto cross_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_not.dds"));
+	if(cross_dds) {
+		auto content = simple_fs::view_contents(*cross_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+	}
+	auto checkmark_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes.dds"));
+	if(checkmark_dds) {
+		auto content = simple_fs::view_contents(*checkmark_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.checkmark_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+	}
+}
+
 void initialize_opengl(sys::state& state) {
 	create_opengl_context(state);
 
@@ -46,6 +73,7 @@ void initialize_opengl(sys::state& state) {
 
 	state.map_state.load_map(state);
 
+	load_special_icons(state);
 	state.font_collection.load_all_glyphs();
 }
 
@@ -455,32 +483,50 @@ void render_character(sys::state const& state, char codepoint, color_modificatio
 	}
 }
 
-void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f) {
+void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, const GLuint *subroutines, const GLuint *icon_subroutines) {
 	for(uint32_t i = 0; i < count; ++i) {
 		if(text::win1250toUTF16(codepoints[i]) != ' ') {
 			//f.make_glyph(codepoints[i]);
+			if(text::win1250toUTF16(codepoints[i]) != u'\u0001' && text::win1250toUTF16(codepoints[i]) != u'\u0002') {
+				glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoints[i]) >> 6]);
+				glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[uint8_t(codepoints[i])].x * size / 64.0f, baseline_y + f.glyph_positions[uint8_t(codepoints[i])].y * size / 64.0f, size, size);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoints[i]) >> 6]);
+				x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f + ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
+			} else {
+				bind_vertices_by_rotation(state, ui::rotation::upright, false);
+				glActiveTexture(GL_TEXTURE0);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
+				glBindTexture(GL_TEXTURE_2D, text::win1250toUTF16(codepoints[i]) == u'\u0001' ? state.open_gl.cross_icon_tex : state.open_gl.checkmark_icon_tex);
+				glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[0x4D].x * size / 64.0f, baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
+				glUniform4f(ogl::parameters::subrect,
+					0.f /* x offset */,
+					1.f /* x width */,
+					0.f /* y offset */,
+					1.f /* y height */
+				);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
-			glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[uint8_t(codepoints[i])].x * size / 64.0f, baseline_y + f.glyph_positions[uint8_t(codepoints[i])].y * size / 64.0f, size, size);
-
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+				x += f.glyph_advances[0x4D] * size / 64.0f + ((i != count - 1) ? f.kerning(0x4D, codepoints[i + 1]) * size / 64.0f : 0.0f);
+			}
+		} else {
+			x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f + ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
 		}
-		x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f + ((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
 	}
 }
 
 
 void render_new_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
-	internal_text_render(state, codepoints, count, x, y + size, size, f);
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
+	GLuint icon_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+	internal_text_render(state, codepoints, count, x, y + size, size, f, subroutines, icon_subroutines);
 }
 
 void render_classic_text(sys::state const& state, float x, float y, char const* codepoints, uint32_t count, color_modification enabled, const color3f& c, text::BMFont const& font) {
@@ -509,24 +555,46 @@ void render_classic_text(sys::state const& state, float x, float y, char const* 
 	glBindTexture(GL_TEXTURE_2D, font.ftexid);
 
 	for(uint32_t i = 0; i < count; ++i) {
-		auto f = font.Chars[uint8_t(codepoints[i])];
-
-		float CurX = x + f.XOffset;
-		float CurY = y + f.YOffset;
-
-		glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.Width), float(f.Height));
-
-		glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-
-		glUniform4f(ogl::parameters::subrect,
-			float(f.x) / float(font.Width) /* x offset */,
-			float(f.Width) / float(font.Width) /* x width */,
-			float(f.y) / float(font.Width) /* y offset */,
-			float(f.Height) / float(font.Width) /* y height */
-		);
-
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
+		auto f = font.Chars[0];
+		if(uint8_t(codepoints[i]) == 0xA4 || uint8_t(codepoints[i]) == 0x01 || uint8_t(codepoints[i]) == 0x02) {
+			GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
+			f = font.Chars[0x4D];
+			float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
+			float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
+			float CurX = x + f.XOffset - (float(f.Width) * offset);
+			float CurY = y + f.YOffset - (float(f.Height) * offset);
+			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.Width) * scaling, float(f.Height) * scaling);
+			glBindTexture(GL_TEXTURE_2D, uint8_t(codepoints[i]) == 0xA4
+				? state.open_gl.money_icon_tex
+				: uint8_t(codepoints[i]) == 0x01
+					? state.open_gl.cross_icon_tex
+					: state.open_gl.checkmark_icon_tex);
+			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
+			glUniform4f(ogl::parameters::subrect,
+				float(f.x) / float(font.Width) /* x offset */,
+				float(f.Width) / float(font.Width) /* x width */,
+				float(f.y) / float(font.Width) /* y offset */,
+				float(f.Height) / float(font.Width) /* y height */
+			);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+			// Restore affected state
+			glBindTexture(GL_TEXTURE_2D, font.ftexid);
+			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+		} else {
+			f = font.Chars[uint8_t(codepoints[i])];
+			float CurX = x + f.XOffset;
+			float CurY = y + f.YOffset;
+			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.Width), float(f.Height));
+			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
+			glUniform4f(ogl::parameters::subrect,
+				float(f.x) / float(font.Width) /* x offset */,
+				float(f.Width) / float(font.Width) /* x width */,
+				float(f.y) / float(font.Width) /* y offset */,
+				float(f.Height) / float(font.Width) /* y height */
+			);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
 
 		//Only check kerning if there is greater then 1 character and
 		//if the check character is 1 less then the end of the string.
