@@ -164,7 +164,7 @@ public:
 
 // NOTE FOR OTHERS - THIS CODE IS NOT INTERCHANGABLE WITH ITS SIMIARLY NAMED VERSION ABOVE DO NOT REMOVE THIS
 class release_nation_window_description_text : public generic_multiline_text<dcon::national_identity_id> {
-public:
+protected:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::national_identity_id id) noexcept override {
 		int64_t province_count = 0;
 		std::string provinces = "";
@@ -189,6 +189,11 @@ public:
 			text::add_to_layout_box(contents, state, box, std::string("."));
 		}
 		text::close_layout_box(contents, box);
+	}
+public:
+	void on_create(sys::state& state) noexcept override {
+		generic_multiline_text<dcon::national_identity_id>::on_create(state);
+		black_text = false; // Nudge force to white text
 	}
 };
 
