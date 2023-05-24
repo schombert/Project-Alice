@@ -241,7 +241,7 @@ public:
 
 		} else
 		if(name == "building_name") {
-			return make_element_by_type<build_output_name_text>(state, id);
+			return make_element_by_type<factory_output_name_text>(state, id);
 
 		} else
 		if(name == "output_label") {
@@ -305,7 +305,7 @@ public:
 
 		} else
 		if(name == "total_price") {
-			return make_element_by_type<build_cost_text>(state, id);
+			return make_element_by_type<factory_build_cost_text>(state, id);
 
 		} else
 		if(name == "you_have") {
@@ -345,9 +345,6 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::commodity_id>()) {
 			payload.emplace<dcon::commodity_id>(dcon::fatten(state.world, factory_to_build).get_output());
-			return message_result::consumed;
-		} else if(payload.holds_type<dcon::state_instance_id>()) {
-			payload.emplace<dcon::state_instance_id>(state_id);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
