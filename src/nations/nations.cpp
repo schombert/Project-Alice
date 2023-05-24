@@ -1793,6 +1793,11 @@ void liberate_nation_from(sys::state& state, dcon::national_identity_id liberate
 			province::change_province_owner(state, c.get_province(), holder);
 		}
 	}
+
+	state.world.nation_set_capital(holder, province::pick_capital(state, holder));
+	if(state.world.province_get_nation_from_province_ownership(state.world.nation_get_capital(from)) != from) {
+		state.world.nation_set_capital(from, province::pick_capital(state, from));
+	}
 }
 
 void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from) {
@@ -1812,6 +1817,9 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 		if(c.get_province().get_nation_from_province_ownership() == from && !(state.world.get_core_by_prov_tag_key(c.get_province(), source_tag))) {
 			province::change_province_owner(state, c.get_province(), holder);
 		}
+	}
+	if(state.world.province_get_nation_from_province_ownership(state.world.nation_get_capital(from)) != from) {
+		state.world.nation_set_capital(from, province::pick_capital(state, from));
 	}
 }
 

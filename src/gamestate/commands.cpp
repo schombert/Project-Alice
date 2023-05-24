@@ -628,6 +628,9 @@ bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_i
 	return nations::can_release_as_vassal(state, source, t);
 }
 void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	if(!can_make_vassal(state, source, t))
+		return;
+
 	nations::liberate_nation_from(state, t, source);
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
 	state.world.force_create_overlord(holder, source);
@@ -654,6 +657,9 @@ bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::na
 	return nations::can_release_as_vassal(state, source, t);
 }
 void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	if(!can_release_and_play_as(state, source, t))
+		return;
+
 	nations::liberate_nation_from(state, t, source);
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
