@@ -725,6 +725,23 @@ void execute_change_budget_settings(sys::state& state, dcon::nation_id source, b
 	economy::bound_budget_settings(state, source);
 }
 
+void start_election(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::start_election;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_start_election(sys::state& state, dcon::nation_id source) {
+	auto type = state.world.nation_get_government_type(source);
+	return type && state.culture_definitions.governments[type].has_elections && !politics::is_election_ongoing(state, source);
+}
+void execute_start_election(sys::state& state, dcon::nation_id source) {
+	if(!can_start_election(state, source))
+		return;
+	politics::start_election(state, source);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -782,6 +799,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::change_budget:
 				execute_change_budget_settings(state, c->source, c->data.budget_data);
+				break;
+			case command_type::start_election:
+				execute_start_election(state, c->source);
 				break;
 		}
 

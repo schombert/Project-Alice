@@ -22,6 +22,7 @@ enum class command_type : uint8_t {
 	war_subsidies = 14,
 	cancel_war_subsidies = 15,
 	change_budget = 16,
+	start_election = 17,
 };
 
 struct national_focus_data {
@@ -161,6 +162,10 @@ void change_budget_settings(sys::state& state, dcon::nation_id source, budget_se
 inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
 	return true;
 }
+
+
+void start_election(sys::state& state, dcon::nation_id source);
+bool can_start_election(sys::state& state, dcon::nation_id source);
 
 void execute_pending_commands(sys::state& state);
 

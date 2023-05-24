@@ -1291,3 +1291,12 @@ Settings are changed (by being clamped to the permissible range).
 
 Change whether the stockpile is filling, and what its target amount its
 
+### Start election
+
+#### Conditions
+
+Elections must be possible in the form of government. No election may be currently ongoing.
+
+#### Effect
+
+Starts an election
