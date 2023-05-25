@@ -288,6 +288,12 @@ ogl::color3f get_text_color(text::text_color text_color) {
 			return ogl::color3f{ 0.5f, 0.5f, 1.0f };
 		case text::text_color::dark_blue:
 			return ogl::color3f{ 0.2f, 0.2f, 0.8f };
+		case text::text_color::orange:
+			return ogl::color3f{ 1.f, 0.7f, 0.1f };
+		case text::text_color::lilac:
+			return ogl::color3f{ 0.8f, 0.7f, 0.3f };
+		case text::text_color::light_grey:
+			return ogl::color3f{ 0.6f, 0.6f, 0.6f };
 		default:
 			return ogl::color3f{ 0.f, 0.f, 0.f };
 	}
@@ -366,8 +372,11 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 			edit_index = std::min<int32_t>(edit_index + 1, int32_t(s.length()));
 			break;
 		case sys::virtual_key::DELETE_KEY:
-			if(edit_index < int32_t(s.length()))
+			if(edit_index < int32_t(s.length())) {
 				s.erase(edit_index, 1);
+				set_text(state, s);
+				edit_box_update(state, s);
+			}
 			break;
 		case sys::virtual_key::BACK:
 			if(edit_index > 0 && edit_index <= int32_t(s.length())) {

@@ -194,7 +194,7 @@ bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::nat
 			owns_a_core |= state.world.province_get_nation_from_province_ownership(province) == n;
 			not_on_capital &= state.world.nation_get_capital(n) != province;
 		});
-		return owns_a_core && not_on_capital;
+		return owns_a_core && not_on_capital && !state.world.nation_get_is_at_war(n);
 	} else {
 		return false;
 	}
