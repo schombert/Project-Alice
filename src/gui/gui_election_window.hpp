@@ -17,7 +17,7 @@ namespace ui {
 	  ###      ###  ###      ###
 */
 
-class politics_election_window : public window_element_base {
+class election_event_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);

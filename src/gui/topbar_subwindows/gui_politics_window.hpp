@@ -12,7 +12,6 @@
 #include "gui_reforms_window.hpp"
 #include "gui_release_nation_window.hpp"
 #include "gui_unciv_reforms_window.hpp"
-#include "gui_election_window.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
@@ -396,7 +395,6 @@ private:
 	release_nation_window* release_nation_win = nullptr;
 	politics_issue_support_listbox* issues_listbox = nullptr;
 	element_base* release_win = nullptr;
-	element_base* election_win = nullptr;
 	dcon::nation_id release_nation_id{};
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -405,18 +403,11 @@ public:
 			auto ptr = make_element_by_type<politics_ruling_party_window>(state, "party_window");
 			add_child_to_front(std::move(ptr));
 		}
-
 		{
 			auto ptr = make_element_by_type<politics_release_nation_window>(state, "releaseconfirm");
 			release_win = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-		{
-			auto ptr = make_element_by_type<politics_election_window>(state, "event_election_window");
-			election_win = ptr.get();
-			add_child_to_front(std::move(ptr));
-		}
-
 		set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

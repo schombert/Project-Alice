@@ -15,6 +15,7 @@
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
+#include "gui_election_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
@@ -368,6 +369,11 @@ namespace sys {
 			auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
 			new_elm_navy->set_visible(*this, false);
 			ui_state.root->add_child_to_front(std::move(new_elm_navy));
+		}
+		{
+			auto new_elm = make_element_by_type<election_event_window>(state, "event_election_window");
+			ui_state.election_window = new_elm.get();
+			add_child_to_front(std::move(new_elm));
 		}
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
