@@ -22,6 +22,15 @@ enum class command_type : uint8_t {
 	war_subsidies = 14,
 	cancel_war_subsidies = 15,
 	change_budget = 16,
+	start_election = 17,
+	change_influence_priority = 18,
+	discredit_advisors = 19,
+	expel_advisors = 20,
+	ban_embassy = 21,
+	increase_opinion = 22,
+	decrease_opinion = 23,
+	add_to_sphere = 24,
+	remove_from_sphere = 25,
 };
 
 struct national_focus_data {
@@ -68,6 +77,16 @@ struct tag_target_data {
 	dcon::national_identity_id ident;
 };
 
+struct influence_action_data {
+	dcon::nation_id influence_target;
+	dcon::nation_id gp_target;
+};
+
+struct influence_priority_data {
+	dcon::nation_id influence_target;
+	uint8_t priority;
+};
+
 struct budget_settings_data {
 	int8_t education_spending;
 	int8_t military_spending;
@@ -94,6 +113,8 @@ struct payload {
 		tag_target_data tag_target;
 		factory_data factory;
 		budget_settings_data budget_data;
+		influence_action_data influence_action;
+		influence_priority_data influence_priority;
 
 		dtype() {}
 	} data;
@@ -161,6 +182,33 @@ void change_budget_settings(sys::state& state, dcon::nation_id source, budget_se
 inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
 	return true;
 }
+
+void start_election(sys::state& state, dcon::nation_id source);
+bool can_start_election(sys::state& state, dcon::nation_id source);
+
+void change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority);
+bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority);
+
+void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+
+void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+
+void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+
+void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
+bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
+
+void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+
+void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
+bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
+
+void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
 void execute_pending_commands(sys::state& state);
 

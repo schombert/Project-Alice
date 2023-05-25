@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commands.hpp"
 #include "culture.hpp"
 #include "cyto_any.hpp"
 #include "dcon_generated.hpp"
@@ -352,6 +353,16 @@ public:
 	}
 };
 
+class politics_hold_election_button : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		disabled = !command::can_start_election(state, state.local_player_nation);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		command::start_election(state, state.local_player_nation);
+	}
+};
+
 class politics_issue_sort_button : public button_element_base {
 public:
 	politics_issue_sort_order order = politics_issue_sort_order::name;
@@ -462,6 +473,8 @@ public:
 			return make_element_by_type<politics_upper_house_listbox>(state, id);
 		} else if(name == "unciv_overlay") {
 			return make_element_by_type<politics_unciv_overlay>(state, id);
+		} else if(name == "hold_election") {
+			return make_element_by_type<politics_hold_election_button>(state, id);
 		} else if(name == "issue_listbox") {
 			auto ptr = make_element_by_type<politics_issue_support_listbox>(state, id);
 			issues_listbox = ptr.get();
