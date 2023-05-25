@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commands.hpp"
 #include "culture.hpp"
 #include "dcon_generated.hpp"
 #include "gui_common_elements.hpp"
@@ -137,7 +138,6 @@ enum class budget_slider_target : uint8_t {
 	army_stock,
 	navy_stock,
 	construction_stock,
-	subsidies,
 	education,
 	admin,
 	social,
@@ -161,16 +161,69 @@ public:
 			Cyto::Any payload = budget_slider_signal{ SliderTarget, amount };
 			parent->impl_set(state, payload);
 		}
+		if(state.ui_state.drag_target == nullptr) {
+			commit_changes(state);
+		}
 	}
 
 	void on_update(sys::state& state) noexcept final {
-		auto true_value = get_true_value(state);
-		update_raw_value(state, get_true_value(state));
-		on_value_change(state, true_value);
+		int32_t v = 0;
+		if(state.ui_state.drag_target == slider) {
+			v = int32_t(scaled_value());
+		} else {
+			v = get_true_value(state);
+			update_raw_value(state, v);
+		}
+		if(parent) {
+			float amount = float(v) / 100.f;
+			Cyto::Any payload = budget_slider_signal{ SliderTarget, amount };
+			parent->impl_set(state, payload);
+		}
 	}
 
 	virtual int32_t get_true_value(sys::state& state) noexcept {
 		return 0;
+	}
+
+	void on_drag_finish(sys::state & state) noexcept override {
+		commit_changes(state);
+	}
+
+private:
+	void commit_changes(sys::state& state) noexcept {
+		auto budget_settings = command::make_empty_budget_settings();
+		update_budget_settings(budget_settings);
+		command::change_budget_settings(state, state.local_player_nation, budget_settings);
+	}
+
+	void update_budget_settings(command::budget_settings_data &budget_settings) noexcept {
+		auto new_val = int8_t(scaled_value());
+		switch (SliderTarget) {
+			case budget_slider_target::poor_tax:
+				budget_settings.poor_tax = new_val; break;
+			case budget_slider_target::middle_tax:
+				budget_settings.middle_tax = new_val; break;
+			case budget_slider_target::rich_tax:
+				budget_settings.rich_tax = new_val; break;
+			case budget_slider_target::army_stock:
+				budget_settings.land_spending = new_val; break;
+			case budget_slider_target::navy_stock:
+				budget_settings.naval_spending = new_val; break;
+			case budget_slider_target::construction_stock:
+				budget_settings.construction_spending = new_val; break;
+			case budget_slider_target::education:
+				budget_settings.education_spending = new_val; break;
+			case budget_slider_target::admin:
+				budget_settings.administrative_spending = new_val; break;
+			case budget_slider_target::social:
+				budget_settings.social_spending = new_val; break;
+			case budget_slider_target::military:
+				budget_settings.military_spending = new_val; break;
+			case budget_slider_target::tariffs:
+				budget_settings.tariffs = new_val; break;
+			default:
+				break;
+		}
 	}
 };
 
