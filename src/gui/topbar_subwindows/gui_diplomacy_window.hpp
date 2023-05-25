@@ -949,13 +949,28 @@ public:
 			Cyto::Any new_payload = facts_nation_id;
 			switch(v) {
 			case diplomacy_action::discredit:
+				command::discredit_advisors(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, facts_nation_id).get_in_sphere_of().id);
+				break;
 			case diplomacy_action::expel_advisors:
+				command::expel_advisors(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, facts_nation_id).get_in_sphere_of().id);
+				break;
 			case diplomacy_action::ban_embassy:
+				command::ban_embassy(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, facts_nation_id).get_in_sphere_of().id);
+				break;
+			case diplomacy_action::increase_opinion:
+				command::increase_opinion(state, state.local_player_nation, facts_nation_id);
+				break;
 			case diplomacy_action::decrease_opinion:
 				gp_action_dialog_win->set_visible(state, true);
 				gp_action_dialog_win->impl_set(state, new_payload);
 				gp_action_dialog_win->impl_set(state, payload);
 				gp_action_dialog_win->impl_on_update(state);
+				break;
+			case diplomacy_action::add_to_sphere:
+				command::add_to_sphere(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::remove_from_sphere:
+				// TODO - gp_action_dialog_win probably needs to be used here, so figure that out ig
 				break;
 			default:
 				action_dialog_win->set_visible(state, true);
