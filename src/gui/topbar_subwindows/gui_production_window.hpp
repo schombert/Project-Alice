@@ -469,8 +469,14 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
-			Cyto::Any s_payload = production_selection_wrapper{ any_cast<dcon::state_instance_id>(payload), true, xy_pair{ 0, 0 } };
+			auto sid = any_cast<dcon::state_instance_id>(payload);
+			Cyto::Any s_payload = production_selection_wrapper{ sid, true, xy_pair{ 0, 0 } };
 			parent->impl_get(state, s_payload);
+			
+			disabled = true;
+			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+				disabled = disabled || !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
+			});
 		}
 	}
 
