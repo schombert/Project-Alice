@@ -371,7 +371,7 @@ namespace sys {
 			ui_state.root->add_child_to_front(std::move(new_elm_navy));
 		}
 		{
-			auto new_elm = make_element_by_type<election_event_window>(state, "event_election_window");
+			auto new_elm = make_element_by_type<ui::election_event_window>(state, "event_election_window");
 			ui_state.election_window = new_elm.get();
 			add_child_to_front(std::move(new_elm));
 		}
