@@ -155,7 +155,6 @@ struct budget_slider_signal {
 template<budget_slider_target SliderTarget>
 class budget_slider : public scrollbar {
 public:
-	float amount = 0.0f;
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
 			float amount = float(v) / 100.0f;
