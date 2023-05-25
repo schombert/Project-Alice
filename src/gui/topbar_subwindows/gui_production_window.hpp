@@ -953,6 +953,7 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			show_empty_states = any_cast<element_selection_wrapper<bool>>(payload).data;
+			impl_on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

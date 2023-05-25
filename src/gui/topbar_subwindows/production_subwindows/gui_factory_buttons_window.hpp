@@ -116,7 +116,6 @@ public:
 
 			Cyto::Any payload2 = element_selection_wrapper<bool>{!content};
 			parent->impl_get(state, payload2);
-
 		}
 	}
 
