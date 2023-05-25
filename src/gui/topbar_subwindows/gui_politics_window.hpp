@@ -56,6 +56,17 @@ public:
 	}
 };
 
+class politics_hold_election : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		command::start_election(state, state.local_player_nation);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		command::can_start_election(state, state.local_player_nation) ? disabled = false : disabled = true;
+	}
+};
+
 class politics_upper_house_listbox : public listbox_element_base<politics_upper_house_entry, dcon::ideology_id> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -392,13 +403,11 @@ public:
 			auto ptr = make_element_by_type<politics_ruling_party_window>(state, "party_window");
 			add_child_to_front(std::move(ptr));
 		}
-
 		{
 			auto ptr = make_element_by_type<politics_release_nation_window>(state, "releaseconfirm");
 			release_win = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
-
 		set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -491,6 +500,8 @@ public:
 			auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
 			ptr->order = politics_issue_sort_order::voter_support;
 			return ptr;
+		} else if(name == "hold_election") {
+			return make_element_by_type<politics_hold_election>(state, id);
 		} else {
 			return nullptr;
 		}

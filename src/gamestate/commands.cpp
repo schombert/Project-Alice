@@ -225,7 +225,7 @@ bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nat
 void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(!can_decrease_relations(state, source, target))
 		return;
-	
+
 	nations::adjust_relationship(state, source, target, state.defines.decreaserelation_relation_on_accept);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.decreaserelation_diplomatic_cost;
 }
@@ -352,7 +352,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 					if(f.get_factory().get_building_type() == type && f.get_factory().get_level() < uint8_t(255)) {
 						return true;
 					}
-					
+
 				}
 			}
 		}

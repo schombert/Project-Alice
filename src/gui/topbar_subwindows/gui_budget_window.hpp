@@ -77,7 +77,7 @@ protected:
 		enabled = true;
 		if(parent == nullptr)
 			return distrib;
-		
+
 		parent->impl_get(state, nat_id_payload);
 		if(nat_id_payload.holds_type<dcon::nation_id>()) {
 			auto nat_id = any_cast<dcon::nation_id>(nat_id_payload);
@@ -86,7 +86,7 @@ protected:
 			state.world.for_each_province([&](dcon::province_id province) {
 				if(nat_id != state.world.province_get_nation_from_province_ownership(province))
 					return;
-				
+
 				for(auto pop_loc : state.world.province_get_pop_location(province)) {
 					auto pop_id = pop_loc.get_pop();
 					auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
@@ -157,8 +157,8 @@ class budget_slider : public scrollbar {
 public:
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
-			float amount = float(v) / 100.f;
-			Cyto::Any payload = budget_slider_signal{ SliderTarget, amount };
+			float amount = float(v) / 100.0f;
+			Cyto::Any payload = budget_slider_signal{SliderTarget, amount};
 			parent->impl_set(state, payload);
 		}
 		if(state.ui_state.drag_target == nullptr) {

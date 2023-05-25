@@ -108,6 +108,17 @@ public:
 
 class factory_show_empty_states_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = bool{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<bool>(payload);
+
+			Cyto::Any payload2 = element_selection_wrapper<bool>{!content};
+			parent->impl_get(state, payload2);
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
