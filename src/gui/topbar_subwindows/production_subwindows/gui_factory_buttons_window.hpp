@@ -134,6 +134,22 @@ public:
 	}
 };
 
+template<dcon::commodity_id T>
+class factory_filter_button : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "filter_button") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "filter_enabled") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "goods_type") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 class factory_buttons_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -171,6 +187,11 @@ public:
 
 		} else if(name == "sort_by_infra") {
 			return make_element_by_type<button_element_base>(state, id);
+
+		} else if(name == "filter_bounds") {
+			state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				make_element_by_type<factory_filter_button>(state, id);
+			});
 
 		} else {
 			return nullptr;
