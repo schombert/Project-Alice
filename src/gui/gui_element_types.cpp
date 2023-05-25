@@ -1382,7 +1382,7 @@ void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, in
 
 	Cyto::Any adjustment_payload = value_change{
 		int32_t(parent_settings.lower_value + fp_pos * (parent_settings.upper_value - parent_settings.lower_value)),
-		false, false };
+		true, false };
 	parent->impl_get(state, adjustment_payload);
 }
 
@@ -1512,6 +1512,11 @@ void scrollbar::on_create(sys::state& state) noexcept {
 				right->base_data.position.y = 0;
 			}
 		}
+	}
+}
+void scrollbar_slider::on_drag_finish(sys::state& state) noexcept {
+	if(parent) {
+		parent->impl_on_drag_finish(state);
 	}
 }
 message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
