@@ -17,6 +17,9 @@ namespace text {
 			case 'b': return text_color::black;
 			case 'B': return text_color::light_blue;
 			case 'g': return text_color::dark_blue;
+			case 'L': return text_color::lilac;
+			case 'O': return text_color::orange;
+			case 'l': return text_color::light_grey;
 			case '!': return text_color::reset;
 			default: return text_color::unspecified;
 		}
