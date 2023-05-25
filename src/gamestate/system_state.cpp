@@ -288,11 +288,16 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("new_factory_option")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("project_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
-		ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].flags &= ~ui::element_data::orientation_mask;
 		// Allow mobility of those windows who can be moved, and shall be moved
 		ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-
+		ui_defs.gui[ui_state.defs_by_name.find("ledger")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("build_factory")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("event_election_window")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		// Find the object id for the main_bg displayed (so we display it before the map)
 		bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 

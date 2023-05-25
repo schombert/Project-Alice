@@ -1341,7 +1341,7 @@ public:
 		} else if(name == "rightshield") {
 			return make_element_by_type<diplomacy_action_dialog_right_flag_image>(state, id);
 		} else if(name == "background") {
-			auto ptr = make_element_by_type<opaque_element_base>(state, id);
+			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;
 			return ptr;
 		} else {
@@ -1410,7 +1410,7 @@ public:
 		} else if(name == "rightshield") {
 			return make_element_by_type<diplomacy_action_dialog_right_flag_image>(state, id);
 		} else if(name == "background") {
-			auto ptr = make_element_by_type<opaque_element_base>(state, id);
+			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;
 			return ptr;
 		} else {
