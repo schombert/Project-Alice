@@ -192,6 +192,28 @@ inline uint8_t decrease_priority(uint8_t v) {
 		return v;
 	}
 }
+inline bool is_influence_level_greater(int32_t l, int32_t r) {
+	switch(l) {
+		case level_hostile:
+			return false;
+		case level_opposed:
+			return r == level_hostile;
+		case level_neutral:
+			return r == level_hostile || r == level_opposed;
+		case level_cordial:
+			return r <= 2;
+		case level_friendly:
+			return r <= 3;
+		case level_in_sphere:
+			return r <= 4;
+		default:
+			return false;
+	}
+}
+inline bool is_influence_level_greater_or_equal(int32_t l, int32_t r) {
+	return l == r || is_influence_level_greater(l, r);
+}
+int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target);
 
 }
 
