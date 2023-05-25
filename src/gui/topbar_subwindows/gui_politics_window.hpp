@@ -56,21 +56,14 @@ public:
 	}
 };
 
-struct election_emplace_wrapper {
-	dcon::nation_id content;
-};
-
 class politics_hold_election : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::national_identity_id{};
-			parent->impl_get(state, payload);
-			auto niid = any_cast<dcon::national_identity_id>(payload);
-			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
-			Cyto::Any e_payload = election_emplace_wrapper{ nid };
-			parent->impl_get(state, e_payload);
-		}
+		command::start_election(state, state.local_player_nation);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		command::can_start_election(state, state.local_player_nation) ? disabled = false : disabled = true;
 	}
 };
 
@@ -561,15 +554,6 @@ public:
 			release_nation_id = any_cast<release_emplace_wrapper>(payload).content;
 			release_win->set_visible(state, true);
 			move_child_to_front(release_win);
-			return message_result::consumed;
-		} else if(payload.holds_type<election_emplace_wrapper>()) {
-			//release_nation_id = any_cast<election_emplace_wrapper>(payload).content;
-			if(!election_win->is_visible()) {
-				election_win->set_visible(state, true);
-			} else {
-				election_win->set_visible(state, false);
-			}
-			move_child_to_front(election_win);
 			return message_result::consumed;
 		} else if(payload.holds_type<politics_issue_sort_order>()) {
 			auto enum_val = any_cast<politics_issue_sort_order>(payload);
