@@ -12,56 +12,7 @@
 
 namespace ui {
 
-enum class prod_good_sort : uint8_t {
-	ammunition,
-	small_arms,
-	artillary,
-	canned_food,
-	tanks,
-	airplane,
-	cotton,
-	dye,
-	wool,
-	silk,
-	coal,
-	sulpher,
-	iron,
-	timber,
-	tropical_wood,
-	rubber,
-	oil,
-	precious_metal,
-	steel,
-	cement,
-	machine_parts,
-	glass,
-	fuel,
-	fertiliser,
-	explosives,
-	clipper,
-	steamer,
-	electrics,
-	fabric,
-	lumber,
-	paper,
-	cattle,
-	fish,
-	fruit,
-	grain,
-	tobacco,
-	coffee,
-	tea,
-	opium,
-	automobile,
-	telephone,
-	wine,
-	beer,
-	regular_clothes,
-	luxury_clothes,
-	furniture,
-	luxury_furniture,
-	radio
-};
+
 
 enum class production_window_tab : uint8_t {
 	factories = 0x0,
@@ -722,6 +673,7 @@ public:
 
 class production_window : public generic_tabbed_window<production_window_tab> {
 	bool show_empty_states = true;
+	bool *show_output_commodity;
 
 	production_state_listbox* state_listbox = nullptr;
 	element_base* nf_win = nullptr;
