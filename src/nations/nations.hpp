@@ -251,7 +251,6 @@ void update_administrative_efficiency(sys::state& state);
 
 float daily_research_points(sys::state& state, dcon::nation_id n);
 void update_research_points(sys::state& state);
-void update_colonial_points(sys::state& state); // NOTE: relies on naval supply being set
 
 void update_industrial_scores(sys::state& state);
 void update_military_scores(sys::state& state);
@@ -275,8 +274,8 @@ float get_bank_funds(sys::state& state, dcon::nation_id n);
 float get_debt(sys::state& state, dcon::nation_id n);
 float tariff_efficiency(sys::state& state, dcon::nation_id n);
 float tax_efficiency(sys::state& state, dcon::nation_id n);
-int32_t free_colonial_points(sys::state const& state, dcon::nation_id n);
-int32_t max_colonial_points(sys::state const& state, dcon::nation_id n);
+int32_t free_colonial_points(sys::state& state, dcon::nation_id n);
+int32_t max_colonial_points(sys::state& state, dcon::nation_id n);
 
 bool has_political_reform_available(sys::state& state, dcon::nation_id n);
 bool has_social_reform_available(sys::state& state, dcon::nation_id n);

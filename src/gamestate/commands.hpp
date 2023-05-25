@@ -31,6 +31,7 @@ enum class command_type : uint8_t {
 	decrease_opinion = 23,
 	add_to_sphere = 24,
 	remove_from_sphere = 25,
+	upgrade_colony_to_state = 26,
 };
 
 struct national_focus_data {
@@ -87,6 +88,10 @@ struct influence_priority_data {
 	uint8_t priority;
 };
 
+struct generic_location_data {
+	dcon::province_id prov;
+};
+
 struct budget_settings_data {
 	int8_t education_spending;
 	int8_t military_spending;
@@ -115,6 +120,7 @@ struct payload {
 		budget_settings_data budget_data;
 		influence_action_data influence_action;
 		influence_priority_data influence_priority;
+		generic_location_data generic_location;
 
 		dtype() {}
 	} data;
@@ -209,6 +215,9 @@ bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_i
 
 void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);	// Implemented in GUI :3
 bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+
+void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);
+bool can_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);
 
 void execute_pending_commands(sys::state& state);
 

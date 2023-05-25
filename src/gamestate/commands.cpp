@@ -1178,6 +1178,53 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 	}
 }
 
+void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::upgrade_colony_to_state;
+	p.source = source;
+	p.data.generic_location.prov = state.world.state_instance_get_capital(si);
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
+	return state.world.state_instance_get_nation_from_state_ownership(si) == source && province::can_integrate_colony(state, si);
+}
+void execute_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
+	if(!can_upgrade_colony_to_state(state, source, si))
+		return;
+
+	province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+		//Provinces in the state stop being colonial.
+		state.world.province_set_is_colonial(p, false);
+
+		//All timed modifiers active for provinces in the state expire
+		auto timed_modifiers = state.world.province_get_current_modifiers(p);
+		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
+			if(bool(timed_modifiers[i].expiration)) {
+				timed_modifiers.remove_at(i);
+			}
+		}
+	});
+
+	//Gain define:COLONY_TO_STATE_PRESTIGE_GAIN x(1.0 + colony - prestige - from - tech) x(1.0 + prestige - from - tech)
+	nations::adjust_prestige(state, source, state.defines.colony_to_state_prestige_gain * (1.0f + state.world.nation_get_modifier_values(source, sys::national_mod_offsets::colonial_prestige)));
+
+	//An event from `on_colony_to_state` happens(with the state in scope)
+	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state, trigger::to_generic(si), source, -1);
+
+	//An event from `on_colony_to_state_free_slaves` happens(with the state in scope)
+	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state_free_slaves, trigger::to_generic(si), source, -1);
+
+	//Update is colonial nation
+	state.world.nation_set_is_colonial_nation(source, false);
+	for(auto p : state.world.nation_get_province_ownership(source)) {
+		if(p.get_province().get_is_colonial()) {
+			state.world.nation_set_is_colonial_nation(source, true);
+			return;
+		}
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1262,6 +1309,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::add_to_sphere:
 				execute_add_to_sphere(state, c->source, c->data.influence_action.influence_target);
+				break;
+			case command_type::upgrade_colony_to_state:
+				execute_upgrade_colony_to_state(state, c->source, state.world.province_get_state_membership(c->data.generic_location.prov));
 				break;
 		}
 

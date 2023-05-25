@@ -580,6 +580,9 @@ bool can_integrate_colony(sys::state& state, dcon::state_instance_id id) {
 }
 
 float colony_integration_cost(sys::state& state, dcon::state_instance_id id) {
+	/*
+	The point requirement is: define:COLONIZATION_CREATE_STATE_COST x number of provinces x 1v(either distance to capital / COLONIZATION_COLONY_STATE_DISTANCE or 0 if it has a land connection to the capital).
+	*/
 	bool entirely_overseas = true;
 	float prov_count = 0.f;
 	for_each_province_in_state_instance(state, id, [&](dcon::province_id prov) {
@@ -625,7 +628,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			state.world.state_instance_set_capital(new_si, id);
 			state.world.province_set_is_colonial(id, will_be_colonial);
 			state.world.province_set_is_slave(id, false);
-
+			if(will_be_colonial)
+				state.world.nation_set_is_colonial_nation(new_owner, true);
 			state_is_new = true;
 		} else {
 			auto sc = state.world.state_instance_get_capital(new_si);
