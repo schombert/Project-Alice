@@ -771,6 +771,8 @@ public:
 		build_win = win.get();
 		add_child_to_front(std::move(win));
 
+		show_output_commodity = new bool[state.world.commodity_size()];
+
 		set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
