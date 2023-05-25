@@ -12,6 +12,15 @@
 
 namespace nations {
 
+namespace influence {
+
+int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target) {
+	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, gp);
+	return state.world.gp_relationship_get_status(rel) & influence::level_mask;
+}
+
+}
+
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
 	/* TODO -
 	 * This should return the differance of the population of a nation between this month and next month, or this month and last month, depending which one is better to implement
@@ -497,6 +506,12 @@ void update_great_powers(sys::state& state) {
 				state.world.nation_set_is_great_power(n, true);
 				state.great_nations.push_back(sys::great_nation(state.current_date, n));
 				state.world.nation_set_state_from_flashpoint_focus(n, dcon::state_instance_id{});
+
+				state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
+				auto rng = state.world.nation_get_gp_relationship_as_influence_target(n);
+				while(rng.begin() != rng.end()) {
+					state.world.delete_gp_relationship(*(rng.begin()));
+				}
 
 				event::fire_fixed_event(state, state.national_definitions.on_new_great_nation, trigger::to_generic(n), n, -1);
 			}
@@ -1083,6 +1098,11 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		dcon::navy_id l{ dcon::navy_id::value_base_t(i) };
 		if(!state.world.navy_get_controller_from_navy_control(l)) {
 			state.world.delete_navy(l);
+		}
+	}
+	for(auto o : state.world.in_nation) {
+		if(o.get_in_sphere_of() == n) {
+			o.set_in_sphere_of(dcon::nation_id{});
 		}
 	}
 
