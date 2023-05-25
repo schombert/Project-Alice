@@ -301,16 +301,19 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 	} else {
 		// Specific suggestions for each command
 		if(s.starts_with("tag")) {
-			std::string_view tag = s.substr(pos);
+			std::string tag{ s.substr(pos) };
 			if(tag.empty())
 				return; // Can't give suggestion if nothing was inputted
+			std::transform(tag.begin(), tag.end(), tag.begin(), [](auto c) {
+				return char(toupper(char(c)));
+			});
 
 			// Tag will autofill a country name + indicate it's full name
 			std::pair<uint32_t, dcon::national_identity_id> closest_match{};
 			closest_match.first = std::numeric_limits<uint32_t>::max();
 			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
-				auto fat_id = dcon::fatten(state.world, id);
-				auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+				dcon::national_identity_fat_id fat_id = dcon::fatten(state.world, id);
+				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
 				if(name.starts_with(tag)) {
 					auto dist = levenshtein_distance(tag, name);
 					if(dist < closest_match.first) {
@@ -321,7 +324,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 			});
 			// Now type in a suggestion...
 			dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
-			auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
+			std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
 			if(tag.size() >= name.size()) {
 				lhs_suggestion = std::string{};
 			} else {
@@ -353,9 +356,10 @@ void ui::console_edit::edit_box_tab(sys::state &state, std::string_view s) noexc
     auto closest_name = closest_match.second;
     if(closest_name.empty())
         return;
-    this->set_text(state, std::string(closest_name) + " ");
+    set_text(state, std::string(closest_name) + " ");
     auto index = int32_t(closest_name.size() + 1);
-    this->edit_index_position(state, index);
+    edit_index_position(state, index);
+	edit_box_update(state, s);
 }
 
 void ui::console_edit::edit_box_up(sys::state &state) noexcept {
