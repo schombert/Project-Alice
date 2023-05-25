@@ -257,7 +257,7 @@ public:
 			Cyto::Any payload = dcon::pop_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
-		
+
 			auto fat_id = dcon::fatten(state.world, content);
 			auto movement_fact = fat_id.get_pop_movement_membership();
 			auto box = text::open_layout_box(contents, 0);
@@ -405,7 +405,7 @@ public:
 			Cyto::Any payload = dcon::pop_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
-		
+
 			auto fat_id = dcon::fatten(state.world, content);
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val, text::fp_currency{state.world.pop_get_savings(fat_id.id)});
