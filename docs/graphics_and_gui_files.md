@@ -47,6 +47,21 @@ Some files that come with the vanilla game are malformed in some way or have mis
 
 If a mod depends on those files being parsed and/or uses them for something - then don't. Before, `eu3dialog.gui` was ignored too, however it's now parsed and used, but the graphics element `GFX_icon_merchant` is overriden, if a mod depends on this not being overriden (for whatever reason); let us know.
 
+Some elements are fixed up automatically by the game in the code, overriding their otherwise set properties. Those elements are listed below:
+- `state_info` Overrides `orientation`.
+- `production_goods_name` Overrides `orientation`.
+- `factory_info` Overrides `orientation`.
+- `new_factory_option` Overrides `orientation`.
+- `ledger_legend_entry` Overrides `orientation`.
+- `project_info` Overrides `orientation`.
+- `pop_details_win` Overrides `moveable`.
+- `trade_flow` Overrides `moveable`.
+- `ledger` Overrides `moveable`.
+- `province_view` Overrides `moveable`.
+- `releaseconfirm` Overrides `moveable`.
+- `defaultdiplomacydialog` Overrides `moveable`.
+- `gpselectdiplomacydialog` Overrides `moveable`.
+
 #### A quick note on fonts
 
 Some of these elements will refer to various fonts. Since we won't be using any of the fonts from the game directly, trying to decode the font descriptions and interpret them seems like a waste of time. Instead we will just recognize fonts by hard-coding the names of the fonts to later assign to fonts of our choosing. Each font name starts with one of the following: `arial`, `fps`, `main`, `tooltip`, `frangoth`, `garamond`, `impact`, `old_english`, `timefont`, or `vic`, and is then followed by an optional underscore, and then an optional number (presumably size), and then an underscore and a final bit of decoration such as `bold`,  `black`, `black_bold`, or `bl`. We will deal with this all by mapping the start of the name to one of a smaller number of fonts we will load, parsing out the size (if present), and then determining whether to render the font in white (the default) or in black.
