@@ -26,7 +26,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<draggable_target>(state, id);
 
 		} else if(name == "title") {
 			return make_element_by_type<simple_text_element_base>(state, id);

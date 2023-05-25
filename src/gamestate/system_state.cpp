@@ -296,6 +296,8 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("build_factory")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("event_election_window")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		// Find the object id for the main_bg displayed (so we display it before the map)
 		bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 
