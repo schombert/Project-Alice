@@ -1737,6 +1737,8 @@ void daily_update(sys::state& state) {
 			float budget = state.world.nation_get_stockpiles(n, economy::money); // (TODO: make debt possible)
 			float spending_scale = (total < 0.001 || total <= budget) ? 1.0f : budget / total;
 
+			assert(spending_scale >= 0);
+			assert(budget >= 0);
 			assert(std::isfinite(spending_scale));
 			assert(std::isfinite(budget));
 
@@ -1821,7 +1823,8 @@ void daily_update(sys::state& state) {
 		auto owners = nations::owner_of_pop(state, ids);
 		auto owner_spending = state.world.nation_get_spending_level(owners);
 
-		auto adj_pop_of_type = state.world.pop_get_size(ids) / needs_scaling_factor;
+		auto pop_of_type = state.world.pop_get_size(ids);
+		auto adj_pop_of_type = pop_of_type / needs_scaling_factor;
 
 		auto const a_spending = owner_spending * ve::to_float(state.world.nation_get_administrative_spending(owners)) / 100.0f;
 		auto const s_spending = owner_spending * state.world.nation_get_administrative_efficiency(owners) * ve::to_float(state.world.nation_get_social_spending(owners)) / 100.0f;
@@ -1865,14 +1868,14 @@ void daily_update(sys::state& state) {
 		acc_m = acc_m + ve::select(lx_types == int32_t(culture::income_type::military), m_spending * adj_pop_of_type * lx_costs, 0.0f);
 
 		acc_u = acc_u + ve::select(none_of_above && state.world.pop_type_get_has_unemployment(types),
-			s_spending * (adj_pop_of_type - state.world.pop_get_employment(ids)) * unemp_level * ln_costs,
+			s_spending * (pop_of_type - state.world.pop_get_employment(ids)) * unemp_level * ln_costs,
 			0.0f);
 
 		state.world.pop_set_savings(ids, state.inflation * ((acc_e + acc_m) + (acc_u + acc_a)));
-		ve::apply([](float v) { assert(std::isfinite(v)); }, acc_e);
-		ve::apply([](float v) { assert(std::isfinite(v)); }, acc_m);
-		ve::apply([](float v) { assert(std::isfinite(v)); }, acc_u);
-		ve::apply([](float v) { assert(std::isfinite(v)); }, acc_a);
+		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_e);
+		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_m);
+		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_u);
+		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_a);
 	});
 
 
@@ -2069,7 +2072,7 @@ void daily_update(sys::state& state) {
 					for(auto pl : p.get_province().get_pop_location()) {
 						if(artisan_type == pl.get_pop().get_poptype()) {
 							pl.get_pop().set_savings(state.inflation * pl.get_pop().get_size() * per_profit);
-							assert(std::isfinite(pl.get_pop().get_savings()));
+							assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 						}
 					}
 				}
@@ -2118,7 +2121,7 @@ void daily_update(sys::state& state) {
 					for(auto pl : state.world.province_get_pop_location(p)) {
 						if(worker == pl.get_pop().get_poptype()) {
 							pl.get_pop().set_savings(state.inflation * pl.get_pop().get_size() * per_worker_profit);
-							assert(std::isfinite(pl.get_pop().get_savings()));
+							assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 						}
 					}
 				}
@@ -2160,16 +2163,16 @@ void daily_update(sys::state& state) {
 				for(auto pl : state.world.province_get_pop_location(p)) {
 					if(state.culture_definitions.primary_factory_worker == pl.get_pop().get_poptype()) {
 						pl.get_pop().set_savings(state.inflation * pl.get_pop().get_size() * per_pworker_profit);
-						assert(std::isfinite(pl.get_pop().get_savings()));
+						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 					} else if(state.culture_definitions.secondary_factory_worker == pl.get_pop().get_poptype()) {
 						pl.get_pop().set_savings(state.inflation * pl.get_pop().get_size() * per_sworker_profit);
-						assert(std::isfinite(pl.get_pop().get_savings()));
+						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 					} else if(state.culture_definitions.capitalists == pl.get_pop().get_poptype()) {
 						pl.get_pop().set_savings(state.inflation * pl.get_pop().get_size() * per_owner_profit);
-						assert(std::isfinite(pl.get_pop().get_savings()));
+						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 					} else if(state.culture_definitions.aristocrat == pl.get_pop().get_poptype()) {
 						pl.get_pop().set_savings(state.inflation * pl.get_pop().get_size() * per_rgo_owner_profit);
-						assert(std::isfinite(pl.get_pop().get_savings()));
+						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 					}
 				}
 			});
@@ -2195,6 +2198,8 @@ void daily_update(sys::state& state) {
 		auto const middle_effect = (1.0f - tax_eff * float(state.world.nation_get_middle_tax(n)) / 100.0f);
 		auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
 
+		assert(poor_effect >= 0 && middle_effect >= 0 && rich_effect >= 0);
+
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto pl : p.get_province().get_pop_location()) {
 				auto& pop_money = pl.get_pop().get_savings();
@@ -2219,6 +2224,7 @@ void daily_update(sys::state& state) {
 			+ total_mid_tax_base * tax_eff * float(state.world.nation_get_middle_tax(n)) / 100.0f
 			+ total_rich_tax_base * tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f;
 		assert(std::isfinite(collected_tax));
+		assert(collected_tax >= 0);
 		state.world.nation_get_stockpiles(n, money) += collected_tax;
 
 		{
@@ -2234,6 +2240,7 @@ void daily_update(sys::state& state) {
 				t_total += state.world.commodity_get_current_price(cid) * tariff_rate * state.world.nation_get_imports(n, cid);
 			}
 			assert(std::isfinite(t_total));
+			assert(t_total >= 0);
 			state.world.nation_get_stockpiles(n, money) += t_total;
 		}
 
@@ -3069,53 +3076,6 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 		auto& v = state.world.nation_get_social_spending(n);
 		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
 	}
-	/*
-	}
-	property {
-		name{ education_spending }
-		type{ int8_t }
-	}
-	property {
-		name{ military_spending }
-		type{ int8_t }
-	}
-	property {
-		name{ administrative_spending }
-		type{ int8_t }
-	}
-	property {
-		name{ social_spending }
-		type{ int8_t }
-	}
-	property {
-		name{ land_spending }
-		type{ int8_t }
-	}
-	property {
-		name{ naval_spending }
-		type{ int8_t }
-	}
-	property {
-		name{ construction_spending }
-		type{ int8_t }
-	}
-	property {
-		name{ poor_tax }
-		type{ int8_t }
-	}
-	property {
-		name{ middle_tax }
-		type{ int8_t }
-	}
-	property {
-		name{ rich_tax }
-		type{ int8_t }
-	}
-	property {
-		name{ tariffs }
-		type{ int8_t }
-	}
-	*/
 }
 
 }

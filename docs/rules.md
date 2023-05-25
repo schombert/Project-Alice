@@ -1380,3 +1380,17 @@ The source must be a great power. The source must have define:REMOVEFROMSPHERE_I
 #### Effect
 
 Removing a nation from a sphere costs define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. If you remove a nation from your own sphere you lose define:REMOVEFROMSPHERE_PRESTIGE_COST prestige and gain define:REMOVEFROMSPHERE_INFAMY_COST infamy. Removing a nation from the sphere of another nation "increases" your relationship with the former sphere leader by define:REMOVEFROMSPHERE_RELATION_ON_ACCEPT points. The removed nation then becomes friendly with its former sphere leader.
+
+### Make colony into state
+
+#### Conditions
+
+Must not be at war. State must be colonial. Primary and accepted bureaucrat pops must make up at least define:STATE_CREATION_ADMIN_LIMIT percent of the population in the state. Must have enough free colonial points. The point requirement is: define:COLONIZATION_CREATE_STATE_COST x number of provinces x 1v(either distance to capital / COLONIZATION_COLONY_STATE_DISTANCE or 0 if it has a land connection to the capital).
+
+#### Effect
+
+Provinces in the state stop being colonial.
+define:COLONY_TO_STATE_PRESTIGE_GAIN x (1.0 + colony-prestige-from-tech) x (1.0 + prestige-from-tech)
+All timed modifiers active for provinces in the state expire
+An event from `on_colony_to_state` happens (with the state in scope)
+An event from `on_colony_to_state_free_slaves` happens (with the state in scope)
