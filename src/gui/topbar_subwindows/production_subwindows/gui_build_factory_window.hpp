@@ -28,14 +28,20 @@ public:
 			Cyto::Any payload = dcon::factory_type_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::factory_type_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
+			disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+		}
+	}
 
-			if(!fat.is_valid() || !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false)) {
-				disabled = true;
-			} else {
-				disabled = false;
-			}
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any sidload = dcon::state_instance_id{};
+			parent->impl_get(state, sidload);
+			auto sid = any_cast<dcon::state_instance_id>(sidload);
 
+			Cyto::Any payload = dcon::factory_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_type_id>(payload);
+			command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
 		}
 	}
 };
@@ -103,6 +109,19 @@ public:
 
 class factory_build_item_button : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any sidload = dcon::state_instance_id{};
+			parent->impl_get(state, sidload);
+			auto sid = any_cast<dcon::state_instance_id>(sidload);
+			Cyto::Any payload = dcon::factory_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::factory_type_id>(payload);
+
+			disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+		}
+	}
+	
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_type_id{};
