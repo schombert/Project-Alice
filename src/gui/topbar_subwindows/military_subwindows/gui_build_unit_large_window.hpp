@@ -44,9 +44,10 @@ public:
 
 class buildable_units : public listbox_row_element_base<dcon::pop_id> {
 public:
-	int unit_type;
+	int unit_type = 17;
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
+	ui::simple_text_element_base* province_name = nullptr;
 
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
@@ -66,7 +67,12 @@ public:
 			return ptr;
 		} else if(name == "unit_strip") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->frame = 16;
 			unit_icon = ptr.get();
+			return ptr;
+		} else if(name == "province") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			province_name = ptr.get();
 			return ptr;
 		} else {
 			return nullptr;
@@ -101,10 +107,15 @@ public:
 		//state.military_definitions.unit_base_definitions[dcon::unit_type_id(1)]
 
 		//unit_icon->frame = 16;
-
-		auto name_id = state.world.pop_get_culture(content);
-		auto name_content = text::produce_simple_string(state, name_id.get_name());
-		unit_name->set_text(state, name_content);
+		for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == unit_type) {
+				auto culture_id = state.world.pop_get_culture(content);
+				auto culture_content = text::produce_simple_string(state, culture_id.get_name());
+				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name);
+				unit_name->set_text(state, culture_content+" "+unit_type_name);
+			}
+		}
+		province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(state.world.pop_location_get_province(state.world.pop_get_pop_location(content)))));
 
 		Cyto::Any payload = content;
 		impl_set(state, payload);
@@ -114,6 +125,14 @@ public:
 		if(payload.holds_type<int>()) {
 			unit_type = Cyto::any_cast<int>(payload);
 			unit_icon->frame = unit_type-1;
+			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == unit_type) {
+					auto culture_id = state.world.pop_get_culture(content);
+					auto culture_content = text::produce_simple_string(state, culture_id.get_name());
+					auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name);
+					unit_name->set_text(state, culture_content + " " + unit_type_name);
+				}
+			}
 			return message_result::consumed;
 		}
 		return message_result::unseen;
