@@ -309,20 +309,18 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
 				auto fat_id = dcon::fatten(state.world, id);
 				auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
-				auto dist = levenshtein_distance(tag, name);
-				if(dist < closest_match.first) {
-					closest_match.first = dist;
-					closest_match.second = id;
+				if(name.starts_with(tag)) {
+					auto dist = levenshtein_distance(tag, name);
+					if(dist < closest_match.first) {
+						closest_match.first = dist;
+						closest_match.second = id;
+					}
 				}
 			});
 			// Now type in a suggestion...
 			dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 			auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
-			if(tag == name) {
-				lhs_suggestion = name.substr(tag.size());
-			} else {
-				lhs_suggestion = std::string{};
-			}
+			lhs_suggestion = name.substr(tag.size());
 			rhs_suggestion = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " - " + name;
 		}
 	}
