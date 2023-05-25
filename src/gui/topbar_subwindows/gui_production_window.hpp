@@ -554,9 +554,16 @@ protected:
     }
 public:
 	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = bool{};
+		parent->impl_get(state, payload);
+		auto show_empty = any_cast<bool>(payload);
+
 		row_contents.clear();
 		for(const auto fat_id : state.world.nation_get_state_ownership(state.local_player_nation))
-			row_contents.push_back(fat_id.get_state());
+			if(!economy::has_factory(state, fat_id.get_state().id) && !show_empty) {
+			} else {
+				row_contents.push_back(fat_id.get_state());
+			}
 		update(state);
 	}
 };
@@ -663,6 +670,8 @@ public:
 };
 
 class production_window : public generic_tabbed_window<production_window_tab> {
+	bool show_empty_states = true;
+
 	production_state_listbox* state_listbox = nullptr;
 	element_base* nf_win = nullptr;
 	element_base* build_win = nullptr;
@@ -887,6 +896,12 @@ public:
 				move_child_to_front(nf_win);
 			}
 			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<bool>()) {
+			payload.emplace<bool>(show_empty_states);
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
+			show_empty_states = any_cast<element_selection_wrapper<bool>>(payload).data;
 			return message_result::consumed;
 		}
 		return message_result::unseen;
