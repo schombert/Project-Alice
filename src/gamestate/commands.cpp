@@ -682,7 +682,6 @@ void change_budget_settings(sys::state& state, dcon::nation_id source, budget_se
 	p.source = source;
 	p.data.budget_data = values;
 	auto b = state.incoming_commands.try_push(p);
-	std::abort(); // Yeah, this is just here to make sure you tested things. You did make sure that this command is being sent only when necessary, and not with every twitch of the scrollbar slider as the player moves it, right?
 }
 void execute_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
 	if(!can_change_budget_settings(state, source, values))
