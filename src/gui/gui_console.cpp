@@ -252,7 +252,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 		if(!text.empty()) {
 			// Place text right before it ends (centered right)
 			x_offs = float(base_data.size.x);
-			x_offs -= 48;
+			x_offs -= 24;
 			x_offs -= state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
 			ogl::render_text(
 				state, text.c_str(), uint32_t(text.length()),
