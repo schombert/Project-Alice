@@ -632,9 +632,7 @@ public:
 			// TODO: Conditions for enabling/disabling
 			disabled = false;
 			if(content == state.local_player_nation
-			|| !command::can_discredit_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)
-			|| !nations::is_great_power(state, state.local_player_nation)
-			|| nations::is_great_power(state, content)) {
+			|| !command::can_discredit_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
 				disabled = true;
 			}
 		}
@@ -697,9 +695,7 @@ public:
 			// TODO: Conditions for enabling/disabling
 			disabled = false;
 			if(content == state.local_player_nation
-			|| !command::can_expel_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)
-			|| !nations::is_great_power(state, state.local_player_nation)
-			|| nations::is_great_power(state, content)) {
+			|| !command::can_expel_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
 				disabled = true;
 			}
 		}
@@ -762,9 +758,7 @@ public:
 			// TODO: Conditions for enabling/disabling
 			disabled = false;
 			if(content == state.local_player_nation
-			|| !command::can_ban_embassy(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)
-			|| !nations::is_great_power(state, state.local_player_nation)
-			|| nations::is_great_power(state, content)) {
+			|| !command::can_ban_embassy(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
 				disabled = true;
 			}
 		}
@@ -827,9 +821,7 @@ public:
 			// TODO: Conditions for enabling/disabling
 			disabled = false;
 			if(content == state.local_player_nation
-			|| !command::can_increase_opinion(state, state.local_player_nation, content)
-			|| !nations::is_great_power(state, state.local_player_nation)
-			|| nations::is_great_power(state, content)) {
+			|| !command::can_increase_opinion(state, state.local_player_nation, content)) {
 				disabled = true;
 			}
 		}
@@ -892,9 +884,7 @@ public:
 			// TODO: Conditions for enabling/disabling
 			disabled = false;
 			if(content == state.local_player_nation
-			|| !command::can_decrease_opinion(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)
-			|| !nations::is_great_power(state, state.local_player_nation)
-			|| nations::is_great_power(state, content)) {
+			|| !command::can_decrease_opinion(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
 				disabled = true;
 			}
 		}
@@ -957,9 +947,7 @@ public:
 			// TODO: Conditions for enabling/disabling
 			disabled = false;
 			if(content == state.local_player_nation
-			|| !command::can_add_to_sphere(state, state.local_player_nation, content)
-			|| !nations::is_great_power(state, state.local_player_nation)
-			|| nations::is_great_power(state, content)) {
+			|| !command::can_add_to_sphere(state, state.local_player_nation, content)) {
 				disabled = true;
 			}
 		}
@@ -1022,9 +1010,7 @@ public:
 			// TODO: Conditions for enabling/disabling
 			disabled = false;
 			if(content == state.local_player_nation
-			|| !command::can_remove_from_sphere(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)
-			|| !nations::is_great_power(state, state.local_player_nation)
-			|| nations::is_great_power(state, content)) {
+			|| !command::can_remove_from_sphere(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
 				disabled = true;
 			}
 		}
