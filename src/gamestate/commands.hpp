@@ -204,10 +204,10 @@ bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::natio
 void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
+void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);					// Implemented in GUI :3
 bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target);
 
-void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
+void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);	// Implemented in GUI :3
 bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
 void execute_pending_commands(sys::state& state);

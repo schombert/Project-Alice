@@ -48,7 +48,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value, get_ship_count(state, nation_id));
 			text::add_divider_to_layout_box(state, contents, box);
@@ -73,7 +73,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto num = dcon::fatten(state.world, nation_id).get_active_regiments();
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_brigades"), text::variable_type::value, num);
@@ -101,7 +101,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_war_exhaustion"), text::variable_type::value, text::fp_percentage{num});
@@ -129,7 +129,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-		
+
 			auto num = dcon::fatten(state.world, nation_id).get_war_exhaustion();
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy2"), text::variable_type::value, text::fp_percentage{num});
