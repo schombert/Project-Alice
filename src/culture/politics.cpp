@@ -55,7 +55,10 @@ float get_voter_support(sys::state& state, dcon::nation_id nation, dcon::issue_o
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id nation) {
     auto fat_id = dcon::fatten(state.world, nation);
     auto gov_type_id = fat_id.get_government_type();
-    return state.culture_definitions.governments[gov_type_id].can_appoint_ruling_party;
+	if(gov_type_id)
+		return state.culture_definitions.governments[gov_type_id].can_appoint_ruling_party;
+	else
+		return false;
 }
 
 bool is_election_ongoing(sys::state& state, dcon::nation_id nation) {
@@ -66,7 +69,10 @@ bool is_election_ongoing(sys::state& state, dcon::nation_id nation) {
 bool has_elections(sys::state& state, dcon::nation_id nation) {
     auto fat_id = dcon::fatten(state.world, nation);
     auto gov_type_id = fat_id.get_government_type();
-    return state.culture_definitions.governments[gov_type_id].has_elections;
+	if(gov_type_id)
+		return state.culture_definitions.governments[gov_type_id].has_elections;
+	else
+		return false;
 }
 
 sys::date next_election_date(sys::state& state, dcon::nation_id nation) {
