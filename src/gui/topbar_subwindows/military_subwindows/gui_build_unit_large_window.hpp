@@ -155,17 +155,17 @@ public:
 						if(state.world.province_get_is_colonial(fat_id2.get_province())) {
 							if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment*state.defines.pop_min_size_for_regiment_colony_multiplier) {
 								int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment*state.defines.pop_min_size_for_regiment_colony_multiplier))) + 1);
-									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
-										total--;
-									}
+								for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+									total--;
+								}
 								for(int32_t i = 0; i < total; i++) {
 									row_contents.push_back(fat_id2.get_pop().id);
 								}
 							} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 								int32_t total = int32_t(1);
-									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
-										total--;
-									}
+								for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+									total--;
+								}
 								for(int32_t i = 0; i < total; i++) {
 									row_contents.push_back(fat_id2.get_pop().id);
 								}
