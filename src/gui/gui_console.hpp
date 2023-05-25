@@ -8,9 +8,13 @@ class console_edit : public edit_box_element_base {
 protected:
     // Vector list of last commands
     std::vector<std::string> command_history;
+	std::string lhs_suggestion;
+	std::string rhs_suggestion;
     // Index of the current command in the history
     int history_index = 0;
 public:
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void edit_box_update(sys::state& state, std::string_view s) noexcept override;
     void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
 	void edit_box_enter(sys::state& state, std::string_view s) noexcept override;
 	void edit_box_esc(sys::state& state) noexcept override {

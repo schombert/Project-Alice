@@ -11,7 +11,7 @@ struct command_info {
 
 	std::string_view name;
 	enum class type : uint8_t {
-		none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats
+		none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats, colour_guide
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -83,6 +83,14 @@ static const std::vector<command_info> possible_commands = {
 	command_info{ "stats", command_info::type::show_stats, "Shows statistics of the current resources used",
 		{
 			command_info::argument_info{ "type", command_info::argument_info::type::text, true },
+			command_info::argument_info{},
+			command_info::argument_info{},
+			command_info::argument_info{}
+		}
+	},
+	command_info{ "colour", command_info::type::colour_guide, "An overview of available colours for complex text",
+		{
+			command_info::argument_info{},
 			command_info::argument_info{},
 			command_info::argument_info{},
 			command_info::argument_info{}
@@ -216,6 +224,110 @@ static parser_state parse_command(sys::state& state, std::string_view text) {
 	return pstate;
 }
 
+void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	ui::edit_box_element_base::render(state, x, y);
+
+	// Render the suggestions given (after the inputted text obv)
+	float x_offs = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
+	if(lhs_suggestion.length() > 0) {
+		char const* start_text = lhs_suggestion.data();
+		char const* end_text = lhs_suggestion.data() + lhs_suggestion.length();
+		std::string text(std::string_view(start_text, end_text));
+		if(!text.empty()) {
+			ogl::render_text(
+				state, text.c_str(), uint32_t(text.length()),
+				ogl::color_modification::none,
+				float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
+				get_text_color(text::text_color::light_grey),
+				base_data.data.button.font_handle
+			);
+			x_offs += state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
+		}
+	}
+
+	if(rhs_suggestion.length() > 0) {
+		char const* start_text = rhs_suggestion.data();
+		char const* end_text = rhs_suggestion.data() + rhs_suggestion.length();
+		std::string text(std::string_view(start_text, end_text));
+		if(!text.empty()) {
+			// Place text right before it ends (centered right)
+			x_offs = float(base_data.size.x);
+			x_offs -= 48;
+			x_offs -= state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
+			ogl::render_text(
+				state, text.c_str(), uint32_t(text.length()),
+				ogl::color_modification::none,
+				float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
+				get_text_color(text::text_color::light_grey),
+				base_data.data.button.font_handle
+			);
+		}
+	}
+}
+
+void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
+	if(s.empty()) {
+		lhs_suggestion = rhs_suggestion = std::string{};
+		return;
+	}
+	
+	std::size_t pos = s.find_last_of(' ');
+	if(pos == std::string::npos) {
+		pos = 0;
+		// Still typing command - so suggest commands
+		std::pair<uint32_t, const command_info*> closest_match{};
+		closest_match.first = std::numeric_limits<uint32_t>::max();
+		closest_match.second = &possible_commands[0];
+		for(const auto& cmd : possible_commands) {
+			std::string_view name = cmd.name;
+			if(name.starts_with(s)) {
+				if(name == s) {
+					lhs_suggestion = rhs_suggestion = std::string{};
+					return; // No suggestions given...
+				}
+
+				auto dist = levenshtein_distance(s, name);
+				if(dist < closest_match.first) {
+					closest_match.first = dist;
+					closest_match.second = &cmd;
+				}
+			}
+		}
+		// Only suggest the "unfinished" part of the command and provide a brief description of it
+		lhs_suggestion = closest_match.second->name.substr(s.length());
+		rhs_suggestion = std::string(closest_match.second->desc);
+	} else {
+		// Specific suggestions for each command
+		if(s.starts_with("tag")) {
+			std::string_view tag = s.substr(pos);
+			if(tag.empty())
+				return; // Can't give suggestion if nothing was inputted
+
+			// Tag will autofill a country name + indicate it's full name
+			std::pair<uint32_t, dcon::national_identity_id> closest_match{};
+			closest_match.first = std::numeric_limits<uint32_t>::max();
+			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
+				auto fat_id = dcon::fatten(state.world, id);
+				auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+				auto dist = levenshtein_distance(tag, name);
+				if(dist < closest_match.first) {
+					closest_match.first = dist;
+					closest_match.second = id;
+				}
+			});
+			// Now type in a suggestion...
+			dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
+			auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
+			if(tag == name) {
+				lhs_suggestion = name.substr(tag.size());
+			} else {
+				lhs_suggestion = std::string{};
+			}
+			rhs_suggestion = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " - " + name;
+		}
+	}
+}
+
 void ui::console_edit::edit_box_tab(sys::state &state, std::string_view s) noexcept {
     if(s.empty())
         return;
@@ -237,7 +349,7 @@ void ui::console_edit::edit_box_tab(sys::state &state, std::string_view s) noexc
     auto closest_name = closest_match.second;
     if(closest_name.empty())
         return;
-    this->set_text(state, std::string(closest_name)+" ");
+    this->set_text(state, std::string(closest_name) + " ");
     auto index = int32_t(closest_name.size() + 1);
     this->edit_index_position(state, index);
 }
@@ -550,6 +662,19 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			log_to_console(state, parent, "\x95\xA7Y""Decisions\xA7W: " + std::to_string(state.world.decision_size()));
 		}
 	} break;
+	case command_info::type::colour_guide:
+		log_to_console(state, parent, "\xA7G""\\xA7Y for Green.");
+		log_to_console(state, parent, "\xA7R""\\xA7Y for Red.");
+		log_to_console(state, parent, "\xA7Y""\\xA7Y for Yellow.");
+		log_to_console(state, parent, "\xA7O""\\xA7Y for Orange.");
+		log_to_console(state, parent, "\xA7""B""\\xA7B for Blue.");
+		log_to_console(state, parent, "\xA7g""\\xA7g for Dark blue (*originally grey).");
+		log_to_console(state, parent, "\xA7!""\\xA7! for reseting to default.");
+		log_to_console(state, parent, "\xA7W""\\xA7b for Black.");
+		log_to_console(state, parent, "\xA7W""\\xA7W for White.");
+		log_to_console(state, parent, "\xA7L""\\xA7L for Lilac.");
+		log_to_console(state, parent, "\xA7RRed\xA7GGreen\xA7""B""Blue");
+		break;
 	// State changing events
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
@@ -562,10 +687,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 }
 
 void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	float x_offs = 0.f;
 	if(stored_text.length() > 0) {
-		auto x_offs = 0.f;
 		auto text_color = text::text_color::white;
-
 		for(char const* start_text = stored_text.data(); start_text < stored_text.data() + stored_text.length(); ) {
 			char const* end_text = start_text;
 			for(; *end_text && *end_text != '\xA7'; ++end_text)
