@@ -63,7 +63,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		command::can_start_election(state, state.local_player_nation) ? disabled = false : disabled = true;
+		disabled = !command::can_start_election(state, state.local_player_nation);
 	}
 };
 
