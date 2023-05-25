@@ -267,7 +267,8 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 
 void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
 	if(s.empty()) {
-		lhs_suggestion = rhs_suggestion = std::string{};
+		lhs_suggestion = std::string{};
+		rhs_suggestion = std::string{};
 		return;
 	}
 	
@@ -282,7 +283,8 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 			std::string_view name = cmd.name;
 			if(name.starts_with(s)) {
 				if(name == s) {
-					lhs_suggestion = rhs_suggestion = std::string{};
+					lhs_suggestion = std::string{};
+					rhs_suggestion = std::string{};
 					return; // No suggestions given...
 				}
 
@@ -320,7 +322,11 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 			// Now type in a suggestion...
 			dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 			auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
-			lhs_suggestion = name.substr(tag.size());
+			if(tag.size() >= name.size()) {
+				lhs_suggestion = std::string{};
+			} else {
+				lhs_suggestion = name.substr(tag.size());
+			}
 			rhs_suggestion = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " - " + name;
 		}
 	}
