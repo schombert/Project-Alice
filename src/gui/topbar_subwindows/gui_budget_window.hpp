@@ -158,26 +158,9 @@ public:
 	float amount = 0.0f;
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
-			amount = float(v) / 100.f;
-			//Cyto::Any payload = budget_slider_signal{ SliderTarget, amount };
-			//parent->impl_set(state, payload);
-			//Cyto::Any payload = element_selection_wrapper<budget_slider_signal>{budget_slider_signal{SliderTarget, amount}};
-			//parent->impl_get(state, payload);
-/*
- *			Cyto::Any payload = dcon::factory_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_type_id>(payload);
-
-			Cyto::Any payload2 = element_selection_wrapper<dcon::factory_type_id>{content};
-			parent->impl_get(state, payload2);
-			*/
-		}
-	}
-
-	void on_drag_finish(sys::state& state) noexcept {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<budget_slider_signal>{budget_slider_signal{SliderTarget, amount}};
-			parent->impl_get(state, payload);
+			float amount = float(v) / 100.0f;
+			Cyto::Any payload = budget_slider_signal{SliderTarget, amount};
+			parent->impl_set(state, payload);
 		}
 		if(state.ui_state.drag_target == nullptr) {
 			commit_changes(state);
@@ -550,7 +533,7 @@ public:
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<budget_slider_signal>>()) {
+		} /*else if(payload.holds_type<element_selection_wrapper<budget_slider_signal>>()) {
 			budget_slider_signal slider = any_cast<element_selection_wrapper<budget_slider_signal>>(payload).data;
 
 			command::budget_settings_data slidermania = command::make_empty_budget_settings();
@@ -593,7 +576,7 @@ public:
 			}// :3333333333333333333333333
 			command::change_budget_settings(state, state.local_player_nation, slidermania);
 			return message_result::consumed;
-		}
+		}*/
 		return message_result::unseen;
 	}
 	/*
