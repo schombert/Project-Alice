@@ -372,8 +372,11 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 			edit_index = std::min<int32_t>(edit_index + 1, int32_t(s.length()));
 			break;
 		case sys::virtual_key::DELETE_KEY:
-			if(edit_index < int32_t(s.length()))
+			if(edit_index < int32_t(s.length())) {
 				s.erase(edit_index, 1);
+				set_text(state, s);
+				edit_box_update(state, s);
+			}
 			break;
 		case sys::virtual_key::BACK:
 			if(edit_index > 0 && edit_index <= int32_t(s.length())) {

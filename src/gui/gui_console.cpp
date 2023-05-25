@@ -274,7 +274,6 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 	
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
-		pos = 0;
 		// Still typing command - so suggest commands
 		std::pair<uint32_t, const command_info*> closest_match{};
 		closest_match.first = std::numeric_limits<uint32_t>::max();
@@ -300,14 +299,13 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 		rhs_suggestion = std::string(closest_match.second->desc);
 	} else {
 		// Specific suggestions for each command
-		if(s.starts_with("tag")) {
-			std::string tag{ s.substr(pos) };
+		if(s.starts_with("tag") && pos + 1 < s.size()) {
+			std::string tag = std::string(s.substr(pos + 1));
 			if(tag.empty())
 				return; // Can't give suggestion if nothing was inputted
 			std::transform(tag.begin(), tag.end(), tag.begin(), [](auto c) {
 				return char(toupper(char(c)));
 			});
-
 			// Tag will autofill a country name + indicate it's full name
 			std::pair<uint32_t, dcon::national_identity_id> closest_match{};
 			closest_match.first = std::numeric_limits<uint32_t>::max();
