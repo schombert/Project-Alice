@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_commodity_filters_window.hpp"
 
 namespace ui {
 
@@ -136,42 +137,40 @@ public:
 
 class factory_buttons_window : public window_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-	}
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "prod_subsidize_all") {
-			auto ptr = make_element_by_type<factory_prod_subsidise_all_button>(state, id);
-			return ptr;
+			return make_element_by_type<factory_prod_subsidise_all_button>(state, id);
+
 		} else if(name == "prod_unsubsidize_all") {
-			auto ptr = make_element_by_type<factory_prod_unsubsidise_all_button>(state, id);
-			return ptr;
+			return make_element_by_type<factory_prod_unsubsidise_all_button>(state, id);
+
 		} else if(name == "prod_open_all_factories") {
-			auto ptr = make_element_by_type<factory_prod_open_all_button>(state, id);
-			return ptr;
+			return make_element_by_type<factory_prod_open_all_button>(state, id);
+
 		} else if(name == "prod_close_all_factories") {
-			auto ptr = make_element_by_type<factory_prod_close_all_button>(state, id);
-			return ptr;
+			return make_element_by_type<factory_prod_close_all_button>(state, id);
+
 		} else if(name == "select_all") {
-			auto ptr = make_element_by_type<factory_select_all_button>(state, id);
-			return ptr;
+			return make_element_by_type<factory_select_all_button>(state, id);
+
 		} else if(name == "deselect_all") {
-			auto ptr = make_element_by_type<factory_deselect_all_button>(state, id);
-			return ptr;
+			return make_element_by_type<factory_deselect_all_button>(state, id);
+
 		} else if(name == "show_empty_states") {
-			auto ptr = make_element_by_type<factory_show_empty_states_button>(state, id);
-			return ptr;
+			return make_element_by_type<factory_show_empty_states_button>(state, id);
+
 		} else if(name == "sort_by_name") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			return ptr;
+			return make_element_by_type<button_element_base>(state, id);
+
 		} else if(name == "sort_by_factories") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			return ptr;
+			return make_element_by_type<button_element_base>(state, id);
+
 		} else if(name == "sort_by_infra") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			return ptr;
+			return make_element_by_type<button_element_base>(state, id);
+
+		} else if(name == "filter_bounds") {
+			return make_element_by_type<commodity_filters_window>(state, id);
+
 		} else {
 			return nullptr;
 		}

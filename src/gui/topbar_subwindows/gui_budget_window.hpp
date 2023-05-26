@@ -437,10 +437,90 @@ public:
 	}
 };
 
+class budget_take_loan_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<bool>{bool{true}};
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+// NOTE for simplicity sake we use a payload with bool{true} for taking loan window and a payload with bool{false} for repaying loan window
+
+class budget_repay_loan_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<bool>{bool{false}};
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class budget_take_loan_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "take_loan_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "ok") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "cancel") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "money_value") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} /*else if(name == "money_slider") {
+			return nullptr;
+		}*/ else {
+			return nullptr;
+		}
+	}
+};
+
+class budget_repay_loan_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "repay_loan_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "ok") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "cancel") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "money_value") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} /*else if(name == "money_slider") {
+			return nullptr;
+		}*/ else {
+			return nullptr;
+		}
+	}
+};
+
 class budget_window : public window_element_base {
+private:
+	budget_take_loan_window* budget_take_loan_win = nullptr;
+	budget_repay_loan_window* budget_repay_loan_win = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+
+		auto win1337 = make_element_by_type<budget_take_loan_window>(state, state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
+		budget_take_loan_win = win1337.get();
+		win1337->base_data.position.y -= 66;	// Nudge >w<
+		win1337->set_visible(state, false);
+		add_child_to_front(std::move(win1337));
+
+		auto win101 = make_element_by_type<budget_repay_loan_window>(state, state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
+		budget_repay_loan_win = win101.get();
+		win101->base_data.position.y -= 66;	// Nudge >w<
+		win101->set_visible(state, false);
+		add_child_to_front(std::move(win101));
+
 		set_visible(state, false);
 	}
 
@@ -523,6 +603,10 @@ public:
 			return make_element_by_type<budget_military_spending_slider>(state, id);
 		} else if(name == "tariff_slider") {
 			return make_element_by_type<budget_tariff_slider>(state, id);
+		} else if(name == "take_loan") {
+			return make_element_by_type<budget_take_loan_button>(state, id);
+		} else if(name == "repay_loan") {
+			return make_element_by_type<budget_repay_loan_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -533,6 +617,19 @@ public:
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
 		}
+		//=====================================================================
+		else if(payload.holds_type<element_selection_wrapper<bool>>()) {
+			bool type = any_cast<element_selection_wrapper<bool>>(payload).data;
+			if(type) {	// Take Loan Win.
+				budget_take_loan_win->set_visible(state, true);
+				move_child_to_front(budget_take_loan_win);
+			} else {	// Repay Loan Win.
+				budget_repay_loan_win->set_visible(state, true);
+				move_child_to_front(budget_repay_loan_win);
+			}
+			return message_result::consumed;
+		}
+
 		return message_result::unseen;
 	}
 };

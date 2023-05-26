@@ -27,6 +27,7 @@ enum diplomacy_action : uint8_t {
 	add_to_sphere,
 	remove_from_sphere,
 	justify_war,
+	make_peace,
 };
 
 class diplomacy_action_ally_button : public button_element_base {
@@ -629,12 +630,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_discredit_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_discredit_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -691,13 +687,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_expel_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_expel_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -755,12 +745,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_ban_embassy(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_ban_embassy(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -817,13 +802,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_increase_opinion(state, state.local_player_nation, content)) {
-				disabled = true;
-			}
+			disabled = !command::can_increase_opinion(state, state.local_player_nation, content);
 		}
 	}
 
@@ -881,12 +860,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_decrease_opinion(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_decrease_opinion(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -943,13 +917,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_add_to_sphere(state, state.local_player_nation, content)) {
-				disabled = true;
-			}
+			disabled = !command::can_add_to_sphere(state, state.local_player_nation, content);
 		}
 	}
 
@@ -1007,12 +975,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_remove_from_sphere(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_remove_from_sphere(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -1078,7 +1041,10 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		// TODO: button action
+		if(parent) {
+			Cyto::Any payload = diplomacy_action::justify_war;
+			parent->impl_get(state, payload);
+		}
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -1302,24 +1268,6 @@ public:
 			parent->set_visible(state, false);
 	}
 };
-// Player's flag
-class diplomacy_action_dialog_left_flag_image : public flag_button {
-public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		flag_button::set_current_nation(state, get_current_nation(state));
-	}
-};
-// Country's flag
-class diplomacy_action_dialog_right_flag_image : public flag_button {
-public:
-	void on_update(sys::state& state) noexcept override {
-		flag_button::set_current_nation(state, get_current_nation(state));
-	}
-};
 class diplomacy_action_dialog_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1334,9 +1282,9 @@ public:
 		} else if(name == "declinebutton") {
 			return make_element_by_type<diplomacy_action_dialog_decline_button>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<diplomacy_action_dialog_left_flag_image>(state, id);
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<diplomacy_action_dialog_right_flag_image>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;
@@ -1403,9 +1351,9 @@ public:
 		} else if(name == "declinebutton") {
 			return make_element_by_type<diplomacy_action_dialog_decline_button>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<diplomacy_action_dialog_left_flag_image>(state, id);
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<diplomacy_action_dialog_right_flag_image>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;

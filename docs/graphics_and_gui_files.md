@@ -63,6 +63,10 @@ Some elements are fixed up automatically by the game in the code, overriding the
 - `gpselectdiplomacydialog` Overrides `moveable`.
 - `build_factory` Overrides `moveable`.
 - `event_election_window` Overrides `moveable`.
+- `declarewardialog` Overrides `moveable`.
+- `setuppeacedialog` Overrides `moveable`.
+- `makecbdialog` Overrides `moveable`.
+- `setupcrisisbackdowndialog` Overrides `moveable`.
 
 #### A quick note on fonts
 
