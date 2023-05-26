@@ -27,6 +27,7 @@ enum diplomacy_action : uint8_t {
 	add_to_sphere,
 	remove_from_sphere,
 	justify_war,
+	make_peace,
 };
 
 class diplomacy_action_ally_button : public button_element_base {

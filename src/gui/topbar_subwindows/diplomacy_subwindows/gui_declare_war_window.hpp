@@ -235,7 +235,7 @@ public:
 	}
 };
 
-class setup_peace_dialog : public window_element_base {			// eu3dialogtype
+class diplomacy_setup_peace_dialog : public window_element_base {			// eu3dialogtype
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {

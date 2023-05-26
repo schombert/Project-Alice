@@ -605,6 +605,7 @@ private:
 	diplomacy_action_dialog_window* action_dialog_win = nullptr;
 	diplomacy_gp_action_dialog_window* gp_action_dialog_win = nullptr;
 	diplomacy_declare_war_dialog* declare_war_win = nullptr;
+	diplomacy_setup_peace_dialog* setup_peace_win = nullptr;
 	element_base* casus_belli_window = nullptr;
 	element_base* crisis_window = nullptr;
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
@@ -787,6 +788,11 @@ public:
 		declare_war_win = new_win3.get();
 		add_child_to_front(std::move(new_win3));
 
+		auto new_win4 = make_element_by_type<diplomacy_setup_peace_dialog>(state, state.ui_state.defs_by_name.find("setuppeacedialog")->second.definition);
+		new_win4->set_visible(state, false);
+		setup_peace_win = new_win4.get();
+		add_child_to_front(std::move(new_win4));
+
 		facts_nation_id = state.local_player_nation;
 	}
 
@@ -954,6 +960,7 @@ public:
 			gp_action_dialog_win->set_visible(state, false);
 			action_dialog_win->set_visible(state, false);
 			declare_war_win->set_visible(state, false);
+			setup_peace_win->set_visible(state, false);
 			Cyto::Any new_payload = facts_nation_id;
 			switch(v) {
 			case diplomacy_action::discredit:
@@ -985,6 +992,12 @@ public:
 				declare_war_win->impl_set(state, new_payload);
 				declare_war_win->impl_set(state, payload);
 				declare_war_win->impl_on_update(state);
+				break;
+			case diplomacy_action::make_peace:
+				setup_peace_win->set_visible(state, true);
+				setup_peace_win->impl_set(state, new_payload);
+				setup_peace_win->impl_set(state, payload);
+				setup_peace_win->impl_on_update(state);
 				break;
 			default:
 				action_dialog_win->set_visible(state, true);
