@@ -2416,41 +2416,30 @@ void daily_update(sys::state& state) {
 					}
 				}
 
-				std::sort(states_in_order.begin(), states_in_order.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
-					int32_t a_num_factories = 0;
-					{
-						auto d = state.world.state_instance_get_definition(a);
-						for(auto p : state.world.state_definition_get_abstract_state_membership(d))
-							if(p.get_province().get_nation_from_province_ownership() == n)
-								for(auto f : p.get_province().get_factory_location())
-									a_num_factories += int32_t(f.get_factory().get_level());
-					}
-					int32_t b_num_factories = 0;
-					{
-						auto d = state.world.state_instance_get_definition(b);
-						for(auto p : state.world.state_definition_get_abstract_state_membership(d))
-							if(p.get_province().get_nation_from_province_ownership() == n)
-								for(auto f : p.get_province().get_factory_location())
-									b_num_factories += int32_t(f.get_factory().get_level());
-					}
-					if(a_num_factories != b_num_factories)
-						return a_num_factories > b_num_factories;
-					return a.index() < b.index(); // force total ordering
-				});
-
+				static std::vector<std::pair<dcon::province_id, int32_t>> provinces_in_order;
+				provinces_in_order.clear();
 				for(auto s : states_in_order) {
 					auto d = state.world.state_instance_get_definition(s);
 					for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-						if(province::generic_can_build_railroads(state, p.get_province(), n)) {
-							auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.get_province(), n));
-							new_rr.set_is_pop_project(true);
-							new_rr.set_type(uint8_t(province_building_type::railroad));
-							found_investment = true;
-							break;
-						}
+						int32_t num_factories = 0;
+						if(province::generic_can_build_railroads(state, p.get_province(), n) && p.get_province().get_nation_from_province_ownership() == n)
+							for(auto f : p.get_province().get_factory_location())
+								num_factories += int32_t(f.get_factory().get_level());
+						provinces_in_order.emplace_back(p.get_province().id, num_factories);
 					}
-					if(found_investment)
-						break;
+				}
+				std::sort(provinces_in_order.begin(), provinces_in_order.end(), [&](std::pair<dcon::province_id, int32_t> a, std::pair<dcon::province_id, int32_t> b) {
+					if(a.second != b.second)
+						return a.second > b.second;
+					return a.first.index() < b.first.index(); // force total ordering
+				});
+
+				for(auto p : provinces_in_order) {
+					auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.first, n));
+					new_rr.set_is_pop_project(true);
+					new_rr.set_type(uint8_t(province_building_type::railroad));
+					found_investment = true;
+					break;
 				}
 			}
 		}
