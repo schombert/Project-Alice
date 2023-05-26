@@ -293,11 +293,11 @@ ogl::color3f get_text_color(text::text_color text_color) {
 		case text::text_color::lilac:
 			return ogl::color3f{ 0.8f, 0.7f, 0.3f };
 		case text::text_color::light_grey:
-			return ogl::color3f{ 0.6f, 0.6f, 0.6f };
+			return ogl::color3f{ 0.5f, 0.5f, 0.5f };
 		case text::text_color::dark_red:
-			return ogl::color3f{ 0.6f, 0.f, 0.f };
+			return ogl::color3f{ 0.5f, 0.f, 0.f };
 		case text::text_color::dark_green:
-			return ogl::color3f{ 0.f, 0.f, 0.6f };
+			return ogl::color3f{ 0.f, 0.5f, 0.f };
 		default:
 			return ogl::color3f{ 0.f, 0.f, 0.f };
 	}
