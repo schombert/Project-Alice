@@ -486,10 +486,12 @@ public:
 			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
 			auto sid = any_cast<dcon::state_instance_id>(payload);
-			disabled = false;
+
+			bool can_build = false;
 			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
-				disabled = disabled || !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
+				can_build = can_build || command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
 			});
+			disabled = !can_build;
 		}
 	}
 
@@ -915,6 +917,10 @@ public:
 			project_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
+		} else if(name == "select_all") {
+			return make_element_by_type<commodity_filter_select_button<true>>(state, id);
+		} else if(name == "deselect_all") {
+			return make_element_by_type<commodity_filter_select_button<false>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -971,6 +977,12 @@ public:
 		} else if(payload.holds_type<commodity_filter_toggle_data>()) {
 			auto content = any_cast<commodity_filter_toggle_data>(payload);
 			commodity_filters[content.data.index()] = !commodity_filters[content.data.index()];
+			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<commodity_filter_set_all_data>()) {
+			bool content = any_cast<commodity_filter_set_all_data>(payload).data;
+			for(bool& e : commodity_filters)
+				e = content;
 			impl_on_update(state);
 			return message_result::consumed;
 		}

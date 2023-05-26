@@ -25,21 +25,6 @@ class pop_satisfaction_wrapper_fat {
 	static text_sequence_id names[5];
 public:
 	uint8_t value = 0;
-	uint32_t get_color() noexcept {
-		switch(value) {
-		case 0: // red
-			return sys::pack_color(0.9f, 0.2f, 0.1f);
-		case 1: // yellow
-			return sys::pack_color(0.9f, 0.9f, 0.1f);
-		case 2: // green
-			return sys::pack_color(0.2f, 0.95f, 0.2f);
-		case 3: // blue
-			return sys::pack_color(0.5f, 0.5f, 1.0f);
-		case 4: // light blue
-			return sys::pack_color(0.2f, 0.2f, 0.8f);
-		}
-		return 0;
-	}
 	void set_name(text_sequence_id text) noexcept {
 		names[value] = text;
 	}
@@ -62,7 +47,19 @@ pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wr
 namespace ogl {
 template<>
 uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id){
-	return ogl::color_from_hash(uint32_t(id.index()));
+	switch(id.value) {
+	case 0: // red
+		return sys::pack_color(0.9f, 0.2f, 0.1f);
+	case 1: // yellow
+		return sys::pack_color(0.9f, 0.9f, 0.1f);
+	case 2: // green
+		return sys::pack_color(0.2f, 0.95f, 0.2f);
+	case 3: // blue
+		return sys::pack_color(0.5f, 0.5f, 1.0f);
+	case 4: // light blue
+		return sys::pack_color(0.2f, 0.2f, 0.8f);
+	}
+	return 0;
 }
 }
 

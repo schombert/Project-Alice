@@ -1764,7 +1764,7 @@ class commodity_player_availability_text : public generic_simple_text<dcon::comm
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		if(commodity_id)
-			return text::format_percentage(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
+			return text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
 		else
 			return "";
 	}

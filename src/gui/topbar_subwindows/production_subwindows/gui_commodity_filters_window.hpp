@@ -9,6 +9,7 @@ struct commodity_filter_query_data {
 	bool filter;
 };
 struct commodity_filter_toggle_data : public element_selection_wrapper<dcon::commodity_id> {};
+struct commodity_filter_set_all_data : public element_selection_wrapper<bool> {};
 
 class commodity_filter_button : public button_element_base {
 public:
@@ -70,6 +71,17 @@ public:
 			return message_result::consumed;
 		}
 		return message_result::unseen;
+	}
+};
+
+template<bool B>
+class commodity_filter_select_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = commodity_filter_set_all_data{ B };
+			parent->impl_get(state, payload);
+		}
 	}
 };
 
