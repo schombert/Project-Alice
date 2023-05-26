@@ -1325,7 +1325,7 @@ void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::p
 		auto new_rel = fatten(state.world, state.world.force_create_colonization(state_def, source));
 		new_rel.set_level(uint8_t(1));
 		new_rel.set_last_investment(state.current_date);
-		new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial + adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
+		new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
 
 		state.world.state_definition_set_colonization_stage(state_def, uint8_t(1));
 	}

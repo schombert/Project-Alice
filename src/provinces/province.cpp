@@ -1002,7 +1002,7 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 
 	auto free_points = nations::free_colonial_points(state, n);
 
-	return free_points >= int32_t(state.defines.colonization_interest_cost_initial + adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f);
+	return free_points >= int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
 }
 
 void update_colonization(sys::state& state) {
