@@ -2377,7 +2377,7 @@ void daily_update(sys::state& state) {
 						found_investment = true;
 					}
 
-					if(!found_investment && num_factories < 8 && (nation_rules & issue_rule::pop_build_factory) != 0) {
+					if(!found_investment && num_factories < int32_t(state.defines.factories_per_state) && (nation_rules & issue_rule::pop_build_factory) != 0) {
 						// randomly try a valid (check coastal, unlocked, non existing) factory
 						static std::vector<dcon::factory_type_id> possible;
 						possible.clear();
@@ -3081,7 +3081,7 @@ void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon
 		}
 	}
 
-	if(num_factories < 8) {
+	if(num_factories < int32_t(state.defines.factories_per_state)) {
 		add_factory_level_to_state(state, s, t, false);
 	}
 }

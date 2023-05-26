@@ -350,7 +350,7 @@ class production_factory_info : public window_element_base {
 	std::vector<element_base*> build_elements;
 	std::vector<element_base*> closed_elements;
 public:
-	uint8_t index = 0; // from 0 to 8
+	uint8_t index = 0; // from 0 to int32_t(state.defines.factories_per_state)
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "prod_factory_bg") {
@@ -538,10 +538,9 @@ class production_factory_info_bounds_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		// TODO: Unhardcode the factories
-		factories.resize(8);
+		factories.resize(size_t(state.defines.factories_per_state));
 		// Create factory slots for each of the provinces
-		for(uint8_t factory_index = 0; factory_index < 8; ++factory_index) {
+		for(uint8_t factory_index = 0; factory_index < uint8_t(state.defines.factories_per_state); ++factory_index) {
 			auto ptr = make_element_by_type<production_factory_info>(state, state.ui_state.defs_by_name.find("factory_info")->second.definition);
 			ptr->index = factory_index;
 			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
