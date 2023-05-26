@@ -1217,6 +1217,7 @@ For foreign investment: the target nation must allow foreign investment, the nat
 The factory building must be unlocked by the nation.
 Factories cannot be built in a colonial state.
 Coastal factories can only be built in coastal states.
+Can't have duplicate factories (2 factories of the same type).
 
 For new factories: no more than 7 existing + under construction new factories must be present.
 For upgrades: no upgrading past max level.
