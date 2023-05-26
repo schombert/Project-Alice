@@ -1264,24 +1264,6 @@ public:
 			parent->set_visible(state, false);
 	}
 };
-// Player's flag
-class diplomacy_action_dialog_left_flag_image : public flag_button {
-public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		flag_button::set_current_nation(state, get_current_nation(state));
-	}
-};
-// Country's flag
-class diplomacy_action_dialog_right_flag_image : public flag_button {
-public:
-	void on_update(sys::state& state) noexcept override {
-		flag_button::set_current_nation(state, get_current_nation(state));
-	}
-};
 class diplomacy_action_dialog_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1296,9 +1278,9 @@ public:
 		} else if(name == "declinebutton") {
 			return make_element_by_type<diplomacy_action_dialog_decline_button>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<diplomacy_action_dialog_left_flag_image>(state, id);
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<diplomacy_action_dialog_right_flag_image>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;

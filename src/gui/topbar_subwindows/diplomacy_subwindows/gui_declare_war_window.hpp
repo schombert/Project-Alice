@@ -160,9 +160,9 @@ public:
 		} else if(name == "diplo_declarewar_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "title") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "description") {
@@ -245,9 +245,9 @@ public:
 		} else if(name == "diplo_peace_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "title") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "warscore_label") {
@@ -303,9 +303,9 @@ public:
 		} else if(name == "description") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<image_element_base>(state,id);
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<image_element_base>(state,id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "agreebutton") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "declinebutton") {
@@ -374,9 +374,9 @@ public:
 		} else if(name == "diplo_peace_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "title") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "agreebutton") {
