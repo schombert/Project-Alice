@@ -1742,7 +1742,7 @@ void daily_update(sys::state& state) {
 			assert(std::isfinite(spending_scale));
 			assert(std::isfinite(budget));
 
-			state.world.nation_get_stockpiles(n, economy::money) -= budget * spending_scale;
+			state.world.nation_get_stockpiles(n, economy::money) -= total * spending_scale;
 			state.world.nation_set_spending_level(n, spending_scale);
 
 			float pi_total = full_private_investment_cost(state, n, effective_prices);
