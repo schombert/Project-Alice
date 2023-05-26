@@ -2337,6 +2337,7 @@ void daily_update(sys::state& state) {
 						return a_pop > b_pop;
 					return a.index() < b.index(); // force total ordering
 				});
+
 				for(auto s : states_in_order) {
 					auto existing_constructions = state.world.state_instance_get_state_building_construction(s);
 					if(existing_constructions.begin() != existing_constructions.end())
@@ -2367,6 +2368,7 @@ void daily_update(sys::state& state) {
 							}
 						}
 					}
+
 					if(selected_factory) {
 						auto new_up = fatten(state.world, state.world.force_create_state_building_construction(s, n));
 						new_up.set_is_pop_project(true);
@@ -2405,9 +2407,40 @@ void daily_update(sys::state& state) {
 					}
 				}
 			}
-			if(!found_investment) {
-				if((nation_rules & issue_rule::pop_build_factory) != 0) {
-					for(auto p : n.get_province_ownership()) {
+			if(!found_investment && (nation_rules & issue_rule::pop_build_factory) != 0) {
+				static std::vector<dcon::state_instance_id> states_in_order;
+				states_in_order.clear();
+				for(auto si : n.get_state_ownership()) {
+					if(si.get_state().get_capital().get_is_colonial() == false) {
+						states_in_order.push_back(si.get_state().id);
+					}
+				}
+
+				std::sort(states_in_order.begin(), states_in_order.end(), [&](dcon::state_instance_id a, dcon::state_instance_id b) {
+					int32_t a_num_factories = 0;
+					{
+						auto d = state.world.state_instance_get_definition(a);
+						for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+							if(p.get_province().get_nation_from_province_ownership() == n)
+								for(auto f : p.get_province().get_factory_location())
+									a_num_factories += int32_t(f.get_factory().get_level());
+					}
+					int32_t b_num_factories = 0;
+					{
+						auto d = state.world.state_instance_get_definition(b);
+						for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+							if(p.get_province().get_nation_from_province_ownership() == n)
+								for(auto f : p.get_province().get_factory_location())
+									b_num_factories += int32_t(f.get_factory().get_level());
+					}
+					if(a_num_factories != b_num_factories)
+						return a_num_factories > b_num_factories;
+					return a.index() < b.index(); // force total ordering
+				});
+
+				for(auto s : states_in_order) {
+					auto d = state.world.state_instance_get_definition(s);
+					for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 						if(province::generic_can_build_railroads(state, p.get_province(), n)) {
 							auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.get_province(), n));
 							new_rr.set_is_pop_project(true);
@@ -2416,6 +2449,8 @@ void daily_update(sys::state& state) {
 							break;
 						}
 					}
+					if(found_investment)
+						break;
 				}
 			}
 		}
