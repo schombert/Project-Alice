@@ -197,12 +197,12 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-        state.world.nation_for_each_province_building_construction_as_nation(state.local_player_nation, [&](dcon::province_building_construction_id id) {
+        state.world.nation_for_each_state_building_construction_as_nation(state.local_player_nation, [&](dcon::state_building_construction_id id) {
             auto fat_id = dcon::fatten(state.world, id);
             if(fat_id.get_is_pop_project())
                 row_contents.push_back(production_project_data(id));
         });
-        state.world.nation_for_each_state_building_construction_as_nation(state.local_player_nation, [&](dcon::state_building_construction_id id) {
+        state.world.nation_for_each_province_building_construction_as_nation(state.local_player_nation, [&](dcon::province_building_construction_id id) {
             auto fat_id = dcon::fatten(state.world, id);
             if(fat_id.get_is_pop_project())
                 row_contents.push_back(production_project_data(id));
