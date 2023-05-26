@@ -131,12 +131,10 @@ static uint32_t levenshtein_tokenized_distance(std::string_view needle, std::str
 	size_t pos = 0;
 	while((pos = str.find(" ")) != std::string::npos) {
 		auto token = str.substr(0, pos);
-		auto token_dist = levenshtein_distance(needle, token);
-		dist = std::min<uint32_t>(dist, token_dist);
+		dist = std::min<uint32_t>(dist, levenshtein_distance(needle, token));
 		str.erase(0, pos + 1);
 	}
-	auto token_dist = levenshtein_distance(needle, str);
-	return std::min<uint32_t>(dist, token_dist);
+	return std::min<uint32_t>(dist, levenshtein_distance(needle, str));
 }
 
 static bool set_active_tag(sys::state& state, std::string_view tag) noexcept {
@@ -194,7 +192,7 @@ static parser_state parse_command(sys::state& state, std::string_view text) {
 		char const* ident_end = position;
 		if(ident_start == ident_end)
 			break;
-
+		
 		std::string_view ident(ident_start, ident_end);
 		switch(pstate.cmd.args[i].mode) {
 		case command_info::argument_info::type::text:
@@ -266,28 +264,21 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 }
 
 void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
-	if(s.empty()) {
-		lhs_suggestion = std::string{};
-		rhs_suggestion = std::string{};
+	lhs_suggestion = std::string{};
+	rhs_suggestion = std::string{};
+	if(s.empty())
 		return;
-	}
-
+	
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
 		// Still typing command - so suggest commands
-		std::pair<uint32_t, const command_info*> closest_match{};
-		closest_match.first = std::numeric_limits<uint32_t>::max();
-		closest_match.second = &possible_commands[0];
+		std::pair<uint32_t, const command_info*> closest_match = std::make_pair<uint32_t, const command_info*>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
 		for(const auto& cmd : possible_commands) {
 			std::string_view name = cmd.name;
 			if(name.starts_with(s)) {
-				if(name == s) {
-					lhs_suggestion = std::string{};
-					rhs_suggestion = std::string{};
+				if(name == s)
 					return; // No suggestions given...
-				}
-
-				auto dist = levenshtein_distance(s, name);
+				uint32_t dist = levenshtein_distance(s, name);
 				if(dist < closest_match.first) {
 					closest_match.first = dist;
 					closest_match.second = &cmd;
@@ -295,7 +286,8 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 			}
 		}
 		// Only suggest the "unfinished" part of the command and provide a brief description of it
-		lhs_suggestion = closest_match.second->name.substr(s.length());
+		if(closest_match.second->name.length() > s.length())
+			lhs_suggestion = closest_match.second->name.substr(s.length());
 		rhs_suggestion = std::string(closest_match.second->desc);
 	} else {
 		// Specific suggestions for each command
@@ -313,7 +305,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				dcon::national_identity_fat_id fat_id = dcon::fatten(state.world, id);
 				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
 				if(name.starts_with(tag)) {
-					auto dist = levenshtein_distance(tag, name);
+					uint32_t dist = levenshtein_distance(tag, name);
 					if(dist < closest_match.first) {
 						closest_match.first = dist;
 						closest_match.second = id;
@@ -344,7 +336,7 @@ void ui::console_edit::edit_box_tab(sys::state &state, std::string_view s) noexc
     for(const auto& cmd : possible_commands) {
         std::string_view name = cmd.name;
         if(name.starts_with(s)) {
-            auto dist = levenshtein_distance(s, name);
+            uint32_t dist = levenshtein_distance(s, name);
             if(dist < closest_match.first) {
                 closest_match.first = dist;
                 closest_match.second = name;
@@ -439,7 +431,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				auto fat_id = dcon::fatten(state.world, id);
 				{ // Tags
 					auto name = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
-					auto dist = levenshtein_distance(tag, name);
+					uint32_t dist = levenshtein_distance(tag, name);
 					if(dist < closest_tag_match.first) {
 						closest_tag_match.first = dist;
 						closest_tag_match.second = id;
@@ -450,7 +442,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 					std::transform(name.begin(), name.end(), name.begin(), [](auto c) {
 						return char(toupper(char(c)));
 					});
-					auto dist = levenshtein_tokenized_distance(tag, name);
+					uint32_t dist = levenshtein_tokenized_distance(tag, name);
 					if(dist < closest_name_match.first) {
 						closest_name_match.first = dist;
 						closest_name_match.second = id;
@@ -503,7 +495,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				std::pair<uint32_t, command_info> closest_match{};
 				closest_match.first = std::numeric_limits<uint32_t>::max();
 				for(const auto& cmd : possible_commands) {
-					const auto distance = levenshtein_distance(cmd_name, cmd.name);
+					const uint32_t distance = levenshtein_distance(cmd_name, cmd.name);
 					if(distance < closest_match.first) {
 						closest_match.first = distance;
 						closest_match.second = cmd;

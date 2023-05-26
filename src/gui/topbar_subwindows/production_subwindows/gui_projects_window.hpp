@@ -18,10 +18,18 @@ struct production_project_input_data {
 
 class production_project_input_item : public listbox_row_element_base<production_project_input_data> {
     simple_text_element_base* amount_text = nullptr;
+    element_base* commodity_icon = nullptr;
 public:
+    void on_create(sys::state& state) noexcept override {
+        listbox_row_element_base<production_project_input_data>::on_create(state);
+        amount_text->base_data.position.y = commodity_icon->base_data.position.y + commodity_icon->base_data.size.y - 4;
+    }
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "goods_type") {
-			return make_element_by_type<commodity_factory_image>(state, id);
+			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
+            commodity_icon = ptr.get();
+            return ptr;
         } else if(name == "goods_amount") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
             amount_text = ptr.get();
@@ -58,10 +66,10 @@ class production_project_info : public listbox_row_element_base<production_proje
     simple_text_element_base* cost_text = nullptr;
     production_project_input_listbox* input_listbox = nullptr;
 
-    float get_cost(sys::state& state, economy::commodity_set& cset) {
-        auto total = 0.f;
+    float get_cost(sys::state& state, const economy::commodity_set& cset) {
+        float total = 0.f;
         for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-            auto cid = cset.commodity_type[i];
+            dcon::commodity_id cid = cset.commodity_type[i];
             if(bool(cid))
                 total += state.world.commodity_get_current_price(cid) * cset.commodity_amounts[i];
         }
@@ -144,6 +152,7 @@ public:
                 needed_commodities = state.economy_definitions.naval_base_definition.cost;
                 break;
             }
+            satisfied_commodities = fat_id.get_purchased_goods();
         } else if(std::holds_alternative<dcon::state_building_construction_id>(content)) {
             factory_icon->set_visible(state, true);
             building_icon->set_visible(state, false);
@@ -166,9 +175,9 @@ public:
             input_listbox->update(state);
         }
 
-        auto cost = get_cost(state, satisfied_commodities);
-        auto total_cost = get_cost(state, needed_commodities);
-        cost_text->set_text(state, text::format_money(cost) + "/" + text::format_money(total_cost));
+        float purchased_cost = get_cost(state, satisfied_commodities);
+        float total_cost = get_cost(state, needed_commodities);
+        cost_text->set_text(state, text::format_money(purchased_cost) + "/" + text::format_money(total_cost));
     }
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {

@@ -5,8 +5,24 @@
 
 namespace ui {
 
+enum class factory_all_actions : uint8_t {
+	subsidise_all,
+	unsubsidise_all,
+	filter_select_all,
+	filter_deselect_all,
+	open_all,
+	close_all,
+};
+
 class factory_prod_subsidise_all_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<factory_all_actions>{factory_all_actions{factory_all_actions::subsidise_all}};
+			parent->impl_get(state, payload);
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -24,6 +40,13 @@ public:
 
 class factory_prod_unsubsidise_all_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<factory_all_actions>{factory_all_actions{factory_all_actions::unsubsidise_all}};
+			parent->impl_get(state, payload);
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -41,6 +64,13 @@ public:
 
 class factory_prod_open_all_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<factory_all_actions>{factory_all_actions{factory_all_actions::open_all}};
+			parent->impl_get(state, payload);
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -58,6 +88,13 @@ public:
 
 class factory_prod_close_all_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<factory_all_actions>{factory_all_actions{factory_all_actions::close_all}};
+			parent->impl_get(state, payload);
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -75,6 +112,13 @@ public:
 
 class factory_select_all_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<factory_all_actions>{factory_all_actions{factory_all_actions::filter_select_all}};
+			parent->impl_get(state, payload);
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -92,6 +136,13 @@ public:
 
 class factory_deselect_all_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<factory_all_actions>{factory_all_actions{factory_all_actions::filter_deselect_all}};
+			parent->impl_get(state, payload);
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
