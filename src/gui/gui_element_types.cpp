@@ -294,9 +294,9 @@ ogl::color3f get_text_color(text::text_color text_color) {
 			return ogl::color3f{ 0.8f, 0.7f, 0.3f };
 		case text::text_color::light_grey:
 			return ogl::color3f{ 0.6f, 0.6f, 0.6f };
-		case text::text_color::crimson:
+		case text::text_color::dark_red:
 			return ogl::color3f{ 0.6f, 0.f, 0.f };
-		case text::text_color::jungle_green:
+		case text::text_color::dark_green:
 			return ogl::color3f{ 0.f, 0.f, 0.6f };
 		default:
 			return ogl::color3f{ 0.f, 0.f, 0.f };
