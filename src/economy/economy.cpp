@@ -2408,24 +2408,22 @@ void daily_update(sys::state& state) {
 				}
 			}
 			if(!found_investment && (nation_rules & issue_rule::pop_build_factory) != 0) {
-				static std::vector<dcon::state_instance_id> states_in_order;
-				states_in_order.clear();
-				for(auto si : n.get_state_ownership()) {
-					if(si.get_state().get_capital().get_is_colonial() == false) {
-						states_in_order.push_back(si.get_state().id);
-					}
-				}
-
 				static std::vector<std::pair<dcon::province_id, int32_t>> provinces_in_order;
 				provinces_in_order.clear();
-				for(auto s : states_in_order) {
-					auto d = state.world.state_instance_get_definition(s);
-					for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+				for(auto si : n.get_state_ownership()) {
+					if(si.get_state().get_capital().get_is_colonial() == false) {
+						auto s = si.get_state().id;
+						auto d = state.world.state_instance_get_definition(s);
 						int32_t num_factories = 0;
-						if(province::generic_can_build_railroads(state, p.get_province(), n) && p.get_province().get_nation_from_province_ownership() == n)
-							for(auto f : p.get_province().get_factory_location())
-								num_factories += int32_t(f.get_factory().get_level());
-						provinces_in_order.emplace_back(p.get_province().id, num_factories);
+						for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+							if(province::generic_can_build_railroads(state, p.get_province(), n) && p.get_province().get_nation_from_province_ownership() == n)
+								for(auto f : p.get_province().get_factory_location())
+									num_factories += int32_t(f.get_factory().get_level());
+							provinces_in_order.emplace_back(p.get_province().id, num_factories);
+						}
+						// The state's number of factories is intentionally given to all the provinces within the state so the railroads aren't just built on a single province within a state
+						for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+							provinces_in_order.emplace_back(p.get_province().id, num_factories);
 					}
 				}
 				std::sort(provinces_in_order.begin(), provinces_in_order.end(), [&](std::pair<dcon::province_id, int32_t> a, std::pair<dcon::province_id, int32_t> b) {
@@ -2433,13 +2431,12 @@ void daily_update(sys::state& state) {
 						return a.second > b.second;
 					return a.first.index() < b.first.index(); // force total ordering
 				});
-
-				for(auto p : provinces_in_order) {
+				if(!provinces_in_order.empty()) {
+					auto p = provinces_in_order[0];
 					auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.first, n));
 					new_rr.set_is_pop_project(true);
 					new_rr.set_type(uint8_t(province_building_type::railroad));
 					found_investment = true;
-					break;
 				}
 			}
 		}
