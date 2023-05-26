@@ -744,7 +744,7 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 
 ### Naval supply points
 
-- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or define:NAVAL_BASE_SUPPLY_SCORE_EMPTY for each state without one, multiplied by define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE if it is neither a core nor connected to the capital.
+- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or define:NAVAL_BASE_SUPPLY_SCORE_EMPTY for each state without one, multiplied by define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE if it is neither a core nor connected to the capital (min 1 per coastal state).
 - ships consume naval base supply at their supply_consumption_score. Going over the naval supply score comes with various penalties (described elsewhere).
 
 ## Movements
@@ -1018,6 +1018,22 @@ Only nations with rank at least define:COLONIAL_RANK get colonial points. Coloni
 Generally "spent" colonial points get tied up in the colony, and are returned to you when it stops being a colony (the exception being the point "cost" to turn a colony into a state, which is really just a requirement to have a certain number of colonial points unused). For any state that is in the process of being turned into a colony, any points spent there are locked away until the process ends, one way or another. Each province in a protectorate state costs define:COLONIZATION_PROTECTORATE_PROVINCE_MAINTAINANCE points. Each province in a colony state costs define:COLONIZATION_COLONY_PROVINCE_MAINTAINANCE + infrastructure-value-provided-by-railroads x railroad-level-in-the-province x define:COLONIZATION_COLONY_RAILWAY_MAINTAINANCE. Additionally, a colony state costs define:COLONIZATION_COLONY_INDUSTRY_MAINTAINANCE x the-number-of-factories.
 
 Investing in a colony costs define:COLONIZATION_INVEST_COST_INITIAL + define:COLONIZATION_INTEREST_COST_NEIGHBOR_MODIFIER (if a province adjacent to the region is owned) to place the initial colonist. Further steps cost define:COLONIZATION_INTEREST_COST while in phase 1. In phase two, each point of investment cost define:COLONIZATION_INFLUENCE_COST up to the fourth point. After reaching the fourth point, further points cost define:COLONIZATION_EXTRA_GUARD_COST x (points - 4) + define:COLONIZATION_INFLUENCE_COST.
+
+New notes on colonial points:
+
+You have to be at least colonial rank to get any; equal sum of:
++ colonial points from tech
++ colonial points from navy = 
+(nominal colonial points from ships x (1.0 - percent over naval limits) + colonial points from naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
++ colonial points from history files (we ignore this)
+
+Colonial points used:
+
++ total amount invested in colonization (the race stage, not colony states)
++ for each colonial province COLONIZATION_COLONY_PROVINCE_MAINTAINANCE
++ infrastructure value of the province x COLONIZATION_COLONY_RAILWAY_MAINTAINANCE
++ COLONIZATION_COLONY_INDUSTRY_MAINTAINANCE per factory in a colony (???)
+rounded to the nearest integer
 
 ## Events
 
@@ -1390,7 +1406,8 @@ Must not be at war. State must be colonial. Primary and accepted bureaucrat pops
 #### Effect
 
 Provinces in the state stop being colonial.
-define:COLONY_TO_STATE_PRESTIGE_GAIN x (1.0 + colony-prestige-from-tech) x (1.0 + prestige-from-tech)
+Gain define:COLONY_TO_STATE_PRESTIGE_GAIN x (1.0 + colony-prestige-from-tech) x (1.0 + prestige-from-tech)
 All timed modifiers active for provinces in the state expire
 An event from `on_colony_to_state` happens (with the state in scope)
 An event from `on_colony_to_state_free_slaves` happens (with the state in scope)
+Update is colonial nation

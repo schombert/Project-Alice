@@ -1886,7 +1886,6 @@ namespace sys {
 					nations::update_great_powers(*this); // depends on rankings
 					nations::update_influence(*this); // depends on rankings, great powers
 
-					nations::update_colonial_points(*this); // depends on rankings, naval supply values
 					province::update_colonization(*this);
 					military::update_cbs(*this); // may add/remove cbs to a nation
 

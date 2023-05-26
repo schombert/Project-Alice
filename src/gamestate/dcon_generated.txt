@@ -2797,10 +2797,6 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ colonial_points }
-		type{ float }
-	}
-	property {
 		name{ naval_supply_points }
 		type{ uint16_t }
 	}
