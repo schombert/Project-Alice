@@ -2720,6 +2720,24 @@ void for_each_new_factory(sys::state& state, dcon::state_instance_id s, F&& func
 	}
 }
 
+template<typename F>
+void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s, F&& func) {
+	for(auto st_con : state.world.state_instance_get_state_building_construction(s)) {
+		if(st_con.get_is_upgrade()) {
+			float total = 0.0f;
+			float purchased = 0.0f;
+			auto& goods = state.world.factory_type_get_construction_costs(st_con.get_type());
+
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				total += goods.commodity_amounts[i];
+				purchased += st_con.get_purchased_goods().commodity_amounts[i];
+			}
+
+			func(upgraded_factory{ total > 0.0f ? purchased / total : 0.0f, st_con.get_type().id });
+		}
+	}
+}
+
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
 	auto d = state.world.state_instance_get_definition(s);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
