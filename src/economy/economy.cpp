@@ -2430,7 +2430,7 @@ void daily_update(sys::state& state) {
 					}
 				}
 				if(!provinces_in_order.empty()) {
-					std::pair<dcon::province_id, int32_t> best_p{};
+					std::pair<dcon::province_id, int32_t> best_p = provinces_in_order[0];
 					for(auto e : provinces_in_order)
 						if(e.second > best_p.second)
 							best_p = e;
