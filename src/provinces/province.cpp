@@ -646,7 +646,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		auto province_fac_range = state.world.province_get_factory_location(id);
 		int32_t factories_in_province = int32_t(province_fac_range.end() - province_fac_range.begin());
 
-		auto excess_factories = std::min((factories_in_new_state + factories_in_province) - 8, factories_in_province);
+		auto excess_factories = std::min((factories_in_new_state + factories_in_province) - int32_t(state.defines.factories_per_state), factories_in_province);
 		if(excess_factories > 0) {
 			std::vector<dcon::factory_id> to_delete;
 			while(excess_factories > 0) {

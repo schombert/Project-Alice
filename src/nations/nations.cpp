@@ -1489,7 +1489,7 @@ void daily_update_flashpoint_tension(sys::state& state) {
 			/*
 			- If the state is owned by a great power, tension is increased by define:RANK_X_TENSION_DECAY per day
 			*/
-			if(auto rank = si.get_nation_from_state_ownership().get_rank(); uint16_t(1) <= rank && rank <= uint16_t(8)) {
+			if(auto rank = si.get_nation_from_state_ownership().get_rank(); uint16_t(1) <= rank && rank <= uint16_t(int32_t(state.defines.great_nations_count))) {
 				static float rank_amounts[8] = {
 					state.defines.rank_1_tension_decay,
 					state.defines.rank_2_tension_decay,

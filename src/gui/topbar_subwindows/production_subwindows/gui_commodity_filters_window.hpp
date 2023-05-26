@@ -77,21 +77,28 @@ class commodity_filters_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(!bool(id))
+
+		int16_t index = 0;
+		state.world.for_each_commodity([&](dcon::commodity_id cid) {
+			bool can_be_produced = false;
+			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+				can_be_produced = can_be_produced || state.world.factory_type_get_output(ftid) == cid;
+			});
+			if(!can_be_produced)
 				return;
 			
 			auto ptr = make_element_by_type<commodity_filter_item>(state, "goods_filter_template");
-			static_cast<commodity_filter_item*>(ptr.get())->content = id;
-			int16_t currgood = int16_t(id.index());
-			int16_t rowlimiter = currgood - (24 * (currgood / 24));
+			static_cast<commodity_filter_item*>(ptr.get())->content = cid;
+
+			int16_t rowlimiter = index - (24 * (index / 24));
 			if(rowlimiter == 0) {
 				ptr->base_data.position.x = int16_t(33 * rowlimiter);
 			} else {
 				ptr->base_data.position.x = int16_t((33 * rowlimiter) - (rowlimiter * 2));
 			}
-			ptr->base_data.position.y = int16_t(30 * (currgood / 24));
+			ptr->base_data.position.y = int16_t(30 * (index / 24));
 			add_child_to_back(std::move(ptr));
+			index++;
 		});
 	}
 };

@@ -425,7 +425,7 @@ public:
 		progress_bar::on_create(state);
 		base_data.position.y -= 2;
 	}
-	
+
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -510,7 +510,7 @@ public:
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::province_id>(payload);
-			
+
 			expand_button->set_visible(state, !is_being_built(state, content));
 			under_construction_icon->set_visible(state, is_being_built(state, content));
 			building_progress->set_visible(state, is_being_built(state, content));
@@ -820,6 +820,50 @@ public:		// goto hell;
 	}
 };
 
+class province_colonise_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+
+			command::invest_in_colony(state, state.local_player_nation, content);
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			disabled = !command::can_invest_in_colony(state, state.local_player_nation, content);
+		}
+	}
+};
+
+class province_withdraw_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+
+			command::abandon_colony(state, state.local_player_nation, content);
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+			disabled = !command::can_abandon_colony(state, state.local_player_nation, content);
+		}
+	}
+};
+
 class province_window_colony : public window_element_base {
 private:
 	province_colony_rgo_icon* rgo_icon = nullptr;
@@ -839,6 +883,10 @@ public:
 			auto ptr = make_element_by_type<province_colony_rgo_icon>(state, id);
 			rgo_icon = ptr.get();
 			return ptr;
+		} else if(name == "colonize_button") {
+			return make_element_by_type<province_colonise_button>(state, id);
+		} else if(name == "withdraw_button") {
+			return make_element_by_type<province_withdraw_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -939,7 +987,7 @@ public:
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
-			
+
 			header_window->impl_on_update(state);
 			foreign_details_window->impl_on_update(state);
 			local_details_window->impl_on_update(state);
@@ -954,7 +1002,7 @@ public:
 			set_visible(state, false);
 		}
 	}
-	
+
 	friend class province_national_focus_button;
 };
 

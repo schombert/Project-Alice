@@ -303,6 +303,25 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		return false;
 	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)))
 		return false;
+	
+	/* There can't be duplicate factories... */
+	if(!is_upgrade) {
+		// Check factories being built
+		bool has_dup = false;
+		economy::for_each_new_factory(state, location, [&](const economy::new_factory& nf) {
+			has_dup = has_dup || nf.type == type;
+		});
+		if(has_dup)
+			return false;
+		
+		// Check actual factories
+		auto d = state.world.state_instance_get_definition(location);
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+			if(p.get_province().get_nation_from_province_ownership() == owner)
+				for(auto f : p.get_province().get_factory_location())
+					if(f.get_factory().get_building_type() == type)
+						return false;
+	}
 
 	if(owner != source) {
 		/*
@@ -364,7 +383,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 				return false;
 		}
 
-		//For new factories: no more than 7 existing + under construction new factories must be present.
+		//For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be present.
 		int32_t num_factories = 0;
 
 		auto d = state.world.state_instance_get_definition(location);
@@ -379,7 +398,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 			if(p.get_is_upgrade() == false)
 				++num_factories;
 		}
-		return num_factories <= 7;
+		return num_factories <= int32_t(state.defines.factories_per_state);
 	}
 }
 

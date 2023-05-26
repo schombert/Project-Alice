@@ -147,8 +147,7 @@ public:
 				++count;
 			});
 		});
-		// TODO: Is this really hardcoded? Is it really that 8 factories is the maximum, **hardcoded**??
-		return std::to_string(count) + "/" + std::to_string(8);
+		return std::to_string(count) + "/" + std::to_string(int32_t(state.defines.factories_per_state));
 	}
 };
 
@@ -1764,7 +1763,7 @@ class commodity_player_availability_text : public generic_simple_text<dcon::comm
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		if(commodity_id)
-			return text::format_percentage(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
+			return text::format_money(state.world.nation_get_demand_satisfaction(state.local_player_nation, commodity_id));
 		else
 			return "";
 	}
@@ -1935,7 +1934,7 @@ public:
 				text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
 			);
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(contents, state, box, text, is_positive ? text::text_color::green : text::text_color::red);
+			text::add_to_layout_box(contents, state, box, text, is_positive ? text::text_color::dark_green : text::text_color::dark_red);
 			text::close_layout_box(contents, box);
 		}
 	}

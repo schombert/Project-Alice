@@ -643,7 +643,9 @@
 	LUA_DEFINES_LIST_ELEMENT(cities_mesh_types_count, 3.000000) \
 	LUA_DEFINES_LIST_ELEMENT(cities_mesh_sizes_count, 3.000000) \
 	LUA_DEFINES_LIST_ELEMENT(cities_special_buildings_pool_size, 64.000000) \
-	LUA_DEFINES_LIST_ELEMENT(cities_size_max_population_k, 1000.000000)
+	LUA_DEFINES_LIST_ELEMENT(cities_size_max_population_k, 1000.000000) \
+	/* Non-vanilla defines */ \
+	LUA_DEFINES_LIST_ELEMENT(factories_per_state, 8.000000)
 
 namespace parsing {
 struct defines {
