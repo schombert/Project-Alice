@@ -1430,3 +1430,15 @@ If you have put a colonist in the region, and colonization is in phase 1 or 2, y
 #### Effect
 
 Adds a point to your colonization progress, resets the time since last investment. When someone reaches define:COLONIZATION_INTEREST_LEAD points, and it is phase 1, it moves into phase 2, kicking out all but the second-most colonizer (in terms of points). In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
+
+### Finish colonization
+
+(i.e. turn a colonial investment into a colonial state)
+
+#### Conditions
+
+Must have at least defines:COLONIZATION_CREATE_PROTECTORATE_COST free colonial points. Must be in colonial stage 3 and have a colonist present.
+
+#### Effects
+
+Gain define:COLONY_FORMED_PRESTIGE x (tech prestige modifier + 1) prestige. Makes unowned provinces into a colonial state.

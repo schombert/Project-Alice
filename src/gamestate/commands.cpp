@@ -1350,6 +1350,46 @@ void execute_abandon_colony(sys::state& state, dcon::nation_id source, dcon::pro
 
 }
 
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::finish_colonization;
+	p.source = source;
+	p.data.generic_location.prov = pr;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
+	if(state.world.state_definition_get_colonization_stage(state_def) != 0)
+		return false;
+	auto rng = state.world.state_definition_get_colonization(state_def);
+	if(rng.begin() == rng.end())
+		return false;
+	return (*rng.begin()).get_colonizer() == source;
+}
+void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	if(!can_finish_colonization(state, source, p))
+		return;
+
+
+	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
+
+
+	for(auto pr : state.world.state_definition_get_abstract_state_membership(state_def)) {
+		if(!pr.get_province().get_nation_from_province_ownership()) {
+			province::change_province_owner(state, pr.get_province(), source);
+		}
+	}
+
+	state.world.state_definition_set_colonization_temperature(state_def, 0.0f);
+	state.world.state_definition_set_colonization_stage(state_def, uint8_t(0));
+
+	auto rng = state.world.state_definition_get_colonization(state_def);;
+	while(rng.begin() != rng.end()) {
+		state.world.delete_colonization(*rng.begin());
+	}
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1443,6 +1483,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::abandon_colony:
 				execute_abandon_colony(state, c->source, c->data.generic_location.prov);
+				break;
+			case command_type::finish_colonization:
+				execute_finish_colonization(state, c->source, c->data.generic_location.prov);
 				break;
 		}
 

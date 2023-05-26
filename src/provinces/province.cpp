@@ -612,7 +612,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	bool state_is_new = false;
 	dcon::state_instance_id new_si;
 
-	bool will_be_colonial = state.world.province_get_is_colonial(id) || (old_owner && state.world.nation_get_is_civilized(old_owner) == false && state.world.nation_get_is_civilized(new_owner) == true);
+	bool will_be_colonial = state.world.province_get_is_colonial(id) || (old_owner && state.world.nation_get_is_civilized(old_owner) == false && state.world.nation_get_is_civilized(new_owner) == true) || (!old_owner);
 
 	if(new_owner) {
 		for(auto si : state.world.nation_get_state_ownership(new_owner)) {
@@ -757,7 +757,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
-	if(state_is_new) {
+	if(state_is_new && old_owner) {
 		/*
 		spawn event
 		*/

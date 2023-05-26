@@ -33,7 +33,8 @@ enum class command_type : uint8_t {
 	remove_from_sphere = 25,
 	upgrade_colony_to_state = 26,
 	invest_in_colony = 27,
-	abandon_colony = 28
+	abandon_colony = 28,
+	finish_colonization = 29
 };
 
 struct national_focus_data {
@@ -228,6 +229,9 @@ void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p) {
 	return true;
 }
+
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 void execute_pending_commands(sys::state& state);
 
