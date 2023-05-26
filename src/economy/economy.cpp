@@ -2429,14 +2429,13 @@ void daily_update(sys::state& state) {
 						}
 					}
 				}
-				std::sort(provinces_in_order.begin(), provinces_in_order.end(), [&](std::pair<dcon::province_id, int32_t> a, std::pair<dcon::province_id, int32_t> b) {
-					if(a.second != b.second)
-						return a.second > b.second;
-					return a.first.index() < b.first.index(); // force total ordering
-				});
 				if(!provinces_in_order.empty()) {
-					auto p = provinces_in_order[0];
-					auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(p.first, n));
+					std::pair<dcon::province_id, int32_t> best_p{};
+					for(auto e : provinces_in_order)
+						if(e.second > best_p.second)
+							best_p = e;
+					
+					auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(best_p.first, n));
 					new_rr.set_is_pop_project(true);
 					new_rr.set_type(uint8_t(province_building_type::railroad));
 					found_investment = true;
