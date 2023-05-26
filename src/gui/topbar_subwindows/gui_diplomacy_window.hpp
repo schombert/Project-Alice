@@ -152,8 +152,8 @@ public:
 			auto nation_id = any_cast<dcon::nation_id>(payload);
 
 			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
-			uint8_t flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
-			switch(flags & nations::influence::priority_mask) {
+			uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
+			switch(rel_flags & nations::influence::priority_mask) {
 			case nations::influence::priority_zero:
 				frame = 0;
 				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 1);
@@ -181,9 +181,8 @@ public:
 			auto nation_id = any_cast<dcon::nation_id>(payload);
 
 			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
-			uint8_t flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
-
-			switch(flags & nations::influence::priority_mask) {
+			uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
+			switch(rel_flags & nations::influence::priority_mask) {
 			case nations::influence::priority_zero:
 				command::change_influence_priority(state, state.local_player_nation, nation_id, 1);
 				break;
