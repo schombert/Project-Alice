@@ -1041,7 +1041,10 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		// TODO: button action
+		if(parent) {
+			Cyto::Any payload = diplomacy_action::justify_war;
+			parent->impl_get(state, payload);
+		}
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {

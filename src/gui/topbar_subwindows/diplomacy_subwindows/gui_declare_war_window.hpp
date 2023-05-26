@@ -113,7 +113,7 @@ public:
 	}
 };
 
-class wargoal_item_listboxrow : public listbox_row_element_base<bool> {
+/*class wargoal_item_listboxrow : public listbox_row_element_base<bool> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_icon") {
@@ -126,7 +126,44 @@ public:
 			return nullptr;
 		}
 	}
-};
+};*/
+
+class wargoal_type_item : public listbox_row_element_base<dcon::cb_type_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->base_data.position.x += 16;
+			return ptr;
+		} else if(name == "select_goal_invalid") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.x += 16;
+			return ptr;
+		} else if(name == "select_goal") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->base_data.position.x += 16;
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+};	// Done by Leaf
+
+class wargoal_type_listbox : public listbox_element_base<wargoal_type_item, dcon::cb_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "wargoal_item";
+	}
+public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base::on_create(state);
+		row_contents.clear();
+		state.world.for_each_cb_type([&](dcon::cb_type_id id) {
+			row_contents.push_back(id);
+		});
+		update(state);
+	}
+};	// Done by Leaf
 
 class wargoal_state_listboxrow : public listbox_row_element_base<bool> {
 public:
@@ -184,10 +221,9 @@ public:
 		} else if(name == "agreebutton") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "declinebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "wargoal_setup") {
-			// TODO - Listbox here
-			return nullptr;
+			return make_element_by_type<wargoal_type_listbox>(state, id);
 		} else if(name == "wargoal_state_select") {
 			// TODO - Listbox here
 			return nullptr;
@@ -257,7 +293,7 @@ public:
 		} else if(name == "agreebutton") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "declinebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "pick_side") {
 			return make_element_by_type<pick_side_window>(state, id);
 		} else if(name == "setup_goals") {
@@ -289,7 +325,7 @@ public:
 	}
 };
 
-class make_cb_window : public window_element_base {			// eu3dialogtype
+class diplomacy_make_cb_window : public window_element_base {			// eu3dialogtype
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
@@ -309,7 +345,7 @@ public:
 		} else if(name == "agreebutton") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "declinebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "cb_list") {
 			// TODO - Listbox here
 			return nullptr;
@@ -382,7 +418,7 @@ public:
 		} else if(name == "agreebutton") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "declinebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "pick_side") {
 			return make_element_by_type<setup_crisis_pick_side_window>(state, id);
 		} else if(name == "setup_goals") {
