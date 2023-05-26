@@ -153,9 +153,7 @@ public:
 		if(name == "filter_button") {
 			///return make_element_by_type<factory_good_filter_button>(state, id);
 			int32_t x = base_data.position.x;
-			x = x;
 			int32_t y = base_data.position.y;
-			y = y;
 			state.world.for_each_commodity([&](dcon::commodity_id cid) {
 				//auto ptr = make_element_by_type<factory_good_filter_button>(state, "goods_filter_template");
 				auto ptr = make_element_by_type<factory_good_filter_button>(state, id);
