@@ -476,7 +476,7 @@ public:
 			});
 		}
 	}
-	
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -655,6 +655,18 @@ public:
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			good_not_producing_overlay = ptr.get();
 			return ptr;
+		} else if(name == "pop_factory") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->frame = int32_t(dcon::fatten(state.world, state.culture_definitions.primary_factory_worker).get_sprite() - 1);
+			return ptr;
+		} else if(name == "pop_factory2") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->frame = int32_t(dcon::fatten(state.world, state.culture_definitions.secondary_factory_worker).get_sprite() - 1);
+			return ptr;
+		} else if(name == "output") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "output2") {
+			return make_element_by_type<simple_text_element_base>(state, id);
 		} else {
 			return nullptr;
 		}
