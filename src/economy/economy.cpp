@@ -1735,7 +1735,7 @@ void daily_update(sys::state& state) {
 
 			// step 2: limit to actual budget
 			float budget = state.world.nation_get_stockpiles(n, economy::money); // (TODO: make debt possible)
-			float spending_scale = (total < 0.001 || total <= budget) ? 1.0f : budget / total;
+			float spending_scale = std::min(1.0f, (total < 0.001 || total <= budget) ? 1.0f : budget / total);
 
 			assert(spending_scale >= 0);
 			assert(budget >= 0);
