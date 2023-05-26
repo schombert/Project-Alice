@@ -194,7 +194,7 @@ static parser_state parse_command(sys::state& state, std::string_view text) {
 		char const* ident_end = position;
 		if(ident_start == ident_end)
 			break;
-		
+
 		std::string_view ident(ident_start, ident_end);
 		switch(pstate.cmd.args[i].mode) {
 		case command_info::argument_info::type::text:
@@ -271,7 +271,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 		rhs_suggestion = std::string{};
 		return;
 	}
-	
+
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
 		// Still typing command - so suggest commands
