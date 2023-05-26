@@ -1225,6 +1225,131 @@ void execute_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, 
 	}
 }
 
+void invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::invest_in_colony;
+	p.source = source;
+	p.data.generic_location.prov = pr;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
+	if(province::is_colonizing(state, source, state_def))
+		return province::can_start_colony(state, source, state_def);
+	else
+		return province::can_invest_in_colony(state, source, state_def);
+}
+void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+	if(!can_invest_in_colony(state, source, pr))
+		return;
+
+	auto state_def = state.world.province_get_state_from_abstract_state_membership(pr);
+	if(province::is_colonizing(state, source, state_def)) {
+		uint8_t greatest_other_level = 0;
+		dcon::nation_id second_colonizer;
+		for(auto rel : state.world.state_definition_get_colonization(state_def)) {
+			if(rel.get_colonizer() != source) {
+				if(rel.get_level() >= greatest_other_level) {
+					greatest_other_level = rel.get_level();
+					second_colonizer = rel.get_colonizer();
+				}
+			}
+		}
+
+		
+		for(auto rel : state.world.state_definition_get_colonization(state_def)) {
+			if(rel.get_colonizer() == source) {
+
+				if(state.world.state_definition_get_colonization_stage(state_def) == 1) {
+					rel.get_points_invested() += uint16_t(state.defines.colonization_interest_cost);
+				} else if(rel.get_level() <= 4) {
+					rel.get_points_invested() += uint16_t(state.defines.colonization_influence_cost);
+				} else {
+					rel.get_points_invested() += uint16_t(state.defines.colonization_extra_guard_cost * (rel.get_level() - 4) + state.defines.colonization_influence_cost);
+				}
+
+				rel.get_level() += uint8_t(1);
+				rel.set_last_investment(state.current_date);
+
+				/*
+				If you get define:COLONIZATION_INTEREST_LEAD points it moves into phase 2, kicking out all but the second-most colonizer (in terms of points). In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
+				*/
+				if(state.world.state_definition_get_colonization_stage(state_def) == 1) {
+					if(rel.get_level() >= int32_t(state.defines.colonization_interest_lead)) {
+
+						state.world.state_definition_set_colonization_stage(state_def, uint8_t(2));
+						auto col_range = state.world.state_definition_get_colonization(state_def);
+						while(int32_t(col_range.end() - col_range.begin()) > 2) {
+							for(auto r : col_range) {
+								if(r.get_colonizer() != source && r.get_colonizer() != second_colonizer) {
+									state.world.delete_colonization(r);
+									break;
+								}
+							}
+						}
+					}
+				} else if(rel.get_level() >= int32_t(state.defines.colonization_interest_lead) + greatest_other_level) {
+					state.world.state_definition_set_colonization_stage(state_def, uint8_t(3));
+					auto col_range = state.world.state_definition_get_colonization(state_def);
+					while(int32_t(col_range.end() - col_range.begin()) > 1) {
+						for(auto r : col_range) {
+							if(r.get_colonizer() != source) {
+								state.world.delete_colonization(r);
+								break;
+							}
+						}
+					}
+				}
+				return;
+			}
+		}
+
+	} else {
+		bool adjacent = [&]() {
+			for(auto p : state.world.state_definition_get_abstract_state_membership(state_def)) {
+				if(!p.get_province().get_nation_from_province_ownership()) {
+					for(auto adj : p.get_province().get_province_adjacency()) {
+						auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
+						auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
+						if(o == source)
+							return true;
+						if(o.get_overlord_as_subject().get_ruler() == source)
+							return true;
+					}
+				}
+			}
+			return false;
+		}();
+
+		auto new_rel = fatten(state.world, state.world.force_create_colonization(state_def, source));
+		new_rel.set_level(uint8_t(1));
+		new_rel.set_last_investment(state.current_date);
+		new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
+
+		state.world.state_definition_set_colonization_stage(state_def, uint8_t(1));
+	}
+}
+
+void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::abandon_colony;
+	p.source = source;
+	p.data.generic_location.prov = pr;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
+	
+	for(auto rel : state.world.state_definition_get_colonization(state_def)) {
+		if(rel.get_colonizer() == source) {
+			state.world.delete_colonization(rel);
+		}
+	}
+
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1312,6 +1437,12 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::upgrade_colony_to_state:
 				execute_upgrade_colony_to_state(state, c->source, state.world.province_get_state_membership(c->data.generic_location.prov));
+				break;
+			case command_type::invest_in_colony:
+				execute_invest_in_colony(state, c->source, c->data.generic_location.prov);
+				break;
+			case command_type::abandon_colony:
+				execute_abandon_colony(state, c->source, c->data.generic_location.prov);
 				break;
 		}
 

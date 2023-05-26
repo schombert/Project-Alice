@@ -993,12 +993,11 @@ If you have put a colonist in the region, and colonization is in phase 1 or 2, y
 
 If you have put in a colonist in a region and it goes at least define:COLONIZATION_DAYS_FOR_INITIAL_INVESTMENT without any other colonizers, it then moves into phase 3 with define:COLONIZATION_INTEREST_LEAD points.
 
-If you get define:COLONIZATION_INTEREST_LEAD ahead in points of all other colonizers in the region, and it is phase 1, it moves into phase 2, kicking out all but the second-most colonizer (in terms of points).
+If you get define:COLONIZATION_INTEREST_LEAD points, and it is phase 1, it moves into phase 2, kicking out all but the second-most colonizer (in terms of points).
 
 In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
 
 In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY (if either of the two colonizers are at war or disarmed)
-
 
 To finish colonization and make a protectorate: you must be in colonization phase 3, you must have define:COLONIZATION_CREATE_PROTECTORATE_COST free colonial points, and your colonist in the region must have non zero points.
 
@@ -1411,3 +1410,23 @@ All timed modifiers active for provinces in the state expire
 An event from `on_colony_to_state` happens (with the state in scope)
 An event from `on_colony_to_state_free_slaves` happens (with the state in scope)
 Update is colonial nation
+
+### Invest in colony
+
+#### Conditions
+
+Must have an uncolonized province
+Must be in phase 0 or 1 or 2
+There cannot be an ongoing colonial crisis for the state
+
+Investing in a colony costs define:COLONIZATION_INVEST_COST_INITIAL + define:COLONIZATION_INTEREST_COST_NEIGHBOR_MODIFIER (if a province adjacent to the region is owned) to place the initial colonist. Further steps cost define:COLONIZATION_INTEREST_COST while in phase 1. In phase two, each point of investment cost define:COLONIZATION_INFLUENCE_COST up to the fourth point. After reaching the fourth point, further points cost define:COLONIZATION_EXTRA_GUARD_COST x (points - 4) + define:COLONIZATION_INFLUENCE_COST.
+
+You can invest colonially in a region if there are fewer than 4 other colonists there (or you already have a colonist there). You must also have sufficient liferating tech. Specifically, you must have colonial life rating points from technology + define:COLONIAL_LIFERATING less than or equal to the *greatest* life rating of an unowned province in the state. Your country must be of define:COLONIAL_RANK or less.
+
+If you haven't yet put a colonist into the region, you must be in range of the region. Any region adjacent to your country or to one of your vassals or substates is considered to be in range. Otherwise it must be in range of one of your naval bases, with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
+
+If you have put a colonist in the region, and colonization is in phase 1 or 2, you can invest if it has been at least define:COLONIZATION_DAYS_BETWEEN_INVESTMENT since your last investment, and you have enough free colonial points.
+
+#### Effect
+
+Adds a point to your colonization progress, resets the time since last investment. When someone reaches define:COLONIZATION_INTEREST_LEAD points, and it is phase 1, it moves into phase 2, kicking out all but the second-most colonizer (in terms of points). In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
