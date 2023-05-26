@@ -979,10 +979,30 @@ public:
 			commodity_filters[content.data.index()] = !commodity_filters[content.data.index()];
 			impl_on_update(state);
 			return message_result::consumed;
-		} else if(payload.holds_type<commodity_filter_set_all_data>()) {
-			bool content = any_cast<commodity_filter_set_all_data>(payload).data;
-			for(auto it = commodity_filters.begin(); it != commodity_filters.end(); it++)
-				*it = content;
+		} else if(payload.holds_type<element_selection_wrapper<factory_all_actions>>()) {
+			auto content = any_cast<element_selection_wrapper<factory_all_actions>>(payload).data;
+			switch(content) {
+				case factory_all_actions::subsidise_all:
+					break;
+				case factory_all_actions::unsubsidise_all:
+					break;
+				case factory_all_actions::filter_select_all:
+					for(uint32_t i = 0; i < commodity_filters.size(); i++) {
+						commodity_filters[i] = true;
+					}
+					break;
+				case factory_all_actions::filter_deselect_all:
+					for(uint32_t i = 0; i < commodity_filters.size(); i++) {
+						commodity_filters[i] = false;
+					}
+					break;
+				case factory_all_actions::open_all:
+					break;
+				case factory_all_actions::close_all:
+					break;
+				default:
+					break;
+			}
 			impl_on_update(state);
 			return message_result::consumed;
 		}
