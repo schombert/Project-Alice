@@ -981,8 +981,8 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<commodity_filter_set_all_data>()) {
 			bool content = any_cast<commodity_filter_set_all_data>(payload).data;
-			for(bool& e : commodity_filters)
-				e = content;
+			for(auto it = commodity_filters.begin(); it != commodity_filters.end(); it++)
+				*it = content;
 			impl_on_update(state);
 			return message_result::consumed;
 		}
