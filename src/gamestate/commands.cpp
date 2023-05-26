@@ -383,7 +383,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 				return false;
 		}
 
-		//For new factories: no more than 7 existing + under construction new factories must be present.
+		//For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be present.
 		int32_t num_factories = 0;
 
 		auto d = state.world.state_instance_get_definition(location);
@@ -398,7 +398,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 			if(p.get_is_upgrade() == false)
 				++num_factories;
 		}
-		return num_factories <= 7;
+		return num_factories <= int32_t(state.defines.factories_per_state);
 	}
 }
 

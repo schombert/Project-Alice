@@ -147,8 +147,7 @@ public:
 				++count;
 			});
 		});
-		// TODO: Is this really hardcoded? Is it really that 8 factories is the maximum, **hardcoded**??
-		return std::to_string(count) + "/" + std::to_string(8);
+		return std::to_string(count) + "/" + std::to_string(int32_t(state.defines.factories_per_state));
 	}
 };
 
