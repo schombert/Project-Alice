@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_commodity_filters_window.hpp"
 
 namespace ui {
 
@@ -134,62 +135,8 @@ public:
 	}
 };
 
-class factory_good_filter_button : public button_element_base {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(contents, state, box, std::string_view("UwU"));
-		text::close_layout_box(contents, box);
-	}
-};
-
-class factory_good_filter_template : public window_element_base {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "filter_button") {
-			///return make_element_by_type<factory_good_filter_button>(state, id);
-			int32_t x = base_data.position.x;
-			int32_t y = base_data.position.y;
-			state.world.for_each_commodity([&](dcon::commodity_id cid) {
-				//auto ptr = make_element_by_type<factory_good_filter_button>(state, "goods_filter_template");
-				auto ptr = make_element_by_type<factory_good_filter_button>(state, id);
-				if(cid.value == (state.world.commodity_size() / 2)) {
-					x = base_data.position.x;
-					y = base_data.position.y - ptr->base_data.size.y;
-				} else {
-					x += ptr->base_data.size.x;
-				}
-				ptr->base_data.position.x = x;
-				ptr->base_data.position.y = y;
-				add_child_to_front(std::move(ptr));
-			});
-		} else if(name == "filter_enabled") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "goods_type") {
-			return make_element_by_type<image_element_base>(state, id);
-		}
-		return nullptr;
-	}
-};
-
-class factory_filter_button : public container_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		make_element_by_type<factory_good_filter_template>(state, "goods_filter_template");
-	}
-};
-
 class factory_buttons_window : public window_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-	}
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "prod_subsidize_all") {
 			return make_element_by_type<factory_prod_subsidise_all_button>(state, id);
@@ -222,7 +169,7 @@ public:
 			return make_element_by_type<button_element_base>(state, id);
 
 		} else if(name == "filter_bounds") {
-			return make_element_by_type<factory_filter_button>(state, id);
+			return make_element_by_type<commodity_filters_window>(state, id);
 
 		} else {
 			return nullptr;

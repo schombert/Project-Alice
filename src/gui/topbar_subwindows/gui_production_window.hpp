@@ -5,7 +5,7 @@
 #include "gui_invest_brow_window.hpp"
 #include "gui_invest_buttons_window.hpp"
 #include "gui_pop_sort_buttons_window.hpp"
-#include "gui_goods_filter_window.hpp"
+#include "gui_commodity_filters_window.hpp"
 #include "gui_projects_window.hpp"
 #include "gui_build_factory_window.hpp"
 #include <vector>
@@ -285,6 +285,11 @@ public:
 	}
 };
 
+struct production_factory_slot_data {
+	dcon::factory_id fid{};
+	size_t index = 0;
+};
+
 class production_factory_info : public window_element_base {
 	image_element_base* output_icon = nullptr;
 	image_element_base* input_icons[economy::commodity_set::set_size] = { nullptr };
@@ -296,26 +301,16 @@ class production_factory_info : public window_element_base {
 	button_element_base* cancel_progress_btn = nullptr;
 	progress_bar* upgrade_bar = nullptr;
 	image_element_base* upgrade_overlay = nullptr;
-
 	factory_delete_button* delete_factory = nullptr;
 
 	dcon::factory_id get_factory(sys::state& state) noexcept {
-		dcon::factory_id fid{};
 		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
+			Cyto::Any payload = production_factory_slot_data{ dcon::factory_id{}, index };
 			parent->impl_get(state, payload);
-			auto state_id = any_cast<dcon::state_instance_id>(payload);
-			uint8_t count = index;
-			province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id pid) {
-				auto fat_id = dcon::fatten(state.world, pid);
-				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-					if(count == 0)
-						fid = state.world.factory_location_get_factory(flid);
-					--count;
-				});
-			});
+			auto content = any_cast<production_factory_slot_data>(payload);
+			return content.fid;
 		}
-		return fid;
+		return dcon::factory_id{};
 	}
 public:
 	uint8_t index = 0; // from 0 to 8
@@ -431,9 +426,12 @@ public:
 
 class production_factory_info_bounds_window : public window_element_base {
 	std::vector<element_base*> infos;
+	std::vector<dcon::factory_id> factories;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+		// TODO: Unhardcode the factories
+		factories.resize(8);
 		// Create factory slots for each of the provinces
 		for(uint8_t factory_index = 0; factory_index < 8; ++factory_index) {
 			auto ptr = make_element_by_type<production_factory_info>(state, state.ui_state.defs_by_name.find("factory_info")->second.definition);
@@ -456,10 +454,28 @@ public:
 			auto fat_id = dcon::fatten(state.world, pid);
 			fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
 				auto fid = state.world.factory_location_get_factory(flid);
-				infos[index]->set_visible(state, bool(fid));
-				++index;
+
+				// Pass to filters...
+				Cyto::Any payload = commodity_filter_query_data{ state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false };
+				parent->impl_get(state, payload);
+				auto content = any_cast<commodity_filter_query_data>(payload);
+
+				if(content.filter) {
+					factories[index] = fid;
+					infos[index]->set_visible(state, bool(fid));
+					++index;
+				}
 			});
 		});
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<production_factory_slot_data>()) {
+			auto content = any_cast<production_factory_slot_data>(payload);
+			payload.emplace<production_factory_slot_data>(production_factory_slot_data{ factories[content.index], content.index });
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
@@ -574,11 +590,27 @@ public:
 		auto show_empty = any_cast<bool>(payload);
 
 		row_contents.clear();
-		for(const auto fat_id : state.world.nation_get_state_ownership(state.local_player_nation))
-			if(!economy::has_factory(state, fat_id.get_state().id) && !show_empty) {
-			} else {
+		for(const auto fat_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			if(show_empty) {
 				row_contents.push_back(fat_id.get_state());
+			} else if(economy::has_factory(state, fat_id.get_state().id)) {
+				// Then account for factories **hidden** by the filter from goods...
+				size_t count = 0;
+				province::for_each_province_in_state_instance(state, fat_id.get_state(), [&](dcon::province_id pid) {
+					auto ffact_id = dcon::fatten(state.world, pid);
+					ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+						auto fid = state.world.factory_location_get_factory(flid);
+						Cyto::Any payload = commodity_filter_query_data{ state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false };
+						parent->impl_get(state, payload);
+						auto content = any_cast<commodity_filter_query_data>(payload);
+						count += content.filter ? 1 : 0;
+					});
+				});
+
+				if(count > 0)
+					row_contents.push_back(fat_id.get_state());
 			}
+		}
 		update(state);
 	}
 };
@@ -714,6 +746,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	std::vector<element_base*> investment_button_elements;
 	std::vector<element_base*> project_elements;
 	std::vector<element_base*> good_elements;
+	std::vector<bool> commodity_filters;
 
 	void set_visible_vector_elements(sys::state& state, std::vector<element_base*>& elements, bool v) noexcept {
 		for(auto element : elements)
@@ -731,12 +764,8 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 
-		{
-			auto ptr = make_element_by_type<goods_filter_window>(state, state.ui_state.defs_by_name.find("goods_filter_template")->second.definition);
-			ptr->set_visible(state, true);
-			factory_elements.push_back(ptr.get());
-			add_child_to_front(std::move(ptr));
-		}
+		// All filters enabled by default
+		commodity_filters.resize(state.world.commodity_size(), true);
 
 		for(curr_commodity_group = sys::commodity_group::military_goods;
 			curr_commodity_group != sys::commodity_group::count;
@@ -932,6 +961,16 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			show_empty_states = any_cast<element_selection_wrapper<bool>>(payload).data;
+			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<commodity_filter_query_data>()) {
+			auto content = any_cast<commodity_filter_query_data>(payload);
+			content.filter = commodity_filters[content.cid.index()];
+			payload.emplace<commodity_filter_query_data>(content);
+			return message_result::consumed;
+		} else if(payload.holds_type<commodity_filter_toggle_data>()) {
+			auto content = any_cast<commodity_filter_toggle_data>(payload);
+			commodity_filters[content.data.index()] = !commodity_filters[content.data.index()];
 			impl_on_update(state);
 			return message_result::consumed;
 		}
