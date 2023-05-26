@@ -917,10 +917,6 @@ public:
 			project_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
-		} else if(name == "select_all") {
-			return make_element_by_type<commodity_filter_select_button<true>>(state, id);
-		} else if(name == "deselect_all") {
-			return make_element_by_type<commodity_filter_select_button<false>>(state, id);
 		} else {
 			return nullptr;
 		}
