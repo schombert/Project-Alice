@@ -154,7 +154,9 @@ class declare_war_dialog : public window_element_base {			// eu3dialogtype
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<draggable_target>(state, id);
+			ptr->base_data.size = base_data.size; // Nudge size for proper sizing
+			return ptr;
 		} else if(name == "diplo_declarewar_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leftshield") {
@@ -237,7 +239,9 @@ class setup_peace_dialog : public window_element_base {			// eu3dialogtype
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<draggable_target>(state, id);
+			ptr->base_data.size = base_data.size; // Nudge size for proper sizing
+			return ptr;
 		} else if(name == "diplo_peace_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leftshield") {
@@ -289,7 +293,9 @@ class make_cb_window : public window_element_base {			// eu3dialogtype
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<draggable_target>(state, id);
+			ptr->base_data.size = base_data.size; // Nudge size for proper sizing
+			return ptr;
 		} else if(name == "diplo_makecb_bg") {
 			return make_element_by_type<image_element_base>(state,id);
 		} else if(name == "title") {
@@ -362,7 +368,9 @@ class setup_crisis_backdown_window : public window_element_base {		// eu3dialogt
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
-			return make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<draggable_target>(state, id);
+			ptr->base_data.size = base_data.size; // Nudge size for proper sizing
+			return ptr;
 		} else if(name == "diplo_peace_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "leftshield") {
