@@ -14,6 +14,8 @@ Colour codes may be one of the following:
 - `O` Orange.
 - `g` Light Blue.
 - `l` Light Grey.
+- `C` Crimson (Dark red).
+- `J` Jungle green (Dark green).
 - `!` Reset colour.
 Any other colour code is undefined.
 
