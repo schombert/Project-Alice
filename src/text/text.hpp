@@ -15,7 +15,7 @@ namespace sys {
 
 namespace text {
 	enum class text_color : uint8_t {
-		black, white, red, green, yellow, unspecified, light_blue, dark_blue, orange, lilac, light_grey, reset
+		black, white, red, green, yellow, unspecified, light_blue, dark_blue, orange, lilac, light_grey, dark_red, dark_green, reset
 	};
 	enum class alignment : uint8_t {
 		left, right, center

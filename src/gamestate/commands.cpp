@@ -303,6 +303,25 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		return false;
 	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)))
 		return false;
+	
+	/* There can't be duplicate factories... */
+	if(!is_upgrade) {
+		// Check factories being built
+		bool has_dup = false;
+		economy::for_each_new_factory(state, location, [&](const economy::new_factory& nf) {
+			has_dup = has_dup || nf.type == type;
+		});
+		if(has_dup)
+			return false;
+		
+		// Check actual factories
+		auto d = state.world.state_instance_get_definition(location);
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d))
+			if(p.get_province().get_nation_from_province_ownership() == owner)
+				for(auto f : p.get_province().get_factory_location())
+					if(f.get_factory().get_building_type() == type)
+						return false;
+	}
 
 	if(owner != source) {
 		/*

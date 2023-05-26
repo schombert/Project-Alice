@@ -1935,7 +1935,7 @@ public:
 				text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
 			);
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(contents, state, box, text, is_positive ? text::text_color::green : text::text_color::red);
+			text::add_to_layout_box(contents, state, box, text, is_positive ? text::text_color::dark_green : text::text_color::dark_red);
 			text::close_layout_box(contents, box);
 		}
 	}
