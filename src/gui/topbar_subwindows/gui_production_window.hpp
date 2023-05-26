@@ -470,7 +470,7 @@ public:
 			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
 			auto sid = any_cast<dcon::state_instance_id>(payload);
-			disabled = true;
+			disabled = false;
 			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
 				disabled = disabled || !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
 			});

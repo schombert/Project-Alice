@@ -629,12 +629,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_discredit_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_discredit_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -691,13 +686,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_expel_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_expel_advisors(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -755,12 +744,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_ban_embassy(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_ban_embassy(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -817,13 +801,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_increase_opinion(state, state.local_player_nation, content)) {
-				disabled = true;
-			}
+			disabled = !command::can_increase_opinion(state, state.local_player_nation, content);
 		}
 	}
 
@@ -881,12 +859,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_decrease_opinion(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_decrease_opinion(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
@@ -943,13 +916,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_add_to_sphere(state, state.local_player_nation, content)) {
-				disabled = true;
-			}
+			disabled = !command::can_add_to_sphere(state, state.local_player_nation, content);
 		}
 	}
 
@@ -1007,12 +974,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation
-			|| !command::can_remove_from_sphere(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id)) {
-				disabled = true;
-			}
+			disabled = !command::can_remove_from_sphere(state, state.local_player_nation, content, dcon::fatten(state.world, content).get_in_sphere_of().id);
 		}
 	}
 
