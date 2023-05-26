@@ -83,6 +83,8 @@ void update_crimes(sys::state& state);
 void update_nationalism(sys::state& state);
 
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
+bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
+bool is_colonizing(sys::state& state, dcon::nation_id n, dcon::state_definition_id d);
 void update_colonization(sys::state& state);
 
 void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag);

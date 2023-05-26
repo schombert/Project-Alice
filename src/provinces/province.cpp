@@ -858,6 +858,63 @@ void update_crimes(sys::state& state) {
 	});
 }
 
+bool is_colonizing(sys::state& state, dcon::nation_id n, dcon::state_definition_id d) {
+	for(auto rel : state.world.state_definition_get_colonization(d)) {
+		if(rel.get_colonizer() == n) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d) {
+	// Your country must be of define:COLONIAL_RANK or less.
+	if(state.world.nation_get_rank(n) > uint16_t(state.defines.colonial_rank))
+		return false; // too low rank to colonize;
+
+	if(state.world.state_definition_get_colonization_stage(d) > uint8_t(2))
+		return false; // too late
+
+	// The state may not be the current target of a crisis, nor may your country be involved in an active crisis war.
+	if(state.crisis_colony == d)
+		return false;
+	for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
+		if(par.get_nation() == n)
+			return false;
+	}
+
+	dcon::colonization_id colony_status;
+	for(auto rel : state.world.state_definition_get_colonization(d)) {
+		if(rel.get_colonizer() == n) {
+			colony_status = rel.id;
+			break;
+		}
+	}
+
+	if(!colony_status)
+		return false;
+
+	/*
+	If you have put a colonist in the region, and colonization is in phase 1 or 2, you can invest if it has been at least define:COLONIZATION_DAYS_BETWEEN_INVESTMENT since your last investment, and you have enough free colonial points.
+	*/
+
+	if(state.world.colonization_get_last_investment(colony_status) + int32_t(state.defines.colonization_days_between_investment) > state.current_date)
+		return false;
+
+	/*
+	Steps cost define:COLONIZATION_INTEREST_COST while in phase 1. In phase two, each point of investment cost define:COLONIZATION_INFLUENCE_COST up to the fourth point. After reaching the fourth point, further points cost define:COLONIZATION_EXTRA_GUARD_COST x (points - 4) + define:COLONIZATION_INFLUENCE_COST.
+	*/
+
+	auto free_points = nations::free_colonial_points(state, n);
+	if(state.world.state_definition_get_colonization_stage(d) == 1) {
+		return free_points >= int32_t(state.defines.colonization_interest_cost);
+	} else if(state.world.colonization_get_level(colony_status) <= 4) {
+		return free_points >= int32_t(state.defines.colonization_influence_cost);
+	} else {
+		return free_points >= int32_t(state.defines.colonization_extra_guard_cost * (state.world.colonization_get_level(colony_status) - 4) + state.defines.colonization_influence_cost);
+	}
+}
+
 bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definition_id d) {
 	if(state.world.state_definition_get_colonization_stage(d) > uint8_t(1))
 		return false; // too late
@@ -908,13 +965,11 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 	/*
 	If you haven't yet put a colonist into the region, you must be in range of the region. Any region adjacent to your country or to one of your vassals or substates is considered to be in range. Otherwise it must be in range of one of your naval bases, with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
 	*/
+
 	bool nation_has_port = state.world.nation_get_central_ports(n) != 0;
-	bool adjacent_or_coastal = [&]() {
+	bool adjacent = [&]() {
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 			if(!p.get_province().get_nation_from_province_ownership()) {
-				if(nation_has_port && p.get_province().get_is_coast())
-					return true;
-
 				for(auto adj : p.get_province().get_province_adjacency()) {
 					auto indx = adj.get_connected_provinces(0) != p.get_province() ? 0 : 1;
 					auto o = adj.get_connected_provinces(indx).get_nation_from_province_ownership();
@@ -927,12 +982,27 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 		}
 		return false;
 	}();
+	bool coastal = nation_has_port && [&]() {
+		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
+			if(!p.get_province().get_nation_from_province_ownership()) {
+				if(p.get_province().get_is_coast())
+					return true;
+			}
+		}
+		return false;
+	}();
 
-	if(!adjacent_or_coastal)
+	if(!adjacent && !coastal)
 		return false;
 
 
-	return true;
+	/*
+	Investing in a colony costs define:COLONIZATION_INVEST_COST_INITIAL + define:COLONIZATION_INTEREST_COST_NEIGHBOR_MODIFIER (if a province adjacent to the region is owned) to place the initial colonist.
+	*/
+
+	auto free_points = nations::free_colonial_points(state, n);
+
+	return free_points >= int32_t(state.defines.colonization_interest_cost_initial + adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f);
 }
 
 void update_colonization(sys::state& state) {
