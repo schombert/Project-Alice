@@ -1347,9 +1347,9 @@ public:
 		} else if(name == "declinebutton") {
 			return make_element_by_type<diplomacy_action_dialog_decline_button>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<diplomacy_action_dialog_left_flag_image>(state, id);
+			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<diplomacy_action_dialog_right_flag_image>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;
