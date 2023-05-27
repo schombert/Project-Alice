@@ -961,7 +961,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("remove_topbar_dec_speed"));
+		text::localised_format_box(state, contents, box, std::string_view("topbar_dec_speed"));
 		text::close_layout_box(contents, box);
 	}
 };
