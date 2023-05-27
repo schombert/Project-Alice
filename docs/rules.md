@@ -771,7 +771,7 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 - When a movement is suppressed:
 Reduce the suppression points for the nation by: if define:POPULATION_SUPPRESSION_FACTOR is zero, movement radicalism + 1, otherwise the greater of movement-radicalism + 1 and movement-radicalism x movement-support / define:POPULATION_SUPPRESSION_FACTOR, to a minimum of zero
 Increase the transient radicalism of the movement by: define:SUPPRESSION_RADICALISM_HIT
-Increase the consciousness of all pops that were in the movement by 1 and remove them from it.
+Set the consciousness of all pops that were in the movement to 1 and remove them from it.
 
 ## Rebels
 
@@ -1467,3 +1467,14 @@ Can't join if you have units within a nation on the other side
 #### Effect
 
 Join the war. Adds a status quo wargoal if it is not a great war and one isn't already present
+
+### Suppress movement
+
+#### Conditions
+
+Suppression point cost:
+Depends on whether define:POPULATION_SUPPRESSION_FACTOR is non zero. If it is zero, suppression costs their effective radicalism + 1. If it is non zero, then the cost is the greater of that value and the movements effective radicalism x the movement's support / define:POPULATION_SUPPRESSION_FACTOR
+
+#### Effect
+
+The movement's radicalism is permanently increased by define:SUPPRESSION_RADICALISM_HIT. The consciousness of each pop belonging to the movement is set to 1 and then the pops are removed from the movement.

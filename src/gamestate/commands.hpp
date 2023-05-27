@@ -35,7 +35,8 @@ enum class command_type : uint8_t {
 	invest_in_colony = 27,
 	abandon_colony = 28,
 	finish_colonization = 29,
-	intervene_in_war = 30
+	intervene_in_war = 30,
+	suppress_movement = 31
 };
 
 struct national_focus_data {
@@ -96,6 +97,11 @@ struct generic_location_data {
 	dcon::province_id prov;
 };
 
+struct movement_data {
+	dcon::issue_option_id iopt;
+	dcon::national_identity_id tag;
+};
+
 struct budget_settings_data {
 	int8_t education_spending;
 	int8_t military_spending;
@@ -131,6 +137,7 @@ struct payload {
 		influence_priority_data influence_priority;
 		generic_location_data generic_location;
 		war_target_data war_target;
+		movement_data movement;
 
 		dtype() {}
 	} data;
@@ -242,6 +249,9 @@ bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::pr
 
 void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
+
+void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
+bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 
 void execute_pending_commands(sys::state& state);
 

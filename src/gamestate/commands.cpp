@@ -1518,6 +1518,36 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 	state.world.nation_set_is_at_war(source, true);
 }
 
+void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::intervene_in_war;
+	p.source = source;
+	p.data.movement.iopt = state.world.movement_get_associated_issue_option(m);
+	p.data.movement.tag = state.world.movement_get_associated_independence(m);
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
+	if(state.world.movement_get_nation_from_movement_within(m) != source)
+		return false;
+	return state.world.nation_get_suppression_points(source) >= rebel::get_suppression_point_cost(state, m);
+}
+void execute_suppress_movement(sys::state& state, dcon::nation_id source, dcon::issue_option_id iopt, dcon::national_identity_id tag) {
+	dcon::movement_id m;
+	if(iopt) {
+		m = rebel::get_movement_by_position(state, source, iopt);
+	} else if(tag) {
+		m = rebel::get_movement_by_independence(state, source, tag);
+	}
+	if(!m)
+		return;
+	if(!can_suppress_movement(state, source, m))
+		return;
+
+	state.world.nation_get_suppression_points(source) -= rebel::get_suppression_point_cost(state, m);
+	rebel::suppress_movement(state, source, m);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1617,6 +1647,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::intervene_in_war:
 				execute_intervene_in_war(state, c->source, c->data.war_target.war, c->data.war_target.for_attacker);
+				break;
+			case command_type::suppress_movement:
+				execute_suppress_movement(state, c->source, c->data.movement.iopt, c->data.movement.tag);
 				break;
 		}
 

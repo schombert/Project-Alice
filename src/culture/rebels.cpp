@@ -108,18 +108,13 @@ void remove_pop_from_movement(sys::state& state, dcon::pop_id p) {
 void suppress_movement(sys::state& state, dcon::nation_id n, dcon::movement_id m) {
 	/*
 	- When a movement is suppressed:
-	Reduce the suppression points for the nation by: if define:POPULATION_SUPPRESSION_FACTOR is zero, movement radicalism + 1, otherwise the greater of movement-radicalism + 1 and movement-radicalism x movement-support / define:POPULATION_SUPPRESSION_FACTOR, to a minimum of zero
 	Increase the transient radicalism of the movement by: define:SUPPRESSION_RADICALISM_HIT
-	Increase the consciousness of all pops that were in the movement by 1 and remove them from it.
+	Set the consciousness of all pops that were in the movement to 1 and remove them from it.
 	*/
-	auto radicalism = state.world.movement_get_radicalism(m);
-	auto spoints = state.defines.population_suppression_factor > 0
-		? radicalism + 1.0f
-		: std::max(radicalism + 1.0f, radicalism * state.world.movement_get_pop_support(m) / state.defines.population_suppression_factor);
 	state.world.movement_get_transient_radicalism(m) += state.defines.suppression_radicalisation_hit;
 	for(auto p : state.world.movement_get_pop_movement_membership(m)) {
 		auto old_con = p.get_pop().get_consciousness();
-		p.get_pop().set_consciousness(std::min(old_con + 1.0f, 10.0f));
+		p.get_pop().set_consciousness(1.0f);
 	}
 	state.world.movement_remove_all_pop_movement_membership(m);
 }
@@ -853,6 +848,17 @@ void execute_province_defections(sys::state& state) {
 
 		}
 	});
+}
+
+float get_suppression_point_cost(sys::state& state, dcon::movement_id m) {
+	/*
+	Depends on whether define:POPULATION_SUPPRESSION_FACTOR is non zero. If it is zero, suppression costs their effective radicalism + 1. If it is non zero, then the cost is the greater of that value and the movements effective radicalism x the movement's support / define:POPULATION_SUPPRESSION_FACTOR
+	*/
+	if(state.defines.population_suppression_factor > 0.0f) {
+		return std::max(state.world.movement_get_radicalism(m) + 1.0f, state.world.movement_get_radicalism(m) * state.world.movement_get_pop_support(m) / state.defines.population_suppression_factor);
+	} else {
+		return state.world.movement_get_radicalism(m) + 1.0f;
+	}
 }
 
 void execute_rebel_victories(sys::state& state) {
