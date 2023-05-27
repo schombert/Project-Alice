@@ -448,6 +448,7 @@ public:
 		return message_result::consumed;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	virtual void populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept;
 };
 
 template<class SrcT, class DemoT>
