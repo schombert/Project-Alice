@@ -143,8 +143,12 @@ namespace sys {
 		auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
 		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
-		if(!mouse_probe.under_mouse) {
-			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
+			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+				// RGO doesn't need clicks... yet
+			} else {
+				mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+			}
 		}
 
 		if(game_state_was_updated) {
