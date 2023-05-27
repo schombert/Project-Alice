@@ -64,7 +64,7 @@ namespace sys {
 		bool merely_interested = false;
 	};
 	enum class crisis_type : uint32_t {
-		none = 0, claim = 1, liberation = 2, colonial = 3
+		none = 0, claim = 1, liberation = 2, colonial = 3, influence = 4
 	};
 	enum class crisis_mode : uint32_t {
 		inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3

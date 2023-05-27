@@ -10,6 +10,7 @@
 
 #include "gui_diplomacy_actions_window.hpp"
 #include "gui_declare_war_window.hpp"
+#include "gui_crisis_window.hpp"
 
 namespace ui {
 
@@ -607,8 +608,10 @@ private:
 	diplomacy_declare_war_dialog* declare_war_win = nullptr;
 	diplomacy_setup_peace_dialog* setup_peace_win = nullptr;
 	diplomacy_make_cb_window* make_cb_win = nullptr;
+	diplomacy_crisis_backdown_window* crisis_backdown_win = nullptr;
 	element_base* casus_belli_window = nullptr;
-	element_base* crisis_window = nullptr;
+	diplomacy_crisis_info_window* crisis_window = nullptr;
+
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
 	std::vector<element_base*> action_buttons{};
 
@@ -799,6 +802,12 @@ public:
 		make_cb_win = new_win5.get();
 		add_child_to_front(std::move(new_win5));
 
+		auto new_win6 = make_element_by_type<diplomacy_crisis_backdown_window>(state, state.ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition);
+		new_win6->set_visible(state, false);
+		crisis_backdown_win = new_win6.get();
+		add_child_to_front(std::move(new_win6));
+
+
 		facts_nation_id = state.local_player_nation;
 	}
 
@@ -831,7 +840,7 @@ public:
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "crisis_info_win") {
-			auto ptr = make_element_immediate(state, id);
+			auto ptr = make_element_by_type<diplomacy_crisis_info_window>(state, id);
 			crisis_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
@@ -968,6 +977,7 @@ public:
 			declare_war_win->set_visible(state, false);
 			setup_peace_win->set_visible(state, false);
 			make_cb_win->set_visible(state, false);
+			crisis_backdown_win->set_visible(state, false);
 			Cyto::Any new_payload = facts_nation_id;
 			switch(v) {
 			case diplomacy_action::discredit:
@@ -1011,6 +1021,14 @@ public:
 				make_cb_win->impl_set(state, new_payload);
 				make_cb_win->impl_set(state, payload);
 				make_cb_win->impl_on_update(state);
+				break;
+			case diplomacy_action::crisis_backdown:
+				crisis_backdown_win->set_visible(state, true);
+				crisis_backdown_win->impl_set(state, new_payload);
+				crisis_backdown_win->impl_set(state, payload);
+				crisis_backdown_win->impl_on_update(state);
+				break;
+			case diplomacy_action::crisis_support:
 				break;
 			default:
 				action_dialog_win->set_visible(state, true);
