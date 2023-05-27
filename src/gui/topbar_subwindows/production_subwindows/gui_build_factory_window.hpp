@@ -178,9 +178,20 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override{
 		if(parent) {
+			Cyto::Any s_payload = dcon::state_instance_id{};
+			parent->impl_get(state, s_payload);
+			auto sid = any_cast<dcon::state_instance_id>(s_payload);
+
 			row_contents.clear();
-			state.world.for_each_factory_type([&](dcon::factory_type_id ident) {
-				row_contents.push_back(ident);
+			// First the buildable factories
+			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+				if(command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false))
+					row_contents.push_back(ftid);
+			});
+			// Then the ones that can't be built
+			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+				if(!command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false))
+					row_contents.push_back(ftid);
 			});
 			update(state);
 		}

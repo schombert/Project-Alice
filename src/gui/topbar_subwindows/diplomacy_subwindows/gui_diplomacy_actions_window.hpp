@@ -1128,6 +1128,8 @@ class diplomacy_action_dialog_title_text : public generic_settable_element<simpl
 			return "give_unit_commandtitle";
 		case diplomacy_action::cancel_command_units:
 			return "cancel_unit_commandtitle";
+		case diplomacy_action::make_peace:
+			return "make_peacetitle";
 		}
 		return "";
 	}
@@ -1183,6 +1185,8 @@ class diplomacy_action_dialog_description_text : public generic_settable_element
 			return "give_unit_command_desc";
 		case diplomacy_action::cancel_command_units:
 			return "cancel_unit_command_desc";
+		case diplomacy_action::make_peace:
+			return "make_peace_desc";
 		}
 		return "";
 	}
@@ -1191,11 +1195,81 @@ public:
 		set_text(state, text::produce_simple_string(state, get_title_key()));
 	}
 };
+
+struct gp_selection_query_data {
+	dcon::nation_id data{};
+};
+
 class diplomacy_action_dialog_agree_button : public generic_settable_element<button_element_base, diplomacy_action> {
+	bool get_can_perform(sys::state& state) noexcept {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto target = any_cast<dcon::nation_id>(payload);
+
+			Cyto::Any gp_payload = gp_selection_query_data{};
+			parent->impl_get(state, gp_payload);
+			auto gp_target = any_cast<gp_selection_query_data>(gp_payload).data;
+
+			switch(content) {
+			case diplomacy_action::ally:
+				return false;
+			case diplomacy_action::cancel_ally:
+				return false;
+			case diplomacy_action::call_ally:
+				return false;
+			case diplomacy_action::declare_war:
+				return false;
+			case diplomacy_action::military_access:
+				return false;
+			case diplomacy_action::cancel_military_access:
+				return false;
+			case diplomacy_action::give_military_access:
+				return false;
+			case diplomacy_action::cancel_give_military_access:
+				return false;
+			case diplomacy_action::increase_relations:
+				return command::can_increase_relations(state, state.local_player_nation, target);
+			case diplomacy_action::decrease_relations:
+				return command::can_decrease_relations(state, state.local_player_nation, target);
+			case diplomacy_action::war_subsidies:
+				return command::can_give_war_subsidies(state, state.local_player_nation, target);
+			case diplomacy_action::cancel_war_subsidies:
+				return command::can_cancel_war_subsidies(state, state.local_player_nation, target);
+			case diplomacy_action::discredit:
+				return command::can_discredit_advisors(state, state.local_player_nation, target, gp_target);
+			case diplomacy_action::expel_advisors:
+				return command::can_expel_advisors(state, state.local_player_nation, target, gp_target);
+			case diplomacy_action::ban_embassy:
+				return command::can_ban_embassy(state, state.local_player_nation, target, gp_target);
+			case diplomacy_action::increase_opinion:
+				return command::can_increase_opinion(state, state.local_player_nation, target);
+			case diplomacy_action::decrease_opinion:
+				return command::can_decrease_opinion(state, state.local_player_nation, target, gp_target);
+			case diplomacy_action::add_to_sphere:
+				return false;
+			case diplomacy_action::remove_from_sphere:
+				return false;
+			case diplomacy_action::justify_war:
+				return false;
+			case diplomacy_action::command_units:
+				return false;
+			case diplomacy_action::cancel_command_units:
+				return false;
+			case diplomacy_action::make_peace:
+				return false;
+			}
+		}
+		return false;
+	}
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "agree"));
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		disabled = !get_can_perform(state);
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -1203,6 +1277,10 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto target = any_cast<dcon::nation_id>(payload);
+
+			Cyto::Any gp_payload = gp_selection_query_data{};
+			parent->impl_get(state, gp_payload);
+			auto gp_target = any_cast<gp_selection_query_data>(gp_payload).data;
 
 			switch(content) {
 			case diplomacy_action::ally:
@@ -1234,14 +1312,19 @@ public:
 				command::cancel_war_subsidies(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::discredit:
+				command::discredit_advisors(state, state.local_player_nation, target, gp_target);
 				break;
 			case diplomacy_action::expel_advisors:
+				command::expel_advisors(state, state.local_player_nation, target, gp_target);
 				break;
 			case diplomacy_action::ban_embassy:
+				command::ban_embassy(state, state.local_player_nation, target, gp_target);
 				break;
 			case diplomacy_action::increase_opinion:
+				command::increase_opinion(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::decrease_opinion:
+				command::decrease_opinion(state, state.local_player_nation, target, gp_target);
 				break;
 			case diplomacy_action::add_to_sphere:
 				break;
@@ -1253,21 +1336,18 @@ public:
 				break;
 			case diplomacy_action::cancel_command_units:
 				break;
+			case diplomacy_action::make_peace:
+				break;
 			}
 			parent->set_visible(state, false);
 		}
 	}
 };
-class diplomacy_action_dialog_decline_button : public button_element_base {
+class diplomacy_action_dialog_decline_button : public generic_close_button {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "decline"));
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		if (parent)
-			parent->set_visible(state, false);
 	}
 };
 class diplomacy_action_dialog_window : public window_element_base {
@@ -1297,6 +1377,20 @@ public:
 	}
 };
 
+class diplomacy_action_gp_dialog_select_button : public flag_button {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			Cyto::Any s_payload = element_selection_wrapper<dcon::nation_id>{ content };
+			parent->impl_get(state, s_payload);
+		}
+	}
+};
+
 class diplomacy_action_gp_dialog_select_window : public window_element_base {
 public:
 	uint8_t rank = 0;
@@ -1321,6 +1415,7 @@ public:
 };
 
 class diplomacy_gp_action_dialog_window : public window_element_base {
+	dcon::nation_id selected_gp{};
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -1363,6 +1458,17 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<element_selection_wrapper<dcon::nation_id>>()) {
+			selected_gp = any_cast<element_selection_wrapper<dcon::nation_id>>(payload).data;
+			return message_result::consumed;
+		} else if(payload.holds_type<gp_selection_query_data>()) {
+			payload.emplace<gp_selection_query_data>(gp_selection_query_data{ selected_gp });
+			return message_result::consumed;
+		}
+		return window_element_base::get(state, payload);
 	}
 };
 

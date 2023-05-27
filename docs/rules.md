@@ -85,6 +85,8 @@ During its monthly pop update tick (see below), if an artisan hasn't been satisf
 Pop projects are things like factory construction / upgrading / reopening / railroad building
 Pop projects are possible only subject to the political rules, and must be under construction long enough to complete.
 
+Factories are given priority to be built on states with high population, whereas railroads are prioritized on states with a lot of factories (which is determined by the sum of all factory levels). This makes it so projects are built on the most important areas and then spread out to less important ones as time goes on.
+
 A pop project buys commodities like a factory would buy its inputs (i.e. it doesn't draw directly from the national stockpile).
 Constructing a new building has a cost based on commodities of (technology-factory-owner-cost + 1) x (national-factory-owner-cost-modifier) x (the-price-required-to-purchase-construction-goods) + 25 x cost-to-purchase-one-day-of-inputs-at-level-1
 Reopening a building has a cost of : 25 x cost-to-purchase-one-day-of-inputs-at-level-1
@@ -1217,6 +1219,7 @@ For foreign investment: the target nation must allow foreign investment, the nat
 The factory building must be unlocked by the nation.
 Factories cannot be built in a colonial state.
 Coastal factories can only be built in coastal states.
+Can't have duplicate factories (2 factories of the same type).
 
 For new factories: no more than 7 existing + under construction new factories must be present.
 For upgrades: no upgrading past max level.

@@ -20,6 +20,8 @@ namespace text {
 			case 'L': return text_color::lilac;
 			case 'O': return text_color::orange;
 			case 'l': return text_color::light_grey;
+			case 'C': return text_color::dark_red;
+			case 'J': return text_color::dark_green;
 			case '!': return text_color::reset;
 			default: return text_color::unspecified;
 		}

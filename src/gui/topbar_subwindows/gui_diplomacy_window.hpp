@@ -146,6 +146,60 @@ public:
 
 class diplomacy_priority_button : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
+			uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
+			switch(rel_flags & nations::influence::priority_mask) {
+			case nations::influence::priority_zero:
+				frame = 0;
+				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 1);
+				break;
+			case nations::influence::priority_one:
+				frame = 1;
+				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 2);
+				break;
+			case nations::influence::priority_two:
+				frame = 2;
+				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 3);
+				break;
+			case nations::influence::priority_three:
+				frame = 3;
+				disabled = !command::can_change_influence_priority(state, state.local_player_nation, nation_id, 0);
+				break;
+			}
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
+			uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
+			switch(rel_flags & nations::influence::priority_mask) {
+			case nations::influence::priority_zero:
+				command::change_influence_priority(state, state.local_player_nation, nation_id, 1);
+				break;
+			case nations::influence::priority_one:
+				command::change_influence_priority(state, state.local_player_nation, nation_id, 2);
+				break;
+			case nations::influence::priority_two:
+				command::change_influence_priority(state, state.local_player_nation, nation_id, 3);
+				break;
+			case nations::influence::priority_three:
+				command::change_influence_priority(state, state.local_player_nation, nation_id, 0);
+				break;
+			}
+		}
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
 		return message_result::consumed;
 	}
@@ -980,18 +1034,6 @@ public:
 			crisis_backdown_win->set_visible(state, false);
 			Cyto::Any new_payload = facts_nation_id;
 			switch(v) {
-			case diplomacy_action::discredit:
-				command::discredit_advisors(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, facts_nation_id).get_in_sphere_of().id);
-				break;
-			case diplomacy_action::expel_advisors:
-				command::expel_advisors(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, facts_nation_id).get_in_sphere_of().id);
-				break;
-			case diplomacy_action::ban_embassy:
-				command::ban_embassy(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, facts_nation_id).get_in_sphere_of().id);
-				break;
-			case diplomacy_action::increase_opinion:
-				command::increase_opinion(state, state.local_player_nation, facts_nation_id);
-				break;
 			case diplomacy_action::decrease_opinion:
 				gp_action_dialog_win->set_visible(state, true);
 				gp_action_dialog_win->impl_set(state, new_payload);
