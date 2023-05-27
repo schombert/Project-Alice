@@ -1478,3 +1478,15 @@ Depends on whether define:POPULATION_SUPPRESSION_FACTOR is non zero. If it is ze
 #### Effect
 
 The movement's radicalism is permanently increased by define:SUPPRESSION_RADICALISM_HIT. The consciousness of each pop belonging to the movement is set to 1 and then the pops are removed from the movement.
+
+### Become civilized
+
+#### Conditions
+
+Civilization progress must be at 100% or more
+
+#### Effect
+
+The nation gains technologies. Specifically take the fraction of military reforms (for land and naval) or econ reforms (otherwise) applied, clamped to the defines:UNCIV_TECH_SPREAD_MIN and defines:UNCIV_TECH_SPREAD_MAX values, and multiply how far the sphere leader (or first GP) is down each tech column, rounded up, to give unciv nations their techs when they westernize.
+The nation gets an `on_civilize` event.
+Political and social reforms: First setting in all categories?

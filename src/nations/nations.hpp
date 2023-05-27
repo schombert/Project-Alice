@@ -331,5 +331,8 @@ void perform_nationalization(sys::state& state, dcon::nation_id n);
 
 float get_yesterday_income(sys::state& state, dcon::nation_id n);
 
+void make_civilized(sys::state& state, dcon::nation_id n);
+void make_uncivilized(sys::state& state, dcon::nation_id n);
+
 }
 

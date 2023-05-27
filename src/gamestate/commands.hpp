@@ -36,7 +36,8 @@ enum class command_type : uint8_t {
 	abandon_colony = 28,
 	finish_colonization = 29,
 	intervene_in_war = 30,
-	suppress_movement = 31
+	suppress_movement = 31,
+	civilize_nation = 32,
 };
 
 struct national_focus_data {
@@ -252,6 +253,9 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 
 void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
+
+void civilize_nation(sys::state& state, dcon::nation_id source);
+bool can_civilize_nation(sys::state& state, dcon::nation_id source);
 
 void execute_pending_commands(sys::state& state);
 

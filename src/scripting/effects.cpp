@@ -2194,11 +2194,11 @@ uint32_t ef_nationalvalue_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_civilized_yes(EFFECT_PARAMTERS) {
-	ws.world.nation_set_is_civilized(trigger::to_nation(primary_slot), true);
+	nations::make_civilized(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_civilized_no(EFFECT_PARAMTERS) {
-	ws.world.nation_set_is_civilized(trigger::to_nation(primary_slot), false);
+	nations::make_uncivilized(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_is_slave_state_no(EFFECT_PARAMTERS) {

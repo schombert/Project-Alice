@@ -1548,6 +1548,22 @@ void execute_suppress_movement(sys::state& state, dcon::nation_id source, dcon::
 	rebel::suppress_movement(state, source, m);
 }
 
+void civilize_nation(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::civilize_nation;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_civilize_nation(sys::state& state, dcon::nation_id source) {
+	return state.world.nation_get_modifier_values(source, sys::national_mod_offsets::civilization_progress_modifier) >= 1.0f;
+}
+void execute_civilize_nation(sys::state& state, dcon::nation_id source) {
+	if(!can_civilize_nation(state, source))
+		return;
+	nations::make_civilized(state, source);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1650,6 +1666,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::suppress_movement:
 				execute_suppress_movement(state, c->source, c->data.movement.iopt, c->data.movement.tag);
+				break;
+			case command_type::civilize_nation:
+				execute_civilize_nation(state, c->source);
 				break;
 		}
 
