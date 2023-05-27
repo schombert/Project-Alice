@@ -1452,8 +1452,18 @@ Gain define:COLONY_FORMED_PRESTIGE x (tech prestige modifier + 1) prestige. Make
 
 Standard war-joining conditions: can't join if you are already at war against any attacker or defender. Can't join a civil war. Can't join a war against your sphere leader or overlord (doesn't apply here obviously). Can't join a crisis war prior to great wars being invented (i.e. you have to be in the crisis). Can't join as an attacker against someone you have a truce with.
 
-Must be a great power. Must be at least friendly with the primary defender. Must not be involved in or interested in a crisis. Must not be in a crisis war. Defenders must either have no wargoals or only status quo. Primary defender must be at defines:MIN_WARSCORE_TO_INTERVENE or less. Note, you *can* intervene in a civil war, despite not being able to be called into one normally.
+Must be a great power. Must not be involved in or interested in a crisis. Must be at least define:MIN_MONTHS_TO_INTERVENE since the war started.
+
+If it is not a great war:
+Must be at least friendly with the primary defender. May only join on the defender's side. Must not be in a crisis war. Defenders must either have no wargoals or only status quo. Primary defender must be at defines:MIN_WARSCORE_TO_INTERVENE or less. Note, you *can* intervene in a civil war, despite not being able to be called into one normally.
 
 If the war is a great war:
 It is then possible to join the attacking side as well.
 Must have define:GW_INTERVENE_MIN_RELATIONS with the primary defender/attacker to intervene, must have at most define:GW_INTERVENE_MAX_EXHAUSTION war exhaustion.
+Can't join if any nation in your sphere is on the other side
+Can't join if you are allied to any allied to any nation on the other side
+Can't join if you have units within a nation on the other side
+
+#### Effect
+
+Join the war. Adds a status quo wargoal if it is not a great war and one isn't already present
