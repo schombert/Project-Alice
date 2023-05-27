@@ -143,11 +143,12 @@ namespace sys {
 		auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
 		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		if(!mouse_probe.under_mouse) {
+			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		}
 
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
-
-
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
@@ -308,14 +309,12 @@ namespace sys {
 
 		world.for_each_province([&](dcon::province_id id) {
 			auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
-			Cyto::Any payload = id;
-			ptr->impl_set(*this, payload);
+			static_cast<ui::unit_icon_window*>(ptr.get())->content = id;
 			ui_state.units_root->add_child_to_front(std::move(ptr));
 		});
 		world.for_each_province([&](dcon::province_id id) {
 			auto ptr = ui::make_element_by_type<ui::rgo_icon>(*this, "alice_rgo_mapicon");
-			Cyto::Any payload = id;
-			ptr->impl_set(*this, payload);
+			static_cast<ui::rgo_icon*>(ptr.get())->content = id;
 			ui_state.rgos_root->add_child_to_front(std::move(ptr));
 		});
 
@@ -367,10 +366,12 @@ namespace sys {
 		}
 		{
 			auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
+			ui_state.army_status_window = new_elm_army.get();
 			new_elm_army->set_visible(*this, false);
 			ui_state.root->add_child_to_front(std::move(new_elm_army));
 
 			auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
+			ui_state.navy_status_window = new_elm_navy.get();
 			new_elm_navy->set_visible(*this, false);
 			ui_state.root->add_child_to_front(std::move(new_elm_navy));
 		}
