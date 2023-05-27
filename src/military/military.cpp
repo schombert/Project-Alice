@@ -108,6 +108,63 @@ dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::
 	return dcon::war_id{};
 }
 
+bool joining_war_does_not_violate_constraints(sys::state const& state, dcon::nation_id a, dcon::war_id w, bool as_attacker) {
+	auto target_war_participants = state.world.war_get_war_participant(w);
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		for(auto other_participants : wa.get_war().get_war_participant()) {
+			if(other_participants.get_is_attacker() == wa.get_is_attacker()) { // case: ally on same side -- must not be on opposite site
+				for(auto tp : target_war_participants) {
+					if(tp.get_nation() == other_participants.get_nation() && tp.get_is_attacker() != as_attacker)
+						return false;
+				}
+			} else { // case opponent -- must not be in new war at all
+				for(auto tp : target_war_participants) {
+					if(tp.get_nation() == other_participants.get_nation())
+						return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+bool is_civil_war(sys::state const& state, dcon::war_id w) {
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::is_civil_war) != 0)
+			return true;
+	}
+	return false;
+}
+
+bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_id wg) {
+	auto from = state.world.wargoal_get_added_by(wg);
+	for(auto p : state.world.war_get_war_participant(w)) {
+		if(p.get_nation() == from)
+			return !p.get_is_attacker();
+	}
+	return false;
+}
+
+bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w) {
+	for(auto wg : state.world.war_get_wargoals_attached(w)) {
+		if(is_defender_wargoal(state, w, wg.get_wargoal()) && (wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_status_quo) != 0)
+			return true;
+	}
+	return false;
+}
+
+bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w) {
+	for(auto p : state.world.war_get_war_participant(w)) {
+		if(p.get_is_attacker() == false) {
+			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, p.get_nation());
+			if(rel && state.world.diplomatic_relation_get_truce_until(rel) && state.current_date < state.world.diplomatic_relation_get_truce_until(rel)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p) {
 	/*
 	(province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the controller, have military access with the controller, a rebel controls it, it is one of your core provinces, or you are sieging it) x (technology-supply-limit-modifier + 1)
@@ -928,6 +985,10 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	new_war.set_start_date(state.current_date);
 	// TODO new_war.set_name(..);
 	add_wargoal(state, new_war, primary_attacker, primary_defender, primary_wargoal, primary_wargoal_state, primary_wargoal_tag);
+	state.world.force_create_war_participant(new_war, primary_attacker);
+	state.world.force_create_war_participant(new_war, primary_defender);
+	state.world.nation_set_is_at_war(primary_attacker, true);
+	state.world.nation_set_is_at_war(primary_defender, true);
 	return new_war;
 }
 void call_defender_allies(sys::state& state, dcon::war_id wfor) {
@@ -948,6 +1009,11 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
 		effect::execute(state, on_add, trigger::to_generic(added_by), trigger::to_generic(added_by), trigger::to_generic(target), uint32_t(state.current_date.value), uint32_t((added_by.index() << 7) ^ target.index() ^ (type.index() << 3)));
 	}
+}
+
+float primary_warscore(sys::state const& state, dcon::war_id w) {
+	// TODO
+	return 0.0f;
 }
 
 }

@@ -7,7 +7,9 @@
 #include "gui_element_types.hpp"
 #include "nations.hpp"
 #include "system_state.hpp"
+#include "text.hpp"
 #include <cstdint>
+#include <string_view>
 #include <vector>
 
 namespace dcon {
@@ -49,15 +51,15 @@ template<>
 uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id){
 	switch(id.value) {
 	case 0: // red
-		return sys::pack_color(0.9f, 0.2f, 0.1f);
+		return sys::pack_color(1.0f, 0.1f, 0.1f);
 	case 1: // yellow
-		return sys::pack_color(0.9f, 0.9f, 0.1f);
+		return sys::pack_color(1.0f, 1.0f, 0.1f);
 	case 2: // green
-		return sys::pack_color(0.2f, 0.95f, 0.2f);
+		return sys::pack_color(0.1f, 1.0f, 0.1f);
 	case 3: // blue
-		return sys::pack_color(0.5f, 0.5f, 1.0f);
+		return sys::pack_color(0.1f, 0.1f, 1.0f);
 	case 4: // light blue
-		return sys::pack_color(0.2f, 0.2f, 0.8f);
+		return sys::pack_color(0.1f, 1.0f, 1.0f);
 	}
 	return 0;
 }
@@ -125,6 +127,18 @@ public:
 		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{ 4 }).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
 
 		piechart::on_create(state);
+	}
+
+	void populate_tooltip(sys::state& state, dcon::pop_satisfaction_wrapper_id psw, float percentage, text::columnar_layout& contents) noexcept override {
+		static const std::string needs_types[5] = {"no_need", "some_life_needs", "life_needs", "everyday_needs", "luxury_needs"};
+		auto fat_psw = dcon::fatten(state.world, psw);
+		auto box = text::open_layout_box(contents, 0);
+		auto sub = text::substitution_map{};
+		auto needs_type = text::produce_simple_string(state, needs_types[psw.value]);
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{percentage * 100.f});
+		text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(needs_type));
+		text::add_to_layout_box(contents, state, box, fat_psw.get_name(), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -498,6 +512,79 @@ public:
 	}
 };
 
+class budget_pop_list_item : public window_element_base {
+private:
+	fixed_pop_type_icon* pop_type_icon = nullptr;
+
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "pop") {
+			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
+			pop_type_icon = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<wrapped_listbox_row_content<dcon::pop_type_id>>()) {
+			auto pop_type_id = any_cast<wrapped_listbox_row_content<dcon::pop_type_id>>(payload).content;
+			pop_type_icon->set_type(state, pop_type_id);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+template<culture::pop_strata Strata>
+class budget_pop_tax_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "pop_listitem";
+	}
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id>::on_create(state);
+		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+			if(state.world.pop_type_get_strata(pt) == uint8_t(Strata)) {
+				row_contents.push_back(pt);
+			}
+		});
+		update(state);
+	}
+};
+
+template<culture::income_type Income>
+class budget_pop_income_list : public overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "pop_listitem";
+	}
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id>::on_create(state);
+		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+			if(state.world.pop_type_get_life_needs_income_type(pt) == uint8_t(Income)
+				|| state.world.pop_type_get_everyday_needs_income_type(pt) == uint8_t(Income)
+				|| state.world.pop_type_get_luxury_needs_income_type(pt) == uint8_t(Income)) {
+				row_contents.push_back(pt);
+			}
+		});
+		update(state);
+	}
+};
+
+template<culture::income_type Income>
+class budget_small_pop_income_list : public budget_pop_income_list<Income> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "pop_listitem_small";
+	}
+};
+
 class budget_window : public window_element_base {
 private:
 	budget_take_loan_window* budget_take_loan_win = nullptr;
@@ -604,6 +691,20 @@ public:
 			return make_element_by_type<budget_take_loan_button>(state, id);
 		} else if(name == "repay_loan") {
 			return make_element_by_type<budget_repay_loan_button>(state, id);
+		} else if(name == "tax_0_pops") {
+			return make_element_by_type<budget_pop_tax_list<culture::pop_strata::poor>>(state, id);
+		} else if(name == "tax_1_pops") {
+			return make_element_by_type<budget_pop_tax_list<culture::pop_strata::middle>>(state, id);
+		} else if(name == "tax_2_pops") {
+			return make_element_by_type<budget_pop_tax_list<culture::pop_strata::rich>>(state, id);
+		} else if(name == "exp_0_pops") {
+			return make_element_by_type<budget_small_pop_income_list<culture::income_type::education>>(state, id);
+		} else if(name == "exp_1_pops") {
+			return make_element_by_type<budget_small_pop_income_list<culture::income_type::administration>>(state, id);
+		// } else if(name == "exp_2_pops") {   // intentionally unused
+		// 	return make_element_by_type<budget_pop_income_list<culture::income_type::reforms>>(state, id);
+		} else if(name == "exp_3_pops") {
+			return make_element_by_type<budget_pop_income_list<culture::income_type::military>>(state, id);
 		} else {
 			return nullptr;
 		}

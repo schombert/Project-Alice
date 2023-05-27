@@ -34,7 +34,9 @@ enum class command_type : uint8_t {
 	upgrade_colony_to_state = 26,
 	invest_in_colony = 27,
 	abandon_colony = 28,
-	finish_colonization = 29
+	finish_colonization = 29,
+	intervene_in_war = 30,
+	suppress_movement = 31
 };
 
 struct national_focus_data {
@@ -95,6 +97,11 @@ struct generic_location_data {
 	dcon::province_id prov;
 };
 
+struct movement_data {
+	dcon::issue_option_id iopt;
+	dcon::national_identity_id tag;
+};
+
 struct budget_settings_data {
 	int8_t education_spending;
 	int8_t military_spending;
@@ -107,6 +114,11 @@ struct budget_settings_data {
 	int8_t middle_tax;
 	int8_t rich_tax;
 	int8_t tariffs;
+};
+
+struct war_target_data {
+	dcon::war_id war;
+	bool for_attacker;
 };
 
 struct payload {
@@ -124,6 +136,8 @@ struct payload {
 		influence_action_data influence_action;
 		influence_priority_data influence_priority;
 		generic_location_data generic_location;
+		war_target_data war_target;
+		movement_data movement;
 
 		dtype() {}
 	} data;
@@ -232,6 +246,12 @@ bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::provinc
 
 void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
+
+void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
+bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
+
+void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
+bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 
 void execute_pending_commands(sys::state& state);
 

@@ -1409,6 +1409,145 @@ void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
+void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::intervene_in_war;
+	p.source = source;
+	p.data.war_target.war = w;
+	p.data.war_target.for_attacker = for_attacker;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker) {
+	/*
+	Must be a great power. Must not be involved in or interested in a crisis. Must be at least define:MIN_MONTHS_TO_INTERVENE since the war started.
+	*/
+	if(!nations::is_great_power(state, source))
+		return false;
+	if(nations::is_involved_in_crisis(state, source))
+		return false;
+	if(state.current_date < state.world.war_get_start_date(w) + int32_t(30.0f * state.defines.min_months_to_intervene))
+		return false;
+
+	/*
+	Standard war-joining conditions: can't join if you are already at war against any attacker or defender. Can't join a war against your sphere leader or overlord (doesn't apply here obviously). Can't join a crisis war prior to great wars being invented (i.e. you have to be in the crisis). Can't join as an attacker against someone you have a truce with.
+	*/
+	if(!military::joining_war_does_not_violate_constraints(state, source, w, for_attacker))
+		return false;
+	if(state.world.war_get_is_crisis_war(w) && !state.world.war_get_is_great(w))
+		return false;
+	if(for_attacker && military::joining_as_attacker_would_break_truce(state, source, w))
+		return false;
+
+	if(!state.world.war_get_is_great(w)) {
+		/*
+		If it is not a great war:
+		Must be at least friendly with the primary defender. May only join on the defender's side. Defenders must either have no wargoals or only status quo. Primary defender must be at defines:MIN_WARSCORE_TO_INTERVENE or less.
+		*/
+
+		if(for_attacker)
+			return false;
+		if(military::defenders_have_non_status_quo_wargoal(state, w))
+			return false;
+		if(military::primary_warscore(state, w) < -state.defines.min_warscore_to_intervene)
+			return false;
+	} else {
+		/*
+		If the war is a great war:
+		It is then possible to join the attacking side as well.
+		Must have define:GW_INTERVENE_MIN_RELATIONS with the primary defender/attacker to intervene, must have at most define:GW_INTERVENE_MAX_EXHAUSTION war exhaustion.
+		Can't join if any nation in your sphere is on the other side
+		Can't join if you are allied to any allied to any nation on the other side
+		Can't join if you have units within a nation on the other side
+		*/
+		if(state.world.nation_get_war_exhaustion(source) >= state.defines.gw_intervene_max_exhaustion)
+			return false;
+
+		auto primary_on_side = for_attacker ? state.world.war_get_primary_attacker(w) : state.world.war_get_primary_defender(w);
+		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(primary_on_side, source);
+		if(state.world.diplomatic_relation_get_value(rel) < state.defines.gw_intervene_min_relations)
+			return false;
+
+		for(auto p : state.world.war_get_war_participant(w)) {
+			if(p.get_is_attacker() != for_attacker) { // scan nations on other side
+				if(p.get_nation().get_in_sphere_of() == source)
+					return false;
+
+				auto irel = state.world.get_diplomatic_relation_by_diplomatic_pair(p.get_nation(), source);
+				if(state.world.diplomatic_relation_get_are_allied(irel))
+					return false;
+
+				for(auto prov : p.get_nation().get_province_ownership()) {
+					for(auto arm : prov.get_province().get_army_location()) {
+						if(arm.get_army().get_controller_from_army_control() == source)
+							return false;
+					}
+				}
+			}
+		}
+	}
+	return false;
+	
+}
+void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker) {
+	if(!can_intervene_in_war(state, source, w, for_attacker))
+		return;
+
+	if(!state.world.war_get_is_great(w)) {
+		bool status_quo_added = false;
+		for(auto wg : state.world.war_get_wargoals_attached(w)) {
+			if(military::is_defender_wargoal(state, w, wg.get_wargoal()) && (wg.get_wargoal().get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0) {
+				status_quo_added = true;
+				break;
+			}
+		}
+		if(!status_quo_added) {
+			dcon::cb_type_id status_quo;
+			for(auto c : state.world.in_cb_type) {
+				if((c.get_type_bits() & military::cb_flag::po_status_quo) != 0) {
+					status_quo = c;
+					break;
+				}
+			}
+			assert(status_quo);
+			military::add_wargoal(state, w, source, state.world.war_get_primary_attacker(w), status_quo, dcon::state_definition_id{}, dcon::national_identity_id{});
+		}
+	}
+	auto wp = fatten(state.world, state.world.force_create_war_participant(w, source));
+	wp.set_is_attacker(for_attacker);
+	state.world.nation_set_is_at_war(source, true);
+}
+
+void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::intervene_in_war;
+	p.source = source;
+	p.data.movement.iopt = state.world.movement_get_associated_issue_option(m);
+	p.data.movement.tag = state.world.movement_get_associated_independence(m);
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
+	if(state.world.movement_get_nation_from_movement_within(m) != source)
+		return false;
+	return state.world.nation_get_suppression_points(source) >= rebel::get_suppression_point_cost(state, m);
+}
+void execute_suppress_movement(sys::state& state, dcon::nation_id source, dcon::issue_option_id iopt, dcon::national_identity_id tag) {
+	dcon::movement_id m;
+	if(iopt) {
+		m = rebel::get_movement_by_position(state, source, iopt);
+	} else if(tag) {
+		m = rebel::get_movement_by_independence(state, source, tag);
+	}
+	if(!m)
+		return;
+	if(!can_suppress_movement(state, source, m))
+		return;
+
+	state.world.nation_get_suppression_points(source) -= rebel::get_suppression_point_cost(state, m);
+	rebel::suppress_movement(state, source, m);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1505,6 +1644,12 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::finish_colonization:
 				execute_finish_colonization(state, c->source, c->data.generic_location.prov);
+				break;
+			case command_type::intervene_in_war:
+				execute_intervene_in_war(state, c->source, c->data.war_target.war, c->data.war_target.for_attacker);
+				break;
+			case command_type::suppress_movement:
+				execute_suppress_movement(state, c->source, c->data.movement.iopt, c->data.movement.tag);
 				break;
 		}
 

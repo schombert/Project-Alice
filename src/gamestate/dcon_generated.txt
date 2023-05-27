@@ -1742,6 +1742,16 @@ object {
 		type{ text_sequence_id }
 		tag{ save }
 	}
+	property {
+		name{ is_great }
+		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ is_crisis_war }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 object {
 	name{ wargoal }

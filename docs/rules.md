@@ -771,7 +771,7 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 - When a movement is suppressed:
 Reduce the suppression points for the nation by: if define:POPULATION_SUPPRESSION_FACTOR is zero, movement radicalism + 1, otherwise the greater of movement-radicalism + 1 and movement-radicalism x movement-support / define:POPULATION_SUPPRESSION_FACTOR, to a minimum of zero
 Increase the transient radicalism of the movement by: define:SUPPRESSION_RADICALISM_HIT
-Increase the consciousness of all pops that were in the movement by 1 and remove them from it.
+Set the consciousness of all pops that were in the movement to 1 and remove them from it.
 
 ## Rebels
 
@@ -1445,3 +1445,36 @@ Must have at least defines:COLONIZATION_CREATE_PROTECTORATE_COST free colonial p
 #### Effects
 
 Gain define:COLONY_FORMED_PRESTIGE x (tech prestige modifier + 1) prestige. Makes unowned provinces into a colonial state.
+
+### Intervene in war
+
+#### Conditions
+
+Standard war-joining conditions: can't join if you are already at war against any attacker or defender. Can't join a civil war. Can't join a war against your sphere leader or overlord (doesn't apply here obviously). Can't join a crisis war prior to great wars being invented (i.e. you have to be in the crisis). Can't join as an attacker against someone you have a truce with.
+
+Must be a great power. Must not be involved in or interested in a crisis. Must be at least define:MIN_MONTHS_TO_INTERVENE since the war started.
+
+If it is not a great war:
+Must be at least friendly with the primary defender. May only join on the defender's side. Must not be in a crisis war. Defenders must either have no wargoals or only status quo. Primary defender must be at defines:MIN_WARSCORE_TO_INTERVENE or less. Note, you *can* intervene in a civil war, despite not being able to be called into one normally.
+
+If the war is a great war:
+It is then possible to join the attacking side as well.
+Must have define:GW_INTERVENE_MIN_RELATIONS with the primary defender/attacker to intervene, must have at most define:GW_INTERVENE_MAX_EXHAUSTION war exhaustion.
+Can't join if any nation in your sphere is on the other side
+Can't join if you are allied to any allied to any nation on the other side
+Can't join if you have units within a nation on the other side
+
+#### Effect
+
+Join the war. Adds a status quo wargoal if it is not a great war and one isn't already present
+
+### Suppress movement
+
+#### Conditions
+
+Suppression point cost:
+Depends on whether define:POPULATION_SUPPRESSION_FACTOR is non zero. If it is zero, suppression costs their effective radicalism + 1. If it is non zero, then the cost is the greater of that value and the movements effective radicalism x the movement's support / define:POPULATION_SUPPRESSION_FACTOR
+
+#### Effect
+
+The movement's radicalism is permanently increased by define:SUPPRESSION_RADICALISM_HIT. The consciousness of each pop belonging to the movement is set to 1 and then the pops are removed from the movement.

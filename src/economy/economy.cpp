@@ -1735,14 +1735,14 @@ void daily_update(sys::state& state) {
 
 			// step 2: limit to actual budget
 			float budget = state.world.nation_get_stockpiles(n, economy::money); // (TODO: make debt possible)
-			float spending_scale = std::min(1.0f, (total < 0.001 || total <= budget) ? 1.0f : budget / total);
+			float spending_scale = (total < 0.001 || total <= budget) ? 1.0f : budget / total;
 
 			assert(spending_scale >= 0);
 			assert(budget >= 0);
 			assert(std::isfinite(spending_scale));
 			assert(std::isfinite(budget));
 
-			state.world.nation_get_stockpiles(n, economy::money) -= total * spending_scale;
+			state.world.nation_get_stockpiles(n, economy::money) -= std::min(budget, total * spending_scale);
 			state.world.nation_set_spending_level(n, spending_scale);
 
 			float pi_total = full_private_investment_cost(state, n, effective_prices);

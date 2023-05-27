@@ -97,6 +97,12 @@ bool has_truce_with(sys::state const& state, dcon::nation_id attacker, dcon::nat
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 float cb_infamy(sys::state const& state, dcon::cb_type_id t);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
+bool joining_war_does_not_violate_constraints(sys::state const& state, dcon::nation_id a, dcon::war_id w, bool as_attacker); // tests whether joining the war would violate the constraint that you can't both be in a war with and fighting against the same nation or fighting against them twice
+bool is_civil_war(sys::state const& state, dcon::war_id w);
+bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w);
+bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w);
+float primary_warscore(sys::state const& state, dcon::war_id w); // warscore from the perspective of the primary attacker offering a peace deal to the primary defender
+bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_id wg);
 
 template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids);
