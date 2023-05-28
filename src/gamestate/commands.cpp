@@ -1657,8 +1657,9 @@ void execute_enact_reform(sys::state& state, dcon::nation_id source, dcon::refor
 		if(id == state.culture_definitions.conservative) {
 			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
 		}
-		state.world.nation_get_upper_house(source, id) /= (100.0f + state.defines.conservative_increase_after_reform * 100.0f);
+		state.world.nation_get_upper_house(source, id) /= (1.0f + state.defines.conservative_increase_after_reform);
 	}
+	state.world.nation_set_reforms(source, state.world.reform_option_get_parent_reform(r), r);
 
 	culture::update_nation_issue_rules(state, source);
 	sys::update_single_nation_modifiers(state, source);
@@ -1765,8 +1766,10 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 		if(id == state.culture_definitions.conservative) {
 			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
 		}
-		state.world.nation_get_upper_house(source, id) /= (100.0f + state.defines.conservative_increase_after_reform * 100.0f);
+		state.world.nation_get_upper_house(source, id) /= (1.0f + state.defines.conservative_increase_after_reform);
 	}
+
+	state.world.nation_set_issues(source, issue, i);
 
 	culture::update_nation_issue_rules(state, source);
 	sys::update_single_nation_modifiers(state, source);
