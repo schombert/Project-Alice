@@ -39,6 +39,8 @@ enum class command_type : uint8_t {
 	suppress_movement = 31,
 	civilize_nation = 32,
 	appoint_ruling_party = 33,
+	change_issue_option = 34,
+	change_reform_option = 35
 };
 
 struct national_focus_data {
@@ -108,6 +110,14 @@ struct political_party_data {
 	dcon::political_party_id p;
 };
 
+struct reform_selection_data {
+	dcon::reform_option_id r;
+};
+
+struct issue_selection_data {
+	dcon::issue_option_id r;
+};
+
 struct budget_settings_data {
 	int8_t education_spending;
 	int8_t military_spending;
@@ -145,6 +155,8 @@ struct payload {
 		war_target_data war_target;
 		movement_data movement;
 		political_party_data political_party;
+		reform_selection_data reform_selection;
+		issue_selection_data issue_selection;
 
 		dtype() {}
 	} data;
@@ -265,6 +277,12 @@ bool can_civilize_nation(sys::state& state, dcon::nation_id source);
 
 void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
+
+void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
+bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
+
+void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
+bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 
 void execute_pending_commands(sys::state& state);
 

@@ -125,7 +125,7 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
     auto issue = state.world.issue_option_get_parent_issue(issue_option);
     auto current = state.world.nation_get_issues(nation, issue.id).id;
     auto allow = state.world.issue_option_get_allow(issue_option);
-    if(
+    if(current != issue_option &&
         (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() || current.index() - 1 == issue_option.index())
         &&
         (!allow || trigger::evaluate(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))
@@ -152,7 +152,7 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
     auto issue = state.world.issue_option_get_parent_issue(o);
     auto current = state.world.nation_get_issues(n, issue.id).id;
     auto allow = state.world.issue_option_get_allow(o);
-    if(
+    if(current != o &&
         (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() || current.index() - 1 == o.index())
         &&
         (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
@@ -191,7 +191,7 @@ bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::refor
         float base_cost = float(state.world.reform_option_get_technology_cost(o));
         float reform_factor = politics::get_military_reform_multiplier(state, n);
 
-        if(base_cost * reform_factor < stored_rp)
+        if(base_cost * reform_factor <= stored_rp)
             return true;
     }
     return false;
@@ -216,7 +216,7 @@ bool can_enact_economic_reform(sys::state& state, dcon::nation_id n, dcon::refor
         float base_cost = float(state.world.reform_option_get_technology_cost(o));
         float reform_factor = politics::get_economic_reform_multiplier(state, n);
 
-        if(base_cost * reform_factor < stored_rp)
+        if(base_cost * reform_factor <= stored_rp)
             return true;
     }
     return false;

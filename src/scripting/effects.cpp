@@ -2227,11 +2227,13 @@ uint32_t ef_election(EFFECT_PARAMTERS) {
 uint32_t ef_social_reform(EFFECT_PARAMTERS) {
 	auto opt = trigger::payload(tval[1]).opt_id;
 	politics::set_issue_option(ws, trigger::to_nation(primary_slot), opt);
+	culture::update_nation_issue_rules(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_political_reform(EFFECT_PARAMTERS) {
 	auto opt = trigger::payload(tval[1]).opt_id;
 	politics::set_issue_option(ws, trigger::to_nation(primary_slot), opt);
+	culture::update_nation_issue_rules(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_add_tax_relative_income(EFFECT_PARAMTERS) {

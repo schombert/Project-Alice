@@ -1543,3 +1543,26 @@ The ruling party is changed. The party issues and rules are updated (note that t
 If the new party ideology is *not* the same as the old one: all pops gain ((total number of political and social reforms over baseline) x 0.01 + 1.0) x define:RULING_PARTY_ANGRY_CHANGE x pop support of the old ideology militancy
 all pops gain define:RULING_PARTY_HAPPY_CHANGE x pop support of the new ideology militancy
 The same is also done for all party issues that differ between the two.
+
+### Select political / social / military / economic reform
+
+#### Conditions
+
+The conditions for when these reforms can be selected has been described elsewhere in this document.
+
+#### Effects
+
+For political and social based reforms:
+- Every issue-based movement with greater popular support than the movement supporting the given issue (if there is such a movement; all movements if there is no such movement) has its radicalism increased by 3v(support-of-that-movement /  support-of-movement-behind-issue (or 1 if there is no such movement) - 1.0) x defines:WRONG_REFORM_RADICAL_IMPACT.
+- Each pop in the nation gains defines:CON_REFORM_IMPACT x pop support of the issue consciousness
+- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing the opposite of the reform (calculated in the same way as determining when the upper house will support the reform or repeal) militancy
+- If the pop is part of an movement for some other issue (or for independence), it gains defines:WRONG_REFORM_MILITANCY_IMPACT militancy. All other pops lose defines:WRONG_REFORM_MILITANCY_IMPACT militancy.
+
+For military/economic reforms:
+- Run the `on_execute` member
+- Subtract research points (see discussion of when the reform is possible for how many)
+
+In general:
+- Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize again)
+- If slavery is forbidden (rule slavery_allowed is false), remove all slave states and free all slaves.
+- Movements may now be invalid and may need to be removed (can the normal update handle this?)
