@@ -8,18 +8,23 @@ namespace ui {
 
 class reforms_reform_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::issue_option_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::issue_option_id>(payload);
+
+			command::enact_issue(state, state.local_player_nation, content);
+		}
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::issue_option_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::issue_option_id>(payload);
 
-			auto issue_type = state.world.issue_option_get_parent_issue(content).get_issue_type();
-			if(issue_type == uint8_t(culture::issue_type::political)) {
-				disabled = !politics::can_enact_political_reform(state, state.local_player_nation, content);
-			} else {
-				disabled = !politics::can_enact_social_reform(state, state.local_player_nation, content);
-			}
+			disabled = !command::can_enact_issue(state, state.local_player_nation, content);
 		}
 	}
 

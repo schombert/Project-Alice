@@ -283,22 +283,22 @@ bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::provinc
 void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
+void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);		// Implemented in GUI
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 
-void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
+void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);				// Implemented in GUI
 bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 
-void civilize_nation(sys::state& state, dcon::nation_id source);
+void civilize_nation(sys::state& state, dcon::nation_id source);						// Implemented in GUI
 bool can_civilize_nation(sys::state& state, dcon::nation_id source);
 
 void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);		// Added in GUI
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 
-void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
+void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);				// Added in GUI Need QA
 bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
 
-void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
+void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);				// Added in GUI Need QA
 bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 
 void become_interested_in_crisis(sys::state& state, dcon::nation_id source);
