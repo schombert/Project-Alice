@@ -67,6 +67,7 @@ Some elements are fixed up automatically by the game in the code, overriding the
 - `setuppeacedialog` Overrides `moveable`.
 - `makecbdialog` Overrides `moveable`.
 - `setupcrisisbackdowndialog` Overrides `moveable`.
+- `invest_project_window` Overrides `moveable`.
 
 #### A quick note on fonts
 
@@ -78,7 +79,7 @@ Some of these elements will refer to various fonts. Since we won't be using any 
 - `size` : a group with contents `{ x = ... y = ...}`
 - `delayedtooltipText` : text, at least nominally. After an initial inspection, it looks like it is always assigned `""` when it appears, so I am discarding it for now.
 - `format` : text value containing `right`, `left`, `center`, or `centre` (with possibly varying capitalization), determining how text is aligned in the control.
-- `spritetype` : text naming a graphics resource to draw the element with (appears only for `icontype`, I think, but why not put it here just in case? 
+- `spritetype` : text naming a graphics resource to draw the element with (appears only for `icontype`, I think, but why not put it here just in case?
 - `rotation` : floating point value plus or minus 1.5708 (i.e. a 90 degree clockwise or counter-clockwise rotation).
 - `shortcut` : shortcut key to associate with the control
 - `tooltip` and `tooltiptext` : apparently all set to `""`

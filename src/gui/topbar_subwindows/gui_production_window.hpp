@@ -8,6 +8,7 @@
 #include "gui_commodity_filters_window.hpp"
 #include "gui_projects_window.hpp"
 #include "gui_build_factory_window.hpp"
+#include "gui_project_investment_window.hpp"
 #include <vector>
 
 namespace ui {
@@ -556,7 +557,7 @@ public:
 
 		for(const auto c : infos)
 			c->set_visible(state, false);
-		
+
 		std::vector<bool> visited_types(state.world.factory_type_size(), false);
 		size_t index = 0;
 		// First, the new factories are taken into account
@@ -864,6 +865,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	production_state_listbox* state_listbox = nullptr;
 	element_base* nf_win = nullptr;
 	element_base* build_win = nullptr;
+	element_base* project_window = nullptr;
 
 	sys::commodity_group curr_commodity_group{};
 	dcon::state_instance_id focus_state{};
@@ -953,6 +955,11 @@ public:
 		auto win = make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find("build_factory")->second.definition);
 		build_win = win.get();
 		add_child_to_front(std::move(win));
+
+		auto win2 = make_element_by_type<project_investment_window>(state, state.ui_state.defs_by_name.find("invest_project_window")->second.definition);
+		win2->set_visible(state, false);
+		project_window = win2.get();
+		add_child_to_front(std::move(win2));
 
 		show_output_commodity = new bool[state.world.commodity_size()];
 
@@ -1102,26 +1109,29 @@ public:
 			commodity_filters[content.data.index()] = !commodity_filters[content.data.index()];
 			impl_on_update(state);
 			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<factory_all_actions>>()) {
-			auto content = any_cast<element_selection_wrapper<factory_all_actions>>(payload).data;
+		} else if(payload.holds_type<element_selection_wrapper<production_action>>()) {
+			auto content = any_cast<element_selection_wrapper<production_action>>(payload).data;
 			switch(content) {
-				case factory_all_actions::subsidise_all:
+				case production_action::subsidise_all:
 					break;
-				case factory_all_actions::unsubsidise_all:
+				case production_action::unsubsidise_all:
 					break;
-				case factory_all_actions::filter_select_all:
+				case production_action::filter_select_all:
 					for(uint32_t i = 0; i < commodity_filters.size(); i++) {
 						commodity_filters[i] = true;
 					}
 					break;
-				case factory_all_actions::filter_deselect_all:
+				case production_action::filter_deselect_all:
 					for(uint32_t i = 0; i < commodity_filters.size(); i++) {
 						commodity_filters[i] = false;
 					}
 					break;
-				case factory_all_actions::open_all:
+				case production_action::open_all:
 					break;
-				case factory_all_actions::close_all:
+				case production_action::close_all:
+					break;
+				case production_action::investment_window:
+					project_window->is_visible() ? project_window->set_visible(state, false) : project_window->set_visible(state, true);
 					break;
 				default:
 					break;

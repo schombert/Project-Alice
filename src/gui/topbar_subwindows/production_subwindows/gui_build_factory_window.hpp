@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_production_enum.hpp"
 
 namespace ui {
 
@@ -121,7 +122,7 @@ public:
 			disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
 		}
 	}
-	
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::factory_type_id{};
