@@ -36,7 +36,16 @@ enum class command_type : uint8_t {
 	abandon_colony = 28,
 	finish_colonization = 29,
 	intervene_in_war = 30,
-	suppress_movement = 31
+	suppress_movement = 31,
+	civilize_nation = 32,
+	appoint_ruling_party = 33,
+	change_issue_option = 34,
+	change_reform_option = 35,
+	become_interested_in_crisis = 36,
+	take_sides_in_crisis = 37,
+	back_crisis_acceptance = 38,
+	back_crisis_decline = 39,
+	change_stockpile_settings = 40,
 };
 
 struct national_focus_data {
@@ -102,6 +111,18 @@ struct movement_data {
 	dcon::national_identity_id tag;
 };
 
+struct political_party_data {
+	dcon::political_party_id p;
+};
+
+struct reform_selection_data {
+	dcon::reform_option_id r;
+};
+
+struct issue_selection_data {
+	dcon::issue_option_id r;
+};
+
 struct budget_settings_data {
 	int8_t education_spending;
 	int8_t military_spending;
@@ -121,6 +142,16 @@ struct war_target_data {
 	bool for_attacker;
 };
 
+struct crisis_join_data {
+	bool join_attackers;
+};
+
+struct stockpile_settings_data {
+	float amount;
+	dcon::commodity_id c;
+	bool draw_on_stockpiles;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -138,6 +169,11 @@ struct payload {
 		generic_location_data generic_location;
 		war_target_data war_target;
 		movement_data movement;
+		political_party_data political_party;
+		reform_selection_data reform_selection;
+		issue_selection_data issue_selection;
+		crisis_join_data crisis_join;
+		stockpile_settings_data stockpile_settings;
 
 		dtype() {}
 	} data;
@@ -252,6 +288,39 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 
 void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
 bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m);
+
+void civilize_nation(sys::state& state, dcon::nation_id source);
+bool can_civilize_nation(sys::state& state, dcon::nation_id source);
+
+void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
+bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
+
+void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
+bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
+
+void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
+bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
+
+void become_interested_in_crisis(sys::state& state, dcon::nation_id source);
+bool can_become_interested_in_crisis(sys::state& state, dcon::nation_id source);
+
+void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
+bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
+
+void back_crisis_acceptance(sys::state& state, dcon::nation_id source);
+bool can_back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
+	return true;
+}
+
+void back_crisis_decline(sys::state& state, dcon::nation_id source);
+bool can_back_crisis_decline(sys::state& state, dcon::nation_id source) {
+	return true;
+}
+
+void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles);
+bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
+	return true;
+}
 
 void execute_pending_commands(sys::state& state);
 

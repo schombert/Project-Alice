@@ -34,6 +34,8 @@ void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_
 // just changes ruling party
 void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id);
 
+void appoint_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p);
+
 // use this function for update flag, name, adjective, and color based on government type changes
 void update_displayed_identity(sys::state& state, dcon::nation_id n);
 

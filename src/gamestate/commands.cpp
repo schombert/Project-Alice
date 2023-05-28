@@ -1548,6 +1548,370 @@ void execute_suppress_movement(sys::state& state, dcon::nation_id source, dcon::
 	rebel::suppress_movement(state, source, m);
 }
 
+void civilize_nation(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::civilize_nation;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_civilize_nation(sys::state& state, dcon::nation_id source) {
+	return state.world.nation_get_modifier_values(source, sys::national_mod_offsets::civilization_progress_modifier) >= 1.0f;
+}
+void execute_civilize_nation(sys::state& state, dcon::nation_id source) {
+	if(!can_civilize_nation(state, source))
+		return;
+	nations::make_civilized(state, source);
+}
+
+void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id pa) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::appoint_ruling_party;
+	p.source = source;
+	p.data.political_party.p = pa;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p) {
+	/*
+	The ideology of the ruling party must be permitted by the government form. There can't be an ongoing election. It can't be the current ruling party. The government must allow the player to set the ruling party. The ruling party can manually be changed at most once per year.
+	*/
+	if(state.world.nation_get_ruling_party(source) == p)
+		return false;
+
+	if(!politics::can_appoint_ruling_party(state, source))
+		return false;
+
+	auto last_change = state.world.nation_get_ruling_party_last_appointed(source);
+	if(last_change && state.current_date < last_change + 365)
+		return false;
+
+	if(politics::is_election_ongoing(state, source))
+		return false;
+
+	auto gov = state.world.nation_get_government_type(source);
+	auto new_ideology = state.world.political_party_get_ideology(p);
+	if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
+		return false;
+	}
+
+	return true;
+}
+void execute_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p) {
+	if(!can_appoint_ruling_party(state, source, p))
+		return;
+
+	politics::appoint_ruling_party(state, source, p);
+}
+
+void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_reform_option;
+	p.source = source;
+	p.data.reform_selection.r = r;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
+	bool is_military = state.world.reform_get_reform_type(state.world.reform_option_get_parent_reform(r)) == uint8_t(culture::issue_category::military);
+	if(is_military)
+		return politics::can_enact_military_reform(state, source, r);
+	else
+		return politics::can_enact_economic_reform(state, source, r);
+}
+void execute_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
+	if(!can_enact_reform(state, source, r))
+		return;
+
+	/*
+	For military/economic reforms:
+	- Run the `on_execute` member
+	*/
+	auto e = state.world.reform_option_get_on_execute_effect(r);
+	if(e) {
+		auto t = state.world.reform_option_get_on_execute_trigger(r);
+		if(!t || trigger::evaluate(state, t, trigger::to_generic(source), trigger::to_generic(source), 0))
+		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value), uint32_t(source.index()));
+	}
+
+	// - Subtract research points (see discussion of when the reform is possible for how many)
+	bool is_military = state.world.reform_get_reform_type(state.world.reform_option_get_parent_reform(r)) == uint8_t(culture::issue_category::military);
+	if(is_military) {
+		float base_cost = float(state.world.reform_option_get_technology_cost(r));
+		float reform_factor = politics::get_military_reform_multiplier(state, source);
+
+		state.world.nation_get_research_points(source) -= base_cost * reform_factor;
+	} else {
+		float base_cost = float(state.world.reform_option_get_technology_cost(r));
+		float reform_factor = politics::get_economic_reform_multiplier(state, source);
+
+		state.world.nation_get_research_points(source) -= base_cost * reform_factor;
+	}
+
+	/*
+	In general:
+	- Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize again)
+	*/
+
+	for(auto id : state.world.in_ideology) {
+		if(id == state.culture_definitions.conservative) {
+			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
+		}
+		state.world.nation_get_upper_house(source, id) /= (100.0f + state.defines.conservative_increase_after_reform * 100.0f);
+	}
+
+	culture::update_nation_issue_rules(state, source);
+	sys::update_single_nation_modifiers(state, source);
+}
+
+void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_issue_option;
+	p.source = source;
+	p.data.issue_selection.r = i;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
+	auto type = state.world.issue_get_issue_type(state.world.issue_option_get_parent_issue(i));
+	if(type == uint8_t(culture::issue_type::political))
+		return politics::can_enact_political_reform(state, source, i);
+	else if(type == uint8_t(culture::issue_type::social))
+		return politics::can_enact_social_reform(state, source, i);
+	else
+		return false;
+}
+void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
+	if(!can_enact_issue(state, source, i))
+		return;
+
+	auto e = state.world.issue_option_get_on_execute_effect(i);
+	if(e) {
+		auto t = state.world.issue_option_get_on_execute_trigger(i);
+		if(!t || trigger::evaluate(state, t, trigger::to_generic(source), trigger::to_generic(source), 0))
+			effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value), uint32_t(source.index()));
+	}
+
+	/*
+	For political and social based reforms:
+	- Every issue-based movement with greater popular support than the movement supporting the given issue (if there is such a movement; all movements if there is no such movement) has its radicalism increased by 3v(support-of-that-movement /  support-of-movement-behind-issue (or 1 if there is no such movement) - 1.0) x defines:WRONG_REFORM_RADICAL_IMPACT.
+	*/
+	auto winner = rebel::get_movement_by_position(state, source, i);
+	float winner_support = winner ? state.world.movement_get_pop_support(winner) : 1.0f;
+	for(auto m : state.world.nation_get_movement_within(source)) {
+		if(m.get_movement().get_associated_issue_option() && m.get_movement().get_associated_issue_option() != i && m.get_movement().get_pop_support() > winner_support) {
+
+			m.get_movement().get_transient_radicalism() += std::min(3.0f, m.get_movement().get_pop_support() / winner_support - 1.0f) * state.defines.wrong_reform_radical_impact;
+		}
+	}
+
+
+	/*
+	- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing the opposite of the reform (calculated in the same way as determining when the upper house will support the reform or repeal) militancy
+	*/
+	auto issue = state.world.issue_option_get_parent_issue(i);
+	auto current = state.world.nation_get_issues(source, issue.id).id;
+	bool is_social = state.world.issue_get_issue_type(issue) == uint8_t(culture::issue_category::social);
+
+	for(auto id : state.world.in_ideology) {
+
+		auto condition =
+			is_social
+				? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id) : state.world.ideology_get_add_social_reform(id))
+				: (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id) : state.world.ideology_get_add_political_reform(id));
+		if(condition) {
+			auto factor = trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0);
+			auto const idsupport_key = pop_demographics::to_key(state, id);
+			if(factor > 0) {
+				for(auto pr : state.world.nation_get_province_ownership(source)) {
+					for(auto pop : pr.get_province().get_pop_location()) {
+						auto base_mil = pop.get_pop().get_militancy();
+						pop.get_pop().set_militancy(base_mil + pop.get_pop().get_demographics(idsupport_key) * factor * state.defines.mil_reform_impact); // intentionally left to be clamped below
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	- Each pop in the nation gains defines:CON_REFORM_IMPACT x pop support of the issue consciousness
+
+	- If the pop is part of a movement for some other issue (or for independence), it gains defines:WRONG_REFORM_MILITANCY_IMPACT militancy. All other pops lose defines:WRONG_REFORM_MILITANCY_IMPACT militancy.
+	*/
+
+	auto const isupport_key = pop_demographics::to_key(state, i);
+	for(auto pr : state.world.nation_get_province_ownership(source)) {
+		for(auto pop : pr.get_province().get_pop_location()) {
+			auto base_con = pop.get_pop().get_consciousness();
+			auto adj_con = base_con + pop.get_pop().get_demographics(isupport_key) * state.defines.con_reform_impact;
+			pop.get_pop().set_consciousness(std::clamp(adj_con, 0.0f, 10.0f));
+
+			if(auto m = pop.get_pop().get_movement_from_pop_movement_membership(); m && m.get_associated_issue_option() != i) {
+				auto base_mil = pop.get_pop().get_militancy();
+				pop.get_pop().set_militancy(std::clamp(base_mil + state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
+			} else {
+				auto base_mil = pop.get_pop().get_militancy();
+				pop.get_pop().set_militancy(std::clamp(base_mil - state.defines.wrong_reform_militancy_impact, 0.0f, 10.0f));
+			}
+		}
+	}
+
+	/*
+	In general:
+	- Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize again)
+	- If slavery is forbidden (rule slavery_allowed is false), remove all slave states and free all slaves.
+	*/
+	for(auto id : state.world.in_ideology) {
+		if(id == state.culture_definitions.conservative) {
+			state.world.nation_get_upper_house(source, id) += state.defines.conservative_increase_after_reform * 100.0f;
+		}
+		state.world.nation_get_upper_house(source, id) /= (100.0f + state.defines.conservative_increase_after_reform * 100.0f);
+	}
+
+	culture::update_nation_issue_rules(state, source);
+	sys::update_single_nation_modifiers(state, source);
+}
+
+void become_interested_in_crisis(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::become_interested_in_crisis;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_become_interested_in_crisis(sys::state& state, dcon::nation_id source) {
+	/*
+	Not already interested in the crisis. Is a great power. Not at war. The crisis must have already gotten its initial backers.
+	*/
+	if(!nations::is_great_power(state, source))
+		return false;
+
+	if(state.world.nation_get_is_at_war(source))
+		return false;
+
+	if(state.world.nation_get_disarmed_until(source) && state.current_date < state.world.nation_get_disarmed_until(source))
+		return false;
+
+	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+		return false;
+
+	for(auto& i : state.crisis_participants) {
+		if(i.id == source)
+			return false;
+		if(!i.id)
+			return true;
+	}
+
+	return true;
+}
+void execute_become_interested_in_crisis(sys::state& state, dcon::nation_id source) {
+	if(!can_become_interested_in_crisis(state, source))
+		return;
+
+	for(auto& i : state.crisis_participants) {
+		if(!i.id) {
+			i.id = source;
+			i.merely_interested = true;
+			return;
+		}
+	}
+}
+
+void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::take_sides_in_crisis;
+	p.source = source;
+	p.data.crisis_join.join_attackers = join_attacker;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker) {
+	/*
+	Must not be involved in the crisis already. Must be interested in the crisis. Must be a great power. Must not be disarmed. The crisis must have already gotten its initial backers.
+	*/
+
+	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+		return false;
+
+	for(auto& i : state.crisis_participants) {
+		if(i.id == source)
+			return i.merely_interested == true;
+		if(!i.id)
+			return false;
+	}
+	return false;
+}
+void execute_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker) {
+	if(!can_take_sides_in_crisis(state, source, join_attacker))
+		return;
+
+	for(auto& i : state.crisis_participants) {
+		if(i.id == source) {
+			i.merely_interested = false;
+			i.supports_attacker = join_attacker;
+			return;
+		}
+		if(!i.id)
+			return;
+	}
+}
+
+void back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::back_crisis_acceptance;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
+	if(state.crisis_last_checked_gp < state.great_nations.size()
+		&& state.great_nations[state.crisis_last_checked_gp].nation == source) {
+
+		if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+			nations::add_as_primary_crisis_attacker(state, source);
+		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+			nations::add_as_primary_crisis_defender(state, source);
+		}
+
+	}
+}
+
+void back_crisis_decline(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::back_crisis_decline;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_back_crisis_decline(sys::state& state, dcon::nation_id source) {
+	if(state.crisis_last_checked_gp < state.great_nations.size()
+		&& state.great_nations[state.crisis_last_checked_gp].nation == source) {
+
+		if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+			nations::reject_crisis_participation(state);
+		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+			nations::reject_crisis_participation(state);
+		}
+
+	}
+}
+
+void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_stockpile_settings;
+	p.source = source;
+	p.data.stockpile_settings.amount = target_amount;
+	p.data.stockpile_settings.c = c;
+	p.data.stockpile_settings.draw_on_stockpiles = draw_on_stockpiles;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+void execute_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
+	state.world.nation_set_stockpile_targets(source, c, target_amount);
+	state.world.nation_set_drawing_on_stockpiles(source, c, draw_on_stockpiles);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1650,6 +2014,33 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::suppress_movement:
 				execute_suppress_movement(state, c->source, c->data.movement.iopt, c->data.movement.tag);
+				break;
+			case command_type::civilize_nation:
+				execute_civilize_nation(state, c->source);
+				break;
+			case command_type::appoint_ruling_party:
+				execute_appoint_ruling_party(state, c->source, c->data.political_party.p);
+				break;
+			case command_type::change_issue_option:
+				execute_enact_issue(state, c->source, c->data.issue_selection.r);
+				break;
+			case command_type::change_reform_option:
+				execute_enact_reform(state, c->source, c->data.reform_selection.r);
+				break;
+			case command_type::become_interested_in_crisis:
+				execute_become_interested_in_crisis(state, c->source);
+				break;
+			case command_type::take_sides_in_crisis:
+				execute_take_sides_in_crisis(state, c->source, c->data.crisis_join.join_attackers);
+				break;
+			case command_type::back_crisis_acceptance:
+				execute_back_crisis_acceptance(state, c->source);
+				break;
+			case command_type::back_crisis_decline:
+				execute_back_crisis_decline(state, c->source);
+				break;
+			case command_type::change_stockpile_settings:
+				execute_change_stockpile_settings(state, c->source, c->data.stockpile_settings.c, c->data.stockpile_settings.amount, c->data.stockpile_settings.draw_on_stockpiles);
 				break;
 		}
 

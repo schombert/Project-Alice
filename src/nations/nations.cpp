@@ -1901,4 +1901,126 @@ float get_yesterday_income(sys::state& state, dcon::nation_id n) {
 	return sum;
 }
 
+void make_civilized(sys::state& state, dcon::nation_id n) {
+	/*
+	The nation gains technologies. Specifically take the fraction of military reforms (for land and naval) or econ reforms (otherwise) applied, clamped to the defines:UNCIV_TECH_SPREAD_MIN and defines:UNCIV_TECH_SPREAD_MAX values, and multiply how far the sphere leader (or first GP) is down each tech column, rounded up, to give unciv nations their techs when they westernize.
+	The nation gets an `on_civilize` event.
+	Political and social reforms: First setting in all categories?
+	*/
+	int32_t military_reforms_active_count = 0;
+	int32_t econ_reforms_active_count = 0;
+	int32_t total_military_reforms_count = 0;
+	int32_t total_econ_reforms_count = 0;
+
+	for(auto r : state.world.in_reform) {
+		auto current_option = state.world.nation_get_reforms(n, r);
+		auto& opts = state.world.reform_get_options(r);
+		for(uint32_t i = 0; i < opts.size(); ++i) {
+			if(opts[i]) {
+				if(r.get_reform_type() == uint8_t(culture::issue_type::military)) {
+					++total_military_reforms_count;
+					if(opts[i] == current_option)
+						military_reforms_active_count += int32_t(i);
+				} else {
+					++total_econ_reforms_count;
+					if(opts[i] == current_option)
+						econ_reforms_active_count += int32_t(i);
+				}
+			}
+		}
+	}
+
+	assert(total_military_reforms_count != 0);
+	assert(total_econ_reforms_count != 0);
+
+	float mil_tech_fraction = std::clamp(float(military_reforms_active_count) / float(total_military_reforms_count), state.defines.unciv_tech_spread_min, state.defines.unciv_tech_spread_max);
+	float econ_tech_fraction = std::clamp(float(econ_reforms_active_count) / float(total_econ_reforms_count), state.defines.unciv_tech_spread_min, state.defines.unciv_tech_spread_max);
+
+	dcon::nation_id model = state.world.nation_get_in_sphere_of(n);
+	if(!model)
+		model = state.nations_by_rank[0];
+
+	for(uint32_t idx = 0; idx < state.world.technology_size(); ) {
+		// start: this tech must have a new index:
+		auto this_group = state.world.technology_get_folder_index(dcon::technology_id{dcon::technology_id::value_base_t(idx)});
+		bool is_military = state.culture_definitions.tech_folders[this_group].category == culture::tech_category::army || state.culture_definitions.tech_folders[this_group].category == culture::tech_category::navy;
+
+		// find out how many techs of this index the model has
+		int32_t model_tech_count = 0;
+		for(uint32_t sidx = idx; sidx < state.world.technology_size(); ++sidx) {
+			auto sid = dcon::technology_id{ dcon::technology_id::value_base_t(sidx) };
+			if(state.world.technology_get_folder_index(sid) != this_group)
+				break;
+
+			if(state.world.nation_get_active_technologies(model, sid)) {
+				++model_tech_count;
+			} else {
+				break;
+			}
+		}
+
+		// try to give the nation proportionally many
+		float target_amount = float(model_tech_count) * (is_military ? mil_tech_fraction : total_econ_reforms_count);
+		int32_t target_count = int32_t(std::ceil(target_amount));
+
+		for(uint32_t sidx = idx; sidx < state.world.technology_size(); ++sidx) {
+			auto sid = dcon::technology_id{ dcon::technology_id::value_base_t(sidx) };
+
+			if(state.world.technology_get_folder_index(sid) != this_group)
+				break;
+
+			if(target_amount > 0) {
+				if(!state.world.nation_get_active_technologies(n, sid))
+					culture::apply_technology(state, n, sid);
+				--target_amount;
+			} else {
+				break;
+			}
+		}
+		 
+		// advance to next group or end
+		for(; idx < state.world.technology_size(); ++idx) {
+			if(state.world.technology_get_folder_index(dcon::technology_id{dcon::technology_id::value_base_t(idx)}) != this_group)
+				break;
+		}
+	}
+
+
+	state.world.nation_set_is_civilized(n, true);
+	for(auto o : state.culture_definitions.political_issues) {
+		state.world.nation_set_issues(n, o, state.world.issue_get_options(o)[0]);
+	}
+	for(auto o : state.culture_definitions.social_issues) {
+		state.world.nation_set_issues(n, o, state.world.issue_get_options(o)[0]);
+	}
+	for(auto r : state.world.in_reform) {
+		state.world.nation_set_reforms(n, r, dcon::reform_option_id{});
+	}
+	sys::update_single_nation_modifiers(state, n);
+	culture::update_nation_issue_rules(state, n);
+
+	event::fire_fixed_event(state, state.national_definitions.on_civilize, trigger::to_generic(n), n, -1);
+}
+void make_uncivilized(sys::state& state, dcon::nation_id n) {
+	state.world.nation_set_is_civilized(n, false);
+
+	for(auto o : state.culture_definitions.military_issues) {
+		state.world.nation_set_reforms(n, o, state.world.reform_get_options(o)[0]);
+	}
+	for(auto o : state.culture_definitions.economic_issues) {
+		state.world.nation_set_reforms(n, o, state.world.reform_get_options(o)[0]);
+	}
+	for(auto o : state.culture_definitions.political_issues) {
+		state.world.nation_set_issues(n, o, dcon::issue_option_id{});
+	}
+	for(auto o : state.culture_definitions.social_issues) {
+		state.world.nation_set_issues(n, o, dcon::issue_option_id{});
+	}
+	for(auto r : state.world.in_reform) {
+		state.world.nation_set_reforms(n, r, dcon::reform_option_id{});
+	}
+	sys::update_single_nation_modifiers(state, n);
+	culture::update_nation_issue_rules(state, n);
+}
+
 }

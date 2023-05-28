@@ -606,6 +606,7 @@ flag_type get_current_flag_type(sys::state const& state, dcon::national_identity
 }
 
 void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id) {
+	auto old_rules = state.world.nation_get_combined_issue_rules(n_id);
 	uint32_t combined = 0;
 	state.world.for_each_issue([&](dcon::issue_id i_id) {
 		auto current_opt = state.world.nation_get_issues(n_id, i_id);
@@ -618,6 +619,19 @@ void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id) {
 		combined |= rules_for_opt;
 	});
 	state.world.nation_set_combined_issue_rules(n_id, combined);
+
+	if((old_rules & issue_rule::slavery_allowed) != 0 && (combined & issue_rule::slavery_allowed) == 0) {
+
+		for(auto p : state.world.nation_get_province_ownership(n_id)) {
+			state.world.province_set_is_slave(p.get_province(), false);
+			bool mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p.get_province()));
+			for(auto pop : state.world.province_get_pop_location(p.get_province())) {
+				if(pop.get_pop().get_poptype() == state.culture_definitions.slaves) {
+					pop.get_pop().set_poptype(mine ? state.culture_definitions.laborers : state.culture_definitions.farmers);
+				}
+			}
+		}
+	}
 }
 void update_all_nations_issue_rules(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto n_id) {

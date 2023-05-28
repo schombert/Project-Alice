@@ -2312,6 +2312,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ ruling_party_last_appointed }
+		type{ sys::date }
+		tag{ save }
+	}
+	property{
 		name{ issues }
 		type{array{issue_id}{issue_option_id}}
 		tag{ save }

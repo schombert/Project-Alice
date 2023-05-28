@@ -25,6 +25,8 @@ foreach(file ${TESTING})
 					${CMAKE_CURRENT_BINARY_DIR}/${file})
 endforeach()
 
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
 add_executable(Alice WIN32 "src/main.cpp" ${ASSET_FILES})
 
 # Used for storing the local path to the Victoria 2 directory

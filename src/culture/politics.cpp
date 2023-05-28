@@ -125,7 +125,7 @@ bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon:
     auto issue = state.world.issue_option_get_parent_issue(issue_option);
     auto current = state.world.nation_get_issues(nation, issue.id).id;
     auto allow = state.world.issue_option_get_allow(issue_option);
-    if(
+    if(current != issue_option &&
         (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() || current.index() - 1 == issue_option.index())
         &&
         (!allow || trigger::evaluate(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))
@@ -152,7 +152,7 @@ bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_o
     auto issue = state.world.issue_option_get_parent_issue(o);
     auto current = state.world.nation_get_issues(n, issue.id).id;
     auto allow = state.world.issue_option_get_allow(o);
-    if(
+    if(current != o &&
         (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() || current.index() - 1 == o.index())
         &&
         (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
@@ -191,7 +191,7 @@ bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::refor
         float base_cost = float(state.world.reform_option_get_technology_cost(o));
         float reform_factor = politics::get_military_reform_multiplier(state, n);
 
-        if(base_cost * reform_factor < stored_rp)
+        if(base_cost * reform_factor <= stored_rp)
             return true;
     }
     return false;
@@ -216,7 +216,7 @@ bool can_enact_economic_reform(sys::state& state, dcon::nation_id n, dcon::refor
         float base_cost = float(state.world.reform_option_get_technology_cost(o));
         float reform_factor = politics::get_economic_reform_multiplier(state, n);
 
-        if(base_cost * reform_factor < stored_rp)
+        if(base_cost * reform_factor <= stored_rp)
             return true;
     }
     return false;
@@ -282,6 +282,66 @@ void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ide
 			return;
 		}
 	}
+}
+
+void appoint_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
+	int32_t reform_totals = 0;
+	for(auto preform : state.culture_definitions.political_issues) {
+		auto creform = state.world.nation_get_issues(n, preform);
+		auto base_reform = state.world.issue_get_options(preform)[0];
+		reform_totals += creform.id.index() - base_reform.index();
+	}
+	for(auto preform : state.culture_definitions.social_issues) {
+		auto creform = state.world.nation_get_issues(n, preform);
+		auto base_reform = state.world.issue_get_options(preform)[0];
+		reform_totals += creform.id.index() - base_reform.index();
+	}
+
+	auto angry_value = (0.1f * float(reform_totals) + 1.0f) * state.defines.ruling_party_angry_change;
+	auto happy_value = state.defines.ruling_party_happy_change;
+
+	/*
+	If the new party ideology is *not* the same as the old one: all pops gain ((total number of political and social reforms over baseline) x 0.01 + 1.0) x define:RULING_PARTY_ANGRY_CHANGE x pop support of the old ideology militancy
+	all pops gain define:RULING_PARTY_HAPPY_CHANGE x pop support of the new ideology militancy
+	The same is also done for all party issues that differ between the two.
+	*/
+
+	auto old_party = state.world.nation_get_ruling_party(n);
+
+	for(auto pa_id : state.culture_definitions.party_issues) {
+		auto new_id = state.world.political_party_get_party_issues(p, pa_id);
+		auto old_id = state.world.political_party_get_party_issues(old_party, pa_id);
+
+		if(new_id != old_id) {
+			for(auto pr : state.world.nation_get_province_ownership(n)) {
+				for(auto pop : pr.get_province().get_pop_location()) {
+					auto base_mil = pop.get_pop().get_militancy();
+					auto adj_mil = base_mil + pop.get_pop().get_demographics(pop_demographics::to_key(state, old_id)) * angry_value
+						+ pop.get_pop().get_demographics(pop_demographics::to_key(state, new_id)) * happy_value;
+					pop.get_pop().set_militancy(adj_mil); // note: no clamp, we just do that once at the end
+				}
+			}
+		}
+	}
+	{
+		auto new_id = state.world.political_party_get_ideology(p);
+		auto old_id = state.world.political_party_get_ideology(old_party);
+
+		if(new_id != old_id) {
+			for(auto pr : state.world.nation_get_province_ownership(n)) {
+				for(auto pop : pr.get_province().get_pop_location()) {
+					auto base_mil = pop.get_pop().get_militancy();
+					auto adj_mil = base_mil + pop.get_pop().get_demographics(pop_demographics::to_key(state, old_id)) * angry_value
+						+ pop.get_pop().get_demographics(pop_demographics::to_key(state, new_id)) * happy_value;
+					pop.get_pop().set_militancy(std::clamp(adj_mil, 0.0f, 10.0f));
+				}
+			}
+		}
+	}
+
+
+	state.world.nation_set_ruling_party_last_appointed(n, state.current_date);
+	set_ruling_party(state, n, p);
 }
 
 void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
