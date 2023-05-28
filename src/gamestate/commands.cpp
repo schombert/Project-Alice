@@ -1564,6 +1564,46 @@ void execute_civilize_nation(sys::state& state, dcon::nation_id source) {
 	nations::make_civilized(state, source);
 }
 
+void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id pa) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::appoint_ruling_party;
+	p.source = source;
+	p.data.political_party.p = pa;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p) {
+	/*
+	The ideology of the ruling party must be permitted by the government form. There can't be an ongoing election. It can't be the current ruling party. The government must allow the player to set the ruling party. The ruling party can manually be changed at most once per year.
+	*/
+	if(state.world.nation_get_ruling_party(source) == p)
+		return false;
+
+	if(!politics::can_appoint_ruling_party(state, source))
+		return false;
+
+	auto last_change = state.world.nation_get_ruling_party_last_appointed(source);
+	if(last_change && state.current_date < last_change + 365)
+		return false;
+
+	if(politics::is_election_ongoing(state, source))
+		return false;
+
+	auto gov = state.world.nation_get_government_type(source);
+	auto new_ideology = state.world.political_party_get_ideology(p);
+	if((state.culture_definitions.governments[gov].ideologies_allowed & ::culture::to_bits(new_ideology)) == 0) {
+		return false;
+	}
+
+	return true;
+}
+void execute_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p) {
+	if(!can_appoint_ruling_party(state, source, p))
+		return;
+
+	politics::appoint_ruling_party(state, source, p);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1669,6 +1709,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::civilize_nation:
 				execute_civilize_nation(state, c->source);
+				break;
+			case command_type::appoint_ruling_party:
+				execute_appoint_ruling_party(state, c->source, c->data.political_party.p);
 				break;
 		}
 

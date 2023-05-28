@@ -38,6 +38,7 @@ enum class command_type : uint8_t {
 	intervene_in_war = 30,
 	suppress_movement = 31,
 	civilize_nation = 32,
+	appoint_ruling_party = 33,
 };
 
 struct national_focus_data {
@@ -103,6 +104,10 @@ struct movement_data {
 	dcon::national_identity_id tag;
 };
 
+struct political_party_data {
+	dcon::political_party_id p;
+};
+
 struct budget_settings_data {
 	int8_t education_spending;
 	int8_t military_spending;
@@ -139,6 +144,7 @@ struct payload {
 		generic_location_data generic_location;
 		war_target_data war_target;
 		movement_data movement;
+		political_party_data political_party;
 
 		dtype() {}
 	} data;
@@ -256,6 +262,9 @@ bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::move
 
 void civilize_nation(sys::state& state, dcon::nation_id source);
 bool can_civilize_nation(sys::state& state, dcon::nation_id source);
+
+void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
+bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 
 void execute_pending_commands(sys::state& state);
 

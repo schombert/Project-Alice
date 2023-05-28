@@ -1490,3 +1490,56 @@ Civilization progress must be at 100% or more
 The nation gains technologies. Specifically take the fraction of military reforms (for land and naval) or econ reforms (otherwise) applied, clamped to the defines:UNCIV_TECH_SPREAD_MIN and defines:UNCIV_TECH_SPREAD_MAX values, and multiply how far the sphere leader (or first GP) is down each tech column, rounded up, to give unciv nations their techs when they westernize.
 The nation gets an `on_civilize` event.
 Political and social reforms: First setting in all categories?
+
+### Become interested in a crisis
+
+#### Conditions
+
+Not already interested in the crisis. Is a great power. Not at war. The crisis must have already gotten its initial backers.
+
+#### Effect
+
+Exactly what you expect
+
+### Join a side in a crisis
+
+#### Conditions
+
+Must not be involved in the crisis already. Must be interested in the crisis. Must be a great power. Must not be disarmed. The crisis must have already gotten its initial backers.
+
+#### Effect
+
+Add to crisis side
+
+### Accept/reject a crisis backing offer
+
+#### Conditions
+
+Must have a pending offer
+
+#### Effect
+
+Join crisis as primary attacker or defender
+
+### Change Stockpile settings
+
+#### Conditions
+
+None
+
+#### Effect
+
+The obvious
+
+### Change ruling party
+
+#### Conditions
+
+The ideology of the ruling party must be permitted by the government form. There can't be an ongoing election. It can't be the current ruling party. The government must allow the player to set the ruling party. The ruling party can manually be changed at most once per year.
+
+#### Effect
+
+The ruling party is changed. The party issues and rules are updated (note that this may further require things such as turning subsidies off).
+If the new party ideology is *not* the same as the old one: all pops gain ((total number of political and social reforms over baseline) x 0.01 + 1.0) x define:RULING_PARTY_ANGRY_CHANGE x pop support of the old ideology militancy
+all pops gain define:RULING_PARTY_HAPPY_CHANGE x pop support of the new ideology militancy
+The same is also done for all party issues that differ between the two.
