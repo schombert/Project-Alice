@@ -35,7 +35,7 @@ class diplomacy_temp_wargoal_list : public overlapping_listbox_element_base<imag
 protected:
 	void populate_icons(sys::state& state) {
 		row_contents.clear();
-		for(uint i = 1; i < 16; i++) {
+		for(unsigned int i = 1; i < 16; i++) {
 			row_contents.push_back(i);
 		}
 		update(state);

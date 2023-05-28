@@ -901,7 +901,7 @@ public:
 		Cyto::Any payload = dcon::state_instance_id{};
 		parent->impl_get(state, payload);
 		auto content = any_cast<dcon::state_instance_id>(payload);
-		progress == dcon::fatten(state.world, content).get_definition().get_colonization_temperature();
+		progress = dcon::fatten(state.world, content).get_definition().get_colonization_temperature();
 	}
 };
 
