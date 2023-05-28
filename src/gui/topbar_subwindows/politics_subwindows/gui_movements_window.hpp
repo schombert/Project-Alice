@@ -25,6 +25,33 @@ public:
 	}
 };
 
+class movement_suppress_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id nation_id = any_cast<dcon::nation_id>(payload);
+			Cyto::Any m_payload = dcon::movement_id{};
+			parent->impl_get(state, m_payload);
+			dcon::movement_id movement_id = any_cast<dcon::movement_id>(m_payload);
+			disabled = !command::can_suppress_movement(state, nation_id, movement_id);
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id nation_id = any_cast<dcon::nation_id>(payload);
+			Cyto::Any m_payload = dcon::movement_id{};
+			parent->impl_get(state, m_payload);
+			dcon::movement_id movement_id = any_cast<dcon::movement_id>(m_payload);
+			command::suppress_movement(state, nation_id, movement_id);
+		}
+	}
+};
+
 class movements_option : public listbox_row_element_base<dcon::movement_id> {
 private:
 	flag_button* nationalist_flag = nullptr;
@@ -48,6 +75,8 @@ public:
 			return make_element_by_type<movement_size_text>(state, id);
 		} else if(name == "radical_val") {
 			return make_element_by_type<movement_radicalism_text>(state, id);
+		} else if(name == "suppress_button") {
+			return make_element_by_type<movement_suppress_button>(state, id);
 		} else {
 			return nullptr;
 		}
