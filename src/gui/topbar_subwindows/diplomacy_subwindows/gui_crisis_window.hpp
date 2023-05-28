@@ -100,7 +100,6 @@ public:
 
 		} else if(name == "backers") {
 			return make_element_by_type<diplomacy_crisis_attacker_backers>(state, id);
-			return nullptr;
 
 		} else if(name == "support_side") {
 			auto ptr = make_element_by_type<diplomacy_crisis_support_button>(state, id);
@@ -191,7 +190,6 @@ public:
 
 		} else if(name == "backers") {
 			return make_element_by_type<diplomacy_crisis_defender_backers>(state, id);
-			return nullptr;
 
 		} else if(name == "support_side") {
 			return make_element_by_type<diplomacy_crisis_support_button>(state, id);
