@@ -24,37 +24,6 @@ public:
 	}
 };
 
-class diplomacy_temp_wargoal_icon : public image_element_base {
-public:
-	void set_current_icon(sys::state& state, uint8_t icon) {
-		frame = icon;
-	}
-};
-
-class diplomacy_temp_wargoal_list : public overlapping_listbox_element_base<image_element_base, uint8_t> {
-protected:
-	void populate_icons(sys::state& state) {
-		row_contents.clear();
-		for(unsigned int i = 1; i < 16; i++) {
-			row_contents.push_back(i);
-		}
-		update(state);
-	}
-public:
-	std::string_view get_row_element_name() override {
-		return "wargoal";
-	}
-
-	void update_subwindow(sys::state& state, diplomacy_temp_wargoal_icon& subwindow, uint8_t content) noexcept {
-		subwindow.set_current_icon(state, content);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		populate_icons(state);
-	}
-
-};
-
 class diplomacy_crisis_attacker_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
@@ -124,7 +93,6 @@ public:
 
 		} else if(name == "wargoals") {
 			// TODO - overlapping stuff
-			return make_element_by_type<diplomacy_temp_wargoal_list>(state, id);
 			return nullptr;
 
 		} else if(name == "backers_label") {
@@ -216,7 +184,6 @@ public:
 
 		} else if(name == "wargoals") {
 			// TODO - overlapping stuff
-			return make_element_by_type<diplomacy_temp_wargoal_list>(state, id);
 			return nullptr;
 
 		} else if(name == "backers_label") {
@@ -280,7 +247,7 @@ public:
 class diplomacy_crisis_temperature_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		progress == state.crisis_temperature;
+		progress = state.crisis_temperature;
 	}
 };
 

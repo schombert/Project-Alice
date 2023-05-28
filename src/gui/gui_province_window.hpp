@@ -881,9 +881,8 @@ public:
 		} else if(name == "levels") {
 		} else if(name == "progress_counter") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else {
-			return nullptr;
 		}
+		return nullptr;
 	}
 };
 
