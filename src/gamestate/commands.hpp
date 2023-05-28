@@ -292,7 +292,7 @@ bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::move
 void civilize_nation(sys::state& state, dcon::nation_id source);
 bool can_civilize_nation(sys::state& state, dcon::nation_id source);
 
-void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
+void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);		// Added in GUI
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 
 void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);

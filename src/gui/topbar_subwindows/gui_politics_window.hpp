@@ -139,6 +139,18 @@ public:
 			parent->impl_get(state, payload);
 			auto political_party_id = any_cast<dcon::political_party_id>(payload);
 			set_button_text(state, text::produce_simple_string(state, state.world.political_party_get_name(political_party_id)));
+
+			disabled = !command::can_appoint_ruling_party(state, state.local_player_nation, political_party_id);
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::political_party_id{};
+			parent->impl_get(state, payload);
+			auto political_party_id = any_cast<dcon::political_party_id>(payload);
+
+			command::appoint_ruling_party(state, state.local_player_nation, political_party_id);
 		}
 	}
 
