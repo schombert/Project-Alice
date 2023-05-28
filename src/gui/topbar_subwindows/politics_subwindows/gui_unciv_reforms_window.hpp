@@ -33,18 +33,23 @@ public:
 
 class unciv_reforms_reform_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::reform_option_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::reform_option_id>(payload);
+
+			command::enact_reform(state, state.local_player_nation, content);
+		}
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::reform_option_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::reform_option_id>(payload);
 
-			auto reform_type = state.world.reform_option_get_parent_reform(content).get_reform_type();
-			if(reform_type == uint8_t(culture::issue_type::military)) {
-				disabled = !politics::can_enact_military_reform(state, state.local_player_nation, content);
-			} else {
-				disabled = !politics::can_enact_economic_reform(state, state.local_player_nation, content);
-			}
+			disabled = !command::can_enact_reform(state, state.local_player_nation, content);
 		}
 	}
 

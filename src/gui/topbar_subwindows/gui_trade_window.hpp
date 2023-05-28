@@ -284,7 +284,7 @@ public:
 			icon->frame = int32_t(content.type);
 			if(content.type == trade_flow_data::type::military_navy)
 				icon->frame = int32_t(trade_flow_data::type::military_army);
-			
+
 			output_icon->set_visible(state, content.value_type != trade_flow_data::value_type::produced_by);
 			value->set_visible(state, content.value_type != trade_flow_data::value_type::may_be_used_by);
 			float amount = 0.f;
@@ -427,7 +427,7 @@ public:
 			Cyto::Any payload = dcon::commodity_id{};
 			parent->impl_get(state, payload);
 			auto commodity_id = any_cast<dcon::commodity_id>(payload);
-		
+
 			row_contents.clear();
 			populate_rows(state, [&](dcon::factory_id fid) -> bool {
 				auto ftid = state.world.factory_get_building_type(fid);
@@ -581,22 +581,100 @@ public:
 		}
 	}
 };
+
+class trade_confirm_trade_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = float{};
+			parent->impl_get(state, payload);
+			auto famount = any_cast<float>(payload);
+
+			Cyto::Any payload2 = dcon::commodity_id{};
+			parent->impl_get(state, payload2);
+			auto cid = any_cast<dcon::commodity_id>(payload2);
+
+			command::change_stockpile_settings(state, state.local_player_nation, cid, famount, false);
+		}
+	}
+};
+
+class trade_slider : public scrollbar {
+public:
+	void on_value_change(sys::state& state, int32_t v) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<float>{float{scaled_value()}};	// Why
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
+class trade_slider_amount : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = float{};
+		parent->impl_get(state, payload);
+		auto content = any_cast<float>(payload);
+		set_text(state, text::format_float(content, 2));
+	}
+};
+
 class trade_details_window : public window_element_base {
+private:
+	float trade_amount = 0.0f;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "trade_flow_bg") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "goods_details") {
-			return make_element_by_type<trade_details_button>(state, id);
 		} else if(name == "goods_icon") {
 			return make_element_by_type<commodity_factory_image>(state, id);
 		} else if(name == "goods_title") {
 			return make_element_by_type<generic_name_text<dcon::commodity_id>>(state, id);
 		} else if(name == "goods_price") {
 			return make_element_by_type<commodity_price_text>(state, id);
+		} else if(name == "automate_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "automate") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "sell_stockpile") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "sell_stockpile_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "sell_slidier_desc") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "sell_slider") {
+			return make_element_by_type<trade_slider>(state, id);
+		} else if(name == "slider_value") {
+			return make_element_by_type<trade_slider_amount>(state, id);
+		} else if(name == "confirm_trade") {
+			return make_element_by_type<trade_confirm_trade_button>(state, id);
+		} else if(name == "goods_details") {
+			return make_element_by_type<trade_details_button>(state, id);
+		} else if(name == "goods_need_gov_desc") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "goods_need_factory_desc") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "produced_detail_desc") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "goods_need_pop_desc") {
+			return make_element_by_type<simple_text_element_base>(state, id);
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<element_selection_wrapper<float>>()) {
+			trade_amount = any_cast<element_selection_wrapper<float>>(payload).data;
+			return message_result::consumed;
+		}
+		//===================================================================
+		else if(payload.holds_type<float>()) {
+			payload.emplace<float>(trade_amount);
+			return message_result::consumed;
+		}
+
+		return message_result::unseen;
 	}
 };
 
