@@ -12,11 +12,6 @@ namespace ui {
 
 class unciv_reforms_westernize_button : public standard_nation_button {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		on_update(state);
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
