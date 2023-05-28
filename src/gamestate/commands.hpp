@@ -269,13 +269,13 @@ bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_i
 void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);	// Implemented in GUI :3
 bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp);
 
-void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);
+void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);		// Implemented in GUI
 bool can_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si);
 
 void invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
+void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);				// Added in GUI Need QA
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p) {
 	return true;
 }
