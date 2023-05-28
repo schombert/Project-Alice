@@ -40,7 +40,12 @@ enum class command_type : uint8_t {
 	civilize_nation = 32,
 	appoint_ruling_party = 33,
 	change_issue_option = 34,
-	change_reform_option = 35
+	change_reform_option = 35,
+	become_interested_in_crisis = 36,
+	take_sides_in_crisis = 37,
+	back_crisis_acceptance = 38,
+	back_crisis_decline = 39,
+	change_stockpile_settings = 40,
 };
 
 struct national_focus_data {
@@ -137,6 +142,16 @@ struct war_target_data {
 	bool for_attacker;
 };
 
+struct crisis_join_data {
+	bool join_attackers;
+};
+
+struct stockpile_settings_data {
+	float amount;
+	dcon::commodity_id c;
+	bool draw_on_stockpiles;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -157,6 +172,8 @@ struct payload {
 		political_party_data political_party;
 		reform_selection_data reform_selection;
 		issue_selection_data issue_selection;
+		crisis_join_data crisis_join;
+		stockpile_settings_data stockpile_settings;
 
 		dtype() {}
 	} data;
@@ -283,6 +300,27 @@ bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_op
 
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
+
+void become_interested_in_crisis(sys::state& state, dcon::nation_id source);
+bool can_become_interested_in_crisis(sys::state& state, dcon::nation_id source);
+
+void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
+bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
+
+void back_crisis_acceptance(sys::state& state, dcon::nation_id source);
+bool can_back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
+	return true;
+}
+
+void back_crisis_decline(sys::state& state, dcon::nation_id source);
+bool can_back_crisis_decline(sys::state& state, dcon::nation_id source) {
+	return true;
+}
+
+void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles);
+bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
+	return true;
+}
 
 void execute_pending_commands(sys::state& state);
 

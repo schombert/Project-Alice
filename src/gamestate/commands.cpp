@@ -1772,6 +1772,146 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 	sys::update_single_nation_modifiers(state, source);
 }
 
+void become_interested_in_crisis(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::become_interested_in_crisis;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_become_interested_in_crisis(sys::state& state, dcon::nation_id source) {
+	/*
+	Not already interested in the crisis. Is a great power. Not at war. The crisis must have already gotten its initial backers.
+	*/
+	if(!nations::is_great_power(state, source))
+		return false;
+
+	if(state.world.nation_get_is_at_war(source))
+		return false;
+
+	if(state.world.nation_get_disarmed_until(source) && state.current_date < state.world.nation_get_disarmed_until(source))
+		return false;
+
+	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+		return false;
+
+	for(auto& i : state.crisis_participants) {
+		if(i.id == source)
+			return false;
+		if(!i.id)
+			return true;
+	}
+
+	return true;
+}
+void execute_become_interested_in_crisis(sys::state& state, dcon::nation_id source) {
+	if(!can_become_interested_in_crisis(state, source))
+		return;
+
+	for(auto& i : state.crisis_participants) {
+		if(!i.id) {
+			i.id = source;
+			i.merely_interested = true;
+			return;
+		}
+	}
+}
+
+void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::take_sides_in_crisis;
+	p.source = source;
+	p.data.crisis_join.join_attackers = join_attacker;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker) {
+	/*
+	Must not be involved in the crisis already. Must be interested in the crisis. Must be a great power. Must not be disarmed. The crisis must have already gotten its initial backers.
+	*/
+
+	if(state.current_crisis_mode != sys::crisis_mode::heating_up)
+		return false;
+
+	for(auto& i : state.crisis_participants) {
+		if(i.id == source)
+			return i.merely_interested == true;
+		if(!i.id)
+			return false;
+	}
+	return false;
+}
+void execute_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker) {
+	if(!can_take_sides_in_crisis(state, source, join_attacker))
+		return;
+
+	for(auto& i : state.crisis_participants) {
+		if(i.id == source) {
+			i.merely_interested = false;
+			i.supports_attacker = join_attacker;
+			return;
+		}
+		if(!i.id)
+			return;
+	}
+}
+
+void back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::back_crisis_acceptance;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
+	if(state.crisis_last_checked_gp < state.great_nations.size()
+		&& state.great_nations[state.crisis_last_checked_gp].nation == source) {
+
+		if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+			nations::add_as_primary_crisis_attacker(state, source);
+		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+			nations::add_as_primary_crisis_defender(state, source);
+		}
+
+	}
+}
+
+void back_crisis_decline(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::back_crisis_decline;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_back_crisis_decline(sys::state& state, dcon::nation_id source) {
+	if(state.crisis_last_checked_gp < state.great_nations.size()
+		&& state.great_nations[state.crisis_last_checked_gp].nation == source) {
+
+		if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+			nations::reject_crisis_participation(state);
+		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+			nations::reject_crisis_participation(state);
+		}
+
+	}
+}
+
+void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_stockpile_settings;
+	p.source = source;
+	p.data.stockpile_settings.amount = target_amount;
+	p.data.stockpile_settings.c = c;
+	p.data.stockpile_settings.draw_on_stockpiles = draw_on_stockpiles;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+void execute_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
+	state.world.nation_set_stockpile_targets(source, c, target_amount);
+	state.world.nation_set_drawing_on_stockpiles(source, c, draw_on_stockpiles);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -1886,6 +2026,21 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::change_reform_option:
 				execute_enact_reform(state, c->source, c->data.reform_selection.r);
+				break;
+			case command_type::become_interested_in_crisis:
+				execute_become_interested_in_crisis(state, c->source);
+				break;
+			case command_type::take_sides_in_crisis:
+				execute_take_sides_in_crisis(state, c->source, c->data.crisis_join.join_attackers);
+				break;
+			case command_type::back_crisis_acceptance:
+				execute_back_crisis_acceptance(state, c->source);
+				break;
+			case command_type::back_crisis_decline:
+				execute_back_crisis_decline(state, c->source);
+				break;
+			case command_type::change_stockpile_settings:
+				execute_change_stockpile_settings(state, c->source, c->data.stockpile_settings.c, c->data.stockpile_settings.amount, c->data.stockpile_settings.draw_on_stockpiles);
 				break;
 		}
 
