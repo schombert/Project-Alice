@@ -32,9 +32,9 @@ public:
         } else if(name == "disbandtoosmallbutton") {
             return make_element_by_type<button_element_base>(state, id);
         } else if(name == "str_bar") {
-            return make_element_by_type<image_element_base>(state, id);
+            return make_element_by_type<vertical_progress_bar>(state, id);
         } else if(name == "org_bar") {
-            return make_element_by_type<image_element_base>(state, id);
+            return make_element_by_type<vertical_progress_bar>(state, id);
         } else if(name == "unitattrition_icon") {
             return make_element_by_type<image_element_base>(state, id);
         } else if(name == "unitattrition") {
@@ -409,6 +409,12 @@ public:
             ptr->base_data.position.y = base_data.size.y; // Nudge
             add_child_to_front(std::move(ptr));
         }
+
+	{
+		auto ptr = make_element_by_type<unit_selection_panel<bool>>(state, state.ui_state.defs_by_name.find("unitpanel")->second.definition);
+		ptr->base_data.position.y -= 81;
+		add_child_to_front(std::move(ptr));
+	}
     }
 
     std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

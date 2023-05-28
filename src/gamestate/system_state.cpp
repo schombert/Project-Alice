@@ -308,6 +308,7 @@ namespace sys {
 		ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("makecbdialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+		ui_defs.gui[ui_state.defs_by_name.find("invest_project_window")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 		// Find the object id for the main_bg displayed (so we display it before the map)
 		bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 

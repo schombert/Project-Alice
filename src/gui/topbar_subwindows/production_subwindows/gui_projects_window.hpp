@@ -2,6 +2,8 @@
 
 #include <variant>
 #include "gui_element_types.hpp"
+#include "gui_project_investment_window.hpp"
+#include "gui_production_enum.hpp"
 
 namespace ui {
 
@@ -56,6 +58,16 @@ class production_project_input_listbox : public overlapping_listbox_element_base
 protected:
 	std::string_view get_row_element_name() override {
 		return "goods_need_template";
+	}
+};
+
+class production_project_invest_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::investment_window}};
+			parent->impl_get(state, payload);
+		}
 	}
 };
 
@@ -121,7 +133,7 @@ public:
         } else if(name == "pop_amount") {
             return make_element_by_type<simple_text_element_base>(state, id);
         } else if(name == "invest_project") {
-            return make_element_by_type<button_element_base>(state, id);
+            return make_element_by_type<production_project_invest_button>(state, id);
 		} else if(name == "input_goods") {
             auto ptr = make_element_by_type<production_project_input_listbox>(state, id);
             input_listbox = ptr.get();
@@ -130,7 +142,7 @@ public:
 			return nullptr;
 		}
 	}
-    
+
     void on_update(sys::state& state) noexcept override {
         economy::commodity_set satisfied_commodities{};
         economy::commodity_set needed_commodities{};
