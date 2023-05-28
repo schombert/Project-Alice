@@ -46,6 +46,7 @@ enum class command_type : uint8_t {
 	back_crisis_acceptance = 38,
 	back_crisis_decline = 39,
 	change_stockpile_settings = 40,
+	take_decision = 41,
 };
 
 struct national_focus_data {
@@ -152,6 +153,10 @@ struct stockpile_settings_data {
 	bool draw_on_stockpiles;
 };
 
+struct decision_data {
+	dcon::decision_id d;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -174,6 +179,7 @@ struct payload {
 		issue_selection_data issue_selection;
 		crisis_join_data crisis_join;
 		stockpile_settings_data stockpile_settings;
+		decision_data decision;
 
 		dtype() {}
 	} data;
@@ -321,6 +327,9 @@ void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::
 bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
 	return true;
 }
+
+void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
+bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 
 void execute_pending_commands(sys::state& state);
 

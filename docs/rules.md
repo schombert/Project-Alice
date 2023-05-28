@@ -1566,3 +1566,13 @@ In general:
 - Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize again)
 - If slavery is forbidden (rule slavery_allowed is false), remove all slave states and free all slaves.
 - Movements may now be invalid and may need to be removed (can the normal update handle this?)
+
+### Take decision
+
+#### Conditions
+
+The allow and possible trigger conditions must be satisfied
+
+#### Effect
+
+The decision is taken (its effect runs)

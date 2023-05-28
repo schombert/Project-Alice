@@ -1915,6 +1915,35 @@ void execute_change_stockpile_settings(sys::state& state, dcon::nation_id source
 	state.world.nation_set_drawing_on_stockpiles(source, c, draw_on_stockpiles);
 }
 
+void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::change_stockpile_settings;
+	p.source = source;
+	p.data.decision.d = d;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
+	{
+		auto condition = state.world.decision_get_potential(d);
+		if(condition && !trigger::evaluate(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0))
+			return false;
+	}
+	{
+		auto condition = state.world.decision_get_allow(d);
+		if(condition && !trigger::evaluate(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0))
+			return false;
+	}
+	return true;
+}
+void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
+	if(!can_take_decision(state, source, d))
+		return;
+
+	if(auto e = state.world.decision_get_effect(d); e)
+		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value), uint32_t(source.index() << 4 ^ d.index()));
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -2044,6 +2073,9 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::change_stockpile_settings:
 				execute_change_stockpile_settings(state, c->source, c->data.stockpile_settings.c, c->data.stockpile_settings.amount, c->data.stockpile_settings.draw_on_stockpiles);
+				break;
+			case command_type::take_decision:
+				execute_take_decision(state, c->source, c->data.decision.d);
 				break;
 		}
 
