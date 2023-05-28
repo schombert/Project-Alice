@@ -477,24 +477,6 @@ public:
 template<bool B>
 class diplomacy_join_war_button : public button_element_base {
 public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::war_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::war_id>(payload);
-			command::intervene_in_war(state, state.local_player_nation, content, true);
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::war_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::war_id>(payload);
-			disabled = !command::can_intervene_in_war(state, state.local_player_nation, content, true);
-		}
-	}
-
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, "");
@@ -542,6 +524,9 @@ public:
 			Cyto::Any w_payload = dcon::war_id{};
 			parent->impl_get(state, w_payload);
 			dcon::war_id war_id = any_cast<dcon::war_id>(w_payload);
+		}
+	}
+};
 
 class diplomacy_join_defenders_button : public button_element_base {
 public:
