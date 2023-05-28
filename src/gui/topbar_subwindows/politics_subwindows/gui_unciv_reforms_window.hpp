@@ -12,23 +12,22 @@ namespace ui {
 
 class unciv_reforms_westernize_button : public standard_nation_button {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		on_update(state);
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			disabled = state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier) < 1.f;
+			disabled = !command::can_civilize_nation(state, nation_id);
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		// TODO: Westernize button action
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+			command::civilize_nation(state, nation_id);
+		}
 	}
 };
 

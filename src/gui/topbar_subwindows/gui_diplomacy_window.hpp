@@ -473,11 +473,38 @@ public:
 	}
 };
 
-class diplomacy_join_attackers_button : public button_element_base {
+template<bool B>
+class diplomacy_join_war_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, "");
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id nation_id = any_cast<dcon::nation_id>(payload);
+			Cyto::Any w_payload = dcon::war_id{};
+			parent->impl_get(state, w_payload);
+			dcon::war_id war_id = any_cast<dcon::war_id>(w_payload);
+
+			disabled = !command::can_intervene_in_war(state, nation_id, war_id, B);
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id nation_id = any_cast<dcon::nation_id>(payload);
+			Cyto::Any w_payload = dcon::war_id{};
+			parent->impl_get(state, w_payload);
+			dcon::war_id war_id = any_cast<dcon::war_id>(w_payload);
+
+			command::intervene_in_war(state, nation_id, war_id, B);
+		}
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -489,31 +516,22 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("diplomacy_can_intervene"));
-		text::close_layout_box(contents, box);
-	}
-};
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id nation_id = any_cast<dcon::nation_id>(payload);
+			Cyto::Any w_payload = dcon::war_id{};
+			parent->impl_get(state, w_payload);
+			dcon::war_id war_id = any_cast<dcon::war_id>(w_payload);
 
-class diplomacy_join_defenders_button : public button_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		set_button_text(state, "");
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("diplomacy_can_intervene"));
-		text::close_layout_box(contents, box);
+			auto box = text::open_layout_box(contents, 0);
+			if(command::can_intervene_in_war(state, nation_id, war_id, B)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_can_intervene"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_intervene"));
+			}
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -565,9 +583,9 @@ public:
 			defenders_flags->base_data.position.y -= 8 - 2;
 			return ptr;
 		} else if(name == "join_attackers") {
-			return make_element_by_type<diplomacy_join_attackers_button>(state, id);
+			return make_element_by_type<diplomacy_join_war_button<true>>(state, id);
 		} else if(name == "join_defenders") {
-			return make_element_by_type<diplomacy_join_defenders_button>(state, id);
+			return make_element_by_type<diplomacy_join_war_button<false>>(state, id);
 		} else {
 			return nullptr;
 		}
