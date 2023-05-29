@@ -1576,3 +1576,15 @@ The allow and possible trigger conditions must be satisfied
 #### Effect
 
 The decision is taken (its effect runs)
+
+### Make event choice
+
+For implementation reasons, there are going to be four versions of this command, corresponding to the four types of events. You must populate the command with the exact values from the event you want to make a choice for or it will be ignored.
+
+#### Conditions
+
+None
+
+#### Effect
+
+Executes the effect of the choice. Internally, removes the event from the pending queue.

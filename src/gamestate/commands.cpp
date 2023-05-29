@@ -1918,7 +1918,7 @@ void execute_change_stockpile_settings(sys::state& state, dcon::nation_id source
 void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::change_stockpile_settings;
+	p.type = command_type::take_decision;
 	p.source = source;
 	p.data.decision.d = d;
 	auto b = state.incoming_commands.try_push(p);
@@ -1942,6 +1942,78 @@ void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::deci
 
 	if(auto e = state.world.decision_get_effect(d); e)
 		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value), uint32_t(source.index() << 4 ^ d.index()));
+}
+
+void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::make_n_event_choice;
+	p.source = e.n;
+	p.data.pending_human_n_event.date = e.date;
+	p.data.pending_human_n_event.e = e.e;
+	p.data.pending_human_n_event.from_slot = e.from_slot;
+	p.data.pending_human_n_event.opt_choice = option_id;
+	p.data.pending_human_n_event.primary_slot = e.primary_slot;
+	p.data.pending_human_n_event.r_hi = e.r_hi;
+	p.data.pending_human_n_event.r_lo = e.r_lo;
+	auto b = state.incoming_commands.try_push(p);
+}
+void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::make_f_n_event_choice;
+	p.source = e.n;
+	p.data.pending_human_f_n_event.date = e.date;
+	p.data.pending_human_f_n_event.e = e.e;
+	p.data.pending_human_f_n_event.opt_choice = option_id;
+	p.data.pending_human_f_n_event.r_hi = e.r_hi;
+	p.data.pending_human_f_n_event.r_lo = e.r_lo;
+	auto b = state.incoming_commands.try_push(p);
+}
+void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::make_p_event_choice;
+	p.source = state.world.province_get_nation_from_province_ownership(e.p);
+	p.data.pending_human_p_event.date = e.date;
+	p.data.pending_human_p_event.e = e.e;
+	p.data.pending_human_p_event.p = e.p;
+	p.data.pending_human_p_event.from_slot = e.from_slot;
+	p.data.pending_human_p_event.opt_choice = option_id;
+	p.data.pending_human_p_event.r_hi = e.r_hi;
+	p.data.pending_human_p_event.r_lo = e.r_lo;
+	auto b = state.incoming_commands.try_push(p);
+}
+void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::make_f_p_event_choice;
+	p.source = state.world.province_get_nation_from_province_ownership(e.p);
+	p.data.pending_human_f_p_event.date = e.date;
+	p.data.pending_human_f_p_event.e = e.e;
+	p.data.pending_human_f_p_event.p = e.p;
+	p.data.pending_human_f_p_event.opt_choice = option_id;
+	p.data.pending_human_f_p_event.r_hi = e.r_hi;
+	p.data.pending_human_f_p_event.r_lo = e.r_lo;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
+	event::take_option(state, event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date}, e.opt_choice);
+}
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
+	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
+}
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
+	if(source != state.world.province_get_nation_from_province_ownership(e.p))
+		return;
+
+	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.e, e.p, e.date}, e.opt_choice);
+}
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
+	if(source != state.world.province_get_nation_from_province_ownership(e.p))
+		return;
+
+	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.e, e.p, e.date}, e.opt_choice);
 }
 
 void execute_pending_commands(sys::state& state) {
@@ -2076,6 +2148,18 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::take_decision:
 				execute_take_decision(state, c->source, c->data.decision.d);
+				break;
+			case command_type::make_n_event_choice:
+				execute_make_event_choice(state, c->source, c->data.pending_human_n_event);
+				break;
+			case command_type::make_f_n_event_choice:
+				execute_make_event_choice(state, c->source, c->data.pending_human_f_n_event);
+				break;
+			case command_type::make_p_event_choice:
+				execute_make_event_choice(state, c->source, c->data.pending_human_p_event);
+				break;
+			case command_type::make_f_p_event_choice:
+				execute_make_event_choice(state, c->source, c->data.pending_human_f_p_event);
 				break;
 		}
 

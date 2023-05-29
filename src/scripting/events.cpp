@@ -2,12 +2,100 @@
 
 namespace event {
 
+
+void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt) {
+	for(auto i = state.pending_n_event.size(); i-- > 0;) {
+		if(state.pending_n_event[i].date == e.date
+			&& state.pending_n_event[i].e == e.e
+			&& state.pending_n_event[i].from_slot == e.from_slot
+			&& state.pending_n_event[i].n == e.n
+			&& state.pending_n_event[i].primary_slot == e.primary_slot
+			&& state.pending_n_event[i].r_hi == e.r_hi
+			&& state.pending_n_event[i].r_lo == e.r_lo) {
+
+			if(opt > state.world.national_event_get_options(e.e).size() || !(state.world.national_event_get_options(e.e)[opt].name))
+				return; //invalid option
+
+			state.pending_n_event[i] = state.pending_n_event.back();
+			state.pending_n_event.pop_back();
+
+			effect::execute(state, state.world.national_event_get_options(e.e)[opt].effect, e.primary_slot, trigger::to_generic(e.n), e.from_slot, e.r_lo, e.r_hi);
+
+			return;
+		}
+	}
+}
+
+void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t opt) {
+	for(auto i = state.pending_f_n_event.size(); i-- > 0;) {
+		if(state.pending_f_n_event[i].date == e.date
+			&& state.pending_f_n_event[i].e == e.e
+			&& state.pending_f_n_event[i].n == e.n
+			&& state.pending_f_n_event[i].r_hi == e.r_hi
+			&& state.pending_f_n_event[i].r_lo == e.r_lo) {
+
+			if(opt > state.world.free_national_event_get_options(e.e).size() || !(state.world.free_national_event_get_options(e.e)[opt].name))
+				return; //invalid option
+
+			state.pending_f_n_event[i] = state.pending_f_n_event.back();
+			state.pending_f_n_event.pop_back();
+
+			effect::execute(state, state.world.free_national_event_get_options(e.e)[opt].effect, trigger::to_generic(e.n), trigger::to_generic(e.n), 0, e.r_lo, e.r_hi);
+
+			return;
+		}
+	}
+}
+
+void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt) {
+	for(auto i = state.pending_p_event.size(); i-- > 0;) {
+		if(state.pending_p_event[i].date == e.date
+			&& state.pending_p_event[i].e == e.e
+			&& state.pending_p_event[i].from_slot == e.from_slot
+			&& state.pending_p_event[i].p == e.p
+			&& state.pending_p_event[i].r_hi == e.r_hi
+			&& state.pending_p_event[i].r_lo == e.r_lo) {
+
+			if(opt > state.world.provincial_event_get_options(e.e).size() || !(state.world.provincial_event_get_options(e.e)[opt].name))
+				return; //invalid option
+
+			state.pending_p_event[i] = state.pending_p_event.back();
+			state.pending_p_event.pop_back();
+
+			effect::execute(state, state.world.provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(state.world.province_get_nation_from_province_ownership(e.p)), e.from_slot, e.r_lo, e.r_hi);
+
+			return;
+		}
+	}
+}
+void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t opt) {
+	for(auto i = state.pending_f_p_event.size(); i-- > 0;) {
+		if(state.pending_p_event[i].date == e.date
+			&& state.pending_f_p_event[i].e == e.e
+			&& state.pending_f_p_event[i].p == e.p
+			&& state.pending_f_p_event[i].r_hi == e.r_hi
+			&& state.pending_f_p_event[i].r_lo == e.r_lo) {
+
+			if(opt > state.world.free_provincial_event_get_options(e.e).size() || !(state.world.free_provincial_event_get_options(e.e)[opt].name))
+				return; //invalid option
+
+			state.pending_f_p_event[i] = state.pending_f_p_event.back();
+			state.pending_f_p_event.pop_back();
+
+			effect::execute(state, state.world.free_provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(state.world.province_get_nation_from_province_ownership(e.p)), -1, e.r_lo, e.r_hi);
+
+			return;
+		}
+	}
+}
+
+
 void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi, int32_t primary_slot, int32_t from_slot) {
 	if(auto immediate = state.world.national_event_get_immediate_effect(e); immediate) {
 		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		state.pending_n_event.push_back(pending_human_n_event{e, n, r_lo, r_hi + 1, state.current_date, primary_slot, from_slot });
+		state.pending_n_event.push_back(pending_human_n_event{ r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date });
 		// TODO: notify ui
 	} else {
 		auto& opt = state.world.national_event_get_options(e);
@@ -49,7 +137,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		effect::execute(state, immediate, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		state.pending_f_n_event.push_back(pending_human_f_n_event{ e, n, r_lo, r_hi + 1, state.current_date });
+		state.pending_f_n_event.push_back(pending_human_f_n_event{ r_lo, r_hi + 1, e, n, state.current_date });
 		// TODO: notify ui
 	} else {
 		auto& opt = state.world.free_national_event_get_options(e);
@@ -85,7 +173,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo, int32_t from_slot) {
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		state.pending_p_event.push_back(pending_human_p_event{ e, p, r_lo, r_hi, state.current_date, from_slot });
+		state.pending_p_event.push_back(pending_human_p_event{ r_lo, r_hi, from_slot, e, p, state.current_date });
 		// TODO: notify ui
 	} else {
 		auto& opt = state.world.provincial_event_get_options(e);
@@ -123,7 +211,7 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		state.pending_f_p_event.push_back(pending_human_f_p_event{ e, p, r_lo, r_hi, state.current_date });
+		state.pending_f_p_event.push_back(pending_human_f_p_event{ r_lo, r_hi, e, p, state.current_date });
 		// TODO: notify ui
 	} else {
 		auto& opt = state.world.free_provincial_event_get_options(e);

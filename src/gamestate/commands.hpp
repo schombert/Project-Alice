@@ -1,6 +1,7 @@
 #pragma once
 #include "dcon_generated.hpp"
 #include "common_types.hpp"
+#include "events.hpp"
 
 namespace command {
 
@@ -47,6 +48,10 @@ enum class command_type : uint8_t {
 	back_crisis_decline = 39,
 	change_stockpile_settings = 40,
 	take_decision = 41,
+	make_n_event_choice = 42,
+	make_f_n_event_choice = 43,
+	make_p_event_choice = 44,
+	make_f_p_event_choice = 45,
 };
 
 struct national_focus_data {
@@ -157,6 +162,40 @@ struct decision_data {
 	dcon::decision_id d;
 };
 
+struct pending_human_n_event_data {
+	uint32_t r_lo = 0;
+	uint32_t r_hi = 0;
+	int32_t primary_slot;
+	int32_t from_slot;
+	dcon::national_event_id e;
+	sys::date date;
+	uint8_t opt_choice;
+};
+struct pending_human_f_n_event_data {
+	uint32_t r_lo = 0;
+	uint32_t r_hi = 0;
+	dcon::free_national_event_id e;
+	sys::date date;
+	uint8_t opt_choice;
+};
+struct pending_human_p_event_data {
+	uint32_t r_lo = 0;
+	uint32_t r_hi = 0;
+	int32_t from_slot;
+	dcon::provincial_event_id e;
+	dcon::province_id p;
+	sys::date date;
+	uint8_t opt_choice;
+};
+struct pending_human_f_p_event_data {
+	uint32_t r_lo = 0;
+	uint32_t r_hi = 0;
+	dcon::free_provincial_event_id e;
+	dcon::province_id p;
+	sys::date date;
+	uint8_t opt_choice;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -180,6 +219,10 @@ struct payload {
 		crisis_join_data crisis_join;
 		stockpile_settings_data stockpile_settings;
 		decision_data decision;
+		pending_human_n_event_data pending_human_n_event;
+		pending_human_f_n_event_data pending_human_f_n_event;
+		pending_human_p_event_data pending_human_p_event;
+		pending_human_f_p_event_data pending_human_f_p_event;
 
 		dtype() {}
 	} data;
@@ -330,6 +373,11 @@ bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dc
 
 void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
+
+void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id);
+void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id);
+void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id);
+void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id);
 
 void execute_pending_commands(sys::state& state);
 
