@@ -114,6 +114,7 @@ void post_message(sys::state& state, message const& m) {
 	for(auto& i : state.pending_messages) {
 		if(i.type == type::none) {
 			std::memcpy(&i, &m, sizeof(message));
+			i.when = state.current_date;
 
 			// TODO: post new message notification to message target
 
