@@ -1566,3 +1566,25 @@ In general:
 - Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize again)
 - If slavery is forbidden (rule slavery_allowed is false), remove all slave states and free all slaves.
 - Movements may now be invalid and may need to be removed (can the normal update handle this?)
+
+### Take decision
+
+#### Conditions
+
+The allow and possible trigger conditions must be satisfied
+
+#### Effect
+
+The decision is taken (its effect runs)
+
+### Make event choice
+
+For implementation reasons, there are going to be four versions of this command, corresponding to the four types of events. You must populate the command with the exact values from the event you want to make a choice for or it will be ignored.
+
+#### Conditions
+
+None
+
+#### Effect
+
+Executes the effect of the choice. Internally, removes the event from the pending queue.
