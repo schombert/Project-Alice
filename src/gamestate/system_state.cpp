@@ -16,6 +16,7 @@
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "gui_election_window.hpp"
+#include "gui_msg_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
@@ -383,6 +384,11 @@ namespace sys {
 		{
 			auto new_elm = ui::make_element_by_type<ui::election_event_window>(*this, "event_election_window");
 			ui_state.election_window = new_elm.get();
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::msg_window>(*this, "defaultdialog");
+			ui_state.msg_window = new_elm.get();
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 		{

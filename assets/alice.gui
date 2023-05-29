@@ -513,6 +513,13 @@ guiTypes = {
 	}
 
 	guiButtonType = {
+		name = "alice_left_right_button"
+		position = { x = 0 y = 0 }
+		quadTextureSprite = "GFX_alice_left_right"
+		clicksound = click
+	}
+
+	guiButtonType = {
 		name = "goto_location_button"
 		quadTextureSprite = "GFX_goto_location_button"
 		position = { x=0 y=0 }

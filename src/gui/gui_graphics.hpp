@@ -378,6 +378,7 @@ namespace ui {
 		element_base* outliner_window = nullptr;
 		element_base* technology_subwindow = nullptr;
 		element_base* election_window = nullptr;
+		element_base* msg_window = nullptr;
 		element_base* army_status_window = nullptr;
 		element_base* navy_status_window = nullptr;
 
