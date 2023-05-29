@@ -5,7 +5,7 @@
 
 namespace diplomatic_message {
 
-enum class type : uint8_t {
+enum class type_t : uint8_t {
 	none = 0,
 	access_request = 1,
 	alliance_request = 2,
@@ -21,10 +21,12 @@ struct message {
 
 		dtype() { }
 	} data;
-	type type;
+	type_t type;
 
-	message() : type(diplomatic_message::type::none) { }
+	message() : type(diplomatic_message::type_t::none) { }
 };
+
+using type = type_t;
 
 void decline_message(sys::state& state, message const& m);
 void accept_message(sys::state& state, message const& m);
