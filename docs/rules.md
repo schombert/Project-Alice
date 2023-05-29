@@ -1649,7 +1649,7 @@ Ally joins war (or not). Relations increase by defines:CALLALLY_RELATION_ON_ACCE
 
 #### Conditions
 
-Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members
+Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members. Cb must be fabricate-able.
 
 #### Effect
 

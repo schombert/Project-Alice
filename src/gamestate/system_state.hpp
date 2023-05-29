@@ -24,6 +24,7 @@
 #include "events.hpp"
 #include "SPSCQueue.h"
 #include "commands.hpp"
+#include "diplomatic_messages.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -146,6 +147,12 @@ namespace sys {
 		sys::date last_crisis_end_date{0}; // initial grace period
 		dcon::national_identity_id crisis_liberation_tag;
 		dcon::state_definition_id crisis_colony;
+
+		//
+		// Messages
+		//
+
+		std::array<diplomatic_message::message, 128> pending_messages = {};
 
 		//
 		// Event data

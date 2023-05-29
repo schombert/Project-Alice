@@ -90,8 +90,19 @@ bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {
-			if(o.get_nation() == b && o.get_is_attacker() != is_attacker)
-				return true;
+			if(o.get_nation() == b)
+				return o.get_is_attacker() != is_attacker;
+		}
+	}
+	return false;
+}
+
+bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		auto is_attacker = wa.get_is_attacker();
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_nation() == b)
+				return o.get_is_attacker() == is_attacker;
 		}
 	}
 	return false;
@@ -101,8 +112,12 @@ dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {
-			if(o.get_nation() == b && o.get_is_attacker() != is_attacker)
-				return wa.get_war().id;
+			if(o.get_nation() == b) {
+				if(o.get_is_attacker() != is_attacker)
+					return wa.get_war().id;
+				else
+					return dcon::war_id{};
+			}
 		}
 	}
 	return dcon::war_id{};

@@ -2,6 +2,7 @@
 #include "dcon_generated.hpp"
 #include "common_types.hpp"
 #include "events.hpp"
+#include "diplomatic_messages.hpp"
 
 namespace command {
 
@@ -54,6 +55,13 @@ enum class command_type : uint8_t {
 	make_f_p_event_choice = 45,
 	fabricate_cb = 46,
 	cancel_cb_fabrication = 47,
+	ask_for_military_access = 48,
+	ask_for_alliance = 49,
+	call_to_arms = 50,
+	respond_to_diplomatic_message = 51,
+	cancel_military_access = 52,
+	cancel_alliance = 53,
+	cancel_given_military_access = 54,
 };
 
 struct national_focus_data {
@@ -164,6 +172,17 @@ struct decision_data {
 	dcon::decision_id d;
 };
 
+struct message_data {
+	dcon::nation_id from;
+	diplomatic_message::type type;
+	bool accept;
+};
+
+struct call_to_arms_data {
+	dcon::nation_id target;
+	dcon::war_id war;
+};
+
 struct pending_human_n_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
@@ -231,6 +250,8 @@ struct payload {
 		pending_human_p_event_data pending_human_p_event;
 		pending_human_f_p_event_data pending_human_f_p_event;
 		cb_fabrication_data cb_fabrication;
+		message_data message;
+		call_to_arms_data call_to_arms;
 
 		dtype() {}
 	} data;
@@ -392,6 +413,26 @@ void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
 	return true;
 }
+
+void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+
+void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+
+void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
+bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
+
+void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept);
+
+void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // this is for cancelling the access someone has with you
+bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void execute_pending_commands(sys::state& state);
 
