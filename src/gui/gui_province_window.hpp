@@ -873,7 +873,7 @@ public:
 	}
 };
 
-class UwU {
+class colony_nation_id_pair {
 public:
 	dcon::colonization_id	col_id{};
 	dcon::nation_id		player_id{};
@@ -919,7 +919,7 @@ public:
 
 class colonisation_listbox : public overlapping_listbox_element_base<level_entry, uint8_t> {
 protected:
-	std::string_view get_row_element_name() {
+	std::string_view get_row_element_name() override {
 		return "level_entry";
 	}
 public:
@@ -940,7 +940,7 @@ public:
 	}
 };
 
-class colonist_entry : public listbox_row_element_base<UwU> {
+class colonist_entry : public listbox_row_element_base<colony_nation_id_pair> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "controller_flag") {
@@ -948,7 +948,6 @@ public:
 		} else if(name == "levels") {
 			//return make_element_by_type<level_entry>(state, id);
 			return make_element_by_type<colonisation_listbox>(state, id);
-			return nullptr;
 		} else if(name == "progress_counter") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else {
@@ -971,7 +970,7 @@ public:
 	}
 };
 
-class colonist_listbox : public listbox_element_base<colonist_entry, UwU> {
+class colonist_listbox : public listbox_element_base<colonist_entry, colony_nation_id_pair> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "colonist_item";
@@ -987,13 +986,13 @@ public:
 			row_contents.clear();
 
 			for(auto colony : fat_def.get_colonization()) {
-				UwU test;
+				colony_nation_id_pair test;
 				test.col_id = colony;
 				test.player_id = dcon::nation_id{0};
 				row_contents.push_back(test);
 			}
 
-			UwU aa;
+			colony_nation_id_pair aa;
 			aa.col_id = dcon::colonization_id{0};
 			aa.player_id = state.local_player_nation;
 			row_contents.push_back(aa);
@@ -1039,7 +1038,6 @@ public:
 		} else if(name == "colonist_list") {
 			// TODO - Listbox
 			return make_element_by_type<colonist_listbox>(state, id);
-			return nullptr;
 		} else if(name == "crisis_temperature") {
 			return make_element_by_type<province_colonisation_temperature>(state, id);
 		} else if(name == "crisis_temperature_frame") {
