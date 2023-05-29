@@ -1683,6 +1683,8 @@ namespace sys {
 
 					auto ymd_date = current_date.to_ymd(start_date);
 
+					diplomatic_message::update_pending_messages(*this);
+
 					auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
 					auto next_month_start = sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) };
 					auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));

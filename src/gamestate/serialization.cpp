@@ -611,6 +611,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = deserialize(ptr_in, state.pending_f_n_event);
 	ptr_in = deserialize(ptr_in, state.pending_p_event);
 	ptr_in = deserialize(ptr_in, state.pending_f_p_event);
+	ptr_in = memcpy_deserialize(ptr_in, state.pending_messages);
 
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -655,6 +656,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.pending_f_n_event);
 	ptr_in = serialize(ptr_in, state.pending_p_event);
 	ptr_in = serialize(ptr_in, state.pending_f_p_event);
+	ptr_in = memcpy_serialize(ptr_in, state.pending_messages);
 
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -699,6 +701,7 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.pending_f_n_event);
 	sz += serialize_size(state.pending_p_event);
 	sz += serialize_size(state.pending_f_p_event);
+	sz += sizeof(state.pending_messages);
 
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.global_flag_variables);

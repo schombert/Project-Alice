@@ -2022,6 +2022,312 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.e, e.p, e.date}, e.opt_choice);
 }
 
+void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_cb_fabrication;
+	p.source = source;
+	p.data.cb_fabrication.target = target;
+	p.data.cb_fabrication.type = type;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+
+	if(state.world.nation_get_constructing_cb_type(source))
+		return false;
+
+	/*
+	Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members
+	*/
+
+	auto ol = state.world.nation_get_overlord_as_subject(source);
+	if(ol && state.world.overlord_get_ruler(ol) != target)
+		return false;
+
+	if(state.world.nation_get_in_sphere_of(target) == source)
+		return false;
+
+	if(state.world.nation_get_diplomatic_points(source) < state.defines.make_cb_diplomatic_cost)
+		return false;
+
+	if(military::are_at_war(state, target, source))
+		return false;
+
+	/*
+	must be able to fabricate cb
+	*/
+
+	if((state.world.cb_type_get_type_bits(type) & (military::cb_flag::always | military::cb_flag::is_not_constructing_cb)) != 0)
+		return false;
+
+	if(!military::cb_conditions_satisfied(state, source, target, type))
+		return false;
+
+	return true;
+}
+
+void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+	if(!can_fabricate_cb(state, source, target, type))
+		return;
+
+	state.world.nation_set_constructing_cb_target(source, target);
+	state.world.nation_set_constructing_cb_type(source, type);
+	state.world.nation_get_diplomatic_points(source) -= state.defines.make_cb_diplomatic_cost;
+}
+
+void cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_cb_fabrication;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_constructing_cb_target(source, dcon::nation_id{});
+	state.world.nation_set_constructing_cb_is_discovered(source, false);
+	state.world.nation_set_constructing_cb_progress(source, 0.0f);
+	state.world.nation_set_constructing_cb_type(source, dcon::cb_type_id{});
+}
+
+
+void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::ask_for_military_access;
+	p.source = asker;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	/*
+	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have military access.
+	*/
+	if(state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
+		return false;
+
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	if(state.world.unilateral_relationship_get_military_access(rel))
+		return false;
+
+	if(military::are_at_war(state, asker, target))
+		return false;
+
+	return true;
+}
+void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(!can_ask_for_access(state, asker, target))
+		return;
+
+	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
+
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
+	m.to = target;
+	m.from = asker;
+	m.type = diplomatic_message::type::access_request;
+
+	diplomatic_message::post_message(state, m);
+}
+
+void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::ask_for_alliance;
+	p.source = asker;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	/*
+	Must not have an alliance. Must not be in a war against each other. Costs defines:ALLIANCE_DIPLOMATIC_COST diplomatic points. Great powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with their overlords.
+	*/
+
+	if(state.world.nation_get_diplomatic_points(asker) < state.defines.alliance_diplomatic_cost)
+		return false;
+
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, asker);
+	if(state.world.diplomatic_relation_get_are_allied(rel))
+		return false;
+
+	if(state.world.nation_get_is_great_power(asker) && state.world.nation_get_is_great_power(target) && state.current_crisis != sys::crisis_type::none) {
+		return false;
+	}
+
+	auto ol = state.world.nation_get_overlord_as_subject(asker);
+	if(ol && state.world.overlord_get_ruler(ol) != target)
+		return false;
+
+	if(military::are_at_war(state, asker, target))
+		return false;
+
+	return true;
+}
+void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(!can_ask_for_alliance(state, asker, target))
+		return;
+
+	state.world.nation_get_diplomatic_points(asker) -= state.defines.alliance_diplomatic_cost;
+
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
+	m.to = target;
+	m.from = asker;
+	m.type = diplomatic_message::type::alliance_request;
+
+	diplomatic_message::post_message(state, m);
+}
+
+void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::call_to_arms;
+	p.source = asker;
+	p.data.call_to_arms.target = target;
+	p.data.call_to_arms.war = w;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
+	if(state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
+		return false;
+
+	// TODO
+
+	return true;
+}
+void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
+	if(!can_call_to_arms(state, asker, target, w))
+		return;
+
+	state.world.nation_get_diplomatic_points(asker) -= state.defines.callally_diplomatic_cost;
+
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
+	m.to = target;
+	m.from = asker;
+	m.data.war = w;
+	m.type = diplomatic_message::type::call_ally_request;
+
+	diplomatic_message::post_message(state, m);
+}
+
+void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::respond_to_diplomatic_message;
+	p.source = source;
+	p.data.message.accept = accept;
+	p.data.message.from = from;
+	p.data.message.type = type;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept) {
+	for(auto& m : state.pending_messages) {
+		if(m.type == type && m.from == from && m.to == source) {
+
+			if(accept)
+				diplomatic_message::accept_message(state, m);
+			else
+				diplomatic_message::decline_message(state, m);
+
+			m.type = diplomatic_message::type::none;
+
+			return;
+		}
+	}
+}
+
+void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_military_access;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
+
+	if(state.world.nation_get_diplomatic_points(source) < state.defines.cancelaskmilaccess_diplomatic_cost)
+		return false;
+
+	if(state.world.unilateral_relationship_get_military_access(rel))
+		return true;
+	else
+		return false;
+}
+void execute_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_cancel_military_access(state, source, target))
+		return;
+
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
+	state.world.unilateral_relationship_set_military_access(rel, false);
+
+	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelaskmilaccess_diplomatic_cost;
+	nations::adjust_relationship(state, source, target, state.defines.cancelaskmilaccess_relation_on_accept);
+}
+
+void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_given_military_access;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
+
+	if(state.world.nation_get_diplomatic_points(source) < state.defines.cancelgivemilaccess_diplomatic_cost)
+		return false;
+
+	if(state.world.unilateral_relationship_get_military_access(rel))
+		return true;
+	else
+		return false;
+}
+void execute_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_cancel_given_military_access(state, source, target))
+		return;
+
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
+	state.world.unilateral_relationship_set_military_access(rel, false);
+
+	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelgivemilaccess_diplomatic_cost;
+	nations::adjust_relationship(state, source, target, state.defines.cancelgivemilaccess_relation_on_accept);
+}
+
+void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_alliance;
+	p.source = source;
+	p.data.diplo_action.target = target;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(state.world.nation_get_diplomatic_points(source) < state.defines.cancelalliance_diplomatic_cost)
+		return false;
+
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, source);
+	if(!state.world.diplomatic_relation_get_are_allied(rel))
+		return false;
+
+	if(military::are_allied_in_war(state, source, target))
+		return false;
+
+	return true;
+}
+void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!can_cancel_alliance(state, source, target))
+		return;
+
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+	state.world.diplomatic_relation_set_are_allied(rel, false);
+
+	state.world.nation_get_diplomatic_points(source) -= state.defines.cancelalliance_diplomatic_cost;
+	nations::adjust_relationship(state, source, target, state.defines.cancelalliance_relation_on_accept);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -2166,6 +2472,33 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::make_f_p_event_choice:
 				execute_make_event_choice(state, c->source, c->data.pending_human_f_p_event);
+				break;
+			case command_type::cancel_cb_fabrication:
+				execute_cancel_cb_fabrication(state, c->source);
+				break;
+			case command_type::fabricate_cb:
+				execute_fabricate_cb(state, c->source, c->data.cb_fabrication.target, c->data.cb_fabrication.type);
+				break;
+			case command_type::ask_for_military_access:
+				execute_ask_for_access(state, c->source, c->data.diplo_action.target);
+				break;
+			case command_type::ask_for_alliance:
+				execute_ask_for_alliance(state, c->source, c->data.diplo_action.target);
+				break;
+			case command_type::call_to_arms:
+				execute_call_to_arms(state, c->source, c->data.call_to_arms.target, c->data.call_to_arms.war);
+				break;
+			case command_type::respond_to_diplomatic_message:
+				execute_respond_to_diplomatic_message(state, c->source, c->data.message.from, c->data.message.type, c->data.message.accept);
+				break;
+			case command_type::cancel_military_access:
+				execute_cancel_military_access(state, c->source, c->data.diplo_action.target);
+				break;
+			case command_type::cancel_alliance:
+				execute_cancel_alliance(state, c->source, c->data.diplo_action.target);
+				break;
+			case command_type::cancel_given_military_access:
+				execute_cancel_given_military_access(state, c->source, c->data.diplo_action.target);
 				break;
 		}
 

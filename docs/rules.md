@@ -1588,3 +1588,84 @@ None
 #### Effect
 
 Executes the effect of the choice. Internally, removes the event from the pending queue.
+
+### Ask for military access
+
+(implicitly: there must also be commands to accept or decline an access request)
+
+#### Conditions
+
+Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have military access.
+
+#### Effects
+
+Relations increased by defines:ASKMILACCESS_RELATION_ON_ACCEPT if it is accepted, and by defines:ASKMILACCESS_RELATION_ON_DECLINE if it is declined.
+
+### Cancel military access
+
+#### Conditions
+
+Must have defines:CANCELASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must have military access.
+
+#### Effects
+
+Ends access.
+
+### Ask for an alliance
+
+(implicitly: there must also be commands to accept or decline an access request)
+
+#### Conditions
+
+Must not have an alliance. Must not be in a war against each other. Costs defines:ALLIANCE_DIPLOMATIC_COST diplomatic points. Great powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with their overlords.
+
+#### Effects
+
+Increases relations by defines:ALLIANCE_RELATION_ON_ACCEPT on acceptance or by defines:ALLIANCE_RELATION_ON_DECLINE if it is declined. Creates an alliance.
+
+### End alliance
+
+#### Conditions
+
+Must have an alliance. Cannot be in a war on the same side. Costs defines:CANCELALLIANCE_DIPLOMATIC_COST diplomatic points.
+
+#### Effects
+
+Ends alliance. Relations increase by defines:CANCELALLIANCE_RELATION_ON_ACCEPT
+
+### Call ally to war
+
+(implicitly: there must also be commands to accept or decline an access request)
+
+#### Conditions
+
+Requires defines:CALLALLY_DIPLOMATIC_COST diplomatic points. The ally must be able to join the war. The calling nation must be in the war.
+
+#### Effect
+
+Ally joins war (or not). Relations increase by defines:CALLALLY_RELATION_ON_ACCEPT or defines:CALLALLY_RELATION_ON_DECLINE. For a defensive call, declining causes the alliance to break.
+
+### Begin CB fabrication
+
+#### Conditions
+
+Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members. Cb must be fabricate-able.
+
+#### Effect
+
+Fabrication starts
+
+
+TODO
+Crisis invite with wargoal (+ accept, reject)
+Crisis propose solution (+ accept, reject)
+Crisis back down
+Add CB to war
+Declare war
+Make peace offer (+ accept, reject)
+Assign leader to unit
+Move unit
+Embark/disembark
+Split unit
+Take command of vassal units / give up command
+Set hunt rebels on/off
