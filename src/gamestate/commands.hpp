@@ -53,7 +53,7 @@ enum class command_type : uint8_t {
 	make_p_event_choice = 44,
 	make_f_p_event_choice = 45,
 	fabricate_cb = 46,
-	cancel_cb_fabrication = 46,
+	cancel_cb_fabrication = 47,
 };
 
 struct national_focus_data {

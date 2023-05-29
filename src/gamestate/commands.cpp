@@ -2072,6 +2072,7 @@ void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::natio
 
 	state.world.nation_set_constructing_cb_target(source, target);
 	state.world.nation_set_constructing_cb_type(source, type);
+	state.world.nation_get_diplomatic_points(source) -= state.defines.make_cb_diplomatic_cost;
 }
 
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
