@@ -357,6 +357,11 @@ object {
 		name{ producer_payout_fraction }
 		type{ float }
 	}
+	property{
+		name{ price_record }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
 }
 
 object {

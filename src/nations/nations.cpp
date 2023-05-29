@@ -132,13 +132,6 @@ void restore_cached_values(sys::state& state) {
 }
 
 void update_cached_values(sys::state& state) {
-	auto player_treasury = nations::get_treasury(state, state.local_player_nation);
-	auto player_income = player_treasury - state.player_data_cache.last_budget;
-	state.player_data_cache.income_30_days[state.player_data_cache.income_cache_i] = player_income;
-	state.player_data_cache.income_cache_i++;
-	state.player_data_cache.income_cache_i %= 30;
-	state.player_data_cache.last_budget = player_treasury;
-
 	if(state.diplomatic_cached_values_out_of_date) {
 		state.diplomatic_cached_values_out_of_date = false;
 		restore_cached_values(state);

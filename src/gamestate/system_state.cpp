@@ -1948,6 +1948,18 @@ namespace sys {
 						}
 					}
 
+					/*
+					* END OF DAY: update cached data
+					*/
+
+					player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
+					if((current_date.value % 16) == 0) {
+						auto index = economy::most_recent_price_record_index(*this);
+						for(auto c : world.in_commodity) {
+							c.set_price_record(index, c.get_current_price());
+						}
+					}
+
 					game_state_updated.store(true, std::memory_order::release);
 				} else {
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));

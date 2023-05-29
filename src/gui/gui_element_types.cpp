@@ -469,22 +469,24 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 }
 
-void line_graph::set_data_points(sys::state& state, std::vector<float> datapoints) noexcept {
+void line_graph::set_data_points(sys::state& state, std::vector<float> const& datapoints) noexcept {
+	assert(datapoints.size() == count);
+
 	float min = datapoints[0];
 	float max = datapoints[0];
-	for(size_t i = 0; i < datapoints.size(); i++) {
+	for(size_t i = 0; i < count; i++) {
 		min = std::min(min, datapoints[i]);
 		max = std::max(max, datapoints[i]);
 	}
-	float y_height = std::max(std::abs(min), std::abs(max));
+	float y_height = max - min;
 	std::vector<float> scaled_datapoints = std::vector<float>(count);
 	if (y_height == 0.f) {
-		for(size_t i = 0; i < datapoints.size(); i++) {
+		for(size_t i = 0; i < count; i++) {
 			scaled_datapoints[i] = .5f;
 		}
 	} else {
-		for(size_t i = 0; i < datapoints.size(); i++) {
-			scaled_datapoints[i] = datapoints[i] / (y_height * 2.f) + .5f;
+		for(size_t i = 0; i < count; i++) {
+			scaled_datapoints[i] = (datapoints[i] - min) / y_height;
 		}
 	}
 	lines.set_y(scaled_datapoints.data());
@@ -492,7 +494,6 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> datapoint
 
 void line_graph::on_create(sys::state& state) noexcept {
 	element_base::on_create(state);
-	lines = ogl::lines(count);
 }
 
 void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
