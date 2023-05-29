@@ -1239,10 +1239,10 @@ public:
 						auto current = state.world.nation_get_issues(nation_id, i);
 						for(auto o : state.world.issue_get_options(i)) {
 							if(o && politics::can_enact_political_reform(state, nation_id, o)) {
-								text::add_line_break_to_layout_box(contents, state, box);
 								auto fat_id = dcon::fatten(state.world, o);
 								auto name = text::produce_simple_string(state, fat_id.get_name());
 								text::add_to_layout_box(contents, state, box, name);
+								text::add_line_break_to_layout_box(contents, state, box);
 							}
 						}
 					}
@@ -1251,10 +1251,10 @@ public:
 						auto current = state.world.nation_get_issues(nation_id, i);
 						for(auto o : state.world.issue_get_options(i)) {
 							if(o && politics::can_enact_social_reform(state, nation_id, o)) {
-								text::add_line_break_to_layout_box(contents, state, box);
 								auto fat_id = dcon::fatten(state.world, o);
 								auto name = text::produce_simple_string(state, fat_id.get_name());
 								text::add_to_layout_box(contents, state, box, name);
+								text::add_line_break_to_layout_box(contents, state, box);
 							}
 						}
 					}
@@ -1267,10 +1267,10 @@ public:
 						auto current = state.world.nation_get_reforms(nation_id, i);
 						for(auto o : state.world.reform_get_options(i)) {
 							if(o && politics::can_enact_military_reform(state, nation_id, o)) {
-								text::add_line_break_to_layout_box(contents, state, box);
 								auto fat_id = dcon::fatten(state.world, o);
 								auto name = text::produce_simple_string(state, fat_id.get_name());
 								text::add_to_layout_box(contents, state, box, name);
+								text::add_line_break_to_layout_box(contents, state, box);
 							}
 						}
 					}
@@ -1279,10 +1279,10 @@ public:
 						auto current = state.world.nation_get_reforms(nation_id, i);
 						for(auto o : state.world.reform_get_options(i)) {
 							if(o && politics::can_enact_economic_reform(state, nation_id, o)) {
-								text::add_line_break_to_layout_box(contents, state, box);
 								auto fat_id = dcon::fatten(state.world, o);
 								auto name = text::produce_simple_string(state, fat_id.get_name());
 								text::add_to_layout_box(contents, state, box, name);
+								text::add_line_break_to_layout_box(contents, state, box);
 							}
 						}
 					}

@@ -36,19 +36,34 @@ public:
 
 class make_decision : public  button_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::decision_id{};
+	void button_action(sys::state& state) noexcept override {
 		if(parent) {
+			Cyto::Any payload = dcon::decision_id{};
 			parent->impl_get(state, payload);
-			auto id = any_cast<dcon::decision_id>(payload);
+			auto content = any_cast<dcon::decision_id>(payload);
 
-			auto condition = state.world.decision_get_allow(id);
-			disabled = condition && !trigger::evaluate(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+			command::take_decision(state, state.local_player_nation, content);
 		}
 	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::decision_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::decision_id>(payload);
+
+			disabled = !command::can_take_decision(state, state.local_player_nation, content);
+			/*
+			auto condition = state.world.decision_get_allow(id);
+			disabled = condition && !trigger::evaluate(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+			*/
+		}
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
 		if(parent) {

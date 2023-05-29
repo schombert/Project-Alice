@@ -303,7 +303,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		return false;
 	if(state.world.province_get_is_colonial(state.world.state_instance_get_capital(location)))
 		return false;
-	
+
 	/* There can't be duplicate factories... */
 	if(!is_upgrade) {
 		// Check factories being built
@@ -313,7 +313,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 		});
 		if(has_dup)
 			return false;
-		
+
 		// Check actual factories
 		auto d = state.world.state_instance_get_definition(location);
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d))
@@ -845,7 +845,7 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 		return;
 
 	/*
-	A nation is discredited for define:DISCREDIT_DAYS. Being discredited twice does not add these durations together; it just resets the timer from the current day. Discrediting a nation "increases" your relationship with them by define:DISCREDIT_RELATION_ON_ACCEPT. Discrediting costs define:DISCREDIT_INFLUENCE_COST influence points. 
+	A nation is discredited for define:DISCREDIT_DAYS. Being discredited twice does not add these durations together; it just resets the timer from the current day. Discrediting a nation "increases" your relationship with them by define:DISCREDIT_RELATION_ON_ACCEPT. Discrediting costs define:DISCREDIT_INFLUENCE_COST influence points.
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
@@ -902,7 +902,7 @@ void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 		return;
 
 	/*
-	Expelling a nation's advisors "increases" your relationship with them by define:EXPELADVISORS_RELATION_ON_ACCEPT. This action costs define:EXPELADVISORS_INFLUENCE_COST influence points. Being expelled cancels any ongoing discredit effect. Being expelled reduces your influence to zero. 
+	Expelling a nation's advisors "increases" your relationship with them by define:EXPELADVISORS_RELATION_ON_ACCEPT. This action costs define:EXPELADVISORS_INFLUENCE_COST influence points. Being expelled cancels any ongoing discredit effect. Being expelled reduces your influence to zero.
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
@@ -1254,7 +1254,7 @@ void invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_
 }
 bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p) {
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-	if(province::is_colonizing(state, source, state_def))
+	if(!province::is_colonizing(state, source, state_def))
 		return province::can_start_colony(state, source, state_def);
 	else
 		return province::can_invest_in_colony(state, source, state_def);
@@ -1276,7 +1276,7 @@ void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::p
 			}
 		}
 
-		
+
 		for(auto rel : state.world.state_definition_get_colonization(state_def)) {
 			if(rel.get_colonizer() == source) {
 
@@ -1358,9 +1358,15 @@ void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id
 	p.data.generic_location.prov = pr;
 	auto b = state.incoming_commands.try_push(p);
 }
+
+bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+	auto state_def = state.world.province_get_state_from_abstract_state_membership(pr);
+	return province::is_colonizing(state, source, state_def);
+}
+
 void execute_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p) {
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-	
+
 	for(auto rel : state.world.state_definition_get_colonization(state_def)) {
 		if(rel.get_colonizer() == source) {
 			state.world.delete_colonization(rel);
@@ -1379,7 +1385,7 @@ void finish_colonization(sys::state& state, dcon::nation_id source, dcon::provin
 }
 bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-	if(state.world.state_definition_get_colonization_stage(state_def) != 0)
+	if(state.world.state_definition_get_colonization_stage(state_def) != 3)
 		return false;
 	auto rng = state.world.state_definition_get_colonization(state_def);
 	if(rng.begin() == rng.end())
@@ -1487,7 +1493,7 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 		}
 	}
 	return false;
-	
+
 }
 void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker) {
 	if(!can_intervene_in_war(state, source, w, for_attacker))
