@@ -9,6 +9,7 @@
 #include "gui_projects_window.hpp"
 #include "gui_build_factory_window.hpp"
 #include "gui_project_investment_window.hpp"
+#include "gui_foreign_investment_window.hpp"
 #include <vector>
 
 namespace ui {
