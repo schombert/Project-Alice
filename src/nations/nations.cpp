@@ -1561,8 +1561,14 @@ void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {
 	if(state.world.nation_get_is_at_war(n)) { // ineligible
 		reject_crisis_participation(state);
 	} else {
-		// TODO: check AI for either immediate yes/no or push to player
-		add_as_primary_crisis_defender(state, n);
+		diplomatic_message::message m;
+		memset(&m, 0, sizeof(diplomatic_message::message));
+		m.type = diplomatic_message::type::be_crisis_primary_defender;
+		m.to = n;
+		if(state.crisis_state) {
+			m.from = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
+		}
+		diplomatic_message::post_message(state, m);
 	}
 }
 
@@ -1571,8 +1577,14 @@ void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n) {
 	if(state.world.nation_get_is_at_war(n)) { // ineligible
 		reject_crisis_participation(state);
 	} else {
-		// TODO: check AI for either immediate yes/no or push to player
-		add_as_primary_crisis_attacker(state, n);
+		diplomatic_message::message m;
+		memset(&m, 0, sizeof(diplomatic_message::message));
+		m.type = diplomatic_message::type::be_crisis_primary_attacker;
+		m.to = n;
+		if(state.crisis_liberation_tag) {
+			m.from = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
+		}
+		diplomatic_message::post_message(state, m);
 	}
 }
 

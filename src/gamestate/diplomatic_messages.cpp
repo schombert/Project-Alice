@@ -43,6 +43,12 @@ void decline_message(sys::state& state, message const& m) {
 			}
 			break;
 		}
+		case type::be_crisis_primary_attacker:
+			nations::reject_crisis_participation(state);
+			break;
+		case type::be_crisis_primary_defender:
+			nations::reject_crisis_participation(state);
+			break;
 	}
 
 }
@@ -88,6 +94,12 @@ void accept_message(sys::state& state, message const& m) {
 			nations::adjust_relationship(state, m.from, m.to, state.defines.callally_relation_on_accept);
 			break;
 		}
+		case type::be_crisis_primary_attacker:
+			nations::add_as_primary_crisis_attacker(state, m.to);
+			break;
+		case type::be_crisis_primary_defender:
+			nations::add_as_primary_crisis_defender(state, m.to);
+			break;
 	}
 }
 
@@ -108,6 +120,12 @@ void post_message(sys::state& state, message const& m) {
 			case type::call_ally_request:
 				decline_message(state, m);
 				return;
+			case type::be_crisis_primary_defender:
+				nations::add_as_primary_crisis_defender(state, m.to);
+				return;
+			case type::be_crisis_primary_attacker:
+				nations::add_as_primary_crisis_attacker(state, m.to);
+				return;
 		}
 	}
 
@@ -116,7 +134,9 @@ void post_message(sys::state& state, message const& m) {
 			std::memcpy(&i, &m, sizeof(message));
 			i.when = state.current_date;
 
-			// TODO: post new message notification to message target
+			if(i.to == state.local_player_nation) {
+				state.new_requests.push(i);
+			}
 
 			return;
 		}
