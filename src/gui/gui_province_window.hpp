@@ -833,20 +833,20 @@ class province_protectorate_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
+			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
+			auto content = any_cast<dcon::province_id>(payload);
 
-			command::finish_colonization(state, state.local_player_nation, dcon::fatten(state.world, content).get_capital().id);
+			command::finish_colonization(state, state.local_player_nation, content);
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
+			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-			disabled = !command::can_finish_colonization(state, state.local_player_nation, dcon::fatten(state.world, content).get_capital().id);
+			auto content = any_cast<dcon::province_id>(payload);
+			disabled = !command::can_finish_colonization(state, state.local_player_nation, content);
 		}
 	}
 };
@@ -855,43 +855,152 @@ class province_withdraw_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
+			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
+			auto content = any_cast<dcon::province_id>(payload);
 
-			command::abandon_colony(state, state.local_player_nation, dcon::fatten(state.world, content).get_capital().id);
+			command::abandon_colony(state, state.local_player_nation, content);
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
+			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_instance_id>(payload);
-			disabled = !command::can_abandon_colony(state, state.local_player_nation, dcon::fatten(state.world, content).get_capital().id);
+			auto content = any_cast<dcon::province_id>(payload);
+			disabled = !command::can_abandon_colony(state, state.local_player_nation, content);
 		}
 	}
 };
 
-class colonist_entry : public listbox_row_element_base<bool> {
+class UwU {
+public:
+	dcon::colonization_id	col_id{};
+	dcon::nation_id		player_id{};
+};
+
+class colony_invest_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+
+			command::invest_in_colony(state, state.local_player_nation, content);
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::province_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::province_id>(payload);
+
+			disabled = !command::can_invest_in_colony(state, state.local_player_nation, content);
+		}
+	}
+};
+
+class level_entry : public listbox_row_element_base<uint8_t> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "progress_icon") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->frame = content;
+			return ptr;
+		} else if(name == "progress_button") {
+			return make_element_by_type<colony_invest_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class colonisation_listbox : public overlapping_listbox_element_base<level_entry, uint8_t> {
+protected:
+	std::string_view get_row_element_name() {
+		return "level_entry";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::colonization_id{};
+		parent->impl_get(state, payload);
+		auto content = any_cast<dcon::colonization_id>(payload);
+		auto fat_colony = dcon::fatten(state.world, content);
+		for(uint8_t i = 0; i < fat_colony.get_level(); ++i) {
+			row_contents.push_back(i);
+		}
+
+		if(row_contents.size() == 0) {
+			row_contents.push_back(1);
+		}
+
+		update(state);
+	}
+};
+
+class colonist_entry : public listbox_row_element_base<UwU> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "controller_flag") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "levels") {
+			//return make_element_by_type<level_entry>(state, id);
+			return make_element_by_type<colonisation_listbox>(state, id);
+			return nullptr;
 		} else if(name == "progress_counter") {
 			return make_element_by_type<simple_text_element_base>(state, id);
+		} else {
+			return nullptr;
 		}
-		return nullptr;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::national_identity_id>()) {
+			if(!bool(content.col_id)) {
+				payload.emplace<dcon::national_identity_id>(dcon::fatten(state.world, content.player_id).get_identity_from_identity_holder().id);
+			} else if(bool(content.col_id)) {
+				payload.emplace<dcon::national_identity_id>(dcon::fatten(state.world, content.col_id).get_colonizer().get_identity_from_identity_holder().id);
+			}
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::colonization_id>()) {
+			payload.emplace<dcon::colonization_id>(content.col_id);
+		}
+		return message_result::unseen;
 	}
 };
 
-class colonist_listbox : public listbox_element_base<colonist_entry, bool> {
+class colonist_listbox : public listbox_element_base<colonist_entry, UwU> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "colonist_item";
 	}
 public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+			auto fat_def = dcon::fatten(state.world, content).get_definition();
+
+			row_contents.clear();
+
+			for(auto colony : fat_def.get_colonization()) {
+				UwU test;
+				test.col_id = colony;
+				test.player_id = dcon::nation_id{0};
+				row_contents.push_back(test);
+			}
+
+			UwU aa;
+			aa.col_id = dcon::colonization_id{0};
+			aa.player_id = state.local_player_nation;
+			row_contents.push_back(aa);
+
+			update(state);
+		}
+	}
 };
 
 class province_colonisation_temperature : public progress_bar {
@@ -929,6 +1038,7 @@ public:
 			return make_element_by_type<province_withdraw_button>(state, id);
 		} else if(name == "colonist_list") {
 			// TODO - Listbox
+			return make_element_by_type<colonist_listbox>(state, id);
 			return nullptr;
 		} else if(name == "crisis_temperature") {
 			return make_element_by_type<province_colonisation_temperature>(state, id);
