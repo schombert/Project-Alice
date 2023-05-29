@@ -74,6 +74,10 @@ public:
 			if(messages.empty()) {
 				payload.emplace<dcon::nation_id>(dcon::nation_id{});
 			} else {
+				if(index >= int32_t(messages.size()))
+					index = 0;
+				else if(index < 0)
+					index = int32_t(messages.size()) - 1;
 				payload.emplace<dcon::nation_id>(messages[index].from);
 			}
 			return message_result::consumed;

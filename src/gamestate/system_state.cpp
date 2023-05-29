@@ -392,6 +392,22 @@ namespace sys {
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
 		{
+			auto new_elm = ui::make_element_by_type<ui::national_event_window<true>>(*this, "event_major_window");
+			ui_state.major_event_window = new_elm.get();
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::national_event_window<false>>(*this, "event_country_window");
+			ui_state.national_event_window = new_elm.get();
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::provincial_event_window>(*this, "event_province_window");
+			ui_state.provincial_event_window = new_elm.get();
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+
+		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 			new_elm->impl_on_update(*this);
 			ui_state.root->add_child_to_front(std::move(new_elm));
