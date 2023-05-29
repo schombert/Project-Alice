@@ -325,9 +325,7 @@ void invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_
 bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);				// Added in GUI Need QA
-bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	return true;
-}
+bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
