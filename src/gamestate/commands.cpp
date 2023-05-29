@@ -2016,6 +2016,72 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.e, e.p, e.date}, e.opt_choice);
 }
 
+void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_cb_fabrication;
+	p.source = source;
+	p.data.cb_fabrication.target = target;
+	p.data.cb_fabrication.type = type;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+
+	if(state.world.nation_get_constructing_cb_type(source))
+		return false;
+
+	/*
+	Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members
+	*/
+
+	auto ol = state.world.nation_get_overlord_as_subject(source);
+	if(ol && state.world.overlord_get_ruler(ol) != target)
+		return false;
+
+	if(state.world.nation_get_in_sphere_of(target) == source)
+		return false;
+
+	if(state.world.nation_get_diplomatic_points(source) < state.defines.make_cb_diplomatic_cost)
+		return false;
+
+	if(military::are_at_war(state, target, source))
+		return false;
+
+	/*
+	must be able to fabricate cb
+	*/
+
+	if((state.world.cb_type_get_type_bits(type) & (military::cb_flag::always | military::cb_flag::is_not_constructing_cb)) != 0)
+		return false;
+
+	if(!military::cb_conditions_satisfied(state, source, target, type))
+		return false;
+
+	return true;
+}
+
+void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+	if(!can_fabricate_cb(state, source, target, type))
+		return;
+
+	state.world.nation_set_constructing_cb_target(source, target);
+	state.world.nation_set_constructing_cb_type(source, type);
+}
+
+void cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_cb_fabrication;
+	p.source = source;
+	auto b = state.incoming_commands.try_push(p);
+}
+void execute_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_constructing_cb_target(source, dcon::nation_id{});
+	state.world.nation_set_constructing_cb_is_discovered(source, false);
+	state.world.nation_set_constructing_cb_progress(source, 0.0f);
+	state.world.nation_set_constructing_cb_type(source, dcon::cb_type_id{});
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -2160,6 +2226,12 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::make_f_p_event_choice:
 				execute_make_event_choice(state, c->source, c->data.pending_human_f_p_event);
+				break;
+			case command_type::cancel_cb_fabrication:
+				execute_cancel_cb_fabrication(state, c->source);
+				break;
+			case command_type::fabricate_cb:
+				execute_fabricate_cb(state, c->source, c->data.cb_fabrication.target, c->data.cb_fabrication.type);
 				break;
 		}
 

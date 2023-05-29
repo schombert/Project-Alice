@@ -52,6 +52,8 @@ enum class command_type : uint8_t {
 	make_f_n_event_choice = 43,
 	make_p_event_choice = 44,
 	make_f_p_event_choice = 45,
+	fabricate_cb = 46,
+	cancel_cb_fabrication = 46,
 };
 
 struct national_focus_data {
@@ -196,6 +198,11 @@ struct pending_human_f_p_event_data {
 	uint8_t opt_choice;
 };
 
+struct cb_fabrication_data {
+	dcon::nation_id target;
+	dcon::cb_type_id type;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -223,6 +230,7 @@ struct payload {
 		pending_human_f_n_event_data pending_human_f_n_event;
 		pending_human_p_event_data pending_human_p_event;
 		pending_human_f_p_event_data pending_human_f_p_event;
+		cb_fabrication_data cb_fabrication;
 
 		dtype() {}
 	} data;
@@ -378,6 +386,14 @@ void make_event_choice(sys::state& state, event::pending_human_n_event const& e,
 void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id);
 void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id);
 void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id);
+
+void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
+bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type);
+
+void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
+bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
+	return true;
+}
 
 void execute_pending_commands(sys::state& state);
 
