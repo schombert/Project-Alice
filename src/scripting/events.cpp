@@ -1,4 +1,5 @@
 #include "events.hpp"
+#include "system_state.hpp"
 
 namespace event {
 
@@ -95,8 +96,10 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		state.pending_n_event.push_back(pending_human_n_event{ r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date });
-		// TODO: notify ui
+		pending_human_n_event new_event{ r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date };
+		state.pending_n_event.push_back(new_event);
+		if(n == state.local_player_nation)
+			state.new_n_event.push(new_event);
 	} else {
 		auto& opt = state.world.national_event_get_options(e);
 		float total = 0.0f;
@@ -137,8 +140,10 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		effect::execute(state, immediate, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		state.pending_f_n_event.push_back(pending_human_f_n_event{ r_lo, r_hi + 1, e, n, state.current_date });
-		// TODO: notify ui
+		pending_human_f_n_event new_event{ r_lo, r_hi + 1, e, n, state.current_date };
+		state.pending_f_n_event.push_back(new_event);
+		if(n == state.local_player_nation)
+			state.new_f_n_event.push(new_event);
 	} else {
 		auto& opt = state.world.free_national_event_get_options(e);
 		float total = 0.0f;
@@ -173,8 +178,10 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo, int32_t from_slot) {
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		state.pending_p_event.push_back(pending_human_p_event{ r_lo, r_hi, from_slot, e, p, state.current_date });
-		// TODO: notify ui
+		pending_human_p_event new_event{ r_lo, r_hi, from_slot, e, p, state.current_date };
+		state.pending_p_event.push_back(new_event);
+		if(owner == state.local_player_nation)
+			state.new_p_event.push(new_event);
 	} else {
 		auto& opt = state.world.provincial_event_get_options(e);
 		float total = 0.0f;
@@ -211,8 +218,10 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		state.pending_f_p_event.push_back(pending_human_f_p_event{ r_lo, r_hi, e, p, state.current_date });
-		// TODO: notify ui
+		pending_human_f_p_event new_event{ r_lo, r_hi, e, p, state.current_date };
+		state.pending_f_p_event.push_back(new_event);
+		if(owner == state.local_player_nation)
+			state.new_f_p_event.push(new_event);
 	} else {
 		auto& opt = state.world.free_provincial_event_get_options(e);
 		float total = 0.0f;

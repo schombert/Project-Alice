@@ -5,6 +5,10 @@
 
 namespace economy {
 
+int32_t most_recent_price_record_index(sys::state& state) {
+	return (state.current_date.value >> 4) % 32;
+}
+
 float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices);
 void populate_army_consumption(sys::state& state);
 void populate_navy_consumption(sys::state& state);
@@ -118,6 +122,7 @@ void initialize(sys::state& state) {
 	state.world.nation_resize_construction_demand(state.world.commodity_size());
 	state.world.nation_resize_private_construction_demand(state.world.commodity_size());
 	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
+	state.world.commodity_resize_price_record(32);
 
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		auto fc = fatten(state.world, c);
@@ -126,6 +131,9 @@ void initialize(sys::state& state) {
 		fc.set_total_production(1.0f);
 		fc.set_total_real_demand(1.0f);
 
+		for(int32_t i = 0; i < 32; ++i) {
+			fc.set_price_record(i, fc.get_cost());
+		}
 		// fc.set_global_market_pool();
 	});
 

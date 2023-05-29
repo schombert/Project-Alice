@@ -272,16 +272,20 @@ public:
 
 class topbar_budget_line_graph : public line_graph {
 public:
+	topbar_budget_line_graph() : line_graph(32) { }
+
 	void on_create(sys::state& state) noexcept override {
-		count = 30;
 		line_graph::on_create(state);
 		on_update(state);
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		std::vector<float> datapoints = std::vector<float>(count);
-		for(size_t i = 0; i < datapoints.size(); i++)
-			datapoints[i] = state.player_data_cache.income_30_days[(i + state.player_data_cache.income_cache_i) % 30];
+		std::vector<float> datapoints(size_t(32));
+		for(size_t i = 0; i < state.player_data_cache.treasury_record.size(); ++i)
+			datapoints[i] = state.player_data_cache.treasury_record[(state.current_date.value + 0 + i) % 32];
+
+		datapoints[0] = datapoints[1]; // stability trick -- this compesates for the fact that the day changes early in the update, and you could see the line chart "shift" before the day actually updates
+
 		set_data_points(state, datapoints);
 	}
 };

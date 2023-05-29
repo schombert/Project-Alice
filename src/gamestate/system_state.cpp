@@ -1672,6 +1672,28 @@ namespace sys {
 		if(local_player_nation) {
 			world.nation_set_is_player_controlled(local_player_nation, true);
 		}
+
+		// reshow pending events, messages, etc
+		for(auto const& e : pending_n_event) {
+			if(e.n == local_player_nation) {
+				new_n_event.push(e);
+			}
+		}
+		for(auto const& e : pending_f_n_event) {
+			if(e.n == local_player_nation) {
+				new_f_n_event.push(e);
+			}
+		}
+		for(auto const& e : pending_p_event) {
+			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
+				new_p_event.push(e);
+			}
+		}
+		for(auto const& e : pending_f_p_event) {
+			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
+				new_f_p_event.push(e);
+			}
+		}
 	}
 
 	constexpr inline int32_t game_speed[] = {
@@ -1967,6 +1989,18 @@ namespace sys {
 					if(ymd_date.day == 1 && ymd_date.month == 1) {
 						for(auto n : world.in_nation) {
 							politics::recalculate_upper_house(*this, n);
+						}
+					}
+
+					/*
+					* END OF DAY: update cached data
+					*/
+
+					player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
+					if((current_date.value % 16) == 0) {
+						auto index = economy::most_recent_price_record_index(*this);
+						for(auto c : world.in_commodity) {
+							c.set_price_record(index, c.get_current_price());
 						}
 					}
 
