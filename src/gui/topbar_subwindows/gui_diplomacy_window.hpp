@@ -693,6 +693,33 @@ public:
 	}
 };
 
+class diplomacy_casus_belli_cancel_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+			if(content != state.local_player_nation) {
+				disabled = true;
+			} else {
+				disabled = !command::can_cancel_cb_fabrication(state, content);
+			}
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+			command::cancel_cb_fabrication(state, content);
+		}
+	}
+};
+
 class diplomacy_casus_belli_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -711,9 +738,7 @@ public:
 		} else if(name == "defenders") {
 			return make_element_by_type<justifying_defender_flag>(state, id);
 		} else if(name == "cancel") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			(content == state.local_player_nation) ?  ptr->set_visible(state, false) : ptr->set_visible(state, true);
-			return ptr;
+			return make_element_by_type<diplomacy_casus_belli_cancel_button>(state, id);
 		} else {
 			return nullptr;
 		 }
@@ -729,7 +754,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if((dcon::fatten(state.world, id).get_constructing_cb_is_discovered() || id == state.local_player_nation) && dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid()) {
+			if(dcon::fatten(state.world, id).get_constructing_cb_is_discovered() || (id == state.local_player_nation && dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid())) {
 				row_contents.push_back(id);
 			}
 		});
