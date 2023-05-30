@@ -417,10 +417,10 @@ bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
 	return true;
 }
 
-void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);			// Added in GUI
 bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
-void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);			// Added in GUI
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
@@ -428,10 +428,10 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept);
 
-void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);			// Aded in GUI
 bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
-void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);			// Added in GUI
 bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // this is for cancelling the access someone has with you

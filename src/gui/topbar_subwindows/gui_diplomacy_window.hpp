@@ -569,7 +569,6 @@ public:
 };
 
 class diplomacy_war_info : public listbox_row_element_base<dcon::war_id> {
-	simple_text_element_base* war_name = nullptr;
 	simple_text_element_base* attackers_strength_text = nullptr;
 	simple_text_element_base* defenders_strength_text = nullptr;
 	overlapping_attacker_flags* attackers_flags = nullptr;
@@ -584,9 +583,7 @@ public:
 		if(name == "diplo_war_entrybg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "war_name") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			war_name = ptr.get();
-			return ptr;
+			return make_element_by_type<war_name_text>(state, id);
 		} else if(name == "attackers_mil_strength") {
 			auto ptr = make_element_by_type<war_side_strength_text<true>>(state, id);
 			ptr->base_data.position.y -= 4; // Nudge
@@ -627,10 +624,154 @@ public:
 	void update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
-
-		auto war = dcon::fatten(state.world, content);
-		war_name->set_text(state, text::produce_simple_string(state, war.get_name()));
 	}
+};
+
+class justifying_cb_type_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+
+			frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
+		}
+	}
+};
+
+class justifying_cb_progress : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+
+			progress = fat.get_constructing_cb_progress();
+		}
+	}
+};
+
+class justifying_attacker_flag : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) noexcept override {
+		if(parent) {
+			row_contents.clear();
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+
+			row_contents.push_back(fat.get_identity_from_identity_holder().id);
+			update(state);
+		}
+	}
+};
+
+class justifying_defender_flag : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) noexcept override {
+		if(parent) {
+			row_contents.clear();
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+
+			row_contents.push_back(fat.get_constructing_cb_target().get_identity_from_identity_holder().id);
+			update(state);
+		}
+	}
+};
+
+class diplomacy_casus_belli_cancel_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+			if(content != state.local_player_nation) {
+				disabled = true;
+			} else {
+				disabled = !command::can_cancel_cb_fabrication(state, content);
+			}
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+			command::cancel_cb_fabrication(state, content);
+		}
+	}
+};
+
+class diplomacy_casus_belli_entry : public listbox_row_element_base<dcon::nation_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "diplo_cb_entrybg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "cb_type_icon") {
+			return make_element_by_type<justifying_cb_type_icon>(state, id);
+		} else if(name == "cb_progress") {
+			return make_element_by_type<justifying_cb_progress>(state, id);
+		} else if(name == "cb_progress_overlay") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "cb_progress_text") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "attackers") {
+			auto ptr = make_element_by_type<justifying_attacker_flag>(state, id);
+			ptr->base_data.position.y -= 7;	// Nudge
+			return ptr;
+		} else if(name == "defenders") {
+			auto ptr = make_element_by_type<justifying_defender_flag>(state, id);
+			ptr->base_data.position.y -= 7;	// Nudge
+			return ptr;
+		} else if(name == "cancel") {
+			return make_element_by_type<diplomacy_casus_belli_cancel_button>(state, id);
+		} else {
+			return nullptr;
+		 }
+	}
+};
+
+class diplomacy_casus_belli_listbox : public listbox_element_base<diplomacy_casus_belli_entry, dcon::nation_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "diplomacy_cb_info_player";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		state.world.for_each_nation([&](dcon::nation_id id) {
+			if(dcon::fatten(state.world, id).get_constructing_cb_is_discovered() || (id == state.local_player_nation && dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid())) {
+				row_contents.push_back(id);
+			}
+		});
+		update(state);
+	}
+};
+
+class diplomacy_casus_belli_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "cb_listbox") {
+			auto ptr = make_element_by_type<diplomacy_casus_belli_listbox>(state, id);
+			ptr->base_data.position.x -= 400;	// Nudge
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+
 };
 
 class diplomacy_war_listbox : public listbox_element_base<diplomacy_war_info, dcon::war_id> {
@@ -713,7 +854,8 @@ private:
 	diplomacy_setup_peace_dialog* setup_peace_win = nullptr;
 	diplomacy_make_cb_window* make_cb_win = nullptr;
 	diplomacy_crisis_backdown_window* crisis_backdown_win = nullptr;
-	element_base* casus_belli_window = nullptr;
+	diplomacy_casus_belli_window* casus_belli_window = nullptr;
+	//element_base* casus_belli_window = nullptr;
 	diplomacy_crisis_info_window* crisis_window = nullptr;
 
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
@@ -939,7 +1081,8 @@ public:
 			ptr->target = country_list_filter::all;
 			return ptr;
 		} else if(name == "cb_info_win") {
-			auto ptr = make_element_immediate(state, id);
+			auto ptr = make_element_by_type<diplomacy_casus_belli_window>(state, id);
+			//auto ptr = make_element_immediate(state, id);
 			casus_belli_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
@@ -1083,6 +1226,7 @@ public:
 			make_cb_win->set_visible(state, false);
 			crisis_backdown_win->set_visible(state, false);
 			Cyto::Any new_payload = facts_nation_id;
+			auto fat = dcon::fatten(state.world, facts_nation_id);
 			switch(v) {
 			case diplomacy_action::decrease_opinion:
 				gp_action_dialog_win->set_visible(state, true);
@@ -1092,6 +1236,23 @@ public:
 				break;
 			case diplomacy_action::add_to_sphere:
 				command::add_to_sphere(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::military_access:
+				command::ask_for_military_access(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::cancel_military_access:
+				command::cancel_military_access(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::ally:
+				command::ask_for_alliance(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::cancel_ally:
+				command::cancel_alliance(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::call_ally:
+				for(auto war_par : fat.get_war_participant()) {
+					command::call_to_arms(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, war_par).get_war().id);
+				}
 				break;
 			case diplomacy_action::remove_from_sphere:
 				// TODO - gp_action_dialog_win probably needs to be used here, so figure that out ig

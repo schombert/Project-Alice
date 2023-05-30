@@ -104,7 +104,6 @@ public:
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			T content = any_cast<T>(payload);
-			auto fat_id = dcon::fatten(state.world, content);
 			simple_text_element_base::set_text(state, get_text(state, content));
 		}
 	}
@@ -728,7 +727,7 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		const auto great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
-			return "-";
+			return "0";
 		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, great_power_rel);
 		auto influence = fat_id.get_influence();
@@ -751,7 +750,7 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		const auto great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
-			return "-";
+			return text::format_money(0.f);
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, uni_rel);
 		return text::format_money(fat_id.get_foreign_investment());
@@ -984,9 +983,9 @@ public:
 		auto gp_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
 		if(bool(gp_rel_id)) {
 			const auto status = state.world.gp_relationship_get_status(gp_rel_id);
-			return text::produce_simple_string(state, text::get_influence_level_name(state, status));
+			return text::get_influence_level_name(state, status);
 		}
-		return "-";
+		return text::produce_simple_string(state, "rel_neutral");
 	}
 };
 
@@ -2103,5 +2102,68 @@ public:
 	}
 };
 // -----------------------------------------------------------------------------
+
+class war_name_text : public generic_multiline_text<dcon::war_id> {
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::war_id id) noexcept override {
+		auto war = dcon::fatten(state.world, id);
+		dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
+		dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
+
+		for(auto wg : state.world.war_get_wargoals_attached(war)) {
+			if(wg.get_wargoal().get_added_by() == primary_attacker && wg.get_wargoal().get_target_nation() == primary_defender) {
+				auto box = text::open_layout_box(contents);
+				text::substitution_map sub{};
+				auto pa_adj = state.world.nation_get_adjective(primary_attacker);
+				text::add_to_substitution_map(sub, text::variable_type::first, pa_adj);
+				auto sdef = wg.get_wargoal().get_associated_state();
+				auto bits = state.world.cb_type_get_type_bits(wg.get_wargoal().get_type());
+				if(dcon::fatten(state.world, sdef).is_valid()) {
+					auto name = state.world.state_definition_get_name(sdef);
+					text::add_to_substitution_map(sub, text::variable_type::second, name);
+				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
+					text::add_to_substitution_map(sub, text::variable_type::second, primary_defender);
+				} else if((bits & (military::cb_flag::po_liberate | military::cb_flag::po_take_from_sphere)) != 0) {
+					auto niid = wg.get_wargoal().get_associated_tag();
+					auto adj = state.world.national_identity_get_adjective(niid);
+					text::add_to_substitution_map(sub, text::variable_type::second, adj);
+				} else {
+					auto adj = state.world.nation_get_adjective(primary_defender);
+					text::add_to_substitution_map(sub, text::variable_type::second, adj);
+				}
+
+				// TODO: ordinal numbering, 1st, 2nd, 3rd, 4th, etc...
+				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+
+				// First, start by using the base name of the wargoal
+				std::string full_key = "normal_" + text::produce_simple_string(state, state.world.cb_type_get_war_name(wg.get_wargoal().get_type()));
+				if(auto k1 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k1 != state.key_to_text_sequence.end()) {
+					// Check if an specialization exists, for example:
+					// normal_take_name_eng_tur would apply if ENG is vs. TUR
+					auto att_tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(primary_attacker)));
+					std::transform(att_tag.begin(), att_tag.end(), att_tag.begin(), [](auto c) {
+						return char(tolower(char(c)));
+					});
+					full_key += "_" + att_tag;
+					if(auto k2 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k2 != state.key_to_text_sequence.end()) {
+						auto def_tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(primary_defender)));
+						std::transform(def_tag.begin(), def_tag.end(), def_tag.begin(), [](auto c) {
+							return char(tolower(char(c)));
+						});
+						full_key += "_" + def_tag;
+						if(auto k3 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k3 != state.key_to_text_sequence.end()) {
+							text::add_to_layout_box(contents, state, box, k3->second, sub);
+						} else {
+							text::add_to_layout_box(contents, state, box, k2->second, sub);
+						}
+					} else {
+						text::add_to_layout_box(contents, state, box, k1->second, sub);
+					}
+				}
+				text::close_layout_box(contents, box);
+				break;
+			}
+		}
+	}
+};
 
 }

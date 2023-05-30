@@ -19,13 +19,13 @@ public:
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 
-						auto fat_id = dcon::fatten(state.world, id);
-						auto name = fat_id.get_name();
-						if(bool(name)) {
-								auto box = text::open_layout_box(contents, 0);
-								text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-								text::close_layout_box(contents, box);
-						}
+			auto fat_id = dcon::fatten(state.world, id);
+			auto name = fat_id.get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
 
 			auto ef = fat_id.get_effect();
 			if(bool(ef))

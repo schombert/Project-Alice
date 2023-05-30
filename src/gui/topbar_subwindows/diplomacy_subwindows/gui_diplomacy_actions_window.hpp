@@ -47,7 +47,7 @@ public:
 			set_button_text(state, text::produce_simple_string(state,
 				can_cancel(state, content) ? "cancelalliance_button"
 					: "alliance_button"));
-			
+
 			if(can_cancel(state, content))
 				disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
 			else
@@ -116,14 +116,22 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
+			auto fat = dcon::fatten(state.world, content);
+			for(auto war_par : fat.get_war_participant()) {
+				if(command::can_call_to_arms(state, state.local_player_nation, content, dcon::fatten(state.world, war_par).get_war().id)) {
+					disabled = !command::can_call_to_arms(state, state.local_player_nation, content, dcon::fatten(state.world, war_par).get_war().id);
+					break;
+				}
+			}
 			// TODO: Conditions for enabling/disabling
+			/*
 			disabled = false;
 			if(content == state.local_player_nation)
 				disabled = true;
 			else {
 				auto drid = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, content);
 				disabled = !state.world.diplomatic_relation_get_are_allied(drid);
-			}
+			}*/
 		}
 	}
 
