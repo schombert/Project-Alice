@@ -2,9 +2,11 @@
 
 #include "dcon_generated.hpp"
 #include "script_constants.hpp"
-#include "system_state.hpp"
+#include "container_types.hpp"
 
 namespace event {
+
+inline constexpr int32_t expiration_in_days = 30;
 
 struct pending_human_n_event {
 	uint32_t r_lo = 0;

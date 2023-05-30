@@ -378,13 +378,13 @@ namespace ui {
 		element_base* outliner_window = nullptr;
 		element_base* technology_subwindow = nullptr;
 		element_base* election_window = nullptr;
+		element_base* msg_window = nullptr;
 		element_base* army_status_window = nullptr;
 		element_base* navy_status_window = nullptr;
 
-		// Event windows that are reused
-		std::vector<std::unique_ptr<element_base>> spare_major_event_subwindows;
-		std::vector<std::unique_ptr<element_base>> spare_national_event_subwindows;
-		std::vector<std::unique_ptr<element_base>> spare_provincial_event_subwindows;
+		element_base* major_event_window = nullptr;
+		element_base* national_event_window = nullptr;
+		element_base* provincial_event_window = nullptr;
 
 		int32_t held_game_speed = 1; // used to keep track of speed while paused
 

@@ -45,8 +45,8 @@ enum class command_type : uint8_t {
 	change_reform_option = 35,
 	become_interested_in_crisis = 36,
 	take_sides_in_crisis = 37,
-	back_crisis_acceptance = 38,
-	back_crisis_decline = 39,
+	// back_crisis_acceptance = 38, -- rolled these into respond_to_diplomatic_message
+	// back_crisis_decline = 39,
 	change_stockpile_settings = 40,
 	take_decision = 41,
 	make_n_event_choice = 42,
@@ -382,16 +382,6 @@ bool can_become_interested_in_crisis(sys::state& state, dcon::nation_id source);
 
 void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
 bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker);
-
-void back_crisis_acceptance(sys::state& state, dcon::nation_id source);
-bool can_back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
-	return true;
-}
-
-void back_crisis_decline(sys::state& state, dcon::nation_id source);
-bool can_back_crisis_decline(sys::state& state, dcon::nation_id source) {
-	return true;
-}
 
 void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles);
 bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {

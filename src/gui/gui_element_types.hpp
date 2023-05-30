@@ -151,10 +151,13 @@ public:
 
 class line_graph : public element_base {
 private:
-	ogl::lines lines = ogl::lines(16);
+	ogl::lines lines;
 public:
-	uint32_t count = 16;
-	void set_data_points(sys::state& state, std::vector<float> datapoints) noexcept;
+	const uint32_t count;
+
+	line_graph(uint32_t sz) : lines(sz), count(sz) { }
+
+	void set_data_points(sys::state& state, std::vector<float> const& datapoints) noexcept;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };

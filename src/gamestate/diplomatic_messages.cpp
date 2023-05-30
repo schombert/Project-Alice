@@ -43,6 +43,12 @@ void decline_message(sys::state& state, message const& m) {
 			}
 			break;
 		}
+		case type::be_crisis_primary_attacker:
+			nations::reject_crisis_participation(state);
+			break;
+		case type::be_crisis_primary_defender:
+			nations::reject_crisis_participation(state);
+			break;
 	}
 
 }
@@ -88,12 +94,19 @@ void accept_message(sys::state& state, message const& m) {
 			nations::adjust_relationship(state, m.from, m.to, state.defines.callally_relation_on_accept);
 			break;
 		}
+		case type::be_crisis_primary_attacker:
+			nations::add_as_primary_crisis_attacker(state, m.to);
+			break;
+		case type::be_crisis_primary_defender:
+			nations::add_as_primary_crisis_defender(state, m.to);
+			break;
 	}
 }
 
 void post_message(sys::state& state, message const& m) {
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
 		// TODO : call AI logic to decide responses to requests
+
 
 		switch(m.type) {
 			case type::none:
@@ -108,6 +121,12 @@ void post_message(sys::state& state, message const& m) {
 			case type::call_ally_request:
 				decline_message(state, m);
 				return;
+			case type::be_crisis_primary_defender:
+				nations::add_as_primary_crisis_defender(state, m.to);
+				return;
+			case type::be_crisis_primary_attacker:
+				nations::add_as_primary_crisis_attacker(state, m.to);
+				return;
 		}
 	}
 
@@ -116,7 +135,9 @@ void post_message(sys::state& state, message const& m) {
 			std::memcpy(&i, &m, sizeof(message));
 			i.when = state.current_date;
 
-			// TODO: post new message notification to message target
+			if(i.to == state.local_player_nation) {
+				state.new_requests.push(i);
+			}
 
 			return;
 		}
@@ -125,7 +146,7 @@ void post_message(sys::state& state, message const& m) {
 
 void update_pending_messages(sys::state& state) {
 	for(auto& m : state.pending_messages) {
-		if(m.type != type::none && m.when + 31 <= state.current_date) {
+		if(m.type != type::none && m.when + 15 <= state.current_date) {
 
 			decline_message(state, m);
 			m.type = type::none;
