@@ -155,12 +155,43 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
-			if(!new_f_n_event.empty() || !new_n_event.empty()) {
-				ui_state.major_event_window->set_visible(*this, true);
-				ui_state.national_event_window->set_visible(*this, true);
-			} else if(!new_f_p_event.empty() || !new_p_event.empty()) {
-				ui_state.provincial_event_window->set_visible(*this, true);
+			{
+				auto* c1 = new_n_event.front();
+				while(c1) {
+					if(world.national_event_get_is_major(c1->e)) {
+						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{ *c1 });
+					} else {
+						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{ *c1 });
+					}
+					new_n_event.pop();
+					c1 = new_n_event.front();
+				}
+				auto* c2 = new_f_n_event.front();
+				while(c2) {
+					if(world.free_national_event_get_is_major(c2->e)) {
+						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{ *c2 });
+					} else {
+						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{ *c2 });
+					}
+					new_f_n_event.pop();
+					c2 = new_f_n_event.front();
+				}
+				auto* c3 = new_p_event.front();
+				while(c3) {
+					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{ *c3 });
+					new_p_event.pop();
+					c3 = new_p_event.front();
+				}
+				auto* c4 = new_f_p_event.front();
+				while(c4) {
+					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{ *c4 });
+					new_f_p_event.pop();
+					c4 = new_f_p_event.front();
+				}
 			}
+			ui_state.major_event_window->set_visible(*this, true);
+			ui_state.national_event_window->set_visible(*this, true);
+			ui_state.provincial_event_window->set_visible(*this, true);
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);

@@ -21,6 +21,8 @@ public:
 	}
 };
 
+struct option_taken_notification { int a = 0; };
+
 //
 // National events
 //
@@ -54,13 +56,15 @@ public:
 			Cyto::Any payload = national_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
-			sys::event_option option{};
-			if(std::holds_alternative<event::pending_human_n_event>(content))
-				option = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index];
-			else if(std::holds_alternative<event::pending_human_f_n_event>(content))
-				option = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index];
-			Cyto::Any o_payload = element_selection_wrapper<sys::event_option>{ option };
-			parent->impl_get(state, o_payload);
+			if(std::holds_alternative<event::pending_human_n_event>(content)) {
+				auto phe = std::get<event::pending_human_n_event>(content);
+				command::make_event_choice(state, phe, index);
+			} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+				auto phe = std::get<event::pending_human_f_n_event>(content);
+				command::make_event_choice(state, phe, index);
+			}
+			Cyto::Any n_payload = option_taken_notification{};
+			parent->impl_get(state, n_payload);
 		}
 	}
 };
@@ -131,9 +135,10 @@ public:
 template<bool IsMajor>
 class national_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
-	std::vector<national_event_data_wrapper> events;
 	int32_t index = 0;
 public:
+	std::vector<national_event_data_wrapper> events;
+
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto s1 = IsMajor ? "event_major_option_start" : "event_country_option_start";
@@ -203,26 +208,15 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		for(auto e : option_buttons)
 			e->set_visible(state, true);
-		{
-			auto* c = state.new_n_event.front();
-			while(c) {
-				events.push_back(national_event_data_wrapper{ *c });
-				state.new_n_event.pop();
-				c = state.new_n_event.front();
-			}
-		}
-		{
-			auto* c = state.new_f_n_event.front();
-			while(c) {
-				events.push_back(national_event_data_wrapper{ *c });
-				state.new_f_n_event.pop();
-				c = state.new_f_n_event.front();
-			}
-		}
 		if(events.empty())
 			set_visible(state, false);
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(index >= int32_t(events.size()))
+			index = 0;
+		else if(index < 0)
+			index = int32_t(events.size()) - 1;
+		
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
@@ -230,10 +224,6 @@ public:
 			if(events.empty()) {
 				payload.emplace<national_event_data_wrapper>(national_event_data_wrapper{});
 			} else {
-				if(index >= int32_t(events.size()))
-					index = 0;
-				else if(index < 0)
-					index = int32_t(events.size()) - 1;
 				payload.emplace<national_event_data_wrapper>(events[index]);
 			}
 			return message_result::consumed;
@@ -241,9 +231,9 @@ public:
 			bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
 			index += b ? -1 : +1;
 			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<sys::event_option>>()) {
-			auto content = any_cast<element_selection_wrapper<sys::event_option>>(payload).data;
-			// TODO: select event...
+		} else if(payload.holds_type<option_taken_notification>()) {
+			if(!events.empty())
+				events.erase(events.begin() + size_t(index));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -284,14 +274,15 @@ public:
 			Cyto::Any payload = provincial_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
-
-			sys::event_option option{};
-			if(std::holds_alternative<event::pending_human_p_event>(content))
-				option = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index];
-			else if(std::holds_alternative<event::pending_human_f_p_event>(content))
-				option = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
-			Cyto::Any o_payload = option;
-			parent->impl_get(state, o_payload);
+			if(std::holds_alternative<event::pending_human_p_event>(content)) {
+				auto phe = std::get<event::pending_human_p_event>(content);
+				command::make_event_choice(state, phe, index);
+			} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+				auto phe = std::get<event::pending_human_f_p_event>(content);
+				command::make_event_choice(state, phe, index);
+			}
+			Cyto::Any n_payload = option_taken_notification{};
+			parent->impl_get(state, n_payload);
 		}
 	}
 };
@@ -347,9 +338,10 @@ public:
 };
 class provincial_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
-	std::vector<provincial_event_data_wrapper> events;
 	int32_t index = 0;
 public:
+	std::vector<provincial_event_data_wrapper> events;
+
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
@@ -358,6 +350,7 @@ public:
 		for(size_t i = 0; i < size_t(sys::max_event_options); ++i) {
 			auto ptr = make_element_by_type<provincial_event_option_button>(state, state.ui_state.defs_by_name.find("event_province_optionbutton")->second.definition);
 			ptr->base_data.position = cur_offset;
+			ptr->base_data.position.y -= 150; // Omega nudge??
 			ptr->index = uint8_t(i);
 			option_buttons[i] = ptr.get();
 			add_child_to_front(std::move(ptr));
@@ -369,22 +362,6 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		for(auto e : option_buttons)
 			e->set_visible(state, true);
-		{
-			auto* c = state.new_p_event.front();
-			while(c) {
-				events.push_back(provincial_event_data_wrapper{ *c });
-				state.new_p_event.pop();
-				c = state.new_p_event.front();
-			}
-		}
-		{
-			auto* c = state.new_f_p_event.front();
-			while(c) {
-				events.push_back(provincial_event_data_wrapper{ *c });
-				state.new_f_p_event.pop();
-				c = state.new_f_p_event.front();
-			}
-		}
 		if(events.empty())
 			set_visible(state, false);
 	}
@@ -415,6 +392,11 @@ public:
 		}
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(index >= int32_t(events.size()))
+			index = 0;
+		else if(index < 0)
+			index = int32_t(events.size()) - 1;
+		
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
@@ -422,10 +404,6 @@ public:
 			if(events.empty()) {
 				payload.emplace<provincial_event_data_wrapper>(provincial_event_data_wrapper{});
 			} else {
-				if(index >= int32_t(events.size()))
-					index = 0;
-				else if(index < 0)
-					index = int32_t(events.size()) - 1;
 				payload.emplace<provincial_event_data_wrapper>(events[index]);
 			}
 			return message_result::consumed;
@@ -433,9 +411,9 @@ public:
 			bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
 			index += b ? -1 : +1;
 			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<sys::event_option>>()) {
-			auto content = any_cast<element_selection_wrapper<sys::event_option>>(payload);
-			// TODO: select event...
+		} else if(payload.holds_type<option_taken_notification>()) {
+			if(!events.empty())
+				events.erase(events.begin() + size_t(index));
 			return message_result::consumed;
 		}
 		return message_result::unseen;
