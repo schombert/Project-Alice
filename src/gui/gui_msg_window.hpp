@@ -135,8 +135,10 @@ public:
 			}
 			return message_result::consumed;
 		} else if(payload.holds_type<diplo_reply_taken_notification>()) {
-			if(!messages.empty())
+			if(!messages.empty()) {
 				messages.erase(messages.begin() + size_t(index));
+				impl_on_update(state);
+			}
 			return message_result::consumed;
 		}
 		return window_element_base::get(state, payload);

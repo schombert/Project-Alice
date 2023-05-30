@@ -277,8 +277,10 @@ public:
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<option_taken_notification>()) {
-			if(!events.empty())
+			if(!events.empty()) {
 				events.erase(events.begin() + size_t(index));
+				impl_on_update(state);
+			}
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -502,8 +504,10 @@ public:
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<option_taken_notification>()) {
-			if(!events.empty())
+			if(!events.empty()) {
 				events.erase(events.begin() + size_t(index));
+				impl_on_update(state);
+			}
 			return message_result::consumed;
 		}
 		return message_result::unseen;
