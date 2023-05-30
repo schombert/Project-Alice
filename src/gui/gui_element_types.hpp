@@ -162,14 +162,6 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
-class budget_graph : public element_base {
-	/* TODO -
-	 * This class must be distinct from line_graph and should replicate the behaviour of the line graph in commit:
-	 * https://github.com/schombert/Project-Alice/commit/b85ea562431cc978bf6b72a8d4fd9f7f5d1a5b01#diff-c7201c0284cc1feda2a8273b2daeda4b876a42870d2dd12eeaf2c853b95d2596
-	 * And/Or repliace near-perfectly the behaviour seen in Vic2
-	 */
-};
-
 class simple_text_element_base : public element_base {
 protected:
 	std::string stored_text;
