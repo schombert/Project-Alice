@@ -43,7 +43,7 @@ ogl::color3f get_text_color(text::text_color text_color);
 class container_base : public element_base {
 public:
 	std::vector<std::unique_ptr<element_base>> children;
-	
+
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept final;
 	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final;
 	void impl_on_update(sys::state& state) noexcept final;
@@ -523,7 +523,7 @@ struct scrollbar_settings  {
 	int32_t upper_value = 100;
 	int32_t lower_limit = 0;
 	int32_t upper_limit = 0;
-	
+
 	int32_t buttons_size = 20;
 	int32_t track_size = 180;
 	int32_t scaling_factor = 0;

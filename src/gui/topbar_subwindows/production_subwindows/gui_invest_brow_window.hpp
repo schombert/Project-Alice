@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
+#include "gui_foreign_investment_window.hpp"
 
 namespace ui {
 
@@ -11,8 +12,10 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = button_press_notification{};
-		parent->impl_get(state, payload);
+		if(parent) {
+			Cyto::Any payload = button_press_notification{};
+			parent->impl_get(state, payload);
+		}
 	}
 };
 
@@ -80,6 +83,7 @@ protected:
 };
 
 class invest_brow_window : public window_element_base {
+	production_foreign_investment_window* foreign_invest_win = nullptr;
 	production_country_listbox* country_listbox = nullptr;
 
 	void filter_countries(sys::state& state, std::function<bool(dcon::nation_id)> filter_fun) {
@@ -110,6 +114,12 @@ class invest_brow_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+
+		auto win1 = make_element_by_type<production_foreign_investment_window>(state, state.ui_state.defs_by_name.find("invest_buttons")->second.definition);
+		win1->set_visible(state, false);
+		foreign_invest_win = win1.get();
+		add_child_to_front(std::move(win1));
+
 		set_visible(state, false);
 		filter_countries(state, [](dcon::nation_id) { return true; });
 	}
@@ -200,7 +210,22 @@ public:
 			auto mod_id = any_cast<dcon::modifier_id>(payload);
 			filter_by_continent(state, mod_id);
 			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			foreign_invest_win->is_visible() ? foreign_invest_win->set_visible(state, false) : foreign_invest_win->set_visible(state, true);
+			foreign_invest_win->impl_get(state, payload);
+			return message_result::consumed;
 		}
+		/*
+		else if(payload.holds_type<element_selection_wrapper<production_action>>()) {
+			auto content = any_cast<element_selection_wrapper<production_action>>(payload).data;
+			switch(content) {
+				case production_action::foreign_invest_window:
+					foreign_invest_win->is_visible() ? foreign_invest_win->set_visible(state, false) : foreign_invest_win->set_visible(state, true);
+					break;
+				default:
+			}
+		}
+		*/
 		return message_result::unseen;
 	}
 };

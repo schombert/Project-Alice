@@ -2032,7 +2032,7 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_cb_fabrication;
+	p.type = command_type::fabricate_cb;
 	p.source = source;
 	p.data.cb_fabrication.target = target;
 	p.data.cb_fabrication.type = type;
@@ -2048,7 +2048,7 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	*/
 
 	auto ol = state.world.nation_get_overlord_as_subject(source);
-	if(ol && state.world.overlord_get_ruler(ol) != target)
+	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
 		return false;
 
 	if(state.world.nation_get_in_sphere_of(target) == source)
