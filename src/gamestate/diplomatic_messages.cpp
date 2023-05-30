@@ -107,6 +107,7 @@ void post_message(sys::state& state, message const& m) {
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
 		// TODO : call AI logic to decide responses to requests
 
+
 		switch(m.type) {
 			case type::none:
 				std::abort();

@@ -35,7 +35,7 @@ enum diplomacy_action : uint8_t {
 class diplomacy_action_ally_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
 		auto drid = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, nation_id);
-		return state.world.diplomatic_relation_get_are_allied(drid);
+		return drid && state.world.diplomatic_relation_get_are_allied(drid);
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -47,8 +47,7 @@ public:
 			set_button_text(state, text::produce_simple_string(state,
 				can_cancel(state, content) ? "cancelalliance_button"
 					: "alliance_button"));
-
-			// TODO: Conditions for enabling/disabling
+			
 			if(can_cancel(state, content))
 				disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
 			else
@@ -172,8 +171,8 @@ public:
 
 class diplomacy_action_military_access_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		// TODO - test if we local_player_nation has military access to the other country
-		return false;
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
+		return urid && state.world.unilateral_relationship_get_military_access(urid);
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -187,9 +186,10 @@ public:
 					: "askmilitaryaccess_button"));
 
 			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
+			if(can_cancel(state, content))
+				disabled = !command::can_cancel_military_access(state, state.local_player_nation, content);
+			else
+				disabled = !command::can_ask_for_access(state, state.local_player_nation, content);
 		}
 	}
 
@@ -242,8 +242,8 @@ public:
 
 class diplomacy_action_give_military_access_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		// TODO - test if we local_player_nation has military access to the other country
-		return false;
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, nation_id);
+		return urid && state.world.unilateral_relationship_get_military_access(urid);
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -257,8 +257,9 @@ public:
 					: "givemilitaryaccess_button"));
 
 			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
+			if(can_cancel(state, content))
+				disabled = !command::can_cancel_given_military_access(state, state.local_player_nation, content);
+			else
 				disabled = true;
 		}
 	}
@@ -555,7 +556,7 @@ public:
 
 class diplomacy_action_command_units_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		// TODO - test if we local_player_nation has military access to the other country
+		// TODO - test if we local_player_nation has ability to command the other country
 		return false;
 	}
 public:
