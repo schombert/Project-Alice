@@ -50,6 +50,7 @@ public:
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
+		set_visible(state, false);
 	}
 	
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -94,6 +95,7 @@ public:
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
 			index += b ? -1 : +1;
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<diplomatic_message::message>()) {
 			if(messages.empty()) {

@@ -253,7 +253,7 @@ public:
 				}
 			}
 		}
-		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(events.size())));
+		count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(index >= int32_t(events.size()))
@@ -274,6 +274,7 @@ public:
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
 			index += b ? -1 : +1;
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<option_taken_notification>()) {
 			if(!events.empty())
@@ -477,7 +478,7 @@ public:
 				}
 			}
 		}
-		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(events.size())));
+		count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(index >= int32_t(events.size()))
@@ -498,6 +499,7 @@ public:
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
 			index += b ? -1 : +1;
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<option_taken_notification>()) {
 			if(!events.empty())
