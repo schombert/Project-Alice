@@ -429,17 +429,17 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 	}
 }
 
-void start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::begin_unit_construction;
+	p.type = command_type::begin_naval_unit_construction;
 	p.source = source;
-	p.data.unit_construction.location = location;
-	p.data.unit_construction.type = type;
+	p.data.naval_unit_construction.location = location;
+	p.data.naval_unit_construction.type = type;
 	auto b = state.incoming_commands.try_push(p);
 }
 
-bool can_start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	/*
 	The province must be owned and controlled by the building nation, without an ongoing siege.
 	The unit type must be available from start / unlocked by the nation
@@ -453,21 +453,7 @@ bool can_start_unit_construction(sys::state& state, dcon::nation_id source, dcon
 		return false;
 
 	if(state.military_definitions.unit_base_definitions[type].is_land) {
-		/*
-		Each soldier pop can only support so many regiments (including under construction and rebel regiments)
-		If the unit is culturally restricted, there must be an available primary culture/accepted culture soldier pop with space
-		*/
-		if(state.military_definitions.unit_base_definitions[type].primary_culture) {
-			auto total_built = military::main_culture_regiments_created_from_province(state, location);
-			auto under_const = military::main_culture_regiments_under_construction_in_province(state, location);
-			auto possible = military::main_culture_regiments_max_possible_from_province(state, location);
-			return possible > total_built + under_const;
-		} else {
-			auto total_built = military::regiments_created_from_province(state, location);
-			auto under_const = military::regiments_under_construction_in_province(state, location);
-			auto possible = military::regiments_max_possible_from_province(state, location);
-			return possible > total_built + under_const;
-		}
+		return false;
 	} else {
 		/*
 		The province must be coastal
@@ -491,55 +477,116 @@ bool can_start_unit_construction(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
-void execute_start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
-	if(!can_start_unit_construction(state, source, location, type))
+void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	if(!can_start_naval_unit_construction(state, source, location, type))
 		return;
 
+	
+	auto c = fatten(state.world, state.world.try_create_province_naval_construction(location, source));
+	c.set_type(type);
+}
+
+void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::begin_land_unit_construction;
+	p.source = source;
+	p.data.land_unit_construction.location = location;
+	p.data.land_unit_construction.type = type;
+	p.data.land_unit_construction.pop_culture = soldier_culture;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+	/*
+	The province must be owned and controlled by the building nation, without an ongoing siege.
+	The unit type must be available from start / unlocked by the nation
+	*/
+
+	if(state.world.province_get_nation_from_province_ownership(location) != source)
+		return false;
+	if(state.world.province_get_nation_from_province_control(location) != source)
+		return false;
+	if(state.world.nation_get_active_unit(source, type) == false && state.military_definitions.unit_base_definitions[type].active == false)
+		return false;
+
 	if(state.military_definitions.unit_base_definitions[type].is_land) {
-		auto c = fatten(state.world, state.world.try_create_province_land_construction(location, source));
-		c.set_type(type);
+		/*
+		Each soldier pop can only support so many regiments (including under construction and rebel regiments)
+		If the unit is culturally restricted, there must be an available primary culture/accepted culture soldier pop with space
+		*/
+		auto soldier = military::find_available_soldier(state, location, soldier_culture);
+		return bool(soldier);
 	} else {
-		auto c = fatten(state.world, state.world.try_create_province_naval_construction(location, source));
-		c.set_type(type);
+		return false;
 	}
+}
+void execute_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+
+	if(!can_start_land_unit_construction(state, source, location, soldier_culture, type))
+		return;
+
+	auto soldier = military::find_available_soldier(state, location, soldier_culture);
+	
+	auto c = fatten(state.world, state.world.try_create_province_land_construction(soldier, source));
+	c.set_type(type);
 }
 
 
-void cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_unit_construction;
+	p.type = command_type::cancel_naval_unit_construction;
 	p.source = source;
-	p.data.unit_construction.location = location;
-	p.data.unit_construction.type = type;
+	p.data.naval_unit_construction.location = location;
+	p.data.naval_unit_construction.type = type;
 	auto b = state.incoming_commands.try_push(p);
 }
 
-bool can_cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	return state.world.province_get_nation_from_province_ownership(location) == source;
 }
 
-void execute_cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
-	if(!can_cancel_unit_construction(state, source, location, type))
+void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	if(!can_cancel_naval_unit_construction(state, source, location, type))
 		return;
 
-	if(state.military_definitions.unit_base_definitions[type].is_land) {
-		dcon::province_land_construction_id c;
-		for(auto lc : state.world.province_get_province_land_construction(location)) {
-			if(lc.get_type() == type) {
-				c = lc.id;
-			}
+	dcon::province_naval_construction_id c;
+	for(auto lc : state.world.province_get_province_naval_construction(location)) {
+		if(lc.get_type() == type) {
+			c = lc.id;
 		}
-		state.world.delete_province_land_construction(c);
-	} else {
-		dcon::province_naval_construction_id c;
-		for(auto lc : state.world.province_get_province_naval_construction(location)) {
-			if(lc.get_type() == type) {
-				c = lc.id;
-			}
-		}
-		state.world.delete_province_naval_construction(c);
 	}
+	state.world.delete_province_naval_construction(c);
+	
+}
+
+void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::cancel_land_unit_construction;
+	p.source = source;
+	p.data.land_unit_construction.location = location;
+	p.data.land_unit_construction.type = type;
+	p.data.land_unit_construction.pop_culture = soldier_culture;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+	return state.world.province_get_nation_from_province_ownership(location) == source;
+}
+void execute_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+
+	if(!can_cancel_land_unit_construction(state, source, location, soldier_culture, type))
+		return;
+
+	dcon::province_land_construction_id c;
+	for(auto pop : state.world.province_get_pop_location(location)) {
+		for(auto lc : pop.get_pop().get_province_land_construction()) {
+			if(lc.get_type() == type) {
+				c = lc.id;
+			}
+		}
+	}
+	state.world.delete_province_land_construction(c);
 }
 
 void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
@@ -2325,11 +2372,17 @@ void execute_pending_commands(sys::state& state) {
 			case command_type::begin_factory_building_construction:
 				execute_begin_factory_building_construction(state, c->source, c->data.start_factory_building.location, c->data.start_factory_building.type, c->data.start_factory_building.is_upgrade);
 				break;
-			case command_type::begin_unit_construction:
-				execute_start_unit_construction(state, c->source, c->data.unit_construction.location, c->data.unit_construction.type);
+			case command_type::begin_naval_unit_construction:
+				execute_start_naval_unit_construction(state, c->source, c->data.naval_unit_construction.location, c->data.naval_unit_construction.type);
 				break;
-			case command_type::cancel_unit_construction:
-				execute_cancel_unit_construction(state, c->source, c->data.unit_construction.location, c->data.unit_construction.type);
+			case command_type::cancel_naval_unit_construction:
+				execute_cancel_naval_unit_construction(state, c->source, c->data.naval_unit_construction.location, c->data.naval_unit_construction.type);
+				break;
+			case command_type::begin_land_unit_construction:
+				execute_start_land_unit_construction(state, c->source, c->data.land_unit_construction.location, c->data.land_unit_construction.pop_culture, c->data.land_unit_construction.type);
+				break;
+			case command_type::cancel_land_unit_construction:
+				execute_cancel_land_unit_construction(state, c->source, c->data.land_unit_construction.location, c->data.land_unit_construction.pop_culture, c->data.land_unit_construction.type);
 				break;
 			case command_type::delete_factory:
 				execute_delete_factory(state, c->source, c->data.factory.location, c->data.factory.type);

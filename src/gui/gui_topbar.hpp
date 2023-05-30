@@ -486,6 +486,10 @@ public:
 			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy"), text::variable_type::value, text::fp_two_places{fat_id.get_infamy()});
 			text::add_divider_to_layout_box(state, contents, box);
 			//text::add_to_layout_box(contents, state, box, text::format_ratio(fat_id.get_infamy(), ));
+			text::add_to_layout_box(contents, state, box, text::fp_two_places{fat_id.get_infamy()});
+			text::add_to_layout_box(contents, state, box, std::string_view(" / "));
+			text::add_to_layout_box(contents, state, box, text::fp_two_places{state.defines.badboy_limit});
+			text::add_line_break_to_layout_box(contents, state, box);			
 			text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
 			text::close_layout_box(contents, box);
 		}
