@@ -690,14 +690,10 @@ public:
 
 class diplomacy_casus_belli_listbox : public listbox_element_base<diplomacy_casus_belli_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_base() {
+	std::string_view get_row_element_name() override {
 		return "diplomacy_cb_info_player";
 	}
 public:
-	void on_create(sys::state& state) noexcept override {
-		listbox_element_base<diplomacy_casus_belli_entry, dcon::nation_id>::on_create(state);
-		update(state);
-	}
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
@@ -801,8 +797,8 @@ private:
 	diplomacy_setup_peace_dialog* setup_peace_win = nullptr;
 	diplomacy_make_cb_window* make_cb_win = nullptr;
 	diplomacy_crisis_backdown_window* crisis_backdown_win = nullptr;
-	//diplomacy_casus_belli_window* casus_belli_window = nullptr;
-	element_base* casus_belli_window = nullptr;
+	diplomacy_casus_belli_window* casus_belli_window = nullptr;
+	//element_base* casus_belli_window = nullptr;
 	diplomacy_crisis_info_window* crisis_window = nullptr;
 
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
@@ -1028,8 +1024,8 @@ public:
 			ptr->target = country_list_filter::all;
 			return ptr;
 		} else if(name == "cb_info_win") {
-			//auto ptr = make_element_by_type<diplomacy_casus_belli_window>(state, id);
-			auto ptr = make_element_immediate(state, id);
+			auto ptr = make_element_by_type<diplomacy_casus_belli_window>(state, id);
+			//auto ptr = make_element_immediate(state, id);
 			casus_belli_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;

@@ -410,6 +410,7 @@ public:
 			auto target_nation = any_cast<dcon::nation_id>(newpayload);
 
 			command::fabricate_cb(state, state.local_player_nation, target_nation, content);
+			parent->set_visible(state, false);
 		}
 	}
 
@@ -436,7 +437,11 @@ public:
 		auto box = text::open_layout_box(contents);
 
 		if(fat_cb.is_valid()) {
-			text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"));
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::type, fat_cb.get_name());
+			text::add_to_substitution_map(sub, text::variable_type::days, (fat_cb.get_months() * 30));
+			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{fat_cb.get_badboy_factor()});
+			text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"), sub);
 		}
 
 		text::close_layout_box(contents, box);
