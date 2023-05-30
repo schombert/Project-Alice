@@ -11,7 +11,7 @@ struct command_info {
 
 	std::string_view name;
 	enum class type : uint8_t {
-		none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats, colour_guide, event
+		none = 0, reload, abort, clear_log, fps, set_tag, help, show_stats, colour_guide
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -95,15 +95,7 @@ static const std::vector<command_info> possible_commands = {
 			command_info::argument_info{},
 			command_info::argument_info{}
 		}
-	},
-	command_info{ "event", command_info::type::event, "Fires an event",
-		{
-			command_info::argument_info{ "id", command_info::argument_info::type::numeric, false },
-			command_info::argument_info{},
-			command_info::argument_info{},
-			command_info::argument_info{}
-		}
-	},
+	}
 };
 
 static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -681,20 +673,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		log_to_console(state, parent, "\xA7L""\\xA7L for Lilac.");
 		log_to_console(state, parent, "\xA7RRed\xA7GGreen\xA7""B""Blue");
 		break;
-	case command_info::type::event: {
-		if(std::rand() % 2 == 0) {
-			event::pending_human_f_n_event data{};
-			data.e = dcon::free_national_event_id(std::get<int32_t>(pstate.arg_slots[0]));
-			data.n = dcon::nation_id{42};
-			state.new_f_n_event.push(data);
-		} else {
-			event::pending_human_f_p_event data{};
-			data.e = dcon::free_provincial_event_id(std::get<int32_t>(pstate.arg_slots[0]));
-			data.p = dcon::province_id{42};
-			state.new_f_p_event.push(data);
-		}
-		break;
-	}
 	// State changing events
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
