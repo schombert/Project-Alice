@@ -492,7 +492,7 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> const& da
 		fudged_scaled_datapoints[i * 3 + 2] = scaled_datapoints[i] + (std::fmod(datapoints[i] * 7.527f, 1.f) / 10.f);
 	}
 
-	lines.count = fudged_scaled_datapoints.size();
+	lines.count = uint32_t(fudged_scaled_datapoints.size());
 	lines.set_y(fudged_scaled_datapoints.data());
 }
 
