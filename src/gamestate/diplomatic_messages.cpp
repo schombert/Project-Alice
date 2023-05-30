@@ -146,7 +146,7 @@ void post_message(sys::state& state, message const& m) {
 
 void update_pending_messages(sys::state& state) {
 	for(auto& m : state.pending_messages) {
-		if(m.type != type::none && m.when + 31 <= state.current_date) {
+		if(m.type != type::none && m.when + 15 <= state.current_date) {
 
 			decline_message(state, m);
 			m.type = type::none;

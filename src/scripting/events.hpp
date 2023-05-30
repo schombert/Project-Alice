@@ -6,6 +6,8 @@
 
 namespace event {
 
+inline constexpr int32_t expiration_in_days = 30;
+
 struct pending_human_n_event {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;

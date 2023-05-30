@@ -246,7 +246,7 @@ public:
 					date = std::get<event::pending_human_n_event>(*it).date;
 				else if(std::holds_alternative<event::pending_human_f_n_event>(*it))
 					date = std::get<event::pending_human_f_n_event>(*it).date;
-				if(date + 30 <= state.current_date) {
+				if(date + event::expiration_in_days <= state.current_date) {
 					// Remove expired events
 					events.erase(it);
 					it--;
@@ -471,7 +471,7 @@ public:
 					date = std::get<event::pending_human_p_event>(*it).date;
 				else if(std::holds_alternative<event::pending_human_f_p_event>(*it))
 					date = std::get<event::pending_human_f_p_event>(*it).date;
-				if(date + 30 <= state.current_date) {
+				if(date + event::expiration_in_days <= state.current_date) {
 					// Remove expired events
 					events.erase(it);
 					it--;
