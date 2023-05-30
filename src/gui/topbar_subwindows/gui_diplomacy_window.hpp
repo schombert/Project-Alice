@@ -661,6 +661,38 @@ public:
 	}
 };
 
+class justifying_attacker_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			auto fat = dcon::fatten(state.world, content);
+			return fat.get_identity_from_identity_holder();
+		} else {
+			return dcon::national_identity_id{};
+		}
+	}
+};
+
+class justifying_defender_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			auto fat = dcon::fatten(state.world, content);
+			return fat.get_constructing_cb_target().get_identity_from_identity_holder();
+		} else {
+			return dcon::national_identity_id{};
+		}
+	}
+};
+
 class diplomacy_casus_belli_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -675,9 +707,9 @@ public:
 		} else if(name == "cb_progress_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "attackers") {
-			return nullptr;
+			return make_element_by_type<justifying_attacker_flag>(state, id);
 		} else if(name == "defenders") {
-			return nullptr;
+			return make_element_by_type<justifying_defender_flag>(state, id);
 		} else if(name == "cancel") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			(content == state.local_player_nation) ?  ptr->set_visible(state, false) : ptr->set_visible(state, true);
@@ -697,7 +729,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if(dcon::fatten(state.world, id).get_constructing_cb_is_discovered() || id == state.local_player_nation) {
+			if(dcon::fatten(state.world, id).get_constructing_cb_is_discovered() || id == state.local_player_nation && dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid()) {
 				row_contents.push_back(id);
 			}
 		});
@@ -709,7 +741,9 @@ class diplomacy_casus_belli_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "cb_listbox") {
-			return make_element_by_type<diplomacy_casus_belli_listbox>(state, id);
+			auto ptr = make_element_by_type<diplomacy_casus_belli_listbox>(state, id);
+			ptr->base_data.position.x -= 400;
+			return ptr;
 		} else {
 			return nullptr;
 		}
