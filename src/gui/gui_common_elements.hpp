@@ -104,7 +104,6 @@ public:
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			T content = any_cast<T>(payload);
-			auto fat_id = dcon::fatten(state.world, content);
 			simple_text_element_base::set_text(state, get_text(state, content));
 		}
 	}
