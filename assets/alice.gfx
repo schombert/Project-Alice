@@ -4,6 +4,12 @@ spriteTypes = {
 		texturefile = "gfx\\interface\\save_list_button.dds"
 	}
 
+	spriteType = {
+		name = "GFX_alice_left_right"
+		texturefile = "gfx\\interface\\toggle_default.tga"
+		noOfFrames = 2
+	}
+
 	# Solves quirk with eu3dialog.gui, line 16
     textSpriteType = {
 		name = "GFX_icon_merchant"

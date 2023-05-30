@@ -95,7 +95,7 @@ static const std::vector<command_info> possible_commands = {
 			command_info::argument_info{},
 			command_info::argument_info{}
 		}
-	},
+	}
 };
 
 static uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
