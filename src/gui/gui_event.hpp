@@ -33,7 +33,7 @@ public:
 	uint8_t index = 0;
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = national_event_data_wrapper{}
+			Cyto::Any payload = national_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
 
@@ -53,7 +53,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = national_event_data_wrapper{}
+			Cyto::Any payload = national_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
 
@@ -62,8 +62,8 @@ public:
 				option = state.world.national_event_get_options(std::get<dcon::national_event_id>(content))[index];
 			else if(std::holds_alternative<dcon::free_national_event_id>(content))
 				option = state.world.free_national_event_get_options(std::get<dcon::free_national_event_id>(content))[index];
-			Cyto::Any payload = option;
-			parent->impl_get(state, payload);
+			Cyto::Any o_payload = option;
+			parent->impl_get(state, o_payload);
 		}
 	}
 };
@@ -71,7 +71,7 @@ class national_event_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = national_event_data_wrapper{}
+			Cyto::Any payload = national_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
 
@@ -86,7 +86,7 @@ class national_event_desc_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = national_event_data_wrapper{}
+			Cyto::Any payload = national_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
 
@@ -111,7 +111,7 @@ class national_event_name_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = national_event_data_wrapper{}
+			Cyto::Any payload = national_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
 
@@ -135,7 +135,7 @@ public:
 template<bool IsMajor>
 class national_event_window : public window_element_base {
 	std::vector<national_event_data_wrapper> events;
-	size_t index = 0;
+	int32_t index = 0;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -166,7 +166,6 @@ public:
 			ptr->base_data.position.y = ptr->base_data.size.y * 1;
 			add_child_to_front(std::move(ptr));
 		}
-
 		set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -201,6 +200,26 @@ public:
 			return nullptr;
 		}
 	}
+	void on_update(sys::state& state) noexcept override {
+		{
+			auto* c = state.new_n_event.front();
+			while(c) {
+				events.push_back(national_event_data_wrapper{ c->e });
+				state.new_n_event.pop();
+				c = state.new_n_event.front();
+			}
+		}
+		{
+			auto* c = state.new_f_n_event.front();
+			while(c) {
+				events.push_back(national_event_data_wrapper{ c->e });
+				state.new_f_n_event.pop();
+				c = state.new_f_n_event.front();
+			}
+		}
+		if(events.empty())
+			set_visible(state, false);
+	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
@@ -213,7 +232,7 @@ public:
 					index = 0;
 				else if(index < 0)
 					index = int32_t(events.size()) - 1;
-				payload.emplace<national_event_data_wrapper>(events[index].from);
+				payload.emplace<national_event_data_wrapper>(events[index]);
 			}
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
@@ -241,7 +260,7 @@ public:
 	uint8_t index = 0;
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = provincial_event_data_wrapper{}
+			Cyto::Any payload = provincial_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
 
@@ -261,7 +280,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = provincial_event_data_wrapper{}
+			Cyto::Any payload = provincial_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
 
@@ -270,8 +289,8 @@ public:
 				option = state.world.provincial_event_get_options(std::get<dcon::provincial_event_id>(content))[index];
 			else if(std::holds_alternative<dcon::free_provincial_event_id>(content))
 				option = state.world.free_provincial_event_get_options(std::get<dcon::free_provincial_event_id>(content))[index];
-			Cyto::Any payload = option;
-			parent->impl_get(state, payload);
+			Cyto::Any o_payload = option;
+			parent->impl_get(state, o_payload);
 		}
 	}
 };
@@ -279,7 +298,7 @@ class provincial_event_desc_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = provincial_event_data_wrapper{}
+			Cyto::Any payload = provincial_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
 
@@ -304,7 +323,7 @@ class provincial_event_name_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = provincial_event_data_wrapper{}
+			Cyto::Any payload = provincial_event_data_wrapper{};
 			parent->impl_get(state, payload);
 			provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
 
@@ -327,7 +346,7 @@ public:
 };
 class provincial_event_window : public window_element_base {
 	std::vector<provincial_event_data_wrapper> events;
-	size_t index = 0;
+	int32_t index = 0;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -356,8 +375,27 @@ public:
 			ptr->base_data.position.y = ptr->base_data.size.y * 1;
 			add_child_to_front(std::move(ptr));
 		}
-
 		set_visible(state, false);
+	}
+	void on_update(sys::state& state) noexcept override {
+		{
+			auto* c = state.new_p_event.front();
+			while(c) {
+				events.push_back(provincial_event_data_wrapper{ c->e });
+				state.new_p_event.pop();
+				c = state.new_p_event.front();
+			}
+		}
+		{
+			auto* c = state.new_f_p_event.front();
+			while(c) {
+				events.push_back(provincial_event_data_wrapper{ c->e });
+				state.new_f_p_event.pop();
+				c = state.new_f_p_event.front();
+			}
+		}
+		if(events.empty())
+			set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "title") {
@@ -382,7 +420,7 @@ public:
 					index = 0;
 				else if(index < 0)
 					index = int32_t(events.size()) - 1;
-				payload.emplace<provincial_event_data_wrapper>(events[index].from);
+				payload.emplace<provincial_event_data_wrapper>(events[index]);
 			}
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {

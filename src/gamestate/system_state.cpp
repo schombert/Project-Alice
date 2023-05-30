@@ -155,6 +155,13 @@ namespace sys {
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
 
+			if(!new_f_n_event.empty() || !new_n_event.empty()) {
+				ui_state.major_event_window->set_visible(*this, true);
+				ui_state.national_event_window->set_visible(*this, true);
+			} else if(!new_f_p_event.empty() || !new_p_event.empty()) {
+				ui_state.provincial_event_window->set_visible(*this, true);
+			}
+
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
 			// TODO also need to update any tooltips (which probably exist outside the root container)
