@@ -325,7 +325,132 @@ public:
 	}
 };
 
+class cb_wargoal_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+			frame = (dcon::fatten(state.world, content).get_sprite_index() - 1);
+		}
+	}
+};
+
+class cb_wargoal_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+			set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+
+			Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{content};
+			parent->impl_get(state, newpayload);
+		}
+	}
+};
+
+class cb_type_row : public listbox_row_element_base<dcon::cb_type_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<cb_wargoal_icon>(state, id);
+		} else if(name == "select_cb") {
+			return make_element_by_type<cb_wargoal_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class cb_listbox : public listbox_element_base<cb_type_row, dcon::cb_type_id> {
+protected:
+	std::string_view get_row_element_name() {
+		return "cb_type_item";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			row_contents.clear();
+			state.world.for_each_cb_type([&](dcon::cb_type_id cb) {
+				//if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb) && dcon::fatten(state.world, cb).is_valid()) {
+				if(command::can_fabricate_cb(state, state.local_player_nation, content, cb) && dcon::fatten(state.world, cb).is_valid()) {
+					row_contents.push_back(cb);
+				}
+			});
+			update(state);
+		}
+	}
+};
+
+class make_cb_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+
+			Cyto::Any newpayload = dcon::nation_id{};
+			parent->impl_get(state, newpayload);
+			auto target_nation = any_cast<dcon::nation_id>(newpayload);
+
+			command::fabricate_cb(state, state.local_player_nation, target_nation, content);
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+
+			Cyto::Any newpayload = dcon::nation_id{};
+			parent->impl_get(state, newpayload);
+			auto target_nation = any_cast<dcon::nation_id>(newpayload);
+
+			disabled = !command::can_fabricate_cb(state, state.local_player_nation, target_nation, content);
+		}
+	}
+};
+
+class make_cb_desc : public generic_multiline_text<dcon::cb_type_id> {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::cb_type_id id) noexcept override {
+		auto fat_cb = dcon::fatten(state.world, id);
+
+		auto box = text::open_layout_box(contents);
+
+		text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"));
+
+		text::close_layout_box(contents, box);
+	}
+};
+
+class make_cb_title : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::produce_simple_string(state, "make_cbtitle"));
+	}
+};
+
 class diplomacy_make_cb_window : public window_element_base {			// eu3dialogtype
+private:
+	dcon::cb_type_id root_cb{};
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
@@ -335,36 +460,36 @@ public:
 		} else if(name == "diplo_makecb_bg") {
 			return make_element_by_type<image_element_base>(state,id);
 		} else if(name == "title") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<make_cb_title>(state, id);
 		} else if(name == "description") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<make_cb_desc>(state, id);
 		} else if(name == "leftshield") {
 			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "agreebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<make_cb_button>(state, id);
 		} else if(name == "declinebutton") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "cb_list") {
-			// TODO - Listbox here
-			return nullptr;
+			return make_element_by_type<cb_listbox>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
-};
 
-class cb_type_row : public listbox_row_element_base<bool> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "wargoal_icon") {
-			return make_element_by_type<image_element_base>(state, id);
-		} else if(name == "select_cb") {
-			return make_element_by_type<button_element_base>(state, id);
-		} else {
-			return nullptr;
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
+			root_cb = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
+			impl_on_update(state);
+			return message_result::consumed;
 		}
+		//=====================================================================================
+		else if(payload.holds_type<dcon::cb_type_id>()) {
+			payload.emplace<dcon::cb_type_id>(root_cb);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 

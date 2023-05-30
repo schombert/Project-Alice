@@ -2041,7 +2041,7 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	*/
 
 	auto ol = state.world.nation_get_overlord_as_subject(source);
-	if(ol && state.world.overlord_get_ruler(ol) != target)
+	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
 		return false;
 
 	if(state.world.nation_get_in_sphere_of(target) == source)
