@@ -73,17 +73,6 @@ public:
 	}
 };
 
-class wargoal_setup_window : public window_element_base {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "wargoal_list") {
-			// TODO - Listbox here
-			return nullptr;
-		} else {
-			return nullptr;
-		}
-	}
-};
 
 class wargoal_state_select : public window_element_base {
 public:
@@ -113,6 +102,28 @@ public:
 	}
 };
 
+class wargoal_state_listboxrow : public listbox_row_element_base<bool> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "select_state") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class wargoal_country_listboxrow : public listbox_row_element_base<bool> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "select_country") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 /*class wargoal_item_listboxrow : public listbox_row_element_base<bool> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -128,11 +139,23 @@ public:
 	}
 };*/
 
+class wargoal_type_item_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+			frame = (dcon::fatten(state.world, content).get_sprite_index() - 1);
+		}
+	}
+};
+
 class wargoal_type_item : public listbox_row_element_base<dcon::cb_type_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_icon") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<wargoal_type_item_icon>(state, id);
 			ptr->base_data.position.x += 16;
 			return ptr;
 		} else if(name == "select_goal_invalid") {
@@ -165,22 +188,11 @@ public:
 	}
 };	// Done by Leaf
 
-class wargoal_state_listboxrow : public listbox_row_element_base<bool> {
+class wargoal_setup_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "select_state") {
-			return make_element_by_type<button_element_base>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
-
-class wargoal_country_listboxrow : public listbox_row_element_base<bool> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "select_country") {
-			return make_element_by_type<button_element_base>(state, id);
+		if(name == "wargoal_list") {
+			return make_element_by_type<wargoal_type_listbox>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -223,7 +235,7 @@ public:
 		} else if(name == "declinebutton") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "wargoal_setup") {
-			return make_element_by_type<wargoal_type_listbox>(state, id);
+			return make_element_by_type<wargoal_setup_window>(state, id);
 		} else if(name == "wargoal_state_select") {
 			// TODO - Listbox here
 			return nullptr;
