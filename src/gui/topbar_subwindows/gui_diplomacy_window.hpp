@@ -729,7 +729,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if(dcon::fatten(state.world, id).get_constructing_cb_is_discovered() || id == state.local_player_nation && dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid()) {
+			if((dcon::fatten(state.world, id).get_constructing_cb_is_discovered() || id == state.local_player_nation) && dcon::fatten(state.world, state.local_player_nation).get_constructing_cb_type().is_valid()) {
 				row_contents.push_back(id);
 			}
 		});

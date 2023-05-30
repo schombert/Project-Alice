@@ -45,17 +45,17 @@ public:
 	std::string get_text(sys::state& state, diplomatic_message::message msg) noexcept override {
 		switch(msg.type) {
 		case diplomatic_message::type_t::none:
-			return text::produce_simple_string("???");
+			return std::string("???");
 		case diplomatic_message::type_t::access_request:
-			return text::produce_simple_string("askmilitaryaccess_button");
+			return text::produce_simple_string(state, "askmilitaryaccess_button");
 		case diplomatic_message::type_t::alliance_request:
-			return text::produce_simple_string("alliance_button");
+			return text::produce_simple_string(state, "alliance_button");
 		case diplomatic_message::type_t::call_ally_request:
-			return text::produce_simple_string("callally_button");
+			return text::produce_simple_string(state, "callally_button");
 		case diplomatic_message::type_t::be_crisis_primary_defender:
-			return text::produce_simple_string("back_crisis_button");
+			return text::produce_simple_string(state, "back_crisis_button");
 		case diplomatic_message::type_t::be_crisis_primary_attacker:
-			return text::produce_simple_string("crisis_offer_button");
+			return text::produce_simple_string(state, "crisis_offer_button");
 		}
 		return std::string("???");
 	}
