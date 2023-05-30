@@ -727,7 +727,7 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		const auto great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
-			return "-";
+			return "0";
 		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, great_power_rel);
 		auto influence = fat_id.get_influence();
@@ -750,7 +750,7 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		const auto great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
-			return "-";
+			return text::format_money(0.f);
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, uni_rel);
 		return text::format_money(fat_id.get_foreign_investment());
@@ -983,9 +983,9 @@ public:
 		auto gp_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
 		if(bool(gp_rel_id)) {
 			const auto status = state.world.gp_relationship_get_status(gp_rel_id);
-			return text::produce_simple_string(state, text::get_influence_level_name(state, status));
+			return text::get_influence_level_name(state, status);
 		}
-		return "-";
+		return text::produce_simple_string(state, "rel_neutral");
 	}
 };
 
