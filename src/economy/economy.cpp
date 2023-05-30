@@ -835,30 +835,31 @@ void populate_construction_consumption(sys::state& state) {
 		});
 	}
 
+	for(auto lc : state.world.in_province_land_construction) {
+		auto province = state.world.pop_get_province_from_pop_location(state.world.province_land_construction_get_pop(lc));
+		auto owner = state.world.province_get_nation_from_province_ownership(province);
+		if(owner && state.world.province_get_nation_from_province_control(province) == owner) {
+
+			auto& base_cost = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(lc)].build_cost;
+			auto& current_purchased = state.world.province_land_construction_get_purchased_goods(lc);
+			float construction_time = float(state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(lc)].build_time);
+
+			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+				if(base_cost.commodity_type[i]) {
+					if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
+						state.world.nation_get_construction_demand(owner, base_cost.commodity_type[i]) +=
+						base_cost.commodity_amounts[i] / construction_time;
+				} else {
+					break;
+				}
+			}
+		}	
+	}
+
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
 		if(!owner || state.world.province_get_nation_from_province_control(p) != owner)
 			return;
-
-		{
-			auto rng = state.world.province_get_province_land_construction(p);
-			if(rng.begin() != rng.end()) {
-				auto c = *(rng.begin());
-				auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
-				auto& current_purchased = c.get_purchased_goods();
-				float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
-
-				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-					if(base_cost.commodity_type[i]) {
-						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i])
-							state.world.nation_get_construction_demand(owner, base_cost.commodity_type[i]) +=
-								base_cost.commodity_amounts[i] / construction_time;
-					} else {
-						break;
-					}
-				}
-			}
-		}
 		{
 			auto rng = state.world.province_get_province_naval_construction(p);
 			if(rng.begin() != rng.end()) {
@@ -1352,8 +1353,8 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 		if(p.get_province().get_nation_from_province_control() != n)
 			continue;
 
-		{
-			auto rng = p.get_province().get_province_land_construction();
+		for(auto pops : p.get_province().get_pop_location()) {
+			auto rng = pops.get_pop().get_province_land_construction();
 			if(rng.begin() != rng.end()) {
 				auto c = *(rng.begin());
 				auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
@@ -1373,6 +1374,7 @@ void advance_construction(sys::state& state, dcon::nation_id n) {
 						break;
 					}
 				}
+				break; // only advance one construction per province
 			}
 		}
 		{
@@ -2840,48 +2842,46 @@ void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dc
 
 void resolve_constructions(sys::state& state) {
 
-	province::for_each_land_province(state, [&](dcon::province_id p) {
-		{
-			auto rng = state.world.province_get_province_land_construction(p);
-			if(rng.begin() != rng.end()) {
-				auto c = *(rng.begin());
-				auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
-				auto& current_purchased = c.get_purchased_goods();
-				float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
+	for(uint32_t i = state.world.province_land_construction_size(); i-->0; ) {
+		auto c = fatten(state.world, dcon::province_land_construction_id{dcon::province_land_construction_id::value_base_t(i)});
 
-				bool all_finished = true;
-				for(uint32_t i = 0; i < commodity_set::set_size && all_finished; ++i) {
-					if(base_cost.commodity_type[i]) {
-						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i]) {
-							all_finished = false;
-						}
-					} else {
-						break;
-					}
-				}
+		auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
+		auto& current_purchased = c.get_purchased_goods();
+		float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
 
-				if(all_finished) {
-					auto is_culture_restricted = state.military_definitions.unit_base_definitions[c.get_type()].primary_culture;
-					auto free_pop = military::find_available_soldier(state, p, is_culture_restricted);
-					if(free_pop) {
-						auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
-						auto a = [&]() {
-							auto armies = state.world.province_get_army_location(p);
-							if(armies.begin() != armies.end()) {
-								return armies.begin().operator*().get_army().id;
-							}
-							auto new_army = fatten(state.world, state.world.create_army());
-							new_army.set_controller_from_army_control(c.get_nation());
-							new_army.set_location_from_army_location(p);
-							return new_army.id;
-						}();
-						state.world.try_create_army_membership(new_reg, a);
-						state.world.try_create_regiment_source(new_reg, free_pop);
-					}
-					state.world.delete_province_land_construction(c);
+		bool all_finished = true;
+		for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
+			if(base_cost.commodity_type[j]) {
+				if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j]) {
+					all_finished = false;
 				}
+			} else {
+				break;
 			}
 		}
+
+		if(all_finished) {
+			auto pop_location = c.get_pop().get_province_from_pop_location();
+
+			auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
+			auto a = [&]() {
+				for(auto ar : state.world.province_get_army_location(pop_location)) {
+					if(ar.get_army().get_controller_from_army_control() == c.get_nation())
+						return ar.get_army().id;
+				}
+				auto new_army = fatten(state.world, state.world.create_army());
+				new_army.set_controller_from_army_control(c.get_nation());
+				new_army.set_location_from_army_location(pop_location);
+				return new_army.id;
+			}();
+			state.world.try_create_army_membership(new_reg, a);
+			state.world.try_create_regiment_source(new_reg, c.get_pop());
+			
+			state.world.delete_province_land_construction(c);
+		}
+	}
+
+	province::for_each_land_province(state, [&](dcon::province_id p) {
 		{
 			auto rng = state.world.province_get_province_naval_construction(p);
 			if(rng.begin() != rng.end()) {
