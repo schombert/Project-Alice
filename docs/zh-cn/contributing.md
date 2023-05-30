@@ -30,4 +30,6 @@
 
 ### 编译项目
 
-你都要手动编译了，还看不懂英文？（详见 [Contributing](../contributing.md)）
+你都要手动编译了，还看不懂英文？（详见 [Contributing](../contributing.md) ）
+
+[English](../contributing.md)（此版本由 Stevezxc 翻译于 2023/05/30 10:52 UTC+8）
