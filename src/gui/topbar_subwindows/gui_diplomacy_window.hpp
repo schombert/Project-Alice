@@ -661,34 +661,34 @@ public:
 	}
 };
 
-class justifying_attacker_flag : public flag_button {
-public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+class justifying_attacker_flag : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) noexcept override {
 		if(parent) {
+			row_contents.clear();
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
 			auto fat = dcon::fatten(state.world, content);
-			return fat.get_identity_from_identity_holder();
-		} else {
-			return dcon::national_identity_id{};
+
+			row_contents.push_back(fat.get_identity_from_identity_holder().id);
+			update(state);
 		}
 	}
 };
 
-class justifying_defender_flag : public flag_button {
-public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+class justifying_defender_flag : public overlapping_flags_box {
+protected:
+	void populate_flags(sys::state& state) noexcept override {
 		if(parent) {
+			row_contents.clear();
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
-
 			auto fat = dcon::fatten(state.world, content);
-			return fat.get_constructing_cb_target().get_identity_from_identity_holder();
-		} else {
-			return dcon::national_identity_id{};
+
+			row_contents.push_back(fat.get_constructing_cb_target().get_identity_from_identity_holder().id);
+			update(state);
 		}
 	}
 };
@@ -734,9 +734,13 @@ public:
 		} else if(name == "cb_progress_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "attackers") {
-			return make_element_by_type<justifying_attacker_flag>(state, id);
+			auto ptr = make_element_by_type<justifying_attacker_flag>(state, id);
+			ptr->base_data.position.y -= 7;	// Nudge
+			return ptr;
 		} else if(name == "defenders") {
-			return make_element_by_type<justifying_defender_flag>(state, id);
+			auto ptr = make_element_by_type<justifying_defender_flag>(state, id);
+			ptr->base_data.position.y -= 7;	// Nudge
+			return ptr;
 		} else if(name == "cancel") {
 			return make_element_by_type<diplomacy_casus_belli_cancel_button>(state, id);
 		} else {
@@ -767,7 +771,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "cb_listbox") {
 			auto ptr = make_element_by_type<diplomacy_casus_belli_listbox>(state, id);
-			ptr->base_data.position.x -= 400;
+			ptr->base_data.position.x -= 400;	// Nudge
 			return ptr;
 		} else {
 			return nullptr;
