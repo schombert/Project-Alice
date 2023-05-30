@@ -569,7 +569,6 @@ public:
 };
 
 class diplomacy_war_info : public listbox_row_element_base<dcon::war_id> {
-	simple_text_element_base* war_name = nullptr;
 	simple_text_element_base* attackers_strength_text = nullptr;
 	simple_text_element_base* defenders_strength_text = nullptr;
 	overlapping_attacker_flags* attackers_flags = nullptr;
@@ -584,9 +583,7 @@ public:
 		if(name == "diplo_war_entrybg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "war_name") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			war_name = ptr.get();
-			return ptr;
+			return make_element_by_type<war_name_text>(state, id);
 		} else if(name == "attackers_mil_strength") {
 			auto ptr = make_element_by_type<war_side_strength_text<true>>(state, id);
 			ptr->base_data.position.y -= 4; // Nudge
@@ -627,9 +624,6 @@ public:
 	void update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
-
-		auto war = dcon::fatten(state.world, content);
-		war_name->set_text(state, text::produce_simple_string(state, war.get_name()));
 	}
 };
 

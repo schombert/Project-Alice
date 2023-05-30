@@ -2103,4 +2103,39 @@ public:
 };
 // -----------------------------------------------------------------------------
 
+class war_name_text : public generic_multiline_text<dcon::war_id> {
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::war_id id) noexcept override {
+		auto war = dcon::fatten(state.world, id);
+		dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
+		dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
+
+		for(auto wg : state.world.war_get_wargoals_attached(war)) {
+			if(wg.get_wargoal().get_added_by() == primary_attacker && wg.get_wargoal().get_target_nation() == primary_defender) {
+				auto box = text::open_layout_box(contents);
+				text::substitution_map sub{};
+				auto pa_adj = state.world.nation_get_adjective(primary_attacker);
+				text::add_to_substitution_map(sub, text::variable_type::first, pa_adj);
+				auto sdef = wg.get_wargoal().get_associated_state();
+				auto bits = state.world.cb_type_get_type_bits(wg.get_wargoal().get_type());
+				if(dcon::fatten(state.world, sdef).is_valid()) {
+					auto name = state.world.state_definition_get_name(sdef);
+					text::add_to_substitution_map(sub, text::variable_type::second, name);
+				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
+					text::add_to_substitution_map(sub, text::variable_type::second, primary_defender);
+				} else if((bits & (military::cb_flag::po_liberate | military::cb_flag::po_take_from_sphere)) != 0) {
+					auto niid = wg.get_wargoal().get_associated_tag();
+					auto adj = state.world.national_identity_get_adjective(niid);
+					text::add_to_substitution_map(sub, text::variable_type::second, adj);
+				} else {
+					auto adj = state.world.nation_get_adjective(primary_defender);
+					text::add_to_substitution_map(sub, text::variable_type::second, adj);
+				}
+				text::add_to_layout_box(contents, state, box, state.world.cb_type_get_war_name(wg.get_wargoal().get_type()), sub);
+				text::close_layout_box(contents, box);
+				break;
+			}
+		}
+	}
+};
+
 }
