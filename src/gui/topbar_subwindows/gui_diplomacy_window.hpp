@@ -633,6 +633,58 @@ public:
 	}
 };
 
+class diplomacy_casus_belli_entry : public listbox_row_element_base<bool> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "diplo_cb_entrybg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "cb_type_icon") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "cb_progress") {
+			return make_element_by_type<progress_bar>(state, id);
+		} else if(name == "cb_progress_overlay") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "cb_progress_text") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "attackers") {
+			return nullptr;
+		} else if(name == "defenders") {
+			return nullptr;
+		} else if(name == "cancel") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class diplomacy_casus_belli_listbox : public listbox_element_base<diplomacy_cb_info_entry, bool> {
+protected:
+	std::string_view get_row_element_base() override {
+		return "diplomacy_cb_info";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			row_contents.clear();
+			update(state);
+		}
+	}
+};
+
+class diplomacy_casus_belli_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "cb_listbox") {
+			return make_element_by_type<diplomacy_casus_belli_listbox>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+};
+
+
 class diplomacy_war_listbox : public listbox_element_base<diplomacy_war_info, dcon::war_id> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -939,7 +991,7 @@ public:
 			ptr->target = country_list_filter::all;
 			return ptr;
 		} else if(name == "cb_info_win") {
-			auto ptr = make_element_immediate(state, id);
+			auto ptr = make_element_by_type<diplomacy_casus_belli_window>(state, id);
 			casus_belli_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;

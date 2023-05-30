@@ -435,7 +435,9 @@ public:
 
 		auto box = text::open_layout_box(contents);
 
-		text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"));
+		if(fat_cb.is_valid()) {
+			text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"));
+		}
 
 		text::close_layout_box(contents, box);
 	}
