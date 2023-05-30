@@ -9,7 +9,9 @@ enum class type_t : uint8_t {
 	none = 0,
 	access_request = 1,
 	alliance_request = 2,
-	call_ally_request = 3
+	call_ally_request = 3,
+	be_crisis_primary_defender = 4,
+	be_crisis_primary_attacker = 5
 };
 
 struct message {

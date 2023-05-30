@@ -1865,46 +1865,6 @@ void execute_take_sides_in_crisis(sys::state& state, dcon::nation_id source, boo
 	}
 }
 
-void back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::back_crisis_acceptance;
-	p.source = source;
-	auto b = state.incoming_commands.try_push(p);
-}
-void execute_back_crisis_acceptance(sys::state& state, dcon::nation_id source) {
-	if(state.crisis_last_checked_gp < state.great_nations.size()
-		&& state.great_nations[state.crisis_last_checked_gp].nation == source) {
-
-		if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
-			nations::add_as_primary_crisis_attacker(state, source);
-		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
-			nations::add_as_primary_crisis_defender(state, source);
-		}
-
-	}
-}
-
-void back_crisis_decline(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::back_crisis_decline;
-	p.source = source;
-	auto b = state.incoming_commands.try_push(p);
-}
-void execute_back_crisis_decline(sys::state& state, dcon::nation_id source) {
-	if(state.crisis_last_checked_gp < state.great_nations.size()
-		&& state.great_nations[state.crisis_last_checked_gp].nation == source) {
-
-		if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
-			nations::reject_crisis_participation(state);
-		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
-			nations::reject_crisis_participation(state);
-		}
-
-	}
-}
-
 void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2448,12 +2408,6 @@ void execute_pending_commands(sys::state& state) {
 				break;
 			case command_type::take_sides_in_crisis:
 				execute_take_sides_in_crisis(state, c->source, c->data.crisis_join.join_attackers);
-				break;
-			case command_type::back_crisis_acceptance:
-				execute_back_crisis_acceptance(state, c->source);
-				break;
-			case command_type::back_crisis_decline:
-				execute_back_crisis_decline(state, c->source);
 				break;
 			case command_type::change_stockpile_settings:
 				execute_change_stockpile_settings(state, c->source, c->data.stockpile_settings.c, c->data.stockpile_settings.amount, c->data.stockpile_settings.draw_on_stockpiles);
