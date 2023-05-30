@@ -471,13 +471,8 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 
 void line_graph::set_data_points(sys::state& state, std::vector<float> const& datapoints) noexcept {
 	assert(datapoints.size() == count);
-
-	float min = datapoints[0];
-	float max = datapoints[0];
-	for(size_t i = 0; i < count; i++) {
-		min = std::min(min, datapoints[i]);
-		max = std::max(max, datapoints[i]);
-	}
+	float min = *std::min_element(datapoints.begin(), datapoints.end());
+	float max = *std::max_element(datapoints.begin(), datapoints.end());
 	float y_height = max - min;
 	std::vector<float> scaled_datapoints = std::vector<float>(count);
 	if (y_height == 0.f) {
@@ -489,7 +484,16 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> const& da
 			scaled_datapoints[i] = (datapoints[i] - min) / y_height;
 		}
 	}
-	lines.set_y(scaled_datapoints.data());
+
+	std::vector<float> fudged_scaled_datapoints = std::vector<float>(count * 3);
+	for(size_t i = 0; i < count; i++) {
+		fudged_scaled_datapoints[i * 3 + 0] = scaled_datapoints[i];
+		fudged_scaled_datapoints[i * 3 + 1] = scaled_datapoints[i] + (std::fmod(datapoints[i], 1.f) / 10.f);
+		fudged_scaled_datapoints[i * 3 + 2] = scaled_datapoints[i] + (std::fmod(datapoints[i] * 7.527f, 1.f) / 10.f);
+	}
+
+	lines.count = uint32_t(fudged_scaled_datapoints.size());
+	lines.set_y(fudged_scaled_datapoints.data());
 }
 
 void line_graph::on_create(sys::state& state) noexcept {
