@@ -1672,6 +1672,11 @@ namespace sys {
 				new_f_p_event.push(e);
 			}
 		}
+		for(auto const& m : pending_messages) {
+			if(m.to == local_player_nation) {
+				new_requests.push(m);
+			}
+		}
 	}
 
 	constexpr inline int32_t game_speed[] = {
