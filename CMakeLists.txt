@@ -91,10 +91,6 @@ endif()
 add_subdirectory (dependencies)
 add_subdirectory (ParserGenerator)
 
-message("leftover CMAKE_CXX_FLAGS: \"${CMAKE_CXX_FLAGS}\"")
-message("leftover CMAKE_CXX_FLAGS_DEBUG: \"${CMAKE_CXX_FLAGS_DEBUG}\"")
-message("leftover CMAKE_CXX_FLAGS_RELEASE: \"${CMAKE_CXX_FLAGS_RELEASE}\"")
-
 target_precompile_headers(Alice
 	PRIVATE <stdint.h>
 	PRIVATE <vector>

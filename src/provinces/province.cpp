@@ -715,7 +715,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	if(old_si) {
 		dcon::province_id a_province;
 		province::for_each_province_in_state_instance(state, old_si, [&](auto p) { a_province = p; });
-		if(a_province) {
+		if(!a_province) {
 			if(old_si == state.crisis_state)
 				nations::cleanup_crisis(state);
 			state.world.delete_state_instance(old_si);
