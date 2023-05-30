@@ -35,7 +35,7 @@ enum diplomacy_action : uint8_t {
 class diplomacy_action_ally_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
 		auto drid = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, nation_id);
-		return state.world.diplomatic_relation_get_are_allied(drid);
+		return drid && state.world.diplomatic_relation_get_are_allied(drid);
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -47,11 +47,11 @@ public:
 			set_button_text(state, text::produce_simple_string(state,
 				can_cancel(state, content) ? "cancelalliance_button"
 					: "alliance_button"));
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
+			
+			if(can_cancel(state, content))
+				disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
+			else
+				disabled = !command::can_ask_for_alliance(state, state.local_player_nation, content);
 		}
 	}
 
@@ -171,8 +171,8 @@ public:
 
 class diplomacy_action_military_access_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		// TODO - test if we local_player_nation has military access to the other country
-		return false;
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
+		return urid && state.world.unilateral_relationship_get_military_access(urid);
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -186,9 +186,10 @@ public:
 					: "askmilitaryaccess_button"));
 
 			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
+			if(can_cancel(state, content))
+				disabled = !command::can_cancel_military_access(state, state.local_player_nation, content);
+			else
+				disabled = !command::can_ask_for_access(state, state.local_player_nation, content);
 		}
 	}
 
@@ -241,8 +242,8 @@ public:
 
 class diplomacy_action_give_military_access_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		// TODO - test if we local_player_nation has military access to the other country
-		return false;
+		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, nation_id);
+		return urid && state.world.unilateral_relationship_get_military_access(urid);
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -256,8 +257,9 @@ public:
 					: "givemilitaryaccess_button"));
 
 			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
+			if(can_cancel(state, content))
+				disabled = !command::can_cancel_given_military_access(state, state.local_player_nation, content);
+			else
 				disabled = true;
 		}
 	}
@@ -554,7 +556,7 @@ public:
 
 class diplomacy_action_command_units_button : public button_element_base {
 	bool can_cancel(sys::state& state, dcon::nation_id nation_id) noexcept {
-		// TODO - test if we local_player_nation has military access to the other country
+		// TODO - test if we local_player_nation has ability to command the other country
 		return false;
 	}
 public:
@@ -1213,21 +1215,21 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 
 			switch(content) {
 			case diplomacy_action::ally:
-				return false;
+				return command::can_ask_for_alliance(state, state.local_player_nation, target);
 			case diplomacy_action::cancel_ally:
-				return false;
+				return command::can_cancel_alliance(state, state.local_player_nation, target);
 			case diplomacy_action::call_ally:
 				return false;
 			case diplomacy_action::declare_war:
 				return false;
 			case diplomacy_action::military_access:
-				return false;
+				return command::can_ask_for_access(state, state.local_player_nation, target);
 			case diplomacy_action::cancel_military_access:
-				return false;
+				return command::can_cancel_military_access(state, state.local_player_nation, target);
 			case diplomacy_action::give_military_access:
 				return false;
 			case diplomacy_action::cancel_give_military_access:
-				return false;
+				return command::can_cancel_given_military_access(state, state.local_player_nation, target);
 			case diplomacy_action::increase_relations:
 				return command::can_increase_relations(state, state.local_player_nation, target);
 			case diplomacy_action::decrease_relations:
@@ -1247,9 +1249,9 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 			case diplomacy_action::decrease_opinion:
 				return command::can_decrease_opinion(state, state.local_player_nation, target, gp_target);
 			case diplomacy_action::add_to_sphere:
-				return false;
+				return command::can_add_to_sphere(state, state.local_player_nation, target);
 			case diplomacy_action::remove_from_sphere:
-				return false;
+				return command::can_remove_from_sphere(state, state.local_player_nation, target, gp_target);
 			case diplomacy_action::justify_war:
 				return false;
 			case diplomacy_action::command_units:
@@ -1284,20 +1286,25 @@ public:
 
 			switch(content) {
 			case diplomacy_action::ally:
+				command::ask_for_alliance(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::cancel_ally:
+				command::cancel_alliance(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::call_ally:
 				break;
 			case diplomacy_action::declare_war:
 				break;
 			case diplomacy_action::military_access:
+				command::ask_for_military_access(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::cancel_military_access:
+				command::cancel_military_access(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::give_military_access:
 				break;
 			case diplomacy_action::cancel_give_military_access:
+				command::cancel_given_military_access(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::increase_relations:
 				command::increase_relations(state, state.local_player_nation, target);
@@ -1327,8 +1334,10 @@ public:
 				command::decrease_opinion(state, state.local_player_nation, target, gp_target);
 				break;
 			case diplomacy_action::add_to_sphere:
+				command::add_to_sphere(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::remove_from_sphere:
+				command::remove_from_sphere(state, state.local_player_nation, target, gp_target);
 				break;
 			case diplomacy_action::justify_war:
 				break;

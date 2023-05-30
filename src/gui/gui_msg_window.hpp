@@ -6,6 +6,8 @@
 
 namespace ui {
 
+struct diplo_reply_taken_notification { int a = 0; };
+
 template<bool Left>
 class msg_lr_button : public button_element_base {
 public:
@@ -22,11 +24,28 @@ public:
 	}
 };
 
+template<bool B>
+class msg_reply_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = diplomatic_message::message{};
+			parent->impl_get(state, payload);
+			diplomatic_message::message m = any_cast<diplomatic_message::message>(payload);
+			command::respond_to_diplomatic_message(state, state.local_player_nation, m.from, m.type, B);
+
+			Cyto::Any n_payload = diplo_reply_taken_notification{};
+			parent->impl_get(state, n_payload);
+		}
+	}
+};
+
 class msg_window : public window_element_base {
-	std::vector<diplomatic_message::message> messages{};
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
 public:
+	std::vector<diplomatic_message::message> messages{};
+
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		xy_pair cur_pos{ 0, 0 };
@@ -59,9 +78,9 @@ public:
 		} else if(name == "description") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "agreebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<msg_reply_button<true>>(state, id);
 		} else if(name == "declinebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<msg_reply_button<false>>(state, id);
 		} else if(name == "leftshield") {
 			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
@@ -76,19 +95,30 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(messages.empty())
+		if(messages.empty()) {
 			set_visible(state, false);
+		} else {
+			for(auto it = messages.begin(); it != messages.end(); it++) {
+				sys::date date = it->when;
+				if(date + 15 <= state.current_date) {
+					// Remove expired messages
+					messages.erase(it);
+					it--;
+				}
+			}
+		}
 		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(index >= int32_t(messages.size()))
+			index = 0;
+		else if(index < 0)
+			index = int32_t(messages.size()) - 1;
+
 		if(payload.holds_type<dcon::nation_id>()) {
 			if(messages.empty()) {
 				payload.emplace<dcon::nation_id>(dcon::nation_id{});
 			} else {
-				if(index >= int32_t(messages.size()))
-					index = 0;
-				else if(index < 0)
-					index = int32_t(messages.size()) - 1;
 				payload.emplace<dcon::nation_id>(messages[index].from);
 			}
 			return message_result::consumed;
@@ -101,12 +131,12 @@ public:
 			if(messages.empty()) {
 				payload.emplace<diplomatic_message::message>(diplomatic_message::message{});
 			} else {
-				if(index >= int32_t(messages.size()))
-					index = 0;
-				else if(index < 0)
-					index = int32_t(messages.size()) - 1;
 				payload.emplace<diplomatic_message::message>(messages[index]);
 			}
+			return message_result::consumed;
+		} else if(payload.holds_type<diplo_reply_taken_notification>()) {
+			if(!messages.empty())
+				messages.erase(messages.begin() + size_t(index));
 			return message_result::consumed;
 		}
 		return window_element_base::get(state, payload);
