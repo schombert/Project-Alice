@@ -2032,7 +2032,7 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_cb_fabrication;
+	p.type = command_type::fabricate_cb;
 	p.source = source;
 	p.data.cb_fabrication.target = target;
 	p.data.cb_fabrication.type = type;
