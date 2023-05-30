@@ -518,6 +518,15 @@ guiTypes = {
 		quadTextureSprite = "GFX_alice_left_right"
 		clicksound = click
 	}
+	instantTextBoxType = {
+		name = "alice_page_count"
+		font = "Arial16"
+		borderSize = {x = 0 y = 0}	
+		maxWidth = 32
+		maxHeight = 18
+		orientation = "UPPER_LEFT"
+		format = centre
+	}
 
 	guiButtonType = {
 		name = "goto_location_button"

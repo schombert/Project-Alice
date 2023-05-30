@@ -24,20 +24,30 @@ public:
 
 class msg_window : public window_element_base {
 	std::vector<diplomatic_message::message> messages{};
+	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+		xy_pair cur_pos{ 0, 0 };
 		{
-			auto ptr = make_element_by_type<msg_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-			ptr->base_data.position.x = base_data.size.x - (ptr->base_data.size.x * 3);
-			ptr->base_data.position.y = ptr->base_data.size.y * 1;
+			auto ptr = make_element_by_type<event_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
+			cur_pos.y = ptr->base_data.size.y * 1;
+			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<msg_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-			ptr->base_data.position.x = base_data.size.x - (ptr->base_data.size.x * 2);
-			ptr->base_data.position.y = ptr->base_data.size.y * 1;
+			auto ptr = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+			cur_pos.x -= ptr->base_data.size.x;
+			ptr->base_data.position = cur_pos;
+			count_text = ptr.get();
+			add_child_to_front(std::move(ptr));
+		}
+		{
+			auto ptr = make_element_by_type<event_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			cur_pos.x -= ptr->base_data.size.x;
+			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
 	}
@@ -67,8 +77,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(messages.empty())
 			set_visible(state, false);
+		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
 	}
-
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
 			if(messages.empty()) {

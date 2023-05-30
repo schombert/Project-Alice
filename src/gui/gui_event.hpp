@@ -135,6 +135,7 @@ public:
 template<bool IsMajor>
 class national_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
+	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
 public:
 	std::vector<national_event_data_wrapper> events;
@@ -161,16 +162,25 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			auto bg_ptr = make_element_by_type<draggable_target>(state, id);
+			xy_pair cur_pos{ 0, 0 };
 			{
-				auto ptr = make_element_by_type<event_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-				ptr->base_data.position.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
-				ptr->base_data.position.y = ptr->base_data.size.y * 1;
+				auto ptr = make_element_by_type<event_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+				cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 2);
+				cur_pos.y = ptr->base_data.size.y * 1;
+				ptr->base_data.position = cur_pos;
 				add_child_to_front(std::move(ptr));
 			}
 			{
-				auto ptr = make_element_by_type<event_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-				ptr->base_data.position.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 2);
-				ptr->base_data.position.y = ptr->base_data.size.y * 1;
+				auto ptr = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+				cur_pos.x -= ptr->base_data.size.x;
+				ptr->base_data.position = cur_pos;
+				count_text = ptr.get();
+				add_child_to_front(std::move(ptr));
+			}
+			{
+				auto ptr = make_element_by_type<event_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+				cur_pos.x -= ptr->base_data.size.x;
+				ptr->base_data.position = cur_pos;
 				add_child_to_front(std::move(ptr));
 			}
 			return bg_ptr;
@@ -208,8 +218,23 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		for(auto e : option_buttons)
 			e->set_visible(state, true);
-		if(events.empty())
+		if(events.empty()) {
 			set_visible(state, false);
+		} else {
+			for(auto it = events.begin(); it != events.end(); it++) {
+				sys::date date{};
+				if(std::holds_alternative<event::pending_human_n_event>(*it))
+					date = std::get<event::pending_human_n_event>(*it).date;
+				else if(std::holds_alternative<event::pending_human_f_n_event>(*it))
+					date = std::get<event::pending_human_f_n_event>(*it).date;
+				if(date + 30 <= state.current_date) {
+					// Remove expired events
+					events.erase(it);
+					it--;
+				}
+			}
+		}
+		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(events.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(index >= int32_t(events.size()))
@@ -338,6 +363,7 @@ public:
 };
 class provincial_event_window : public window_element_base {
 	element_base* option_buttons[sys::max_event_options];
+	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
 public:
 	std::vector<provincial_event_data_wrapper> events;
@@ -359,25 +385,28 @@ public:
 		}
 		set_visible(state, false);
 	}
-	void on_update(sys::state& state) noexcept override {
-		for(auto e : option_buttons)
-			e->set_visible(state, true);
-		if(events.empty())
-			set_visible(state, false);
-	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			auto bg_ptr = make_element_by_type<draggable_target>(state, id);
+			xy_pair cur_pos{ 0, 0 };
 			{
-				auto ptr = make_element_by_type<event_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-				ptr->base_data.position.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
-				ptr->base_data.position.y = ptr->base_data.size.y * 1;
+				auto ptr = make_element_by_type<event_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+				cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 2);
+				cur_pos.y = ptr->base_data.size.y * 1;
+				ptr->base_data.position = cur_pos;
 				add_child_to_front(std::move(ptr));
 			}
 			{
-				auto ptr = make_element_by_type<event_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-				ptr->base_data.position.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 2);
-				ptr->base_data.position.y = ptr->base_data.size.y * 1;
+				auto ptr = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+				cur_pos.x -= ptr->base_data.size.x;
+				ptr->base_data.position = cur_pos;
+				count_text = ptr.get();
+				add_child_to_front(std::move(ptr));
+			}
+			{
+				auto ptr = make_element_by_type<event_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+				cur_pos.x -= ptr->base_data.size.x;
+				ptr->base_data.position = cur_pos;
 				add_child_to_front(std::move(ptr));
 			}
 			return bg_ptr;
@@ -390,6 +419,27 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		for(auto e : option_buttons)
+			e->set_visible(state, true);
+		if(events.empty()) {
+			set_visible(state, false);
+		} else {
+			for(auto it = events.begin(); it != events.end(); it++) {
+				sys::date date{};
+				if(std::holds_alternative<event::pending_human_p_event>(*it))
+					date = std::get<event::pending_human_p_event>(*it).date;
+				else if(std::holds_alternative<event::pending_human_f_p_event>(*it))
+					date = std::get<event::pending_human_f_p_event>(*it).date;
+				if(date + 30 <= state.current_date) {
+					// Remove expired events
+					events.erase(it);
+					it--;
+				}
+			}
+		}
+		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(events.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(index >= int32_t(events.size()))
