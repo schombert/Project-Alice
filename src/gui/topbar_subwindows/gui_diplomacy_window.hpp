@@ -690,7 +690,7 @@ public:
 
 class diplomacy_casus_belli_listbox : public listbox_element_base<diplomacy_casus_belli_entry, dcon::nation_id> {
 protected:
-	std::string_view get_row_element_base() {
+	std::string_view get_row_element_name() override {
 		return "diplomacy_cb_info_player";
 	}
 public:
