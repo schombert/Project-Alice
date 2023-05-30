@@ -1557,7 +1557,6 @@ void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n) {
 }
 
 void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {
-	state.last_crisis_end_date = state.current_date;
 	if(state.world.nation_get_is_at_war(n)) { // ineligible
 		reject_crisis_participation(state);
 	} else {
@@ -1573,7 +1572,6 @@ void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {
 }
 
 void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n) {
-	state.last_crisis_end_date = state.current_date;
 	if(state.world.nation_get_is_at_war(n)) { // ineligible
 		reject_crisis_participation(state);
 	} else {
@@ -1707,7 +1705,7 @@ void update_crisis(sys::state& state) {
 			state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
 			ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
 		} else {
-			state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activiation logic
+			state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activation logic
 		}
 	} else if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
 		if(state.primary_crisis_attacker) { // found an attacker
@@ -1716,14 +1714,12 @@ void update_crisis(sys::state& state) {
 				state.crisis_last_checked_gp = state.great_nations[0].nation != state.primary_crisis_attacker ? 0 : 1;
 				ask_to_defend_in_crisis(state, state.great_nations[state.crisis_last_checked_gp].nation);
 			} else { // defender is already a gp
-				state.current_crisis_mode = sys::crisis_mode::heating_up;
+				state.current_crisis_mode = sys::crisis_mode::finding_defender; // to trigger activation logic
 				state.crisis_last_checked_gp = 0;
 			}
-		} else if(state.last_crisis_end_date + 15 < state.current_date) { // the asking period has timed out; assume answer is no
-			reject_crisis_participation(state);
 		}
 	} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
-		if(state.primary_crisis_defender) { // found an attacker
+		if(state.primary_crisis_defender) { // found a defender
 			state.current_crisis_mode = sys::crisis_mode::heating_up;
 			state.crisis_last_checked_gp = 0;
 
@@ -1764,8 +1760,6 @@ void update_crisis(sys::state& state) {
 				}
 			}
 
-		} else if(state.last_crisis_end_date + 15 < state.current_date) { // the asking period has timed out; assume answer is no
-			reject_crisis_participation(state);
 		}
 	} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
 		/*

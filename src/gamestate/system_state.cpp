@@ -16,6 +16,7 @@
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "gui_election_window.hpp"
+#include "gui_msg_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
@@ -153,6 +154,44 @@ namespace sys {
 
 		if(game_state_was_updated) {
 			nations::update_ui_rankings(*this);
+
+			{
+				auto* c1 = new_n_event.front();
+				while(c1) {
+					if(world.national_event_get_is_major(c1->e)) {
+						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{ *c1 });
+					} else {
+						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{ *c1 });
+					}
+					new_n_event.pop();
+					c1 = new_n_event.front();
+				}
+				auto* c2 = new_f_n_event.front();
+				while(c2) {
+					if(world.free_national_event_get_is_major(c2->e)) {
+						static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{ *c2 });
+					} else {
+						static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{ *c2 });
+					}
+					new_f_n_event.pop();
+					c2 = new_f_n_event.front();
+				}
+				auto* c3 = new_p_event.front();
+				while(c3) {
+					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{ *c3 });
+					new_p_event.pop();
+					c3 = new_p_event.front();
+				}
+				auto* c4 = new_f_p_event.front();
+				while(c4) {
+					static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{ *c4 });
+					new_f_p_event.pop();
+					c4 = new_f_p_event.front();
+				}
+			}
+			ui_state.major_event_window->set_visible(*this, true);
+			ui_state.national_event_window->set_visible(*this, true);
+			ui_state.provincial_event_window->set_visible(*this, true);
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
@@ -385,6 +424,27 @@ namespace sys {
 			ui_state.election_window = new_elm.get();
 			ui_state.root->add_child_to_front(std::move(new_elm));
 		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::msg_window>(*this, "defaultdialog");
+			ui_state.msg_window = new_elm.get();
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::national_event_window<true>>(*this, "event_major_window");
+			ui_state.major_event_window = new_elm.get();
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::national_event_window<false>>(*this, "event_country_window");
+			ui_state.national_event_window = new_elm.get();
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+		{
+			auto new_elm = ui::make_element_by_type<ui::provincial_event_window>(*this, "event_province_window");
+			ui_state.provincial_event_window = new_elm.get();
+			ui_state.root->add_child_to_front(std::move(new_elm));
+		}
+
 		{
 			auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 			new_elm->impl_on_update(*this);
@@ -1670,6 +1730,11 @@ namespace sys {
 		for(auto const& e : pending_f_p_event) {
 			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
 				new_f_p_event.push(e);
+			}
+		}
+		for(auto const& m : pending_messages) {
+			if(m.to == local_player_nation) {
+				new_requests.push(m);
 			}
 		}
 	}
