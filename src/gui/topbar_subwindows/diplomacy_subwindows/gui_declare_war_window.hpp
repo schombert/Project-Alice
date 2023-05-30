@@ -375,7 +375,7 @@ public:
 
 class cb_listbox : public listbox_element_base<cb_type_row, dcon::cb_type_id> {
 protected:
-	std::string_view get_row_element_name() {
+	std::string_view get_row_element_name() override {
 		return "cb_type_item";
 	}
 public:
