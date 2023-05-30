@@ -550,7 +550,7 @@ public:
 			auto ptr = make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
 			ptr->base_data.position = offset;
 			offset.x += cell_size.x;
-			if(offset.x + cell_size.x >= base_data.size.x) {
+			if(offset.x + cell_size.x - 1 >= base_data.size.x) {
 				offset.x = 0;
 				offset.y += cell_size.y;
 				if(offset.y + cell_size.y >= base_data.size.y) {
