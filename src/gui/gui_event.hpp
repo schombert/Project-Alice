@@ -51,6 +51,25 @@ public:
 		}
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = national_event_data_wrapper{};
+			parent->impl_get(state, payload);
+			national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
+			if(std::holds_alternative<event::pending_human_n_event>(content)) {
+				auto phe = std::get<event::pending_human_n_event>(content);
+				effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.n), trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
+			} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+				auto phe = std::get<event::pending_human_f_n_event>(content);
+				effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
+			}
+		}
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = national_event_data_wrapper{};
@@ -290,6 +309,25 @@ public:
 				set_visible(state, true);
 			} else {
 				set_visible(state, false);
+			}
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = provincial_event_data_wrapper{};
+			parent->impl_get(state, payload);
+			provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
+			if(std::holds_alternative<event::pending_human_p_event>(content)) {
+				auto phe = std::get<event::pending_human_p_event>(content);
+				effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
+			} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+				auto phe = std::get<event::pending_human_f_p_event>(content);
+				effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
 			}
 		}
 	}
