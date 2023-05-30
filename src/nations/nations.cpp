@@ -175,6 +175,18 @@ void generate_initial_state_instances(sys::state& state) {
 			}
 		}
 	}
+
+	for(auto si : state.world.in_state_instance) {
+		auto cap = si.get_capital();
+		assert(cap);
+		auto slave = cap.get_is_slave();
+		auto colonial = cap.get_is_colonial();
+
+		province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+			state.world.province_set_is_colonial(p, colonial);
+			state.world.province_set_is_slave(p, slave);
+		});
+	}
 }
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {

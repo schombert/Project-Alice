@@ -164,7 +164,7 @@ public:
 		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
 		auto aristocrat_key = demographics::to_key(state, state.culture_definitions.aristocrat);
 		auto aristocrat_amount = state.world.state_instance_get_demographics(content, aristocrat_key);
-		return text::format_percentage(aristocrat_amount / total_pop, 1);
+		return text::format_percentage(total_pop > 0 ? aristocrat_amount / total_pop : 0.0f, 1);
 	}
 };
 

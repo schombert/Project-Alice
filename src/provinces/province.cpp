@@ -698,6 +698,13 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		for(auto r : regs) {
 			state.world.delete_regiment(r);
 		}
+
+		{
+			auto rng = p.get_pop().get_province_land_construction();
+			while(rng.begin() != rng.end()) {
+				state.world.delete_province_land_construction(*(rng.begin()));
+			}
+		}
 	}
 
 	state.world.province_set_nation_from_province_ownership(id, new_owner);
@@ -708,7 +715,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	if(old_si) {
 		dcon::province_id a_province;
 		province::for_each_province_in_state_instance(state, old_si, [&](auto p) { a_province = p; });
-		if(a_province) {
+		if(!a_province) {
 			if(old_si == state.crisis_state)
 				nations::cleanup_crisis(state);
 			state.world.delete_state_instance(old_si);
@@ -734,12 +741,6 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
-	{
-		auto rng = state.world.province_get_province_land_construction(id);
-		while(rng.begin() != rng.end()) {
-			state.world.delete_province_land_construction(*(rng.begin()));
-		}
-	}
 
 	{
 		auto rng = state.world.province_get_province_naval_construction(id);

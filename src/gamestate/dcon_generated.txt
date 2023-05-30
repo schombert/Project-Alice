@@ -3104,8 +3104,8 @@ relationship{
 	tag{ save }
 
 	link{
-		object{province}
-		name{province}
+		object{pop}
+		name{pop}
 		type{many}
 		index_storage{array}
 	}

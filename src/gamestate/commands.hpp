@@ -15,8 +15,8 @@ enum class command_type : uint8_t {
 	increase_relations = 5,
 	decrease_relations = 6,
 	begin_factory_building_construction = 7,
-	begin_unit_construction = 8,
-	cancel_unit_construction = 9,
+	begin_naval_unit_construction = 8,
+	cancel_naval_unit_construction = 9,
 	change_factory_settings = 10,
 	delete_factory = 11,
 	make_vassal = 12,
@@ -45,8 +45,8 @@ enum class command_type : uint8_t {
 	change_reform_option = 35,
 	become_interested_in_crisis = 36,
 	take_sides_in_crisis = 37,
-	// back_crisis_acceptance = 38, -- rolled these into respond_to_diplomatic_message
-	// back_crisis_decline = 39,
+	begin_land_unit_construction = 38,
+	cancel_land_unit_construction = 39,
 	change_stockpile_settings = 40,
 	take_decision = 41,
 	make_n_event_choice = 42,
@@ -92,8 +92,14 @@ struct diplo_action_data {
 	dcon::nation_id target;
 };
 
-struct unit_construction_data {
+struct naval_unit_construction_data {
 	dcon::province_id location;
+	dcon::unit_type_id type;
+};
+
+struct land_unit_construction_data {
+	dcon::province_id location;
+	dcon::culture_id pop_culture;
 	dcon::unit_type_id type;
 };
 
@@ -230,7 +236,8 @@ struct payload {
 		province_building_data start_province_building;
 		diplo_action_data diplo_action;
 		factory_building_data start_factory_building;
-		unit_construction_data unit_construction;
+		naval_unit_construction_data naval_unit_construction;
+		land_unit_construction_data land_unit_construction;
 		tag_target_data tag_target;
 		factory_data factory;
 		budget_settings_data budget_data;
@@ -279,11 +286,17 @@ bool can_begin_province_building_construction(sys::state& state, dcon::nation_id
 void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
 bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade);
 
-void start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
-bool can_start_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
 
-void cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
-bool can_cancel_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
+bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
+
+void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+
+void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
+bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
 
 void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f);
 bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f);

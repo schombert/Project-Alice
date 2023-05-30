@@ -5,6 +5,8 @@
 
 namespace diplomatic_message {
 
+constexpr inline int32_t expiration_in_days = 15;
+
 enum class type_t : uint8_t {
 	none = 0,
 	access_request = 1,

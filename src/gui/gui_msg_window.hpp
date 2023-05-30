@@ -95,18 +95,16 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m){
+			return m.when + diplomatic_message::expiration_in_days <= state.current_date;
+		});
+		auto r = std::distance(it, messages.end());
+		messages.erase(it, messages.end());
+
 		if(messages.empty()) {
 			set_visible(state, false);
-		} else {
-			for(auto it = messages.begin(); it != messages.end(); it++) {
-				sys::date date = it->when;
-				if(date + 15 <= state.current_date) {
-					// Remove expired messages
-					messages.erase(it);
-					it--;
-				}
-			}
 		}
+
 		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
