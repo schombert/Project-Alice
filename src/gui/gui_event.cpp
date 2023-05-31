@@ -48,46 +48,44 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 		target_province = e.p;
 	}
 
-	if(from_slot != -1) {
-		switch(ft) {
-		case event::slot_type::nation:
-			from_nation = trigger::to_nation(from_slot);
-			switch(pt) {
-			case event::slot_type::state:
-				from_state = trigger::to_state(primary_slot);
-				from_province = state.world.state_instance_get_capital(from_state);
-				break;
-			case event::slot_type::province:
-				from_province = trigger::to_prov(primary_slot);
-				from_state = state.world.province_get_state_membership(from_province);
-				break;
-			default:
-				from_province = state.world.nation_get_capital(from_nation);
-				from_state = state.world.province_get_state_membership(from_province);
-				break;
-			}
-			break;
+	switch(ft) {
+	case event::slot_type::nation:
+		from_nation = trigger::to_nation(from_slot);
+		switch(pt) {
 		case event::slot_type::state:
-			from_state = trigger::to_state(from_slot);
-			from_nation = state.world.state_instance_get_nation_from_state_ownership(from_state);
-			switch(pt) {
-			case event::slot_type::province:
-				from_province = trigger::to_prov(primary_slot);
-				break;
-			default:
-				from_province = state.world.state_instance_get_capital(from_state);
-				break;
-			}
+			from_state = trigger::to_state(primary_slot);
+			from_province = state.world.state_instance_get_capital(from_state);
 			break;
 		case event::slot_type::province:
-			from_province = trigger::to_prov(from_slot);
+			from_province = trigger::to_prov(primary_slot);
 			from_state = state.world.province_get_state_membership(from_province);
-			from_nation = state.world.province_get_nation_from_province_ownership(from_province);
 			break;
 		default:
-			// TODO: Handle rest
+			from_province = state.world.nation_get_capital(from_nation);
+			from_state = state.world.province_get_state_membership(from_province);
 			break;
 		}
+		break;
+	case event::slot_type::state:
+		from_state = trigger::to_state(from_slot);
+		from_nation = state.world.state_instance_get_nation_from_state_ownership(from_state);
+		switch(pt) {
+		case event::slot_type::province:
+			from_province = trigger::to_prov(primary_slot);
+			break;
+		default:
+			from_province = state.world.state_instance_get_capital(from_state);
+			break;
+		}
+		break;
+	case event::slot_type::province:
+		from_province = trigger::to_prov(from_slot);
+		from_state = state.world.province_get_state_membership(from_province);
+		from_nation = state.world.province_get_nation_from_province_ownership(from_province);
+		break;
+	default:
+		// TODO: Handle rest
+		break;
 	}
 
 	// Target
