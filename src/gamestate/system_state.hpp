@@ -50,7 +50,7 @@ namespace sys {
 		float interface_volume = 1.0f;
 		bool prefer_fullscreen = false;
 		bool map_is_globe = false;
-		bool dummy2 = false;
+		bool fake_graphs = false;
 		bool dummy3 = false;
 		bool use_classic_fonts = false;
 		bool outliner_views[14] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true };

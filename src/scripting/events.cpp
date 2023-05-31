@@ -71,7 +71,7 @@ void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt)
 }
 void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t opt) {
 	for(auto i = state.pending_f_p_event.size(); i-- > 0;) {
-		if(state.pending_p_event[i].date == e.date
+		if(state.pending_f_p_event[i].date == e.date
 			&& state.pending_f_p_event[i].e == e.e
 			&& state.pending_f_p_event[i].p == e.p
 			&& state.pending_f_p_event[i].r_hi == e.r_hi

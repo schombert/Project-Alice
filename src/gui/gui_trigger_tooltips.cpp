@@ -5456,9 +5456,9 @@ void tf_check_variable(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_upper_house(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[3]).ideo_id)));
 	text::add_space_to_layout_box(layout, ws, box);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support_in_uh"), text::fp_percentage{ trigger::read_float_from_payload(tval + 1) }, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
