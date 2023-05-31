@@ -200,10 +200,14 @@ namespace sys {
 					c5 = new_requests.front();
 				}
 			}
-			ui_state.major_event_window->set_visible(*this, true);
-			ui_state.national_event_window->set_visible(*this, true);
-			ui_state.provincial_event_window->set_visible(*this, true);
-			ui_state.msg_window->set_visible(*this, true);
+			if(!static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.empty())
+				ui_state.major_event_window->set_visible(*this, true);
+			if(!static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.empty())
+				ui_state.national_event_window->set_visible(*this, true);
+			if(!static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.empty())
+				ui_state.provincial_event_window->set_visible(*this, true);
+			if(!static_cast<ui::msg_window*>(ui_state.msg_window)->messages.empty())
+				ui_state.msg_window->set_visible(*this, true);
 
 			ui_state.root->impl_on_update(*this);
 			map_mode::update_map_mode(*this);
