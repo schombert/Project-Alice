@@ -1116,7 +1116,7 @@ void ef_province_event::id(association_type t, int32_t value, error_handler& err
 		}
 	} else {
 		id_ = context.outer_context.state.world.create_provincial_event();
-		context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ id_, trigger::slot_contents::province, trigger::slot_contents::nation, context.this_slot });
+		context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ id_, trigger::slot_contents::province, trigger::slot_contents::province, context.this_slot });
 	}
 }
 
@@ -1229,7 +1229,7 @@ void effect_body::province_event(association_type t, int32_t value, error_handle
 			}
 		} else {
 			auto ev_id = context.outer_context.state.world.create_provincial_event();
-			context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ ev_id, trigger::slot_contents::province, trigger::slot_contents::nation, context.this_slot });
+			context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ ev_id, trigger::slot_contents::province, trigger::slot_contents::province, context.this_slot });
 			context.compiled_effect.push_back(trigger::payload(ev_id).value);
 		}
 	} else {

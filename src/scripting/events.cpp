@@ -63,7 +63,7 @@ void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt)
 			state.pending_p_event[i] = state.pending_p_event.back();
 			state.pending_p_event.pop_back();
 
-			effect::execute(state, state.world.provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(state.world.province_get_nation_from_province_ownership(e.p)), e.from_slot, e.r_lo, e.r_hi);
+			effect::execute(state, state.world.provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(e.p), e.from_slot, e.r_lo, e.r_hi);
 
 			return;
 		}
@@ -83,7 +83,7 @@ void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t op
 			state.pending_f_p_event[i] = state.pending_f_p_event.back();
 			state.pending_f_p_event.pop_back();
 
-			effect::execute(state, state.world.free_provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(state.world.province_get_nation_from_province_ownership(e.p)), -1, e.r_lo, e.r_hi);
+			effect::execute(state, state.world.free_provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(e.p), -1, e.r_lo, e.r_hi);
 
 			return;
 		}
@@ -188,7 +188,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		float odds[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(owner), from_slot);
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(p), from_slot);
 				total += odds[i];
 			}
 		}
@@ -199,7 +199,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 				if(opt[i].ai_chance && opt[i].effect) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
-						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(owner), from_slot, r_lo, r_hi);
+						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
 						return;
 					}
 				}
@@ -207,7 +207,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		}
 
 		if(opt[0].effect) {
-			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(owner), from_slot, r_lo, r_hi);
+			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
 		}
 
 		// TODO: notify
@@ -228,7 +228,7 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		float odds[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		for(uint32_t i = 0; i < opt.size(); ++i) {
 			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(owner), 0);
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(p), 0);
 				total += odds[i];
 			}
 		}
@@ -239,7 +239,7 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 				if(opt[i].ai_chance && opt[i].effect) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
-						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(owner), 0, r_lo, r_hi);
+						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
 						return;
 					}
 				}
@@ -247,7 +247,7 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		}
 
 		if(opt[0].effect) {
-			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(owner), 0, r_lo, r_hi);
+			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
 		}
 
 		// TODO: notify
@@ -304,7 +304,7 @@ void update_events(sys::state& state) {
 		auto t = state.world.free_provincial_event_get_trigger(id);
 
 		if(mod) {
-			ve::execute_serial_fast<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&](auto ids){
+			ve::execute_serial_fast<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&](ve::contiguous_tags<dcon::province_id> ids){
 				/*
 				The probabilities for province events are calculated in the same way, except that they are twice as likely to happen.
 				*/
@@ -319,11 +319,11 @@ void update_events(sys::state& state) {
 					auto adj_chance_16 = adj_chance_8 * adj_chance_8;
 
 					ve::apply([&](dcon::province_id p, dcon::nation_id o, float c, bool condition) {
-						auto owned_range = state.world.nation_get_province_ownership(o);
 						if(condition) {
 							if(float(rng::get_random(state, uint32_t((i << 1) ^ p.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
 								trigger_provincial_event(state, id, p, uint32_t((state.current_date.value) ^ (i << 3)), uint32_t(p.index()));
 							}
+							assert(state.world.province_get_nation_from_province_ownership(p));
 						}
 					}, ids, owners, adj_chance_16, some_exist);
 				}
