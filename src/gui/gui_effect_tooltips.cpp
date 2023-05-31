@@ -569,6 +569,7 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
 		text::add_space_to_layout_box(layout, ws, box);
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "owned_province"));
+		text::add_space_to_layout_box(layout, ws, box);
 		if(primary_slot != -1)
 			text::add_to_layout_box(layout, ws, box, trigger::to_nation(primary_slot));
 		else
@@ -623,6 +624,7 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
 		text::add_space_to_layout_box(layout, ws, box);
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "owned_province"));
+		text::add_space_to_layout_box(layout, ws, box);
 		if(primary_slot != -1)
 			text::add_to_layout_box(layout, ws, box, trigger::to_state(primary_slot));
 		else
@@ -671,6 +673,7 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
 		text::add_space_to_layout_box(layout, ws, box);
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "core_of"));
+		text::add_space_to_layout_box(layout, ws, box);
 		if(primary_slot != -1)
 			text::add_to_layout_box(layout, ws, box, trigger::to_nation(primary_slot));
 		else
@@ -716,6 +719,7 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, random_or_every(tval[0])));
 		text::add_space_to_layout_box(layout, ws, box);
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "state_of"));
+		text::add_space_to_layout_box(layout, ws, box);
 		if(primary_slot != -1)
 			text::add_to_layout_box(layout, ws, box, trigger::to_nation(primary_slot));
 		else

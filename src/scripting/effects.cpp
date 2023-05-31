@@ -3488,14 +3488,17 @@ uint32_t ef_scaled_consciousness_province_unemployment(EFFECT_PARAMTERS) {
 uint32_t ef_variable_good_name(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 2);
 	assert(std::isfinite(amount));
-	ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), trigger::payload(tval[1]).com_id) += amount;
+	auto& v = ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), trigger::payload(tval[1]).com_id);
+	v = std::max(v + amount, 0.0f);
 	return 0;
 }
 uint32_t ef_variable_good_name_province(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 2);
 	assert(std::isfinite(amount));
-	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		ws.world.nation_get_stockpiles(owner, trigger::payload(tval[1]).com_id) += amount;
+	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner) {
+		auto& v = ws.world.nation_get_stockpiles(owner, trigger::payload(tval[1]).com_id);
+		v = std::max(v + amount, 0.0f);
+	}
 	return 0;
 }
 uint32_t ef_define_general(EFFECT_PARAMTERS) {

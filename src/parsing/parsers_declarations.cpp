@@ -77,6 +77,8 @@ void good::money(association_type, bool v, error_handler& err, int32_t line, goo
 		context.outer_context.state.world.commodity_set_color(economy::money, context.outer_context.state.world.commodity_get_color(context.id));
 		context.outer_context.state.world.commodity_set_cost(economy::money, context.outer_context.state.world.commodity_get_cost(context.id));
 		context.outer_context.state.world.commodity_set_commodity_group(economy::money, context.outer_context.state.world.commodity_get_commodity_group(context.id));
+		context.outer_context.state.world.commodity_set_name(economy::money, context.outer_context.state.world.commodity_get_name(context.id));
+		context.outer_context.state.world.commodity_set_is_available_from_start(economy::money, context.outer_context.state.world.commodity_get_is_available_from_start(context.id));
 
 		for(auto& pr : context.outer_context.map_of_commodity_names) {
 			if(pr.second == context.id) {

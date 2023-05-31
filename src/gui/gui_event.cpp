@@ -544,22 +544,21 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 void provincial_event_window::on_update(sys::state& state) noexcept {
 	for(auto e : option_buttons)
 		e->set_visible(state, true);
-	if(events.empty()) {
+
+	auto it = std::remove_if(events.begin(), events.end(), [&](auto& e) {
+		sys::date date{};
+		if(std::holds_alternative<event::pending_human_p_event>(e))
+			date = std::get<event::pending_human_p_event>(e).date;
+		else if(std::holds_alternative<event::pending_human_f_p_event>(e))
+			date = std::get<event::pending_human_f_p_event>(e).date;
+		return date + event::expiration_in_days <= state.current_date;
+		});
+	auto r = std::distance(it, events.end());
+	events.erase(it, events.end());
+
+	if(events.empty())
 		set_visible(state, false);
-	} else {
-		for(auto it = events.begin(); it != events.end(); it++) {
-			sys::date date{};
-			if(std::holds_alternative<event::pending_human_p_event>(*it))
-				date = std::get<event::pending_human_p_event>(*it).date;
-			else if(std::holds_alternative<event::pending_human_f_p_event>(*it))
-				date = std::get<event::pending_human_f_p_event>(*it).date;
-			if(date + event::expiration_in_days <= state.current_date) {
-				// Remove expired events
-				events.erase(it);
-				it--;
-			}
-		}
-	}
+
 	count_text->set_text(state, std::to_string(index + 1) + "/" + std::to_string(events.size()));
 }
 message_result provincial_event_window::get(sys::state& state, Cyto::Any& payload) noexcept {

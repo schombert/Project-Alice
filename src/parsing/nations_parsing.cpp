@@ -946,7 +946,7 @@ dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handl
 sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context) {
 	effect_building_context e_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
 
-	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope));
+	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
 	e_context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = e_context.compiled_effect.size() - 1;
 	e_context.limit_position = e_context.compiled_effect.size();

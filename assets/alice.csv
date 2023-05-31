@@ -180,7 +180,7 @@ support_for_blank;support for $text$;;;soporte para $text$;;;;;;;;;x
 up_to;up to ;;;hasta;;;;;;;;;x
 scaled_support; proportional to support of $text$;;; proporcional al soporte para $text$;;;;;;;;;x
 scaled_unemployment; proportional to unemployment;;; proporcional al desempleo;;;;;;;;;x
-stockpile_of;to national stockpile of ;;;en la reserva nacional de;;;;;;;;;x
+stockpile_of;to national stockpile of $text$;;;en la reserva nacional de;;;;;;;;;x
 create_general;a new general is created;;;se crea un nuevo general;;;;;;;;;x
 create_admiral;a new admiral is created;;;se crea un nuevo admiral;;;;;;;;;x
 add_war_goal;a $text$ war goal is added against $nation$;;;la meta de guerra $text$ se a�ade contra $nation$;;;;;;;;;x
@@ -288,6 +288,7 @@ in;in;;;en;;;;;;;;;x
 a_casus_belli_against;a casus belli against;;;un cassus belli en contra de;;;;;;;;;x
 military_access_with;military access with;;;acceso militar con;;;;;;;;;x
 prestige_of;the prestige of;;;el prestigio d;;;;;;;;;x
+prestige;prestige;;;prestigio;;;;;;;;;x
 a_railroad;a railroad;;;un ferrocarril;;;;;;;;;x
 a_fort;a fort;;;una fortaleza;;;;;;;;;x
 a_naval_base;a naval base;;;una base naval;;;;;;;;;x
