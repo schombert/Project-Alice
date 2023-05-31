@@ -91,12 +91,15 @@ void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t op
 }
 
 
-void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi, int32_t primary_slot, int32_t from_slot) {
+void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi, int32_t primary_slot, slot_type pt, int32_t from_slot, slot_type ft) {
+	if(ft == slot_type::province)
+		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
+	
 	if(auto immediate = state.world.national_event_get_immediate_effect(e); immediate) {
 		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		pending_human_n_event new_event{ r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date };
+		pending_human_n_event new_event{ r_lo, r_hi + 1, primary_slot, pt, from_slot, ft, e, n, state.current_date };
 		state.pending_n_event.push_back(new_event);
 		if(n == state.local_player_nation)
 			state.new_n_event.push(new_event);
@@ -131,8 +134,8 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		// TODO: notify
 	}
 }
-void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_hi, uint32_t r_lo, int32_t from_slot) {
-	trigger_national_event(state, e, n, r_hi, r_lo, trigger::to_generic(n), from_slot);
+void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_hi, uint32_t r_lo, int32_t from_slot, slot_type ft) {
+	trigger_national_event(state, e, n, r_hi, r_lo, trigger::to_generic(n), slot_type::nation, from_slot, ft);
 }
 void trigger_national_event(sys::state& state, dcon::free_national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi) {
 	state.world.free_national_event_set_has_been_triggered(e, true);
@@ -175,10 +178,13 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		// TODO: notify
 	}
 }
-void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo, int32_t from_slot) {
+void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo, int32_t from_slot, slot_type ft) {
+	if(ft == slot_type::province)
+		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
+
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		pending_human_p_event new_event{ r_lo, r_hi, from_slot, e, p, state.current_date };
+		pending_human_p_event new_event{ r_lo, r_hi, from_slot, ft, e, p, state.current_date };
 		state.pending_p_event.push_back(new_event);
 		if(owner == state.local_player_nation)
 			state.new_p_event.push(new_event);
@@ -397,7 +403,7 @@ struct internal_n_epair {
 	int32_t chance;
 };
 
-void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const& v, int32_t primary_slot, dcon::nation_id this_slot, int32_t from_slot) {
+void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const& v, int32_t primary_slot, slot_type pt, dcon::nation_id this_slot, int32_t from_slot, slot_type ft) {
 	static std::vector<internal_n_epair> valid_list;
 	valid_list.clear();
 
@@ -418,7 +424,7 @@ void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const
 		for(auto& fe : valid_list) {
 			random_value -= fe.chance;
 			if(random_value < 0) {
-				trigger_national_event(state, fe.e, this_slot, state.current_date.value, uint32_t(primary_slot), primary_slot, from_slot);
+				trigger_national_event(state, fe.e, this_slot, state.current_date.value, uint32_t(primary_slot), from_slot, ft);
 				return;
 			}
 		}
@@ -430,7 +436,7 @@ struct internal_p_epair {
 	int32_t chance;
 };
 
-void fire_fixed_event(sys::state& state, std::vector<nations::fixed_province_event> const& v, dcon::province_id prov, int32_t from_slot) {
+void fire_fixed_event(sys::state& state, std::vector<nations::fixed_province_event> const& v, dcon::province_id prov, int32_t from_slot, slot_type ft) {
 	static std::vector<internal_p_epair> valid_list;
 	valid_list.clear();
 
@@ -451,7 +457,7 @@ void fire_fixed_event(sys::state& state, std::vector<nations::fixed_province_eve
 		for(auto& fe : valid_list) {
 			random_value -= fe.chance;
 			if(random_value < 0) {
-				trigger_provincial_event(state, fe.e, prov, state.current_date.value, uint32_t(prov.index()), from_slot);
+				trigger_provincial_event(state, fe.e, prov, state.current_date.value, uint32_t(prov.index()), from_slot, ft);
 				return;
 			}
 		}

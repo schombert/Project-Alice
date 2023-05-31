@@ -701,3 +701,16 @@ TEST_CASE("batch-individual comparision", "[trigger_tests]") {
 		}, bulk_eval, g1, nations::owner_of_pop(*ws, g1));
 	}
 }
+
+TEST_CASE("trigger payload translation", "[trigger_tests]") {
+	{
+		auto old_d = trigger::to_generic(dcon::province_id{42});
+		auto new_d = trigger::to_prov(old_d);
+		REQUIRE(new_d == dcon::province_id{42});
+	}
+	{
+		auto old_d = trigger::to_generic(dcon::nation_id{42});
+		auto new_d = trigger::to_nation(old_d);
+		REQUIRE(new_d == dcon::nation_id{42});
+	}
+}
