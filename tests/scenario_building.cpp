@@ -2076,6 +2076,149 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 	// ***************************/
 }
 
+struct test_event_nation_pair {
+	dcon::nation_id n;
+	dcon::free_national_event_id e;
+
+	bool operator==(test_event_nation_pair const& other) const noexcept {
+		return other.n == n && other.e == e;
+	}
+	bool operator<(test_event_nation_pair const& other) const noexcept {
+		return other.n != n ? (n.value < other.n.value) : (e.value < other.e.value);
+	}
+};
+
+TEST_CASE("event performance", "[benchmarks]") {
+	auto ws = load_testing_scenario_file();
+	auto& state = *ws;
+
+	BENCHMARK_ADVANCED("national events in sequence")(Catch::Benchmark::Chronometer meter) {
+		meter.measure([&]() {
+			for(uint32_t k = 0; k < 32; ++k) {
+				uint32_t n_block_size = state.world.free_national_event_size() / 32;
+				uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
+
+				uint32_t block_index = (state.current_date.value & 31);
+
+				auto n_block_end = block_index == 31 ? state.world.free_national_event_size() : n_block_size * (block_index + 1);
+				for(uint32_t i = n_block_size * block_index; i < n_block_end; ++i) {
+					dcon::free_national_event_id id{dcon::national_event_id::value_base_t(i) };
+					auto mod = state.world.free_national_event_get_mtth(id);
+					auto t = state.world.free_national_event_get_trigger(id);
+
+					if(mod && (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false)) {
+						ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
+							/*
+							For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
+							*/
+							auto some_exist = t ? (state.world.nation_get_owned_province_count(ids) != 0) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0) : (state.world.nation_get_owned_province_count(ids) != 0);
+							if(ve::compress_mask(some_exist).v != 0) {
+								auto chances = trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0);
+								auto adj_chance = 1.0f - ve::select(chances <= 1.0f, 1.0f, 1.0f / (chances));
+								auto adj_chance_2 = adj_chance * adj_chance;
+								auto adj_chance_4 = adj_chance_2 * adj_chance_2;
+								auto adj_chance_8 = adj_chance_4 * adj_chance_4;
+								auto adj_chance_16 = adj_chance_8 * adj_chance_8;
+
+								ve::apply([&](dcon::nation_id n, float c, bool condition) {
+									auto owned_range = state.world.nation_get_province_ownership(n);
+									if(condition
+										&& (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false)
+										&& owned_range.begin() != owned_range.end()) {
+
+										if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
+											event::trigger_national_event(state, id, n, uint32_t((state.current_date.value) ^ (i << 3)), uint32_t(n.index()));
+										}
+									}
+
+								}, ids, adj_chance_16, some_exist);
+							}
+						});
+					}
+				}
+
+				state.current_date = state.current_date + 1;
+			}
+		});
+	};
+	BENCHMARK_ADVANCED("national events in parallel")(Catch::Benchmark::Chronometer meter) {
+		meter.measure([&]() {
+			for(uint32_t k = 0; k < 32; ++k) {
+				concurrency::combinable<std::vector<test_event_nation_pair>> events_triggered;
+				uint32_t n_block_size = state.world.free_national_event_size() / 32;
+				uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
+
+				uint32_t block_index = (state.current_date.value & 31);
+
+				auto n_block_end = block_index == 31 ? state.world.free_national_event_size() : n_block_size * (block_index + 1);
+				//for(uint32_t i = n_block_size * block_index; i < n_block_end; ++i) {
+				concurrency::parallel_for(n_block_size * block_index, n_block_end, [&](uint32_t i) {
+					dcon::free_national_event_id id{dcon::national_event_id::value_base_t(i) };
+					auto mod = state.world.free_national_event_get_mtth(id);
+					auto t = state.world.free_national_event_get_trigger(id);
+
+					bool trigger_at_most_once = state.world.free_national_event_get_only_once(id);
+					bool has_been_triggered = state.world.free_national_event_get_has_been_triggered(id);
+
+					if(mod && (trigger_at_most_once == false || has_been_triggered == false)) {
+						ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
+							/*
+							For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
+							*/
+							if(trigger_at_most_once == true && has_been_triggered == true)
+								return;
+
+							auto some_exist =
+								(t ? trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0) : true)
+								&& (state.world.nation_get_owned_province_count(ids) != 0);
+
+							if(ve::compress_mask(some_exist).v != 0) {
+								auto chances = trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0);
+								auto adj_chance = 1.0f - ve::select(chances <= 1.0f, 1.0f, 1.0f / (chances));
+								auto adj_chance_2 = adj_chance * adj_chance;
+								auto adj_chance_4 = adj_chance_2 * adj_chance_2;
+								auto adj_chance_8 = adj_chance_4 * adj_chance_4;
+								auto adj_chance_16 = adj_chance_8 * adj_chance_8;
+
+								ve::apply([&](dcon::nation_id n, float c, bool condition) {
+									if(trigger_at_most_once == true && has_been_triggered == true)
+										return;
+
+									auto owned_range = state.world.nation_get_province_ownership(n);
+									if(condition
+										&& (state.world.free_national_event_get_only_once(id) == false || state.world.free_national_event_get_has_been_triggered(id) == false)
+										&& owned_range.begin() != owned_range.end()) {
+
+										if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1) >= c) {
+											has_been_triggered = true;
+											events_triggered.local().push_back(test_event_nation_pair{ n, id });
+											//event::trigger_national_event(state, id, n, uint32_t((state.current_date.value) ^ (i << 3)), uint32_t(n.index()));
+										}
+									}
+
+								}, ids, adj_chance_16, some_exist);
+							}
+						});
+					}
+				});
+
+				auto total_vector = events_triggered.combine([](auto& a, auto& b) {
+					std::vector<test_event_nation_pair> result;
+					result.insert(result.end(), a.begin(), a.end());
+					result.insert(result.end(), b.begin(), b.end());
+					return result;
+				});
+				std::sort(total_vector.begin(), total_vector.end());
+				for(auto& v : total_vector) {
+					event::trigger_national_event(state, v.e, v.n, uint32_t((state.current_date.value) ^ (v.e.value << 3)), uint32_t(v.n.value));
+				}
+
+				state.current_date = state.current_date + 1;
+			}
+		});
+	};
+}
+
 TEST_CASE(".mod overrides", "[req-game-files]") {
 	parsers::error_handler err("");
 	REQUIRE(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
