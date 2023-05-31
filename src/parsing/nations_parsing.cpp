@@ -873,7 +873,7 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 			}
 		}
 
-		event_building_context e_context{ context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
+		event_building_context e_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::empty };
 		auto event_result = parse_generic_event(gen, err, e_context);
 		auto new_id = context.state.world.create_free_provincial_event();
 		auto fid = fatten(context.state.world, new_id);

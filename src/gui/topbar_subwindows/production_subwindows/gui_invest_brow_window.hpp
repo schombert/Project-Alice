@@ -115,10 +115,12 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
+		/*
 		auto win1 = make_element_by_type<production_foreign_investment_window>(state, state.ui_state.defs_by_name.find("invest_buttons")->second.definition);
 		win1->set_visible(state, false);
 		foreign_invest_win = win1.get();
 		add_child_to_front(std::move(win1));
+		*/
 
 		set_visible(state, false);
 		filter_countries(state, [](dcon::nation_id) { return true; });
