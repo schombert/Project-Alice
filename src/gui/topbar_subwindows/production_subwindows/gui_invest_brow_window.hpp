@@ -116,6 +116,7 @@ public:
 		window_element_base::on_create(state);
 
 		/*
+		// SCHOMBERT: since "invest_buttons" isn't a top level element, find can't find it, and you end up dereferencing a null iterator here.
 		auto win1 = make_element_by_type<production_foreign_investment_window>(state, state.ui_state.defs_by_name.find("invest_buttons")->second.definition);
 		win1->set_visible(state, false);
 		foreign_invest_win = win1.get();
