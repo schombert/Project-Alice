@@ -144,6 +144,7 @@ static bool set_active_tag(sys::state& state, std::string_view tag) noexcept {
 		if(curr == tag) {
 			dcon::national_identity_fat_id fat_id = dcon::fatten(state.world, id);
 			state.local_player_nation = fat_id.get_nation_from_identity_holder().id;
+			state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 			found = true;
 		}
 	});
