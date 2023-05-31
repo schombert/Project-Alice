@@ -92,8 +92,6 @@ void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t op
 
 
 void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_lo, uint32_t r_hi, int32_t primary_slot, slot_type pt, int32_t from_slot, slot_type ft) {
-	assert(e.value != 58);
-	
 	if(auto immediate = state.world.national_event_get_immediate_effect(e); immediate) {
 		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
 	}
