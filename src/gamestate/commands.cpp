@@ -1276,10 +1276,10 @@ void execute_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, 
 	nations::adjust_prestige(state, source, state.defines.colony_to_state_prestige_gain * (1.0f + state.world.nation_get_modifier_values(source, sys::national_mod_offsets::colonial_prestige)));
 
 	//An event from `on_colony_to_state` happens(with the state in scope)
-	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state, trigger::to_generic(si), source, -1);
+	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state, trigger::to_generic(si), event::slot_type::state, source, -1, event::slot_type::none);
 
 	//An event from `on_colony_to_state_free_slaves` happens(with the state in scope)
-	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state_free_slaves, trigger::to_generic(si), source, -1);
+	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state_free_slaves, trigger::to_generic(si), event::slot_type::state, source, -1, event::slot_type::none);
 
 	//Update is colonial nation
 	state.world.nation_set_is_colonial_nation(source, false);
@@ -1965,8 +1965,10 @@ void make_event_choice(sys::state& state, event::pending_human_n_event const& e,
 	p.data.pending_human_n_event.date = e.date;
 	p.data.pending_human_n_event.e = e.e;
 	p.data.pending_human_n_event.from_slot = e.from_slot;
+	p.data.pending_human_n_event.ft = e.ft;
 	p.data.pending_human_n_event.opt_choice = option_id;
 	p.data.pending_human_n_event.primary_slot = e.primary_slot;
+	p.data.pending_human_n_event.pt = e.pt;
 	p.data.pending_human_n_event.r_hi = e.r_hi;
 	p.data.pending_human_n_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
@@ -1992,6 +1994,7 @@ void make_event_choice(sys::state& state, event::pending_human_p_event const& e,
 	p.data.pending_human_p_event.e = e.e;
 	p.data.pending_human_p_event.p = e.p;
 	p.data.pending_human_p_event.from_slot = e.from_slot;
+	p.data.pending_human_p_event.ft = e.ft;
 	p.data.pending_human_p_event.opt_choice = option_id;
 	p.data.pending_human_p_event.r_hi = e.r_hi;
 	p.data.pending_human_p_event.r_lo = e.r_lo;
@@ -2011,7 +2014,7 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 	auto b = state.incoming_commands.try_push(p);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
-	event::take_option(state, event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft, e.e, source, e.date}, e.opt_choice);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
 	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
@@ -2020,7 +2023,7 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
-	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.e, e.p, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.ft, e.e, e.p, e.date}, e.opt_choice);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))

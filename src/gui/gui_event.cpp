@@ -10,25 +10,84 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 	dcon::province_id from_province{};
 	dcon::state_instance_id target_state{};
 	dcon::state_instance_id from_state{};
+	dcon::province_id target_capital{};
+
+	event::slot_type ft = event::slot_type::none;
+	int32_t from_slot = -1;
+
+	event::slot_type pt = event::slot_type::none;
+	int32_t primary_slot = -1;
+
 	if(std::holds_alternative<event::pending_human_n_event>(phe)) {
 		const auto& e = std::get<event::pending_human_n_event>(phe);
 		target_nation = e.n;
-		from_nation = trigger::to_nation(e.from_slot);
+		target_capital = state.world.nation_get_capital(target_nation);
+
+		from_slot = e.from_slot;
+		ft = e.ft;
+		primary_slot = e.primary_slot;
+		pt = e.pt;
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(phe)) {
 		const auto& e = std::get<event::pending_human_f_n_event>(phe);
 		target_nation = e.n;
+		target_capital = state.world.nation_get_capital(target_nation);
 	} else if(std::holds_alternative<event::pending_human_p_event>(phe)) {
 		const auto& e = std::get<event::pending_human_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
 		target_state = state.world.province_get_state_membership(e.p);
+		target_capital = state.world.state_instance_get_capital(target_state);
 		target_province = e.p;
 
-		from_nation = state.world.province_get_nation_from_province_ownership(trigger::to_prov(e.from_slot));
+		from_slot = e.from_slot;
+		ft = e.ft;
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(phe)) {
 		const auto& e = std::get<event::pending_human_f_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
 		target_state = state.world.province_get_state_membership(e.p);
+		target_capital = state.world.state_instance_get_capital(target_state);
 		target_province = e.p;
+	}
+
+	if(from_slot != -1) {
+		switch(ft) {
+		case event::slot_type::nation:
+			from_nation = trigger::to_nation(from_slot);
+			switch(pt) {
+			case event::slot_type::state:
+				from_state = trigger::to_state(primary_slot);
+				from_province = state.world.state_instance_get_capital(from_state);
+				break;
+			case event::slot_type::province:
+				from_province = trigger::to_prov(primary_slot);
+				from_state = state.world.province_get_state_membership(from_province);
+				break;
+			default:
+				from_province = state.world.nation_get_capital(from_nation);
+				from_state = state.world.province_get_state_membership(from_province);
+				break;
+			}
+			break;
+		case event::slot_type::state:
+			from_state = trigger::to_state(from_slot);
+			from_nation = state.world.state_instance_get_nation_from_state_ownership(from_state);
+			switch(pt) {
+			case event::slot_type::province:
+				from_province = trigger::to_prov(primary_slot);
+				break;
+			default:
+				from_province = state.world.state_instance_get_capital(from_state);
+				break;
+			}
+			break;
+		case event::slot_type::province:
+			from_province = trigger::to_prov(from_slot);
+			from_state = state.world.province_get_state_membership(from_province);
+			from_nation = state.world.province_get_nation_from_province_ownership(from_province);
+			break;
+		default:
+			// TODO: Handle rest
+			break;
+		}
 	}
 
 	// Target
@@ -39,9 +98,11 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name, state.world.nation_get_constructing_cb_target(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
 	// From
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, state.world.nation_get_adjective(from_nation));
+	text::add_to_substitution_map(sub, text::variable_type::fromprovince, from_province);
 
 	// Global crisis stuff
 	// TODO: crisisarea
@@ -83,10 +144,10 @@ void national_event_option_button::update_tooltip(sys::state& state, int32_t x, 
 		national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
 		if(std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto phe = std::get<event::pending_human_n_event>(content);
-			effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.n), trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
+			effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot, trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
-			effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
+			effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.n), -1, -1, phe.r_lo, phe.r_hi);
 		}
 	}
 }
@@ -118,6 +179,11 @@ void national_event_image::on_update(sys::state& state) noexcept {
 		else if(std::holds_alternative<event::pending_human_f_n_event>(content))
 			base_data.data.image.gfx_object = state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
 	}
+}
+
+void national_event_desc_text::on_create(sys::state& state) noexcept {
+	multiline_text_element_base::on_create(state);
+	base_data.data.text.font_handle = text::name_into_font_id(state, "ToolTip_Font");
 }
 
 void national_event_desc_text::on_update(sys::state& state) noexcept {
@@ -363,6 +429,11 @@ void provincial_event_option_button::button_action(sys::state& state) noexcept {
 		Cyto::Any n_payload = option_taken_notification{};
 		parent->impl_get(state, n_payload);
 	}
+}
+
+void provincial_event_desc_text::on_create(sys::state& state) noexcept {
+	multiline_text_element_base::on_create(state);
+	base_data.data.text.font_handle = text::name_into_font_id(state, "ToolTip_Font");
 }
 
 void provincial_event_desc_text::on_update(sys::state& state) noexcept {

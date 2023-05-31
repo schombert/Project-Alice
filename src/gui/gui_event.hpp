@@ -44,6 +44,7 @@ public:
 };
 class national_event_desc_text : public multiline_text_element_base {
 public:
+	void on_create(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class national_event_name_text : public multiline_text_element_base {
@@ -81,6 +82,7 @@ public:
 };
 class provincial_event_desc_text : public multiline_text_element_base {
 public:
+	void on_create(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class provincial_event_name_text : public multiline_text_element_base {

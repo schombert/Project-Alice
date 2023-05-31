@@ -193,7 +193,9 @@ struct pending_human_n_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
 	int32_t primary_slot;
+	event::slot_type pt;
 	int32_t from_slot;
+	event::slot_type ft;
 	dcon::national_event_id e;
 	sys::date date;
 	uint8_t opt_choice;
@@ -209,6 +211,7 @@ struct pending_human_p_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
 	int32_t from_slot;
+	event::slot_type ft;
 	dcon::provincial_event_id e;
 	dcon::province_id p;
 	sys::date date;

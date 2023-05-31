@@ -490,7 +490,7 @@ void update_great_powers(sys::state& state) {
 
 			state.world.nation_set_is_great_power(n, false);
 
-			event::fire_fixed_event(state, state.national_definitions.on_lost_great_nation, trigger::to_generic(n), n, -1);
+			event::fire_fixed_event(state, state.national_definitions.on_lost_great_nation, trigger::to_generic(n), event::slot_type::nation, n, -1, event::slot_type::none);
 
 			// kill gp relationships
 			auto rels = state.world.nation_get_gp_relationship_as_great_power(n);
@@ -514,7 +514,7 @@ void update_great_powers(sys::state& state) {
 					state.world.delete_gp_relationship(*(rng.begin()));
 				}
 
-				event::fire_fixed_event(state, state.national_definitions.on_new_great_nation, trigger::to_generic(n), n, -1);
+				event::fire_fixed_event(state, state.national_definitions.on_new_great_nation, trigger::to_generic(n), event::slot_type::nation, n, -1, event::slot_type::none);
 			}
 		}
 	}
@@ -1767,7 +1767,7 @@ void update_crisis(sys::state& state) {
 						state.crisis_participants[added_count].merely_interested = true;
 						++added_count;
 
-						event::fire_fixed_event(state, state.national_definitions.on_crisis_declare_interest, trigger::to_generic(gp.nation), gp.nation, -1);
+						event::fire_fixed_event(state, state.national_definitions.on_crisis_declare_interest, trigger::to_generic(gp.nation), event::slot_type::nation, gp.nation, -1, event::slot_type::none);
 					}
 				}
 			}
@@ -2010,7 +2010,7 @@ void make_civilized(sys::state& state, dcon::nation_id n) {
 	sys::update_single_nation_modifiers(state, n);
 	culture::update_nation_issue_rules(state, n);
 
-	event::fire_fixed_event(state, state.national_definitions.on_civilize, trigger::to_generic(n), n, -1);
+	event::fire_fixed_event(state, state.national_definitions.on_civilize, trigger::to_generic(n), event::slot_type::nation, n, -1, event::slot_type::none);
 }
 void make_uncivilized(sys::state& state, dcon::nation_id n) {
 	state.world.nation_set_is_civilized(n, false);

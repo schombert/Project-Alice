@@ -2972,67 +2972,67 @@ uint32_t ef_war_no_ally_from_province(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_country_event_this_nation(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::nation);
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_nation(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::nation);
 	return 0;
 }
 uint32_t ef_province_event_this_nation(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::nation);
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_nation(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::nation);
 	return 0;
 }
 uint32_t ef_country_event_this_state(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::state);
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_state(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::state);
 	return 0;
 }
 uint32_t ef_province_event_this_state(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::state);
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_state(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::state);
 	return 0;
 }
 uint32_t ef_country_event_this_province(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::province);
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_province(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::province);
 	return 0;
 }
 uint32_t ef_province_event_this_province(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::province);
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_province(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::province);
 	return 0;
 }
 uint32_t ef_country_event_this_pop(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::pop);
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_pop(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::pop);
 	return 0;
 }
 uint32_t ef_province_event_this_pop(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::pop);
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_pop(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot);
+	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::pop);
 	return 0;
 }
 uint32_t ef_country_event_province_this_nation(EFFECT_PARAMTERS) {
