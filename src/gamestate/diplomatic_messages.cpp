@@ -5,7 +5,7 @@
 namespace diplomatic_message {
 
 
-void decline_message(sys::state& state, message const& m) {
+void decline(sys::state& state, message const& m) {
 	switch(m.type) {
 		case type::none:
 			std::abort();
@@ -52,7 +52,7 @@ void decline_message(sys::state& state, message const& m) {
 	}
 
 }
-void accept_message(sys::state& state, message const& m) {
+void accept(sys::state& state, message const& m) {
 	switch(m.type) {
 		case type::none:
 			std::abort();
@@ -103,7 +103,7 @@ void accept_message(sys::state& state, message const& m) {
 	}
 }
 
-void post_message(sys::state& state, message const& m) {
+void post(sys::state& state, message const& m) {
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
 		// TODO : call AI logic to decide responses to requests
 
@@ -113,13 +113,13 @@ void post_message(sys::state& state, message const& m) {
 				std::abort();
 				return;
 			case type::access_request:
-				accept_message(state, m);
+				accept(state, m);
 				return;
 			case type::alliance_request:
-				decline_message(state, m);
+				decline(state, m);
 				return;
 			case type::call_ally_request:
-				decline_message(state, m);
+				decline(state, m);
 				return;
 			case type::be_crisis_primary_defender:
 				nations::add_as_primary_crisis_defender(state, m.to);
@@ -144,11 +144,11 @@ void post_message(sys::state& state, message const& m) {
 	}
 }
 
-void update_pending_messages(sys::state& state) {
+void update_pending(sys::state& state) {
 	for(auto& m : state.pending_messages) {
 		if(m.type != type::none && m.when + expiration_in_days <= state.current_date) {
 
-			decline_message(state, m);
+			decline(state, m);
 			m.type = type::none;
 		}
 	}

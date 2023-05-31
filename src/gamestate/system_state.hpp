@@ -26,6 +26,7 @@
 #include "commands.hpp"
 #include "diplomatic_messages.hpp"
 #include "events.hpp"
+#include "notifications.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -209,6 +210,7 @@ namespace sys {
 		rigtorp::SPSCQueue<event::pending_human_p_event> new_p_event;
 		rigtorp::SPSCQueue<event::pending_human_f_p_event> new_f_p_event;
 		rigtorp::SPSCQueue<diplomatic_message::message> new_requests;
+		rigtorp::SPSCQueue<notification::message> new_messages;
 
 		// internal game timer / update logic
 		std::chrono::time_point<std::chrono::steady_clock> last_update = std::chrono::steady_clock::now();
@@ -271,7 +273,7 @@ namespace sys {
 		dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 		dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256) {}
+		state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) {}
 
 		~state();
 

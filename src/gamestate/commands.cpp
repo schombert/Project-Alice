@@ -2136,7 +2136,7 @@ void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nati
 	m.from = asker;
 	m.type = diplomatic_message::type::access_request;
 
-	diplomatic_message::post_message(state, m);
+	diplomatic_message::post(state, m);
 }
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
@@ -2184,7 +2184,7 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 	m.from = asker;
 	m.type = diplomatic_message::type::alliance_request;
 
-	diplomatic_message::post_message(state, m);
+	diplomatic_message::post(state, m);
 }
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
@@ -2217,7 +2217,7 @@ void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation
 	m.data.war = w;
 	m.type = diplomatic_message::type::call_ally_request;
 
-	diplomatic_message::post_message(state, m);
+	diplomatic_message::post(state, m);
 }
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept) {
@@ -2235,9 +2235,9 @@ void execute_respond_to_diplomatic_message(sys::state& state, dcon::nation_id so
 		if(m.type == type && m.from == from && m.to == source) {
 
 			if(accept)
-				diplomatic_message::accept_message(state, m);
+				diplomatic_message::accept(state, m);
 			else
-				diplomatic_message::decline_message(state, m);
+				diplomatic_message::decline(state, m);
 
 			m.type = diplomatic_message::type::none;
 

@@ -32,10 +32,10 @@ struct message {
 
 using type = type_t;
 
-void decline_message(sys::state& state, message const& m);
-void accept_message(sys::state& state, message const& m);
+void decline(sys::state& state, message const& m);
+void accept(sys::state& state, message const& m);
 
-void post_message(sys::state& state, message const& m);
-void update_pending_messages(sys::state& state);
+void post(sys::state& state, message const& m);
+void update_pending(sys::state& state);
 
 }

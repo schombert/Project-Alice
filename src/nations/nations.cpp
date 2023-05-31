@@ -1579,7 +1579,7 @@ void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {
 		if(state.crisis_state) {
 			m.from = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
 		}
-		diplomatic_message::post_message(state, m);
+		diplomatic_message::post(state, m);
 	}
 }
 
@@ -1594,7 +1594,7 @@ void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n) {
 		if(state.crisis_liberation_tag) {
 			m.from = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
 		}
-		diplomatic_message::post_message(state, m);
+		diplomatic_message::post(state, m);
 	}
 }
 

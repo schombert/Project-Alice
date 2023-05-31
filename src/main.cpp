@@ -45,6 +45,7 @@
 #include "gui_modifier_tooltips.cpp"
 #include "commands.cpp"
 #include "diplomatic_messages.cpp"
+#include "notifications.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
