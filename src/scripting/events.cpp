@@ -63,7 +63,7 @@ void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt)
 			state.pending_p_event[i] = state.pending_p_event.back();
 			state.pending_p_event.pop_back();
 
-			effect::execute(state, state.world.provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(state.world.province_get_nation_from_province_ownership(e.p)), e.from_slot, e.r_lo, e.r_hi);
+			effect::execute(state, state.world.provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(e.p), e.from_slot, e.r_lo, e.r_hi);
 
 			return;
 		}
@@ -83,7 +83,7 @@ void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t op
 			state.pending_f_p_event[i] = state.pending_f_p_event.back();
 			state.pending_f_p_event.pop_back();
 
-			effect::execute(state, state.world.free_provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(state.world.province_get_nation_from_province_ownership(e.p)), -1, e.r_lo, e.r_hi);
+			effect::execute(state, state.world.free_provincial_event_get_options(e.e)[opt].effect, trigger::to_generic(e.p), trigger::to_generic(e.p), -1, e.r_lo, e.r_hi);
 
 			return;
 		}
