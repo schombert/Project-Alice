@@ -140,6 +140,16 @@ namespace simple_fs {
 		}
 	}
 
+	namespace impl {
+	bool contains_non_ascii(native_char const* str) {
+		for(auto c = str; *c != 0; ++c) {
+			if(int32_t(*c) > 127 || int32_t(*c) < 0)
+				return true;
+		}
+		return false;
+	}
+	}
+
 	std::vector<unopened_file> list_files(directory const& dir, native_char const* extension) {
 		std::vector<unopened_file> accumulated_results;
 		if(dir.parent_system) {
@@ -155,7 +165,7 @@ namespace simple_fs {
 				auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 				if(find_handle != INVALID_HANDLE_VALUE) {
 					do {
-						if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+						if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 							if(auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = find_result.cFileName](const auto& f) {
 								return f.file_name.compare(n) == 0;
 								}); search_result == accumulated_results.end()) {
@@ -173,7 +183,7 @@ namespace simple_fs {
 			auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
-					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 						accumulated_results.emplace_back(dir.relative_path + NATIVE("\\") + find_result.cFileName, find_result.cFileName);
 						
 					}
@@ -181,6 +191,15 @@ namespace simple_fs {
 				FindClose(find_handle);
 			}
 		}
+		std::sort(accumulated_results.begin(), accumulated_results.end(), [](unopened_file const& a, unopened_file const& b) {
+			return std::lexicographical_compare(
+				std::begin(a.file_name), std::end(a.file_name),
+				std::begin(b.file_name), std::end(b.file_name),
+				[](native_char const& char1, native_char const& char2) {
+					return tolower(char1) < tolower(char2);
+				}
+			);
+		});
 		return accumulated_results;
 	}
 	std::vector<directory> list_subdirectories(directory const& dir) {
@@ -196,7 +215,7 @@ namespace simple_fs {
 				auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 				if(find_handle != INVALID_HANDLE_VALUE) {
 					do {
-						if(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+						if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 							native_string const rel_name = dir.relative_path + NATIVE("\\") + find_result.cFileName;
 							if(find_result.cFileName[0] != NATIVE('.')
 								&& std::find_if(accumulated_results.begin(), accumulated_results.end(),
@@ -216,7 +235,7 @@ namespace simple_fs {
 			auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
-					if(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+					if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 						native_string const rel_name = dir.relative_path + NATIVE("\\") + find_result.cFileName;
 						if(find_result.cFileName[0] != NATIVE('.')) {
 							accumulated_results.emplace_back(nullptr, rel_name);
@@ -226,6 +245,15 @@ namespace simple_fs {
 				FindClose(find_handle);
 			}
 		}
+		std::sort(accumulated_results.begin(), accumulated_results.end(), [](directory const& a, directory const& b) {
+			return std::lexicographical_compare(
+				std::begin(a.relative_path), std::end(a.relative_path),
+				std::begin(b.relative_path), std::end(b.relative_path),
+				[](native_char const& char1, native_char const& char2) {
+					return tolower(char1) < tolower(char2);
+				}
+			);
+		});
 		return accumulated_results;
 	}
 

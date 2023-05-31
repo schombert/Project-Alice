@@ -140,6 +140,16 @@ void restore_state(file_system& fs, native_string_view data) {
 	}
 }
 
+namespace impl {
+bool contains_non_ascii(native_char const* str) {
+	for(auto c = str; *c != 0; ++c) {
+		if(int32_t(*c) > 127 || int32_t(*c) < 0)
+			return true;
+	}
+	return false;
+}
+}
+
 std::vector<unopened_file> list_files(directory const& dir, native_char const* extension) {
     std::vector<unopened_file> accumulated_results;
     if (dir.parent_system) {
@@ -168,7 +178,8 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 							continue;
 					}
 
-					
+					if(impl::contains_non_ascii(dir_ent->d_name))
+						continue;
 
                     auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = dir_ent->d_name](const auto& f) {
                         return f.file_name.compare(n) == 0;
@@ -200,11 +211,23 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 						continue;
 				}
 
+				if(impl::contains_non_ascii(dir_ent->d_name))
+					continue;
+
                 accumulated_results.emplace_back(dir.relative_path + NATIVE("/") + dir_ent->d_name, dir_ent->d_name);
             }
             closedir(d);
         }
     }
+	std::sort(accumulated_results.begin(), accumulated_results.end(), [](unopened_file const& a, unopened_file const& b) {
+		return std::lexicographical_compare(
+			std::begin(a.file_name), std::end(a.file_name),
+			std::begin(b.file_name), std::end(b.file_name),
+			[](native_char const& char1, native_char const& char2) {
+			return tolower(char1) < tolower(char2);
+			}
+		);
+	});
     return accumulated_results;
 }
 std::vector<directory> list_subdirectories(directory const& dir) {
@@ -223,6 +246,9 @@ std::vector<directory> list_subdirectories(directory const& dir) {
                     // Check if it's a directory. Not POSIX standard but included in Linux
                     if (dir_ent->d_type != DT_DIR)
                         continue;
+
+					if(impl::contains_non_ascii(dir_ent->d_name))
+						continue;
 
                     native_string const rel_name = dir.relative_path + NATIVE("/") + dir_ent->d_name;
                     if (dir_ent->d_name[0] != NATIVE('.')) {
@@ -248,6 +274,9 @@ std::vector<directory> list_subdirectories(directory const& dir) {
                 if (dir_ent->d_type != DT_DIR)
                     continue;
 
+				if(impl::contains_non_ascii(dir_ent->d_name))
+					continue;
+
                 native_string const rel_name = dir.relative_path + NATIVE("/") + dir_ent->d_name;
                 if (dir_ent->d_name[0] != NATIVE('.')) {
                     accumulated_results.emplace_back(nullptr, rel_name);
@@ -256,6 +285,16 @@ std::vector<directory> list_subdirectories(directory const& dir) {
             closedir(d);
         }
     }
+	std::sort(accumulated_results.begin(), accumulated_results.end(), [](directory const& a, directory const& b) {
+		return std::lexicographical_compare(
+			std::begin(a.relative_path), std::end(a.relative_path),
+			std::begin(b.relative_path), std::end(b.relative_path),
+			[](native_char const& char1, native_char const& char2) {
+			return tolower(char1) < tolower(char2);
+			}
+		);
+	});
+
     return accumulated_results;
 }
 
