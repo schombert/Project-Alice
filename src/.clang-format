@@ -1,7 +1,6 @@
 UseTab: ForIndentation
 TabWidth: 4
 IndentWidth: 4
-InsertBraces: false
 NamespaceIndentation: None
 IndentAccessModifiers: false
 ColumnLimit: 0
