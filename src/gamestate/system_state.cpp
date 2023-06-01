@@ -75,7 +75,6 @@ namespace sys {
 	}
 	void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 		if(ui_state.under_mouse != nullptr) {
-			// TODO figure out tooltips
 			auto r = ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 			if(r != ui::message_result::consumed) {
 				map_state.on_mouse_move(x, y, x_size, y_size, mod);
@@ -106,8 +105,8 @@ namespace sys {
 		}
 	}
 	void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
-		if(ui_state.under_mouse != nullptr) {
-			auto r = ui_state.under_mouse->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
+		if(ui_state.scroll_target != nullptr) {
+			auto r = ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
 			if(r != ui::message_result::consumed) {
 				// TODO Settings for making zooming the map faster
 				map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
@@ -143,12 +142,12 @@ namespace sys {
 	void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 		auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
-		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+		auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 		if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
 			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 				// RGO doesn't need clicks... yet
 			} else {
-				mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale));
+				mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 			}
 		}
 
@@ -230,9 +229,11 @@ namespace sys {
 			}
 		}
 
-		if(ui_state.last_tooltip != mouse_probe.under_mouse) {
-			ui_state.last_tooltip = mouse_probe.under_mouse;
-			if(mouse_probe.under_mouse) {
+		auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
+		if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
+			ui_state.last_tooltip = tooltip_probe.under_mouse;
+			if(tooltip_probe.under_mouse) {
 				auto type = ui_state.last_tooltip->has_tooltip(*this);
 				if(type != ui::tooltip_behavior::no_tooltip) {
 
@@ -323,6 +324,8 @@ namespace sys {
 		glDepthRange(-1.0, 1.0);
 
 		ui_state.under_mouse = mouse_probe.under_mouse;
+		ui_state.scroll_target = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip).under_mouse;
+
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
 
 		if(map_state.get_zoom() > 5) {
@@ -1550,6 +1553,10 @@ namespace sys {
 				world.ideology_set_enabled(id, true);
 			}
 		});
+
+		for(auto n : world.in_nation) {
+			n.set_diplomatic_points(1.0f);
+		}
 
 		// fix worker types
 		province::for_each_land_province(*this, [&](dcon::province_id p) {

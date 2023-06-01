@@ -446,8 +446,8 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -486,8 +486,8 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -672,8 +672,8 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::unseen;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::consumed;
 	}
 };
 

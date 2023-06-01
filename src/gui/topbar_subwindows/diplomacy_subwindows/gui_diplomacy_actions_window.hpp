@@ -67,10 +67,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -142,10 +138,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -213,10 +205,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -280,10 +268,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -332,10 +316,6 @@ public:
 			Cyto::Any payload = diplomacy_action::increase_relations;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -390,10 +370,6 @@ public:
 			Cyto::Any payload = diplomacy_action::decrease_relations;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -457,10 +433,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -520,10 +492,6 @@ public:
 			Cyto::Any payload = diplomacy_action::declare_war;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -589,10 +557,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -643,10 +607,6 @@ public:
 			Cyto::Any payload = diplomacy_action::discredit;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -700,10 +660,6 @@ public:
 			Cyto::Any payload = diplomacy_action::expel_advisors;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -760,10 +716,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -815,10 +767,6 @@ public:
 			Cyto::Any payload = diplomacy_action::increase_opinion;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -875,10 +823,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -930,10 +874,6 @@ public:
 			Cyto::Any payload = diplomacy_action::add_to_sphere;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -988,10 +928,6 @@ public:
 			Cyto::Any payload = diplomacy_action::remove_from_sphere;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1049,10 +985,6 @@ public:
 			Cyto::Any payload = diplomacy_action::justify_war;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {

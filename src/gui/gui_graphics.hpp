@@ -346,6 +346,7 @@ namespace ui {
 
 	struct state {
 		element_base* under_mouse = nullptr;
+		element_base* scroll_target = nullptr;
 		element_base* drag_target = nullptr;
 		element_base* edit_target = nullptr;
 		element_base* last_tooltip = nullptr;

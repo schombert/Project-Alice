@@ -5251,11 +5251,10 @@ uint32_t ef_variable_good_name(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto amount = trigger::read_float_from_payload(tval + 2);
 		auto box = text::open_layout_box(layout, indentation);
+		display_value(text::fp_one_place{amount}, true, ws, layout, box);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 		text::localised_format_box(ws, layout, box, "stockpile_of", m);
-		text::add_space_to_layout_box(layout, ws, box);
-		display_value(text::fp_one_place{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5264,11 +5263,10 @@ uint32_t ef_variable_good_name_province(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto amount = trigger::read_float_from_payload(tval + 2);
 		auto box = text::open_layout_box(layout, indentation);
+		display_value(text::fp_one_place{amount}, true, ws, layout, box);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 		text::localised_format_box(ws, layout, box, "stockpile_of", m);
-		text::add_space_to_layout_box(layout, ws, box);
-		display_value(text::fp_one_place{amount}, true, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
