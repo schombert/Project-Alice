@@ -32,11 +32,10 @@ typedef std::variant<
     event::pending_human_n_event,
     event::pending_human_f_n_event>
     national_event_data_wrapper;
-class national_event_option_button : public button_element_base {
+class national_event_option_button : public add_tooltip<button_element_base> {
 public:
 	uint8_t index = 0;
 	void on_update(sys::state &state) noexcept override;
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override;
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override;
 	void button_action(sys::state &state) noexcept override;
 };
@@ -75,11 +74,10 @@ typedef std::variant<
     event::pending_human_p_event,
     event::pending_human_f_p_event>
     provincial_event_data_wrapper;
-class provincial_event_option_button : public button_element_base {
+class provincial_event_option_button : public add_tooltip<button_element_base> {
 public:
 	uint8_t index = 0;
 	void on_update(sys::state &state) noexcept override;
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override;
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override;
 	void button_action(sys::state &state) noexcept override;
 };

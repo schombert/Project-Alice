@@ -327,7 +327,7 @@ public:
 	}
 };
 template <class T>
-class unit_details_dettach_button : public button_element_base {
+class unit_details_detach_button : public button_element_base {
 public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
@@ -355,7 +355,7 @@ public:
 		} else if (name == "attach_unit_button") {
 			return make_element_by_type<unit_details_attach_button<T>>(state, id);
 		} else if (name == "detach_unit_button") {
-			return make_element_by_type<unit_details_dettach_button<T>>(state, id);
+			return make_element_by_type<unit_details_detach_button<T>>(state, id);
 		} else {
 			return nullptr;
 		}

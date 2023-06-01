@@ -546,7 +546,7 @@ public:
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
-		// Average conciousness
+		// Average consciousness
 		{
 			auto ptr = make_element_by_type<province_consciousness_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);

@@ -14,16 +14,8 @@
 
 namespace ui {
 
-class province_liferating : public province_liferating_progress_bar {
+class province_liferating : public add_tooltip<province_liferating_progress_bar> {
 public:
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -69,7 +61,7 @@ public:
 	}
 };
 
-class province_terrain_image : public opaque_element_base {
+class province_terrain_image : public add_tooltip<opaque_element_base> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -84,10 +76,6 @@ public:
 				base_data.data.image.gfx_object = terrain_image;
 			}
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t t, text::columnar_layout &contents) noexcept override {
@@ -125,7 +113,7 @@ public:
 	}
 };
 
-class province_controller_flag : public flag_button {
+class province_controller_flag : public add_tooltip<flag_button> {
 public:
 	dcon::national_identity_id get_current_nation(sys::state &state) noexcept override {
 		if (parent) {
@@ -150,14 +138,6 @@ public:
 		set_visible(state, bool(nation));
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -175,7 +155,7 @@ public:
 	}
 };
 
-class province_colony_button : public standard_state_instance_button {
+class province_colony_button : public add_tooltip<standard_state_instance_button> {
 public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
@@ -198,10 +178,6 @@ public:
 			auto content = any_cast<dcon::state_instance_id>(payload);
 			command::upgrade_colony_to_state(state, state.local_player_nation, content);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t t, text::columnar_layout &contents) noexcept override {
@@ -243,7 +219,7 @@ public:
 	}
 };
 
-class province_national_focus_button : public button_element_base {
+class province_national_focus_button : public add_tooltip<button_element_base> {
 public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
@@ -261,10 +237,6 @@ public:
 	}
 
 	void button_action(sys::state &state) noexcept override;
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
@@ -814,18 +786,11 @@ public:
 	}
 };
 
-class province_colony_rgo_icon : public image_element_base {
+class province_colony_rgo_icon : public add_tooltip<image_element_base> {
 public: // goto hell;
 	    // Seriously hate this code, just no, this is awful and shouldnt be needed
 	    // but i refuse to loose my sanity to something to assining
 	dcon::text_sequence_id rgo_name;
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);

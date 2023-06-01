@@ -35,16 +35,8 @@ public:
 	}
 };
 
-class diplomacy_nation_ships_text : public nation_ships_text {
+class diplomacy_nation_ships_text : public add_tooltip<nation_ships_text> {
 public:
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -60,16 +52,8 @@ public:
 	}
 };
 
-class diplomacy_nation_brigades_text : public nation_brigades_text {
+class diplomacy_nation_brigades_text : public add_tooltip<nation_brigades_text> {
 public:
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -88,16 +72,8 @@ public:
 	}
 };
 
-class diplomacy_nation_war_exhaustion_text : public nation_war_exhaustion_text {
+class diplomacy_nation_war_exhaustion_text : public add_tooltip<nation_war_exhaustion_text> {
 public:
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -116,16 +92,8 @@ public:
 	}
 };
 
-class diplomacy_nation_infamy_text : public nation_infamy_text {
+class diplomacy_nation_infamy_text : public add_tooltip<nation_infamy_text> {
 public:
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -144,7 +112,7 @@ public:
 	}
 };
 
-class diplomacy_priority_button : public button_element_base {
+class diplomacy_priority_button : public add_tooltip<button_element_base> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -198,10 +166,6 @@ public:
 				break;
 			}
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -493,7 +457,7 @@ public:
 };
 
 template <bool IsAttacker>
-class war_side_strength_text : public generic_settable_element<button_element_base, dcon::war_id> {
+class war_side_strength_text : public add_tooltip<generic_settable_element<button_element_base, dcon::war_id>> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
@@ -502,10 +466,6 @@ public:
 			if (o.get_is_attacker() == IsAttacker)
 				strength += int32_t(o.get_nation().get_military_score());
 		set_button_text(state, std::to_string(strength));
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -525,7 +485,7 @@ public:
 };
 
 template <bool B>
-class diplomacy_join_war_button : public button_element_base {
+class diplomacy_join_war_button : public add_tooltip<button_element_base> {
 public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
@@ -558,10 +518,6 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -574,7 +530,7 @@ public:
 	}
 };
 
-class diplomacy_join_defenders_button : public button_element_base {
+class diplomacy_join_defenders_button : public add_tooltip<button_element_base> {
 public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
@@ -597,10 +553,6 @@ public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, "");
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {

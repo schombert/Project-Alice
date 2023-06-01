@@ -79,7 +79,7 @@ protected:
 	virtual void on_reset_text(sys::state &state) noexcept {}
 
 	virtual focus_result on_get_focus(sys::state &state) noexcept { // used to both react to getting the focus and to accept or reject it
-		return focus_result::ingored;
+		return focus_result::ignored;
 	}
 	virtual void on_lose_focus(sys::state &state) noexcept {}  // called when the focus is taken away
 	virtual void on_drag_finish(sys::state &state) noexcept {} // when the mouse is released, and drag ends

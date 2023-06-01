@@ -744,7 +744,7 @@ public:
 	}
 
 	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		// Special mesage rebroadcasted by the details button from the hierachy
+		// Special message rebroadcasted by the details button from the hierarchy
 		if (payload.holds_type<dcon::commodity_id>()) {
 			payload.emplace<dcon::commodity_id>(commodity_id);
 			return message_result::consumed;

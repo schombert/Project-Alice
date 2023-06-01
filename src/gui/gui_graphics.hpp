@@ -321,7 +321,7 @@ enum class message_result {
 	consumed
 };
 enum class focus_result {
-	ingored,
+	ignored,
 	accepted
 };
 enum class tooltip_behavior {

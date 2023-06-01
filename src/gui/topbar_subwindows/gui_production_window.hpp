@@ -27,7 +27,7 @@ struct production_selection_wrapper {
 	xy_pair focus_pos{0, 0};
 };
 
-class factory_employment_image : public image_element_base {
+class factory_employment_image : public add_tooltip<image_element_base> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -36,14 +36,6 @@ public:
 			auto content = any_cast<dcon::factory_id>(payload);
 			frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
 		}
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -66,7 +58,7 @@ public:
 	}
 };
 
-class factory_priority_button : public button_element_base {
+class factory_priority_button : public add_tooltip<button_element_base> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -101,10 +93,6 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
@@ -115,7 +103,7 @@ public:
 		// TODO - check if we can change the priority,
 		// 	- This appears to depend only on if the ruling party is kosher with it
 		text::localised_format_box(state, contents, box, std::string_view("production_allowed_to_change_prio_tooltip"));
-		// Why pdx, why must the diplomacy priority be used instead of having a seperate priority for prod. ?
+		// Why pdx, why must the diplomacy priority be used instead of having a separate priority for prod. ?
 		// just why
 		switch (economy::factory_priority(state, fid)) {
 		case 0:
@@ -139,7 +127,7 @@ public:
 	}
 };
 
-class factory_upgrade_button : public button_element_base {
+class factory_upgrade_button : public add_tooltip<button_element_base> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -171,10 +159,6 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("production_expand_factory_tooltip"));
@@ -189,7 +173,7 @@ public:
 	}
 };
 
-class factory_shutdown_button : public button_element_base {
+class factory_shutdown_button : public add_tooltip<button_element_base> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -215,10 +199,6 @@ public:
 		}*/
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
@@ -236,7 +216,7 @@ public:
 	}
 };
 
-class factory_subsidise_button : public button_element_base { // Got a problem with mixed variants? too bad, Vic2 does same thing
+class factory_subsidise_button : public add_tooltip<button_element_base> { // Got a problem with mixed variants? too bad, Vic2 does same thing
 public:
 	void button_action(sys::state &state) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
@@ -255,10 +235,6 @@ public:
 				frame = 1;
 			}
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -282,7 +258,7 @@ public:
 	}
 };
 
-class factory_delete_button : public button_element_base {
+class factory_delete_button : public add_tooltip<button_element_base> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -300,10 +276,6 @@ public:
 			auto fid = any_cast<dcon::factory_id>(payload);
 			command::delete_factory(state, state.local_player_nation, fid);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -606,7 +578,7 @@ public:
 	}
 };
 
-class production_build_new_factory : public button_element_base {
+class production_build_new_factory : public add_tooltip<button_element_base> {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -632,10 +604,6 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(contents, state, box, std::string_view("OwO *notices you building new factory*"));
@@ -643,7 +611,7 @@ public:
 	}
 };
 
-class production_national_focus_button : public button_element_base {
+class production_national_focus_button : public add_tooltip<button_element_base> {
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -667,10 +635,6 @@ public:
 			Cyto::Any s_payload = production_selection_wrapper{any_cast<dcon::state_instance_id>(payload), false, base_data.position};
 			parent->impl_get(state, s_payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {

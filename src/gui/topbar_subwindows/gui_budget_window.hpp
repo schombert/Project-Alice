@@ -33,7 +33,7 @@ public:
 	}
 	text_sequence_id get_name() noexcept {
 		switch (value) {
-		case 0: // No needs fullfilled
+		case 0: // No needs fulfilled
 		case 1: // Some life needs
 		case 2: // All life needs
 		case 3: // All everyday
@@ -95,7 +95,7 @@ protected:
 					// OR All everyday needs
 					// OR All life needs
 					// OR Some life needs
-					// OR No needs fullfilled...
+					// OR No needs fulfilled...
 					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.f)
 					             ? 4
 					         : (pop_id.get_everyday_needs_satisfaction() > 0.f)

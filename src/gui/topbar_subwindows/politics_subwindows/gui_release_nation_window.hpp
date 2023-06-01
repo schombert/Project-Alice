@@ -107,7 +107,7 @@ public:
 	}
 };
 
-class release_nation_button : public button_element_base {
+class release_nation_button : public add_tooltip<button_element_base> {
 public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
@@ -118,10 +118,6 @@ public:
 			Cyto::Any e_payload = release_emplace_wrapper{nid};
 			parent->impl_get(state, e_payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -184,7 +180,7 @@ public:
 	}
 };
 
-// NOTE FOR OTHERS - THIS CODE IS NOT INTERCHANGABLE WITH ITS SIMIARLY NAMED VERSION ABOVE DO NOT REMOVE THIS
+// NOTE FOR OTHERS - THIS CODE IS NOT INTERCHANGEABLE WITH ITS SIMIARLY NAMED VERSION ABOVE DO NOT REMOVE THIS
 class release_nation_window_description_text : public generic_multiline_text<dcon::national_identity_id> {
 protected:
 	void populate_layout(sys::state &state, text::endless_layout &contents, dcon::national_identity_id id) noexcept override {

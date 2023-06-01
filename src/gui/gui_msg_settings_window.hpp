@@ -133,7 +133,7 @@ protected:
 };
 
 template <msg_settings_category Filter>
-class msg_log_filter_checkbox : public checkbox_button {
+class msg_log_filter_checkbox : public add_tooltip<checkbox_button> {
 	static std::string_view get_filter_text_key(msg_settings_category f) noexcept {
 		switch (f) {
 		case msg_settings_category::all:
@@ -170,10 +170,6 @@ public:
 			Cyto::Any payload = Filter;
 			parent->impl_set(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {

@@ -7,12 +7,8 @@
 
 namespace ui {
 
-class decision_requirements : public button_element_base {
+class decision_requirements : public add_tooltip<button_element_base> {
 public:
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
 		if (parent) {
@@ -34,7 +30,7 @@ public:
 	}
 };
 
-class make_decision : public button_element_base {
+class make_decision : public add_tooltip<button_element_base> {
 public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
@@ -58,10 +54,6 @@ public:
 			disabled = condition && !trigger::evaluate(state, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 			*/
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {

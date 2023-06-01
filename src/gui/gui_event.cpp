@@ -131,10 +131,6 @@ void national_event_option_button::on_update(sys::state &state) noexcept {
 	}
 }
 
-tooltip_behavior national_event_option_button::has_tooltip(sys::state &state) noexcept {
-	return tooltip_behavior::variable_tooltip;
-}
-
 void national_event_option_button::update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept {
 	if (parent) {
 		Cyto::Any payload = national_event_data_wrapper{};
@@ -389,10 +385,6 @@ void provincial_event_option_button::on_update(sys::state &state) noexcept {
 			set_visible(state, false);
 		}
 	}
-}
-
-tooltip_behavior provincial_event_option_button::has_tooltip(sys::state &state) noexcept {
-	return tooltip_behavior::variable_tooltip;
 }
 
 void provincial_event_option_button::update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept {

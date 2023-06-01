@@ -447,7 +447,7 @@ public:
 				relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
 			}
 			text::add_to_substitution_map(sub1, text::variable_type::num, text::pretty_integer{(int64_t)relevant_pop});
-			auto fPoints = relevant_pop / state.defines.national_focus_divider; // NOTE: Occassionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
+			auto fPoints = relevant_pop / state.defines.national_focus_divider; // NOTE: Occasionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
 			text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
 			text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);
 			text::add_line_break_to_layout_box(contents, state, box);
@@ -515,7 +515,7 @@ public:
 			auto conChange = (demographics::get_estimated_con_change(state, nation_id) / 30);
 			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
 			// text::add_to_substitution_map(sub, text::variable_type::val, text::format_float(fDailyUpdate, 2);
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{conChange}); // TODO - This needs to display the estimated conciousness change -breizh
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{conChange}); // TODO - This needs to display the estimated consciousness change -breizh
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 			text::add_line_break_to_layout_box(contents, state, box);
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -1028,8 +1028,8 @@ public:
 			} else if (nations::has_reform_available(state, nation_id)) {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_candoreforms"), text::substitution_map{});
 				text::add_divider_to_layout_box(state, contents, box);
-				// Display Avaliable Reforms
-				// Mostly a copy of nations::has_reform_avaliable
+				// Display Available Reforms
+				// Mostly a copy of nations::has_reform_available
 				auto last_date = state.world.nation_get_last_issue_or_reform_change(nation_id);
 				if (bool(last_date) && (last_date + int32_t(state.defines.min_delay_between_reforms * 30.0f)) > state.current_date) {
 					text::close_layout_box(contents, box);
@@ -1111,7 +1111,7 @@ public:
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candodecisions"), text::substitution_map{});
 			} else if (nations::has_decision_available(state, nation_id)) {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_candodecisions"), text::substitution_map{});
-				// Display Avaliable Decisions
+				// Display Available Decisions
 				state.world.for_each_decision([&](dcon::decision_id di) {
 					if (nation_id != state.local_player_nation || !state.world.decision_get_hide_notification(di)) {
 						auto lim = state.world.decision_get_potential(di);
