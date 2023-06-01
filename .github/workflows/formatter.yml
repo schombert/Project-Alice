@@ -21,4 +21,4 @@ jobs:
         with:
           clang_format: true
           clang_format_dir: src
-          clang_format_args: -style=file
+          clang_format_args: -style=file --ferror=5
