@@ -5,10 +5,10 @@
 namespace ui {
 template <class TypeId>
 class military_unit_name_text : public simple_text_element_base {
-  protected:
+protected:
 	TypeId obj_id{};
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		auto fat_id = dcon::fatten(state.world, obj_id);
 		set_text(state, std::string{state.to_string_view(fat_id.get_name())});
@@ -41,7 +41,7 @@ class military_unit_entry : public listbox_row_element_base<TypeId> {
 	image_element_base *unit_digin_icon = nullptr;
 	image_element_base *unit_combat_icon = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "name") {
 			auto ptr = make_element_by_type<military_unit_name_text<TypeId>>(state, id);
@@ -160,12 +160,12 @@ class military_unit_entry : public listbox_row_element_base<TypeId> {
 
 template <class TypeId>
 class military_units_listbox : public listbox_element_base<military_unit_entry<TypeId>, TypeId> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "unit_entry";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		auto &row_contents = listbox_element_base<military_unit_entry<TypeId>, TypeId>::row_contents;
 		row_contents.clear();
@@ -188,7 +188,7 @@ class military_units_listbox : public listbox_element_base<military_unit_entry<T
 };
 
 class military_armies_text : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		int32_t count = 0;
 		state.world.nation_for_each_army_control_as_controller(state.local_player_nation, [&](dcon::army_control_id acid) {
@@ -199,7 +199,7 @@ class military_armies_text : public simple_text_element_base {
 };
 
 class military_navies_text : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		int32_t count = 0;
 		state.world.nation_for_each_navy_control_as_controller(state.local_player_nation, [&](dcon::navy_control_id acid) {
@@ -211,7 +211,7 @@ class military_navies_text : public simple_text_element_base {
 
 template <class TypeId>
 class build_unit_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		state.ui_state.unit_window_army->set_visible(state, false);
 		state.ui_state.unit_window_navy->set_visible(state, false);
@@ -231,7 +231,7 @@ class build_unit_button : public button_element_base {
 
 template <class TypeId>
 class military_units_window : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "unit_listbox") {
 			return make_element_by_type<military_units_listbox<TypeId>>(state, id);

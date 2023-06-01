@@ -32,13 +32,13 @@ enum diplomacy_action : uint8_t {
 	crisis_support,
 };
 
-class diplomacy_action_ally_button : public button_element_base {
+class diplomacy_action_ally_button : public add_tooltip<button_element_base> {
 	bool can_cancel(sys::state &state, dcon::nation_id nation_id) noexcept {
 		auto drid = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, nation_id);
 		return drid && state.world.diplomatic_relation_get_are_allied(drid);
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -66,10 +66,6 @@ class diplomacy_action_ally_button : public button_element_base {
 			                                                  : diplomacy_action::ally;
 			parent->impl_get(state, ac_payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -100,8 +96,8 @@ class diplomacy_action_ally_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_call_ally_button : public button_element_base {
-  public:
+class diplomacy_action_call_ally_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "callally_button"));
@@ -139,10 +135,6 @@ class diplomacy_action_call_ally_button : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -170,13 +162,13 @@ class diplomacy_action_call_ally_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_military_access_button : public button_element_base {
+class diplomacy_action_military_access_button : public add_tooltip<button_element_base> {
 	bool can_cancel(sys::state &state, dcon::nation_id nation_id) noexcept {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
 		return urid && state.world.unilateral_relationship_get_military_access(urid);
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -207,10 +199,6 @@ class diplomacy_action_military_access_button : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -234,13 +222,13 @@ class diplomacy_action_military_access_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_give_military_access_button : public button_element_base {
+class diplomacy_action_give_military_access_button : public add_tooltip<button_element_base> {
 	bool can_cancel(sys::state &state, dcon::nation_id nation_id) noexcept {
 		auto urid = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, nation_id);
 		return urid && state.world.unilateral_relationship_get_military_access(urid);
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -271,10 +259,6 @@ class diplomacy_action_give_military_access_button : public button_element_base 
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -298,8 +282,8 @@ class diplomacy_action_give_military_access_button : public button_element_base 
 	}
 };
 
-class diplomacy_action_increase_relations_button : public button_element_base {
-  public:
+class diplomacy_action_increase_relations_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "increaserelation_button"));
@@ -319,10 +303,6 @@ class diplomacy_action_increase_relations_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::increase_relations;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -352,8 +332,8 @@ class diplomacy_action_increase_relations_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_decrease_relations_button : public button_element_base {
-  public:
+class diplomacy_action_decrease_relations_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "decreaserelation_button"));
@@ -373,10 +353,6 @@ class diplomacy_action_decrease_relations_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::decrease_relations;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -406,13 +382,13 @@ class diplomacy_action_decrease_relations_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_war_subisides_button : public button_element_base {
+class diplomacy_action_war_subisides_button : public add_tooltip<button_element_base> {
 	bool can_cancel(sys::state &state, dcon::nation_id nation_id) noexcept {
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, nation_id);
 		return rel && state.world.unilateral_relationship_get_war_subsidies(rel);
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -435,10 +411,6 @@ class diplomacy_action_war_subisides_button : public button_element_base {
 			                                                  : diplomacy_action::war_subsidies;
 			parent->impl_get(state, ac_payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -471,8 +443,8 @@ class diplomacy_action_war_subisides_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_declare_war_button : public button_element_base {
-  public:
+class diplomacy_action_declare_war_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "war_button"));
@@ -496,10 +468,6 @@ class diplomacy_action_declare_war_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::declare_war;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -526,13 +494,13 @@ class diplomacy_action_declare_war_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_command_units_button : public button_element_base {
+class diplomacy_action_command_units_button : public add_tooltip<button_element_base> {
 	bool can_cancel(sys::state &state, dcon::nation_id nation_id) noexcept {
 		// TODO - test if we local_player_nation has ability to command the other country
 		return false;
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -562,10 +530,6 @@ class diplomacy_action_command_units_button : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -590,8 +554,8 @@ class diplomacy_action_command_units_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_discredit_button : public button_element_base {
-  public:
+class diplomacy_action_discredit_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "discredit_button"));
@@ -612,10 +576,6 @@ class diplomacy_action_discredit_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::discredit;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -644,8 +604,8 @@ class diplomacy_action_discredit_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_expel_advisors_button : public button_element_base {
-  public:
+class diplomacy_action_expel_advisors_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "expeladvisors_button"));
@@ -665,10 +625,6 @@ class diplomacy_action_expel_advisors_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::expel_advisors;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -697,8 +653,8 @@ class diplomacy_action_expel_advisors_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_ban_embassy_button : public button_element_base {
-  public:
+class diplomacy_action_ban_embassy_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "banembassy_button"));
@@ -719,10 +675,6 @@ class diplomacy_action_ban_embassy_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::ban_embassy;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -751,8 +703,8 @@ class diplomacy_action_ban_embassy_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_increase_opinion_button : public button_element_base {
-  public:
+class diplomacy_action_increase_opinion_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "increaseopinion_button"));
@@ -772,10 +724,6 @@ class diplomacy_action_increase_opinion_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::increase_opinion;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -804,8 +752,8 @@ class diplomacy_action_increase_opinion_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_decrease_opinion_button : public button_element_base {
-  public:
+class diplomacy_action_decrease_opinion_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "decreaseopinion_button"));
@@ -826,10 +774,6 @@ class diplomacy_action_decrease_opinion_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::decrease_opinion;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -858,8 +802,8 @@ class diplomacy_action_decrease_opinion_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_add_to_sphere_button : public button_element_base {
-  public:
+class diplomacy_action_add_to_sphere_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "addtosphere_button"));
@@ -879,10 +823,6 @@ class diplomacy_action_add_to_sphere_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::add_to_sphere;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -911,8 +851,8 @@ class diplomacy_action_add_to_sphere_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_remove_from_sphere_button : public button_element_base {
-  public:
+class diplomacy_action_remove_from_sphere_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "removefromsphere_button"));
@@ -933,10 +873,6 @@ class diplomacy_action_remove_from_sphere_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::remove_from_sphere;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -965,8 +901,8 @@ class diplomacy_action_remove_from_sphere_button : public button_element_base {
 	}
 };
 
-class diplomacy_action_justify_war_button : public button_element_base {
-  public:
+class diplomacy_action_justify_war_button : public add_tooltip<button_element_base> {
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "make_cb_button"));
@@ -990,10 +926,6 @@ class diplomacy_action_justify_war_button : public button_element_base {
 			Cyto::Any payload = diplomacy_action::justify_war;
 			parent->impl_get(state, payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1073,7 +1005,7 @@ class diplomacy_action_dialog_title_text : public generic_settable_element<simpl
 		return "";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		set_text(state, text::produce_simple_string(state, get_title_key()));
 	}
@@ -1131,7 +1063,7 @@ class diplomacy_action_dialog_description_text : public generic_settable_element
 		return "";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		set_text(state, text::produce_simple_string(state, get_title_key()));
 	}
@@ -1204,7 +1136,7 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 		return false;
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "agree"));
@@ -1293,14 +1225,14 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 	}
 };
 class diplomacy_action_dialog_decline_button : public generic_close_button {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, text::produce_simple_string(state, "decline"));
 	}
 };
 class diplomacy_action_dialog_window : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "title") {
 			return make_element_by_type<diplomacy_action_dialog_title_text>(state, id);
@@ -1327,7 +1259,7 @@ class diplomacy_action_dialog_window : public window_element_base {
 };
 
 class diplomacy_action_gp_dialog_select_button : public flag_button {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -1341,7 +1273,7 @@ class diplomacy_action_gp_dialog_select_button : public flag_button {
 };
 
 class diplomacy_action_gp_dialog_select_window : public window_element_base {
-  public:
+public:
 	uint8_t rank = 0;
 
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1366,7 +1298,7 @@ class diplomacy_action_gp_dialog_select_window : public window_element_base {
 class diplomacy_gp_action_dialog_window : public window_element_base {
 	dcon::nation_id selected_gp{};
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 
@@ -1424,7 +1356,7 @@ class diplomacy_gp_action_dialog_window : public window_element_base {
 
 template <typename T>
 class diplomacy_action_window : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "action_option") {
 			return make_element_by_type<T>(state, id);

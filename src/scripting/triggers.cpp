@@ -235,12 +235,12 @@ TRIGGER_FUNCTION(tf_generic_scope) {
 
 template <typename F>
 class true_accumulator : public F {
-  private:
+private:
 	ve::tagged_vector<int32_t> value;
 	uint32_t index = 0;
 	int32_t accumulated_mask = 0;
 
-  public:
+public:
 	bool result = false;
 
 	true_accumulator(F &&f) : F(std::move(f)) {}
@@ -268,12 +268,12 @@ class true_accumulator : public F {
 
 template <typename F>
 class false_accumulator : public F {
-  private:
+private:
 	ve::tagged_vector<int32_t> value;
 	uint32_t index = 0;
 	int32_t accumulated_mask = 0;
 
-  public:
+public:
 	bool result = true;
 
 	false_accumulator(F &&f) : F(std::move(f)) {}
@@ -301,14 +301,14 @@ class false_accumulator : public F {
 
 template <typename TAG, typename F>
 class value_accumulator : public F {
-  private:
+private:
 	ve::fp_vector value;
 	ve::tagged_vector<TAG> store;
 
 	uint32_t index = 0;
 	int32_t accumulated_mask = 0;
 
-  public:
+public:
 	value_accumulator(F &&f) : F(std::move(f)) {}
 
 	void add_value(TAG v) {

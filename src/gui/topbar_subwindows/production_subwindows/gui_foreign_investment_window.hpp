@@ -6,10 +6,10 @@
 namespace ui {
 
 class production_foreign_investment_window : public window_element_base {
-  private:
+private:
 	dcon::nation_id curr_nation{};
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

@@ -16,11 +16,11 @@
 
 namespace ui {
 
-template<typename T>
+template <typename T>
 class add_tooltip : public T {
 public:
 	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : T::test_mouse(state, x, y, type);	// By Schombert
+		return type == mouse_probe_type::tooltip ? message_result::consumed : T::test_mouse(state, x, y, type); // By Schombert
 	}
 
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
@@ -53,7 +53,7 @@ ogl::color_modification get_color_modification(bool is_under_mouse, bool is_disa
 ogl::color3f get_text_color(text::text_color text_color);
 
 class container_base : public element_base {
-  public:
+public:
 	std::vector<std::unique_ptr<element_base>> children;
 
 	mouse_probe impl_probe_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept final;
@@ -73,7 +73,7 @@ class container_base : public element_base {
 };
 
 class image_element_base : public element_base {
-  public:
+public:
 	int32_t frame = 0; // if it is from an icon strip
 	bool disabled = false;
 	bool interactable = false;
@@ -82,10 +82,10 @@ class image_element_base : public element_base {
 };
 
 class tinted_image_element_base : public image_element_base {
-  private:
+private:
 	uint32_t color = 0;
 
-  public:
+public:
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 	virtual uint32_t get_tint_color(sys::state &state) noexcept {
@@ -94,7 +94,7 @@ class tinted_image_element_base : public image_element_base {
 };
 
 class opaque_element_base : public image_element_base {
-  public:
+public:
 	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if (type == mouse_probe_type::click || type == mouse_probe_type::tooltip)
 			return message_result::consumed;
@@ -116,13 +116,13 @@ class opaque_element_base : public image_element_base {
 };
 
 class progress_bar : public opaque_element_base {
-  public:
+public:
 	float progress = 0.f;
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override;
 };
 
 class vertical_progress_bar : public progress_bar {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		std::swap(base_data.size.x, base_data.size.y);
 		base_data.position.x -= base_data.size.x;
@@ -131,12 +131,12 @@ class vertical_progress_bar : public progress_bar {
 };
 
 class button_element_base : public opaque_element_base {
-  private:
+private:
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
 
-  public:
+public:
 	button_element_base() {
 		interactable = true;
 	}
@@ -166,10 +166,10 @@ class button_element_base : public opaque_element_base {
 };
 
 class line_graph : public element_base {
-  private:
+private:
 	ogl::lines lines;
 
-  public:
+public:
 	const uint32_t count;
 
 	line_graph(uint32_t sz) : lines(sz), count(sz) {}
@@ -180,12 +180,12 @@ class line_graph : public element_base {
 };
 
 class simple_text_element_base : public element_base {
-  protected:
+protected:
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
 
-  public:
+public:
 	void set_text(sys::state &state, std::string const &new_text);
 	void on_reset_text(sys::state &state) noexcept override;
 	void on_create(sys::state &state) noexcept override;
@@ -207,10 +207,10 @@ class simple_text_element_base : public element_base {
 };
 
 class edit_box_element_base : public simple_text_element_base {
-  protected:
+protected:
 	int32_t edit_index = 0;
 
-  public:
+public:
 	virtual void edit_box_tab(sys::state &state, std::string_view s) noexcept {}
 	virtual void edit_box_enter(sys::state &state, std::string_view s) noexcept {}
 	virtual void edit_box_update(sys::state &state, std::string_view s) noexcept {}
@@ -234,19 +234,19 @@ class edit_box_element_base : public simple_text_element_base {
 };
 
 class tool_tip : public element_base {
-  public:
+public:
 	text::layout internal_layout;
 	tool_tip() {}
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override;
 };
 
 class draggable_target : public opaque_element_base {
-  public:
+public:
 	message_result on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 };
 
 class window_element_base : public container_base {
-  public:
+public:
 	virtual std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept {
 		return nullptr;
 	}
@@ -256,12 +256,12 @@ class window_element_base : public container_base {
 
 template <class TabT>
 class generic_tabbed_window : public window_element_base {
-  public:
+public:
 	TabT active_tab = TabT();
 };
 
 class generic_close_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent)
 			parent->set_visible(state, false);
@@ -269,7 +269,7 @@ class generic_close_button : public button_element_base {
 };
 
 class checkbox_button : public button_element_base {
-  public:
+public:
 	virtual bool is_active(sys::state &state) noexcept {
 		return false;
 	}
@@ -282,7 +282,7 @@ class checkbox_button : public button_element_base {
 
 template <class RowConT>
 class wrapped_listbox_row_content {
-  public:
+public:
 	RowConT content;
 	wrapped_listbox_row_content() {
 		content = RowConT{};
@@ -294,10 +294,10 @@ class wrapped_listbox_row_content {
 
 template <class ItemWinT, class ItemConT>
 class overlapping_listbox_element_base : public window_element_base {
-  private:
+private:
 	int16_t subwindow_width = 0;
 
-  protected:
+protected:
 	std::vector<ItemWinT *> windows{};
 
 	virtual std::string_view get_row_element_name() {
@@ -309,33 +309,30 @@ class overlapping_listbox_element_base : public window_element_base {
 		subwindow.impl_get(state, payload);
 	}
 
-  public:
+public:
 	std::vector<ItemConT> row_contents{};
 	void update(sys::state &state);
 };
 
-class flag_button : public button_element_base {
-  protected:
+class flag_button : public add_tooltip<button_element_base> {
+protected:
 	GLuint flag_texture_handle = 0;
 
-  public:
+public:
 	virtual dcon::national_identity_id get_current_nation(sys::state &state) noexcept;
 	virtual void set_current_nation(sys::state &state, dcon::national_identity_id identity) noexcept;
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 	void on_create(sys::state &state) noexcept override;
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override;
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override;
 };
 
 class overlapping_flags_flag_button : public flag_button {
-  private:
+private:
 	dcon::national_identity_id stored_identity{};
 
-  public:
+public:
 	dcon::national_identity_id get_current_nation(sys::state &state) noexcept override {
 		return stored_identity;
 	}
@@ -346,12 +343,12 @@ class overlapping_flags_flag_button : public flag_button {
 };
 
 class overlapping_flags_box : public overlapping_listbox_element_base<overlapping_flags_flag_button, dcon::national_identity_id> {
-  protected:
+protected:
 	dcon::nation_id current_nation{};
 
 	virtual void populate_flags(sys::state &state) {}
 
-  public:
+public:
 	std::string_view get_row_element_name() override {
 		return "flag_list_flag";
 	}
@@ -365,33 +362,33 @@ class overlapping_flags_box : public overlapping_listbox_element_base<overlappin
 };
 
 class overlapping_sphere_flags : public overlapping_flags_box {
-  protected:
+protected:
 	void populate_flags(sys::state &state) override;
 };
 
 class overlapping_puppet_flags : public overlapping_flags_box {
-  protected:
+protected:
 	void populate_flags(sys::state &state) override;
 };
 
 class overlapping_ally_flags : public overlapping_flags_box {
-  protected:
+protected:
 	void populate_flags(sys::state &state) override;
 };
 
 class overlapping_enemy_flags : public overlapping_flags_box {
-  protected:
+protected:
 	void populate_flags(sys::state &state) override;
 };
 
 class overlapping_truce_flags : public overlapping_flags_box {
-  protected:
+protected:
 	void populate_flags(sys::state &state) override;
 };
 
 template <class TabT>
 class generic_tab_button : public checkbox_button {
-  public:
+public:
 	bool is_active(sys::state &state) noexcept final {
 		return parent && static_cast<generic_tabbed_window<TabT> *>(parent)->active_tab == target;
 	}
@@ -408,7 +405,7 @@ class generic_tab_button : public checkbox_button {
 
 template <class TabT>
 class generic_opaque_checkbox_button : public checkbox_button {
-  public:
+public:
 	bool is_active(sys::state &state) noexcept final {
 		return parent && static_cast<generic_tabbed_window<TabT> *>(parent)->active_tab == target;
 	}
@@ -426,13 +423,13 @@ class generic_opaque_checkbox_button : public checkbox_button {
 };
 
 class piechart_element_base : public element_base {
-  protected:
+protected:
 	static constexpr size_t resolution = 200;
 	static constexpr size_t channels = 3;
 	bool enabled = true;
 	ogl::data_texture data_texture{resolution, channels};
 
-  public:
+public:
 	float radius = 0.f;
 	void generate_data_texture(sys::state &state, std::vector<uint8_t> &colors);
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override;
@@ -440,18 +437,18 @@ class piechart_element_base : public element_base {
 
 template <class T>
 class piechart : public piechart_element_base {
-  protected:
+protected:
 	virtual std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state &state) noexcept {
 		std::unordered_map<typename T::value_base_t, float> out{};
 		out[static_cast<typename T::value_base_t>(-1)] = 1.f;
 		return out;
 	}
 
-  private:
+private:
 	std::unordered_map<typename T::value_base_t, float> distribution{};
 	std::vector<T> spread = std::vector<T>(resolution);
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
@@ -478,14 +475,14 @@ class piechart : public piechart_element_base {
 
 template <class SrcT, class DemoT>
 class demographic_piechart : public piechart<DemoT> {
-  protected:
+protected:
 	std::unordered_map<typename DemoT::value_base_t, float> get_distribution(sys::state &state) noexcept override;
 	virtual void for_each_demo(sys::state &state, std::function<void(DemoT)> fun) {}
 };
 
 template <class SrcT>
 class culture_piechart : public demographic_piechart<SrcT, dcon::culture_id> {
-  protected:
+protected:
 	void for_each_demo(sys::state &state, std::function<void(dcon::culture_id)> fun) override {
 		state.world.for_each_culture(fun);
 	}
@@ -493,7 +490,7 @@ class culture_piechart : public demographic_piechart<SrcT, dcon::culture_id> {
 
 template <class SrcT>
 class workforce_piechart : public demographic_piechart<SrcT, dcon::pop_type_id> {
-  protected:
+protected:
 	void for_each_demo(sys::state &state, std::function<void(dcon::pop_type_id)> fun) override {
 		state.world.for_each_pop_type(fun);
 	}
@@ -501,31 +498,31 @@ class workforce_piechart : public demographic_piechart<SrcT, dcon::pop_type_id> 
 
 template <class SrcT>
 class ideology_piechart : public demographic_piechart<SrcT, dcon::ideology_id> {
-  protected:
+protected:
 	void for_each_demo(sys::state &state, std::function<void(dcon::ideology_id)> fun) override {
 		state.world.for_each_ideology(fun);
 	}
 };
 
 class scrollbar_left : public button_element_base {
-  public:
+public:
 	int32_t step_size = 1;
 	void button_action(sys::state &state) noexcept final;
 };
 
 class scrollbar_right : public button_element_base {
-  public:
+public:
 	int32_t step_size = 1;
 	void button_action(sys::state &state) noexcept final;
 };
 
 class scrollbar_track : public opaque_element_base {
-  public:
+public:
 	message_result on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 };
 
 class scrollbar_slider : public opaque_element_base {
-  public:
+public:
 	message_result on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 	void on_drag(sys::state &state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 	void on_drag_finish(sys::state &state) noexcept final;
@@ -564,14 +561,14 @@ class scrollbar : public container_base {
 	image_element_base *right_limit = nullptr;
 	int32_t stored_value = 0;
 
-  protected:
+protected:
 	scrollbar_left *left = nullptr;
 	scrollbar_right *right = nullptr;
 	scrollbar_track *track = nullptr;
 	scrollbar_slider *slider = nullptr;
 	scrollbar_settings settings;
 
-  public:
+public:
 	virtual void on_value_change(sys::state &state, int32_t v) noexcept {}
 
 	void update_raw_value(sys::state &state, int32_t v);
@@ -586,7 +583,7 @@ class scrollbar : public container_base {
 };
 
 class multiline_text_element_base : public element_base {
-  public:
+public:
 	float line_height = 0.f;
 	int32_t current_line = 0;
 	int32_t visible_lines = 0;
@@ -602,20 +599,20 @@ struct multiline_text_scroll_event {
 };
 
 class autoscaling_scrollbar : public scrollbar {
-  public:
+public:
 	void scale_to_parent();
 };
 
 class multiline_text_scrollbar : public autoscaling_scrollbar {
-  public:
+public:
 	void on_value_change(sys::state &state, int32_t v) noexcept override;
 };
 
 class scrollable_text : public window_element_base {
-  private:
+private:
 	multiline_text_scrollbar *text_scrollbar = nullptr;
 
-  public:
+public:
 	multiline_text_element_base *delegate = nullptr;
 	void on_create(sys::state &state) noexcept override;
 	message_result get(sys::state &state, Cyto::Any &payload) noexcept override;
@@ -627,7 +624,7 @@ class scrollable_text : public window_element_base {
 };
 
 class single_multiline_text_element_base : public multiline_text_element_base {
-  public:
+public:
 	dcon::text_sequence_id text_id{};
 
 	void on_update(sys::state &state) noexcept override {
@@ -642,16 +639,16 @@ class single_multiline_text_element_base : public multiline_text_element_base {
 
 template <class RowWinT, class RowConT>
 class standard_listbox_scrollbar : public autoscaling_scrollbar {
-  public:
+public:
 	void on_value_change(sys::state &state, int32_t v) noexcept override;
 };
 
 template <class RowConT>
 class listbox_row_element_base : public window_element_base {
-  protected:
+protected:
 	RowConT content{};
 
-  public:
+public:
 	virtual void update(sys::state &state) noexcept {}
 	message_result get(sys::state &state, Cyto::Any &payload) noexcept override;
 	message_result on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
@@ -659,10 +656,10 @@ class listbox_row_element_base : public window_element_base {
 
 template <class RowConT>
 class listbox_row_button_base : public button_element_base {
-  protected:
+protected:
 	RowConT content{};
 
-  public:
+public:
 	virtual void update(sys::state &state) noexcept {}
 	message_result get(sys::state &state, Cyto::Any &payload) noexcept override;
 	message_result on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
@@ -670,10 +667,10 @@ class listbox_row_button_base : public button_element_base {
 
 template <class RowWinT, class RowConT>
 class listbox_element_base : public container_base {
-  private:
+private:
 	standard_listbox_scrollbar<RowWinT, RowConT> *list_scrollbar = nullptr;
 
-  protected:
+protected:
 	std::vector<RowWinT *> row_windows{};
 
 	virtual std::string_view get_row_element_name() {
@@ -683,7 +680,7 @@ class listbox_element_base : public container_base {
 		return false;
 	}
 
-  public:
+public:
 	std::vector<RowConT> row_contents{};
 
 	void update(sys::state &state);

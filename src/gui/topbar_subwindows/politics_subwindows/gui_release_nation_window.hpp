@@ -17,7 +17,7 @@ struct release_emplace_wrapper {
 };
 
 class release_play_as_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
@@ -41,7 +41,7 @@ class release_play_as_button : public button_element_base {
 };
 
 class release_agree_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
@@ -65,7 +65,7 @@ class release_agree_button : public button_element_base {
 };
 
 class politics_release_nation_window_title : public simple_text_element_base {
-  public:
+public:
 	std::string get_text(sys::state &state) noexcept {
 		if (auto k = state.key_to_text_sequence.find(std::string_view("politics_release_vassal")); k != state.key_to_text_sequence.end()) {
 			return text::produce_simple_string(state, k->second);
@@ -79,7 +79,7 @@ class politics_release_nation_window_title : public simple_text_element_base {
 };
 
 class release_nation_description_text : public generic_multiline_text<dcon::national_identity_id> {
-  public:
+public:
 	void populate_layout(sys::state &state, text::endless_layout &contents, dcon::national_identity_id id) noexcept override {
 		int64_t province_count = 0;
 		std::string provinces = "";
@@ -107,8 +107,8 @@ class release_nation_description_text : public generic_multiline_text<dcon::nati
 	}
 };
 
-class release_nation_button : public button_element_base {
-  public:
+class release_nation_button : public add_tooltip<button_element_base> {
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
@@ -120,10 +120,6 @@ class release_nation_button : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(contents, state, box, std::string_view("Rewease me"));
@@ -132,7 +128,7 @@ class release_nation_button : public button_element_base {
 };
 
 class release_nation_option : public listbox_row_element_base<dcon::national_identity_id> {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "name") {
 			return make_element_by_type<generic_name_text<dcon::national_identity_id>>(state, id);
@@ -151,12 +147,12 @@ class release_nation_option : public listbox_row_element_base<dcon::national_ide
 };
 
 class release_nation_listbox : public listbox_element_base<release_nation_option, dcon::national_identity_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "vassal_nation";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_national_identity([&](dcon::national_identity_id ident) {
@@ -169,7 +165,7 @@ class release_nation_listbox : public listbox_element_base<release_nation_option
 };
 
 class release_nation_window : public window_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
@@ -184,9 +180,9 @@ class release_nation_window : public window_element_base {
 	}
 };
 
-// NOTE FOR OTHERS - THIS CODE IS NOT INTERCHANGABLE WITH ITS SIMIARLY NAMED VERSION ABOVE DO NOT REMOVE THIS
+// NOTE FOR OTHERS - THIS CODE IS NOT INTERCHANGEABLE WITH ITS SIMIARLY NAMED VERSION ABOVE DO NOT REMOVE THIS
 class release_nation_window_description_text : public generic_multiline_text<dcon::national_identity_id> {
-  protected:
+protected:
 	void populate_layout(sys::state &state, text::endless_layout &contents, dcon::national_identity_id id) noexcept override {
 		int64_t province_count = 0;
 		std::string provinces = "";
@@ -213,7 +209,7 @@ class release_nation_window_description_text : public generic_multiline_text<dco
 		text::close_layout_box(contents, box);
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		generic_multiline_text<dcon::national_identity_id>::on_create(state);
 		black_text = false; // Nudge force to white text
@@ -221,7 +217,7 @@ class release_nation_window_description_text : public generic_multiline_text<dco
 };
 
 class politics_release_nation_window : public window_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

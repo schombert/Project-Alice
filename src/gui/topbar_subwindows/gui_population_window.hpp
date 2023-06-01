@@ -12,8 +12,8 @@ namespace ui {
 const std::vector<dcon::pop_id> &get_pop_window_list(sys::state &state);
 dcon::pop_id get_pop_details_pop(sys::state &state);
 
-class nation_growth_indicator : public opaque_element_base {
-  public:
+class nation_growth_indicator : public add_tooltip<opaque_element_base> {
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -38,14 +38,6 @@ class nation_growth_indicator : public opaque_element_base {
 		frame = get_icon_frame(state);
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -62,8 +54,8 @@ class nation_growth_indicator : public opaque_element_base {
 	}
 };
 
-class state_growth_indicator : public opaque_element_base {
-  public:
+class state_growth_indicator : public add_tooltip<opaque_element_base> {
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -88,14 +80,6 @@ class state_growth_indicator : public opaque_element_base {
 		frame = get_icon_frame(state);
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -112,8 +96,8 @@ class state_growth_indicator : public opaque_element_base {
 	}
 };
 
-class pop_growth_indicator : public opaque_element_base {
-  public:
+class pop_growth_indicator : public add_tooltip<opaque_element_base> {
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -139,14 +123,6 @@ class pop_growth_indicator : public opaque_element_base {
 		frame = get_icon_frame(state);
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -163,8 +139,8 @@ class pop_growth_indicator : public opaque_element_base {
 	}
 };
 
-class pop_revolt_faction : public opaque_element_base {
-  public:
+class pop_revolt_faction : public add_tooltip<opaque_element_base> {
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -189,14 +165,6 @@ class pop_revolt_faction : public opaque_element_base {
 		frame = get_icon_frame(state);
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -216,8 +184,8 @@ class pop_revolt_faction : public opaque_element_base {
 	}
 };
 
-class pop_movement_social : public opaque_element_base {
-  public:
+class pop_movement_social : public add_tooltip<opaque_element_base> {
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -243,14 +211,6 @@ class pop_movement_social : public opaque_element_base {
 		frame = get_icon_frame(state);
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -269,8 +229,8 @@ class pop_movement_social : public opaque_element_base {
 	}
 };
 
-class pop_movement_political : public opaque_element_base {
-  public:
+class pop_movement_political : public add_tooltip<opaque_element_base> {
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -296,14 +256,6 @@ class pop_movement_political : public opaque_element_base {
 		frame = get_icon_frame(state);
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -322,8 +274,8 @@ class pop_movement_political : public opaque_element_base {
 	}
 };
 
-class pop_movement_flag : public opaque_element_base {
-  public:
+class pop_movement_flag : public add_tooltip<opaque_element_base> {
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -351,14 +303,6 @@ class pop_movement_flag : public opaque_element_base {
 		frame = get_icon_frame(state);
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -379,8 +323,8 @@ class pop_movement_flag : public opaque_element_base {
 	}
 };
 
-class pop_cash_reserve_text : public simple_text_element_base {
-  public:
+class pop_cash_reserve_text : public add_tooltip<simple_text_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -388,14 +332,6 @@ class pop_cash_reserve_text : public simple_text_element_base {
 			auto content = any_cast<dcon::pop_id>(payload);
 			set_text(state, text::format_money(state.world.pop_get_savings(content)));
 		}
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -417,8 +353,8 @@ class pop_cash_reserve_text : public simple_text_element_base {
 		}
 	}
 };
-class pop_culture_text : public simple_text_element_base {
-  public:
+class pop_culture_text : public add_tooltip<simple_text_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -431,21 +367,13 @@ class pop_culture_text : public simple_text_element_base {
 		}
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::close_layout_box(contents, box);
 	}
 };
 class pop_size_text : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -458,7 +386,7 @@ class pop_size_text : public simple_text_element_base {
 	}
 };
 class pop_location_text : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -471,8 +399,8 @@ class pop_location_text : public simple_text_element_base {
 		}
 	}
 };
-class pop_militancy_text : public simple_text_element_base {
-  public:
+class pop_militancy_text : public add_tooltip<simple_text_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -484,14 +412,6 @@ class pop_militancy_text : public simple_text_element_base {
 		}
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pop_mil_total"), text::substitution_map{});
@@ -500,8 +420,8 @@ class pop_militancy_text : public simple_text_element_base {
 		text::close_layout_box(contents, box);
 	}
 };
-class pop_con_text : public simple_text_element_base {
-  public:
+class pop_con_text : public add_tooltip<simple_text_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -513,14 +433,6 @@ class pop_con_text : public simple_text_element_base {
 		}
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pop_con_total"), text::substitution_map{});
@@ -529,8 +441,8 @@ class pop_con_text : public simple_text_element_base {
 		text::close_layout_box(contents, box);
 	}
 };
-class pop_literacy_text : public simple_text_element_base {
-  public:
+class pop_literacy_text : public add_tooltip<simple_text_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -540,14 +452,6 @@ class pop_literacy_text : public simple_text_element_base {
 			const auto fat_id = dcon::fatten(state.world, content);
 			set_text(state, text::format_percentage(fat_id.get_literacy(), 2));
 		}
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -580,7 +484,7 @@ enum class pop_list_sort : uint8_t {
 };
 
 class standard_pop_progress_bar : public progress_bar {
-  public:
+public:
 	virtual float get_progress(sys::state &state, dcon::pop_id content) noexcept {
 		return 0.f;
 	}
@@ -602,7 +506,7 @@ class standard_pop_progress_bar : public progress_bar {
 	}
 };
 class standard_pop_needs_progress_bar : public progress_bar {
-  public:
+public:
 	virtual float get_progress(sys::state &state, dcon::pop_id content) noexcept {
 		return 0.f;
 	}
@@ -624,21 +528,13 @@ class standard_pop_needs_progress_bar : public progress_bar {
 	}
 };
 
-class pop_unemployment_progress_bar : public standard_pop_progress_bar {
-  public:
+class pop_unemployment_progress_bar : public add_tooltip<standard_pop_progress_bar> {
+public:
 	float get_progress(sys::state &state, dcon::pop_id content) noexcept override {
 		auto pfat_id = dcon::fatten(state.world, content);
 		if (state.world.pop_type_get_has_unemployment(state.world.pop_get_poptype(content)))
 			return (1 - pfat_id.get_employment() / pfat_id.get_size());
 		return 0.0f;
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -657,19 +553,11 @@ class pop_unemployment_progress_bar : public standard_pop_progress_bar {
 		}
 	}
 };
-class pop_life_needs_progress_bar : public standard_pop_needs_progress_bar {
-  public:
+class pop_life_needs_progress_bar : public add_tooltip<standard_pop_needs_progress_bar> {
+public:
 	float get_progress(sys::state &state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_life_needs_satisfaction();
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -689,19 +577,11 @@ class pop_life_needs_progress_bar : public standard_pop_needs_progress_bar {
 	}
 };
 
-class pop_everyday_needs_progress_bar : public standard_pop_needs_progress_bar {
-  public:
+class pop_everyday_needs_progress_bar : public add_tooltip<standard_pop_needs_progress_bar> {
+public:
 	float get_progress(sys::state &state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_everyday_needs_satisfaction();
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -721,19 +601,11 @@ class pop_everyday_needs_progress_bar : public standard_pop_needs_progress_bar {
 	}
 };
 
-class pop_luxury_needs_progress_bar : public standard_pop_needs_progress_bar {
-  public:
+class pop_luxury_needs_progress_bar : public add_tooltip<standard_pop_needs_progress_bar> {
+public:
 	float get_progress(sys::state &state, dcon::pop_id content) noexcept override {
 		auto fat_id = dcon::fatten(state.world, content);
 		return fat_id.get_luxury_needs_satisfaction();
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -754,12 +626,12 @@ class pop_luxury_needs_progress_bar : public standard_pop_needs_progress_bar {
 };
 
 class pop_issues_piechart : public demographic_piechart<dcon::pop_id, dcon::issue_option_id> {
-  protected:
+protected:
 	void for_each_demo(sys::state &state, std::function<void(dcon::issue_option_id)> fun) override {
 		state.world.for_each_issue_option(fun);
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		base_data.size.x = 28;
 		base_data.size.y = 28;
@@ -768,12 +640,12 @@ class pop_issues_piechart : public demographic_piechart<dcon::pop_id, dcon::issu
 	}
 };
 class pop_ideology_piechart : public demographic_piechart<dcon::pop_id, dcon::ideology_id> {
-  protected:
+protected:
 	void for_each_demo(sys::state &state, std::function<void(dcon::ideology_id)> fun) override {
 		state.world.for_each_ideology(fun);
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		base_data.size.x = 28;
 		base_data.size.y = 28;
@@ -790,7 +662,7 @@ typedef std::variant<
     pop_left_side_data;
 template <typename T>
 class pop_left_side_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = T{};
@@ -821,7 +693,7 @@ class pop_left_side_button : public button_element_base {
 	}
 };
 class pop_left_side_country_window : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "poplistbutton") {
 			return make_element_by_type<pop_left_side_button<dcon::nation_id>>(state, id);
@@ -842,7 +714,7 @@ typedef std::variant<
     bool>
     pop_left_side_expand_action;
 class pop_left_side_expand_button : public button_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, "");
@@ -874,8 +746,8 @@ class pop_left_side_expand_button : public button_element_base {
 	}
 };
 
-class pop_national_focus_button : public button_element_base {
-  public:
+class pop_national_focus_button : public add_tooltip<button_element_base> {
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -891,10 +763,6 @@ class pop_national_focus_button : public button_element_base {
 	}
 
 	void button_action(sys::state &state) noexcept override;
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
@@ -913,7 +781,7 @@ class pop_national_focus_button : public button_element_base {
 class pop_left_side_state_window : public window_element_base {
 	image_element_base *colonial_icon = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "poplistbutton") {
 			return make_element_by_type<pop_left_side_button<dcon::state_instance_id>>(state, id);
@@ -946,7 +814,7 @@ class pop_left_side_state_window : public window_element_base {
 	}
 };
 class pop_left_side_province_window : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "poplistbutton") {
 			return make_element_by_type<pop_left_side_button<dcon::province_id>>(state, id);
@@ -967,7 +835,7 @@ class pop_left_side_item : public listbox_row_element_base<pop_left_side_data> {
 	pop_left_side_state_window *state_window = nullptr;
 	pop_left_side_province_window *province_window = nullptr;
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		listbox_row_element_base<pop_left_side_data>::on_create(state);
 
@@ -1013,17 +881,17 @@ class pop_left_side_item : public listbox_row_element_base<pop_left_side_data> {
 };
 
 class pop_left_side_listbox : public listbox_element_base<pop_left_side_item, pop_left_side_data> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "pop_left_side_list_base_window";
 	}
 };
 
 template <typename T>
-class pop_distrobution_plupp : public tinted_image_element_base {
+class pop_distribution_plupp : public tinted_image_element_base {
 	T content{};
 
-  public:
+public:
 	uint32_t get_tint_color(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any id_payload = T{};
@@ -1035,7 +903,7 @@ class pop_distrobution_plupp : public tinted_image_element_base {
 };
 
 template <typename T, bool Multiple>
-class pop_distrobution_piechart : public piechart<T> {
+class pop_distribution_piechart : public piechart<T> {
 	float iterate_one_pop(sys::state &state, std::unordered_map<typename T::value_base_t, float> &distrib, dcon::pop_id pop_id) {
 		auto amount = 0.f;
 		const auto weight_fn = [&](auto id) {
@@ -1082,7 +950,7 @@ class pop_distrobution_piechart : public piechart<T> {
 		}
 	}
 
-  protected:
+protected:
 	std::unordered_map<typename T::value_base_t, float> get_distribution(sys::state &state) noexcept override {
 		std::unordered_map<typename T::value_base_t, float> distrib{};
 		if (piechart<T>::parent) {
@@ -1101,7 +969,7 @@ class pop_distrobution_piechart : public piechart<T> {
 		return distrib;
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		piechart<T>::on_create(state);
 		// piechart<T>::base_data.position.x -= piechart<T>::base_data.size.x;
@@ -1113,14 +981,14 @@ class pop_distrobution_piechart : public piechart<T> {
 	}
 };
 template <typename T>
-class pop_distrobution_item : public listbox_row_element_base<std::pair<T, float>> {
+class pop_distribution_item : public listbox_row_element_base<std::pair<T, float>> {
 	element_base *title_text = nullptr;
 	simple_text_element_base *value_text = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "legend_color") {
-			return make_element_by_type<pop_distrobution_plupp<T>>(state, id);
+			return make_element_by_type<pop_distribution_plupp<T>>(state, id);
 		} else if (name == "legend_title") {
 			return make_element_by_type<generic_name_text<T>>(state, id);
 		} else if (name == "legend_value") {
@@ -1147,17 +1015,17 @@ class pop_distrobution_item : public listbox_row_element_base<std::pair<T, float
 	}
 };
 template <typename T>
-class pop_distrobution_listbox : public listbox_element_base<pop_distrobution_item<T>, std::pair<T, float>> {
-  public:
+class pop_distribution_listbox : public listbox_element_base<pop_distribution_item<T>, std::pair<T, float>> {
+public:
 	std::string_view get_row_element_name() override {
 		return "pop_legend_item";
 	}
 };
 template <typename T, bool Multiple>
-class pop_distrobution_window : public window_element_base {
-	pop_distrobution_listbox<T> *distrib_listbox;
+class pop_distribution_window : public window_element_base {
+	pop_distribution_listbox<T> *distrib_listbox;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "item_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -1175,9 +1043,9 @@ class pop_distrobution_window : public window_element_base {
 				ptr->set_text(state, text::produce_simple_string(state, "electorate_disttitle"));
 			return ptr;
 		} else if (name == "chart") {
-			return make_element_by_type<pop_distrobution_piechart<T, Multiple>>(state, id);
+			return make_element_by_type<pop_distribution_piechart<T, Multiple>>(state, id);
 		} else if (name == "member_names") {
-			auto ptr = make_element_by_type<pop_distrobution_listbox<T>>(state, id);
+			auto ptr = make_element_by_type<pop_distribution_listbox<T>>(state, id);
 			distrib_listbox = ptr.get();
 			return ptr;
 		} else {
@@ -1232,7 +1100,7 @@ class pop_distrobution_window : public window_element_base {
 			});
 
 			distrib_listbox->row_contents.clear();
-			// Add (and scale elements) into the distrobution listbox
+			// Add (and scale elements) into the distribution listbox
 			auto total = 0.f;
 			for (const auto &e : sorted_distrib)
 				total += e.second;
@@ -1243,18 +1111,14 @@ class pop_distrobution_window : public window_element_base {
 	}
 };
 
-class pop_details_promotion_percent_text : public button_element_base {
+class pop_details_promotion_percent_text : public add_tooltip<button_element_base> {
 	dcon::value_modifier_key mod_key{};
 	dcon::pop_location_id pop_loc{};
 	float chance = 0.f;
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		set_button_text(state, text::format_percentage(chance, 1));
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1287,7 +1151,7 @@ class pop_details_promotion_window : public window_element_base {
 	fixed_pop_type_icon *type_icon = nullptr;
 	pop_details_promotion_percent_text *percent_text = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "pop_type") {
 			auto ptr = make_element_by_type<fixed_pop_type_icon>(state, id);
@@ -1327,7 +1191,7 @@ class pop_details_needs_item : public listbox_row_element_base<pop_details_needs
 	commodity_factory_image *commodity_icon = nullptr;
 	simple_text_element_base *value_text = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "goods_type") {
 			auto ptr = make_element_by_type<commodity_factory_image>(state, id);
@@ -1355,7 +1219,7 @@ class pop_details_needs_item : public listbox_row_element_base<pop_details_needs
 	}
 };
 class pop_details_needs_listbox : public listbox_element_base<pop_details_needs_item, pop_details_needs_data> {
-  public:
+public:
 	std::string_view get_row_element_name() override {
 		return "popdetail_needs_entry";
 	}
@@ -1390,25 +1254,25 @@ class pop_details_window : public generic_settable_element<window_element_base, 
 	}
 
 	template <typename T, typename... Targs>
-	void generate_distrobution_windows(sys::state &state) {
+	void generate_distribution_windows(sys::state &state) {
 		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
 		dist_windows.push_back(win.get());
 		add_child_to_front(std::move(win));
 
 		if constexpr (sizeof...(Targs))
-			generate_distrobution_windows<Targs...>(state);
+			generate_distribution_windows<Targs...>(state);
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
 
 		generate_promotion_items(state, std::integer_sequence<std::size_t, 0, 1, 2, 3, 4, 5, 6>{});
 
-		generate_distrobution_windows<
-		    pop_distrobution_window<dcon::ideology_id, false>,
-		    pop_distrobution_window<dcon::issue_option_id, false>>(state);
+		generate_distribution_windows<
+		    pop_distribution_window<dcon::ideology_id, false>,
+		    pop_distribution_window<dcon::issue_option_id, false>>(state);
 
 		// It should be proper to reposition the windows now
 		const xy_pair cell_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdetaildistribution_start")->second.definition].position;
@@ -1564,8 +1428,8 @@ class pop_details_window : public generic_settable_element<window_element_base, 
 	}
 };
 
-class pop_details_icon : public button_element_base {
-  public:
+class pop_details_icon : public add_tooltip<button_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -1588,10 +1452,6 @@ class pop_details_icon : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::pop_id{};
@@ -1609,7 +1469,7 @@ class pop_details_icon : public button_element_base {
 };
 
 class pop_item : public listbox_row_element_base<dcon::pop_id> {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "pop_size") {
 			return make_element_by_type<pop_size_text>(state, id);
@@ -1668,7 +1528,7 @@ class pop_item : public listbox_row_element_base<dcon::pop_id> {
 	}
 };
 class pop_listbox : public listbox_element_base<pop_item, dcon::pop_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "popinfomember_popview";
 	}
@@ -1679,8 +1539,8 @@ typedef std::variant<
     dcon::pop_type_id,
     bool>
     pop_filter_data;
-class pop_filter_button : public generic_settable_element<button_element_base, dcon::pop_type_id> {
-  public:
+class pop_filter_button : public add_tooltip<generic_settable_element<button_element_base, dcon::pop_type_id>> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		frame = int32_t(state.world.pop_type_get_sprite(content) - 1);
 	}
@@ -1720,14 +1580,6 @@ class pop_filter_button : public generic_settable_element<button_element_base, d
 		}
 	}
 
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
@@ -1745,12 +1597,12 @@ class pop_filter_button : public generic_settable_element<button_element_base, d
 };
 
 class pop_filter_select_action {
-  public:
+public:
 	bool value;
 };
 template <bool B>
 class pop_filter_select_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = pop_filter_select_action{B};
@@ -1760,21 +1612,13 @@ class pop_filter_select_button : public button_element_base {
 };
 
 template <pop_list_sort Sort>
-class pop_sort_button : public button_element_base {
-  public:
+class pop_sort_button : public add_tooltip<button_element_base> {
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = Sort;
 			parent->impl_set(state, payload);
 		}
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1826,7 +1670,7 @@ class pop_sort_button : public button_element_base {
 };
 
 class population_window : public window_element_base {
-  private:
+private:
 	pop_listbox *country_pop_listbox = nullptr;
 	pop_left_side_listbox *left_side_listbox = nullptr;
 	pop_list_filter filter = std::monostate{};
@@ -2037,28 +1881,28 @@ class population_window : public window_element_base {
 	}
 
 	template <typename T, typename... Targs>
-	void generate_distrobution_windows(sys::state &state) {
+	void generate_distribution_windows(sys::state &state) {
 		auto win = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("distribution_window")->second.definition);
 		dist_windows.push_back(win.get());
 		add_child_to_front(std::move(win));
 
 		if constexpr (sizeof...(Targs))
-			generate_distrobution_windows<Targs...>(state);
+			generate_distribution_windows<Targs...>(state);
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
 
 		{
-			generate_distrobution_windows<
-			    pop_distrobution_window<dcon::pop_type_id, true>,
-			    pop_distrobution_window<dcon::religion_id, true>,
-			    pop_distrobution_window<dcon::ideology_id, true>,
-			    pop_distrobution_window<dcon::culture_id, true>,
-			    pop_distrobution_window<dcon::issue_option_id, true>,
-			    pop_distrobution_window<dcon::political_party_id, true>>(state);
+			generate_distribution_windows<
+			    pop_distribution_window<dcon::pop_type_id, true>,
+			    pop_distribution_window<dcon::religion_id, true>,
+			    pop_distribution_window<dcon::ideology_id, true>,
+			    pop_distribution_window<dcon::culture_id, true>,
+			    pop_distribution_window<dcon::issue_option_id, true>,
+			    pop_distribution_window<dcon::political_party_id, true>>(state);
 
 			// It should be proper to reposition the windows now
 			const xy_pair cell_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdistribution_start")->second.definition].position;

@@ -5,7 +5,7 @@
 namespace ui {
 
 class mainmenu_panel : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "single_player_button") {
 			return make_element_by_type<button_element_base>(state, id);
@@ -47,7 +47,7 @@ class mainmenu_panel : public window_element_base {
 };
 
 class tutorial_panel : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "frontend_tutorial_bg") {
 			return make_element_by_type<image_element_base>(state, id);

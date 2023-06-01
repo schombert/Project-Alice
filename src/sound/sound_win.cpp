@@ -13,7 +13,7 @@ constexpr int32_t volume_function(float v) {
 }
 
 class audio_instance {
-  private:
+private:
 	std::wstring filename;
 	IGraphBuilder *graph_interface = nullptr;
 	IMediaControl *control_interface = nullptr;
@@ -21,7 +21,7 @@ class audio_instance {
 	IMediaSeeking *seek_interface = nullptr;
 	IMediaEventEx *event_interface = nullptr;
 
-  public:
+public:
 	float volume_multiplier = 1.0f;
 
 	audio_instance() {}
@@ -208,11 +208,11 @@ void audio_instance::change_volume(float new_volume) const {
 }
 
 class sound_impl {
-  private:
+private:
 	audio_instance *current_effect = nullptr;
 	audio_instance *current_interface_sound = nullptr;
 
-  public:
+public:
 	HWND window_handle = nullptr;
 	int32_t last_music = -1;
 	int32_t first_music = -1;

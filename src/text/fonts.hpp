@@ -25,14 +25,14 @@ struct glyph_sub_offset {
 class font_manager;
 
 class font {
-  private:
+private:
 	font(const font &) = delete;
 	font(font &&) = default;
 	font &operator=(font const &) = delete;
 	font &operator=(font &&) noexcept = default;
 	font() = default;
 
-  public:
+public:
 	FT_Face font_face;
 	float internal_line_height = 0.0f;
 	float internal_ascender = 0.0f;
@@ -62,7 +62,7 @@ class font {
 };
 
 class font_manager {
-  public:
+public:
 	font_manager();
 	~font_manager();
 

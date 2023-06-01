@@ -34,12 +34,12 @@ where `cpos` is your current position into the file data, `file_data` is the beg
 To read data out of the csv file, you will use one of the following two functions:
 ```
 template<size_t count_values, typename T>
-char const* parse_fixed_amount_csv_values(char const* start, char const* end, char seperator, T&& function)
+char const* parse_fixed_amount_csv_values(char const* start, char const* end, char separator, T&& function)
 ```
 or
 ```
 template<typename T>
-char const* parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char seperator, T&& function)
+char const* parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char separator, T&& function)
 ```
 
 The first function, `parse_fixed_amount_csv_values`, must be supplied with an explicit integer template parameter for `count_values`, then it will call `function` (probably a lambda you write) once for each non-comment line of the file  with an array of `std::string_view` of size `count_values` containing the first `count_values` many items in that line of the csv file.

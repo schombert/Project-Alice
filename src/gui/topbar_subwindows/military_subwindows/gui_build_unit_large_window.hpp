@@ -5,7 +5,7 @@
 namespace ui {
 
 class build_unit_close_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		state.ui_state.unit_window_army->set_visible(state, true);
 		state.ui_state.unit_window_navy->set_visible(state, true);
@@ -15,13 +15,13 @@ class build_unit_close_button : public button_element_base {
 };
 
 class unit_build_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 	}
 };
 
 class unit_folder_button : public button_element_base {
-  public:
+public:
 	int unit_type;
 	void button_action(sys::state &state) noexcept override {
 		Cyto::Any payload = unit_type;
@@ -42,7 +42,7 @@ class unit_folder_button : public button_element_base {
 };
 
 class buildable_units : public listbox_row_element_base<dcon::pop_id> {
-  public:
+public:
 	int unit_type = 17;
 	ui::simple_text_element_base *unit_name = nullptr;
 	ui::image_element_base *unit_icon = nullptr;
@@ -139,12 +139,12 @@ class buildable_units : public listbox_row_element_base<dcon::pop_id> {
 };
 
 class build_units_listbox : public listbox_element_base<buildable_units, dcon::pop_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "build_unit_entry_wide";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		row_contents.clear();
 
@@ -222,7 +222,7 @@ class build_units_listbox : public listbox_element_base<buildable_units, dcon::p
 };
 
 class build_unit_large_window : public window_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
