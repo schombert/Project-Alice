@@ -28,7 +28,8 @@ public:
 	dcon::unit_type_id unit_type_id;
 	dcon::culture_id culture_id;
 	dcon::province_id province_id;
-
+	//false == army
+	//true == navy
 	bool army_or_navy = false;
 	void button_action(sys::state& state) noexcept override {
 		if(army_or_navy == false) {
