@@ -22,6 +22,7 @@ void register_cb_type(std::string_view name, token_generator& gen, error_handler
 	context.state.world.cb_type_set_name(id, name_id);
 	context.state.world.cb_type_set_short_desc(id, text::find_or_add_key(context.state, name_desc));
 	context.state.world.cb_type_set_long_desc(id, text::find_or_add_key(context.state, name_setup));
+	context.state.world.cb_type_set_construction_speed(id, 1.0f);
 
 	uint32_t special_flags = 0;
 	if(is_fixed_token_ci(name.data(), name.data() + name.length(), "free_peoples"))
