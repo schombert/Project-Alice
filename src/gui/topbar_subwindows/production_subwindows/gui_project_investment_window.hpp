@@ -5,7 +5,7 @@
 namespace ui {
 
 class project_investment_header : public simple_text_element_base {
-  public:
+public:
 	std::string get_text(sys::state &state, std::string csv) noexcept {
 		return text::produce_simple_string(state, csv);
 	}
@@ -16,7 +16,7 @@ class project_investment_header : public simple_text_element_base {
 };
 
 class project_investment_current_funds : public simple_text_element_base {
-  public:
+public:
 	std::string get_text(sys::state &state) noexcept {
 		return text::format_money(nations::get_treasury(state, state.local_player_nation));
 	}
@@ -27,7 +27,7 @@ class project_investment_current_funds : public simple_text_element_base {
 };
 
 class project_investment_window : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "window_bg") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);

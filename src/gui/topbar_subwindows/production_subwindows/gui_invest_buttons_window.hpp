@@ -5,7 +5,7 @@
 namespace ui {
 
 class invest_buttons_window : public window_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

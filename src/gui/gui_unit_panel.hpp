@@ -7,7 +7,7 @@ namespace ui {
 
 template <class T>
 class unit_selection_panel : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "unitpanel_bg") {
 			return make_element_by_type<draggable_target>(state, id);
@@ -61,7 +61,7 @@ class unit_selection_panel : public window_element_base {
 
 template <class T, std::size_t N>
 class unit_details_type_item : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "unit_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
@@ -79,7 +79,7 @@ class unit_details_type_item : public window_element_base {
 
 template <class T>
 class subunit_details_name : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = T{};
@@ -93,7 +93,7 @@ class subunit_details_name : public simple_text_element_base {
 
 template <class T>
 class subunit_details_type_text : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = T{};
@@ -107,7 +107,7 @@ class subunit_details_type_text : public simple_text_element_base {
 
 template <class T>
 class subunit_details_type_icon : public image_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = T{};
@@ -121,7 +121,7 @@ class subunit_details_type_icon : public image_element_base {
 
 template <class T>
 class subunit_organisation_progress_bar : public vertical_progress_bar {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = T{};
@@ -135,7 +135,7 @@ class subunit_organisation_progress_bar : public vertical_progress_bar {
 
 template <class T>
 class subunit_strength_progress_bar : public vertical_progress_bar {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = T{};
@@ -148,7 +148,7 @@ class subunit_strength_progress_bar : public vertical_progress_bar {
 };
 
 class subunit_details_regiment_amount : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::regiment_id{};
@@ -159,7 +159,7 @@ class subunit_details_regiment_amount : public simple_text_element_base {
 	}
 };
 class subunit_details_ship_amount : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::ship_id{};
@@ -172,7 +172,7 @@ class subunit_details_ship_amount : public simple_text_element_base {
 
 template <class T>
 class subunit_details_entry : public listbox_row_element_base<T> {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "select") {
 			return make_element_by_type<button_element_base>(state, id);
@@ -223,12 +223,12 @@ class subunit_details_entry : public listbox_row_element_base<T> {
 	}
 };
 class unit_details_army_listbox : public listbox_element_base<subunit_details_entry<dcon::regiment_id>, dcon::regiment_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "subunit_entry";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		row_contents.clear();
 		if (parent) {
@@ -244,12 +244,12 @@ class unit_details_army_listbox : public listbox_element_base<subunit_details_en
 	}
 };
 class unit_details_navy_listbox : public listbox_element_base<subunit_details_entry<dcon::ship_id>, dcon::ship_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "subunit_entry";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		row_contents.clear();
 		if (parent) {
@@ -266,7 +266,7 @@ class unit_details_navy_listbox : public listbox_element_base<subunit_details_en
 };
 
 class unit_details_load_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::army_id{};
@@ -276,7 +276,7 @@ class unit_details_load_button : public button_element_base {
 	}
 };
 class unit_details_unload_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::army_id{};
@@ -286,7 +286,7 @@ class unit_details_unload_button : public button_element_base {
 	}
 };
 class unit_details_enable_rebel_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::army_id{};
@@ -296,7 +296,7 @@ class unit_details_enable_rebel_button : public button_element_base {
 	}
 };
 class unit_details_disable_rebel_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::army_id{};
@@ -306,7 +306,7 @@ class unit_details_disable_rebel_button : public button_element_base {
 	}
 };
 class unit_details_select_land_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::navy_id{};
@@ -317,7 +317,7 @@ class unit_details_select_land_button : public button_element_base {
 };
 template <class T>
 class unit_details_attach_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = T{};
@@ -328,7 +328,7 @@ class unit_details_attach_button : public button_element_base {
 };
 template <class T>
 class unit_details_dettach_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = T{};
@@ -340,7 +340,7 @@ class unit_details_dettach_button : public button_element_base {
 
 template <class T>
 class unit_details_buttons : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "load_button" && std::is_same_v<T, dcon::army_id>) {
 			return make_element_by_type<unit_details_load_button>(state, id);
@@ -366,7 +366,7 @@ template <class T>
 class unit_details_window : public window_element_base {
 	T unit_id{};
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		base_data.position.y = 250;

@@ -28,7 +28,7 @@ struct production_selection_wrapper {
 };
 
 class factory_employment_image : public image_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -67,7 +67,7 @@ class factory_employment_image : public image_element_base {
 };
 
 class factory_priority_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -140,7 +140,7 @@ class factory_priority_button : public button_element_base {
 };
 
 class factory_upgrade_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -190,7 +190,7 @@ class factory_upgrade_button : public button_element_base {
 };
 
 class factory_shutdown_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -237,7 +237,7 @@ class factory_shutdown_button : public button_element_base {
 };
 
 class factory_subsidise_button : public button_element_base { // Got a problem with mixed variants? too bad, Vic2 does same thing
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
@@ -283,7 +283,7 @@ class factory_subsidise_button : public button_element_base { // Got a problem w
 };
 
 class factory_delete_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -318,7 +318,7 @@ struct production_factory_slot_data {
 };
 
 class factory_build_progress_bar : public progress_bar {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = economy::new_factory{};
@@ -329,7 +329,7 @@ class factory_build_progress_bar : public progress_bar {
 };
 
 class factory_upgrade_progress_bar : public progress_bar {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = economy::upgraded_factory{};
@@ -348,7 +348,7 @@ class production_factory_info : public window_element_base {
 	std::vector<element_base *> build_elements;
 	std::vector<element_base *> closed_elements;
 
-  public:
+public:
 	uint8_t index = 0; // from 0 to int32_t(state.defines.factories_per_state)
 
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -535,7 +535,7 @@ class production_factory_info_bounds_window : public window_element_base {
 		return content.filter;
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		factories.resize(size_t(state.defines.factories_per_state));
@@ -607,7 +607,7 @@ class production_factory_info_bounds_window : public window_element_base {
 };
 
 class production_build_new_factory : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -655,7 +655,7 @@ class production_national_focus_button : public button_element_base {
 		return 0;
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		frame = get_icon_frame(state);
 	}
@@ -688,7 +688,7 @@ class production_national_focus_button : public button_element_base {
 };
 
 class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "state_focus") {
 			return make_element_by_type<production_national_focus_button>(state, id);
@@ -709,12 +709,12 @@ class production_state_info : public listbox_row_element_base<dcon::state_instan
 };
 
 class production_state_listbox : public listbox_element_base<production_state_info, dcon::state_instance_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "state_info";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		Cyto::Any payload = bool{};
 		parent->impl_get(state, payload);
@@ -749,7 +749,7 @@ class production_state_listbox : public listbox_element_base<production_state_in
 class production_goods_category_name : public window_element_base {
 	simple_text_element_base *goods_cat_name = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "cat_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -788,7 +788,7 @@ class production_goods_category_name : public window_element_base {
 class commodity_output_total_text : public simple_text_element_base {
 	dcon::commodity_id commodity_id{};
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		set_text(state, text::format_float(economy::commodity_daily_production_amount(state, commodity_id), 1));
 	}
@@ -808,7 +808,7 @@ class production_good_info : public window_element_base {
 	commodity_player_production_text *good_output_total = nullptr;
 	image_element_base *good_not_producing_overlay = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "output_factory") {
 			return make_element_by_type<commodity_factory_image>(state, id);
@@ -895,7 +895,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 		set_visible_vector_elements(state, good_elements, false);
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		generic_tabbed_window::on_create(state);
 

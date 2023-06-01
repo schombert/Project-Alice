@@ -32,14 +32,14 @@ class unit_icon_color : public image_element_base {
 		return 2; // gray, i.e not involved or irrelevant for us
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		frame = get_frame(state);
 	}
 };
 
 class unit_strength_text : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = float{0.f};
@@ -52,7 +52,7 @@ class unit_strength_text : public simple_text_element_base {
 
 template <typename T>
 class map_element_base : public T {
-  public:
+public:
 	dcon::province_id content{};
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override {
 		auto mid_point = state.world.province_get_mid_point(content);
@@ -70,7 +70,7 @@ class map_element_base : public T {
 };
 
 class unit_icon_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -100,7 +100,7 @@ class unit_icon_window : public map_element_base<window_element_base> {
 	unit_strength_text *strength_text = nullptr;
 	image_element_base *attr_icon = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "unit_panel_bg") {
 			return make_element_by_type<unit_icon_button>(state, id);
@@ -192,7 +192,7 @@ class unit_icon_window : public map_element_base<window_element_base> {
 };
 
 class rgo_icon : public map_element_base<image_element_base> {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		auto cid = state.world.province_get_rgo(content).id;
 		frame = int32_t(state.world.commodity_get_icon(cid));

@@ -64,10 +64,10 @@ struct modifier_hash {
 
 template <typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
 class tagged_vector {
-  private:
+private:
 	std::vector<value_type, allocator> storage;
 
-  public:
+public:
 	using public_value_type = value_type;
 	using public_tag_type = tag_type;
 

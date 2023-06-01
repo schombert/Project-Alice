@@ -15,7 +15,7 @@
 namespace ui {
 
 class province_liferating : public province_liferating_progress_bar {
-  public:
+public:
 	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
@@ -40,7 +40,7 @@ class province_liferating : public province_liferating_progress_bar {
 };
 
 class province_close_button : public generic_close_button {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		state.map_state.set_selected_province(dcon::province_id{});
 		generic_close_button::button_action(state);
@@ -48,7 +48,7 @@ class province_close_button : public generic_close_button {
 };
 
 class province_pop_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -70,7 +70,7 @@ class province_pop_button : public button_element_base {
 };
 
 class province_terrain_image : public opaque_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -111,7 +111,7 @@ class province_terrain_image : public opaque_element_base {
 };
 
 class province_flashpoint_indicator : public standard_province_icon {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		standard_province_icon::on_update(state);
 		if (parent) {
@@ -126,7 +126,7 @@ class province_flashpoint_indicator : public standard_province_icon {
 };
 
 class province_controller_flag : public flag_button {
-  public:
+public:
 	dcon::national_identity_id get_current_nation(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -176,7 +176,7 @@ class province_controller_flag : public flag_button {
 };
 
 class province_colony_button : public standard_state_instance_button {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		frame = 1;
@@ -232,7 +232,7 @@ class province_colony_button : public standard_state_instance_button {
 };
 
 class province_state_name_text_SCH : public simple_text_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -244,7 +244,7 @@ class province_state_name_text_SCH : public simple_text_element_base {
 };
 
 class province_national_focus_button : public button_element_base {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -281,11 +281,11 @@ class province_national_focus_button : public button_element_base {
 };
 
 class province_window_header : public window_element_base {
-  private:
+private:
 	fixed_pop_type_icon *slave_icon = nullptr;
 	province_colony_button *colony_button = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "state_name") {
 			return make_element_by_type<province_state_name_text_SCH>(state, id);
@@ -354,7 +354,7 @@ class province_window_header : public window_element_base {
 };
 
 class province_send_diplomat_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -365,7 +365,7 @@ class province_send_diplomat_button : public button_element_base {
 };
 
 class province_core_flags : public overlapping_flags_box {
-  private:
+private:
 	void populate(sys::state &state, dcon::province_id prov_id) {
 		row_contents.clear();
 		auto fat_id = dcon::fatten(state.world, prov_id);
@@ -377,7 +377,7 @@ class province_core_flags : public overlapping_flags_box {
 		update(state);
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -389,7 +389,7 @@ class province_core_flags : public overlapping_flags_box {
 
 template <economy::province_building_type Value>
 class province_building_icon : public standard_province_icon {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::province_id prov_id) noexcept override {
 		switch (Value) {
 		case economy::province_building_type::railroad: {
@@ -410,7 +410,7 @@ class province_building_icon : public standard_province_icon {
 };
 template <economy::province_building_type Value>
 class province_building_expand_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -431,7 +431,7 @@ class province_building_expand_button : public button_element_base {
 };
 template <economy::province_building_type Value>
 class province_building_progress : public progress_bar {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		progress_bar::on_create(state);
 		base_data.position.y -= 2;
@@ -484,7 +484,7 @@ class province_building_window : public window_element_base {
 		return false;
 	}
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == get_icon_name()) {
 			return make_element_by_type<province_building_icon<Value>>(state, id);
@@ -532,7 +532,7 @@ class province_building_window : public window_element_base {
 };
 
 class province_invest_railroad_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -553,13 +553,13 @@ class province_invest_railroad_button : public button_element_base {
 };
 
 class province_view_foreign_details : public window_element_base {
-  private:
+private:
 	flag_button *country_flag_button = nullptr;
 	culture_piechart<dcon::province_id> *culture_chart = nullptr;
 	ideology_piechart<dcon::province_id> *ideology_chart = nullptr;
 	workforce_piechart<dcon::province_id> *workforce_chart = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
@@ -670,12 +670,12 @@ class province_view_foreign_details : public window_element_base {
 };
 
 class province_view_statistics : public window_element_base {
-  private:
+private:
 	culture_piechart<dcon::province_id> *culture_chart = nullptr;
 	ideology_piechart<dcon::province_id> *ideology_chart = nullptr;
 	workforce_piechart<dcon::province_id> *workforce_chart = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "goods_type") {
 			return make_element_by_type<province_rgo_icon>(state, id);
@@ -746,7 +746,7 @@ class province_view_statistics : public window_element_base {
 };
 
 class province_view_buildings : public window_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		{
@@ -815,9 +815,9 @@ class province_view_buildings : public window_element_base {
 };
 
 class province_colony_rgo_icon : public image_element_base {
-  public: // goto hell;
-	      // Seriously hate this code, just no, this is awful and shouldnt be needed
-	      // but i refuse to loose my sanity to something to assining
+public: // goto hell;
+	    // Seriously hate this code, just no, this is awful and shouldnt be needed
+	    // but i refuse to loose my sanity to something to assining
 	dcon::text_sequence_id rgo_name;
 	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
@@ -835,7 +835,7 @@ class province_colony_rgo_icon : public image_element_base {
 };
 
 class province_protectorate_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -857,7 +857,7 @@ class province_protectorate_button : public button_element_base {
 };
 
 class province_withdraw_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -879,13 +879,13 @@ class province_withdraw_button : public button_element_base {
 };
 
 class colony_nation_id_pair {
-  public:
+public:
 	dcon::colonization_id col_id{};
 	dcon::nation_id player_id{};
 };
 
 class colony_invest_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::province_id{};
@@ -908,7 +908,7 @@ class colony_invest_button : public button_element_base {
 };
 
 class level_entry : public listbox_row_element_base<uint8_t> {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "progress_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
@@ -923,12 +923,12 @@ class level_entry : public listbox_row_element_base<uint8_t> {
 };
 
 class colonisation_listbox : public overlapping_listbox_element_base<level_entry, uint8_t> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "level_entry";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		Cyto::Any payload = dcon::colonization_id{};
 		parent->impl_get(state, payload);
@@ -947,7 +947,7 @@ class colonisation_listbox : public overlapping_listbox_element_base<level_entry
 };
 
 class colonist_entry : public listbox_row_element_base<colony_nation_id_pair> {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "controller_flag") {
 			return make_element_by_type<flag_button>(state, id);
@@ -977,12 +977,12 @@ class colonist_entry : public listbox_row_element_base<colony_nation_id_pair> {
 };
 
 class colonist_listbox : public listbox_element_base<colonist_entry, colony_nation_id_pair> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "colonist_item";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -1010,7 +1010,7 @@ class colonist_listbox : public listbox_element_base<colonist_entry, colony_nati
 };
 
 class province_colonisation_temperature : public progress_bar {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		Cyto::Any payload = dcon::state_instance_id{};
 		parent->impl_get(state, payload);
@@ -1020,12 +1020,12 @@ class province_colonisation_temperature : public progress_bar {
 };
 
 class province_window_colony : public window_element_base {
-  private:
+private:
 	province_colony_rgo_icon *rgo_icon = nullptr;
 	simple_text_element_base *population_box = nullptr;
 	culture_piechart<dcon::province_id> *culture_chart = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "total_population") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -1077,7 +1077,7 @@ class province_window_colony : public window_element_base {
 };
 
 class province_view_window : public window_element_base {
-  private:
+private:
 	dcon::province_id active_province{};
 	province_window_header *header_window = nullptr;
 	province_view_foreign_details *foreign_details_window = nullptr;
@@ -1086,7 +1086,7 @@ class province_view_window : public window_element_base {
 	province_window_colony *colony_window = nullptr;
 	element_base *nf_win = nullptr;
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		state.ui_state.province_window = this;

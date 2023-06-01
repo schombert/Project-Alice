@@ -7,7 +7,7 @@
 namespace ui {
 
 class factory_prod_subsidise_all_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::subsidise_all}};
@@ -27,7 +27,7 @@ class factory_prod_subsidise_all_button : public button_element_base {
 };
 
 class factory_prod_unsubsidise_all_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::unsubsidise_all}};
@@ -47,7 +47,7 @@ class factory_prod_unsubsidise_all_button : public button_element_base {
 };
 
 class factory_prod_open_all_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::open_all}};
@@ -67,7 +67,7 @@ class factory_prod_open_all_button : public button_element_base {
 };
 
 class factory_prod_close_all_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::close_all}};
@@ -87,7 +87,7 @@ class factory_prod_close_all_button : public button_element_base {
 };
 
 class factory_select_all_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::filter_select_all}};
@@ -107,7 +107,7 @@ class factory_select_all_button : public button_element_base {
 };
 
 class factory_deselect_all_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::filter_deselect_all}};
@@ -127,7 +127,7 @@ class factory_deselect_all_button : public button_element_base {
 };
 
 class factory_show_empty_states_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = bool{};
@@ -151,7 +151,7 @@ class factory_show_empty_states_button : public button_element_base {
 };
 
 class factory_buttons_window : public window_element_base {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "prod_subsidize_all") {
 			return make_element_by_type<factory_prod_subsidise_all_button>(state, id);

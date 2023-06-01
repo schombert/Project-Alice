@@ -5,7 +5,7 @@
 namespace ui {
 
 class military_leaders : public listbox_row_element_base<dcon::leader_id> {
-  public:
+public:
 	ui::simple_text_element_base *leader_name = nullptr;
 	ui::simple_text_element_base *background = nullptr;
 	ui::simple_text_element_base *personality = nullptr;
@@ -77,12 +77,12 @@ class military_leaders : public listbox_row_element_base<dcon::leader_id> {
 };
 
 class military_leaders_listbox : public listbox_element_base<military_leaders, dcon::leader_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "milview_leader_entry";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		row_contents.clear();
 		for (const auto fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
@@ -93,7 +93,7 @@ class military_leaders_listbox : public listbox_element_base<military_leaders, d
 
 template <bool B>
 class military_make_leader_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		disabled = !command::can_make_leader(state, state.local_player_nation, B);
 	}
@@ -104,7 +104,7 @@ class military_make_leader_button : public button_element_base {
 };
 
 class leaders_window : public window_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

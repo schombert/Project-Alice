@@ -36,7 +36,7 @@ typedef std::variant<
     outliner_data;
 
 class outliner_element_button : public generic_settable_element<button_element_base, outliner_data> {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -133,7 +133,7 @@ class outliner_element : public listbox_row_element_base<outliner_data> {
 		}
 	}
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "outliner_header") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
@@ -260,7 +260,7 @@ class outliner_element : public listbox_row_element_base<outliner_data> {
 };
 
 class outliner_listbox : public listbox_element_base<outliner_element, outliner_data> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "outliner_entry";
 	}
@@ -274,7 +274,7 @@ class outliner_listbox : public listbox_element_base<outliner_element, outliner_
 		return false;
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		row_contents.clear();
 		// TODO: rebel_occupations,
@@ -398,7 +398,7 @@ class outliner_listbox : public listbox_element_base<outliner_element, outliner_
 };
 
 class outliner_minmax_button : public button_element_base {
-  public:
+public:
 };
 
 template <outliner_filter Filter>
@@ -438,7 +438,7 @@ class outliner_filter_checkbox : public checkbox_button {
 		}
 	}
 
-  public:
+public:
 	bool is_active(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = Filter;
@@ -469,7 +469,7 @@ class outliner_filter_checkbox : public checkbox_button {
 };
 
 class outliner_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (state.ui_state.outliner_window)
 			frame = state.ui_state.outliner_window->is_visible() ? 1 : 0;
@@ -505,7 +505,7 @@ class outliner_window : public window_element_base {
 	outliner_listbox *listbox = nullptr;
 	image_element_base *bottom_image = nullptr;
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 

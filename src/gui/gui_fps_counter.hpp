@@ -4,11 +4,11 @@
 namespace ui {
 
 class fps_counter_text_box : public simple_text_element_base {
-  private:
+private:
 	std::chrono::time_point<std::chrono::steady_clock> last_render_time{};
 	std::chrono::time_point<std::chrono::steady_clock> last_compute_time{};
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		simple_text_element_base::on_create(state);
 		set_text(state, "0");
