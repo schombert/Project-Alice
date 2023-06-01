@@ -28,8 +28,14 @@ public:
 	dcon::unit_type_id unit_type_id;
 	dcon::culture_id culture_id;
 	dcon::province_id province_id;
+
+	bool army_or_navy = false;
 	void button_action(sys::state& state) noexcept override {
-		command::start_land_unit_construction(state, state.local_player_nation, province_id, culture_id, unit_type_id);
+		if(army_or_navy == false) {
+			command::start_land_unit_construction(state, state.local_player_nation, province_id, culture_id, unit_type_id);
+		} else {
+
+		}
 	}
 };
 
@@ -123,20 +129,32 @@ public:
 		//state.military_definitions.unit_base_definitions[dcon::unit_type_id(1)]
 
 		//unit_icon->frame = 16;
-		for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == unit_type) {
-				auto culture_id = state.world.pop_get_culture(content.pop_info);
-				auto culture_content = text::produce_simple_string(state, culture_id.get_name());
-				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name);
-				unit_name->set_text(state, culture_content+" "+unit_type_name);
+		if(content.army_or_navy == false) {
+			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == unit_type) {
+					auto culture_id = state.world.pop_get_culture(content.pop_info);
+					auto culture_content = text::produce_simple_string(state, culture_id.get_name());
+					auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name);
+					unit_name->set_text(state, culture_content + " " + unit_type_name);
 
-				build_button->unit_type_id = dcon::unit_type_id(i);
-				build_button->culture_id = dcon::fatten(state.world, content.pop_info).get_culture();
-				build_button->province_id = dcon::fatten(state.world, content.pop_info).get_province_from_pop_location();
+					build_button->army_or_navy = false;
+
+					build_button->unit_type_id = dcon::unit_type_id(i);
+					build_button->culture_id = dcon::fatten(state.world, content.pop_info).get_culture();
+					build_button->province_id = dcon::fatten(state.world, content.pop_info).get_province_from_pop_location();
+				}
 			}
-		}
-		province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(state.world.pop_location_get_province(state.world.pop_get_pop_location(content.pop_info)))));
+			province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(state.world.pop_location_get_province(state.world.pop_get_pop_location(content.pop_info)))));
+		} else {
+			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == unit_type) {
+					unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name));
 
+					build_button->army_or_navy = true;
+				}
+			}
+			province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(content.province_info)));
+		}
 		Cyto::Any payload = content;
 		impl_set(state, payload);
 	}
@@ -145,17 +163,31 @@ public:
 		if(payload.holds_type<int>()) {
 			unit_type = Cyto::any_cast<int>(payload);
 			unit_icon->frame = unit_type-1;
-			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == unit_type) {
-					auto culture_id = state.world.pop_get_culture(content.pop_info);
-					auto culture_content = text::produce_simple_string(state, culture_id.get_name());
-					auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name);
-					unit_name->set_text(state, culture_content + " " + unit_type_name);
+			if(content.army_or_navy == false) {
+				for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+					if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == unit_type) {
+						auto culture_id = state.world.pop_get_culture(content.pop_info);
+						auto culture_content = text::produce_simple_string(state, culture_id.get_name());
+						auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name);
+						unit_name->set_text(state, culture_content + " " + unit_type_name);
 
-					build_button->unit_type_id = dcon::unit_type_id(i);
-					build_button->culture_id = dcon::fatten(state.world, content.pop_info).get_culture();
-					build_button->province_id = dcon::fatten(state.world, content.pop_info).get_province_from_pop_location();
+						build_button->army_or_navy = false;
+
+						build_button->unit_type_id = dcon::unit_type_id(i);
+						build_button->culture_id = dcon::fatten(state.world, content.pop_info).get_culture();
+						build_button->province_id = dcon::fatten(state.world, content.pop_info).get_province_from_pop_location();
+					}
 				}
+				province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(state.world.pop_location_get_province(state.world.pop_get_pop_location(content.pop_info)))));
+			} else {
+				for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+					if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == unit_type) {
+						unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name));
+
+						build_button->army_or_navy = true;
+					}
+				}
+				province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(content.province_info)));
 			}
 			return message_result::consumed;
 		}
@@ -171,7 +203,7 @@ protected:
 public:
 	//false == army
 	//true == navy
-	bool army_or_navy = false;
+	bool army_or_navy = true;
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 
@@ -282,7 +314,15 @@ public:
 				}
 			}
 		} else {
-
+			for(const auto fat_id : state.world.nation_get_province_ownership(state.local_player_nation)) {
+				if(fat_id.get_province().get_is_coast()) {
+					buildable_unit_entry_info information;
+					information.army_or_navy = true;
+					information.pop_info = dcon::pop_id(1);
+					information.province_info = fat_id.get_province();
+					row_contents.push_back(information);
+				}
+			}
 		}
 
 		update(state);
@@ -441,13 +481,14 @@ public:
 	}
 
 	void set_army_visible(sys::state& state) {
+		buildable_units->army_or_navy = false;
 		for(auto element : army_elements) {
 			element->set_visible(state, true);
 			if(element->frame == 1) {
 				element->button_action(state);
 			}
 		}
-		buildable_units->army_or_navy = false;
+		//buildable_units->army_or_navy = false;
 		buildable_units->on_update(state);
 	}
 
@@ -458,13 +499,14 @@ public:
 	}
 
 	void set_navy_visible(sys::state& state) {
+		buildable_units->army_or_navy = true;
 		for(auto element : navy_elements) {
 			element->set_visible(state, true);
 			if(element->frame == 1) {
 				element->button_action(state);
 			}
 		}
-		buildable_units->army_or_navy = true;
+		//buildable_units->army_or_navy = true;
 		buildable_units->on_update(state);
 	}
 
