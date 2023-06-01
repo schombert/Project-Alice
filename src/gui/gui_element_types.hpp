@@ -16,6 +16,18 @@
 
 namespace ui {
 
+template<typename T>
+class add_tooltip : public T {
+public:
+	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : T::test_mouse(state, x, y, type);	// By Schombert
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+};
+
 template <typename T>
 std::unique_ptr<element_base> make_element_by_type(sys::state &state, std::string_view name) { // also bypasses global creation hooks
 	auto it = state.ui_state.defs_by_name.find(name);
