@@ -35,7 +35,7 @@ public:
 		if(army_or_navy == false) {
 			command::start_land_unit_construction(state, state.local_player_nation, province_id, culture_id, unit_type_id);
 		} else {
-
+			command::start_naval_unit_construction(state, state.local_player_nation, province_id, unit_type_id);
 		}
 	}
 };
@@ -152,6 +152,9 @@ public:
 					unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name));
 
 					build_button->army_or_navy = true;
+
+					build_button->unit_type_id = dcon::unit_type_id(i);
+					build_button->province_id = content.province_info;
 				}
 			}
 			province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(content.province_info)));
@@ -186,6 +189,9 @@ public:
 						unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].name));
 
 						build_button->army_or_navy = true;
+
+						build_button->unit_type_id = dcon::unit_type_id(i);
+						build_button->province_id = content.province_info;
 					}
 				}
 				province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(content.province_info)));
