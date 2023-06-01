@@ -3092,8 +3092,8 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 		tariff = int8_t(std::clamp(std::clamp(int32_t(tariff), min_tariff, max_tariff), -100, 100));
 	}
 	{
-		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));
-		auto max_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tariff));
+		auto min_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tax));
+		auto max_tax = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_tax));
 		if(max_tax <= 0)
 			max_tax = 100;
 		max_tax = std::max(min_tax, max_tax);

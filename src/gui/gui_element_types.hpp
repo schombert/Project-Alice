@@ -44,7 +44,7 @@ class container_base : public element_base {
 public:
 	std::vector<std::unique_ptr<element_base>> children;
 
-	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept final;
+	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept final;
 	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final;
 	void impl_on_update(sys::state& state) noexcept final;
 	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
@@ -83,8 +83,11 @@ public:
 
 class opaque_element_base : public image_element_base {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip)
+			return message_result::consumed;
+		else
+			return message_result::unseen;
 	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
@@ -205,7 +208,7 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::consumed;
 	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -438,7 +441,10 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::position_sensitive_tooltip;
 	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::scroll)
+			return message_result::unseen;
+
 		float dx = float(x) - radius;
 		float dy = float(y) - radius;
 		auto dist = sqrt(dx * dx + dy * dy);
@@ -597,7 +603,7 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 	void calibrate_scrollbar(sys::state& state) noexcept;
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::consumed;
 	}
 };
@@ -665,7 +671,7 @@ public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::consumed;
 	}
 };

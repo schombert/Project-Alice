@@ -31,16 +31,16 @@ inline message_result greater_result(message_result a, message_result b) {
 }
 
 
-mouse_probe container_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept {
+mouse_probe container_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
 	for(auto& c : children) {
 		if(c->is_visible()) {
 			auto relative_location = child_relative_location(*this, *c);
-			auto res = c->impl_probe_mouse(state, x - relative_location.x, y - relative_location.y);
+			auto res = c->impl_probe_mouse(state, x - relative_location.x, y - relative_location.y, type);
 			if(res.under_mouse)
 				return res;
 		}
 	}
-	return element_base::impl_probe_mouse(state, x, y);
+	return element_base::impl_probe_mouse(state, x, y, type);
 }
 
 message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {

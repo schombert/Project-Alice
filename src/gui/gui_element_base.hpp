@@ -5,6 +5,12 @@
 
 namespace ui {
 
+enum class mouse_probe_type {
+	click,
+	tooltip,
+	scroll
+};
+
 class element_base {
 public:
 	static constexpr uint8_t is_invisible_mask = 0x01;
@@ -34,7 +40,7 @@ public:
 	// impl members: to be overridden only for the very basic container / not a container distinction
 	//       - are responsible for propagating messages and responses
 	//       - should be called in general when something happens
-	virtual mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // tests which element is under the cursor
+	virtual mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept; // tests which element is under the cursor
 	virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;
@@ -57,7 +63,7 @@ public:
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:
-	virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
+	virtual message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept; // asks whether the mouse would be intercepted here, but without taking an action
 	virtual message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept;

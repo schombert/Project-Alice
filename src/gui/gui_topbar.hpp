@@ -30,8 +30,8 @@ public:
 
 class topbar_nation_prestige_text : public nation_prestige_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -82,8 +82,8 @@ public:
 
 class topbar_nation_industry_score_text : public nation_industry_score_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -107,8 +107,8 @@ public:
 
 class topbar_nation_military_score_text : public nation_military_score_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -136,8 +136,8 @@ public:
 
 class topbar_nation_colonial_power_text : public nation_colonial_power_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -196,8 +196,8 @@ public:
 
 class topbar_nation_budget_funds_text : public nation_budget_funds_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -296,8 +296,8 @@ public:
 
 class topbar_nation_current_research_text : public nation_current_research_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -341,8 +341,8 @@ private:
 
 public:
 	// TODO  -breizh
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -383,8 +383,8 @@ public:
 
 class topbar_nation_literacy_text : public nation_literacy_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -417,8 +417,8 @@ public:
 
 class topbar_nation_ruling_party_text : public nation_ruling_party_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -446,8 +446,8 @@ public:
 
 class topbar_nation_suppression_points_text : public nation_suppression_points_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -471,8 +471,8 @@ public:
 
 class topbar_nation_infamy_text : public nation_infamy_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -502,8 +502,8 @@ public:
 
 class topbar_nation_population_text : public nation_population_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -531,8 +531,8 @@ public:
 
 class topbar_nation_focus_allocation_text : public nation_focus_allocation_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -588,8 +588,8 @@ public:
 
 class topbar_nation_militancy_text : public nation_militancy_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -617,8 +617,8 @@ public:
 
 class topbar_nation_consciousness_text : public nation_consciousness_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -651,8 +651,8 @@ public:
 
 class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -676,8 +676,8 @@ public:
 
 class topbar_nation_brigade_allocation_text : public nation_brigade_allocation_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -702,8 +702,8 @@ public:
 
 class topbar_nation_navy_allocation_text : public nation_brigade_allocation_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -734,8 +734,8 @@ public:
 
 class topbar_nation_mobilization_size_text : public nation_mobilization_size_text {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -795,8 +795,8 @@ private:
 		return sum;
 	}
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -828,7 +828,7 @@ public:
 		opaque_element_base::render(state, x, y);
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type t) noexcept override {
 		if(is_visible()) {
 			return message_result::consumed;
 		} else {
@@ -933,10 +933,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -961,10 +957,6 @@ public:
 		} else {
 			state.ui_state.held_game_speed = std::max(1, state.ui_state.held_game_speed - 1);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1001,8 +993,8 @@ public:
 		return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1042,8 +1034,8 @@ public:
 		return int32_t(!economy::nation_is_constructing_factories(state, nation_id));
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1084,8 +1076,8 @@ public:
 		return int32_t(!economy::nation_has_closed_factories(state, nation_id));
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1146,8 +1138,8 @@ public:
 		return int32_t(primary_unemployed + secondary_unemployed <= 1.0f);
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1217,10 +1209,6 @@ class topbar_available_reforms_icon : public standard_nation_button {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!nations::has_reform_available(state, nation_id));
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1311,10 +1299,6 @@ public:
 		return int32_t(!nations::has_decision_available(state, nation_id));
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -1356,8 +1340,8 @@ public:
 		return int32_t(!politics::is_election_ongoing(state, nation_id));
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1392,10 +1376,6 @@ public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
 		return int32_t(rebellions_iter.begin() == rebellions_iter.end());
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1450,10 +1430,6 @@ public:
 	}
 	// TODO - when the player clicks on the colony icon and theres colonies to expand then we want to teleport their camera to the colonies position & open the prov window
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -1504,10 +1480,6 @@ public:
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -1545,10 +1517,6 @@ public:
 		} else {
 			return 1;
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
