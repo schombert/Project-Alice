@@ -17,4 +17,4 @@ enum class production_action : uint8_t {
 	foreign_invest_window,
 };
 
-}
+} // namespace ui

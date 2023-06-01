@@ -11,17 +11,17 @@ TEST_CASE("defines tests", "[defines_tests]") {
 #ifndef IGNORE_REAL_FILES_TESTS
 	auto file = open_file(common, NATIVE("defines.lua"));
 	REQUIRE(file);
-	if(file) {
+	if (file) {
 		parsers::error_handler err("");
 		auto content = view_contents(*file);
 		parsing::defines d{};
-		
+
 		// Overriden by file values
 		d.greatness_days = 0.f;
 		d.parse_file(*state, content.data, err);
 		REQUIRE(d.greatness_days == 365.0f);
 
-		sys::date date{ 0 };
+		sys::date date{0};
 		auto ymds = date.to_ymd(state->start_date);
 		REQUIRE(ymds.year == 1836);
 		REQUIRE(ymds.month == 1);

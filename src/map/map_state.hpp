@@ -14,22 +14,21 @@ enum class map_view {
 	flat
 };
 class map_state {
-public:
-	map_state() {};
+  public:
+	map_state(){};
 
 	// Called to load the terrain and province map data
-	void load_map_data(parsers::scenario_building_context& context);
+	void load_map_data(parsers::scenario_building_context &context);
 	// Called to load the map. Will load the texture and shaders from disk
-	void load_map(sys::state& state);
+	void load_map(sys::state &state);
 
-	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
-	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
+	void render(sys::state &state, uint32_t screen_x, uint32_t screen_y);
+	void set_province_color(std::vector<uint32_t> const &prov_color, map_mode::mode map_mode);
 	void set_terrain_map_mode();
-	void update_borders(sys::state& state);
+	void update_borders(sys::state &state);
 
 	glm::vec2 normalize_map_coord(glm::vec2 pos);
-	bool map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos);
-
+	bool map_to_screen(sys::state &state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2 &screen_pos);
 
 	// Set the position of camera. Position relative from 0-1
 	void set_pos(glm::vec2 pos);
@@ -41,7 +40,7 @@ public:
 	void on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_mbuttom_up(int32_t x, int32_t y, sys::key_modifiers mod);
-	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
+	void on_lbutton_down(sys::state &state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 
 	dcon::province_id get_selected_province();
 	void set_selected_province(dcon::province_id prov_id);
@@ -51,7 +50,7 @@ public:
 
 	display_data map_data;
 
-private:
+  private:
 	// Last update time, used for smooth map movement
 	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
 
@@ -77,12 +76,13 @@ private:
 	glm::vec2 scroll_pos_velocity = glm::vec2(0.f);
 	std::chrono::time_point<std::chrono::system_clock> last_zoom_time{};
 
-	void update(sys::state& state);
+	void update(sys::state &state);
 
-	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos);
-public:
+	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2 &map_pos);
+
+  public:
 	float get_zoom() {
 		return zoom;
 	}
 };
-}
+} // namespace map

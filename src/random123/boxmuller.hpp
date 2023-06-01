@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //   r123::float2  r123::boxmuller(uint32_t u0, uint32_t u1);
 //   r123::double2 r123::boxmuller(uint64_t u0, uint64_t u1);
-//  
+//
 // float2 and double2 are identical to their synonymous global-
 // namespace structures in CUDA.
 //
@@ -66,11 +66,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Random123/uniform.hpp>
 #include <math.h>
 
-namespace r123{
+namespace r123 {
 
 #if !defined(__CUDACC__)
-typedef struct { float x, y; } float2;
-typedef struct { double x, y; } double2;
+typedef struct {
+	float x, y;
+} float2;
+typedef struct {
+	double x, y;
+} double2;
 #else
 typedef ::float2 float2;
 typedef ::double2 double2;
@@ -83,26 +87,26 @@ typedef ::double2 double2;
 
 #if R123_NO_SINCOS /* enable this if sincos and sincosf are not in the math library */
 R123_CUDA_DEVICE R123_STATIC_INLINE void sincosf(float x, float *s, float *c) {
-    *s = sinf(x);
-    *c = cosf(x);
+	*s = sinf(x);
+	*c = cosf(x);
 }
 
 R123_CUDA_DEVICE R123_STATIC_INLINE void sincos(double x, double *s, double *c) {
-    *s = sin(x);
-    *c = cos(x);
+	*s = sin(x);
+	*c = cos(x);
 }
 #endif /* sincos is not in the math library */
 
 #if !defined(CUDART_VERSION) || CUDART_VERSION < 5000 /* enabled if sincospi and sincospif are not in math lib */
 
-R123_CUDA_DEVICE R123_STATIC_INLINE void sincospif(float x, float *s, float *c){
-    const float PIf = 3.1415926535897932f;
-    sincosf(PIf*x, s, c);
+R123_CUDA_DEVICE R123_STATIC_INLINE void sincospif(float x, float *s, float *c) {
+	const float PIf = 3.1415926535897932f;
+	sincosf(PIf * x, s, c);
 }
 
 R123_CUDA_DEVICE R123_STATIC_INLINE void sincospi(double x, double *s, double *c) {
-    const double PI = 3.1415926535897932;
-    sincos(PI*x, s, c);
+	const double PI = 3.1415926535897932;
+	sincos(PI * x, s, c);
 }
 #endif /* sincospi is not in math lib */
 
@@ -111,13 +115,13 @@ R123_CUDA_DEVICE R123_STATIC_INLINE void sincospi(double x, double *s, double *c
  * two random floats in a normal distribution via a Box-Muller transform
  */
 R123_CUDA_DEVICE R123_STATIC_INLINE float2 boxmuller(uint32_t u0, uint32_t u1) {
-    float r;
-    float2 f;
-    sincospif(uneg11<float>(u0), &f.x, &f.y);
-    r = sqrtf(-2.f * logf(u01<float>(u1))); // u01 is guaranteed to avoid 0.
-    f.x *= r;
-    f.y *= r;
-    return f;
+	float r;
+	float2 f;
+	sincospif(uneg11<float>(u0), &f.x, &f.y);
+	r = sqrtf(-2.f * logf(u01<float>(u1))); // u01 is guaranteed to avoid 0.
+	f.x *= r;
+	f.y *= r;
+	return f;
 }
 
 /*
@@ -125,14 +129,14 @@ R123_CUDA_DEVICE R123_STATIC_INLINE float2 boxmuller(uint32_t u0, uint32_t u1) {
  * two random doubles in a normal distribution via a Box-Muller transform
  */
 R123_CUDA_DEVICE R123_STATIC_INLINE double2 boxmuller(uint64_t u0, uint64_t u1) {
-    double r;
-    double2 f;
+	double r;
+	double2 f;
 
-    sincospi(uneg11<double>(u0), &f.x, &f.y);
-    r = sqrt(-2. * log(u01<double>(u1))); // u01 is guaranteed to avoid 0.
-    f.x *= r;
-    f.y *= r;
-    return f;
+	sincospi(uneg11<double>(u0), &f.x, &f.y);
+	r = sqrt(-2. * log(u01<double>(u1))); // u01 is guaranteed to avoid 0.
+	f.x *= r;
+	f.y *= r;
+	return f;
 }
 } // namespace r123
 

@@ -1,8 +1,0 @@
-UseTab: UT_ForIndentation
-TabWidth: 4
-IndentWidth: 4
-InsertBraces: false
-NamespaceIndentation: NI_None
-IndentAccessModifiers: false
-AccessModifierOffset: -4
-ColumnLimit: 0

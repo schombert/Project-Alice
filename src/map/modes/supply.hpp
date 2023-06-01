@@ -1,6 +1,6 @@
 #pragma once
 
-std::vector<uint32_t> supply_map_from(sys::state& state) {
+std::vector<uint32_t> supply_map_from(sys::state &state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
@@ -13,9 +13,9 @@ std::vector<uint32_t> supply_map_from(sys::state& state) {
 		float interpolation = (supply_limit < 50 ? supply_limit : 50) / 50.f;
 
 		uint32_t color = ogl::color_gradient(
-				interpolation,
-				sys::pack_color(46, 247, 15), // red
-				sys::pack_color(247, 15, 15) // green
+		    interpolation,
+		    sys::pack_color(46, 247, 15), // red
+		    sys::pack_color(247, 15, 15)  // green
 		);
 
 		auto i = province::to_map_id(prov_id);

@@ -23,19 +23,19 @@ struct message {
 	union dtype {
 		dcon::war_id war;
 
-		dtype() { }
+		dtype() {}
 	} data;
 	type_t type;
 
-	message() : type(diplomatic_message::type_t::none) { }
+	message() : type(diplomatic_message::type_t::none) {}
 };
 
 using type = type_t;
 
-void decline(sys::state& state, message const& m);
-void accept(sys::state& state, message const& m);
+void decline(sys::state &state, message const &m);
+void accept(sys::state &state, message const &m);
 
-void post(sys::state& state, message const& m);
-void update_pending(sys::state& state);
+void post(sys::state &state, message const &m);
+void update_pending(sys::state &state);
 
-}
+} // namespace diplomatic_message
