@@ -26,10 +26,9 @@ std::unique_ptr<sys::state> load_testing_scenario_file() {
 	assert(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
 
 	add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
-	add_root(game_state->common_fs, NATIVE(".")); // for the moment this lets us find the shader files
+	add_root(game_state->common_fs, NATIVE("."));        // for the moment this lets us find the shader files
 
-
-	if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("tests_scenario.bin"))) {
+	if (!sys::try_read_scenario_and_save_file(*game_state, NATIVE("tests_scenario.bin"))) {
 		// scenario making functions
 		game_state->load_scenario_data();
 		sys::write_scenario_file(*game_state, NATIVE("tests_scenario.bin"));
@@ -50,5 +49,5 @@ std::unique_ptr<sys::state> load_testing_scenario_file() {
 #include "triggers_tests.cpp"
 
 TEST_CASE("Dummy test", "[dummy test instance]") {
-    REQUIRE(1 + 1 == 2); 
+	REQUIRE(1 + 1 == 2);
 }

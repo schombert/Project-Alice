@@ -8,8 +8,8 @@
 namespace ui {
 
 class military_window : public window_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
+  public:
+	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 
 		// Unit information comes first
@@ -17,7 +17,7 @@ public:
 		win1->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("army_pos")->second.definition].position;
 		state.ui_state.unit_window_army = win1.get();
 		add_child_to_front(std::move(win1));
-		
+
 		// Navy information is right next to the army information
 		auto win2 = make_element_by_type<military_units_window<dcon::navy_id>>(state, state.ui_state.defs_by_name.find("unit_window")->second.definition);
 		win2->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("navy_pos")->second.definition].position;
@@ -34,18 +34,18 @@ public:
 		set_visible(state, false);
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if (name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
-		} else if(name == "mobilize") {
+		} else if (name == "mobilize") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			ptr->set_visible(state, true);
 			return ptr;
-		} else if(name == "demobilize") {
+		} else if (name == "demobilize") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
-		} else if(name == "leaders") {
+		} else if (name == "leaders") {
 			auto ptr = make_element_by_type<leaders_window>(state, id);
 			ptr->set_visible(state, true);
 			return ptr;
@@ -55,4 +55,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

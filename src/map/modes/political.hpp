@@ -1,6 +1,6 @@
 #pragma once
 
-std::vector<uint32_t> political_map_from(sys::state& state) {
+std::vector<uint32_t> political_map_from(sys::state &state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
@@ -10,7 +10,7 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto id = fat_id.get_nation_from_province_ownership();
 		uint32_t color;
-		if(bool(id))
+		if (bool(id))
 			color = id.get_color();
 		else // If no owner use default color
 			color = 255 << 16 | 255 << 8 | 255;
@@ -18,7 +18,6 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 
 		prov_color[i] = color;
 		prov_color[i + texture_size] = color;
-
 	});
 
 	return prov_color;
