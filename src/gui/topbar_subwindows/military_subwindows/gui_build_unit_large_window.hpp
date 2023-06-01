@@ -38,7 +38,9 @@ public:
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<bool>()) {
-			frame = 0;
+			if(is_visible()) {
+				frame = 0;
+			}
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -158,89 +160,96 @@ protected:
 		return "build_unit_entry_wide";
 	}
 public:
+	//false == army
+	//true == navy
+	bool army_or_navy = false;
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 
-		for(const auto fat_id : state.world.nation_get_province_ownership(state.local_player_nation)) {
-			if(fat_id.get_province().get_province_control().get_nation() == fat_id.get_nation()) {
-				for(const auto fat_id2 : state.world.province_get_pop_location(fat_id.get_province().id)) {
-					if(fat_id2.get_pop().get_poptype().id == state.culture_definitions.soldiers) {
-						if(state.world.province_get_is_colonial(fat_id2.get_province())) {
-							if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment*state.defines.pop_min_size_for_regiment_colony_multiplier) {
-								int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment*state.defines.pop_min_size_for_regiment_colony_multiplier))) + 1);
-								for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
-									total--;
+		if(army_or_navy == false) {
+			for(const auto fat_id : state.world.nation_get_province_ownership(state.local_player_nation)) {
+				if(fat_id.get_province().get_province_control().get_nation() == fat_id.get_nation()) {
+					for(const auto fat_id2 : state.world.province_get_pop_location(fat_id.get_province().id)) {
+						if(fat_id2.get_pop().get_poptype().id == state.culture_definitions.soldiers) {
+							if(state.world.province_get_is_colonial(fat_id2.get_province())) {
+								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier) {
+									int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier))) + 1);
+									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+										total--;
+									}
+									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
+										total--;
+									}
+									for(int32_t i = 0; i < total; i++) {
+										row_contents.push_back(fat_id2.get_pop().id);
+									}
+								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+									int32_t total = int32_t(1);
+									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+										total--;
+									}
+									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
+										total--;
+									}
+									for(int32_t i = 0; i < total; i++) {
+										row_contents.push_back(fat_id2.get_pop().id);
+									}
 								}
-								for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
-									total--;
+							} else if(!state.world.province_get_is_owner_core(fat_id2.get_province())) {
+								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier) {
+									int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier))) + 1);
+									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+										total--;
+									}
+									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
+										total--;
+									}
+									for(int32_t i = 0; i < total; i++) {
+										row_contents.push_back(fat_id2.get_pop().id);
+									}
+								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+									int32_t total = int32_t(1);
+									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+										total--;
+									}
+									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
+										total--;
+									}
+									for(int32_t i = 0; i < total; i++) {
+										row_contents.push_back(fat_id2.get_pop().id);
+									}
 								}
-								for(int32_t i = 0; i < total; i++) {
-									row_contents.push_back(fat_id2.get_pop().id);
-								}
-							} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
-								int32_t total = int32_t(1);
-								for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
-									total--;
-								}
-								for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
-									total--;
-								}
-								for(int32_t i = 0; i < total; i++) {
-									row_contents.push_back(fat_id2.get_pop().id);
-								}
-							}
-						} else if(!state.world.province_get_is_owner_core(fat_id2.get_province())) {
-							if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment*state.defines.pop_min_size_for_regiment_noncore_multiplier) {
-								int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment*state.defines.pop_min_size_for_regiment_noncore_multiplier))) + 1);
-								for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
-									total--;
-								}
-								for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
-									total--;
-								}
-								for(int32_t i = 0; i < total; i++) {
-									row_contents.push_back(fat_id2.get_pop().id);
-								}
-							} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
-								int32_t total = int32_t(1);
-								for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
-									total--;
-								}
-								for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
-									total--;
-								}
-								for(int32_t i = 0; i < total; i++) {
-									row_contents.push_back(fat_id2.get_pop().id);
-								}
-							}
-						} else {
-							if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment) {
-								int32_t total = int32_t(((fat_id2.get_pop().get_size() / state.defines.pop_size_per_regiment)) + 1);
-								for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
-									total--;
-								}
-								for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
-									total--;
-								}
-								for(int32_t i = 0; i < total; i++) {
-									row_contents.push_back(fat_id2.get_pop().id);
-								}
-							} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
-								int32_t total = int32_t(1);
-								for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
-									total--;
-								}
-								for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
-									total--;
-								}
-								for(int32_t i = 0; i < total; i++) {
-									row_contents.push_back(fat_id2.get_pop().id);
+							} else {
+								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment) {
+									int32_t total = int32_t(((fat_id2.get_pop().get_size() / state.defines.pop_size_per_regiment)) + 1);
+									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+										total--;
+									}
+									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
+										total--;
+									}
+									for(int32_t i = 0; i < total; i++) {
+										row_contents.push_back(fat_id2.get_pop().id);
+									}
+								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
+									int32_t total = int32_t(1);
+									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
+										total--;
+									}
+									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
+										total--;
+									}
+									for(int32_t i = 0; i < total; i++) {
+										row_contents.push_back(fat_id2.get_pop().id);
+									}
 								}
 							}
 						}
 					}
 				}
 			}
+		} else {
+
 		}
 
 		update(state);
@@ -262,7 +271,7 @@ public:
 		//ARMY
 		else if(name == "build_army_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			army_elements.push_back(ptr.get());
+			//army_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_17") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
@@ -324,46 +333,57 @@ public:
 		//NAVY
 		else if(name == "build_navy_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			navy_elements.push_back(ptr.get());
+			//navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_6") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->frame = 1;
+			ptr->unit_type = 6;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_5") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 5;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_4") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 4;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_7") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 7;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_8") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 8;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_9") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 9;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_10") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 10;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_11") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 11;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_21") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 21;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "unit_folder_12") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<unit_folder_button>(state, id);
+			ptr->unit_type = 12;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "close") {
@@ -371,7 +391,8 @@ public:
 			return ptr;
 		} else if(name == "list") {
 			auto ptr = make_element_by_type<build_units_listbox>(state, id);
-			army_elements.push_back(ptr.get());
+			ptr->set_visible(state, true);
+			buildable_units = ptr.get();
 			return ptr;
 		} else if(name == "external_scroll_slider_list") {
 			auto ptr = make_element_by_type<element_base>(state, id);
@@ -389,7 +410,12 @@ public:
 	void set_army_visible(sys::state& state) {
 		for(auto element : army_elements) {
 			element->set_visible(state, true);
+			if(element->frame == 1) {
+				element->button_action(state);
+			}
 		}
+		buildable_units->army_or_navy = false;
+		buildable_units->on_update(state);
 	}
 
 	void set_army_invisible(sys::state& state) {
@@ -401,7 +427,12 @@ public:
 	void set_navy_visible(sys::state& state) {
 		for(auto element : navy_elements) {
 			element->set_visible(state, true);
+			if(element->frame == 1) {
+				element->button_action(state);
+			}
 		}
+		buildable_units->army_or_navy = true;
+		buildable_units->on_update(state);
 	}
 
 	void set_navy_invisible(sys::state& state) {
@@ -412,8 +443,9 @@ public:
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::army_id>()) {
-			set_army_visible(state);
+			//set_army_visible(state);
 			set_navy_invisible(state);
+			set_army_visible(state);
 
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::navy_id>()) {
@@ -436,8 +468,9 @@ public:
 		return message_result::unseen;
 	}
 
-	std::vector<element_base*> army_elements;
-	std::vector<element_base*> navy_elements;
+	std::vector<unit_folder_button*> army_elements;
+	std::vector<unit_folder_button*> navy_elements;
+	ui::build_units_listbox* buildable_units;
 };
 
 }
