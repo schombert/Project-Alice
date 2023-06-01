@@ -98,6 +98,17 @@ public:
 			parent->impl_get(state, newpayload);
 		}
 	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::cb_type_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::cb_type_id>(payload);
+			auto fat = dcon::fatten(state.world, content);
+
+			set_button_text(state, text::produce_simple_string(state, fat.get_name()));
+		}
+	}
 };
 
 class wargoal_type_item : public listbox_row_element_base<dcon::cb_type_id> {

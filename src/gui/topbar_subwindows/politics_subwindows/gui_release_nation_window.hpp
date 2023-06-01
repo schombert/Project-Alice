@@ -51,7 +51,7 @@ public:
 			disabled = !command::can_make_vassal(state, state.local_player_nation, niid);
 		}
 	}
-	
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};

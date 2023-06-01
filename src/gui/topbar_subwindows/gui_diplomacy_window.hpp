@@ -282,6 +282,52 @@ protected:
     }
 };
 
+class wargoal_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		Cyto::Any payload = dcon::cb_type_id{};
+		parent->impl_get(state, payload);
+		auto content = any_cast<dcon::cb_type_id>(payload);
+		frame = (dcon::fatten(state.world, content).get_sprite_index() - 1);
+	}
+};
+
+class overlapping_wargoal_icon : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<wargoal_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class overlapping_wargoals : public overlapping_listbox_element_base<overlapping_wargoal_icon, dcon::cb_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "wargoal";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			row_contents.clear();
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			auto one_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
+			for(auto& cb : one_cbs) {
+				if(cb.target == content && cb.expiration >= state.current_date) {
+					row_contents.push_back(cb.cb_type);
+				}
+			}
+
+			update(state);
+		}
+	}
+};
+
 class diplomacy_country_facts : public window_element_base {
 private:
 	dcon::nation_id active_nation{};
@@ -358,6 +404,10 @@ public:
 			return ptr;
 		} else if(name == "country_truce") {
 			auto ptr = make_element_by_type<overlapping_truce_flags>(state, id);
+			ptr->base_data.position.y -= 8 - 1; // Nudge
+			return ptr;
+		} else if(name == "country_cb") {
+			auto ptr = make_element_by_type<overlapping_wargoals>(state, id);
 			ptr->base_data.position.y -= 8 - 1; // Nudge
 			return ptr;
 		} else if(name == "infamy_text") {
@@ -650,7 +700,7 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 			auto fat = dcon::fatten(state.world, content);
 
-			progress = fat.get_constructing_cb_progress();
+			progress = (fat.get_constructing_cb_progress() / 100.0f);
 		}
 	}
 };
@@ -777,8 +827,8 @@ public:
 class diplomacy_war_listbox : public listbox_element_base<diplomacy_war_info, dcon::war_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "diplomacy_war_info";
-    }
+		return "diplomacy_war_info";
+	}
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
@@ -788,6 +838,8 @@ public:
 		update(state);
 	}
 };
+
+
 
 class diplomacy_greatpower_info : public window_element_base {
 public:

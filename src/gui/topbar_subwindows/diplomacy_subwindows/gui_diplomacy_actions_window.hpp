@@ -238,10 +238,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{ !can_cancel(state, content) ? state.defines.askmilaccess_diplomatic_cost : state.defines.cancelaskmilaccess_diplomatic_cost });
 				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= (!can_cancel(state, content) ? state.defines.askmilaccess_diplomatic_cost : state.defines.cancelaskmilaccess_diplomatic_cost) ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -309,10 +305,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{ !can_cancel(state, content) ? state.defines.givemilaccess_diplomatic_cost : state.defines.cancelgivemilaccess_diplomatic_cost });
 				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= (!can_cancel(state, content) ? state.defines.givemilaccess_diplomatic_cost : state.defines.cancelgivemilaccess_diplomatic_cost) ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}

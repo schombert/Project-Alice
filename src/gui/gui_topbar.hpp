@@ -493,7 +493,7 @@ public:
 			text::add_to_layout_box(contents, state, box, text::fp_two_places{fat_id.get_infamy()});
 			text::add_to_layout_box(contents, state, box, std::string_view(" / "));
 			text::add_to_layout_box(contents, state, box, text::fp_two_places{state.defines.badboy_limit});
-			text::add_line_break_to_layout_box(contents, state, box);			
+			text::add_line_break_to_layout_box(contents, state, box);
 			text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
 			text::close_layout_box(contents, box);
 		}
@@ -562,7 +562,7 @@ public:
 			if(nations::national_focuses_in_use(state, nation_id) > 0) {
 				text::add_divider_to_layout_box(state, contents, box);
 				auto nation_fat_id = dcon::fatten(state.world, nation_id);
-				nation_fat_id.for_each_state_ownership([&](dcon::state_ownership_id so) {		// TODO - Verify this works when Natl Focuses are added -breizh
+				nation_fat_id.for_each_state_ownership([&](dcon::state_ownership_id so) {
 					auto fat_state_id = dcon::fatten(state.world, so);
 					if(fat_state_id.is_valid()) {
 						auto staat = fat_state_id.get_state();
