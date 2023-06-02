@@ -40,20 +40,21 @@ public:
 	}
 };
 
+struct unit_folder_message_variables {
+	int unit_type;
+};
+
 class unit_folder_button : public button_element_base {
 public:
-	int unit_type;
+	unit_folder_message_variables messages;
 	void button_action(sys::state &state) noexcept override {
-		Cyto::Any payload = unit_type;
+		Cyto::Any payload = messages;
 		impl_get(state, payload);
-
-		Cyto::Any deactivate = true;
-		impl_get(state, deactivate);
 		frame = 1;
 	}
 
 	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<bool>()) {
+		if(payload.holds_type<unit_folder_message_variables>()) {
 			if (is_visible()) {
 				frame = 0;
 			}
@@ -164,8 +165,8 @@ public:
 	}
 
 	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<int>()) {
-			unit_type = Cyto::any_cast<int>(payload);
+		if (payload.holds_type<unit_folder_message_variables>()) {
+			unit_type = Cyto::any_cast<unit_folder_message_variables>(payload).unit_type;
 			unit_icon->frame = unit_type - 1;
 			if (content.is_navy == false) {
 				for (uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
@@ -356,57 +357,57 @@ public:
 		} else if (name == "unit_folder_17") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
 			ptr->frame = 1;
-			ptr->unit_type = 17;
+			ptr->messages.unit_type = 17;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_1") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 1;
+			ptr->messages.unit_type = 1;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_2") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 2;
+			ptr->messages.unit_type = 2;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_3") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 3;
+			ptr->messages.unit_type = 3;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_16") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 16;
+			ptr->messages.unit_type = 16;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_18") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 18;
+			ptr->messages.unit_type = 18;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_14") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 14;
+			ptr->messages.unit_type = 14;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_13") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 13;
+			ptr->messages.unit_type = 13;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_15") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 15;
+			ptr->messages.unit_type = 15;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_20") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 20;
+			ptr->messages.unit_type = 20;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_19") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 19;
+			ptr->messages.unit_type = 19;
 			army_elements.push_back(ptr.get());
 			return ptr;
 		}
@@ -417,52 +418,52 @@ public:
 		} else if (name == "unit_folder_6") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
 			ptr->frame = 1;
-			ptr->unit_type = 6;
+			ptr->messages.unit_type = 6;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_5") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 5;
+			ptr->messages.unit_type = 5;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_4") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 4;
+			ptr->messages.unit_type = 4;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_7") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 7;
+			ptr->messages.unit_type = 7;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_8") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 8;
+			ptr->messages.unit_type = 8;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_9") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 9;
+			ptr->messages.unit_type = 9;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_10") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 10;
+			ptr->messages.unit_type = 10;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_11") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 11;
+			ptr->messages.unit_type = 11;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_21") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 21;
+			ptr->messages.unit_type = 21;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "unit_folder_12") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			ptr->unit_type = 12;
+			ptr->messages.unit_type = 12;
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if (name == "close") {
@@ -536,10 +537,7 @@ public:
 	}
 
 	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<int>()) {
-			impl_set(state, payload);
-			return message_result::consumed;
-		} else if (payload.holds_type<bool>()) {
+		if(payload.holds_type<unit_folder_message_variables>()) {
 			impl_set(state, payload);
 			return message_result::consumed;
 		}
