@@ -10,47 +10,47 @@
 
 namespace sys {
 
-uint8_t const* read_scenario_header(uint8_t const* ptr_in, scenario_header& header_out) {
+uint8_t const *read_scenario_header(uint8_t const *ptr_in, scenario_header &header_out) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 	memcpy(&header_out, ptr_in + sizeof(uint32_t), std::min(length, uint32_t(sizeof(scenario_header))));
 	return ptr_in + sizeof(uint32_t) + length;
 }
 
-uint8_t const* read_save_header(uint8_t const* ptr_in, save_header& header_out) {
+uint8_t const *read_save_header(uint8_t const *ptr_in, save_header &header_out) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 	memcpy(&header_out, ptr_in + sizeof(uint32_t), std::min(length, uint32_t(sizeof(save_header))));
 	return ptr_in + sizeof(uint32_t) + length;
 }
 
-uint8_t* write_scenario_header(uint8_t* ptr_in, scenario_header const& header_in) {
+uint8_t *write_scenario_header(uint8_t *ptr_in, scenario_header const &header_in) {
 	uint32_t length = uint32_t(sizeof(scenario_header));
 	memcpy(ptr_in, &length, sizeof(uint32_t));
 	memcpy(ptr_in + sizeof(uint32_t), &header_in, sizeof(scenario_header));
 	return ptr_in + sizeof_scenario_header(header_in);
 }
-uint8_t* write_save_header(uint8_t* ptr_in, save_header const& header_in) {
+uint8_t *write_save_header(uint8_t *ptr_in, save_header const &header_in) {
 	uint32_t length = uint32_t(sizeof(save_header));
 	memcpy(ptr_in, &length, sizeof(uint32_t));
 	memcpy(ptr_in + sizeof(uint32_t), &header_in, sizeof(save_header));
 	return ptr_in + sizeof_save_header(header_in);
 }
 
-size_t sizeof_scenario_header(scenario_header const& header_in) {
+size_t sizeof_scenario_header(scenario_header const &header_in) {
 	return sizeof(uint32_t) + sizeof(scenario_header);
 }
 
-size_t sizeof_save_header(save_header const& header_in) {
+size_t sizeof_save_header(save_header const &header_in) {
 	return sizeof(uint32_t) + sizeof(save_header);
 }
 
-uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size) {
+uint8_t *write_compressed_section(uint8_t *ptr_out, uint8_t const *ptr_in, uint32_t uncompressed_size) {
 	uint32_t decompressed_length = uncompressed_size;
 
 	uint32_t section_length = uint32_t(
-		ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size),
-			ptr_in, uncompressed_size, 0)); // write compressed data
+	    ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size),
+	                  ptr_in, uncompressed_size, 0)); // write compressed data
 
 	memcpy(ptr_out, &section_length, sizeof(uint32_t));
 	memcpy(ptr_out + sizeof(uint32_t), &decompressed_length, sizeof(uint32_t));
@@ -58,26 +58,26 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 	return ptr_out + sizeof(uint32_t) * 2 + section_length;
 }
 
-template<typename T>
-uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& function) {
+template <typename T>
+uint8_t const *with_decompressed_section(uint8_t const *ptr_in, T const &function) {
 	uint32_t section_length = 0;
 	uint32_t decompressed_length = 0;
 	memcpy(&section_length, ptr_in, sizeof(uint32_t));
 	memcpy(&decompressed_length, ptr_in + sizeof(uint32_t), sizeof(uint32_t));
 
-	uint8_t* temp_buffer = new uint8_t[decompressed_length];
-	//TODO: allocate memory for decompression and decompress into it
+	uint8_t *temp_buffer = new uint8_t[decompressed_length];
+	// TODO: allocate memory for decompression and decompress into it
 
 	ZSTD_decompress(temp_buffer, decompressed_length, ptr_in + sizeof(uint32_t) * 2, section_length);
 
-	//function(ptr_in + sizeof(uint32_t) * 2, decompressed_length);
+	// function(ptr_in + sizeof(uint32_t) * 2, decompressed_length);
 	function(temp_buffer, decompressed_length);
 
 	delete[] temp_buffer;
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
-uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+uint8_t const *read_scenario_section(uint8_t const *ptr_in, uint8_t const *section_end, sys::state &state) {
 	// hand-written contribution
 	{ // map
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
@@ -92,7 +92,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		memcpy(&length, ptr_in, sizeof(uint32_t));
 		ptr_in += sizeof(uint32_t);
 
-		simple_fs::restore_state(state.common_fs, native_string_view(reinterpret_cast<native_char const*>(ptr_in), length));
+		simple_fs::restore_state(state.common_fs, native_string_view(reinterpret_cast<native_char const *>(ptr_in), length));
 		ptr_in += length * sizeof(native_char);
 	}
 	{
@@ -242,12 +242,12 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	// data container
 
 	dcon::load_record loaded;
-	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
-	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+	std::byte const *start = reinterpret_cast<std::byte const *>(ptr_in);
+	state.world.deserialize(start, reinterpret_cast<std::byte const *>(section_end), loaded);
 
 	return section_end;
 }
-uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
+uint8_t *write_scenario_section(uint8_t *ptr_in, sys::state &state) {
 	// hand-written contribution
 	{ // map
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
@@ -410,12 +410,12 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	}
 
 	dcon::load_record result = state.world.make_serialize_record_store_scenario();
-	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
+	std::byte *start = reinterpret_cast<std::byte *>(ptr_in);
 	state.world.serialize(start, result);
 
-	return reinterpret_cast<uint8_t*>(start);
+	return reinterpret_cast<uint8_t *>(start);
 }
-size_t sizeof_scenario_section(sys::state& state) {
+size_t sizeof_scenario_section(sys::state &state) {
 	size_t sz = 0;
 
 	// hand-written contribution
@@ -430,9 +430,9 @@ size_t sizeof_scenario_section(sys::state& state) {
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);
 		uint32_t length = uint32_t(fs_str.length());
-		//memcpy(ptr_in, &length, sizeof(uint32_t));
+		// memcpy(ptr_in, &length, sizeof(uint32_t));
 		sz += sizeof(uint32_t);
-		//memcpy(ptr_in, fs_str.c_str(), length * sizeof(native_char));
+		// memcpy(ptr_in, fs_str.c_str(), length * sizeof(native_char));
 		sz += length * sizeof(native_char);
 	}
 	{
@@ -579,14 +579,13 @@ size_t sizeof_scenario_section(sys::state& state) {
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_scenario();
-	//dcon::load_record loaded;
+	// dcon::load_record loaded;
 	sz += state.world.serialize_size(loaded);
 
 	return sz;
 }
 
-
-uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+uint8_t const *read_save_section(uint8_t const *ptr_in, uint8_t const *section_end, sys::state &state) {
 	// hand-written contribution
 	ptr_in = deserialize(ptr_in, state.unit_names);
 	ptr_in = deserialize(ptr_in, state.unit_names_indices);
@@ -626,13 +625,13 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	// data container contribution
 
 	dcon::load_record loaded;
-	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
-	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+	std::byte const *start = reinterpret_cast<std::byte const *>(ptr_in);
+	state.world.deserialize(start, reinterpret_cast<std::byte const *>(section_end), loaded);
 
 	return section_end;
 }
 
-uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
+uint8_t *write_save_section(uint8_t *ptr_in, sys::state &state) {
 	// hand-written contribution
 	ptr_in = serialize(ptr_in, state.unit_names);
 	ptr_in = serialize(ptr_in, state.unit_names_indices);
@@ -670,12 +669,12 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
-	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
+	std::byte *start = reinterpret_cast<std::byte *>(ptr_in);
 	state.world.serialize(start, loaded);
 
-	return reinterpret_cast<uint8_t*>(start);
+	return reinterpret_cast<uint8_t *>(start);
 }
-size_t sizeof_save_section(sys::state& state) {
+size_t sizeof_save_section(sys::state &state) {
 	size_t sz = 0;
 
 	// hand-written contribution
@@ -721,30 +720,28 @@ size_t sizeof_save_section(sys::state& state) {
 	return sz;
 }
 
-void write_scenario_file(sys::state& state, native_string_view name) {
+void write_scenario_file(sys::state &state, native_string_view name) {
 	scenario_header header;
 
 	size_t scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
 
 	// this is an upper bound, since compacting the data may require less space
-	size_t total_size = sizeof_scenario_header(header) + ZSTD_compressBound(scenario_space) + ZSTD_compressBound(save_space)
-		+ sizeof(uint32_t) * 4;
+	size_t total_size = sizeof_scenario_header(header) + ZSTD_compressBound(scenario_space) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 4;
 
-	uint8_t* temp_buffer = new uint8_t[total_size];
-	uint8_t* buffer_position = temp_buffer;
+	uint8_t *temp_buffer = new uint8_t[total_size];
+	uint8_t *buffer_position = temp_buffer;
 
 	buffer_position = write_scenario_header(buffer_position, header);
 
-
-	uint8_t* temp_scenario_buffer = new uint8_t[scenario_space];
+	uint8_t *temp_scenario_buffer = new uint8_t[scenario_space];
 	auto last_written = write_scenario_section(temp_scenario_buffer, state);
 	auto last_written_count = last_written - temp_scenario_buffer;
 	assert(size_t(last_written_count) == scenario_space);
 	buffer_position = write_compressed_section(buffer_position, temp_scenario_buffer, uint32_t(scenario_space));
 	delete[] temp_scenario_buffer;
 
-	uint8_t* temp_save_buffer = new uint8_t[save_space];
+	uint8_t *temp_save_buffer = new uint8_t[save_space];
 	auto last_save_written = write_save_section(temp_save_buffer, state);
 	auto last_save_written_count = last_save_written - temp_save_buffer;
 	assert(size_t(last_save_written_count) == save_space);
@@ -753,30 +750,30 @@ void write_scenario_file(sys::state& state, native_string_view name) {
 
 	auto total_size_used = buffer_position - temp_buffer;
 
-	simple_fs::write_file(simple_fs::get_or_create_scenario_directory(), name, reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+	simple_fs::write_file(simple_fs::get_or_create_scenario_directory(), name, reinterpret_cast<char *>(temp_buffer), uint32_t(total_size_used));
 
 	delete[] temp_buffer;
 }
-bool try_read_scenario_file(sys::state& state, native_string_view name) {
+bool try_read_scenario_file(sys::state &state, native_string_view name) {
 	auto dir = simple_fs::get_or_create_scenario_directory();
 	auto save_file = open_file(dir, name);
-	if(save_file) {
+	if (save_file) {
 		scenario_header header;
 		header.version = 0;
 
 		auto contents = simple_fs::view_contents(*save_file);
-		uint8_t const* buffer_pos = reinterpret_cast<uint8_t const*>(contents.data);
+		uint8_t const *buffer_pos = reinterpret_cast<uint8_t const *>(contents.data);
 		auto file_end = buffer_pos + contents.file_size;
 
-		if(contents.file_size > sizeof_scenario_header(header)) {
+		if (contents.file_size > sizeof_scenario_header(header)) {
 			buffer_pos = read_scenario_header(buffer_pos, header);
 		}
 
-		if(header.version != sys::scenario_file_version) {
+		if (header.version != sys::scenario_file_version) {
 			return false;
 		}
 
-		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) {
+		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const *ptr_in, uint32_t length) {
 			read_scenario_section(ptr_in, ptr_in + length, state);
 		});
 
@@ -786,29 +783,29 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 	}
 }
 
-bool try_read_scenario_and_save_file(sys::state& state, native_string_view name) {
+bool try_read_scenario_and_save_file(sys::state &state, native_string_view name) {
 	auto dir = simple_fs::get_or_create_scenario_directory();
 	auto save_file = open_file(dir, name);
-	if(save_file) {
+	if (save_file) {
 		scenario_header header;
 		header.version = 0;
 
 		auto contents = simple_fs::view_contents(*save_file);
-		uint8_t const* buffer_pos = reinterpret_cast<uint8_t const*>(contents.data);
+		uint8_t const *buffer_pos = reinterpret_cast<uint8_t const *>(contents.data);
 		auto file_end = buffer_pos + contents.file_size;
 
-		if(contents.file_size > sizeof_scenario_header(header)) {
+		if (contents.file_size > sizeof_scenario_header(header)) {
 			buffer_pos = read_scenario_header(buffer_pos, header);
 		}
 
-		if(header.version != sys::scenario_file_version) {
+		if (header.version != sys::scenario_file_version) {
 			return false;
 		}
 
-		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) {
+		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const *ptr_in, uint32_t length) {
 			read_scenario_section(ptr_in, ptr_in + length, state);
 		});
-		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) {
+		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const *ptr_in, uint32_t length) {
 			read_save_section(ptr_in, ptr_in + length, state);
 		});
 
@@ -822,51 +819,50 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 	}
 }
 
-void write_save_file(sys::state& state, native_string_view name) {
+void write_save_file(sys::state &state, native_string_view name) {
 	save_header header;
 
 	size_t save_space = sizeof_save_section(state);
 
 	// this is an upper bound, since compacting the data may require less space
-	size_t total_size = sizeof_save_header(header) + ZSTD_compressBound(save_space)
-		+ sizeof(uint32_t) * 2;
+	size_t total_size = sizeof_save_header(header) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
 
-	uint8_t* temp_buffer = new uint8_t[total_size];
-	uint8_t* buffer_position = temp_buffer;
+	uint8_t *temp_buffer = new uint8_t[total_size];
+	uint8_t *buffer_position = temp_buffer;
 
 	buffer_position = write_save_header(buffer_position, header);
 
-	uint8_t* temp_save_buffer = new uint8_t[save_space];
+	uint8_t *temp_save_buffer = new uint8_t[save_space];
 	write_save_section(temp_save_buffer, state);
 	buffer_position = write_compressed_section(buffer_position, temp_save_buffer, uint32_t(save_space));
 	delete[] temp_save_buffer;
 
 	auto total_size_used = buffer_position - temp_buffer;
 
-	simple_fs::write_file(simple_fs::get_or_create_save_game_directory(), name, reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+	simple_fs::write_file(simple_fs::get_or_create_save_game_directory(), name, reinterpret_cast<char *>(temp_buffer), uint32_t(total_size_used));
 
 	delete[] temp_buffer;
 }
-bool try_read_save_file(sys::state& state, native_string_view name) {
+bool try_read_save_file(sys::state &state, native_string_view name) {
 	auto dir = simple_fs::get_or_create_save_game_directory();
 	auto save_file = open_file(dir, name);
-	if(save_file) {
+	if (save_file) {
 		save_header header;
 		header.version = 0;
 
 		auto contents = simple_fs::view_contents(*save_file);
-		uint8_t const* buffer_pos = reinterpret_cast<uint8_t const*>(contents.data);
+		uint8_t const *buffer_pos = reinterpret_cast<uint8_t const *>(contents.data);
 		auto file_end = buffer_pos + contents.file_size;
 
-		if(contents.file_size > sizeof_save_header(header)) {
+		if (contents.file_size > sizeof_save_header(header)) {
 			buffer_pos = read_save_header(buffer_pos, header);
 		}
 
-		if(header.version != sys::save_file_version) {
+		if (header.version != sys::save_file_version) {
 			return false;
 		}
 
-		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const* ptr_in, uint32_t length) {
+		buffer_pos = with_decompressed_section(buffer_pos, [&](uint8_t const *ptr_in, uint32_t length) {
 			read_save_section(ptr_in, ptr_in + length, state);
 		});
 
@@ -876,4 +872,4 @@ bool try_read_save_file(sys::state& state, native_string_view name) {
 	}
 }
 
-}
+} // namespace sys

@@ -2,7 +2,6 @@
 
 // #include "../gamestate/system_state.hpp"
 
-
 namespace map_mode {
 
 enum class mode : uint8_t {
@@ -32,6 +31,6 @@ enum class mode : uint8_t {
 
 const uint8_t PROV_COLOR_LAYERS = 2;
 
-void set_map_mode(sys::state& state, mode mode);
-void update_map_mode(sys::state& state);
-}
+void set_map_mode(sys::state &state, mode mode);
+void update_map_mode(sys::state &state);
+} // namespace map_mode

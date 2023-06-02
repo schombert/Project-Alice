@@ -17,7 +17,7 @@ Abandon:
 
 DONE:
 - add "about me"s to the various tooltips where present
-- Add prototypes for monthly avg change for militancy, literacy, and conciousness   (they return monthly changes, we call them each time in the tooltips and divide ret'd value by 30
+- Add prototypes for monthly avg change for militancy, literacy, and consciousness   (they return monthly changes, we call them each time in the tooltips and divide ret'd value by 30
 - add text::fp_four_places{} - Vic2 uses this many to represent TOPBAR_AVG_CHANGE
 - Listing done for reforms, decisions
 

@@ -6,8 +6,9 @@ namespace ui {
 
 class pop_sort_buttons_window : public window_element_base {
 	xy_pair sort_template_offset{};
+
 public:
-	void on_create(sys::state& state) noexcept override {
+	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 
 		xy_pair base_sort_template_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;
@@ -35,4 +36,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

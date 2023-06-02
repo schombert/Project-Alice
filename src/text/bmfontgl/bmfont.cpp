@@ -56,15 +56,14 @@ aaedev@gmail.com 2012
 #include "system_state.hpp"
 
 #ifdef _WIN64
-#pragma warning (disable : 4996 )
+#pragma warning(disable : 4996)
 #endif
 
-//Todo: Add buffer overflow checking.
-
+// Todo: Add buffer overflow checking.
 
 namespace text {
 
-bool BMFont::ParseFont(simple_fs::file& f) {
+bool BMFont::ParseFont(simple_fs::file &f) {
 	auto content = simple_fs::view_contents(f);
 
 	std::stringstream Stream(std::string(content.data, content.file_size));
@@ -74,116 +73,116 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 
 	CharDescriptor C;
 
-	while(!Stream.eof()) {
+	while (!Stream.eof()) {
 		std::stringstream LineStream;
 		std::getline(Stream, Line);
 		LineStream << Line;
 
-		//read the line's type
+		// read the line's type
 		LineStream >> Read;
-		if(Read == "common") {
-			//this holds common data
-			while(!LineStream.eof()) {
+		if (Read == "common") {
+			// this holds common data
+			while (!LineStream.eof()) {
 				std::stringstream Converter;
 				LineStream >> Read;
 				i = Read.find('=');
 				Key = Read.substr(0, i);
 				Value = Read.substr(i + 1);
 
-				//assign the correct value
+				// assign the correct value
 				Converter << Value;
-				if(Key == "lineHeight") {
+				if (Key == "lineHeight") {
 					Converter >> LineHeight;
-				} else if(Key == "base") {
+				} else if (Key == "base") {
 					Converter >> Base;
-				} else if(Key == "scaleW") {
+				} else if (Key == "scaleW") {
 					Converter >> Width;
-				} else if(Key == "scaleH") {
+				} else if (Key == "scaleH") {
 					Converter >> Height;
-				} else if(Key == "pages") {
+				} else if (Key == "pages") {
 					int16_t Pages = 0;
 					Converter >> Pages;
-				} else if(Key == "outline") {
+				} else if (Key == "outline") {
 					int16_t Outline = 0;
 					Converter >> Outline;
 				}
 			}
 		}
 
-		else if(Read == "char") {
-			//This is data for each specific character.
+		else if (Read == "char") {
+			// This is data for each specific character.
 			int CharID = 0;
 
-			while(!LineStream.eof()) {
+			while (!LineStream.eof()) {
 				std::stringstream Converter;
 				LineStream >> Read;
 				i = Read.find('=');
 				Key = Read.substr(0, i);
 				Value = Read.substr(i + 1);
 
-				//Assign the correct value
+				// Assign the correct value
 				Converter << Value;
-				if(Key == "id") {
+				if (Key == "id") {
 					Converter >> CharID;
-				} else if(Key == "x") {
+				} else if (Key == "x") {
 					Converter >> C.x;
-				} else if(Key == "y") {
+				} else if (Key == "y") {
 					Converter >> C.y;
-				} else if(Key == "width") {
+				} else if (Key == "width") {
 					Converter >> C.Width;
-				} else if(Key == "height") {
+				} else if (Key == "height") {
 					Converter >> C.Height;
-				} else if(Key == "xoffset") {
+				} else if (Key == "xoffset") {
 					Converter >> C.XOffset;
-				} else if(Key == "yoffset") {
+				} else if (Key == "yoffset") {
 					Converter >> C.YOffset;
-				} else if(Key == "xadvance") {
+				} else if (Key == "xadvance") {
 					Converter >> C.XAdvance;
-				} else if(Key == "page") {
+				} else if (Key == "page") {
 					Converter >> C.Page;
 				}
 			}
 
 			Chars[uint8_t(CharID)] = C;
 
-		} else if(Read == "kernings") {
-			while(!LineStream.eof()) {
+		} else if (Read == "kernings") {
+			while (!LineStream.eof()) {
 				std::stringstream Converter;
 				LineStream >> Read;
 				i = Read.find('=');
 				Key = Read.substr(0, i);
 				Value = Read.substr(i + 1);
 
-				//assign the correct value
+				// assign the correct value
 				Converter << Value;
-				if(Key == "count") {
+				if (Key == "count") {
 					int16_t KernCount = 0;
 					Converter >> KernCount;
 				}
 			}
-		} else if(Read == "kerning") {
+		} else if (Read == "kerning") {
 			int32_t first = 0;
 			int32_t second = 0;
 			int32_t amount = 0;
 
-			while(!LineStream.eof()) {
+			while (!LineStream.eof()) {
 				std::stringstream Converter;
 				LineStream >> Read;
 				i = Read.find('=');
 				Key = Read.substr(0, i);
 				Value = Read.substr(i + 1);
 
-				//assign the correct value
+				// assign the correct value
 				Converter << Value;
-				if(Key == "first") {
+				if (Key == "first") {
 					Converter >> first;
 				}
 
-				else if(Key == "second") {
+				else if (Key == "second") {
 					Converter >> second;
 				}
 
-				else if(Key == "amount") {
+				else if (Key == "amount") {
 					Converter >> amount;
 				}
 			}
@@ -195,48 +194,47 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 	return true;
 }
 
-
 int BMFont::GetKerningPair(char first, char second) const {
 	uint16_t index = uint16_t(uint8_t(first) << 8) | uint16_t((uint8_t(second)));
-	if(auto it = this->Kern.find(index);  it != Kern.end())
+	if (auto it = this->Kern.find(index); it != Kern.end())
 		return it->second;
 	else
 		return 0;
 }
 
-float BMFont::GetStringWidth(const char* string, uint32_t count) const {
+float BMFont::GetStringWidth(const char *string, uint32_t count) const {
 	float total = 0;
 
-	for(uint32_t i = 0; i < count; ++i) {
+	for (uint32_t i = 0; i < count; ++i) {
 		auto c = uint8_t(string[i]);
-		if(c == 0x01 || c == 0x02)
+		if (c == 0x01 || c == 0x02)
 			c = 0x4D;
 		total += Chars[c].XAdvance;
-		if(i != 0) {
-			total += GetKerningPair(string[i-1], c);
+		if (i != 0) {
+			total += GetKerningPair(string[i - 1], c);
 		}
 	}
 	return total;
 }
 
 BMFont::~BMFont() {
-	if(ftexid)
+	if (ftexid)
 		glDeleteTextures(1, &ftexid);
 }
 
-BMFont const& get_bm_font(sys::state& state, uint16_t font_handle) {
-	if(auto it = state.font_collection.bitmap_fonts.find(font_handle); it != state.font_collection.bitmap_fonts.end()) {
+BMFont const &get_bm_font(sys::state &state, uint16_t font_handle) {
+	if (auto it = state.font_collection.bitmap_fonts.find(font_handle); it != state.font_collection.bitmap_fonts.end()) {
 		return it->second;
 	} else {
 		auto fit = state.font_collection.font_names.find(font_handle);
 		assert(fit != state.font_collection.font_names.end());
 		auto fname = [&]() {
 			auto sv = state.to_string_view(fit->second);
-			if(sv == "Main_14")
+			if (sv == "Main_14")
 				return std::string("Arial14");
-			if(sv == "ToolTip_Font")
+			if (sv == "ToolTip_Font")
 				return std::string("Arial14");
-			if(sv == "FPS_Font")
+			if (sv == "FPS_Font")
 				return std::string("Arial14");
 			return std::string(sv);
 		}();
@@ -254,4 +252,4 @@ BMFont const& get_bm_font(sys::state& state, uint16_t font_handle) {
 	}
 }
 
-}
+} // namespace text

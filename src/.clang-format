@@ -1,0 +1,8 @@
+UseTab: ForIndentation
+TabWidth: 4
+IndentWidth: 4
+NamespaceIndentation: None
+IndentAccessModifiers: false
+AccessModifierOffset: -4
+ColumnLimit: 0
+SortIncludes: Never

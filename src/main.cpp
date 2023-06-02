@@ -80,10 +80,10 @@
 #include "prng.cpp"
 
 namespace sys {
-	state::~state() {
-		// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
-	}
+state::~state() {
+	// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
 }
+} // namespace sys
 
 // zstd
 

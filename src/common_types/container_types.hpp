@@ -15,7 +15,7 @@ inline float green_from_int(uint32_t v) {
 inline float blue_from_int(uint32_t v) {
 	return float((v >> 16) & 0xFF) / 255.0f;
 }
-inline 	uint32_t pack_color(float r, float g, float b) {
+inline uint32_t pack_color(float r, float g, float b) {
 	return ((uint32_t(r * 255.0f) & 0xFF) << 0) | ((uint32_t(g * 255.0f) & 0xFF) << 8) | ((uint32_t(b * 255.0f) & 0xFF) << 16);
 }
 
@@ -53,52 +53,53 @@ constexpr int32_t max_event_options = 6;
 struct modifier_hash {
 	using is_avalanching = void;
 
-	modifier_hash() { }
+	modifier_hash() {}
 
 	auto operator()(dcon::modifier_id m) const noexcept -> uint64_t {
 		int32_t index = m.index();
 		return ankerl::unordered_dense::hash<int32_t>()(index);
 	}
 };
-}
+} // namespace sys
 
-template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
+template <typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
 class tagged_vector {
 private:
 	std::vector<value_type, allocator> storage;
+
 public:
 	using public_value_type = value_type;
 	using public_tag_type = tag_type;
 
 	tagged_vector() {
 	}
-	tagged_vector(tagged_vector<value_type, tag_type, allocator> const& other) noexcept : storage(other.storage) { }
-	tagged_vector(tagged_vector<value_type, tag_type, allocator>&& other) noexcept : storage(std::move(other.storage)) { }
+	tagged_vector(tagged_vector<value_type, tag_type, allocator> const &other) noexcept : storage(other.storage) {}
+	tagged_vector(tagged_vector<value_type, tag_type, allocator> &&other) noexcept : storage(std::move(other.storage)) {}
 	tagged_vector(size_t size) {
 		storage.resize(size);
 	}
 
-	tagged_vector& operator=(tagged_vector<value_type, tag_type, allocator> const& other) noexcept {
+	tagged_vector &operator=(tagged_vector<value_type, tag_type, allocator> const &other) noexcept {
 		storage = other.storage;
 		return *this;
 	}
-	tagged_vector& operator=(tagged_vector<value_type, tag_type, allocator>&& other) noexcept {
+	tagged_vector &operator=(tagged_vector<value_type, tag_type, allocator> &&other) noexcept {
 		storage = std::move(other.storage);
 		return *this;
 	}
-	value_type const& operator[](tag_type t) const {
+	value_type const &operator[](tag_type t) const {
 		return *(storage.data() + t.index());
 	}
-	value_type& operator[](tag_type t) {
+	value_type &operator[](tag_type t) {
 		return *(storage.data() + t.index());
 	}
-	template<typename ...T>
-	tag_type emplace_back(T&& ... ts) {
+	template <typename... T>
+	tag_type emplace_back(T &&...ts) {
 		storage.emplace_back(std::forward<T>(ts)...);
 		return tag_type(typename tag_type::value_base_t(storage.size() - 1));
 	}
-	value_type& safe_get(tag_type t) {
-		if(t.index() >= std::ssize(storage))
+	value_type &safe_get(tag_type t) {
+		if (t.index() >= std::ssize(storage))
 			storage.resize(t.index() + 1);
 		return storage[t.index()];
 	}
@@ -133,7 +134,7 @@ public:
 		return std::ssize(storage);
 	}
 	void resize(size_t size) {
-		storage.resize(size );
+		storage.resize(size);
 	}
 	void reserve(size_t size) {
 		storage.reserve(size);
@@ -141,18 +142,18 @@ public:
 	void pop_back() {
 		storage.pop_back();
 	}
-	tag_type push_back(value_type const& v) {
+	tag_type push_back(value_type const &v) {
 		storage.push_back(v);
 		return tag_type(typename tag_type::value_base_t(storage.size() - 1));
 	}
-	tag_type push_back(value_type&& v) {
+	tag_type push_back(value_type &&v) {
 		storage.push_back(std::move(v));
 		return tag_type(typename tag_type::value_base_t(storage.size() - 1));
 	}
-	value_type& back() {
+	value_type &back() {
 		return storage.back();
 	}
-	value_type const& back() const {
+	value_type const &back() const {
 		return storage.back();
 	}
 };
@@ -162,15 +163,14 @@ namespace economy {
 struct commodity_set {
 	static constexpr uint32_t set_size = 8;
 
-	float commodity_amounts[set_size] = { 0.0f };
-	dcon::commodity_id commodity_type[set_size] = { dcon::commodity_id{} };
+	float commodity_amounts[set_size] = {0.0f};
+	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
 };
 struct small_commodity_set {
 	static constexpr uint32_t set_size = 2;
 
-	float commodity_amounts[set_size] = { 0.0f };
-	dcon::commodity_id commodity_type[set_size] = { dcon::commodity_id{} };
+	float commodity_amounts[set_size] = {0.0f};
+	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
 };
 
-
-}
+} // namespace economy
