@@ -1,7 +1,5 @@
 name: Lint
 
-permissiosn: read-all|write-all
-
 on:
   push:
   pull_request:
@@ -10,6 +8,11 @@ jobs:
   run-linters:
     name: Run Linters
     runs-on: ubuntu-latest
+
+    permissions:
+      actions: write
+      pull-requests: write
+      contents: write
 
     steps:
       - name: Checkout Git Repo
