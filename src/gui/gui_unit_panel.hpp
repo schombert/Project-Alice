@@ -5,6 +5,14 @@
 
 namespace ui {
 
+class unit_selection_close_button : public button_element_base {
+  public:
+	void button_action(sys::state& state) noexcept override {
+		if(parent && parent->parent)
+			parent->parent->set_visible(state, false);
+	}
+};
+
 template <class T>
 class unit_selection_panel : public window_element_base {
 public:
@@ -22,7 +30,7 @@ public:
 		} else if (name == "only_unit_from_selection_button") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if (name == "remove_unit_from_selection_button") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<unit_selection_close_button>(state, id);
 		} else if (name == "newunitbutton") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if (name == "splitinhalf") {
