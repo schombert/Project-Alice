@@ -32,10 +32,10 @@
 
 namespace map_mode {
 
-void set_map_mode(sys::state &state, mode mode) {
+void set_map_mode(sys::state& state, mode mode) {
 	std::vector<uint32_t> prov_color;
 
-	switch (mode) {
+	switch(mode) {
 	case mode::terrain:
 		state.map_state.set_terrain_map_mode();
 		return;
@@ -112,8 +112,8 @@ void set_map_mode(sys::state &state, mode mode) {
 	state.map_state.set_province_color(prov_color, mode);
 }
 
-void update_map_mode(sys::state &state) {
-	if (state.map_state.active_map_mode == mode::terrain || state.map_state.active_map_mode == mode::region) {
+void update_map_mode(sys::state& state) {
+	if(state.map_state.active_map_mode == mode::terrain || state.map_state.active_map_mode == mode::region) {
 		return;
 	}
 	set_map_mode(state, state.map_state.active_map_mode);

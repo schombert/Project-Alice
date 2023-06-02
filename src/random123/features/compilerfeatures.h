@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The Random123 library is portable across C, C++, CUDA, OpenCL environments,
 and multiple operating systems (Linux, Windows 7, Mac OS X, FreeBSD, Solaris).
 This level of portability requires the abstraction of some features
-and idioms that are either not standardized (e.g., asm statments), or for which 
+and idioms that are either not standardized (e.g., asm statments), or for which
 different vendors have their own standards (e.g., SSE intrinsics) or for
 which vendors simply refuse to conform to well-established standards (e.g., <inttypes.h>).
 
@@ -55,7 +55,7 @@ Most of the symbols are boolean valued.  In general, they will
 Library users can override any value by defining the pp-symbol with a compiler option,
 e.g.,
 
-    cc -DR123_USE_MULHILO64_C99 
+    cc -DR123_USE_MULHILO64_C99
 
 will use a strictly c99 version of the full-width 64x64->128-bit multiplication
 function, even if it would be disabled by default.
@@ -84,8 +84,8 @@ All boolean-valued pre-processor symbols in Random123/features/compilerfeatures.
          CXX11_EXPLICIT_CONVERSIONS
          CXX11_LONG_LONG
          CXX11_STD_ARRAY
-         CXX11 
-   
+         CXX11
+
          X86INTRIN_H
          IA32INTRIN_H
          XMMINTRIN_H
@@ -102,7 +102,7 @@ All boolean-valued pre-processor symbols in Random123/features/compilerfeatures.
          MULHILO64_C99
 
          U01_DOUBLE
-	 
+
 @endverbatim
 Most have obvious meanings.  Some non-obvious ones:
 
@@ -141,11 +141,11 @@ There are also non-boolean valued symbols:
 <ul>
 <li>R123_STATIC_INLINE -
   According to both C99 and GNU99, the 'static inline' declaration allows
-  the compiler to not emit code if the function is not used.  
+  the compiler to not emit code if the function is not used.
   Note that the semantics of 'inline', 'static' and 'extern' in
   gcc have changed over time and are subject to modification by
   command line options, e.g., -std=gnu89, -fgnu-inline.
-  Nevertheless, it appears that the meaning of 'static inline' 
+  Nevertheless, it appears that the meaning of 'static inline'
   has not changed over time and (with a little luck) the use of 'static inline'
   here will be portable between versions of gcc and to other C99
   compilers.
@@ -157,7 +157,7 @@ There are also non-boolean valued symbols:
   embellishments to strongly encourage that the declared function be
   inlined.  If there is no such compiler-specific magic, it should
   expand to decl, unadorned.
-   
+
 <li>R123_CUDA_DEVICE - which expands to __device__ (or something else with
   sufficiently similar semantics) when CUDA is in use, and expands
   to nothing in other cases.
@@ -192,7 +192,7 @@ There are also non-boolean valued symbols:
 \cond HIDDEN_FROM_DOXYGEN
 */
 
-/* 
+/*
 N.B.  When something is added to the list of features, it should be
 added to each of the *features.h files, AND to examples/ut_features.cpp.
 */
@@ -279,8 +279,8 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
 #if R123_USE_CXX11_STATIC_ASSERT
 #define R123_STATIC_ASSERT(expr, msg) static_assert(expr, msg)
 #else
-    /* if msg always_looked_like_this, we could paste it into the name.  Worth it? */
-#define R123_STATIC_ASSERT(expr, msg) typedef char static_assertion[(!!(expr))*2-1]
+/* if msg always_looked_like_this, we could paste it into the name.  Worth it? */
+#define R123_STATIC_ASSERT(expr, msg) typedef char static_assertion[(!!(expr)) * 2 - 1]
 #endif
 #endif
 
@@ -294,7 +294,7 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
 
 #ifndef R123_USE_64BIT
 #define R123_USE_64BIT 1
-#endif    
+#endif
 
 #ifndef R123_USE_PHILOX_64BIT
 #define R123_USE_PHILOX_64BIT (R123_USE_64BIT && (R123_USE_MULHILO64_ASM || R123_USE_MULHILO64_MSVC_INTRIN || R123_USE_MULHILO64_CUDA_INTRIN || R123_USE_GNU_UINT128 || R123_USE_MULHILO64_C99 || R123_USE_MULHILO64_OPENCL_INTRIN || R123_USE_MULHILO64_MULHI_INTRIN))
@@ -329,7 +329,7 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
 #ifndef R123_METAL_CONSTANT_ADDRESS_SPACE
 #define R123_METAL_CONSTANT_ADDRESS_SPACE
 #endif
-    
+
 /*
  * Windows.h (and perhaps other "well-meaning" code define min and
  * max, so there's a high chance that our definition of min, max

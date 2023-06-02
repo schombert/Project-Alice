@@ -11,7 +11,7 @@
 
 namespace map {
 
-image load_stb_image(simple_fs::file &file) {
+image load_stb_image(simple_fs::file& file) {
 	int32_t file_channels = 4;
 	int32_t size_x = 0;
 	int32_t size_y = 0;
@@ -21,12 +21,12 @@ image load_stb_image(simple_fs::file &file) {
 	return image(data, size_x, size_y, 4);
 }
 
-GLuint make_gl_texture(uint8_t *data, uint32_t size_x, uint32_t size_y, uint32_t channels) {
+GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t channels) {
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
 	const GLuint internalformats[] = {GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
 	const GLuint formats[] = {GL_RED, GL_RG, GL_RGB, GL_RGBA};
-	if (texture_handle) {
+	if(texture_handle) {
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
 		glTexStorage2D(
 		    GL_TEXTURE_2D,
@@ -45,13 +45,13 @@ GLuint make_gl_texture(uint8_t *data, uint32_t size_x, uint32_t size_y, uint32_t
 
 	return texture_handle;
 }
-GLuint make_gl_texture(image &image) {
+GLuint make_gl_texture(image& image) {
 	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
 }
 
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
 	glBindTexture(texture_type, texture_handle);
-	if (filter == GL_LINEAR_MIPMAP_NEAREST) {
+	if(filter == GL_LINEAR_MIPMAP_NEAREST) {
 		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glGenerateMipmap(texture_type);
@@ -64,13 +64,13 @@ void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint fil
 	glBindTexture(texture_type, 0);
 }
 
-GLuint load_texture_array_from_file(simple_fs::file &file, int32_t tiles_x, int32_t tiles_y) {
+GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
 	auto image = load_stb_image(file);
 
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
 
-	if (texture_handle) {
+	if(texture_handle) {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_handle);
 
 		size_t p_dx = image.size_x / tiles_x; // Pixels of each tile in x
@@ -79,8 +79,8 @@ GLuint load_texture_array_from_file(simple_fs::file &file, int32_t tiles_x, int3
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.size_x);
 		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, image.size_y);
 
-		for (int32_t x = 0; x < tiles_x; x++)
-			for (int32_t y = 0; y < tiles_y; y++)
+		for(int32_t x = 0; x < tiles_x; x++)
+			for(int32_t y = 0; y < tiles_y; y++)
 				glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 				                0, 0,
 				                0, GLint(x * tiles_x + y),
@@ -124,7 +124,7 @@ struct BorderDirection {
 	Information right;
 };
 
-void display_data::load_border_data(parsers::scenario_building_context &context) {
+void display_data::load_border_data(parsers::scenario_building_context& context) {
 	border_vertices.clear();
 
 	glm::vec2 map_size(size_x, size_y);
@@ -136,12 +136,12 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 	std::vector<BorderDirection> last_row(size_x);
 	// Will check if there is an border there already and extend if it can
 	auto extend_if_possible = [&](uint32_t x, int32_t border_id, direction dir) -> bool {
-		if (dir == direction::LEFT)
-			if (x == 0)
+		if(dir == direction::LEFT)
+			if(x == 0)
 				return false;
 
 		BorderDirection::Information direction_information;
-		switch (dir) {
+		switch(dir) {
 		case direction::UP:
 			direction_information = last_row[x].down;
 			break;
@@ -157,16 +157,16 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 		default:
 			return false;
 		}
-		if (direction_information.id != border_id)
+		if(direction_information.id != border_id)
 			return false;
 
 		auto border_index = direction_information.index;
-		if (border_index == -1)
+		if(border_index == -1)
 			return false;
 
-		auto &current_border_vertices = borders_list_vertices[border_id];
+		auto& current_border_vertices = borders_list_vertices[border_id];
 
-		switch (dir) {
+		switch(dir) {
 		case direction::UP:
 		case direction::DOWN:
 			current_border_vertices[border_index + 2].position_.y += 0.5f / map_size.y;
@@ -182,7 +182,7 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 		default:
 			break;
 		}
-		switch (dir) {
+		switch(dir) {
 		case direction::UP:
 			current_row[x].up = direction_information;
 			break;
@@ -206,9 +206,9 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 		glm::vec2 direction = normalize(offset2 - offset1);
 		glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
 
-		if (uint32_t(border_id) >= borders_list_vertices.size())
+		if(uint32_t(border_id) >= borders_list_vertices.size())
 			borders_list_vertices.resize(border_id + 1);
-		auto &current_border_vertices = borders_list_vertices[border_id];
+		auto& current_border_vertices = borders_list_vertices[border_id];
 
 		// Offset the map position
 		map_pos += glm::vec2(0.5f);
@@ -231,7 +231,7 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 		current_border_vertices.emplace_back(pos1, normal_direction, direction, border_id);
 
 		BorderDirection::Information direction_information(border_index, border_id);
-		switch (dir) {
+		switch(dir) {
 		case direction::UP:
 			current_row[x].up = direction_information;
 			break;
@@ -253,11 +253,11 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 	auto get_border_index = [&](uint16_t map_province_id1, uint16_t map_province_id2) -> int32_t {
 		auto province_id1 = province::from_map_id(map_province_id1);
 		auto province_id2 = province::from_map_id(map_province_id2);
-		if (map_province_id1 == 3087 && map_province_id2 == 3088) {
+		if(map_province_id1 == 3087 && map_province_id2 == 3088) {
 			int i = 0;
 		}
 		auto border_index = context.state.world.get_province_adjacency_by_province_pair(province_id1, province_id2).index();
-		if (border_index == -1)
+		if(border_index == -1)
 			border_index = context.state.world.force_create_province_adjacency(province_id1, province_id2).index();
 		return border_index;
 	};
@@ -272,48 +272,48 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 
 		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, uint16_t id1, uint16_t id2, direction dir) {
 			auto border_index = get_border_index(id1, id2);
-			if (!extend_if_possible(x0, border_index, dir))
+			if(!extend_if_possible(x0, border_index, dir))
 				add_line(map_pos, pos1, pos2, border_index, x0, dir);
 		};
 
-		if (diff_l && diff_u && !diff_r && !diff_d) { // Upper left
+		if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
 			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ul, id_dl, direction::UP_LEFT);
-		} else if (diff_l && diff_d && !diff_r && !diff_u) { // Lower left
+		} else if(diff_l && diff_d && !diff_r && !diff_u) { // Lower left
 			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ul, id_dl, direction::DOWN_LEFT);
-		} else if (diff_r && diff_u && !diff_l && !diff_d) { // Upper right
+		} else if(diff_r && diff_u && !diff_l && !diff_d) { // Upper right
 			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ur, id_dr, direction::UP_RIGHT);
-		} else if (diff_r && diff_d && !diff_l && !diff_u) { // Lower right
+		} else if(diff_r && diff_d && !diff_l && !diff_u) { // Lower right
 			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ur, id_dr, direction::DOWN_LEFT);
 		} else {
-			if (diff_u) {
+			if(diff_u) {
 				add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), id_ul, id_ur, direction::UP);
 			}
-			if (diff_d) {
+			if(diff_d) {
 				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), id_dl, id_dr, direction::DOWN);
 			}
-			if (diff_l) {
+			if(diff_l) {
 				add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.5f), id_ul, id_dl, direction::LEFT);
 			}
-			if (diff_r) {
+			if(diff_r) {
 				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), id_ur, id_dr, direction::RIGHT);
 			}
 		}
 	};
-	for (uint32_t y = 0; y < size_y - 1; y++) {
-		for (uint32_t x = 0; x < size_x - 1; x++) {
+	for(uint32_t y = 0; y < size_y - 1; y++) {
+		for(uint32_t x = 0; x < size_x - 1; x++) {
 			auto prov_id_ul = province_id_map[(x + 0) + (y + 0) * size_x];
 			auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
 			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
-			if (prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
+			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
-				if (prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
+				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 				}
-				if (prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
+				if(prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
 				}
-				if (prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
+				if(prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 				}
 			}
@@ -326,16 +326,16 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 			auto prov_id_dl = province_id_map[((size_x - 1) + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
 
-			if (prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
+			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr);
 
-				if (prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
+				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 				}
-				if (prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
+				if(prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
 				}
-				if (prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
+				if(prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
 				}
 			}
@@ -346,9 +346,9 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 	}
 
 	borders.resize(borders_list_vertices.size());
-	for (uint32_t border_id = 0; border_id < borders.size(); border_id++) {
-		auto &border = borders[border_id];
-		auto &current_border_vertices = borders_list_vertices[border_id];
+	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
+		auto& border = borders[border_id];
+		auto& current_border_vertices = borders_list_vertices[border_id];
 		border.start_index = int32_t(border_vertices.size());
 		border.count = int32_t(current_border_vertices.size());
 		border.type_flag = context.state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
@@ -359,14 +359,14 @@ void display_data::load_border_data(parsers::scenario_building_context &context)
 	}
 }
 
-void display_data::update_borders(sys::state &state) {
-	for (uint32_t border_id = 0; border_id < borders.size(); border_id++) {
-		auto &border = borders[border_id];
+void display_data::update_borders(sys::state& state) {
+	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
+		auto& border = borders[border_id];
 		border.type_flag = state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
 	}
 }
 
-void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *offset) {
+void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* offset) {
 	glVertexAttribFormat(index, size, type, normalized, stride);
 	glEnableVertexAttribArray(index);
 	glVertexAttribBinding(index, 0);
@@ -410,7 +410,7 @@ void display_data::create_meshes() {
 	std::vector<map_vertex> water_vertices;
 	std::vector<map_vertex> land_vertices;
 
-	auto add_quad = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex> &vertices, glm::vec2 pos0, glm::vec2 pos1) {
+	auto add_quad = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0, glm::vec2 pos1) {
 		// Rescale the coordinate to 0-1
 		pos0 /= map_size;
 		pos1 /= map_size;
@@ -429,15 +429,15 @@ void display_data::create_meshes() {
 	glm::vec2 pos(0, 0);
 	glm::vec2 map_size(size_x, size_y);
 	glm::vec2 sections(200, 200);
-	for (int y = 0; y < sections.y; y++) {
+	for(int y = 0; y < sections.y; y++) {
 		pos.y = last_pos.y + (map_size.y / sections.y);
-		if (y == sections.y - 1)
+		if(y == sections.y - 1)
 			pos.y = map_size.y;
 
 		last_pos.x = 0;
-		for (int x = 0; x < sections.x; x++) {
+		for(int x = 0; x < sections.x; x++) {
 			pos.x = last_pos.x + (map_size.x / sections.x);
-			if (x == sections.x - 1)
+			if(x == sections.x - 1)
 				pos.x = map_size.x;
 			add_quad(land_vertices, last_pos, pos);
 			last_pos.x = pos.x;
@@ -471,55 +471,55 @@ void display_data::create_meshes() {
 }
 
 display_data::~display_data() {
-	if (provinces_texture_handle)
+	if(provinces_texture_handle)
 		glDeleteTextures(1, &provinces_texture_handle);
-	if (terrain_texture_handle)
+	if(terrain_texture_handle)
 		glDeleteTextures(1, &terrain_texture_handle);
-	if (rivers_texture_handle)
+	if(rivers_texture_handle)
 		glDeleteTextures(1, &rivers_texture_handle);
-	if (terrainsheet_texture_handle)
+	if(terrainsheet_texture_handle)
 		glDeleteTextures(1, &terrainsheet_texture_handle);
-	if (water_normal)
+	if(water_normal)
 		glDeleteTextures(1, &water_normal);
-	if (colormap_water)
+	if(colormap_water)
 		glDeleteTextures(1, &colormap_water);
-	if (colormap_terrain)
+	if(colormap_terrain)
 		glDeleteTextures(1, &colormap_terrain);
-	if (overlay)
+	if(overlay)
 		glDeleteTextures(1, &overlay);
-	if (province_color)
+	if(province_color)
 		glDeleteTextures(1, &province_color);
-	if (border_texture)
+	if(border_texture)
 		glDeleteTextures(1, &border_texture);
-	if (stripes_texture)
+	if(stripes_texture)
 		glDeleteTextures(1, &stripes_texture);
-	if (province_highlight)
+	if(province_highlight)
 		glDeleteTextures(1, &province_highlight);
 
-	if (land_vao)
+	if(land_vao)
 		glDeleteVertexArrays(1, &land_vao);
-	if (border_vao)
+	if(border_vao)
 		glDeleteVertexArrays(1, &border_vao);
 
-	if (land_vbo)
+	if(land_vbo)
 		glDeleteBuffers(1, &land_vbo);
-	if (border_vbo)
+	if(border_vbo)
 		glDeleteBuffers(1, &border_vbo);
 
-	if (terrain_shader)
+	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
-	if (line_border_shader)
+	if(line_border_shader)
 		glDeleteProgram(line_border_shader);
 }
 
-std::optional<simple_fs::file> try_load_shader(simple_fs::directory &root, native_string_view name) {
+std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
 	auto shader = simple_fs::open_file(root, name);
-	if (!bool(shader))
+	if(!bool(shader))
 		ogl::notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
 	return shader;
 }
 
-GLuint create_program(simple_fs::file &vshader_file, simple_fs::file &fshader_file) {
+GLuint create_program(simple_fs::file& vshader_file, simple_fs::file& fshader_file) {
 	auto vshader_content = simple_fs::view_contents(vshader_file);
 	auto vshader_string = std::string_view(vshader_content.data, vshader_content.file_size);
 	auto fshader_content = simple_fs::view_contents(fshader_file);
@@ -527,7 +527,7 @@ GLuint create_program(simple_fs::file &vshader_file, simple_fs::file &fshader_fi
 	return ogl::create_program(vshader_string, fshader_string);
 }
 
-void display_data::load_shaders(simple_fs::directory &root) {
+void display_data::load_shaders(simple_fs::directory& root) {
 	// Map shaders
 	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/map_v.glsl"));
 	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/map_f.glsl"));
@@ -587,7 +587,7 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 		GLuint vertex_subroutines;
 		// calc_gl_position()
-		if (map_view_mode == map_view::globe)
+		if(map_view_mode == map_view::globe)
 			vertex_subroutines = 0; // globe_coords()
 		else
 			vertex_subroutines = 1; // flat_coords()
@@ -600,14 +600,14 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 		glUniform1f(4, time_counter);
 		// get_land()
 		GLuint fragment_subroutines[2];
-		if (active_map_mode == map_mode::mode::terrain)
+		if(active_map_mode == map_mode::mode::terrain)
 			fragment_subroutines[0] = 0; // get_land_terrain()
-		else if (zoom > 5)
+		else if(zoom > 5)
 			fragment_subroutines[0] = 1; // get_land_political_close()
 		else
 			fragment_subroutines[0] = 2; // get_land_political_far()
 		// get_water()
-		if (active_map_mode == map_mode::mode::terrain || zoom > 5)
+		if(active_map_mode == map_mode::mode::terrain || zoom > 5)
 			fragment_subroutines[1] = 3; // get_water_terrain()
 		else
 			fragment_subroutines[1] = 4; // get_water_political()
@@ -624,15 +624,15 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	load_shader(line_border_shader);
 	glBindVertexArray(border_vao);
 
-	if (zoom > 8) {
+	if(zoom > 8) {
 		glUniform1f(4, 0.0013f);
 		uint8_t visible_borders =
 		    (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit | province::border::state_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
-		for (auto &border : borders) {
-			if ((border.type_flag & visible_borders) == 0) {
+		for(auto& border : borders) {
+			if((border.type_flag & visible_borders) == 0) {
 				first.push_back(border.start_index);
 				count.push_back(border.count);
 			}
@@ -640,15 +640,15 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
 
-	if (zoom > 3.5f) {
+	if(zoom > 3.5f) {
 		glUniform1f(4, 0.0018f);
 		uint8_t visible_borders =
 		    (province::border::national_bit | province::border::coastal_bit | province::border::non_adjacent_bit | province::border::impassible_bit);
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
-		for (auto &border : borders) {
-			if ((border.type_flag & visible_borders) == 0 && (border.type_flag & province::border::state_bit) != 0) {
+		for(auto& border : borders) {
+			if((border.type_flag & visible_borders) == 0 && (border.type_flag & province::border::state_bit) != 0) {
 				first.push_back(border.start_index);
 				count.push_back(border.count);
 			}
@@ -663,8 +663,8 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
-		for (auto &border : borders) {
-			if (border.type_flag & visible_borders) {
+		for(auto& border : borders) {
+			if(border.type_flag & visible_borders) {
 				first.push_back(border.start_index);
 				count.push_back(border.count);
 			}
@@ -677,10 +677,10 @@ void display_data::render(glm::vec2 screen_size, glm::vec2 offset, float zoom, m
 	glDisable(GL_CULL_FACE);
 }
 
-GLuint load_province_map(std::vector<uint16_t> &province_index, uint32_t size_x, uint32_t size_y) {
+GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x, uint32_t size_y) {
 	GLuint texture_handle;
 	glGenTextures(1, &texture_handle);
-	if (texture_handle) {
+	if(texture_handle) {
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 		// Create a texture with only one byte color
@@ -692,8 +692,8 @@ GLuint load_province_map(std::vector<uint16_t> &province_index, uint32_t size_x,
 	return texture_handle;
 }
 
-void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const &prov_color, uint8_t layers) {
-	if (layers == 1) {
+void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const & prov_color, uint8_t layers) {
+	if(layers == 1) {
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
 	} else {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_handle);
@@ -706,11 +706,11 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 	uint32_t width = 256;
 	uint32_t height = rows;
 
-	if (layers == 1) {
+	if(layers == 1) {
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[0]);
 	} else {
 		// Set the texture data for each layer
-		for (int i = 0; i < layers; i++) {
+		for(int i = 0; i < layers; i++) {
 			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, i, width, height / layers, 1, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[i * (prov_color.size() / layers)]);
 		}
 	}
@@ -722,39 +722,39 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 
 	// SCHOMBERT: added a conditional to block reading from after the end in the case it is evenly divisible by 256
 	// SCHOMBERT: that looks right to me, but I don't fully understand the intent
-	if (left_on_last_row > 0 && layers == 1)
+	if(left_on_last_row > 0 && layers == 1)
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, &prov_color[rows * 256]);
 
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void display_data::set_selected_province(sys::state &state, dcon::province_id prov_id) {
+void display_data::set_selected_province(sys::state& state, dcon::province_id prov_id) {
 	std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
-	if (prov_id)
+	if(prov_id)
 		province_highlights[province::to_map_id(prov_id)] = 0x2B2B2B2B;
 	gen_prov_color_texture(province_highlight, province_highlights);
 }
 
-void display_data::set_province_color(std::vector<uint32_t> const &prov_color) {
+void display_data::set_province_color(std::vector<uint32_t> const & prov_color) {
 	gen_prov_color_texture(province_color, prov_color, 2);
 }
 
-void display_data::load_median_terrain_type(parsers::scenario_building_context &context) {
+void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
 	median_terrain_type.resize(context.state.world.province_size() + 1);
 	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
-	for (int i = size_x * size_y - 1; i-- > 0;) {
+	for(int i = size_x * size_y - 1; i-- > 0;) {
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
-		if (terrain_id < 64)
+		if(terrain_id < 64)
 			terrain_histogram[prov_id][terrain_id] += 1;
 	}
 
-	for (int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		int max_index = 64;
 		int max = 0;
-		for (int j = max_index; j-- > 0;) {
-			if (terrain_histogram[i][j] > max) {
+		for(int j = max_index; j-- > 0;) {
+			if(terrain_histogram[i][j] > max) {
 				max_index = j;
 				max = terrain_histogram[i][j];
 			}
@@ -763,15 +763,15 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context &
 	}
 }
 
-void display_data::load_terrain_data(parsers::scenario_building_context &context) {
+void display_data::load_terrain_data(parsers::scenario_building_context& context) {
 	auto root = simple_fs::get_root(context.state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto terrain_bmp = open_file(map_dir, NATIVE("terrain.bmp"));
 	auto content = simple_fs::view_contents(*terrain_bmp);
-	uint8_t *start = (uint8_t *)(content.data);
+	uint8_t* start = (uint8_t*)(content.data);
 
 	// Data offset is where the pixel data starts
-	uint8_t *ptr = start + 10;
+	uint8_t* ptr = start + 10;
 	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
 	// The width & height of the image
@@ -780,7 +780,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context &context
 	ptr = start + 22;
 	uint32_t terrain_size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
-	uint8_t *terrain_data = start + data_offset;
+	uint8_t* terrain_data = start + data_offset;
 
 	// Create the terrain_id_map
 	// If it is invalid province (meaning that the color didn't map to anything) or a sea province, it forces the terrain to be ocean.
@@ -794,13 +794,13 @@ void display_data::load_terrain_data(parsers::scenario_building_context &context
 
 	terrain_id_map.resize(size_x * size_y, uint8_t(255));
 
-	for (uint32_t y = 0; y < terrain_size_y; ++y) {
-		for (uint32_t x = 0; x < size_x; ++x) {
-			if (province_id_map[(y + top_free_space) * size_x + x] == 0 || province_id_map[(y + top_free_space) * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province)) {
+	for(uint32_t y = 0; y < terrain_size_y; ++y) {
+		for(uint32_t x = 0; x < size_x; ++x) {
+			if(province_id_map[(y + top_free_space) * size_x + x] == 0 || province_id_map[(y + top_free_space) * size_x + x] >= province::to_map_id(context.state.province_definitions.first_sea_province)) {
 				terrain_id_map[(y + top_free_space) * size_x + x] = uint8_t(255);
 			} else {
 				auto value = *(terrain_data + x + (terrain_size_y - (y)-1) * terrain_size_x);
-				if (value < 64)
+				if(value < 64)
 					terrain_id_map[(y + top_free_space) * size_x + x] = value;
 				else
 					terrain_id_map[(y + top_free_space) * size_x + x] = uint8_t(6);
@@ -812,19 +812,19 @@ void display_data::load_terrain_data(parsers::scenario_building_context &context
 	load_median_terrain_type(context);
 }
 
-void display_data::load_provinces_mid_point(parsers::scenario_building_context &context) {
+void display_data::load_provinces_mid_point(parsers::scenario_building_context& context) {
 	std::vector<glm::ivec2> accumulated_tile_positions(context.state.world.province_size() + 1, glm::vec2(0));
 	std::vector<int> tiles_number(context.state.world.province_size() + 1, 0);
-	for (int i = size_x * size_y - 1; i-- > 0;) {
+	for(int i = size_x * size_y - 1; i-- > 0;) {
 		auto prov_id = province_id_map[i];
 		int x = i % size_x;
 		int y = i / size_x;
 		accumulated_tile_positions[prov_id] += glm::vec2(x, y);
 		tiles_number[prov_id]++;
 	}
-	for (int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
 		glm::ivec2 tile_pos;
-		if (tiles_number[i] == 0)
+		if(tiles_number[i] == 0)
 			tile_pos = glm::ivec2(0, 0);
 		else
 			tile_pos = accumulated_tile_positions[i] / tiles_number[i];
@@ -832,34 +832,34 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context &
 	}
 }
 
-void display_data::load_province_data(parsers::scenario_building_context &context, image &image) {
+void display_data::load_province_data(parsers::scenario_building_context& context, image& image) {
 	uint32_t imsz = uint32_t(size_x * size_y);
 	auto free_space = std::max(uint32_t(0), size_y - image.size_y); // schombert: find out how much water we need to add
 	auto top_free_space = (free_space * 3) / 5;
 
 	province_id_map.resize(imsz);
 	uint32_t i = 0;
-	for (; i < top_free_space * size_x; ++i) { // schombert: fill with nothing until the start of the real data
+	for(; i < top_free_space * size_x; ++i) { // schombert: fill with nothing until the start of the real data
 		province_id_map[i] = 0;
 	}
 	auto first_actual_map_pixel = top_free_space * size_x; // schombert: where the real data starts
-	for (; i < first_actual_map_pixel + image.size_x * image.size_y; ++i) {
-		uint8_t *ptr = image.data + (i - first_actual_map_pixel) * 4; // schombert: subtract to find our offset in the actual image data
+	for(; i < first_actual_map_pixel + image.size_x * image.size_y; ++i) {
+		uint8_t* ptr = image.data + (i - first_actual_map_pixel) * 4; // schombert: subtract to find our offset in the actual image data
 		auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
-		if (auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
+		if(auto it = context.map_color_to_province_id.find(color); it != context.map_color_to_province_id.end()) {
 			province_id_map[i] = province::to_map_id(it->second);
 		} else {
 			province_id_map[i] = 0;
 		}
 	}
-	for (; i < imsz; ++i) { // schombert: fill remainder with nothing
+	for(; i < imsz; ++i) { // schombert: fill remainder with nothing
 		province_id_map[i] = 0;
 	}
 
 	load_provinces_mid_point(context);
 }
 
-void display_data::load_map_data(parsers::scenario_building_context &context) {
+void display_data::load_map_data(parsers::scenario_building_context& context) {
 	auto root = simple_fs::get_root(context.state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 
@@ -875,15 +875,15 @@ void display_data::load_map_data(parsers::scenario_building_context &context) {
 	load_border_data(context);
 }
 
-GLuint load_dds_texture(simple_fs::directory const &dir, native_string_view file_name) {
+GLuint load_dds_texture(simple_fs::directory const & dir, native_string_view file_name) {
 	auto file = simple_fs::open_file(dir, file_name);
 	auto content = simple_fs::view_contents(*file);
 	uint32_t size_x, size_y;
-	uint8_t const *data = (uint8_t const *)(content.data);
+	uint8_t const * data = (uint8_t const *)(content.data);
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 
-void display_data::load_map(sys::state &state) {
+void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
@@ -935,11 +935,11 @@ void display_data::load_map(sys::state &state) {
 	std::vector<uint32_t> testColor(province_size * 4);
 	gen_prov_color_texture(province_highlight, testHighlight);
 
-	for (uint32_t i = 0; i < testHighlight.size(); ++i) {
+	for(uint32_t i = 0; i < testHighlight.size(); ++i) {
 		testHighlight[i] = 255;
 	}
 
-	for (uint32_t i = 0; i < testColor.size(); ++i) {
+	for(uint32_t i = 0; i < testColor.size(); ++i) {
 		testColor[i] = 255;
 	}
 

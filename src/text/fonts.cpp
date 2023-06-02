@@ -13,7 +13,7 @@ constexpr uint16_t pack_font_handle(uint32_t font_index, bool black, uint32_t si
 }
 
 bool is_black_font(std::string_view txt) {
-	if (parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "_bl") || parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "black") || parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "black_bold")) {
+	if(parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "_bl") || parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "black") || parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "black_bold")) {
 		return true;
 	} else {
 		return false;
@@ -21,28 +21,28 @@ bool is_black_font(std::string_view txt) {
 }
 
 uint32_t font_size(std::string_view txt) {
-	const char *first_int = txt.data();
-	const char *end = txt.data() + txt.size();
-	while (first_int != end && !isdigit(*first_int))
+	const char* first_int = txt.data();
+	const char* end = txt.data() + txt.size();
+	while(first_int != end && !isdigit(*first_int))
 		++first_int;
-	const char *last_int = first_int;
-	while (last_int != end && isdigit(*last_int))
+	const char* last_int = first_int;
+	while(last_int != end && isdigit(*last_int))
 		++last_int;
 
-	if (first_int == last_int) {
-		if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "fps_font"))
+	if(first_int == last_int) {
+		if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "fps_font"))
 			return uint32_t(14);
-		else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "tooltip_font"))
+		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "tooltip_font"))
 			return uint32_t(16);
-		else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "frangoth_bold"))
+		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "frangoth_bold"))
 			return uint32_t(18);
-		else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "impact_small"))
+		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "impact_small"))
 			return uint32_t(24);
-		else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "old_english"))
+		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "old_english"))
 			return uint32_t(50);
-		else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "timefont"))
+		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "timefont"))
 			return uint32_t(24);
-		else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "vic_title"))
+		else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "vic_title"))
 			return uint32_t(42);
 		else
 			return uint32_t(14);
@@ -54,45 +54,45 @@ uint32_t font_size(std::string_view txt) {
 }
 
 uint32_t font_index(std::string_view txt) {
-	if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "arial"))
+	if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "arial"))
 		return 1;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "fps"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "fps"))
 		return 1;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "main"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "main"))
 		return 2;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "tooltip"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "tooltip"))
 		return 1;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "frangoth"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "frangoth"))
 		return 2;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "garamond"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "garamond"))
 		return 2;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "impact"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "impact"))
 		return 2;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "old"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "old"))
 		return 2;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "timefont"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "timefont"))
 		return 1;
-	else if (parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "vic"))
+	else if(parsers::has_fixed_prefix_ci(txt.data(), txt.data() + txt.size(), "vic"))
 		return 2;
 	else
 		return 1;
 }
 
-uint16_t name_into_font_id(sys::state &state, std::string_view txt) {
+uint16_t name_into_font_id(sys::state& state, std::string_view txt) {
 	auto base_id = pack_font_handle(font_index(txt), is_black_font(txt), font_size(txt));
 	std::string txt_copy = [&]() {
-		if (parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "_black")) {
+		if(parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "_black")) {
 			return std::string(txt.substr(0, txt.length() - 6));
 		}
-		if (parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "_black_bold")) {
+		if(parsers::has_fixed_suffix_ci(txt.data(), txt.data() + txt.length(), "_black_bold")) {
 			return std::string(txt.substr(0, txt.length() - 11)) + "_bold";
 		}
 		return std::string(txt);
 	}();
 	uint16_t individuator = 0;
 	auto it = state.font_collection.font_names.find(uint16_t(base_id | (individuator << 8)));
-	while (it != state.font_collection.font_names.end()) {
-		if (state.to_string_view(it->second) == txt_copy) {
+	while(it != state.font_collection.font_names.end()) {
+		if(state.to_string_view(it->second) == txt_copy) {
 			return uint16_t(base_id | (individuator << 8));
 		}
 		++individuator;
@@ -105,7 +105,7 @@ uint16_t name_into_font_id(sys::state &state, std::string_view txt) {
 }
 
 int32_t size_from_font_id(uint16_t id) {
-	if (font_index_from_font_id(id) == 2)
+	if(font_index_from_font_id(id) == 2)
 		return (int32_t(id & 0x3F) * 3) / 4;
 	else
 		return (int32_t(id & 0x3F) * 5) / 6;
@@ -134,7 +134,7 @@ int32_t transform_offset_b(int32_t x, int32_t y, int32_t btmap_x_off, int32_t bt
 	int bmp_x = x - btmap_x_off;
 	int bmp_y = y - btmap_y_off;
 
-	if ((bmp_x < 0) | (bmp_x >= (int32_t)width) | (bmp_y < 0) | (bmp_y >= (int32_t)height))
+	if((bmp_x < 0) | (bmp_x >= (int32_t)width) | (bmp_y < 0) | (bmp_y >= (int32_t)height))
 		return -1;
 	else
 		return bmp_x + bmp_y * (int32_t)pitch;
@@ -144,9 +144,9 @@ constexpr int magnification_factor = 4;
 constexpr int dr_size = 64 * magnification_factor;
 constexpr float rt_2 = 1.41421356237309504f;
 
-void init_in_map(bool in_map[dr_size * dr_size], uint8_t *bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
-	for (int32_t j = 0; j < dr_size; ++j) {
-		for (int32_t i = 0; i < dr_size; ++i) {
+void init_in_map(bool in_map[dr_size * dr_size], uint8_t* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
+	for(int32_t j = 0; j < dr_size; ++j) {
+		for(int32_t i = 0; i < dr_size; ++i) {
 			const auto boff = transform_offset_b(i, j, btmap_x_off, btmap_y_off, width, height, pitch);
 			in_map[i + dr_size * j] = (boff != -1) ? (bmp_data[boff] > 127) : false;
 		}
@@ -162,45 +162,45 @@ void dead_reckoning(float distance_map[dr_size * dr_size], const bool in_map[dr_
 	int16_t yborder[dr_size * dr_size] = {0};
 	int16_t xborder[dr_size * dr_size] = {0};
 
-	for (uint32_t i = 0; i < dr_size * dr_size; ++i) {
+	for(uint32_t i = 0; i < dr_size * dr_size; ++i) {
 		distance_map[i] = std::numeric_limits<float>::infinity();
 	}
-	for (int32_t j = 1; j < dr_size - 1; ++j) {
-		for (int32_t i = 1; i < dr_size - 1; ++i) {
-			if (in_map[i - 1 + dr_size * j] != in_map[i + dr_size * j] ||
-			    in_map[i + 1 + dr_size * j] != in_map[i + dr_size * j] ||
-			    in_map[i + dr_size * (j + 1)] != in_map[i + dr_size * j] ||
-			    in_map[i + dr_size * (j - 1)] != in_map[i + dr_size * j]) {
+	for(int32_t j = 1; j < dr_size - 1; ++j) {
+		for(int32_t i = 1; i < dr_size - 1; ++i) {
+			if(in_map[i - 1 + dr_size * j] != in_map[i + dr_size * j] ||
+			   in_map[i + 1 + dr_size * j] != in_map[i + dr_size * j] ||
+			   in_map[i + dr_size * (j + 1)] != in_map[i + dr_size * j] ||
+			   in_map[i + dr_size * (j - 1)] != in_map[i + dr_size * j]) {
 				distance_map[i + dr_size * j] = 0.0f;
 				yborder[i + dr_size * j] = static_cast<int16_t>(j);
 				xborder[i + dr_size * j] = static_cast<int16_t>(i);
 			}
 		}
 	}
-	for (int32_t j = 1; j < dr_size - 1; ++j) {
-		for (int32_t i = 1; i < dr_size - 1; ++i) {
-			if (distance_map[(i - 1) + dr_size * (j - 1)] + rt_2 < distance_map[(i) + dr_size * (j)]) {
+	for(int32_t j = 1; j < dr_size - 1; ++j) {
+		for(int32_t i = 1; i < dr_size - 1; ++i) {
+			if(distance_map[(i - 1) + dr_size * (j - 1)] + rt_2 < distance_map[(i) + dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i - 1) + dr_size * (j - 1)];
 				xborder[i + dr_size * j] = xborder[(i - 1) + dr_size * (j - 1)];
 				distance_map[(i) + dr_size * (j)] =
 				    (float)std::sqrt((i - xborder[i + dr_size * j]) * (i - xborder[i + dr_size * j]) +
 				                     (j - yborder[i + dr_size * j]) * (j - yborder[i + dr_size * j]));
 			}
-			if (distance_map[(i) + dr_size * (j - 1)] + 1.0f < distance_map[(i) + dr_size * (j)]) {
+			if(distance_map[(i) + dr_size * (j - 1)] + 1.0f < distance_map[(i) + dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i) + dr_size * (j - 1)];
 				xborder[i + dr_size * j] = xborder[(i) + dr_size * (j - 1)];
 				distance_map[(i) + dr_size * (j)] =
 				    (float)std::sqrt((i - xborder[i + dr_size * j]) * (i - xborder[i + dr_size * j]) +
 				                     (j - yborder[i + dr_size * j]) * (j - yborder[i + dr_size * j]));
 			}
-			if (distance_map[(i + 1) + dr_size * (j - 1)] + rt_2 < distance_map[(i) + dr_size * (j)]) {
+			if(distance_map[(i + 1) + dr_size * (j - 1)] + rt_2 < distance_map[(i) + dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i + 1) + dr_size * (j - 1)];
 				xborder[i + dr_size * j] = xborder[(i + 1) + dr_size * (j - 1)];
 				distance_map[(i) + dr_size * (j)] =
 				    (float)std::sqrt((i - xborder[i + dr_size * j]) * (i - xborder[i + dr_size * j]) +
 				                     (j - yborder[i + dr_size * j]) * (j - yborder[i + dr_size * j]));
 			}
-			if (distance_map[(i - 1) + dr_size * (j)] + 1.0f < distance_map[(i) + dr_size * (j)]) {
+			if(distance_map[(i - 1) + dr_size * (j)] + 1.0f < distance_map[(i) + dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i - 1) + dr_size * (j)];
 				xborder[i + dr_size * j] = xborder[(i - 1) + dr_size * (j)];
 				distance_map[(i) + dr_size * (j)] =
@@ -210,30 +210,30 @@ void dead_reckoning(float distance_map[dr_size * dr_size], const bool in_map[dr_
 		}
 	}
 
-	for (int32_t j = dr_size - 2; j > 0; --j) {
-		for (int32_t i = dr_size - 2; i > 0; --i) {
-			if (distance_map[(i + 1) + dr_size * (j)] + 1.0f < distance_map[(i) + dr_size * (j)]) {
+	for(int32_t j = dr_size - 2; j > 0; --j) {
+		for(int32_t i = dr_size - 2; i > 0; --i) {
+			if(distance_map[(i + 1) + dr_size * (j)] + 1.0f < distance_map[(i) + dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i + 1) + dr_size * (j)];
 				xborder[i + dr_size * j] = xborder[(i + 1) + dr_size * (j)];
 				distance_map[(i) + dr_size * (j)] =
 				    (float)std::sqrt((i - xborder[i + dr_size * j]) * (i - xborder[i + dr_size * j]) +
 				                     (j - yborder[i + dr_size * j]) * (j - yborder[i + dr_size * j]));
 			}
-			if (distance_map[(i - 1) + dr_size * (j + 1)] + rt_2 < distance_map[(i) + dr_size * (j)]) {
+			if(distance_map[(i - 1) + dr_size * (j + 1)] + rt_2 < distance_map[(i) + dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i - 1) + dr_size * (j + 1)];
 				xborder[i + dr_size * j] = xborder[(i - 1) + dr_size * (j + 1)];
 				distance_map[(i) + dr_size * (j)] =
 				    (float)std::sqrt((i - xborder[i + dr_size * j]) * (i - xborder[i + dr_size * j]) +
 				                     (j - yborder[i + dr_size * j]) * (j - yborder[i + dr_size * j]));
 			}
-			if (distance_map[(i) + dr_size * (j + 1)] + 1.0f < distance_map[(i) + dr_size * (j)]) {
+			if(distance_map[(i) + dr_size * (j + 1)] + 1.0f < distance_map[(i) + dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i) + dr_size * (j + 1)];
 				xborder[i + dr_size * j] = xborder[(i) + dr_size * (j + 1)];
 				distance_map[(i) + dr_size * (j)] =
 				    (float)std::sqrt((i - xborder[i + dr_size * j]) * (i - xborder[i + dr_size * j]) +
 				                     (j - yborder[i + dr_size * j]) * (j - yborder[i + dr_size * j]));
 			}
-			if (distance_map[(i + 1) + dr_size * (j + 1)] + rt_2 < distance_map[(i) + dr_size * (j)]) {
+			if(distance_map[(i + 1) + dr_size * (j + 1)] + rt_2 < distance_map[(i) + dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i + 1) + dr_size * (j + 1)];
 				xborder[i + dr_size * j] = xborder[(i + 1) + dr_size * (j + 1)];
 				distance_map[(i) + dr_size * (j)] =
@@ -243,13 +243,13 @@ void dead_reckoning(float distance_map[dr_size * dr_size], const bool in_map[dr_
 		}
 	}
 
-	for (uint32_t i = 0; i < dr_size * dr_size; ++i) {
-		if (in_map[i])
+	for(uint32_t i = 0; i < dr_size * dr_size; ++i) {
+		if(in_map[i])
 			distance_map[i] *= -1.0f;
 	}
 }
 
-void font_manager::load_font(font &fnt, char const *file_data, uint32_t file_size) {
+void font_manager::load_font(font& fnt, char const * file_data, uint32_t file_size) {
 	fnt.file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[file_size]);
 	memcpy(fnt.file_data.get(), file_data, file_size);
 	FT_New_Memory_Face(ft_library, fnt.file_data.get(), file_size, 0, &fnt.font_face);
@@ -264,9 +264,9 @@ void font_manager::load_font(font &fnt, char const *file_data, uint32_t file_siz
 
 	// load all glyph metrics
 
-	for (int32_t i = 0; i < 256; ++i) {
+	for(int32_t i = 0; i < 256; ++i) {
 		const auto index_in_this_font = FT_Get_Char_Index(fnt.font_face, win1250toUTF16(char(i)));
-		if (index_in_this_font) {
+		if(index_in_this_font) {
 			FT_Load_Glyph(fnt.font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL);
 			fnt.glyph_advances[i] = static_cast<float>(fnt.font_face->glyph->metrics.horiAdvance) / static_cast<float>((1 << 6) * magnification_factor);
 		}
@@ -279,11 +279,11 @@ float font::kerning(char codepoint_first, char codepoint_second) const {
 	const auto index_a = FT_Get_Char_Index(font_face, utf16_first);
 	const auto index_b = FT_Get_Char_Index(font_face, utf16_second);
 
-	if ((index_a == 0) || (index_b == 0)) {
+	if((index_a == 0) || (index_b == 0)) {
 		return 0.0f;
 	}
 
-	if (FT_HAS_KERNING(font_face)) {
+	if(FT_HAS_KERNING(font_face)) {
 		FT_Vector kerning;
 		FT_Get_Kerning(font_face, index_a, index_b, FT_KERNING_DEFAULT, &kerning);
 		return static_cast<float>(kerning.x) / static_cast<float>((1 << 6) * magnification_factor);
@@ -305,15 +305,15 @@ float font::top_adjustment(int32_t size) const {
 	return internal_top_adj * size / 64.0f;
 }
 
-float font_manager::line_height(sys::state &state, uint16_t font_id) const {
-	if (state.user_settings.use_classic_fonts) {
+float font_manager::line_height(sys::state& state, uint16_t font_id) const {
+	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).GetHeight();
 	} else {
 		return float(fonts[text::font_index_from_font_id(font_id) - 1].line_height(text::size_from_font_id(font_id)));
 	}
 }
-float font_manager::text_extent(sys::state &state, const char *codepoints, uint32_t count, uint16_t font_id) const {
-	if (state.user_settings.use_classic_fonts) {
+float font_manager::text_extent(sys::state& state, const char* codepoints, uint32_t count, uint16_t font_id) const {
+	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).GetStringWidth(codepoints, count);
 	} else {
 		return float(fonts[text::font_index_from_font_id(font_id) - 1].text_extent(codepoints, count, text::size_from_font_id(font_id)));
@@ -321,16 +321,16 @@ float font_manager::text_extent(sys::state &state, const char *codepoints, uint3
 }
 
 void font::make_glyph(char ch_in) {
-	if (glyph_loaded[uint8_t(ch_in)])
+	if(glyph_loaded[uint8_t(ch_in)])
 		return;
 	glyph_loaded[uint8_t(ch_in)] = true;
 
 	auto codepoint = win1250toUTF16(ch_in);
-	if (codepoint == ' ')
+	if(codepoint == ' ')
 		return;
 
 	const auto index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
-	if (index_in_this_font) {
+	if(index_in_this_font) {
 		FT_Load_Glyph(font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
 
 		FT_Glyph g_result;
@@ -338,7 +338,7 @@ void font::make_glyph(char ch_in) {
 
 		auto texture_number = uint8_t(ch_in) >> 6;
 
-		if (textures[texture_number] == 0) {
+		if(textures[texture_number] == 0) {
 			glGenTextures(1, &textures[texture_number]);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_number]);
 			glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 64 * 8, 64 * 8);
@@ -351,7 +351,7 @@ void font::make_glyph(char ch_in) {
 			glBindTexture(GL_TEXTURE_2D, textures[texture_number]);
 		}
 
-		FT_Bitmap &bitmap = ((FT_BitmapGlyphRec *)g_result)->bitmap;
+		FT_Bitmap& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
 
 		const float hb_x = static_cast<float>(font_face->glyph->metrics.horiBearingX) / static_cast<float>(1 << 6);
 		const float hb_y = static_cast<float>(font_face->glyph->metrics.horiBearingY) / static_cast<float>(1 << 6);
@@ -372,8 +372,8 @@ void font::make_glyph(char ch_in) {
 		init_in_map(in_map, bitmap.buffer, btmap_x_off, btmap_y_off, bitmap.width, bitmap.rows, (uint32_t)bitmap.pitch);
 		dead_reckoning(distance_map, in_map);
 
-		for (int y = 0; y < 64; ++y) {
-			for (int x = 0; x < 64; ++x) {
+		for(int y = 0; y < 64; ++y) {
+			for(int x = 0; x < 64; ++x) {
 
 				const size_t index = static_cast<size_t>(x + y * 64);
 				const float distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) +
@@ -397,37 +397,37 @@ void font::make_glyph(char ch_in) {
 	}
 }
 
-float font::text_extent(const char *codepoints, uint32_t count, int32_t size) const {
+float font::text_extent(const char* codepoints, uint32_t count, int32_t size) const {
 	float total = 0.0f;
-	for (; count-- > 0;) {
+	for(; count-- > 0;) {
 		auto c = uint8_t(codepoints[count]);
-		if (c == 0x01 || c == 0x02)
+		if(c == 0x01 || c == 0x02)
 			c = 0x4D;
 		total += this->glyph_advances[c] * size / 64.0f + ((count != 0) ? kerning(codepoints[count - 1], c) * size / 64.0f : 0.0f);
 	}
 	return total;
 }
 
-void load_standard_fonts(sys::state &state) {
+void load_standard_fonts(sys::state& state) {
 	auto root = get_root(state.common_fs);
 	auto font_a = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
-	if (font_a) {
+	if(font_a) {
 		auto file_content = view_contents(*font_a);
 		state.font_collection.load_font(state.font_collection.fonts[0], file_content.data, file_content.file_size);
 	}
 	auto font_b = open_file(root, NATIVE("assets/fonts/AndadaSC-Regular.otf"));
-	if (font_b) {
+	if(font_b) {
 		auto file_content = view_contents(*font_b);
 		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size);
 	}
 }
 
-void load_bmfonts(sys::state &state) {
+void load_bmfonts(sys::state& state) {
 }
 
 void font_manager::load_all_glyphs() {
-	for (uint32_t j = 0; j < 2; ++j) {
-		for (uint32_t i = 0; i < 256; ++i)
+	for(uint32_t j = 0; j < 2; ++j) {
+		for(uint32_t i = 0; i < 256; ++i)
 			fonts[j].make_glyph(char(i));
 	}
 }

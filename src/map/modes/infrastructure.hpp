@@ -1,6 +1,6 @@
 #pragma once
 
-std::vector<uint32_t> infrastructure_map_from(sys::state &state) {
+std::vector<uint32_t> infrastructure_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
@@ -16,9 +16,9 @@ std::vector<uint32_t> infrastructure_map_from(sys::state &state) {
 		    (nation == state.local_player_nation && (state.world.nation_get_combined_issue_rules(nation) & issue_rule::build_railway) != 0) || (nation != state.local_player_nation && (state.world.nation_get_combined_issue_rules(nation) & issue_rule::allow_foreign_investment) != 0);
 		uint32_t color;
 
-		if (party_allows_building_railroads) {
+		if(party_allows_building_railroads) {
 
-			if (province::can_build_railroads(state, prov_id, state.local_player_nation)) {
+			if(province::can_build_railroads(state, prov_id, state.local_player_nation)) {
 
 				color = ogl::color_gradient(
 				    float(current_rails_lvl) / float(max_rails_lvl),
@@ -27,7 +27,7 @@ std::vector<uint32_t> infrastructure_map_from(sys::state &state) {
 
 				);
 
-			} else if (current_rails_lvl == max_local_rails_lvl) {
+			} else if(current_rails_lvl == max_local_rails_lvl) {
 				color = sys::pack_color(232, 228, 111); // yellow
 			} else {
 				color = sys::pack_color(222, 7, 46); // red
@@ -40,7 +40,7 @@ std::vector<uint32_t> infrastructure_map_from(sys::state &state) {
 
 		prov_color[i] = color;
 
-		if (province::has_railroads_being_built(state, prov_id)) {
+		if(province::has_railroads_being_built(state, prov_id)) {
 			prov_color[i + texture_size] = sys::pack_color(232, 228, 111); // yellow
 		} else {
 			prov_color[i + texture_size] = color;

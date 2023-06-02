@@ -1,6 +1,6 @@
 #pragma once
 
-std::vector<uint32_t> civilization_level_map_from(sys::state &state) {
+std::vector<uint32_t> civilization_level_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
@@ -13,11 +13,11 @@ std::vector<uint32_t> civilization_level_map_from(sys::state &state) {
 		uint32_t color;
 
 		// if it is uncolonized
-		if (!nation) {
+		if(!nation) {
 
 			color = sys::pack_color(250, 5, 5); // red
 
-		} else if (state.world.nation_get_is_civilized(nation)) {
+		} else if(state.world.nation_get_is_civilized(nation)) {
 
 			color = sys::pack_color(53, 196, 53); // green
 
@@ -30,7 +30,7 @@ std::vector<uint32_t> civilization_level_map_from(sys::state &state) {
 		auto i = province::to_map_id(prov_id);
 
 		prov_color[i] = color;
-		if (!state.world.province_get_is_colonial(prov_id)) {
+		if(!state.world.province_get_is_colonial(prov_id)) {
 			prov_color[i + texture_size] = color;
 		}
 	});

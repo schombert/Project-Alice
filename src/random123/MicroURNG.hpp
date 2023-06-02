@@ -75,7 +75,7 @@ namespace r123 {
 \endcode
 */
 
-template <typename CBRNG>
+template<typename CBRNG>
 class MicroURNG {
 	// According to C++11, a URNG requires only a result_type,
 	// operator()(), min() and max() methods.  Everything else
@@ -93,7 +93,7 @@ public:
 	R123_STATIC_ASSERT(std::numeric_limits<result_type>::digits >= BITS, "The result_type must have at least 32 bits");
 
 	result_type operator()() {
-		if (last_elem == 0) {
+		if(last_elem == 0) {
 			// jam n into the high bits of c
 			const size_t W = std::numeric_limits<result_type>::digits;
 			ctr_type c = c0;
@@ -119,7 +119,7 @@ public:
 	static R123_CONSTEXPR result_type min R123_NO_MACRO_SUBST() { return _Min; }
 	static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST() { return _Max; }
 	// extra methods:
-	const ctr_type &counter() const { return c0; }
+	const ctr_type& counter() const { return c0; }
 	void reset(ctr_type _c0, ukey_type _uk) {
 		c0 = _c0;
 		chkhighbits();
@@ -138,7 +138,7 @@ private:
 	void chkhighbits() {
 		result_type r = c0[c0.size() - 1];
 		result_type mask = ((uint64_t)std::numeric_limits<result_type>::max R123_NO_MACRO_SUBST()) >> BITS;
-		if ((r & mask) != r)
+		if((r & mask) != r)
 			throw std::runtime_error("MicroURNG: c0, does not have high bits clear");
 	}
 };

@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 /** @ingroup AESNI */
-enum r123_enum_ars1xm128i {ars1xm128i_rounds = ARS1xm128i_DEFAULT_ROUNDS};
+enum r123_enum_ars1xm128i { ars1xm128i_rounds = ARS1xm128i_DEFAULT_ROUNDS };
 
 /* ARS1xm128i with Weyl keys.  Fast, and Crush-resistant, but NOT CRYPTO. */
 /** @ingroup AESNI */
@@ -54,62 +54,62 @@ typedef struct r123array1xm128i ars1xm128i_ukey_t;
 /** @ingroup AESNI */
 R123_STATIC_INLINE ars1xm128i_key_t ars1xm128ikeyinit(ars1xm128i_ukey_t uk) { return uk; }
 /** @ingroup AESNI */
-R123_STATIC_INLINE ars1xm128i_ctr_t ars1xm128i_R(unsigned int Nrounds, ars1xm128i_ctr_t in, ars1xm128i_key_t k){
-    __m128i kweyl = _mm_set_epi64x(R123_64BIT(0xBB67AE8584CAA73B), /* sqrt(3) - 1.0 */
-                                   R123_64BIT(0x9E3779B97F4A7C15)); /* golden ratio */
-    /* N.B.  the aesenc instructions do the xor *after*
-    // so if we want to follow the AES pattern, we
-    // have to do the initial xor explicitly */
-    __m128i kk = k.v[0].m;
-    __m128i v = _mm_xor_si128(in.v[0].m, kk);
-    ars1xm128i_ctr_t ret;
-    R123_ASSERT(Nrounds<=10);
-    if( Nrounds>1 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    if( Nrounds>2 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    if( Nrounds>3 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    if( Nrounds>4 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    if( Nrounds>5 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    if( Nrounds>6 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    if( Nrounds>7 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    if( Nrounds>8 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    if( Nrounds>9 ){
-        kk = _mm_add_epi64(kk, kweyl);
-        v = _mm_aesenc_si128(v, kk);
-    }
-    kk = _mm_add_epi64(kk, kweyl);
-    v = _mm_aesenclast_si128(v, kk);
-    ret.v[0].m = v;
-    return ret;
+R123_STATIC_INLINE ars1xm128i_ctr_t ars1xm128i_R(unsigned int Nrounds, ars1xm128i_ctr_t in, ars1xm128i_key_t k) {
+	__m128i kweyl = _mm_set_epi64x(R123_64BIT(0xBB67AE8584CAA73B),  /* sqrt(3) - 1.0 */
+	                               R123_64BIT(0x9E3779B97F4A7C15)); /* golden ratio */
+	/* N.B.  the aesenc instructions do the xor *after*
+	// so if we want to follow the AES pattern, we
+	// have to do the initial xor explicitly */
+	__m128i kk = k.v[0].m;
+	__m128i v = _mm_xor_si128(in.v[0].m, kk);
+	ars1xm128i_ctr_t ret;
+	R123_ASSERT(Nrounds <= 10);
+	if(Nrounds > 1) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	if(Nrounds > 2) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	if(Nrounds > 3) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	if(Nrounds > 4) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	if(Nrounds > 5) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	if(Nrounds > 6) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	if(Nrounds > 7) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	if(Nrounds > 8) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	if(Nrounds > 9) {
+		kk = _mm_add_epi64(kk, kweyl);
+		v = _mm_aesenc_si128(v, kk);
+	}
+	kk = _mm_add_epi64(kk, kweyl);
+	v = _mm_aesenclast_si128(v, kk);
+	ret.v[0].m = v;
+	return ret;
 }
 
 /** @def ars1xm128i
 @ingroup AESNI
 The ars1mx128i macro provides a C API interface to the @ref AESNI "ARS" CBRNG with the default number of rounds i.e. \c ars1xm128i_rounds **/
-#define ars1xm128i(c,k) ars1xm128i_R(ars1xm128i_rounds, c, k)
+#define ars1xm128i(c, k) ars1xm128i_R(ars1xm128i_rounds, c, k)
 
 /** @ingroup AESNI */
 typedef struct r123array4x32 ars4x32_ctr_t;
@@ -118,28 +118,28 @@ typedef struct r123array4x32 ars4x32_key_t;
 /** @ingroup AESNI */
 typedef struct r123array4x32 ars4x32_ukey_t;
 /** @ingroup AESNI */
-enum r123_enum_ars4x32 {ars4x32_rounds = ARS1xm128i_DEFAULT_ROUNDS};
+enum r123_enum_ars4x32 { ars4x32_rounds = ARS1xm128i_DEFAULT_ROUNDS };
 /** @ingroup AESNI */
 R123_STATIC_INLINE ars4x32_key_t ars4x32keyinit(ars4x32_ukey_t uk) { return uk; }
 /** @ingroup AESNI */
-R123_STATIC_INLINE ars4x32_ctr_t ars4x32_R(unsigned int Nrounds, ars4x32_ctr_t c, ars4x32_key_t k){
-    ars1xm128i_ctr_t c128;
-    ars1xm128i_key_t k128;
-    c128.v[0].m = _mm_set_epi32(c.v[3], c.v[2], c.v[1], c.v[0]);
-    k128.v[0].m = _mm_set_epi32(k.v[3], k.v[2], k.v[1], k.v[0]);
-    c128 = ars1xm128i_R(Nrounds, c128, k128);
-    _mm_storeu_si128((__m128i*)&c.v[0], c128.v[0].m);
-    return c;
+R123_STATIC_INLINE ars4x32_ctr_t ars4x32_R(unsigned int Nrounds, ars4x32_ctr_t c, ars4x32_key_t k) {
+	ars1xm128i_ctr_t c128;
+	ars1xm128i_key_t k128;
+	c128.v[0].m = _mm_set_epi32(c.v[3], c.v[2], c.v[1], c.v[0]);
+	k128.v[0].m = _mm_set_epi32(k.v[3], k.v[2], k.v[1], k.v[0]);
+	c128 = ars1xm128i_R(Nrounds, c128, k128);
+	_mm_storeu_si128((__m128i*)&c.v[0], c128.v[0].m);
+	return c;
 }
 
 /** @def ars4x32
 @ingroup AESNI
 The ars4x32 macro provides a C API interface to the @ref AESNI "ARS" CBRNG with the default number of rounds i.e. \c ars4x32_rounds **/
-#define ars4x32(c,k) ars4x32_R(ars4x32_rounds, c, k)
+#define ars4x32(c, k) ars4x32_R(ars4x32_rounds, c, k)
 
 #ifdef __cplusplus
-namespace r123{
-/** 
+namespace r123 {
+/**
 @ingroup AESNI
 
 ARS1xm128i_R exports the member functions, typedefs and operator overloads required by a @ref CBRNG class.
@@ -161,14 +161,14 @@ ROUNDS=5 or more.
 
 */
 template<unsigned int ROUNDS>
-struct ARS1xm128i_R{
-    typedef ars1xm128i_ctr_t ctr_type;
-    typedef ars1xm128i_key_t key_type;
-    typedef ars1xm128i_key_t ukey_type;
-    static const unsigned int rounds=ROUNDS;
-    R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const){
-        return ars1xm128i_R(ROUNDS, ctr, key);
-    }
+struct ARS1xm128i_R {
+	typedef ars1xm128i_ctr_t ctr_type;
+	typedef ars1xm128i_key_t key_type;
+	typedef ars1xm128i_key_t ukey_type;
+	static const unsigned int rounds = ROUNDS;
+	R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const) {
+		return ars1xm128i_R(ROUNDS, ctr, key);
+	}
 };
 
 /** @class ARS4x32_R
@@ -176,14 +176,14 @@ struct ARS1xm128i_R{
 */
 
 template<unsigned int ROUNDS>
-struct ARS4x32_R{
-    typedef ars4x32_ctr_t ctr_type;
-    typedef ars4x32_key_t key_type;
-    typedef ars4x32_key_t ukey_type;
-    static const unsigned int rounds=ROUNDS;
-    R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const){
-        return ars4x32_R(ROUNDS, ctr, key);
-    }
+struct ARS4x32_R {
+	typedef ars4x32_ctr_t ctr_type;
+	typedef ars4x32_key_t key_type;
+	typedef ars4x32_key_t ukey_type;
+	static const unsigned int rounds = ROUNDS;
+	R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const) {
+		return ars4x32_R(ROUNDS, ctr, key);
+	}
 };
 /**
 @ingroup AESNI

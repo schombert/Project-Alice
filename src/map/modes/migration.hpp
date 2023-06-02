@@ -1,6 +1,6 @@
 #pragma once
 
-std::vector<uint32_t> migration_map_from(sys::state &state) {
+std::vector<uint32_t> migration_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
@@ -8,7 +8,7 @@ std::vector<uint32_t> migration_map_from(sys::state &state) {
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		// The province should have an owner
-		if (state.world.province_get_nation_from_province_ownership(prov_id)) {
+		if(state.world.province_get_nation_from_province_ownership(prov_id)) {
 
 			auto immigrant_attraction = state.world.province_get_modifier_values(prov_id, sys::provincial_mod_offsets::immigrant_attract);
 			float interpolation = (immigrant_attraction + 1) / 2;

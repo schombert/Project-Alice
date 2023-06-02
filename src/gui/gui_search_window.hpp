@@ -12,7 +12,7 @@ namespace ui {
 
 class province_search_edit : public edit_box_element_base {
 public:
-	void edit_box_update(sys::state &state, std::string_view s) noexcept override {
+	void edit_box_update(sys::state& state, std::string_view s) noexcept override {
 		Cyto::Any input = s;
 		parent->impl_get(state, input);
 	}
@@ -20,13 +20,13 @@ public:
 
 class province_search_list_item : public listbox_row_button_base<dcon::province_id> {
 public:
-	void button_action(sys::state &state) noexcept override {
+	void button_action(sys::state& state) noexcept override {
 		auto map_prov_id = content;
 		state.map_state.set_selected_province(map_prov_id);
-		static_cast<province_view_window *>(state.ui_state.province_window)->set_active_province(state, map_prov_id);
+		static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, map_prov_id);
 	}
 
-	void update(sys::state &state) noexcept override {
+	void update(sys::state& state) noexcept override {
 		dcon::province_fat_id fat_id = dcon::fatten(state.world, content);
 		auto name = text::produce_simple_string(state, fat_id.get_name());
 		set_button_text(state, name);
@@ -42,18 +42,18 @@ protected:
 
 class province_search_window : public window_element_base {
 private:
-	province_search_list *search_listbox = nullptr;
-	province_search_edit *edit_box = nullptr;
+	province_search_list* search_listbox = nullptr;
+	province_search_edit* edit_box = nullptr;
 
-	std::vector<dcon::province_id> search_provinces(sys::state &state, std::string_view search_term) noexcept {
+	std::vector<dcon::province_id> search_provinces(sys::state& state, std::string_view search_term) noexcept {
 		std::vector<dcon::province_id> results{};
 		std::string search_term_lower = parsers::lowercase_str(search_term);
 
-		if (!search_term.empty()) {
+		if(!search_term.empty()) {
 			state.world.for_each_province([&](dcon::province_id prov_id) {
 				dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
 				auto name = parsers::lowercase_str(text::produce_simple_string(state, fat_id.get_name()));
-				if (name.starts_with(search_term_lower)) {
+				if(name.starts_with(search_term_lower)) {
 					results.push_back(prov_id);
 				}
 			});
@@ -63,19 +63,19 @@ private:
 	}
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		move_child_to_front(search_listbox);
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "cancel") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "cancel") {
 			return make_element_by_type<generic_close_button>(state, id);
-		} else if (name == "goto_edit") {
+		} else if(name == "goto_edit") {
 			auto ptr = make_element_by_type<province_search_edit>(state, id);
 			edit_box = ptr.get();
 			return ptr;
-		} else if (name == "provinces") {
+		} else if(name == "provinces") {
 			auto ptr = make_element_by_type<province_search_list>(state, id);
 			search_listbox = ptr.get();
 			return ptr;
@@ -84,8 +84,8 @@ public:
 		}
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<std::string_view>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<std::string_view>()) {
 			auto search_term = any_cast<std::string_view>(payload);
 			search_listbox->row_contents = search_provinces(state, search_term);
 			search_listbox->update(state);
@@ -95,11 +95,11 @@ public:
 		}
 	}
 
-	void on_visible(sys::state &state) noexcept override {
+	void on_visible(sys::state& state) noexcept override {
 		state.ui_state.edit_target = edit_box;
 	}
 
-	void on_hide(sys::state &state) noexcept override {
+	void on_hide(sys::state& state) noexcept override {
 		state.ui_state.edit_target = nullptr;
 	}
 };
