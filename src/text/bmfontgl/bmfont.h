@@ -53,7 +53,7 @@ public:
 	short Page;
 
 	CharDescriptor() : x(0), y(0), Width(0), Height(0), XOffset(0), YOffset(0),
-		XAdvance(0), Page(0) { }
+	                   XAdvance(0), Page(0) { }
 };
 
 class BMFont {
@@ -83,7 +83,7 @@ public:
 		LineHeight = src.LineHeight;
 		src.ftexid = 0;
 	}
-	BMFont& operator=(BMFont&& src) noexcept{
+	BMFont& operator=(BMFont&& src) noexcept {
 		ftexid = src.ftexid;
 		Chars = src.Chars;
 		Kern = std::move(src.Kern);
@@ -96,7 +96,7 @@ public:
 		return *this;
 	}
 	~BMFont();
-	
+
 	std::array<CharDescriptor, 256> Chars;
 	ankerl::unordered_dense::map<uint16_t, int32_t> Kern;
 
@@ -109,6 +109,6 @@ public:
 	int GetKerningPair(char, char) const;
 };
 
-BMFont const& get_bm_font(sys::state& state, uint16_t font_handle);
+BMFont const & get_bm_font(sys::state& state, uint16_t font_handle);
 
-}
+} // namespace text

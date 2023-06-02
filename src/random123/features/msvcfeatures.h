@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#endif
 
 #if !defined(_M_IX86) && !defined(_M_X64)
-#  error "This code has only been tested on x86 platforms."
+#error "This code has only been tested on x86 platforms."
 { // maybe an unbalanced brace will terminate the compilation
 // You are invited to try Random123 on other architectures, by changing
 // the conditions that reach this error, but you should consider it a
@@ -63,26 +63,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
-#define R123_BUILTIN_EXPECT(expr,likely) expr
+#define R123_BUILTIN_EXPECT(expr, likely) expr
 #endif
 
-// The basic idiom is:
-// #ifndef R123_SOMETHING
-// #if some condition
-// #define R123_SOMETHING 1
-// #else
-// #define R123_SOMETHING 0
-// #endif
-// #endif
-// This idiom allows an external user to override any decision
-// in this file with a command-line -DR123_SOMETHING=1 or -DR123_SOMETHINE=0
+	// The basic idiom is:
+	// #ifndef R123_SOMETHING
+	// #if some condition
+	// #define R123_SOMETHING 1
+	// #else
+	// #define R123_SOMETHING 0
+	// #endif
+	// #endif
+	// This idiom allows an external user to override any decision
+	// in this file with a command-line -DR123_SOMETHING=1 or -DR123_SOMETHINE=0
 
-// An alternative idiom is:
-// #ifndef R123_SOMETHING
-// #define R123_SOMETHING (some boolean expression)
-// #endif
-// where the boolean expression might contain previously-defined R123_SOMETHING_ELSE
-// pp-symbols.
+	// An alternative idiom is:
+	// #ifndef R123_SOMETHING
+	// #define R123_SOMETHING (some boolean expression)
+	// #endif
+	// where the boolean expression might contain previously-defined R123_SOMETHING_ELSE
+	// pp-symbols.
 
 #ifndef R123_USE_AES_NI
 #if defined(_M_X64)
@@ -192,9 +192,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #error UINT64_C not defined.  You must define __STDC_CONSTANT_MACROS before you #include <stdint.h>
 #endif
 
-#pragma warning(disable:4244)
-#pragma warning(disable:4996)
-#pragma warning(disable:4127)
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4996)
+#pragma warning(disable : 4127)
 
 // If you add something, it must go in all the other XXfeatures.hpp
 // and in ../ut_features.cpp

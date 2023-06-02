@@ -11,13 +11,12 @@
 #ifndef POOL_H
 #define POOL_H
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
-
 #include "zstd_deps.h"
-#define ZSTD_STATIC_LINKING_ONLY   /* ZSTD_customMem */
+#define ZSTD_STATIC_LINKING_ONLY /* ZSTD_customMem */
 #include "../zstd.h"
 
 typedef struct POOL_ctx_s POOL_ctx;
@@ -27,7 +26,7 @@ typedef struct POOL_ctx_s POOL_ctx;
  * `numThreads` must be at least 1.
  *  The maximum number of queued jobs before blocking is `queueSize`.
  * @return : POOL_ctx pointer on success, else NULL.
-*/
+ */
 POOL_ctx* POOL_create(size_t numThreads, size_t queueSize);
 
 POOL_ctx* POOL_create_advanced(size_t numThreads, size_t queueSize,
@@ -37,7 +36,6 @@ POOL_ctx* POOL_create_advanced(size_t numThreads, size_t queueSize,
  *  Free a thread pool returned by POOL_create().
  */
 void POOL_free(POOL_ctx* ctx);
-
 
 /*! POOL_joinJobs() :
  *  Waits for all queued jobs to finish executing.
@@ -74,7 +72,6 @@ typedef void (*POOL_function)(void*);
  */
 void POOL_add(POOL_ctx* ctx, POOL_function function, void* opaque);
 
-
 /*! POOL_tryAdd() :
  *  Add the job `function(opaque)` to thread pool _if_ a queue slot is available.
  *  Returns immediately even if not (does not block).
@@ -82,8 +79,7 @@ void POOL_add(POOL_ctx* ctx, POOL_function function, void* opaque);
  */
 int POOL_tryAdd(POOL_ctx* ctx, POOL_function function, void* opaque);
 
-
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 }
 #endif
 

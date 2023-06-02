@@ -11,11 +11,10 @@
  * LICENSE file in the root directory of this source tree) and the GPLv2 (found
  * in the COPYING file in the root directory of this source tree).
  * You may select, at your option, one of the above-listed licenses.
-****************************************************************** */
+ ****************************************************************** */
 
 /* --- dependencies --- */
-#include "zstd_deps.h"   /* size_t */
-
+#include "zstd_deps.h" /* size_t */
 
 /* --- simple histogram functions --- */
 
@@ -30,13 +29,12 @@
 size_t HIST_count(unsigned* count, unsigned* maxSymbolValuePtr,
                   const void* src, size_t srcSize);
 
-unsigned HIST_isError(size_t code);  /**< tells if a return value is an error code */
-
+unsigned HIST_isError(size_t code); /**< tells if a return value is an error code */
 
 /* --- advanced histogram functions --- */
 
 #define HIST_WKSP_SIZE_U32 1024
-#define HIST_WKSP_SIZE    (HIST_WKSP_SIZE_U32 * sizeof(unsigned))
+#define HIST_WKSP_SIZE (HIST_WKSP_SIZE_U32 * sizeof(unsigned))
 /** HIST_count_wksp() :
  *  Same as HIST_count(), but using an externally provided scratch buffer.
  *  Benefit is this function will use very little stack space.
