@@ -117,11 +117,15 @@ static void technology_description(element_base &element, sys::state &state, tex
 	}
 }
 
-class technology_folder_tab_sub_button : public add_tooltip<checkbox_button> {
+class technology_folder_tab_sub_button : public checkbox_button {
 public:
 	culture::tech_category category{};
 	bool is_active(sys::state &state) noexcept final;
 	void button_action(sys::state &state) noexcept final;
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		state.world.for_each_technology([&](dcon::technology_id id) {
@@ -304,7 +308,7 @@ public:
 struct technology_select_tech {
 	dcon::technology_id tech_id;
 };
-class technology_item_button : public add_tooltip<button_element_base> {
+class technology_item_button : public button_element_base {
 public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
@@ -316,6 +320,10 @@ public:
 				state.ui_state.technology_subwindow->impl_set(state, sl_payload);
 			}
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -382,7 +390,7 @@ public:
 	message_result set(sys::state &state, Cyto::Any &payload) noexcept override;
 };
 
-class invention_image : public add_tooltip<opaque_element_base> {
+class invention_image : public opaque_element_base {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -392,6 +400,10 @@ public:
 
 			frame = int32_t(state.world.invention_get_technology_type(content));
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -428,7 +440,7 @@ public:
 	}
 };
 
-class invention_name_text : public add_tooltip<simple_text_element_base> {
+class invention_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -437,6 +449,10 @@ public:
 			auto content = any_cast<dcon::invention_id>(payload);
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -457,7 +473,7 @@ public:
 	}
 };
 
-class invention_chance_percent_text : public add_tooltip<simple_text_element_base> {
+class invention_chance_percent_text : public simple_text_element_base {
 public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
@@ -469,6 +485,10 @@ public:
 			auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 			set_text(state, text::format_percentage(chances / 100.f, 0));
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -735,8 +755,12 @@ public:
 	}
 };
 
-class technology_sort_by_type_button : public add_tooltip<button_element_base> {
+class technology_sort_by_type_button : public button_element_base {
 public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_type_tooltip"), text::text_color::white);
@@ -744,8 +768,12 @@ public:
 	}
 };
 
-class technology_sort_by_name_button : public add_tooltip<button_element_base> {
+class technology_sort_by_name_button : public button_element_base {
 public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_name_tooltip"), text::text_color::white);
@@ -753,8 +781,12 @@ public:
 	}
 };
 
-class technology_sort_by_percent_button : public add_tooltip<button_element_base> {
+class technology_sort_by_percent_button : public button_element_base {
 public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "technologyview_sort_by_percent_tooltip"), text::text_color::white);
