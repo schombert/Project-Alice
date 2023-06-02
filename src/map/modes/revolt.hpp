@@ -1,6 +1,6 @@
 #pragma once
 
-std::vector<uint32_t> revolt_map_from(sys::state &state) {
+std::vector<uint32_t> revolt_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
@@ -9,7 +9,7 @@ std::vector<uint32_t> revolt_map_from(sys::state &state) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto nation = fat_id.get_nation_from_province_ownership();
 
-		if (nation == state.local_player_nation) {
+		if(nation == state.local_player_nation) {
 			float revolt_risk = province::revolt_risk(state, prov_id) / 10;
 
 			uint32_t color = ogl::color_gradient(

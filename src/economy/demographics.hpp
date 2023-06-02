@@ -6,11 +6,11 @@ namespace pop_demographics {
 
 constexpr inline uint32_t count_special_keys = 0;
 
-dcon::pop_demographics_key to_key(sys::state const &state, dcon::ideology_id v);
-dcon::pop_demographics_key to_key(sys::state const &state, dcon::issue_option_id v);
-uint32_t size(sys::state const &state);
+dcon::pop_demographics_key to_key(sys::state const & state, dcon::ideology_id v);
+dcon::pop_demographics_key to_key(sys::state const & state, dcon::issue_option_id v);
+uint32_t size(sys::state const & state);
 
-void regenerate_is_primary_or_accepted(sys::state &state);
+void regenerate_is_primary_or_accepted(sys::state& state);
 
 } // namespace pop_demographics
 namespace demographics {
@@ -41,30 +41,30 @@ constexpr inline dcon::demographics_key rich_total(22);
 
 constexpr inline uint32_t count_special_keys = 23;
 
-dcon::demographics_key to_key(sys::state const &state, dcon::ideology_id v);
-dcon::demographics_key to_key(sys::state const &state, dcon::issue_option_id v);
-dcon::demographics_key to_key(sys::state const &state, dcon::pop_type_id v);
-dcon::demographics_key to_key(sys::state const &state, dcon::culture_id v);
-dcon::demographics_key to_key(sys::state const &state, dcon::religion_id v);
-dcon::demographics_key to_employment_key(sys::state const &state, dcon::pop_type_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::ideology_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::issue_option_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::pop_type_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::culture_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::religion_id v);
+dcon::demographics_key to_employment_key(sys::state const & state, dcon::pop_type_id v);
 
-uint32_t size(sys::state const &state);
+uint32_t size(sys::state const & state);
 
-void regenerate_from_pop_data(sys::state &state);
+void regenerate_from_pop_data(sys::state& state);
 
 struct ideology_buffer {
 	tagged_vector<ve::vectorizable_buffer<float, dcon::pop_id>, dcon::ideology_id> temp_buffers;
 	ve::vectorizable_buffer<float, dcon::pop_id> totals;
 	uint32_t size = 0;
 
-	ideology_buffer(sys::state &state) : totals(0), size(0) {
-		for (uint32_t i = 0; i < state.world.ideology_size(); ++i) {
+	ideology_buffer(sys::state& state) : totals(0), size(0) {
+		for(uint32_t i = 0; i < state.world.ideology_size(); ++i) {
 			temp_buffers.emplace_back(uint32_t(0));
 		}
 	}
 
-	void update(sys::state &state, uint32_t s) {
-		if (size < s) {
+	void update(sys::state& state, uint32_t s) {
+		if(size < s) {
 			size = s;
 			state.world.for_each_ideology([&](dcon::ideology_id i) {
 				temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer();
@@ -79,14 +79,14 @@ struct issues_buffer {
 	ve::vectorizable_buffer<float, dcon::pop_id> totals;
 	uint32_t size = 0;
 
-	issues_buffer(sys::state &state) : totals(0), size(0) {
-		for (uint32_t i = 0; i < state.world.issue_option_size(); ++i) {
+	issues_buffer(sys::state& state) : totals(0), size(0) {
+		for(uint32_t i = 0; i < state.world.issue_option_size(); ++i) {
 			temp_buffers.emplace_back(uint32_t(0));
 		}
 	}
 
-	void update(sys::state &state, uint32_t s) {
-		if (size < s) {
+	void update(sys::state& state, uint32_t s) {
+		if(size < s) {
 			size = s;
 			state.world.for_each_issue_option([&](dcon::issue_option_id i) {
 				temp_buffers[i] = state.world.pop_make_vectorizable_float_buffer();
@@ -102,10 +102,10 @@ struct promotion_buffer {
 	uint32_t size = 0;
 	uint32_t reserved = 0;
 
-	promotion_buffer() : amounts(0), types(0), size(0) {}
+	promotion_buffer() : amounts(0), types(0), size(0) { }
 	void update(uint32_t s) {
 		size = s;
-		if (reserved < s) {
+		if(reserved < s) {
 			reserved = s;
 			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 			types = ve::vectorizable_buffer<dcon::pop_type_id, dcon::pop_id>(s);
@@ -118,10 +118,10 @@ struct assimilation_buffer {
 	uint32_t size = 0;
 	uint32_t reserved = 0;
 
-	assimilation_buffer() : amounts(0), size(0) {}
+	assimilation_buffer() : amounts(0), size(0) { }
 	void update(uint32_t s) {
 		size = s;
-		if (reserved < s) {
+		if(reserved < s) {
 			reserved = s;
 			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 		}
@@ -134,10 +134,10 @@ struct migration_buffer {
 	uint32_t size = 0;
 	uint32_t reserved = 0;
 
-	migration_buffer() : amounts(0), destinations(0), size(0) {}
+	migration_buffer() : amounts(0), destinations(0), size(0) { }
 	void update(uint32_t s) {
 		size = s;
-		if (reserved < s) {
+		if(reserved < s) {
 			reserved = s;
 			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 			destinations = ve::vectorizable_buffer<dcon::province_id, dcon::pop_id>(s);
@@ -145,34 +145,34 @@ struct migration_buffer {
 	}
 };
 
-void update_literacy(sys::state &state, uint32_t offset, uint32_t divisions);
-void update_consciousness(sys::state &state, uint32_t offset, uint32_t divisions);
-void update_militancy(sys::state &state, uint32_t offset, uint32_t divisions);
-void update_ideologies(sys::state &state, uint32_t offset, uint32_t divisions, ideology_buffer &ibuf);
-void update_issues(sys::state &state, uint32_t offset, uint32_t divisions, issues_buffer &ibuf);
-void update_growth(sys::state &state, uint32_t offset, uint32_t divisions);
-void update_type_changes(sys::state &state, uint32_t offset, uint32_t divisions, promotion_buffer &pbuf);
-void update_assimilation(sys::state &state, uint32_t offset, uint32_t divisions, assimilation_buffer &pbuf);
-void update_internal_migration(sys::state &state, uint32_t offset, uint32_t divisions, migration_buffer &pbuf);
-void update_colonial_migration(sys::state &state, uint32_t offset, uint32_t divisions, migration_buffer &pbuf);
-void update_immigration(sys::state &state, uint32_t offset, uint32_t divisions, migration_buffer &pbuf);
+void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& ibuf);
+void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& ibuf);
+void update_growth(sys::state& state, uint32_t offset, uint32_t divisions);
+void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
+void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
+void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
+void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
-float get_estimated_literacy_change(sys::state &state, dcon::nation_id n);
-float get_estimated_mil_change(sys::state &state, dcon::nation_id n);
-float get_estimated_con_change(sys::state &state, dcon::nation_id n);
+float get_estimated_literacy_change(sys::state& state, dcon::nation_id n);
+float get_estimated_mil_change(sys::state& state, dcon::nation_id n);
+float get_estimated_con_change(sys::state& state, dcon::nation_id n);
 
-void apply_ideologies(sys::state &state, uint32_t offset, uint32_t divisions, ideology_buffer &pbuf);
-void apply_issues(sys::state &state, uint32_t offset, uint32_t divisions, issues_buffer &pbuf);
-void apply_type_changes(sys::state &state, uint32_t offset, uint32_t divisions, promotion_buffer &pbuf);
-void apply_assimilation(sys::state &state, uint32_t offset, uint32_t divisions, assimilation_buffer &pbuf);
-void apply_internal_migration(sys::state &state, uint32_t offset, uint32_t divisions, migration_buffer &pbuf);
-void apply_colonial_migration(sys::state &state, uint32_t offset, uint32_t divisions, migration_buffer &pbuf);
-void apply_immigration(sys::state &state, uint32_t offset, uint32_t divisions, migration_buffer &pbuf);
+void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
+void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf);
+void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
+void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
+void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
+void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
-void remove_size_zero_pops(sys::state &state);
+void remove_size_zero_pops(sys::state& state);
 
-int64_t get_monthly_pop_increase(sys::state &state, dcon::pop_id);
-int64_t get_monthly_pop_increase(sys::state &state, dcon::nation_id n);
-int64_t get_monthly_pop_increase(sys::state &state, dcon::state_instance_id n);
+int64_t get_monthly_pop_increase(sys::state& state, dcon::pop_id);
+int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n);
+int64_t get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n);
 
 } // namespace demographics

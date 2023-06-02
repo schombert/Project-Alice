@@ -6,38 +6,38 @@ namespace ui {
 
 class military_leaders : public listbox_row_element_base<dcon::leader_id> {
 public:
-	ui::simple_text_element_base *leader_name = nullptr;
-	ui::simple_text_element_base *background = nullptr;
-	ui::simple_text_element_base *personality = nullptr;
-	ui::simple_text_element_base *army = nullptr;
-	ui::simple_text_element_base *location = nullptr;
+	ui::simple_text_element_base* leader_name = nullptr;
+	ui::simple_text_element_base* background = nullptr;
+	ui::simple_text_element_base* personality = nullptr;
+	ui::simple_text_element_base* army = nullptr;
+	ui::simple_text_element_base* location = nullptr;
 
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		base_data.position.y = base_data.position.x = 0;
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "name") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			leader_name = ptr.get();
 			return ptr;
-		} else if (name == "background") {
+		} else if(name == "background") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			background = ptr.get();
 			return ptr;
-		} else if (name == "personality") {
+		} else if(name == "personality") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			personality = ptr.get();
 			return ptr;
-		} else if (name == "use_leader") {
+		} else if(name == "use_leader") {
 			auto ptr = make_element_by_type<checkbox_button>(state, id);
 			return ptr;
-		} else if (name == "army") {
+		} else if(name == "army") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			army = ptr.get();
 			return ptr;
-		} else if (name == "location") {
+		} else if(name == "location") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			location = ptr.get();
 			return ptr;
@@ -46,7 +46,7 @@ public:
 		}
 	}
 
-	void update(sys::state &state) noexcept override {
+	void update(sys::state& state) noexcept override {
 		auto name_id = state.world.leader_get_name(content);
 		auto name_content = state.to_string_view(name_id);
 		leader_name->set_text(state, std::string(name_content));
@@ -60,7 +60,7 @@ public:
 		personality->set_text(state, personality_content);
 
 		auto army_id = state.world.leader_get_army_from_army_leadership(content);
-		if (army_id.value == 0) {
+		if(army_id.value == 0) {
 			army->set_text(state, "Unassigned");
 			location->set_text(state, "");
 		} else {
@@ -83,48 +83,48 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for (const auto fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
+		for(const auto fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
 			row_contents.push_back(fat_id.get_leader());
 		update(state);
 	}
 };
 
-template <bool B>
+template<bool B>
 class military_make_leader_button : public button_element_base {
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_make_leader(state, state.local_player_nation, B);
 	}
 
-	void button_action(sys::state &state) noexcept override {
+	void button_action(sys::state& state) noexcept override {
 		command::make_leader(state, state.local_player_nation, B);
 	}
 };
 
 class leaders_window : public window_element_base {
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "sort_leader_prestige") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "sort_leader_prestige") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			return ptr;
-		} else if (name == "sort_leader_type") {
+		} else if(name == "sort_leader_type") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			return ptr;
-		} else if (name == "sort_leader_name") {
+		} else if(name == "sort_leader_name") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			return ptr;
-		} else if (name == "leader_listbox") {
+		} else if(name == "leader_listbox") {
 			return make_element_by_type<military_leaders_listbox>(state, id);
-		} else if (name == "new_general") {
+		} else if(name == "new_general") {
 			return make_element_by_type<military_make_leader_button<true>>(state, id);
-		} else if (name == "new_admiral") {
+		} else if(name == "new_admiral") {
 			return make_element_by_type<military_make_leader_button<false>>(state, id);
 		} else {
 			return nullptr;

@@ -12,7 +12,7 @@
 
 namespace ogl {
 
-void create_opengl_context(sys::state &state) {
+void create_opengl_context(sys::state& state) {
 	assert(state.win_ptr && state.win_ptr->hwnd && !state.open_gl.context);
 
 	PIXELFORMATDESCRIPTOR pfd;
@@ -36,7 +36,7 @@ void create_opengl_context(sys::state &state) {
 
 	glewExperimental = GL_TRUE;
 
-	if (glewInit() != 0) {
+	if(glewInit() != 0) {
 		MessageBoxW(state.win_ptr->hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
 	}
 
@@ -52,7 +52,7 @@ void create_opengl_context(sys::state &state) {
 	        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 	        0};
 
-	if (wglewIsSupported("WGL_ARB_create_context") != 1) {
+	if(wglewIsSupported("WGL_ARB_create_context") != 1) {
 		MessageBoxW(state.win_ptr->hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
 		std::abort();
 	} else {
@@ -68,9 +68,9 @@ void create_opengl_context(sys::state &state) {
 		glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
 #endif
 
-		if (wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {
+		if(wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {
 			wglSwapIntervalEXT(-1);
-		} else if (wglewIsSupported("WGL_EXT_swap_control") == 1) {
+		} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
 			wglSwapIntervalEXT(1);
 		} else {
 			MessageBoxW(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error", MB_OK);
@@ -78,7 +78,7 @@ void create_opengl_context(sys::state &state) {
 	}
 }
 
-void shutdown_opengl(sys::state &state) {
+void shutdown_opengl(sys::state& state) {
 	assert(state.win_ptr && state.win_ptr->hwnd && state.open_gl.context);
 	wglMakeCurrent(state.win_ptr->opengl_window_dc, nullptr);
 	wglDeleteContext(HGLRC(state.open_gl.context));

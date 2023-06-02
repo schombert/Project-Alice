@@ -50,7 +50,7 @@ namespace r123 {
   will depend on the endianness of the machine on which it runs.
  */
 
-template <typename ToType, typename CBRNG>
+template<typename ToType, typename CBRNG>
 struct ReinterpretCtr {
 	typedef ToType ctr_type;
 	typedef typename CBRNG::key_type key_type;
