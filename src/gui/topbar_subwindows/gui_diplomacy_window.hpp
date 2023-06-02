@@ -622,7 +622,8 @@ public:
 
 			row_contents.clear();
 			for (auto wg : state.world.war_get_wargoals_attached(content))
-				row_contents.push_back(wg.get_wargoal().get_type());
+				if(wg.get_is_attacker() == B)
+					row_contents.push_back(wg.get_wargoal().get_type());
 			update(state);
 		}
 	}
