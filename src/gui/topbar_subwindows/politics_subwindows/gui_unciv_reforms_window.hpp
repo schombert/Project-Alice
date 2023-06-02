@@ -31,7 +31,7 @@ public:
 	}
 };
 
-class unciv_reforms_reform_button : public add_tooltip<button_element_base> {
+class unciv_reforms_reform_button : public button_element_base {
 public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
@@ -41,6 +41,10 @@ public:
 
 			command::enact_reform(state, state.local_player_nation, content);
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void on_update(sys::state &state) noexcept override {

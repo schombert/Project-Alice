@@ -396,10 +396,6 @@ public:
 			set_text(state, get_text(state, content));
 		}
 	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
 };
 
 class province_population_text : public standard_province_text {
@@ -1120,10 +1116,6 @@ public:
 	std::string get_text(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::daily_research_points(state, nation_id);
 		return text::format_float(points, 2);
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
