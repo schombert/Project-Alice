@@ -3,17 +3,14 @@
 #define DEF_HEADSIZE 28
 #define DEF_FLAGSIZE 12
 
-/* Section ID   04 00 00 00
-                0B 00 00 00
-                06 00 00 00
-                07 00 00 00
-*/
-
 struct {
     char magic[4] = {'X', 'A', 'C', ' '};   // Offset 0x0h  --- Magic Value
     uint32_t version;                       // Offset 0x4h  --- changes depending on if the file was created by Maya 8.5 x64 or not, if it is then its 01 00 00 01 otherwise its 01 00 00 00
-    uint32_t section_id;                    // Offset 0x8h  --- Based off leafs aggregation, this requires further research though to make sure its valid, it number 07 00 00 00 in version 1
-    uint32_t offset_unk;                    // Offset 0xCh  --- Unknown Offset
+} xac_header;
+
+struct {
+    uint32_t section_id;                    // Offset 0x8h  --- Based off leafs aggregation, this requires further research though to make sure its valid, it is always 07 00 00 00
+    uint32_t offset_unk;                    // Offset 0xCh  --- Unknown Variable
     uint32_t unknown1;                      // Offset 0x10h --- Unknown Variable
     uint32_t unknown2;                      // Offset 0x14h --- Unknown Variable, Appears to be another type of version identifier perhaps?
     uint32_t unknown3;                      // Offset 0x18h --- FF FF FF FF appears to be something unknown
@@ -23,10 +20,55 @@ struct {
     char toolinfo[toolversize];             // Offset 0x28h --- Contains the information regarding what tool was used for creating the file
     uint32_t workfilesize;                  //              --- Appears to contain how long the workfile entry is
     char workinfo[workfilesize];            //              --- Contains the information regarding the originial file the XAC file was generated from
-    uint32_t datestrsize;                   //              --- Contains how large the date string is, appears to always be 11
+    uint32_t datestrsize;                   //              --- Contains how large the date string is, appears to always be 11 for Vic2s files
     char dateinfo[datestrsize];             //              --- Contains date when file was compiled
+} metadata_section;
 
-} header;
+struct {
+    uint32_t section_id;                    // Offset 0x0h  --- Appears to be 00 00 00 00 for this sectionid
+    uint32_t unknown1;                      // Offset 0x4h  --- Appears to always be 0B 00 00 00
+    uint32_t unknown2;                      // Offset 0x8h  --- Unknown Variable
+    uint32_t unknown3;                      // Offset 0xCh  --- Appears to always be 01 00 00 00
+    uint32_t numofelements;                 // Offset 0x10h --- Appears to contain the number of elements / Number of Data header Entries
+    uint32_t unknown7;                      // Offset 0x14h --- Appears to be one of: (( 06 00 00 00 || 0B 00 00 00 || 07 00 00 00 || 04 00 00 00 ))
+} skeleton_section_header; // Size: 24 bytes
+
+struct {
+    uint16_t unknown1[7];
+    char div1[2];
+    uint16_t unknown2[7];
+    char div2[2];
+    uint16_t unknown3[7];
+    char div3[2];
+    uint16_t unknown4;
+    char div4[2];
+    uint16_t unknown5;
+    char div5[2];
+    uint16_t unknown6[17];
+    char div6[2];
+    uint16_t unknown7[9];
+    char div7[2];
+    uint16_t unknown8[9];
+    char div8[2];
+    uint16_t unknown9[9];
+    char div9[2];
+    uint16_t unknown10;
+    char div10[2];
+    uint32_t elementnamesize;
+    std::string type[elementnamesize];
+} skeleton_section_entry;
+
+struct {
+    uint32_t section_id;                    // Offset 0x0h   <=>  Appears to be 0D 00 00 00 for this sectionid
+    uint32_t unknown1;                      // Offset 0x4h   <=>  Appears to always be 0C 00 00 00
+    uint32_t unknown2;                      // Offset 0x8h   <=>  Appears to always be 01 00 00 00
+    uint32_t unknown3;                      // Offset 0xCh   <=>  Appears to always be 03 00 00 00 || 01 00 00 00      Perhaps number of textures?
+    uint32_t unknown3;                      // Offset 0x10h  <=>  Appears to always be 03 00 00 00 || 01 00 00 00      Also perhaps number of textures
+    uint32_t unknown4;                      // Offset 0x14h  <=>  Appears to always be 00 00 00 00
+    uint32_t unknown5;                      // Offset 0x18h  <=>  Appears to always be 03 00 00 00
+    uint32_t unknown6;                      // Offset 0x1Ch  <=>  Appears to be (( 6B 00 00 00 || 60 00 00 00 || 62 00 00 00 ))
+    uint32_t unknown7;                      // Offset 0x20h  <=>  Appears to always be 02 00 00 00
+} texture_section_header;
 
 struct {
     /* The Data of a entry appears to come before the Type Name */
@@ -72,6 +114,7 @@ struct {
 
     // the element is then ended with what appears to be a UID of the type, presumably unique within the same xac file aswell as its accompying xsm files if any.
 } entry;
+
 
                         || "TexAnim"                            // 0xF3 Bytes large ???
                         || "British_Infantry_Diffuse"           // 0xA4 Bytes large ???

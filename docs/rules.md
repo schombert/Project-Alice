@@ -478,6 +478,44 @@ Leaders who are both less than 26 years old and not in combat have no chance of 
 - A war that ends up with no members on one (or both) sides will simply be ended as a whole
 - A province is blockaded if there is a hostile sea unit in an adjacent sea province and no ongoing naval combat there. My notes say that only either not-overseas (or maybe only connected to capital) provinces count for calculating the blockade fraction
 
+### War and peace
+
+#### Breaking a truce
+
+If you declare a war while you have a truce. You get infamy equal to the sum of the break-truce infamy associated with each of the po_tags for the war goal you are declaring with, times the break_truce_infamy_factor for that specific cb. In the same way, you lose the sum of the break-truce prestige associated with each of the po_tags times the cb's break_truce_prestige_factor. And the same thing is done but with break_truce_militancy_factor to determine how much to increase the militancy of each pop in your nation by.
+
+#### Declaring a war
+
+All defender allies that could possibly join get a call to arms. The attacker may optionally call to arms their allies.
+
+#### Joining a war
+
+When you join (or declare) a war your relations with nations on the opposite side decrease by -100. If you end up on the opposite side of a war as an ally, your alliance breaks, but without any extra relations penalty. Substates and vassals are automatically dragged into the war.
+
+#### Naming the war
+
+The name of the war is determined by the `war_name` property of the CB that the war was declared with prefixed with either NORMAL_ or AGRESSION_ (yes, with that spelling. yes, I know). (It gets the aggression prefix if the attacker has no valid cb as the war is declared ... which shouldn't be possible right, since the war name comes from the CB that the war is declared with, right ...). If there is no declaring CB, the war defaults to NORMAL_WAR_NAME or AGRESSION_WAR_NAME.
+
+A great war is named GREAT_WAR_NAME
+
+The game also apparently supports special premade names between specific nations (or rather, specific tags). I don't intend to support this.
+
+In addition to first and second, country_adj and state are also available in these strings.
+
+#### Adding a war goal
+
+When you add a war goal (including the one that the war is declared with) it is removed from your constructed CBs list. Once the war is going: no war goals may be added if there is a status quo wargoal present on the side of the conflict of the nation that wants to add a wargoal. The wargoal must be valid (see below). The nation adding the wargoal must have positive warscore against the target of the wargoal (see below). And the nation must be already able to use the CB in question (e.g. it as fabricated previously) or it must be a fabricatable CB and the nation adding the wargoal must have overall jingoism support >= defines:WARGOAL_JINGOISM_REQUIREMENT (x defines:GW_JINGOISM_REQUIREMENT_MOD in a great war).
+
+#### Testing if a war goal is valid
+
+- Allowed countries:
+The allowed country condition, if present, must be satisfied (evaluated with the nation targeted by the war goal in the primary slot, the nation adding the war goal in the this slot, and any other nation associated with the war goal -- for example the liberation target -- in the from slot if any).
+
+- Allowed states:
+If the war goal has `all_allowed_states` it will affect all states satisfying the condition. In any case, there must be some state owned by the target nation that passes the `allowed_states` condition if present (evaluated with that state in the primary slot, the nation adding the war goal in the this slot, and any other nation associated with the war goal -- for example the liberation target -- in the from slot if any).
+
+- 
+
 ### Ticking war score
 
 - ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
@@ -488,6 +526,10 @@ Leaders who are both less than 26 years old and not in combat have no chance of 
 
 - zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
 - calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
+
+### Directed war score
+
+Directed war score is how much warscore a particular nation has against another particular nation on the other side of the conflict. This is used when adding wargoals, and when one nation is trying to make a separate peace with another.
 
 ### Invalid  war states
 
