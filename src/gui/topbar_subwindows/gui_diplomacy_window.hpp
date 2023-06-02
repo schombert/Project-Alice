@@ -594,6 +594,27 @@ public:
 	}
 };
 
+template <bool B>
+class diplomacy_war_overlapping_wargoals : public overlapping_listbox_element_base<overlapping_wargoal_icon, dcon::cb_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "wargoal";
+	}
+
+public:
+	void on_update(sys::state &state) noexcept override {
+		if (parent) {
+			row_contents.clear();
+			Cyto::Any payload = dcon::war_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::war_id>(payload);
+			for (auto wg : state.world.war_get_wargoals_attached(content))
+				row_contents.push_back(wg.get_wargoal().get_type());
+			update(state);
+		}
+	}
+};
+
 class diplomacy_war_info : public listbox_row_element_base<dcon::war_id> {
 	simple_text_element_base *attackers_strength_text = nullptr;
 	simple_text_element_base *defenders_strength_text = nullptr;
@@ -639,6 +660,10 @@ public:
 			defenders_flags = ptr.get();
 			defenders_flags->base_data.position.y -= 8 - 2;
 			return ptr;
+		} else if(name == "attackers_wargoals") {
+			return make_element_by_type<diplomacy_war_overlapping_wargoals<true>>(state, id);
+		} else if(name == "defenders_wargoals") {
+			return make_element_by_type<diplomacy_war_overlapping_wargoals<false>>(state, id);
 		} else if (name == "join_attackers") {
 			return make_element_by_type<diplomacy_join_war_button<true>>(state, id);
 		} else if (name == "join_defenders") {
