@@ -16,18 +16,6 @@
 
 namespace ui {
 
-template<typename T>
-class add_tooltip : public T {
-public:
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : T::test_mouse(state, x, y, type);	// By Schombert
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-};
-
 template <typename T>
 std::unique_ptr<element_base> make_element_by_type(sys::state &state, std::string_view name) { // also bypasses global creation hooks
 	auto it = state.ui_state.defs_by_name.find(name);
@@ -79,6 +67,12 @@ class image_element_base : public element_base {
 	bool interactable = false;
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override;
 	void on_create(sys::state &state) noexcept override;
+	message_result on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
+	}
+	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
 };
 
 class tinted_image_element_base : public image_element_base {
@@ -90,6 +84,9 @@ class tinted_image_element_base : public image_element_base {
 	void on_update(sys::state &state) noexcept override;
 	virtual uint32_t get_tint_color(sys::state &state) noexcept {
 		return 0;
+	}
+	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 };
 
@@ -177,6 +174,12 @@ class line_graph : public element_base {
 	void set_data_points(sys::state &state, std::vector<float> const &datapoints) noexcept;
 	void on_create(sys::state &state) noexcept override;
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override;
+	message_result on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
+	}
+	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
 };
 
 class simple_text_element_base : public element_base {
@@ -194,15 +197,18 @@ class simple_text_element_base : public element_base {
 	std::string_view get_text(sys::state &state) const {
 		return stored_text;
 	}
-
-	message_result on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
-		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
-	}
+	
 	message_result on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
 	}
 	message_result on_rbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
+	}
+	message_result on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
+	}
+	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
 };
 
@@ -466,6 +472,9 @@ class piechart : public piechart_element_base {
 		auto dist = sqrt(dx * dx + dy * dy);
 		return dist <= radius ? message_result::consumed : message_result::unseen;
 	}
+	message_result on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
+	}
 	message_result on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
 	}
@@ -595,6 +604,12 @@ class multiline_text_element_base : public element_base {
 
 	void on_create(sys::state &state) noexcept override;
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override;
+	message_result on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
+	}
+	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
 };
 
 struct multiline_text_scroll_event {

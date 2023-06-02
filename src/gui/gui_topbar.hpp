@@ -24,12 +24,16 @@ class topbar_nation_name : public generic_name_text<dcon::nation_id> {
   public:
 };
 
-class topbar_flag_button : public add_tooltip<flag_button> {
+class topbar_flag_button : public flag_button {
   public:
 };
 
-class topbar_nation_prestige_text : public add_tooltip<nation_prestige_text> {
+class topbar_nation_prestige_text : public nation_prestige_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -72,8 +76,12 @@ class topbar_nation_prestige_text : public add_tooltip<nation_prestige_text> {
 	}
 };
 
-class topbar_nation_industry_score_text : public add_tooltip<nation_industry_score_text> {
+class topbar_nation_industry_score_text : public nation_industry_score_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -89,8 +97,12 @@ class topbar_nation_industry_score_text : public add_tooltip<nation_industry_sco
 	}
 };
 
-class topbar_nation_military_score_text : public add_tooltip<nation_military_score_text> {
+class topbar_nation_military_score_text : public nation_military_score_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -110,8 +122,12 @@ class topbar_nation_total_score_text : public nation_total_score_text {
   public:
 };
 
-class topbar_nation_colonial_power_text : public add_tooltip<nation_colonial_power_text> {
+class topbar_nation_colonial_power_text : public nation_colonial_power_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -162,8 +178,12 @@ class topbar_nation_flag_frame : public nation_flag_frame {
   public:
 };
 
-class topbar_nation_budget_funds_text : public add_tooltip<nation_budget_funds_text> {
+class topbar_nation_budget_funds_text : public nation_budget_funds_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -252,8 +272,12 @@ class topbar_budget_line_graph : public line_graph {
 	}
 };
 
-class topbar_nation_current_research_text : public add_tooltip<nation_current_research_text> {
+class topbar_nation_current_research_text : public nation_current_research_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -274,7 +298,7 @@ class topbar_nation_current_research_text : public add_tooltip<nation_current_re
 	}
 };
 
-class topbar_nation_daily_research_points_text : public add_tooltip<nation_daily_research_points_text> {
+class topbar_nation_daily_research_points_text : public nation_daily_research_points_text {
   private:
 	float getResearchPointsFromPop(sys::state &state, dcon::pop_type_id pop, dcon::nation_id n) {
 		auto fat_nation = dcon::fatten(state.world, n);
@@ -290,6 +314,10 @@ class topbar_nation_daily_research_points_text : public add_tooltip<nation_daily
 	}
 
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -324,8 +352,12 @@ class topbar_nation_daily_research_points_text : public add_tooltip<nation_daily
 	}
 };
 
-class topbar_nation_literacy_text : public add_tooltip<nation_literacy_text> {
+class topbar_nation_literacy_text : public nation_literacy_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -350,8 +382,12 @@ class topbar_nation_ruling_party_ideology_plupp : public nation_ruling_party_ide
   public:
 };
 
-class topbar_nation_ruling_party_text : public add_tooltip<nation_ruling_party_text> {
+class topbar_nation_ruling_party_text : public nation_ruling_party_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -371,8 +407,12 @@ class topbar_nation_ruling_party_text : public add_tooltip<nation_ruling_party_t
 	}
 };
 
-class topbar_nation_suppression_points_text : public add_tooltip<nation_suppression_points_text> {
+class topbar_nation_suppression_points_text : public nation_suppression_points_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -388,8 +428,12 @@ class topbar_nation_suppression_points_text : public add_tooltip<nation_suppress
 	}
 };
 
-class topbar_nation_infamy_text : public add_tooltip<nation_infamy_text> {
+class topbar_nation_infamy_text : public nation_infamy_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -411,8 +455,12 @@ class topbar_nation_infamy_text : public add_tooltip<nation_infamy_text> {
 	}
 };
 
-class topbar_nation_population_text : public add_tooltip<nation_population_text> {
+class topbar_nation_population_text : public nation_population_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -432,8 +480,12 @@ class topbar_nation_population_text : public add_tooltip<nation_population_text>
 	}
 };
 
-class topbar_nation_focus_allocation_text : public add_tooltip<nation_focus_allocation_text> {
+class topbar_nation_focus_allocation_text : public nation_focus_allocation_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -481,8 +533,12 @@ class topbar_nation_focus_allocation_text : public add_tooltip<nation_focus_allo
 	}
 };
 
-class topbar_nation_militancy_text : public add_tooltip<nation_militancy_text> {
+class topbar_nation_militancy_text : public nation_militancy_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -502,8 +558,12 @@ class topbar_nation_militancy_text : public add_tooltip<nation_militancy_text> {
 	}
 };
 
-class topbar_nation_consciousness_text : public add_tooltip<nation_consciousness_text> {
+class topbar_nation_consciousness_text : public nation_consciousness_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -528,8 +588,12 @@ class topbar_overlapping_enemy_flags : public overlapping_enemy_flags {
   public:
 };
 
-class topbar_nation_diplomatic_points_text : public add_tooltip<nation_diplomatic_points_text> {
+class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -545,8 +609,12 @@ class topbar_nation_diplomatic_points_text : public add_tooltip<nation_diplomati
 	}
 };
 
-class topbar_nation_brigade_allocation_text : public add_tooltip<nation_brigade_allocation_text> {
+class topbar_nation_brigade_allocation_text : public nation_brigade_allocation_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -563,8 +631,12 @@ class topbar_nation_brigade_allocation_text : public add_tooltip<nation_brigade_
 	}
 };
 
-class topbar_nation_navy_allocation_text : public add_tooltip<nation_brigade_allocation_text> {
+class topbar_nation_navy_allocation_text : public nation_brigade_allocation_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -587,8 +659,12 @@ class topbar_nation_navy_allocation_text : public add_tooltip<nation_brigade_all
 	}
 };
 
-class topbar_nation_mobilization_size_text : public add_tooltip<nation_mobilization_size_text> {
+class topbar_nation_mobilization_size_text : public nation_mobilization_size_text {
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -626,9 +702,9 @@ class topbar_nation_mobilization_size_text : public add_tooltip<nation_mobilizat
 	}
 };
 
-class topbar_nation_leadership_points_text : public add_tooltip<nation_leadership_points_text> {
+class topbar_nation_leadership_points_text : public nation_leadership_points_text {
   private:
-	float getResearchPointsFromPop(sys::state &state, dcon::pop_type_id pop, dcon::nation_id n) {
+	float get_research_points_from_pop(sys::state &state, dcon::pop_type_id pop, dcon::nation_id n) {
 		auto fat_nation = dcon::fatten(state.world, n);
 		auto fat_pop = dcon::fatten(state.world, pop);
 		/*
@@ -643,6 +719,10 @@ class topbar_nation_leadership_points_text : public add_tooltip<nation_leadershi
 	}
 
   public:
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -653,7 +733,7 @@ class topbar_nation_leadership_points_text : public add_tooltip<nation_leadershi
 			text::substitution_map sub;
 			// text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::leadership_points(state, nation_id)});
 			text::add_to_substitution_map(sub, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.officers));
-			text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{getResearchPointsFromPop(state, state.culture_definitions.officers, nation_id)});
+			text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{get_research_points_from_pop(state, state.culture_definitions.officers, nation_id)});
 			text::add_to_substitution_map(sub, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.officers)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
 			text::add_to_substitution_map(sub, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.officers) * 100)});
 		}
@@ -827,10 +907,14 @@ class topbar_speed_indicator : public topbar_pause_button {
 	}
 };
 
-class topbar_losing_gp_status_icon : public add_tooltip<standard_nation_icon> {
+class topbar_losing_gp_status_icon : public standard_nation_icon {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -860,10 +944,14 @@ class topbar_at_peace_text : public standard_nation_text {
 	}
 };
 
-class topbar_building_factories_icon : public add_tooltip<standard_nation_icon> {
+class topbar_building_factories_icon : public standard_nation_icon {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!economy::nation_is_constructing_factories(state, nation_id));
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -894,10 +982,14 @@ class topbar_building_factories_icon : public add_tooltip<standard_nation_icon> 
 	}
 };
 
-class topbar_closed_factories_icon : public add_tooltip<standard_nation_icon> {
+class topbar_closed_factories_icon : public standard_nation_icon {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!economy::nation_has_closed_factories(state, nation_id));
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -940,7 +1032,7 @@ class topbar_closed_factories_icon : public add_tooltip<standard_nation_icon> {
 	}
 };
 
-class topbar_unemployment_icon : public add_tooltip<standard_nation_icon> {
+class topbar_unemployment_icon : public standard_nation_icon {
   private:
 	float get_num_unemployed(sys::state &state, dcon::pop_type_id pop_type, dcon::nation_id nation_id) noexcept {
 		auto total_key = demographics::to_key(state, pop_type);
@@ -953,6 +1045,10 @@ class topbar_unemployment_icon : public add_tooltip<standard_nation_icon> {
 		auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id);
 		auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker, nation_id);
 		return int32_t(primary_unemployed + secondary_unemployed <= 1.0f);
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1010,10 +1106,14 @@ class topbar_unemployment_icon : public add_tooltip<standard_nation_icon> {
 	}
 };
 
-class topbar_available_reforms_icon : public add_tooltip<standard_nation_button> {
+class topbar_available_reforms_icon : public standard_nation_button {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!nations::has_reform_available(state, nation_id));
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1094,10 +1194,14 @@ class topbar_available_reforms_icon : public add_tooltip<standard_nation_button>
 	}
 };
 
-class topbar_available_decisions_icon : public add_tooltip<standard_nation_button> {
+class topbar_available_decisions_icon : public standard_nation_button {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!nations::has_decision_available(state, nation_id));
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1131,10 +1235,14 @@ class topbar_available_decisions_icon : public add_tooltip<standard_nation_butto
 	}
 };
 
-class topbar_ongoing_election_icon : public add_tooltip<standard_nation_icon> {
+class topbar_ongoing_election_icon : public standard_nation_icon {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!politics::is_election_ongoing(state, nation_id));
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1160,11 +1268,15 @@ class topbar_ongoing_election_icon : public add_tooltip<standard_nation_icon> {
 	}
 };
 
-class topbar_rebels_icon : public add_tooltip<standard_nation_button> {
+class topbar_rebels_icon : public standard_nation_button {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
 		return int32_t(rebellions_iter.begin() == rebellions_iter.end());
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1202,7 +1314,7 @@ class topbar_rebels_icon : public add_tooltip<standard_nation_button> {
 	}
 };
 
-class topbar_colony_icon : public add_tooltip<standard_nation_button> {
+class topbar_colony_icon : public standard_nation_button {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		if (nations::can_expand_colony(state, nation_id)) {
@@ -1214,6 +1326,10 @@ class topbar_colony_icon : public add_tooltip<standard_nation_button> {
 		}
 	}
 	// TODO - when the player clicks on the colony icon and theres colonies to expand then we want to teleport their camera to the colonies position & open the prov window
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		if (parent) {
@@ -1249,7 +1365,7 @@ class topbar_colony_icon : public add_tooltip<standard_nation_button> {
 	}
 };
 
-class topbar_crisis_icon : public add_tooltip<standard_nation_icon> {
+class topbar_crisis_icon : public standard_nation_icon {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		if (state.current_crisis == sys::crisis_type::none) {
@@ -1259,6 +1375,10 @@ class topbar_crisis_icon : public add_tooltip<standard_nation_icon> {
 		} else {
 			return 0;
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1284,7 +1404,7 @@ class topbar_crisis_icon : public add_tooltip<standard_nation_icon> {
 	}
 };
 
-class topbar_sphere_icon : public add_tooltip<standard_nation_icon> {
+class topbar_sphere_icon : public standard_nation_icon {
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		if (nations::sphereing_progress_is_possible(state, nation_id)) {
@@ -1294,6 +1414,10 @@ class topbar_sphere_icon : public add_tooltip<standard_nation_icon> {
 		} else {
 			return 1;
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -1317,6 +1441,7 @@ class topbar_sphere_icon : public add_tooltip<standard_nation_icon> {
 			text::close_layout_box(contents, box);
 		}
 	}
+	
 };
 
 class topbar_window : public window_element_base {
