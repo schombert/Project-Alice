@@ -10,27 +10,27 @@ struct diplo_reply_taken_notification {
 	int a = 0;
 };
 
-template <bool Left>
+template<bool Left>
 class msg_lr_button : public button_element_base {
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		frame = Left ? 0 : 1;
 	}
 
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = element_selection_wrapper<bool>{Left};
 			parent->impl_get(state, payload);
 		}
 	}
 };
 
-template <bool B>
+template<bool B>
 class msg_reply_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = diplomatic_message::message{};
 			parent->impl_get(state, payload);
 			diplomatic_message::message m = any_cast<diplomatic_message::message>(payload);
@@ -44,8 +44,8 @@ public:
 
 class msg_title_text : public generic_simple_text<diplomatic_message::message> {
 public:
-	std::string get_text(sys::state &state, diplomatic_message::message msg) noexcept override {
-		switch (msg.type) {
+	std::string get_text(sys::state& state, diplomatic_message::message msg) noexcept override {
+		switch(msg.type) {
 		case diplomatic_message::type_t::none:
 			return std::string("???");
 		case diplomatic_message::type_t::access_request:
@@ -65,12 +65,12 @@ public:
 
 class msg_desc_text : public generic_multiline_text<diplomatic_message::message> {
 public:
-	void populate_layout(sys::state &state, text::endless_layout &contents, diplomatic_message::message msg) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents, diplomatic_message::message msg) noexcept override {
 		auto box = text::open_layout_box(contents);
 
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::actor, state.world.nation_get_name(msg.from));
-		switch (msg.type) {
+		switch(msg.type) {
 		case diplomatic_message::type_t::none:
 			break;
 		case diplomatic_message::type_t::access_request:
@@ -95,13 +95,13 @@ public:
 };
 
 class msg_window : public window_element_base {
-	simple_text_element_base *count_text = nullptr;
+	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
 
 public:
 	std::vector<diplomatic_message::message> messages;
 
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		xy_pair cur_pos{0, 0};
 		{
@@ -127,20 +127,20 @@ public:
 		set_visible(state, false);
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "title") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "title") {
 			return make_element_by_type<msg_title_text>(state, id);
-		} else if (name == "description") {
+		} else if(name == "description") {
 			return make_element_by_type<msg_desc_text>(state, id);
-		} else if (name == "agreebutton") {
+		} else if(name == "agreebutton") {
 			return make_element_by_type<msg_reply_button<true>>(state, id);
-		} else if (name == "declinebutton") {
+		} else if(name == "declinebutton") {
 			return make_element_by_type<msg_reply_button<false>>(state, id);
-		} else if (name == "leftshield") {
+		} else if(name == "leftshield") {
 			return make_element_by_type<nation_player_flag>(state, id);
-		} else if (name == "rightshield") {
+		} else if(name == "rightshield") {
 			return make_element_by_type<flag_button>(state, id);
-		} else if (name == "background") {
+		} else if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;
 			return ptr;
@@ -149,46 +149,46 @@ public:
 		}
 	}
 
-	void on_update(sys::state &state) noexcept override {
-		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto &m) {
+	void on_update(sys::state& state) noexcept override {
+		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
 			return m.when + diplomatic_message::expiration_in_days <= state.current_date;
 		});
 		auto r = std::distance(it, messages.end());
 		messages.erase(it, messages.end());
 
-		if (messages.empty()) {
+		if(messages.empty()) {
 			set_visible(state, false);
 		}
 
 		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
 	}
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (index >= int32_t(messages.size()))
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(index >= int32_t(messages.size()))
 			index = 0;
-		else if (index < 0)
+		else if(index < 0)
 			index = int32_t(messages.size()) - 1;
 
-		if (payload.holds_type<dcon::nation_id>()) {
-			if (messages.empty()) {
+		if(payload.holds_type<dcon::nation_id>()) {
+			if(messages.empty()) {
 				payload.emplace<dcon::nation_id>(dcon::nation_id{});
 			} else {
 				payload.emplace<dcon::nation_id>(messages[index].from);
 			}
 			return message_result::consumed;
-		} else if (payload.holds_type<element_selection_wrapper<bool>>()) {
+		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
 			index += b ? -1 : +1;
 			impl_on_update(state);
 			return message_result::consumed;
-		} else if (payload.holds_type<diplomatic_message::message>()) {
-			if (messages.empty()) {
+		} else if(payload.holds_type<diplomatic_message::message>()) {
+			if(messages.empty()) {
 				payload.emplace<diplomatic_message::message>(diplomatic_message::message{});
 			} else {
 				payload.emplace<diplomatic_message::message>(messages[index]);
 			}
 			return message_result::consumed;
-		} else if (payload.holds_type<diplo_reply_taken_notification>()) {
-			if (!messages.empty()) {
+		} else if(payload.holds_type<diplo_reply_taken_notification>()) {
+			if(!messages.empty()) {
 				messages.erase(messages.begin() + size_t(index));
 				impl_on_update(state);
 			}

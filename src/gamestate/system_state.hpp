@@ -84,7 +84,7 @@ struct great_nation {
 	sys::date last_greatness = sys::date(0);
 	dcon::nation_id nation;
 
-	great_nation(sys::date last_greatness, dcon::nation_id nation) : last_greatness(last_greatness), nation(nation) {}
+	great_nation(sys::date last_greatness, dcon::nation_id nation) : last_greatness(last_greatness), nation(nation) { }
 	great_nation() = default;
 };
 
@@ -264,15 +264,15 @@ struct alignas(64) state {
 
 	std::string_view to_string_view(dcon::text_key tag) const; // takes a stored tag and give you the text
 
-	dcon::text_key add_to_pool(std::string const &text); // returns the newly added text
+	dcon::text_key add_to_pool(std::string const & text); // returns the newly added text
 	dcon::text_key add_to_pool(std::string_view text);
-	dcon::text_key add_to_pool_lowercase(std::string const &text); // these functions are as above, but force the text into lower case
+	dcon::text_key add_to_pool_lowercase(std::string const & text); // these functions are as above, but force the text into lower case
 	dcon::text_key add_to_pool_lowercase(std::string_view text);
 
 	// searches the string pool for any existing string, appends if it is new
 	// use this function sparingly; i.e. only when you think it is likely that
 	// the text has already been added. Searching *all* the text may not be cheap
-	dcon::text_key add_unique_to_pool(std::string const &text);
+	dcon::text_key add_unique_to_pool(std::string const & text);
 
 	dcon::unit_name_id add_unit_name(std::string_view text);       // returns the newly added text
 	std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
@@ -280,7 +280,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) {}
+	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(1024) { }
 
 	~state();
 
@@ -298,7 +298,7 @@ struct alignas(64) state {
 	 * @param open_console Open console upon log?
 	 * @result base_name: message. Example: `pop_window: 43`
 	 */
-	void console_log(ui::element_base *base, std::string message, bool open_console = true);
+	void console_log(ui::element_base* base, std::string message, bool open_console = true);
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
 };

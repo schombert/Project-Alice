@@ -9,26 +9,26 @@ namespace ui {
 
 class decision_requirements : public button_element_base {
 public:
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
-		if (parent) {
+		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 
 			auto fat_id = dcon::fatten(state.world, id);
 			auto name = fat_id.get_name();
-			if (bool(name)) {
+			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
 				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
 
 			auto ef = fat_id.get_effect();
-			if (bool(ef))
+			if(bool(ef))
 				effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
 		}
 	}
@@ -36,8 +36,8 @@ public:
 
 class make_decision : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::decision_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::decision_id>(payload);
@@ -46,8 +46,8 @@ public:
 		}
 	}
 
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::decision_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::decision_id>(payload);
@@ -60,17 +60,17 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
-		if (parent) {
+		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 			auto condition = state.world.decision_get_allow(id);
-			if (condition)
+			if(condition)
 				trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
@@ -82,9 +82,9 @@ public:
 
 class decision_name : public simple_text_element_base {
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
-		if (parent) {
+		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 			auto fat_id = dcon::fatten(state.world, id);
@@ -100,9 +100,9 @@ public:
 
 class decision_image : public image_element_base {
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
-		if (parent) {
+		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 			auto fat_id = dcon::fatten(state.world, id);
@@ -118,20 +118,20 @@ public:
 class decision_desc : public scrollable_text {
 private:
 	dcon::text_sequence_id description;
-	void populate_layout(sys::state &state, text::endless_layout &contents) noexcept {
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(contents, state, box, description, text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		base_data.size.y = 77;
 		scrollable_text::on_create(state);
 	}
 
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::decision_id{};
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
@@ -152,9 +152,9 @@ public:
 
 class ignore_checkbox : public checkbox_button {
 public:
-	void button_action(sys::state &state) noexcept override {
+	void button_action(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
-		if (parent) {
+		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 			state.world.decision_set_hide_notification(id, !state.world.decision_get_hide_notification(id));
@@ -162,9 +162,9 @@ public:
 		}
 	}
 
-	bool is_active(sys::state &state) noexcept override {
+	bool is_active(sys::state& state) noexcept override {
 		Cyto::Any payload = dcon::decision_id{};
-		if (parent) {
+		if(parent) {
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 			return state.world.decision_get_hide_notification(id);
@@ -180,37 +180,37 @@ public:
 
 class decision_item : public listbox_row_element_base<dcon::decision_id> {
 public:
-	std::unique_ptr<ui::element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "decision_name") {
+	std::unique_ptr<ui::element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "decision_name") {
 			return make_element_by_type<decision_name>(state, id);
-		} else if (name == "decision_image") {
+		} else if(name == "decision_image") {
 			return make_element_by_type<decision_image>(state, id);
-		} else if (name == "decision_desc") {
+		} else if(name == "decision_desc") {
 			return make_element_by_type<decision_desc>(state, id);
-		} else if (name == "requirements") {
+		} else if(name == "requirements") {
 			return make_element_by_type<decision_requirements>(state, id);
-		} else if (name == "ignore_checkbox") {
+		} else if(name == "ignore_checkbox") {
 			return make_element_by_type<ignore_checkbox>(state, id);
-		} else if (name == "make_decision") {
+		} else if(name == "make_decision") {
 			return make_element_by_type<make_decision>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::decision_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::decision_id>()) {
 			payload.emplace<dcon::decision_id>(content);
 			return message_result::consumed;
-		} else if (payload.holds_type<wrapped_listbox_row_content<dcon::decision_id>>()) {
+		} else if(payload.holds_type<wrapped_listbox_row_content<dcon::decision_id>>()) {
 			return listbox_row_element_base<dcon::decision_id>::get(state, payload);
 		} else {
 			return message_result::unseen;
 		}
 	}
 
-	void update(sys::state &state) noexcept override {
-		for (auto &child : children) {
+	void update(sys::state& state) noexcept override {
+		for(auto& child : children) {
 			child->impl_on_update(state);
 		}
 	}
@@ -233,15 +233,15 @@ protected:
 
 class decision_window : public window_element_base {
 private:
-	decision_listbox *decision_list{nullptr};
+	decision_listbox* decision_list{nullptr};
 
-	std::vector<dcon::decision_id> get_decisions(sys::state &state) {
+	std::vector<dcon::decision_id> get_decisions(sys::state& state) {
 		std::vector<dcon::decision_id> list;
 		auto n = state.local_player_nation;
-		for (uint32_t i = state.world.decision_size(); i-- > 0;) {
+		for(uint32_t i = state.world.decision_size(); i-- > 0;) {
 			dcon::decision_id did{dcon::decision_id::value_base_t(i)};
 			auto lim = state.world.decision_get_potential(did);
-			if (!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+			if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
 				list.push_back(did);
 			}
 		}
@@ -249,7 +249,7 @@ private:
 	}
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
 
@@ -257,13 +257,13 @@ public:
 		decision_list->update(state);
 	}
 
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		decision_list->row_contents = get_decisions(state);
 		decision_list->update(state);
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "decision_listbox") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "decision_listbox") {
 			auto ptr = make_element_by_type<decision_listbox>(state, id);
 			decision_list = ptr.get();
 			return ptr;

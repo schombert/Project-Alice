@@ -64,7 +64,7 @@ namespace r123 {
   and keys.
 */
 
-template <typename CBRNG>
+template<typename CBRNG>
 struct Engine {
 	typedef CBRNG cbrng_type;
 	typedef typename CBRNG::ctr_type ctr_type;
@@ -79,7 +79,7 @@ protected:
 	ctr_type v;
 
 	void fix_invariant() {
-		if (v.back() != 0) {
+		if(v.back() != 0) {
 			result_type vv = v.back();
 			v = b(c, key);
 			v.back() = vv;
@@ -109,24 +109,24 @@ public:
 	// the convertible-to-result_type restriction.  Otherwise, the
 	// template is unconditional and will match in some surpirsing
 	// and undesirable situations.
-	Engine(Engine &e) : b(e.b), key(e.key), c(e.c) {
+	Engine(Engine& e) : b(e.b), key(e.key), c(e.c) {
 		v.back() = e.v.back();
 		fix_invariant();
 	}
-	Engine(const Engine &e) : b(e.b), key(e.key), c(e.c) {
+	Engine(const Engine& e) : b(e.b), key(e.key), c(e.c) {
 		v.back() = e.v.back();
 		fix_invariant();
 	}
 #if __cplusplus >= 201103L
-	Engine &operator=(const Engine &) = default;
-	Engine &operator=(Engine &&) = default;
+	Engine& operator=(const Engine&) = default;
+	Engine& operator=(Engine&&) = default;
 #endif
 
-	template <typename SeedSeq>
-	explicit Engine(SeedSeq &s
+	template<typename SeedSeq>
+	explicit Engine(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
 	                ,
-	                typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type * = 0
+	                typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
 #endif
 	                )
 	    : b(), c() {
@@ -137,11 +137,11 @@ public:
 	void seed(result_type r) {
 		*this = Engine(r);
 	}
-	template <typename SeedSeq>
-	void seed(SeedSeq &s
+	template<typename SeedSeq>
+	void seed(SeedSeq& s
 #if R123_USE_CXX11_TYPE_TRAITS
 	          ,
-	          typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type * = 0
+	          typename std::enable_if<!std::is_convertible<SeedSeq, result_type>::value>::type* = 0
 #endif
 	) {
 		*this = Engine(s);
@@ -149,18 +149,18 @@ public:
 	void seed() {
 		*this = Engine();
 	}
-	friend bool operator==(const Engine &lhs, const Engine &rhs) {
+	friend bool operator==(const Engine& lhs, const Engine& rhs) {
 		return lhs.c == rhs.c && lhs.v.back() == rhs.v.back() && lhs.key == rhs.key;
 	}
-	friend bool operator!=(const Engine &lhs, const Engine &rhs) {
+	friend bool operator!=(const Engine& lhs, const Engine& rhs) {
 		return lhs.c != rhs.c || lhs.v.back() != rhs.v.back() || lhs.key != rhs.key;
 	}
 
-	friend std::ostream &operator<<(std::ostream &os, const Engine &be) {
+	friend std::ostream& operator<<(std::ostream& os, const Engine& be) {
 		return os << be.c << " " << be.key << " " << be.v.back();
 	}
 
-	friend std::istream &operator>>(std::istream &is, Engine &be) {
+	friend std::istream& operator>>(std::istream& is, Engine& be) {
 		is >> be.c >> be.key >> be.v.back();
 		be.fix_invariant();
 		return is;
@@ -184,10 +184,10 @@ public:
 	static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST() { return _Max; }
 
 	result_type operator()() {
-		if (c.size() == 1) // short-circuit the scalar case.  Compilers aren't mind-readers.
+		if(c.size() == 1) // short-circuit the scalar case.  Compilers aren't mind-readers.
 			return b(c.incr(), key)[0];
-		result_type &elem = v.back();
-		if (elem == 0) {
+		result_type& elem = v.back();
+		if(elem == 0) {
 			v = b(c.incr(), key);
 			result_type ret = v.back();
 			elem = c.size() - 1;
@@ -200,9 +200,9 @@ public:
 		// don't forget:  elem counts down
 		size_t nelem = c.size();
 		size_t sub = skip % nelem;
-		result_type &elem = v.back();
+		result_type& elem = v.back();
 		skip /= nelem;
-		if (elem < sub) {
+		if(elem < sub) {
 			elem += nelem;
 			skip++;
 		}
@@ -217,31 +217,31 @@ public:
 
 	// Constructors and seed() method for ukey_type seem useful
 	// We need const and non-const to supersede the SeedSeq template.
-	explicit Engine(const ukey_type &uk) : key(uk), c() { v.back() = 0; }
-	explicit Engine(ukey_type &uk) : key(uk), c() { v.back() = 0; }
-	void seed(const ukey_type &uk) {
+	explicit Engine(const ukey_type& uk) : key(uk), c() { v.back() = 0; }
+	explicit Engine(ukey_type& uk) : key(uk), c() { v.back() = 0; }
+	void seed(const ukey_type& uk) {
 		*this = Engine(uk);
 	}
-	void seed(ukey_type &uk) {
+	void seed(ukey_type& uk) {
 		*this = Engine(uk);
 	}
 
 #if R123_USE_CXX11_TYPE_TRAITS
-	template <typename DUMMY = void>
-	explicit Engine(const key_type &k,
-	                typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type * = 0)
+	template<typename DUMMY = void>
+	explicit Engine(const key_type& k,
+	                typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0)
 	    : key(k), c() { v.back() = 0; }
 
-	template <typename DUMMY = void>
-	void seed(const key_type &k,
-	          typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type * = 0) {
+	template<typename DUMMY = void>
+	void seed(const key_type& k,
+	          typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0) {
 		*this = Engine(k);
 	}
 #endif
 
 	// Forward the e(counter) to the CBRNG we are templated
 	// on, using the current value of the key.
-	ctr_type operator()(const ctr_type &c) const {
+	ctr_type operator()(const ctr_type& c) const {
 		return b(c, key);
 	}
 
@@ -252,7 +252,7 @@ public:
 	// N.B.  setkey(k) is different from seed(k) because seed(k) zeros
 	// the counter (per the C++11 requirements for an Engine), whereas
 	// setkey does not.
-	void setkey(const key_type &k) {
+	void setkey(const key_type& k) {
 		key = k;
 		fix_invariant();
 	}
@@ -265,16 +265,16 @@ public:
 	}
 
 	// And the inverse.
-	void setcounter(const ctr_type &_c, result_type _elem) {
+	void setcounter(const ctr_type& _c, result_type _elem) {
 		static const size_t nelem = c.size();
-		if (_elem >= nelem)
+		if(_elem >= nelem)
 			throw std::range_error("Engine::setcounter called  with elem out of range");
 		c = _c;
 		v.back() = _elem;
 		fix_invariant();
 	}
 
-	void setcounter(const std::pair<ctr_type, result_type> &ce) {
+	void setcounter(const std::pair<ctr_type, result_type>& ce) {
 		setcounter(ce.first, ce.second);
 	}
 };

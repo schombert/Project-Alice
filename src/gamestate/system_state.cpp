@@ -31,7 +31,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	// Lose focus on text
 	ui_state.edit_target = nullptr;
 
-	if (ui_state.under_mouse != nullptr) {
+	if(ui_state.under_mouse != nullptr) {
 		// TODO: look at return value
 		ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
 	}
@@ -46,18 +46,18 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	// Lose focus on text
 	ui_state.edit_target = nullptr;
 
-	if (ui_state.under_mouse != nullptr) {
+	if(ui_state.under_mouse != nullptr) {
 		auto r = ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
-		if (r != ui::message_result::consumed) {
+		if(r != ui::message_result::consumed) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-			if (ui_state.province_window) {
-				static_cast<ui::province_view_window *>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
+			if(ui_state.province_window) {
+				static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 			}
 		}
 	} else {
 		map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-		if (ui_state.province_window) {
-			static_cast<ui::province_view_window *>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
+		if(ui_state.province_window) {
+			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 		}
 	}
 }
@@ -68,14 +68,14 @@ void state::on_mbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 }
 void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	is_dragging = false;
-	if (ui_state.drag_target) {
+	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
 	}
 }
 void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
-	if (ui_state.under_mouse != nullptr) {
+	if(ui_state.under_mouse != nullptr) {
 		auto r = ui_state.under_mouse->impl_on_mouse_move(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
-		if (r != ui::message_result::consumed) {
+		if(r != ui::message_result::consumed) {
 			map_state.on_mouse_move(x, y, x_size, y_size, mod);
 		}
 	} else {
@@ -85,28 +85,28 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is held down
 	is_dragging = true;
 
-	if (ui_state.drag_target)
+	if(ui_state.drag_target)
 		ui_state.drag_target->on_drag(*this,
 		                              int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale),
 		                              int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale),
 		                              mod);
 }
 void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
-	if (ui_state.drag_target) {
+	if(ui_state.drag_target) {
 		ui_state.drag_target->on_drag_finish(*this);
 		ui_state.drag_target = nullptr;
 	}
 }
 void state::on_resize(int32_t x, int32_t y, window_state win_state) {
-	if (win_state != window_state::minimized) {
+	if(win_state != window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
 	}
 }
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
-	if (ui_state.scroll_target != nullptr) {
+	if(ui_state.scroll_target != nullptr) {
 		auto r = ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, amount, mod);
-		if (r != ui::message_result::consumed) {
+		if(r != ui::message_result::consumed) {
 			// TODO Settings for making zooming the map faster
 			map_state.on_mouse_wheel(x, y, x_size, y_size, mod, amount);
 		}
@@ -115,16 +115,16 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 	}
 }
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
-	if (ui_state.edit_target) {
+	if(ui_state.edit_target) {
 		ui_state.edit_target->impl_on_key_down(*this, keycode, mod);
 	} else {
-		if (ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
-			if (keycode == virtual_key::ESCAPE) {
-				if (ui_state.console_window->is_visible())
+		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
+			if(keycode == virtual_key::ESCAPE) {
+				if(ui_state.console_window->is_visible())
 					ui::console_window::show_toggle(*this);
 				else
 					ui::show_main_menu(*this);
-			} else if (keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
+			} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 				ui::console_window::show_toggle(*this);
 			}
 			map_state.on_key_down(keycode, mod);
@@ -135,92 +135,92 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	map_state.on_key_up(keycode, mod);
 }
 void state::on_text(char c) { // c is win1250 codepage value
-	if (ui_state.edit_target)
+	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);
 }
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 
 	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-	if (!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
-		if (map_state.active_map_mode == map_mode::mode::rgo_output) {
+	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
+		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
 		} else {
 			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 		}
 	}
 
-	if (game_state_was_updated) {
+	if(game_state_was_updated) {
 		nations::update_ui_rankings(*this);
 		// Processing of (gamestate <=> ui) queues
 		{
 			// National events
-			auto *c1 = new_n_event.front();
-			while (c1) {
-				if (world.national_event_get_is_major(c1->e)) {
-					static_cast<ui::national_event_window<true> *>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{*c1});
+			auto* c1 = new_n_event.front();
+			while(c1) {
+				if(world.national_event_get_is_major(c1->e)) {
+					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{*c1});
 				} else {
-					static_cast<ui::national_event_window<false> *>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{*c1});
+					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{*c1});
 				}
 				new_n_event.pop();
 				c1 = new_n_event.front();
 			}
 			// Free national events
-			auto *c2 = new_f_n_event.front();
-			while (c2) {
-				if (world.free_national_event_get_is_major(c2->e)) {
-					static_cast<ui::national_event_window<true> *>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{*c2});
+			auto* c2 = new_f_n_event.front();
+			while(c2) {
+				if(world.free_national_event_get_is_major(c2->e)) {
+					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{*c2});
 				} else {
-					static_cast<ui::national_event_window<false> *>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{*c2});
+					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{*c2});
 				}
 				new_f_n_event.pop();
 				c2 = new_f_n_event.front();
 			}
 			// Provincial events
-			auto *c3 = new_p_event.front();
-			while (c3) {
-				static_cast<ui::provincial_event_window *>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{*c3});
+			auto* c3 = new_p_event.front();
+			while(c3) {
+				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{*c3});
 				new_p_event.pop();
 				c3 = new_p_event.front();
 			}
 			// Free provincial events
-			auto *c4 = new_f_p_event.front();
-			while (c4) {
-				static_cast<ui::provincial_event_window *>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{*c4});
+			auto* c4 = new_f_p_event.front();
+			while(c4) {
+				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{*c4});
 				new_f_p_event.pop();
 				c4 = new_f_p_event.front();
 			}
 			// Diplomatic messages
-			auto *c5 = new_requests.front();
-			while (c5) {
-				static_cast<ui::msg_window *>(ui_state.msg_window)->messages.push_back(*c5);
+			auto* c5 = new_requests.front();
+			while(c5) {
+				static_cast<ui::msg_window*>(ui_state.msg_window)->messages.push_back(*c5);
 				new_requests.pop();
 				c5 = new_requests.front();
 			}
 		}
-		if (!static_cast<ui::national_event_window<true> *>(ui_state.major_event_window)->events.empty())
+		if(!static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.empty())
 			ui_state.major_event_window->set_visible(*this, true);
-		if (!static_cast<ui::national_event_window<false> *>(ui_state.national_event_window)->events.empty())
+		if(!static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.empty())
 			ui_state.national_event_window->set_visible(*this, true);
-		if (!static_cast<ui::provincial_event_window *>(ui_state.provincial_event_window)->events.empty())
+		if(!static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.empty())
 			ui_state.provincial_event_window->set_visible(*this, true);
-		if (!static_cast<ui::msg_window *>(ui_state.msg_window)->messages.empty())
+		if(!static_cast<ui::msg_window*>(ui_state.msg_window)->messages.empty())
 			ui_state.msg_window->set_visible(*this, true);
 
 		ui_state.root->impl_on_update(*this);
 		map_mode::update_map_mode(*this);
 		// TODO also need to update any tooltips (which probably exist outside the root container)
 
-		if (ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
-			if (type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
+			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 				                                              text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white},
 				                                              250);
 				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-				if (container.used_width > 0)
+				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
 					ui_state.tooltip->set_visible(*this, false);
@@ -230,11 +230,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale), int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 
-	if (ui_state.last_tooltip != tooltip_probe.under_mouse) {
+	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
-		if (tooltip_probe.under_mouse) {
+		if(tooltip_probe.under_mouse) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
-			if (type != ui::tooltip_behavior::no_tooltip) {
+			if(type != ui::tooltip_behavior::no_tooltip) {
 
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 				                                              text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white},
@@ -242,7 +242,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-				if (container.used_width > 0)
+				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
 					ui_state.tooltip->set_visible(*this, false);
@@ -252,32 +252,32 @@ void state::render() { // called to render the frame may (and should) delay retu
 		} else {
 			ui_state.tooltip->set_visible(*this, false);
 		}
-	} else if (ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
+	} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 		                                              text::layout_parameters{16, 16, 350, ui_state.root->base_data.size.y, ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white},
 		                                              250);
 		ui_state.last_tooltip->update_tooltip(*this, mouse_probe.relative_location.x, mouse_probe.relative_location.y, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-		if (container.used_width > 0)
+		if(container.used_width > 0)
 			ui_state.tooltip->set_visible(*this, true);
 		else
 			ui_state.tooltip->set_visible(*this, false);
 	}
 
-	if (ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
 		auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
-		if (ui_state.tooltip->base_data.size.y <= ui_state.root->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
+		if(ui_state.tooltip->base_data.size.y <= ui_state.root->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
-		} else if (ui_state.tooltip->base_data.size.x <= ui_state.root->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
+		} else if(ui_state.tooltip->base_data.size.x <= ui_state.root->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
-		} else if (ui_state.tooltip->base_data.size.x <= target_location.x) {
+		} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y));
-		} else if (ui_state.tooltip->base_data.size.y <= target_location.y) {
+		} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)), int16_t(0), int16_t(ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x));
 		} else {
@@ -288,7 +288,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	glClearColor(0.5, 0.5, 0.5, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	if (bg_gfx_id) {
+	if(bg_gfx_id) {
 		// Render default background
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
@@ -297,8 +297,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0, 1.0);
-		auto &gfx_def = ui_defs.gfx[bg_gfx_id];
-		if (gfx_def.primary_texture_handle) {
+		auto& gfx_def = ui_defs.gfx[bg_gfx_id];
+		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(
 			    *this,
 			    ui::get_color_modification(false, false, false),
@@ -326,8 +326,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 
-	if (map_state.get_zoom() > 5) {
-		if (map_state.active_map_mode == map_mode::mode::rgo_output) {
+	if(map_state.get_zoom() > 5) {
+		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			ui_state.rgos_root->impl_on_update(*this);
 			ui_state.rgos_root->impl_render(*this, 0, 0);
 		} else {
@@ -337,7 +337,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 
 	ui_state.root->impl_render(*this, 0, 0);
-	if (ui_state.tooltip->is_visible()) {
+	if(ui_state.tooltip->is_visible()) {
 		ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 	}
 }
@@ -370,12 +370,12 @@ void state::on_create() {
 
 	world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::unit_icon_window>(*this, "unit_mapicon");
-		static_cast<ui::unit_icon_window *>(ptr.get())->content = id;
+		static_cast<ui::unit_icon_window*>(ptr.get())->content = id;
 		ui_state.units_root->add_child_to_front(std::move(ptr));
 	});
 	world.for_each_province([&](dcon::province_id id) {
 		auto ptr = ui::make_element_by_type<ui::rgo_icon>(*this, "alice_rgo_mapicon");
-		static_cast<ui::rgo_icon *>(ptr.get())->content = id;
+		static_cast<ui::rgo_icon*>(ptr.get())->content = id;
 		ui_state.rgos_root->add_child_to_front(std::move(ptr));
 	});
 
@@ -394,18 +394,18 @@ void state::on_create() {
 		// The topbar has this button within, however since the button isn't properly displayed, it is better to make
 		// it into an independent element of it's own, living freely on the UI root so it can be flexibly moved around when
 		// the window is resized for example.
-		for (size_t i = ui_defs.gui.size(); i-- > 0;) {
+		for(size_t i = ui_defs.gui.size(); i-- > 0;) {
 			auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
-			if (to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton_bg") {
+			if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton_bg") {
 				auto new_bg = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
 				ui_state.root->add_child_to_front(std::move(new_bg));
 				break;
 			}
 		}
 		// Then create button atop
-		for (size_t i = ui_defs.gui.size(); i-- > 0;) {
+		for(size_t i = ui_defs.gui.size(); i-- > 0;) {
 			auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
-			if (to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton") {
+			if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton") {
 				auto new_btn = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
 				new_btn->impl_on_update(*this);
 				ui_state.root->add_child_to_front(std::move(new_btn));
@@ -470,7 +470,7 @@ void state::on_create() {
 
 	map_mode::set_map_mode(*this, map_mode::mode::political);
 
-	if (user_settings.use_classic_fonts) {
+	if(user_settings.use_classic_fonts) {
 		ui_state.tooltip_font = text::name_into_font_id(*this, "vic_18_black");
 	} else {
 		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
@@ -481,36 +481,36 @@ void state::on_create() {
 //
 
 std::string_view state::to_string_view(dcon::text_key tag) const {
-	if (!tag)
+	if(!tag)
 		return std::string_view();
 	auto start_position = text_data.data() + tag.index();
 	auto data_size = text_data.size();
 	auto end_position = start_position;
-	for (; end_position < text_data.data() + data_size; ++end_position) {
-		if (*end_position == 0)
+	for(; end_position < text_data.data() + data_size; ++end_position) {
+		if(*end_position == 0)
 			break;
 	}
 	return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
 }
 
-dcon::text_key state::add_to_pool_lowercase(std::string const &new_text) {
+dcon::text_key state::add_to_pool_lowercase(std::string const & new_text) {
 	auto res = add_to_pool(new_text);
-	for (auto i = 0; i < int32_t(new_text.length()); ++i) {
+	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
 	}
 	return res;
 }
 dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
 	auto res = add_to_pool(new_text);
-	for (auto i = 0; i < int32_t(new_text.length()); ++i) {
+	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
 	}
 	return res;
 }
-dcon::text_key state::add_to_pool(std::string const &new_text) {
+dcon::text_key state::add_to_pool(std::string const & new_text) {
 	auto start = text_data.size();
 	auto size = new_text.length();
-	if (size == 0)
+	if(size == 0)
 		return dcon::text_key();
 	text_data.resize(start + size + 1, char(0));
 	std::copy_n(new_text.c_str(), size + 1, text_data.data() + start);
@@ -519,7 +519,7 @@ dcon::text_key state::add_to_pool(std::string const &new_text) {
 dcon::text_key state::add_to_pool(std::string_view new_text) {
 	auto start = text_data.size();
 	auto length = new_text.length();
-	if (length == 0)
+	if(length == 0)
 		return dcon::text_key();
 	text_data.resize(start + length + 1, char(0));
 	std::copy_n(new_text.data(), length, text_data.data() + start);
@@ -527,10 +527,10 @@ dcon::text_key state::add_to_pool(std::string_view new_text) {
 	return dcon::text_key(uint32_t(start));
 }
 
-dcon::text_key state::add_unique_to_pool(std::string const &new_text) {
-	if (new_text.length() > 0) {
+dcon::text_key state::add_unique_to_pool(std::string const & new_text) {
+	if(new_text.length() > 0) {
 		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
-		if (search_result != text_data.data() + text_data.size()) {
+		if(search_result != text_data.data() + text_data.size()) {
 			return dcon::text_key(uint32_t(search_result - text_data.data()));
 		} else {
 			return add_to_pool(new_text);
@@ -543,7 +543,7 @@ dcon::text_key state::add_unique_to_pool(std::string const &new_text) {
 dcon::unit_name_id state::add_unit_name(std::string_view text) {
 	auto start = unit_names.size();
 	auto length = text.length();
-	if (length == 0)
+	if(length == 0)
 		return dcon::unit_name_id();
 
 	unit_names.resize(start + length + 1, char(0));
@@ -553,24 +553,24 @@ dcon::unit_name_id state::add_unit_name(std::string_view text) {
 	return dcon::unit_name_id(dcon::unit_name_id::value_base_t(unit_names_indices.size() - 1));
 }
 std::string_view state::to_string_view(dcon::unit_name_id tag) const {
-	if (!tag)
+	if(!tag)
 		return std::string_view();
 	auto start_position = unit_names.data() + unit_names_indices[tag.index()];
 	auto data_size = unit_names.size();
 	auto end_position = start_position;
-	for (; end_position < unit_names.data() + data_size; ++end_position) {
-		if (*end_position == 0)
+	for(; end_position < unit_names.data() + data_size; ++end_position) {
+		if(*end_position == 0)
 			break;
 	}
 	return std::string_view(unit_names.data() + unit_names_indices[tag.index()], size_t(end_position - start_position));
 }
 
 dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
-	if (data.size() == 0)
+	if(data.size() == 0)
 		return dcon::trigger_key();
 
 	auto search_result = std::search(trigger_data.data(), trigger_data.data() + trigger_data.size(), std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
-	if (search_result != trigger_data.data() + trigger_data.size()) {
+	if(search_result != trigger_data.data() + trigger_data.size()) {
 		return dcon::trigger_key(uint16_t(search_result - trigger_data.data()));
 	} else {
 		auto start = trigger_data.size();
@@ -583,7 +583,7 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 }
 
 dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
-	if (data.size() == 0)
+	if(data.size() == 0)
 		return dcon::effect_key();
 
 	auto start = effect_data.size();
@@ -601,7 +601,7 @@ void state::save_user_settings() const {
 void state::load_user_settings() {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
 	auto settings_file = open_file(settings_location, NATIVE("user_settings.dat"));
-	if (settings_file) {
+	if(settings_file) {
 		auto content = view_contents(*settings_file);
 		std::memcpy(&user_settings, content.data, std::min(uint32_t(sizeof(user_settings_s)), content.file_size));
 
@@ -619,21 +619,21 @@ void state::update_ui_scale(float new_scale) {
 	// TODO move windows
 }
 
-void list_pop_types(sys::state &state, parsers::scenario_building_context &context) {
+void list_pop_types(sys::state& state, parsers::scenario_building_context& context) {
 	auto root = get_root(state.common_fs);
 	auto poptypes = open_directory(root, NATIVE("poptypes"));
 
-	for (auto &file : simple_fs::list_files(poptypes, NATIVE(".txt"))) {
+	for(auto& file : simple_fs::list_files(poptypes, NATIVE(".txt"))) {
 		auto full_name = get_full_name(file);
 		auto last = full_name.c_str() + full_name.length();
 		auto first = full_name.c_str();
-		for (; last > first; --last) {
-			if (*last == NATIVE('.'))
+		for(; last > first; --last) {
+			if(*last == NATIVE('.'))
 				break;
 		}
 		auto start_of_name = last;
-		for (; start_of_name >= first; --start_of_name) {
-			if (*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+		for(; start_of_name >= first; --start_of_name) {
+			if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
 				++start_of_name;
 				break;
 			}
@@ -649,8 +649,8 @@ void list_pop_types(sys::state &state, parsers::scenario_building_context &conte
 
 void state::open_diplomacy(dcon::nation_id target) {
 	Cyto::Any payload = ui::element_selection_wrapper<dcon::nation_id>{target};
-	if (ui_state.diplomacy_subwindow != nullptr) {
-		if (ui_state.topbar_subwindow != nullptr) {
+	if(ui_state.diplomacy_subwindow != nullptr) {
+		if(ui_state.topbar_subwindow != nullptr) {
 			ui_state.topbar_subwindow->set_visible(*this, false);
 		}
 		ui_state.topbar_subwindow = ui_state.diplomacy_subwindow;
@@ -675,7 +675,7 @@ void state::load_scenario_data() {
 	// parse default.map
 	{
 		auto def_map_file = open_file(map, NATIVE("default.map"));
-		if (def_map_file) {
+		if(def_map_file) {
 			auto content = view_contents(*def_map_file);
 			err.file_name = "default.map";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -688,7 +688,7 @@ void state::load_scenario_data() {
 	// parse definition.csv
 	{
 		auto def_csv_file = open_file(map, NATIVE("definition.csv"));
-		if (def_csv_file) {
+		if(def_csv_file) {
 			auto content = view_contents(*def_csv_file);
 			err.file_name = "definition.csv";
 			parsers::read_map_colors(content.data, content.data + content.file_size, err, context);
@@ -701,7 +701,7 @@ void state::load_scenario_data() {
 	{
 		err.file_name = "adjacencies.csv";
 		auto adj_csv_file = open_file(map, NATIVE("adjacencies.csv"));
-		if (adj_csv_file) {
+		if(adj_csv_file) {
 			auto adj_content = view_contents(*adj_csv_file);
 			parsers::read_map_adjacency(adj_content.data, adj_content.data + adj_content.file_size, err, context);
 		}
@@ -712,31 +712,31 @@ void state::load_scenario_data() {
 	128,65,97 Fehmarn--> 128,65,96 Kiel
 	*/
 
-	if (auto it = context.map_color_to_province_id.find(sys::pack_color(240, 208, 0));
-	    it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(240, 208, 1)) == context.map_color_to_province_id.end()) {
+	if(auto it = context.map_color_to_province_id.find(sys::pack_color(240, 208, 0));
+	   it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(240, 208, 1)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(240, 208, 1), it->second);
 	}
-	if (auto it = context.map_color_to_province_id.find(sys::pack_color(128, 65, 96));
-	    it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(128, 65, 97)) == context.map_color_to_province_id.end()) {
+	if(auto it = context.map_color_to_province_id.find(sys::pack_color(128, 65, 96));
+	   it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(128, 65, 97)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(128, 65, 97), it->second);
 	}
 
 	// 1, 222, 200 --> 51, 221, 251 -- randomly misplaced sea
 
-	if (auto it = context.map_color_to_province_id.find(sys::pack_color(51, 221, 251));
-	    it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(1, 222, 200)) == context.map_color_to_province_id.end()) {
+	if(auto it = context.map_color_to_province_id.find(sys::pack_color(51, 221, 251));
+	   it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(1, 222, 200)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(1, 222, 200), it->second);
 	}
 
 	// 94, 53, 41 --> 89, 202, 202 -- random dots in the sea tiles
 	// 247, 248, 245 -- > 89, 202, 202
 
-	if (auto it = context.map_color_to_province_id.find(sys::pack_color(89, 202, 202));
-	    it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(94, 53, 41)) == context.map_color_to_province_id.end()) {
+	if(auto it = context.map_color_to_province_id.find(sys::pack_color(89, 202, 202));
+	   it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(94, 53, 41)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(94, 53, 41), it->second);
 	}
-	if (auto it = context.map_color_to_province_id.find(sys::pack_color(89, 202, 202));
-	    it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(247, 248, 245)) == context.map_color_to_province_id.end()) {
+	if(auto it = context.map_color_to_province_id.find(sys::pack_color(89, 202, 202));
+	   it != context.map_color_to_province_id.end() && context.map_color_to_province_id.find(sys::pack_color(247, 248, 245)) == context.map_color_to_province_id.end()) {
 		context.map_color_to_province_id.insert_or_assign(sys::pack_color(247, 248, 245), it->second);
 	}
 
@@ -747,7 +747,7 @@ void state::load_scenario_data() {
 	// Read national tags from countries.txt
 	{
 		auto countries = open_file(common, NATIVE("countries.txt"));
-		if (countries) {
+		if(countries) {
 			auto content = view_contents(*countries);
 			err.file_name = "countries.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -760,7 +760,7 @@ void state::load_scenario_data() {
 	// read religions from religion.txt
 	{
 		auto religion = open_file(common, NATIVE("religion.txt"));
-		if (religion) {
+		if(religion) {
 			auto content = view_contents(*religion);
 			err.file_name = "religion.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -773,7 +773,7 @@ void state::load_scenario_data() {
 	// read cultures from cultures.txt
 	{
 		auto cultures = open_file(common, NATIVE("cultures.txt"));
-		if (cultures) {
+		if(cultures) {
 			auto content = view_contents(*cultures);
 			err.file_name = "cultures.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -786,13 +786,13 @@ void state::load_scenario_data() {
 	// read commodities from goods.txt
 	{
 		// FIRST: make sure that we have a money good
-		if (world.commodity_size() == 0) {
+		if(world.commodity_size() == 0) {
 			// create money
 			auto money_id = world.create_commodity();
 			assert(money_id.index() == 0);
 		}
 		auto goods = open_file(common, NATIVE("goods.txt"));
-		if (goods) {
+		if(goods) {
 			auto content = view_contents(*goods);
 			err.file_name = "goods.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -806,7 +806,7 @@ void state::load_scenario_data() {
 	// world.factory_type_resize_construction_costs(world.commodity_size());
 	{
 		auto buildings = open_file(common, NATIVE("buildings.txt"));
-		if (buildings) {
+		if(buildings) {
 			auto content = view_contents(*buildings);
 			err.file_name = "buildings.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -819,7 +819,7 @@ void state::load_scenario_data() {
 	// pre parse ideologies.txt
 	{
 		context.ideologies_file = open_file(common, NATIVE("ideologies.txt"));
-		if (context.ideologies_file) {
+		if(context.ideologies_file) {
 			auto content = view_contents(*context.ideologies_file);
 			err.file_name = "ideologies.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -832,7 +832,7 @@ void state::load_scenario_data() {
 	// pre parse issues.txt
 	{
 		context.issues_file = open_file(common, NATIVE("issues.txt"));
-		if (context.issues_file) {
+		if(context.issues_file) {
 			auto content = view_contents(*context.issues_file);
 			err.file_name = "issues.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -845,7 +845,7 @@ void state::load_scenario_data() {
 	// parse governments.txt
 	{
 		auto governments = open_file(common, NATIVE("governments.txt"));
-		if (governments) {
+		if(governments) {
 			auto content = view_contents(*governments);
 			err.file_name = "governments.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -858,7 +858,7 @@ void state::load_scenario_data() {
 	// pre parse cb_types.txt
 	{
 		context.cb_types_file = open_file(common, NATIVE("cb_types.txt"));
-		if (context.cb_types_file) {
+		if(context.cb_types_file) {
 			auto content = view_contents(*context.cb_types_file);
 			err.file_name = "cb_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -871,7 +871,7 @@ void state::load_scenario_data() {
 	// parse traits.txt
 	{
 		auto traits = open_file(common, NATIVE("traits.txt"));
-		if (traits) {
+		if(traits) {
 			auto content = view_contents(*traits);
 			err.file_name = "traits.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -884,7 +884,7 @@ void state::load_scenario_data() {
 	// pre parse crimes.txt
 	{
 		context.crimes_file = open_file(common, NATIVE("crime.txt"));
-		if (context.crimes_file) {
+		if(context.crimes_file) {
 			auto content = view_contents(*context.crimes_file);
 			err.file_name = "crime.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -897,7 +897,7 @@ void state::load_scenario_data() {
 	// pre parse triggered_modifiers.txt
 	{
 		context.triggered_modifiers_file = open_file(common, NATIVE("triggered_modifiers.txt"));
-		if (context.triggered_modifiers_file) {
+		if(context.triggered_modifiers_file) {
 			auto content = view_contents(*context.triggered_modifiers_file);
 			err.file_name = "triggered_modifiers.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -910,7 +910,7 @@ void state::load_scenario_data() {
 	// parse nationalvalues.txt
 	{
 		auto nv_file = open_file(common, NATIVE("nationalvalues.txt"));
-		if (nv_file) {
+		if(nv_file) {
 			auto content = view_contents(*nv_file);
 			err.file_name = "nationalvalues.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -923,7 +923,7 @@ void state::load_scenario_data() {
 	// parse static_modifiers.txt
 	{
 		auto sm_file = open_file(common, NATIVE("static_modifiers.txt"));
-		if (sm_file) {
+		if(sm_file) {
 			auto content = view_contents(*sm_file);
 			err.file_name = "static_modifiers.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -936,7 +936,7 @@ void state::load_scenario_data() {
 	// parse event_modifiers.txt
 	{
 		auto em_file = open_file(common, NATIVE("event_modifiers.txt"));
-		if (em_file) {
+		if(em_file) {
 			auto content = view_contents(*em_file);
 			err.file_name = "event_modifiers.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -949,7 +949,7 @@ void state::load_scenario_data() {
 	// read defines.lua
 	{
 		auto defines_file = open_file(common, NATIVE("defines.lua"));
-		if (defines_file) {
+		if(defines_file) {
 			auto content = view_contents(*defines_file);
 			err.file_name = "defines.lua";
 			defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
@@ -963,7 +963,7 @@ void state::load_scenario_data() {
 	// pre parse rebel_types.txt
 	{
 		context.rebel_types_file = open_file(common, NATIVE("rebel_types.txt"));
-		if (context.rebel_types_file) {
+		if(context.rebel_types_file) {
 			auto content = view_contents(*context.rebel_types_file);
 			err.file_name = "rebel_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -977,7 +977,7 @@ void state::load_scenario_data() {
 	// parse terrain.txt
 	{
 		auto terrain_file = open_file(map, NATIVE("terrain.txt"));
-		if (terrain_file) {
+		if(terrain_file) {
 			auto content = view_contents(*terrain_file);
 			err.file_name = "terrain.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -990,7 +990,7 @@ void state::load_scenario_data() {
 	// parse region.txt
 	{
 		auto region_file = open_file(map, NATIVE("region.txt"));
-		if (region_file) {
+		if(region_file) {
 			auto content = view_contents(*region_file);
 			err.file_name = "region.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1003,7 +1003,7 @@ void state::load_scenario_data() {
 	// parse continent.txt
 	{
 		auto continent_file = open_file(map, NATIVE("continent.txt"));
-		if (continent_file) {
+		if(continent_file) {
 			auto content = view_contents(*continent_file);
 			err.file_name = "continent.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1016,7 +1016,7 @@ void state::load_scenario_data() {
 	// parse climate.txt
 	{
 		auto climate_file = open_file(map, NATIVE("climate.txt"));
-		if (climate_file) {
+		if(climate_file) {
 			auto content = view_contents(*climate_file);
 			err.file_name = "climate.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1029,7 +1029,7 @@ void state::load_scenario_data() {
 	// parse technology.txt
 	{
 		auto tech_file = open_file(common, NATIVE("technology.txt"));
-		if (tech_file) {
+		if(tech_file) {
 			auto content = view_contents(*tech_file);
 			err.file_name = "technology.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1045,7 +1045,7 @@ void state::load_scenario_data() {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::army};
 			auto i_file = open_file(inventions, NATIVE("army_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "army_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1059,7 +1059,7 @@ void state::load_scenario_data() {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::navy};
 			auto i_file = open_file(inventions, NATIVE("navy_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "navy_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1073,7 +1073,7 @@ void state::load_scenario_data() {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::commerce};
 			auto i_file = open_file(inventions, NATIVE("commerce_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "commerce_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1087,7 +1087,7 @@ void state::load_scenario_data() {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::culture};
 			auto i_file = open_file(inventions, NATIVE("culture_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "culture_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1101,7 +1101,7 @@ void state::load_scenario_data() {
 		{
 			parsers::tech_group_context invention_context{context, culture::tech_category::industry};
 			auto i_file = open_file(inventions, NATIVE("industry_inventions.txt"));
-			if (i_file) {
+			if(i_file) {
 				auto content = view_contents(*i_file);
 				err.file_name = "industry_inventions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1118,9 +1118,9 @@ void state::load_scenario_data() {
 		parsers::make_base_units(context);
 
 		auto units = open_directory(root, NATIVE("units"));
-		for (auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
+		for(auto unit_file : simple_fs::list_files(units, NATIVE(".txt"))) {
 			auto opened_file = open_file(unit_file);
-			if (opened_file) {
+			if(opened_file) {
 				auto content = view_contents(*opened_file);
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1164,7 +1164,7 @@ void state::load_scenario_data() {
 	// load country files
 	world.for_each_national_identity([&](dcon::national_identity_id i) {
 		auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));
-		if (country_file) {
+		if(country_file) {
 			parsers::country_file_context c_context{context, i};
 			auto content = view_contents(*country_file);
 			err.file_name = context.file_names_for_idents[i];
@@ -1178,18 +1178,18 @@ void state::load_scenario_data() {
 	auto history = open_directory(root, NATIVE("history"));
 	{
 		auto prov_history = open_directory(history, NATIVE("provinces"));
-		for (auto subdir : list_subdirectories(prov_history)) {
-			for (auto prov_file : list_files(subdir, NATIVE(".txt"))) {
+		for(auto subdir : list_subdirectories(prov_history)) {
+			for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
 				auto file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
 				auto name_begin = file_name.c_str();
 				auto name_end = name_begin + file_name.length();
-				for (; --name_end > name_begin;) {
-					if (isdigit(*name_end))
+				for(; --name_end > name_begin;) {
+					if(isdigit(*name_end))
 						break;
 				}
 				auto value_start = name_end;
-				for (; value_start > name_begin; --value_start) {
-					if (!isdigit(*value_start))
+				for(; value_start > name_begin; --value_start) {
+					if(!isdigit(*value_start))
 						break;
 				}
 				++value_start;
@@ -1197,9 +1197,9 @@ void state::load_scenario_data() {
 
 				err.file_name = file_name;
 				auto province_id = parsers::parse_int(std::string_view(value_start, name_end - value_start), 0, err);
-				if (province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
+				if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
 					auto opened_file = open_file(prov_file);
-					if (opened_file) {
+					if(opened_file) {
 						auto pid = context.original_id_to_prov_id_map[province_id];
 						parsers::province_file_context pf_context{context, pid};
 						auto content = view_contents(*opened_file);
@@ -1220,9 +1220,9 @@ void state::load_scenario_data() {
 		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 
-		for (auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
+		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
-			if (opened_file) {
+			if(opened_file) {
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 				auto content = view_contents(*opened_file);
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1233,9 +1233,9 @@ void state::load_scenario_data() {
 	// load poptype definitions
 	{
 		auto poptypes = open_directory(root, NATIVE("poptypes"));
-		for (auto pr : context.map_of_poptypes) {
+		for(auto pr : context.map_of_poptypes) {
 			auto opened_file = open_file(poptypes, simple_fs::utf8_to_native(pr.first + ".txt"));
-			if (opened_file) {
+			if(opened_file) {
 				err.file_name = pr.first + ".txt";
 				auto content = view_contents(*opened_file);
 				parsers::poptype_context inner_context{context, pr.second};
@@ -1248,7 +1248,7 @@ void state::load_scenario_data() {
 	// load ideology contents
 	{
 		err.file_name = "ideologies.txt";
-		for (auto &pr : context.map_of_ideologies) {
+		for(auto& pr : context.map_of_ideologies) {
 			parsers::individual_ideology_context new_context{context, pr.second.id};
 			parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
 		}
@@ -1256,14 +1256,14 @@ void state::load_scenario_data() {
 	// triggered modifier contents
 	{
 		err.file_name = "triggered_modifiers.txt";
-		for (auto &r : context.set_of_triggered_modifiers) {
+		for(auto& r : context.set_of_triggered_modifiers) {
 			national_definitions.triggered_modifiers[r.index].trigger_condition = parsers::read_triggered_modifier_condition(r.generator_state, err, context);
 		}
 	}
 	// cb contents
 	{
 		err.file_name = "cb_types.txt";
-		for (auto &r : context.map_of_cb_types) {
+		for(auto& r : context.map_of_cb_types) {
 			parsers::individual_cb_context new_context{context, r.second.id};
 			parsers::parse_cb_body(r.second.generator_state, err, new_context);
 		}
@@ -1271,28 +1271,28 @@ void state::load_scenario_data() {
 	// pending crimes
 	{
 		err.file_name = "crime.txt";
-		for (auto &r : context.map_of_crimes) {
+		for(auto& r : context.map_of_crimes) {
 			parsers::read_pending_crime(r.second.id, r.second.generator_state, err, context);
 		}
 	}
 	// pending issue options
 	{
 		err.file_name = "issues.txt";
-		for (auto &r : context.map_of_ioptions) {
+		for(auto& r : context.map_of_ioptions) {
 			parsers::read_pending_option(r.second.id, r.second.generator_state, err, context);
 		}
 	}
 	// pending reform options
 	{
 		err.file_name = "issues.txt";
-		for (auto &r : context.map_of_roptions) {
+		for(auto& r : context.map_of_roptions) {
 			parsers::read_pending_reform(r.second.id, r.second.generator_state, err, context);
 		}
 	}
 	// parse national_focus.txt
 	{
 		auto nat_focus = open_file(common, NATIVE("national_focus.txt"));
-		if (nat_focus) {
+		if(nat_focus) {
 			auto content = view_contents(*nat_focus);
 			err.file_name = "national_focus.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1305,7 +1305,7 @@ void state::load_scenario_data() {
 	// load pop_types.txt
 	{
 		auto pop_types_file = open_file(common, NATIVE("pop_types.txt"));
-		if (pop_types_file) {
+		if(pop_types_file) {
 			auto content = view_contents(*pop_types_file);
 			err.file_name = "pop_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1318,21 +1318,21 @@ void state::load_scenario_data() {
 	// read pending techs
 	{
 		err.file_name = "technology file";
-		for (auto &r : context.map_of_technologies) {
+		for(auto& r : context.map_of_technologies) {
 			parsers::read_pending_technology(r.second.id, r.second.generator_state, err, context);
 		}
 	}
 	// read pending inventions
 	{
 		err.file_name = "inventions file";
-		for (auto &r : context.map_of_inventions) {
+		for(auto& r : context.map_of_inventions) {
 			parsers::read_pending_invention(r.second.id, r.second.generator_state, err, context);
 		}
 	}
 	// parse on_actions.txt
 	{
 		auto on_action = open_file(common, NATIVE("on_actions.txt"));
-		if (on_action) {
+		if(on_action) {
 			auto content = view_contents(*on_action);
 			err.file_name = "on_actions.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1345,7 +1345,7 @@ void state::load_scenario_data() {
 	// parse production_types.txt
 	{
 		auto prod_types = open_file(common, NATIVE("production_types.txt"));
-		if (prod_types) {
+		if(prod_types) {
 			auto content = view_contents(*prod_types);
 			err.file_name = "production_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1353,7 +1353,7 @@ void state::load_scenario_data() {
 			parsers::production_context new_context{context};
 			parsers::parse_production_types_file(gen, err, new_context);
 
-			if (!new_context.found_worker_types) {
+			if(!new_context.found_worker_types) {
 				err.fatal = true;
 				err.accumulated_errors += "Unable to identify factory worker types from production_types.txt\n";
 			}
@@ -1365,16 +1365,16 @@ void state::load_scenario_data() {
 	// read pending rebel types
 	{
 		err.file_name = "rebel_types.txt";
-		for (auto &r : context.map_of_rebeltypes) {
+		for(auto& r : context.map_of_rebeltypes) {
 			parsers::read_pending_rebel_type(r.second.id, r.second.generator_state, err, context);
 		}
 	}
 	// load decisions
 	{
 		auto decisions = open_directory(root, NATIVE("decisions"));
-		for (auto decision_file : list_files(decisions, NATIVE(".txt"))) {
+		for(auto decision_file : list_files(decisions, NATIVE(".txt"))) {
 			auto opened_file = open_file(decision_file);
-			if (opened_file) {
+			if(opened_file) {
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 				auto content = view_contents(*opened_file);
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1386,9 +1386,9 @@ void state::load_scenario_data() {
 	{
 		auto events = open_directory(root, NATIVE("events"));
 		std::vector<simple_fs::file> held_open_files;
-		for (auto event_file : list_files(events, NATIVE(".txt"))) {
+		for(auto event_file : list_files(events, NATIVE(".txt"))) {
 			auto opened_file = open_file(event_file);
-			if (opened_file) {
+			if(opened_file) {
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
 				auto content = view_contents(*opened_file);
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1402,28 +1402,28 @@ void state::load_scenario_data() {
 	// load oob
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
-		for (auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
+		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
 			auto file_name = get_full_name(oob_file);
 
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
 			auto start_of_name = last;
-			for (; start_of_name >= first; --start_of_name) {
-				if (*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
 					++start_of_name;
 					break;
 				}
 			}
-			if (last - start_of_name >= 6 && file_name.ends_with(NATIVE("_oob.txt"))) {
+			if(last - start_of_name >= 6 && file_name.ends_with(NATIVE("_oob.txt"))) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
-				if (auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
-					if (holder) {
+					if(holder) {
 						parsers::oob_file_context new_context{context, holder};
 
 						auto opened_file = open_file(oob_file);
-						if (opened_file) {
+						if(opened_file) {
 							err.file_name = utf8name;
 							auto content = view_contents(*opened_file);
 							parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1443,7 +1443,7 @@ void state::load_scenario_data() {
 		auto diplomacy = open_directory(history, NATIVE("diplomacy"));
 		{
 			auto dip_file = open_file(diplomacy, NATIVE("Alliances.txt"));
-			if (dip_file) {
+			if(dip_file) {
 				auto content = view_contents(*dip_file);
 				err.file_name = "Alliances.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1454,7 +1454,7 @@ void state::load_scenario_data() {
 		}
 		{
 			auto dip_file = open_file(diplomacy, NATIVE("PuppetStates.txt"));
-			if (dip_file) {
+			if(dip_file) {
 				auto content = view_contents(*dip_file);
 				err.file_name = "PuppetStates.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1465,7 +1465,7 @@ void state::load_scenario_data() {
 		}
 		{
 			auto dip_file = open_file(diplomacy, NATIVE("Unions.txt"));
-			if (dip_file) {
+			if(dip_file) {
 				auto content = view_contents(*dip_file);
 				err.file_name = "Unions.txt";
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1482,28 +1482,28 @@ void state::load_scenario_data() {
 	// load country history
 	{
 		auto country_dir = open_directory(history, NATIVE("countries"));
-		for (auto country_file : list_files(country_dir, NATIVE(".txt"))) {
+		for(auto country_file : list_files(country_dir, NATIVE(".txt"))) {
 			auto file_name = get_full_name(country_file);
 
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
 			auto start_of_name = last;
-			for (; start_of_name >= first; --start_of_name) {
-				if (*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
 					++start_of_name;
 					break;
 				}
 			}
-			if (last - start_of_name >= 6) {
+			if(last - start_of_name >= 6) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
-				if (auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 
 					parsers::country_history_context new_context{context, it->second, holder};
 
 					auto opened_file = open_file(country_file);
-					if (opened_file) {
+					if(opened_file) {
 						err.file_name = utf8name;
 						auto content = view_contents(*opened_file);
 						parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -1520,9 +1520,9 @@ void state::load_scenario_data() {
 	// load war history
 	{
 		auto country_dir = open_directory(history, NATIVE("wars"));
-		for (auto war_file : list_files(country_dir, NATIVE(".txt"))) {
+		for(auto war_file : list_files(country_dir, NATIVE(".txt"))) {
 			auto opened_file = open_file(war_file);
-			if (opened_file) {
+			if(opened_file) {
 				parsers::war_history_context new_context{context};
 
 				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
@@ -1541,12 +1541,12 @@ void state::load_scenario_data() {
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{0});
 
 	world.for_each_ideology([&](dcon::ideology_id id) {
-		if (!bool(world.ideology_get_activation_date(id))) {
+		if(!bool(world.ideology_get_activation_date(id))) {
 			world.ideology_set_enabled(id, true);
 		}
 	});
 
-	for (auto n : world.in_nation) {
+	for(auto n : world.in_nation) {
 		n.set_diplomatic_points(1.0f);
 	}
 
@@ -1555,11 +1555,11 @@ void state::load_scenario_data() {
 		bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
 
 		// fix pop types
-		for (auto pop : world.province_get_pop_location(p)) {
-			if (is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
+		for(auto pop : world.province_get_pop_location(p)) {
+			if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
 				pop.get_pop().set_poptype(culture_definitions.laborers);
 			}
-			if (!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
+			if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
 				pop.get_pop().set_poptype(culture_definitions.farmers);
 			}
 		}
@@ -1567,7 +1567,7 @@ void state::load_scenario_data() {
 
 	// add dummy nations for unheld tags
 	world.for_each_national_identity([&](dcon::national_identity_id id) {
-		if (!world.national_identity_get_nation_from_identity_holder(id)) {
+		if(!world.national_identity_get_nation_from_identity_holder(id)) {
 			auto new_nation = world.create_nation();
 			world.try_create_identity_holder(new_nation, id);
 		}
@@ -1580,34 +1580,34 @@ void state::load_scenario_data() {
 		auto frel = fatten(world, id);
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
-		if (prov_a.id.index() < province_definitions.first_sea_province.index() &&
-		    prov_b.id.index() >= province_definitions.first_sea_province.index()) {
+		if(prov_a.id.index() < province_definitions.first_sea_province.index() &&
+		   prov_b.id.index() >= province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
-		} else if (prov_a.id.index() >= province_definitions.first_sea_province.index() &&
-		           prov_b.id.index() < province_definitions.first_sea_province.index()) {
+		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() &&
+		          prov_b.id.index() < province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
 		}
-		if (prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
+		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
 			frel.get_type() |= province::border::state_bit;
 		}
-		if (prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
+		if(prov_a.get_nation_from_province_ownership() != prov_b.get_nation_from_province_ownership()) {
 			frel.get_type() |= province::border::national_bit;
 		}
 	});
 
 	// fill in the terrain type
 
-	for (int32_t i = 0; i < province_definitions.first_sea_province.index(); ++i) {
+	for(int32_t i = 0; i < province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id id{dcon::province_id::value_base_t(i)};
-		if (!world.province_get_terrain(id)) { // don't overwrite if set by the history file
+		if(!world.province_get_terrain(id)) { // don't overwrite if set by the history file
 			auto terrain_type = map_state.map_data.median_terrain_type[province::to_map_id(id)];
-			if (terrain_type < 64) {
+			if(terrain_type < 64) {
 				auto modifier = context.modifier_by_terrain_index[terrain_type];
 				world.province_set_terrain(id, modifier);
 			}
 		}
 	}
-	for (int32_t i = province_definitions.first_sea_province.index(); i < int32_t(world.province_size()); ++i) {
+	for(int32_t i = province_definitions.first_sea_province.index(); i < int32_t(world.province_size()); ++i) {
 		dcon::province_id id{dcon::province_id ::value_base_t(i)};
 		world.province_set_terrain(id, context.ocean_terrain);
 	}
@@ -1620,7 +1620,7 @@ void state::load_scenario_data() {
 	culture::create_initial_ideology_and_issues_distribution(*this);
 	demographics::regenerate_from_pop_data(*this);
 
-	if (err.accumulated_errors.length() > 0)
+	if(err.accumulated_errors.length() > 0)
 		window::emit_error_message(err.accumulated_errors, err.fatal);
 }
 
@@ -1653,32 +1653,32 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	crisis_participants.resize(1000);
 
 	world.for_each_issue([&](dcon::issue_id id) {
-		for (auto &opt : world.issue_get_options(id)) {
-			if (opt) {
+		for(auto& opt : world.issue_get_options(id)) {
+			if(opt) {
 				world.issue_option_set_parent_issue(opt, id);
 			}
 		}
 	});
 	world.for_each_reform([&](dcon::reform_id id) {
-		for (auto &opt : world.reform_get_options(id)) {
-			if (opt) {
+		for(auto& opt : world.reform_get_options(id)) {
+			if(opt) {
 				world.reform_option_set_parent_reform(opt, id);
 			}
 		}
 	});
-	for (auto i : culture_definitions.party_issues) {
+	for(auto i : culture_definitions.party_issues) {
 		world.issue_set_issue_type(i, uint8_t(culture::issue_type::party));
 	}
-	for (auto i : culture_definitions.military_issues) {
+	for(auto i : culture_definitions.military_issues) {
 		world.reform_set_reform_type(i, uint8_t(culture::issue_type::military));
 	}
-	for (auto i : culture_definitions.economic_issues) {
+	for(auto i : culture_definitions.economic_issues) {
 		world.reform_set_reform_type(i, uint8_t(culture::issue_type::economic));
 	}
-	for (auto i : culture_definitions.social_issues) {
+	for(auto i : culture_definitions.social_issues) {
 		world.issue_set_issue_type(i, uint8_t(culture::issue_type::social));
 	}
-	for (auto i : culture_definitions.political_issues) {
+	for(auto i : culture_definitions.political_issues) {
 		world.issue_set_issue_type(i, uint8_t(culture::issue_type::political));
 	}
 
@@ -1713,8 +1713,8 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	nations::update_rankings(*this);
 	nations::update_ui_rankings(*this);
 
-	for (uint32_t i = 0; i < nations_by_rank.size() && i < uint32_t(defines.great_nations_count); ++i) {
-		if (nations_by_rank[i]) {
+	for(uint32_t i = 0; i < nations_by_rank.size() && i < uint32_t(defines.great_nations_count); ++i) {
+		if(nations_by_rank[i]) {
 			great_nations.push_back(great_nation{current_date, nations_by_rank[i]});
 			world.nation_set_is_great_power(nations_by_rank[i], true);
 		}
@@ -1722,33 +1722,33 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	nations::monthly_flashpoint_update(*this);
 
-	if (local_player_nation) {
+	if(local_player_nation) {
 		world.nation_set_is_player_controlled(local_player_nation, true);
 	}
 
 	// reshow pending events, messages, etc
-	for (auto const &e : pending_n_event) {
-		if (e.n == local_player_nation) {
+	for(auto const & e : pending_n_event) {
+		if(e.n == local_player_nation) {
 			new_n_event.push(e);
 		}
 	}
-	for (auto const &e : pending_f_n_event) {
-		if (e.n == local_player_nation) {
+	for(auto const & e : pending_f_n_event) {
+		if(e.n == local_player_nation) {
 			new_f_n_event.push(e);
 		}
 	}
-	for (auto const &e : pending_p_event) {
-		if (world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
+	for(auto const & e : pending_p_event) {
+		if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
 			new_p_event.push(e);
 		}
 	}
-	for (auto const &e : pending_f_p_event) {
-		if (world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
+	for(auto const & e : pending_f_p_event) {
+		if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
 			new_f_p_event.push(e);
 		}
 	}
-	for (auto const &m : pending_messages) {
-		if (m.to == local_player_nation) {
+	for(auto const & m : pending_messages) {
+		if(m.to == local_player_nation) {
 			new_requests.push(m);
 		}
 	}
@@ -1763,9 +1763,9 @@ constexpr inline int32_t game_speed[] = {
 };
 
 void state::game_loop() {
-	while (quit_signaled.load(std::memory_order::acquire) == false) {
+	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		auto speed = actual_game_speed.load(std::memory_order::acquire);
-		if (speed <= 0 || internally_paused == true) {
+		if(speed <= 0 || internally_paused == true) {
 			command::execute_pending_commands(*this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		} else {
@@ -1773,7 +1773,7 @@ void state::game_loop() {
 			auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(entry_time - last_update).count();
 
 			command::execute_pending_commands(*this);
-			if (speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
+			if(speed >= 5 || ms_count >= game_speed[speed]) { /*enough time has passed*/
 				last_update = entry_time;
 
 				// do update logic
@@ -1803,52 +1803,52 @@ void state::game_loop() {
 				// calculate complex changes in parallel where we can, but don't actually apply the results
 				// instead, the changes are saved to be applied only after all triggers have been evaluated
 				concurrency::parallel_for(0, 7, [&](int32_t index) {
-					switch (index) {
+					switch(index) {
 					case 0: {
 						auto o = uint32_t(ymd_date.day);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_ideologies(*this, o, days_in_month, idbuf);
 						break;
 					}
 					case 1: {
 						auto o = uint32_t(ymd_date.day + 1);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_issues(*this, o, days_in_month, isbuf);
 						break;
 					}
 					case 2: {
 						auto o = uint32_t(ymd_date.day + 6);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_type_changes(*this, o, days_in_month, pbuf);
 						break;
 					}
 					case 3: {
 						auto o = uint32_t(ymd_date.day + 7);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_assimilation(*this, o, days_in_month, abuf);
 						break;
 					}
 					case 4: {
 						auto o = uint32_t(ymd_date.day + 8);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_internal_migration(*this, o, days_in_month, mbuf);
 						break;
 					}
 					case 5: {
 						auto o = uint32_t(ymd_date.day + 9);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
 						break;
 					}
 					case 6: {
 						auto o = uint32_t(ymd_date.day + 10);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_immigration(*this, o, days_in_month, imbuf);
 						break;
@@ -1858,45 +1858,45 @@ void state::game_loop() {
 
 				// apply in parallel where we can
 				concurrency::parallel_for(0, 8, [&](int32_t index) {
-					switch (index) {
+					switch(index) {
 					case 0: {
 						auto o = uint32_t(ymd_date.day + 0);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::apply_ideologies(*this, o, days_in_month, idbuf);
 						break;
 					}
 					case 1: {
 						auto o = uint32_t(ymd_date.day + 1);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::apply_issues(*this, o, days_in_month, isbuf);
 						break;
 					}
 					case 2: {
 						auto o = uint32_t(ymd_date.day + 2);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_militancy(*this, o, days_in_month);
 						break;
 					}
 					case 3: {
 						auto o = uint32_t(ymd_date.day + 3);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_consciousness(*this, o, days_in_month);
 						break;
 					}
 					case 4: {
 						auto o = uint32_t(ymd_date.day + 4);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_literacy(*this, o, days_in_month);
 						break;
 					}
 					case 5: {
 						auto o = uint32_t(ymd_date.day + 5);
-						if (o >= days_in_month)
+						if(o >= days_in_month)
 							o -= days_in_month;
 						demographics::update_growth(*this, o, days_in_month);
 						break;
@@ -1917,31 +1917,31 @@ void state::game_loop() {
 				// because they may add pops, these changes must be applied sequentially
 				{
 					auto o = uint32_t(ymd_date.day + 6);
-					if (o >= days_in_month)
+					if(o >= days_in_month)
 						o -= days_in_month;
 					demographics::apply_type_changes(*this, o, days_in_month, pbuf);
 				}
 				{
 					auto o = uint32_t(ymd_date.day + 7);
-					if (o >= days_in_month)
+					if(o >= days_in_month)
 						o -= days_in_month;
 					demographics::apply_assimilation(*this, o, days_in_month, abuf);
 				}
 				{
 					auto o = uint32_t(ymd_date.day + 8);
-					if (o >= days_in_month)
+					if(o >= days_in_month)
 						o -= days_in_month;
 					demographics::apply_internal_migration(*this, o, days_in_month, mbuf);
 				}
 				{
 					auto o = uint32_t(ymd_date.day + 9);
-					if (o >= days_in_month)
+					if(o >= days_in_month)
 						o -= days_in_month;
 					demographics::apply_colonial_migration(*this, o, days_in_month, cmbuf);
 				}
 				{
 					auto o = uint32_t(ymd_date.day + 10);
-					if (o >= days_in_month)
+					if(o >= days_in_month)
 						o -= days_in_month;
 					demographics::apply_immigration(*this, o, days_in_month, imbuf);
 				}
@@ -1953,7 +1953,7 @@ void state::game_loop() {
 
 				// values updates pass 1 (mostly trivial things, can be done in parallel
 				concurrency::parallel_for(0, 12, [&](int32_t index) {
-					switch (index) {
+					switch(index) {
 					case 0:
 						nations::update_administrative_efficiency(*this);
 						break;
@@ -2011,7 +2011,7 @@ void state::game_loop() {
 				politics::update_elections(*this);
 
 				// Once per month updates, spread out over the month
-				switch (ymd_date.day) {
+				switch(ymd_date.day) {
 				case 1:
 					nations::update_monthly_points(*this);
 					break;
@@ -2048,8 +2048,8 @@ void state::game_loop() {
 				}
 
 				// yearly update : redo the upper house
-				if (ymd_date.day == 1 && ymd_date.month == 1) {
-					for (auto n : world.in_nation) {
+				if(ymd_date.day == 1 && ymd_date.month == 1) {
+					for(auto n : world.in_nation) {
 						politics::recalculate_upper_house(*this, n);
 					}
 				}
@@ -2059,9 +2059,9 @@ void state::game_loop() {
 				 */
 
 				player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
-				if ((current_date.value % 16) == 0) {
+				if((current_date.value % 16) == 0) {
 					auto index = economy::most_recent_price_record_index(*this);
-					for (auto c : world.in_commodity) {
+					for(auto c : world.in_commodity) {
 						c.set_price_record(index, c.get_current_price());
 					}
 				}
@@ -2074,13 +2074,13 @@ void state::game_loop() {
 	}
 }
 
-void state::console_log(ui::element_base *base, std::string message, bool open_console) {
-	if (ui_state.console_window != nullptr) {
+void state::console_log(ui::element_base* base, std::string message, bool open_console) {
+	if(ui_state.console_window != nullptr) {
 
 		Cyto::Any payload = std::string(to_string_view(base->base_data.name)) + ": " + std::string(message);
 		ui_state.console_window->impl_get(*this, payload);
 
-		if (open_console && !(ui_state.console_window->is_visible())) {
+		if(open_console && !(ui_state.console_window->is_visible())) {
 			ui_state.root->move_child_to_front(ui_state.console_window);
 			ui_state.console_window->set_visible(*this, true);
 		}

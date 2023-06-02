@@ -6,60 +6,60 @@
 namespace ui {
 
 class unit_selection_close_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent && parent->parent)
 			parent->parent->set_visible(state, false);
 	}
 };
 
-template <class T>
+template<class T>
 class unit_selection_panel : public window_element_base {
 public:
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "unitpanel_bg") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "unitpanel_bg") {
 			return make_element_by_type<draggable_target>(state, id);
-		} else if (name == "leader_prestige_icon") {
+		} else if(name == "leader_prestige_icon") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if (name == "leader_prestige_bar") {
+		} else if(name == "leader_prestige_bar") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if (name == "prestige_bar_frame") {
+		} else if(name == "prestige_bar_frame") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if (name == "unitname") {
+		} else if(name == "unitname") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if (name == "only_unit_from_selection_button") {
+		} else if(name == "only_unit_from_selection_button") {
 			return make_element_by_type<button_element_base>(state, id);
-		} else if (name == "remove_unit_from_selection_button") {
+		} else if(name == "remove_unit_from_selection_button") {
 			return make_element_by_type<unit_selection_close_button>(state, id);
-		} else if (name == "newunitbutton") {
+		} else if(name == "newunitbutton") {
 			return make_element_by_type<button_element_base>(state, id);
-		} else if (name == "splitinhalf") {
+		} else if(name == "splitinhalf") {
 			return make_element_by_type<button_element_base>(state, id);
-		} else if (name == "disbandbutton") {
+		} else if(name == "disbandbutton") {
 			return make_element_by_type<button_element_base>(state, id);
-		} else if (name == "disbandtoosmallbutton") {
+		} else if(name == "disbandtoosmallbutton") {
 			return make_element_by_type<button_element_base>(state, id);
-		} else if (name == "str_bar") {
+		} else if(name == "str_bar") {
 			return make_element_by_type<vertical_progress_bar>(state, id);
-		} else if (name == "org_bar") {
+		} else if(name == "org_bar") {
 			return make_element_by_type<vertical_progress_bar>(state, id);
-		} else if (name == "unitattrition_icon") {
+		} else if(name == "unitattrition_icon") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if (name == "unitattrition") {
+		} else if(name == "unitattrition") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if (name == "unitstrength") {
+		} else if(name == "unitstrength") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if (name == "unitlocation") {
+		} else if(name == "unitlocation") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if (name == "unit_location_button") {
+		} else if(name == "unit_location_button") {
 			return make_element_by_type<button_element_base>(state, id);
-		} else if (name == "unitleader") {
+		} else if(name == "unitleader") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if (name == "leader_button") {
+		} else if(name == "leader_button") {
 			return make_element_by_type<button_element_base>(state, id);
-		} else if (name == "unit_activity") {
+		} else if(name == "unit_activity") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if (name == "leader_photo") {
+		} else if(name == "leader_photo") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else {
 			return nullptr;
@@ -67,13 +67,13 @@ public:
 	}
 };
 
-template <class T, std::size_t N>
+template<class T, std::size_t N>
 class unit_details_type_item : public window_element_base {
 public:
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "unit_icon") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "unit_icon") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
-			if constexpr (std::is_same_v<T, dcon::army_id>) {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				ptr->frame = N;
 			} else {
 				ptr->frame = 3 + N;
@@ -85,11 +85,11 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 class subunit_details_name : public simple_text_element_base {
 public:
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			T content = any_cast<T>(payload);
@@ -99,11 +99,11 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 class subunit_details_type_text : public simple_text_element_base {
 public:
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			T content = any_cast<T>(payload);
@@ -113,11 +113,11 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 class subunit_details_type_icon : public image_element_base {
 public:
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			T content = any_cast<T>(payload);
@@ -127,11 +127,11 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 class subunit_organisation_progress_bar : public vertical_progress_bar {
 public:
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			// TODO: Organisation
@@ -141,11 +141,11 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 class subunit_strength_progress_bar : public vertical_progress_bar {
 public:
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			// TODO: Strength
@@ -157,8 +157,8 @@ public:
 
 class subunit_details_regiment_amount : public simple_text_element_base {
 public:
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::regiment_id{};
 			parent->impl_get(state, payload);
 			dcon::regiment_id content = any_cast<dcon::regiment_id>(payload);
@@ -168,8 +168,8 @@ public:
 };
 class subunit_details_ship_amount : public simple_text_element_base {
 public:
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::ship_id{};
 			parent->impl_get(state, payload);
 			dcon::ship_id content = any_cast<dcon::ship_id>(payload);
@@ -178,56 +178,56 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 class subunit_details_entry : public listbox_row_element_base<T> {
 public:
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "select") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "select") {
 			return make_element_by_type<button_element_base>(state, id);
-		} else if (name == "select_naval") {
+		} else if(name == "select_naval") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if (name == "sunit_icon") {
+		} else if(name == "sunit_icon") {
 			return make_element_by_type<subunit_details_type_icon<T>>(state, id);
-		} else if (name == "subunit_name") {
+		} else if(name == "subunit_name") {
 			return make_element_by_type<subunit_details_name<T>>(state, id);
-		} else if (name == "subunit_type") {
+		} else if(name == "subunit_type") {
 			return make_element_by_type<subunit_details_type_text<T>>(state, id);
-		} else if (name == "subunit_amount") {
-			if constexpr (std::is_same_v<T, dcon::regiment_id>) {
+		} else if(name == "subunit_amount") {
+			if constexpr(std::is_same_v<T, dcon::regiment_id>) {
 				return make_element_by_type<subunit_details_regiment_amount>(state, id);
 			} else {
 				auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 				ptr->set_visible(state, false);
 				return ptr;
 			}
-		} else if (name == "subunit_amount_naval") {
-			if constexpr (std::is_same_v<T, dcon::ship_id>) {
+		} else if(name == "subunit_amount_naval") {
+			if constexpr(std::is_same_v<T, dcon::ship_id>) {
 				return make_element_by_type<subunit_details_ship_amount>(state, id);
 			} else {
 				auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 				ptr->set_visible(state, false);
 				return ptr;
 			}
-		} else if (name == "connected_pop") {
+		} else if(name == "connected_pop") {
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
-		} else if (name == "rebel_faction") {
+		} else if(name == "rebel_faction") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
-		} else if (name == "unit_experience") {
+		} else if(name == "unit_experience") {
 			return make_element_by_type<image_element_base>(state, id);
-		} else if (name == "org_bar") {
+		} else if(name == "org_bar") {
 			return make_element_by_type<subunit_organisation_progress_bar<T>>(state, id);
-		} else if (name == "str_bar") {
+		} else if(name == "str_bar") {
 			return make_element_by_type<subunit_strength_progress_bar<T>>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 
-	void update(sys::state &state) noexcept override {
+	void update(sys::state& state) noexcept override {
 	}
 };
 class unit_details_army_listbox : public listbox_element_base<subunit_details_entry<dcon::regiment_id>, dcon::regiment_id> {
@@ -237,9 +237,9 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if (parent) {
+		if(parent) {
 			Cyto::Any payload = dcon::army_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::army_id>(payload);
@@ -258,9 +258,9 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if (parent) {
+		if(parent) {
 			Cyto::Any payload = dcon::navy_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::navy_id>(payload);
@@ -275,8 +275,8 @@ public:
 
 class unit_details_load_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::army_id{};
 			parent->impl_get(state, payload);
 			// auto content = any_cast<dcon::army_id>(payload);
@@ -285,8 +285,8 @@ public:
 };
 class unit_details_unload_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::army_id{};
 			parent->impl_get(state, payload);
 			// auto content = any_cast<dcon::army_id>(payload);
@@ -295,8 +295,8 @@ public:
 };
 class unit_details_enable_rebel_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::army_id{};
 			parent->impl_get(state, payload);
 			// auto content = any_cast<dcon::army_id>(payload);
@@ -305,8 +305,8 @@ public:
 };
 class unit_details_disable_rebel_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::army_id{};
 			parent->impl_get(state, payload);
 			// auto content = any_cast<dcon::army_id>(payload);
@@ -315,30 +315,30 @@ public:
 };
 class unit_details_select_land_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::navy_id{};
 			parent->impl_get(state, payload);
 			// auto content = any_cast<dcon::navy_id>(payload);
 		}
 	}
 };
-template <class T>
+template<class T>
 class unit_details_attach_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			// auto content = any_cast<T>(payload);
 		}
 	}
 };
-template <class T>
+template<class T>
 class unit_details_detach_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			// auto content = any_cast<T>(payload);
@@ -346,23 +346,23 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 class unit_details_buttons : public window_element_base {
 public:
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "load_button" && std::is_same_v<T, dcon::army_id>) {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "load_button" && std::is_same_v<T, dcon::army_id>) {
 			return make_element_by_type<unit_details_load_button>(state, id);
-		} else if (name == "unload_button" && std::is_same_v<T, dcon::army_id>) {
+		} else if(name == "unload_button" && std::is_same_v<T, dcon::army_id>) {
 			return make_element_by_type<unit_details_unload_button>(state, id);
-		} else if (name == "enable_rebel_button" && std::is_same_v<T, dcon::army_id>) {
+		} else if(name == "enable_rebel_button" && std::is_same_v<T, dcon::army_id>) {
 			return make_element_by_type<unit_details_enable_rebel_button>(state, id);
-		} else if (name == "disable_rebel_button" && std::is_same_v<T, dcon::army_id>) {
+		} else if(name == "disable_rebel_button" && std::is_same_v<T, dcon::army_id>) {
 			return make_element_by_type<unit_details_disable_rebel_button>(state, id);
-		} else if (name == "select_land" && std::is_same_v<T, dcon::navy_id>) {
+		} else if(name == "select_land" && std::is_same_v<T, dcon::navy_id>) {
 			return make_element_by_type<unit_details_select_land_button>(state, id);
-		} else if (name == "attach_unit_button") {
+		} else if(name == "attach_unit_button") {
 			return make_element_by_type<unit_details_attach_button<T>>(state, id);
-		} else if (name == "detach_unit_button") {
+		} else if(name == "detach_unit_button") {
 			return make_element_by_type<unit_details_detach_button<T>>(state, id);
 		} else {
 			return nullptr;
@@ -370,12 +370,12 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 class unit_details_window : public window_element_base {
 	T unit_id{};
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		base_data.position.y = 250;
 
@@ -402,7 +402,7 @@ public:
 		}
 
 		const xy_pair item_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("unittype_item")->second.definition].position;
-		if constexpr (std::is_same_v<T, dcon::army_id>) {
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			auto ptr = make_element_by_type<unit_details_army_listbox>(state, state.ui_state.defs_by_name.find("sup_subunits")->second.definition);
 			ptr->base_data.position.y = base_position.y + item_offset.y + (3 * base_offset.y) + 72 - 32;
 			ptr->base_data.size.y += 32;
@@ -427,19 +427,19 @@ public:
 		}
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "unit_bottom_bg") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "unit_bottom_bg") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<T>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<T>()) {
 			payload.emplace<T>(unit_id);
 			return message_result::consumed;
-		} else if (payload.holds_type<element_selection_wrapper<T>>()) {
+		} else if(payload.holds_type<element_selection_wrapper<T>>()) {
 			unit_id = any_cast<element_selection_wrapper<T>>(payload).data;
 			impl_on_update(state);
 			return message_result::consumed;

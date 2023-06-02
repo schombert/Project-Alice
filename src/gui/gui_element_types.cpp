@@ -23,74 +23,74 @@
 namespace ui {
 
 inline message_result greater_result(message_result a, message_result b) {
-	if (a == message_result::consumed || b == message_result::consumed)
+	if(a == message_result::consumed || b == message_result::consumed)
 		return message_result::consumed;
-	if (a == message_result::seen || b == message_result::seen)
+	if(a == message_result::seen || b == message_result::seen)
 		return message_result::seen;
 	return message_result::unseen;
 }
 
-mouse_probe container_base::impl_probe_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
-	for (auto &c : children) {
-		if (c->is_visible()) {
+mouse_probe container_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
+	for(auto& c : children) {
+		if(c->is_visible()) {
 			auto relative_location = child_relative_location(*this, *c);
 			auto res = c->impl_probe_mouse(state, x - relative_location.x, y - relative_location.y, type);
-			if (res.under_mouse)
+			if(res.under_mouse)
 				return res;
 		}
 	}
 	return element_base::impl_probe_mouse(state, x, y, type);
 }
 
-message_result container_base::impl_on_key_down(sys::state &state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	message_result res = message_result::unseen;
-	for (auto &c : children) {
-		if (c->is_visible()) {
+	for(auto& c : children) {
+		if(c->is_visible()) {
 			res = greater_result(res, c->impl_on_key_down(state, key, mods));
-			if (res == message_result::consumed)
+			if(res == message_result::consumed)
 				return message_result::consumed;
 		}
 	}
 	return greater_result(res, element_base::impl_on_key_down(state, key, mods));
 }
-void container_base::impl_on_update(sys::state &state) noexcept {
-	for (auto &c : children) {
-		if (c->is_visible()) {
+void container_base::impl_on_update(sys::state& state) noexcept {
+	for(auto& c : children) {
+		if(c->is_visible()) {
 			c->impl_on_update(state);
 		}
 	}
 	on_update(state);
 }
-void container_base::impl_on_reset_text(sys::state &state) noexcept {
-	for (auto &c : children) {
+void container_base::impl_on_reset_text(sys::state& state) noexcept {
+	for(auto& c : children) {
 		c->impl_on_reset_text(state);
 	}
 	on_reset_text(state);
 }
-message_result container_base::impl_set(sys::state &state, Cyto::Any &payload) noexcept {
+message_result container_base::impl_set(sys::state& state, Cyto::Any& payload) noexcept {
 	message_result res = message_result::unseen;
-	for (auto &c : children) {
+	for(auto& c : children) {
 		res = greater_result(res, c->impl_set(state, payload));
 	}
 	return greater_result(res, set(state, payload));
 }
 
-void container_base::impl_render(sys::state &state, int32_t x, int32_t y) noexcept {
+void container_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept {
 	element_base::impl_render(state, x, y);
 
-	for (size_t i = children.size(); i-- > 0;) {
-		if (children[i]->is_visible()) {
+	for(size_t i = children.size(); i-- > 0;) {
+		if(children[i]->is_visible()) {
 			auto relative_location = child_relative_location(*this, *(children[i]));
 			children[i]->impl_render(state, x + relative_location.x, y + relative_location.y);
 		}
 	}
 }
 
-std::unique_ptr<element_base> container_base::remove_child(element_base *child) noexcept {
-	if (auto it = std::find_if(children.begin(), children.end(),
-	                           [child](std::unique_ptr<element_base> &p) { return p.get() == child; });
-	    it != children.end()) {
-		if (it + 1 != children.end())
+std::unique_ptr<element_base> container_base::remove_child(element_base* child) noexcept {
+	if(auto it = std::find_if(children.begin(), children.end(),
+	                          [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
+	   it != children.end()) {
+		if(it + 1 != children.end())
 			std::rotate(it, it + 1, children.end());
 		auto temp = std::move(children.back());
 		children.pop_back();
@@ -99,26 +99,26 @@ std::unique_ptr<element_base> container_base::remove_child(element_base *child) 
 	}
 	return std::unique_ptr<element_base>{};
 }
-void container_base::move_child_to_front(element_base *child) noexcept {
-	if (auto it = std::find_if(children.begin(), children.end(),
-	                           [child](std::unique_ptr<element_base> &p) { return p.get() == child; });
-	    it != children.end()) {
-		if (it != children.begin())
+void container_base::move_child_to_front(element_base* child) noexcept {
+	if(auto it = std::find_if(children.begin(), children.end(),
+	                          [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
+	   it != children.end()) {
+		if(it != children.begin())
 			std::rotate(children.begin(), it, it + 1);
 	}
 }
-void container_base::move_child_to_back(element_base *child) noexcept {
-	if (auto it = std::find_if(children.begin(), children.end(),
-	                           [child](std::unique_ptr<element_base> &p) { return p.get() == child; });
-	    it != children.end()) {
-		if (it + 1 != children.end())
+void container_base::move_child_to_back(element_base* child) noexcept {
+	if(auto it = std::find_if(children.begin(), children.end(),
+	                          [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
+	   it != children.end()) {
+		if(it + 1 != children.end())
 			std::rotate(it, it + 1, children.end());
 	}
 }
 void container_base::add_child_to_front(std::unique_ptr<element_base> child) noexcept {
 	child->parent = this;
 	children.emplace_back(std::move(child));
-	if (children.size() > 1) {
+	if(children.size() > 1) {
 		std::rotate(children.begin(), children.end() - 1, children.end());
 	}
 }
@@ -126,29 +126,29 @@ void container_base::add_child_to_back(std::unique_ptr<element_base> child) noex
 	child->parent = this;
 	children.emplace_back(std::move(child));
 }
-element_base *container_base::get_child_by_name(sys::state const &state, std::string_view name) noexcept {
-	if (auto it = std::find_if(children.begin(), children.end(),
-	                           [&state, name](std::unique_ptr<element_base> &p) { return state.to_string_view(p->base_data.name) == name; });
-	    it != children.end()) {
+element_base* container_base::get_child_by_name(sys::state const & state, std::string_view name) noexcept {
+	if(auto it = std::find_if(children.begin(), children.end(),
+	                          [&state, name](std::unique_ptr<element_base>& p) { return state.to_string_view(p->base_data.name) == name; });
+	   it != children.end()) {
 		return it->get();
 	}
 	return nullptr;
 }
-element_base *container_base::get_child_by_index(sys::state const &state, int32_t index) noexcept {
-	if (0 <= index && index < int32_t(children.size()))
+element_base* container_base::get_child_by_index(sys::state const & state, int32_t index) noexcept {
+	if(0 <= index && index < int32_t(children.size()))
 		return children[index].get();
 	return nullptr;
 }
 
 ogl::color_modification get_color_modification(bool is_under_mouse, bool is_disabled, bool is_interactable) {
-	if (!is_under_mouse || !is_interactable) {
-		if (is_disabled) {
+	if(!is_under_mouse || !is_interactable) {
+		if(is_disabled) {
 			return ogl::color_modification::disabled;
 		} else {
 			return ogl::color_modification::none;
 		}
 	} else {
-		if (is_disabled) {
+		if(is_disabled) {
 			return ogl::color_modification::interactable_disabled;
 		} else {
 			return ogl::color_modification::interactable;
@@ -156,25 +156,25 @@ ogl::color_modification get_color_modification(bool is_under_mouse, bool is_disa
 	}
 }
 
-void image_element_base::on_create(sys::state &state) noexcept {
+void image_element_base::on_create(sys::state& state) noexcept {
 	element_base::on_create(state);
-	if (base_data.get_element_type() == element_type::image) {
+	if(base_data.get_element_type() == element_type::image) {
 		frame = base_data.data.image.frame();
 	}
 }
 
-void image_element_base::render(sys::state &state, int32_t x, int32_t y) noexcept {
+void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid;
-	if (base_data.get_element_type() == element_type::image) {
+	if(base_data.get_element_type() == element_type::image) {
 		gid = base_data.data.image.gfx_object;
-	} else if (base_data.get_element_type() == element_type::button) {
+	} else if(base_data.get_element_type() == element_type::button) {
 		gid = base_data.data.button.button_image;
 	}
 	// TODO: More elements defaults?
-	if (gid) {
-		auto &gfx_def = state.ui_defs.gfx[gid];
-		if (gfx_def.primary_texture_handle) {
-			if (gfx_def.get_object_type() == ui::object_type::bordered_rect) {
+	if(gid) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.primary_texture_handle) {
+			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
 				ogl::render_bordered_rect(
 				    state,
 				    get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
@@ -183,7 +183,7 @@ void image_element_base::render(sys::state &state, int32_t x, int32_t y) noexcep
 				    ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 				    base_data.get_rotation(),
 				    gfx_def.is_vertically_flipped());
-			} else if (gfx_def.number_of_frames > 1) {
+			} else if(gfx_def.number_of_frames > 1) {
 				ogl::render_subsprite(
 				    state,
 				    get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
@@ -206,16 +206,16 @@ void image_element_base::render(sys::state &state, int32_t x, int32_t y) noexcep
 	}
 }
 
-void tinted_image_element_base::render(sys::state &state, int32_t x, int32_t y) noexcept {
+void tinted_image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid;
-	if (base_data.get_element_type() == element_type::image) {
+	if(base_data.get_element_type() == element_type::image) {
 		gid = base_data.data.image.gfx_object;
-	} else if (base_data.get_element_type() == element_type::button) {
+	} else if(base_data.get_element_type() == element_type::button) {
 		gid = base_data.data.button.button_image;
 	}
-	if (gid) {
-		auto &gfx_def = state.ui_defs.gfx[gid];
-		if (gfx_def.primary_texture_handle) {
+	if(gid) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.primary_texture_handle) {
 			ogl::render_tinted_textured_rect(
 			    state,
 			    float(x), float(y), float(base_data.size.x), float(base_data.size.y),
@@ -227,13 +227,13 @@ void tinted_image_element_base::render(sys::state &state, int32_t x, int32_t y) 
 	}
 }
 
-void progress_bar::render(sys::state &state, int32_t x, int32_t y) noexcept {
-	if (base_data.get_element_type() == element_type::image) {
+void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(base_data.get_element_type() == element_type::image) {
 		dcon::gfx_object_id gid = base_data.data.image.gfx_object;
-		if (gid) {
-			auto &gfx_def = state.ui_defs.gfx[gid];
+		if(gid) {
+			auto& gfx_def = state.ui_defs.gfx[gid];
 			auto secondary_texture_handle = dcon::texture_id(gfx_def.type_dependent - 1);
-			if (gfx_def.primary_texture_handle) {
+			if(gfx_def.primary_texture_handle) {
 				ogl::render_progress_bar(
 				    state,
 				    get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
@@ -248,13 +248,13 @@ void progress_bar::render(sys::state &state, int32_t x, int32_t y) noexcept {
 	}
 }
 
-void tinted_image_element_base::on_update(sys::state &state) noexcept {
+void tinted_image_element_base::on_update(sys::state& state) noexcept {
 	color = get_tint_color(state);
 }
 
-void button_element_base::render(sys::state &state, int32_t x, int32_t y) noexcept {
+void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	image_element_base::render(state, x, y);
-	if (stored_text.length() > 0) {
+	if(stored_text.length() > 0) {
 
 		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 		auto ycentered = (base_data.size.y - linesz) / 2;
@@ -269,7 +269,7 @@ void button_element_base::render(sys::state &state, int32_t x, int32_t y) noexce
 }
 
 ogl::color3f get_text_color(text::text_color text_color) {
-	switch (text_color) {
+	switch(text_color) {
 	case text::text_color::black:
 	case text::text_color::unspecified:
 		return ogl::color3f{0.0f, 0.0f, 0.0f};
@@ -300,21 +300,21 @@ ogl::color3f get_text_color(text::text_color text_color) {
 	}
 }
 
-void button_element_base::set_button_text(sys::state &state, std::string const &new_text) {
+void button_element_base::set_button_text(sys::state& state, std::string const & new_text) {
 	stored_text = new_text;
 	text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 }
 
-void button_element_base::on_reset_text(sys::state &state) noexcept {
-	if (stored_text.length() > 0) {
+void button_element_base::on_reset_text(sys::state& state) noexcept {
+	if(stored_text.length() > 0) {
 		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 	}
 }
 
-void button_element_base::on_create(sys::state &state) noexcept {
-	if (base_data.get_element_type() == element_type::button) {
+void button_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
 		auto base_text_handle = base_data.data.button.txt;
-		if (base_text_handle) {
+		if(base_text_handle) {
 			stored_text = text::produce_simple_string(state, base_text_handle);
 			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
@@ -322,16 +322,16 @@ void button_element_base::on_create(sys::state &state) noexcept {
 	}
 }
 
-message_result edit_box_element_base::on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	// Set edit control so we get on_text events
 	state.ui_state.edit_target = this;
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 	return message_result::consumed;
 }
 
-void edit_box_element_base::on_text(sys::state &state, char ch) noexcept {
-	if (state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
-		if (ch >= 32) {
+void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
+	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
+		if(ch >= 32) {
 			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
 			edit_index++;
 			set_text(state, s);
@@ -340,11 +340,11 @@ void edit_box_element_base::on_text(sys::state &state, char ch) noexcept {
 	}
 }
 
-message_result edit_box_element_base::on_key_down(sys::state &state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
-	if (state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
+message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
 		// Typable keys are handled by on_text callback, we only handle control keys
 		auto s = std::string(get_text(state));
-		switch (key) {
+		switch(key) {
 		case sys::virtual_key::RETURN:
 			edit_box_enter(state, s);
 			s.clear();
@@ -373,14 +373,14 @@ message_result edit_box_element_base::on_key_down(sys::state &state, sys::virtua
 			edit_index = std::min<int32_t>(edit_index + 1, int32_t(s.length()));
 			break;
 		case sys::virtual_key::DELETE_KEY:
-			if (edit_index < int32_t(s.length())) {
+			if(edit_index < int32_t(s.length())) {
 				s.erase(edit_index, 1);
 				set_text(state, s);
 				edit_box_update(state, s);
 			}
 			break;
 		case sys::virtual_key::BACK:
-			if (edit_index > 0 && edit_index <= int32_t(s.length())) {
+			if(edit_index > 0 && edit_index <= int32_t(s.length())) {
 				s.erase(edit_index - 1, 1);
 				set_text(state, s);
 				edit_index--;
@@ -395,34 +395,34 @@ message_result edit_box_element_base::on_key_down(sys::state &state, sys::virtua
 	return message_result::unseen;
 }
 
-void edit_box_element_base::on_reset_text(sys::state &state) noexcept {
+void edit_box_element_base::on_reset_text(sys::state& state) noexcept {
 }
 
-void edit_box_element_base::on_create(sys::state &state) noexcept {
-	if (base_data.get_element_type() == element_type::button) {
+void edit_box_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
 		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		simple_text_element_base::text_offset = 0.0f;
-	} else if (base_data.get_element_type() == element_type::text) {
+	} else if(base_data.get_element_type() == element_type::text) {
 		;
 		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 		simple_text_element_base::text_offset = base_data.data.text.border_size.x;
 	}
 }
 
-void edit_box_element_base::render(sys::state &state, int32_t x, int32_t y) noexcept {
-	if (base_data.get_element_type() == element_type::text) {
+void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(base_data.get_element_type() == element_type::text) {
 		dcon::texture_id background_texture_id;
-		if ((base_data.data.text.flags & uint8_t(ui::text_background::tiles_dialog)) != 0) {
+		if((base_data.data.text.flags & uint8_t(ui::text_background::tiles_dialog)) != 0) {
 			background_texture_id = definitions::tiles_dialog;
-		} else if ((base_data.data.text.flags & uint8_t(ui::text_background::transparency)) != 0) {
+		} else if((base_data.data.text.flags & uint8_t(ui::text_background::transparency)) != 0) {
 			background_texture_id = definitions::transparency;
-		} else if ((base_data.data.text.flags & uint8_t(ui::text_background::small_tiles_dialog)) != 0) {
+		} else if((base_data.data.text.flags & uint8_t(ui::text_background::small_tiles_dialog)) != 0) {
 			background_texture_id = definitions::small_tiles_dialog;
 		}
 		// TODO: Partial transparency is ignored, might cause issues with "transparency"?
 		// is-vertically-flipped is also ignored, also the border size **might** be
 		// variable/stored somewhere, but I don't know where?
-		if (bool(background_texture_id)) {
+		if(bool(background_texture_id)) {
 			ogl::render_bordered_rect(
 			    state,
 			    ogl::color_modification::none,
@@ -443,7 +443,7 @@ void edit_box_element_base::render(sys::state &state, int32_t x, int32_t y) noex
 	set_text(state, old_s);
 }
 
-void tool_tip::render(sys::state &state, int32_t x, int32_t y) noexcept {
+void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	ogl::render_bordered_rect(
 	    state,
 	    ogl::color_modification::none,
@@ -453,7 +453,7 @@ void tool_tip::render(sys::state &state, int32_t x, int32_t y) noexcept {
 	    ui::rotation::upright,
 	    false);
 	auto black_text = text::is_black_from_font_id(state.ui_state.tooltip_font);
-	for (auto &t : internal_layout.contents) {
+	for(auto& t : internal_layout.contents) {
 		ogl::render_text(
 		    state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()),
 		    ogl::color_modification::none,
@@ -463,18 +463,18 @@ void tool_tip::render(sys::state &state, int32_t x, int32_t y) noexcept {
 	}
 }
 
-void line_graph::set_data_points(sys::state &state, std::vector<float> const &datapoints) noexcept {
+void line_graph::set_data_points(sys::state& state, std::vector<float> const & datapoints) noexcept {
 	assert(datapoints.size() == count);
 	float min = *std::min_element(datapoints.begin(), datapoints.end());
 	float max = *std::max_element(datapoints.begin(), datapoints.end());
 	float y_height = max - min;
 	std::vector<float> scaled_datapoints = std::vector<float>(count);
-	if (y_height == 0.f) {
-		for (size_t i = 0; i < count; i++) {
+	if(y_height == 0.f) {
+		for(size_t i = 0; i < count; i++) {
 			scaled_datapoints[i] = .5f;
 		}
 	} else {
-		for (size_t i = 0; i < count; i++) {
+		for(size_t i = 0; i < count; i++) {
 			scaled_datapoints[i] = (datapoints[i] - min) / y_height;
 		}
 	}
@@ -493,11 +493,11 @@ void line_graph::set_data_points(sys::state &state, std::vector<float> const &da
 	}
 }
 
-void line_graph::on_create(sys::state &state) noexcept {
+void line_graph::on_create(sys::state& state) noexcept {
 	element_base::on_create(state);
 }
 
-void line_graph::render(sys::state &state, int32_t x, int32_t y) noexcept {
+void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	ogl::render_linegraph(
 	    state,
 	    ogl::color_modification::none,
@@ -505,21 +505,21 @@ void line_graph::render(sys::state &state, int32_t x, int32_t y) noexcept {
 	    lines);
 }
 
-void simple_text_element_base::set_text(sys::state &state, std::string const &new_text) {
+void simple_text_element_base::set_text(sys::state& state, std::string const & new_text) {
 	stored_text = new_text;
 	on_reset_text(state);
 }
 
-void simple_text_element_base::on_reset_text(sys::state &state) noexcept {
-	if (stored_text.length() == 0)
+void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
+	if(stored_text.length() == 0)
 		return;
 	float extent = 0.f;
-	if (base_data.get_element_type() == element_type::button) {
+	if(base_data.get_element_type() == element_type::button) {
 		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle);
-	} else if (base_data.get_element_type() == element_type::text) {
+	} else if(base_data.get_element_type() == element_type::text) {
 		extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle);
 	}
-	if (int16_t(extent) > base_data.size.x) {
+	if(int16_t(extent) > base_data.size.x) {
 		// You could improve logic for ... by figuring out the width of ... and when there isn't enough room for all the text, figuring out how much can fit exactly in the width minus the width of ... and then appending ... (rather than figuring out how much fits in the space and subtracting 3 characters, which is what happens now)
 		auto width_of_ellipsis = state.font_collection.text_extent(state, "\x85", uint32_t(1), base_data.data.text.font_handle);
 
@@ -529,8 +529,8 @@ void simple_text_element_base::on_reset_text(sys::state &state) noexcept {
 		stored_text = stored_text.substr(0, std::max(stored_text.length() - extra_chars, size_t(0)));
 		stored_text += "\x85";
 	}
-	if (base_data.get_element_type() == element_type::button) {
-		switch (base_data.data.button.get_alignment()) {
+	if(base_data.get_element_type() == element_type::button) {
+		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
 		case alignment::justified:
 			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
@@ -542,8 +542,8 @@ void simple_text_element_base::on_reset_text(sys::state &state) noexcept {
 			text_offset = 0.0f;
 			break;
 		}
-	} else if (base_data.get_element_type() == element_type::text) {
-		switch (base_data.data.button.get_alignment()) {
+	} else if(base_data.get_element_type() == element_type::text) {
+		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
 		case alignment::justified:
 			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.text.font_handle) - base_data.data.text.border_size.x) / 2.0f;
@@ -557,18 +557,18 @@ void simple_text_element_base::on_reset_text(sys::state &state) noexcept {
 		}
 	}
 }
-void simple_text_element_base::on_create(sys::state &state) noexcept {
-	if (base_data.get_element_type() == element_type::button) {
+void simple_text_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
 		set_text(state, text::produce_simple_string(state, base_data.data.button.txt));
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-	} else if (base_data.get_element_type() == element_type::text) {
+	} else if(base_data.get_element_type() == element_type::text) {
 		set_text(state, text::produce_simple_string(state, base_data.data.text.txt));
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 	}
 }
-void simple_text_element_base::render(sys::state &state, int32_t x, int32_t y) noexcept {
-	if (stored_text.length() > 0) {
-		if (base_data.get_element_type() == element_type::text) {
+void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(stored_text.length() > 0) {
+		if(base_data.get_element_type() == element_type::text) {
 			// auto linesz = state.font_collection.fonts[font_id - 1].line_height(font_size);
 			// auto ycentered = (base_data.size.y - base_data.data.text.border_size.y - linesz) / 2;
 			// ycentered = std::max(ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size), float(base_data.data.text.border_size.y));
@@ -592,19 +592,19 @@ void simple_text_element_base::render(sys::state &state, int32_t x, int32_t y) n
 	}
 }
 
-void multiline_text_element_base::on_create(sys::state &state) noexcept {
-	if (base_data.get_element_type() == element_type::text) {
+void multiline_text_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::text) {
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 		line_height = state.font_collection.line_height(state, base_data.data.text.font_handle);
 		visible_lines = base_data.size.y / int32_t(line_height);
 	}
 }
 
-void multiline_text_element_base::render(sys::state &state, int32_t x, int32_t y) noexcept {
-	if (base_data.get_element_type() == element_type::text) {
-		for (auto &t : internal_layout.contents) {
+void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(base_data.get_element_type() == element_type::text) {
+		for(auto& t : internal_layout.contents) {
 			float line_offset = t.y - line_height * float(current_line);
-			if (0 <= line_offset && line_offset < base_data.size.y) {
+			if(0 <= line_offset && line_offset < base_data.size.y) {
 				ogl::render_text(
 				    state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()),
 				    ogl::color_modification::none,
@@ -616,28 +616,28 @@ void multiline_text_element_base::render(sys::state &state, int32_t x, int32_t y
 	}
 }
 
-void make_size_from_graphics(sys::state &state, ui::element_data &dat) {
-	if (dat.size.x == 0 || dat.size.y == 0) {
+void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
+	if(dat.size.x == 0 || dat.size.y == 0) {
 		dcon::gfx_object_id gfx_handle;
 		float scale = 1.0f;
-		if (dat.get_element_type() == ui::element_type::image) {
+		if(dat.get_element_type() == ui::element_type::image) {
 			gfx_handle = dat.data.image.gfx_object;
 			scale = dat.data.image.scale;
-		} else if (dat.get_element_type() == ui::element_type::button) {
+		} else if(dat.get_element_type() == ui::element_type::button) {
 			gfx_handle = dat.data.button.button_image;
 		}
-		if (gfx_handle) {
-			if (state.ui_defs.gfx[gfx_handle].size.x != 0) {
+		if(gfx_handle) {
+			if(state.ui_defs.gfx[gfx_handle].size.x != 0) {
 				dat.size = state.ui_defs.gfx[gfx_handle].size;
 			} else {
 				auto tex_handle = state.ui_defs.gfx[gfx_handle].primary_texture_handle;
-				if (tex_handle) {
+				if(tex_handle) {
 					ogl::get_texture_handle(state, tex_handle, state.ui_defs.gfx[gfx_handle].is_partially_transparent());
 					dat.size.y = int16_t(state.open_gl.asset_textures[tex_handle].size_y);
 					dat.size.x = int16_t(state.open_gl.asset_textures[tex_handle].size_x / state.ui_defs.gfx[gfx_handle].number_of_frames);
 				}
 			}
-			if (scale != 1.0f) {
+			if(scale != 1.0f) {
 				dat.size.x = int16_t(dat.size.x * dat.data.image.scale);
 				dat.size.y = int16_t(dat.size.y * dat.data.image.scale);
 			}
@@ -645,12 +645,12 @@ void make_size_from_graphics(sys::state &state, ui::element_data &dat) {
 	}
 }
 
-std::unique_ptr<element_base> make_element(sys::state &state, std::string_view name) {
+std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name) {
 	auto it = state.ui_state.defs_by_name.find(name);
-	if (it != state.ui_state.defs_by_name.end()) {
-		if (it->second.generator) {
+	if(it != state.ui_state.defs_by_name.end()) {
+		if(it->second.generator) {
 			auto res = it->second.generator(state, it->second.definition);
-			if (res) {
+			if(res) {
 				std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.definition]), sizeof(ui::element_data));
 				make_size_from_graphics(state, res->base_data);
 				res->on_create(state);
@@ -670,33 +670,33 @@ state::state() {
 	tooltip->flags |= element_base::is_invisible_mask;
 }
 
-void window_element_base::on_create(sys::state &state) noexcept {
-	if (base_data.get_element_type() == element_type::window) {
+void window_element_base::on_create(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::window) {
 		auto first_child = base_data.data.window.first_child;
 		auto num_children = base_data.data.window.num_children;
-		for (uint32_t i = num_children; i-- > 0;) {
+		for(uint32_t i = num_children; i-- > 0;) {
 			auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i + first_child.index()));
 			auto ch_res = make_child(state, state.to_string_view(state.ui_defs.gui[child_tag].name), child_tag);
-			if (!ch_res) {
+			if(!ch_res) {
 				ch_res = ui::make_element_immediate(state, child_tag);
 			}
-			if (ch_res) {
+			if(ch_res) {
 				this->add_child_to_back(std::move(ch_res));
 			}
 		}
 	}
 }
 
-void window_element_base::on_drag(sys::state &state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	auto location_abs = get_absolute_location(*this);
-	if (location_abs.x <= oldx && oldx < base_data.size.x + location_abs.x && location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y) {
+	if(location_abs.x <= oldx && oldx < base_data.size.x + location_abs.x && location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y) {
 		xy_pair new_abs_pos = location_abs;
 		new_abs_pos.x += int16_t(x - oldx);
 		new_abs_pos.y += int16_t(y - oldy);
 
-		if (ui_width(state) > base_data.size.x)
+		if(ui_width(state) > base_data.size.x)
 			new_abs_pos.x = int16_t(std::clamp(int32_t(new_abs_pos.x), 0, ui_width(state) - base_data.size.x));
-		if (ui_height(state) > base_data.size.y)
+		if(ui_height(state) > base_data.size.y)
 			new_abs_pos.y = int16_t(std::clamp(int32_t(new_abs_pos.y), 0, ui_height(state) - base_data.size.y));
 
 		base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
@@ -704,15 +704,15 @@ void window_element_base::on_drag(sys::state &state, int32_t oldx, int32_t oldy,
 	}
 }
 
-void piechart_element_base::generate_data_texture(sys::state &state, std::vector<uint8_t> &colors) {
-	if (!colors.empty()) {
+void piechart_element_base::generate_data_texture(sys::state& state, std::vector<uint8_t>& colors) {
+	if(!colors.empty()) {
 		memcpy(data_texture.data, colors.data(), resolution * channels);
 		data_texture.data_updated = true;
 	}
 }
 
-void piechart_element_base::render(sys::state &state, int32_t x, int32_t y) noexcept {
-	if (enabled) {
+void piechart_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(enabled) {
 		ogl::render_piechart(
 		    state,
 		    ogl::color_modification::none,
@@ -721,8 +721,8 @@ void piechart_element_base::render(sys::state &state, int32_t x, int32_t y) noex
 	}
 }
 
-template <class T>
-void piechart<T>::on_create(sys::state &state) noexcept {
+template<class T>
+void piechart<T>::on_create(sys::state& state) noexcept {
 	base_data.position.x -= base_data.size.x;
 	radius = float(base_data.size.x);
 	base_data.size.x *= 2;
@@ -730,31 +730,31 @@ void piechart<T>::on_create(sys::state &state) noexcept {
 	on_update(state);
 }
 
-template <class T>
-void piechart<T>::on_update(sys::state &state) noexcept {
+template<class T>
+void piechart<T>::on_update(sys::state& state) noexcept {
 	get_distribution(state).swap(distribution);
 
 	std::vector<uint8_t> colors = std::vector<uint8_t>(resolution * channels);
 	T last_t{};
 	size_t i = 0;
-	for (auto &[index, quant] : distribution) {
+	for(auto& [index, quant] : distribution) {
 		T t(index);
 		uint32_t color = ogl::get_ui_color<T>(state, t);
 		auto slice_count = std::min(size_t(quant * resolution), resolution - i);
-		for (size_t j = 0; j < slice_count; j++) {
+		for(size_t j = 0; j < slice_count; j++) {
 			spread[j + i] = t;
 			colors[(j + i) * channels] = uint8_t(color & 0xFF);
 			colors[(j + i) * channels + 1] = uint8_t(color >> 8 & 0xFF);
 			colors[(j + i) * channels + 2] = uint8_t(color >> 16 & 0xFF);
 			assert((j + i) * channels + 1 < colors.size() && "Exceeded 100% total for piechart");
 		}
-		if (slice_count) {
+		if(slice_count) {
 			i += slice_count;
 			last_t = t;
 		}
 	}
 	uint32_t last_color = ogl::get_ui_color(state, last_t);
-	for (; i < resolution; i++) {
+	for(; i < resolution; i++) {
 		spread[i] = last_t;
 		colors[i * channels] = uint8_t(last_color & 0xFF);
 		colors[i * channels + 1] = uint8_t(last_color >> 8 & 0xFF);
@@ -764,16 +764,16 @@ void piechart<T>::on_update(sys::state &state) noexcept {
 	generate_data_texture(state, colors);
 }
 
-template <class T>
-void piechart<T>::update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept {
+template<class T>
+void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	const float PI = 3.141592653589793238463f;
 	float dx = float(x) - radius;
 	float dy = float(y) - radius;
 	size_t index = 0;
-	if (dx || dy) {
+	if(dx || dy) {
 		float dist = std::sqrt(dx * dx + dy * dy);
 		float angle = std::acos(-dx / dist);
-		if (dy > 0.f) {
+		if(dy > 0.f) {
 			angle = PI + (PI - angle);
 		}
 		index = size_t(angle / (2.f * PI) * float(resolution));
@@ -783,8 +783,8 @@ void piechart<T>::update_tooltip(sys::state &state, int32_t x, int32_t y, text::
 	populate_tooltip(state, t, percentage, contents);
 }
 
-template <class T>
-void piechart<T>::populate_tooltip(sys::state &state, T t, float percentage, text::columnar_layout &contents) noexcept {
+template<class T>
+void piechart<T>::populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept {
 	auto fat_t = dcon::fatten(state.world, t);
 	auto box = text::open_layout_box(contents, 0);
 	text::add_to_layout_box(contents, state, box, fat_t.get_name(), text::substitution_map{});
@@ -794,41 +794,41 @@ void piechart<T>::populate_tooltip(sys::state &state, T t, float percentage, tex
 	text::close_layout_box(contents, box);
 }
 
-template <class SrcT, class DemoT>
-std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(sys::state &state) noexcept {
+template<class SrcT, class DemoT>
+std::unordered_map<typename DemoT::value_base_t, float> demographic_piechart<SrcT, DemoT>::get_distribution(sys::state& state) noexcept {
 	std::unordered_map<typename DemoT::value_base_t, float> distrib;
 	Cyto::Any obj_id_payload = SrcT{};
 	size_t i = 0;
-	if (this->parent) {
+	if(this->parent) {
 		this->parent->impl_get(state, obj_id_payload);
 		float total_pops = 0.f;
-		if (obj_id_payload.holds_type<dcon::province_id>()) {
+		if(obj_id_payload.holds_type<dcon::province_id>()) {
 			auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
 			total_pops = state.world.province_get_demographics(prov_id, demographics::total);
-		} else if (obj_id_payload.holds_type<dcon::nation_id>()) {
+		} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
 			auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 			total_pops = state.world.nation_get_demographics(nat_id, demographics::total);
-		} else if (obj_id_payload.holds_type<dcon::pop_id>()) {
+		} else if(obj_id_payload.holds_type<dcon::pop_id>()) {
 			auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
 			total_pops = 1.f;
 		}
 
-		if (total_pops <= 0.f)
+		if(total_pops <= 0.f)
 			return distrib;
 		for_each_demo(state, [&](DemoT demo_id) {
 			float volume = 0.f;
-			if (obj_id_payload.holds_type<dcon::province_id>()) {
+			if(obj_id_payload.holds_type<dcon::province_id>()) {
 				auto demo_key = demographics::to_key(state, demo_id);
 				auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
 				volume = state.world.province_get_demographics(prov_id, demo_key);
-			} else if (obj_id_payload.holds_type<dcon::nation_id>()) {
+			} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
 				auto demo_key = demographics::to_key(state, demo_id);
 				auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
 				volume = state.world.nation_get_demographics(nat_id, demo_key);
 			}
 
-			if constexpr (std::is_same_v<SrcT, dcon::pop_id>) {
-				if (obj_id_payload.holds_type<dcon::pop_id>()) {
+			if constexpr(std::is_same_v<SrcT, dcon::pop_id>) {
+				if(obj_id_payload.holds_type<dcon::pop_id>()) {
 					auto demo_key = pop_demographics::to_key(state, demo_id);
 					auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
 					volume = state.world.pop_get_demographics(pop_id, demo_key);
@@ -857,12 +857,12 @@ void autoscaling_scrollbar::scale_to_parent() {
 	right->step_size = -settings.scaling_factor;
 }
 
-void multiline_text_scrollbar::on_value_change(sys::state &state, int32_t v) noexcept {
+void multiline_text_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
 	Cyto::Any payload = multiline_text_scroll_event{int32_t(scaled_value())};
 	impl_get(state, payload);
 }
 
-void scrollable_text::on_create(sys::state &state) noexcept {
+void scrollable_text::on_create(sys::state& state) noexcept {
 	auto res = std::make_unique<multiline_text_element_base>();
 	std::memcpy(&(res->base_data), &(base_data), sizeof(ui::element_data));
 	make_size_from_graphics(state, res->base_data);
@@ -873,13 +873,13 @@ void scrollable_text::on_create(sys::state &state) noexcept {
 	add_child_to_front(std::move(res));
 
 	auto ptr = make_element_by_type<multiline_text_scrollbar>(state, "standardlistbox_slider");
-	text_scrollbar = static_cast<multiline_text_scrollbar *>(ptr.get());
+	text_scrollbar = static_cast<multiline_text_scrollbar*>(ptr.get());
 	add_child_to_front(std::move(ptr));
 	text_scrollbar->scale_to_parent();
 }
 
-void scrollable_text::calibrate_scrollbar(sys::state &state) noexcept {
-	if (delegate->internal_layout.number_of_lines > delegate->visible_lines) {
+void scrollable_text::calibrate_scrollbar(sys::state& state) noexcept {
+	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
 		text_scrollbar->set_visible(state, true);
 		text_scrollbar->change_settings(state, mutable_scrollbar_settings{
 		                                           0, delegate->internal_layout.number_of_lines - delegate->visible_lines, 0, 0, false});
@@ -889,8 +889,8 @@ void scrollable_text::calibrate_scrollbar(sys::state &state) noexcept {
 	}
 }
 
-message_result scrollable_text::on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	if (delegate->internal_layout.number_of_lines > delegate->visible_lines) {
+message_result scrollable_text::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	if(delegate->internal_layout.number_of_lines > delegate->visible_lines) {
 		text_scrollbar->update_scaled_value(state, text_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
 		delegate->current_line = int32_t(text_scrollbar->scaled_value());
 		return message_result::consumed;
@@ -899,8 +899,8 @@ message_result scrollable_text::on_scroll(sys::state &state, int32_t x, int32_t 
 	}
 }
 
-message_result scrollable_text::get(sys::state &state, Cyto::Any &payload) noexcept {
-	if (payload.holds_type<multiline_text_scroll_event>()) {
+message_result scrollable_text::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<multiline_text_scroll_event>()) {
 		auto event = any_cast<multiline_text_scroll_event>(payload);
 		delegate->current_line = event.new_value;
 		return message_result::consumed;
@@ -909,17 +909,17 @@ message_result scrollable_text::get(sys::state &state, Cyto::Any &payload) noexc
 	}
 }
 
-template <class RowWinT, class RowConT>
-void standard_listbox_scrollbar<RowWinT, RowConT>::on_value_change(sys::state &state, int32_t v) noexcept {
-	static_cast<listbox_element_base<RowWinT, RowConT> *>(parent)->update(state);
+template<class RowWinT, class RowConT>
+void standard_listbox_scrollbar<RowWinT, RowConT>::on_value_change(sys::state& state, int32_t v) noexcept {
+	static_cast<listbox_element_base<RowWinT, RowConT>*>(parent)->update(state);
 }
 
-template <class RowConT>
-message_result listbox_row_element_base<RowConT>::get(sys::state &state, Cyto::Any &payload) noexcept {
-	if (payload.holds_type<RowConT>()) {
+template<class RowConT>
+message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<RowConT>()) {
 		payload.emplace<RowConT>(content);
 		return message_result::consumed;
-	} else if (payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
+	} else if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
 		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
 		update(state);
 		return message_result::consumed;
@@ -927,17 +927,17 @@ message_result listbox_row_element_base<RowConT>::get(sys::state &state, Cyto::A
 	return message_result::unseen;
 }
 
-template <class RowConT>
-message_result listbox_row_element_base<RowConT>::on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+template<class RowConT>
+message_result listbox_row_element_base<RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	return parent->impl_on_scroll(state, x, y, amount, mods);
 }
 
-template <class RowConT>
-message_result listbox_row_button_base<RowConT>::get(sys::state &state, Cyto::Any &payload) noexcept {
-	if (payload.holds_type<RowConT>()) {
+template<class RowConT>
+message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<RowConT>()) {
 		payload.emplace<RowConT>(content);
 		return message_result::consumed;
-	} else if (payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
+	} else if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
 		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
 		update(state);
 		return message_result::consumed;
@@ -945,16 +945,16 @@ message_result listbox_row_button_base<RowConT>::get(sys::state &state, Cyto::An
 	return message_result::unseen;
 }
 
-template <class RowConT>
-message_result listbox_row_button_base<RowConT>::on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+template<class RowConT>
+message_result listbox_row_button_base<RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	return parent->impl_on_scroll(state, x, y, amount, mods);
 }
 
-template <class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::update(sys::state &state) {
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 	auto content_off_screen = int32_t(row_contents.size() - row_windows.size());
 	int32_t scroll_pos = int32_t(list_scrollbar->scaled_value());
-	if (content_off_screen <= 0) {
+	if(content_off_screen <= 0) {
 		list_scrollbar->set_visible(state, false);
 		scroll_pos = 0;
 	} else {
@@ -963,10 +963,10 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state &state) {
 		list_scrollbar->set_visible(state, true);
 	}
 
-	if (is_reversed()) {
+	if(is_reversed()) {
 		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
-		for (size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
-			if (i >= 0) {
+		for(size_t rw_i = row_windows.size() - 1; rw_i > 0; rw_i--) {
+			if(i >= 0) {
 				row_windows[rw_i]->set_visible(state, true);
 				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{row_contents[i--]};
 				row_windows[rw_i]->impl_get(state, payload);
@@ -977,8 +977,8 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state &state) {
 		}
 	} else {
 		auto i = size_t(scroll_pos);
-		for (RowWinT *row_window : row_windows) {
-			if (i < row_contents.size()) {
+		for(RowWinT* row_window : row_windows) {
+			if(i < row_contents.size()) {
 				row_window->set_visible(state, true);
 				Cyto::Any payload = wrapped_listbox_row_content<RowConT>{row_contents[i++]};
 				row_window->impl_get(state, payload);
@@ -990,22 +990,22 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state &state) {
 	}
 }
 
-template <class RowWinT, class RowConT>
-message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state &state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	if (row_contents.size() > row_windows.size()) {
+template<class RowWinT, class RowConT>
+message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	if(row_contents.size() > row_windows.size()) {
 		list_scrollbar->update_scaled_value(state, list_scrollbar->scaled_value() + std::clamp(-amount, -1.f, 1.f));
 		update(state);
 	}
 	return message_result::consumed;
 }
 
-template <class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::on_create(sys::state &state) noexcept {
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::on_create(sys::state& state) noexcept {
 	int16_t current_y = 0;
 	int16_t subwindow_y_size = 0;
-	while (current_y + subwindow_y_size <= base_data.size.y) {
+	while(current_y + subwindow_y_size <= base_data.size.y) {
 		auto ptr = make_element_by_type<RowWinT>(state, get_row_element_name());
-		row_windows.push_back(static_cast<RowWinT *>(ptr.get()));
+		row_windows.push_back(static_cast<RowWinT*>(ptr.get()));
 		int16_t offset = ptr->base_data.position.y;
 		ptr->base_data.position.y += current_y;
 		subwindow_y_size = ptr->base_data.size.y;
@@ -1013,20 +1013,20 @@ void listbox_element_base<RowWinT, RowConT>::on_create(sys::state &state) noexce
 		add_child_to_front(std::move(ptr));
 	}
 	auto ptr = make_element_by_type<standard_listbox_scrollbar<RowWinT, RowConT>>(state, "standardlistbox_slider");
-	list_scrollbar = static_cast<standard_listbox_scrollbar<RowWinT, RowConT> *>(ptr.get());
+	list_scrollbar = static_cast<standard_listbox_scrollbar<RowWinT, RowConT>*>(ptr.get());
 	add_child_to_front(std::move(ptr));
 	list_scrollbar->scale_to_parent();
 
 	update(state);
 }
 
-template <class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::render(sys::state &state, int32_t x, int32_t y) noexcept {
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid = base_data.data.list_box.background_image;
-	if (gid) {
-		auto &gfx_def = state.ui_defs.gfx[gid];
-		if (gfx_def.primary_texture_handle) {
-			if (gfx_def.get_object_type() == ui::object_type::bordered_rect) {
+	if(gid) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.primary_texture_handle) {
+			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
 				ogl::render_bordered_rect(
 				    state,
 				    get_color_modification(false, false, true),
@@ -1048,30 +1048,30 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state &state, int32_t x
 	}
 	container_base::render(state, x, y);
 }
-template <class ItemWinT, class ItemConT>
-void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state &state) {
+template<class ItemWinT, class ItemConT>
+void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& state) {
 	auto spacing = int16_t(base_data.data.overlapping.spacing);
-	if (base_data.get_element_type() == element_type::overlapping) {
-		while (row_contents.size() > windows.size()) {
+	if(base_data.get_element_type() == element_type::overlapping) {
+		while(row_contents.size() > windows.size()) {
 			auto ptr = make_element_by_type<ItemWinT>(state, get_row_element_name());
-			if (subwindow_width <= 0) {
+			if(subwindow_width <= 0) {
 				subwindow_width = ptr->base_data.size.x;
 			}
-			windows.push_back(static_cast<ItemWinT *>(ptr.get()));
+			windows.push_back(static_cast<ItemWinT*>(ptr.get()));
 			add_child_to_front(std::move(ptr));
 		}
 
 		float size_ratio = float(row_contents.size() * (subwindow_width + spacing)) / float(base_data.size.x);
 		int16_t offset = spacing + subwindow_width;
-		if (size_ratio > 1.f) {
+		if(size_ratio > 1.f) {
 			offset = int16_t(float(subwindow_width) / size_ratio);
 		}
 		int16_t current_x = 0;
-		if (base_data.data.overlapping.image_alignment == alignment::right) {
+		if(base_data.data.overlapping.image_alignment == alignment::right) {
 			current_x = base_data.size.x - subwindow_width - offset * int16_t(row_contents.size() - 1);
 		}
-		for (size_t i = 0; i < windows.size(); i++) {
-			if (i < row_contents.size()) {
+		for(size_t i = 0; i < windows.size(); i++) {
+			if(i < row_contents.size()) {
 				update_subwindow(state, *windows[i], row_contents[i]);
 				windows[i]->base_data.position.x = current_x;
 				current_x += offset;
@@ -1083,12 +1083,12 @@ void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state &st
 	}
 }
 
-void overlapping_flags_box::on_update(sys::state &state) noexcept {
+void overlapping_flags_box::on_update(sys::state& state) noexcept {
 	populate_flags(state);
 }
 
-message_result overlapping_flags_box::set(sys::state &state, Cyto::Any &payload) noexcept {
-	if (payload.holds_type<dcon::nation_id>()) {
+message_result overlapping_flags_box::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<dcon::nation_id>()) {
 		current_nation = any_cast<dcon::nation_id>(payload);
 		populate_flags(state);
 		return message_result::consumed;
@@ -1097,21 +1097,21 @@ message_result overlapping_flags_box::set(sys::state &state, Cyto::Any &payload)
 	}
 }
 
-void overlapping_sphere_flags::populate_flags(sys::state &state) {
-	if (bool(current_nation)) {
+void overlapping_sphere_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
 		row_contents.clear();
 		int32_t sphereling_count = 0; // this is a hack that's only getting used because checking if a nation is a GP doesn't work yet.
 		state.world.for_each_nation([&](dcon::nation_id other) {
 			auto other_fat = dcon::fatten(state.world, other);
-			if (other_fat.get_in_sphere_of().id == current_nation) {
+			if(other_fat.get_in_sphere_of().id == current_nation) {
 				row_contents.push_back(other_fat.get_identity_from_identity_holder().id);
 				sphereling_count++;
 			}
 		});
-		if (sphereling_count <= 0) {
+		if(sphereling_count <= 0) {
 			auto fat_id = dcon::fatten(state.world, current_nation);
 			auto sphere_lord = fat_id.get_in_sphere_of();
-			if (sphere_lord.id) {
+			if(sphere_lord.id) {
 				row_contents.push_back(sphere_lord.get_identity_from_identity_holder().id);
 			}
 		}
@@ -1119,16 +1119,16 @@ void overlapping_sphere_flags::populate_flags(sys::state &state) {
 	}
 }
 
-void overlapping_puppet_flags::populate_flags(sys::state &state) {
-	if (bool(current_nation)) {
+void overlapping_puppet_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
 		row_contents.clear();
 		auto fat_id = dcon::fatten(state.world, current_nation);
 		auto overlord = state.world.nation_get_overlord_as_subject(current_nation);
 		auto overlord_nation = dcon::fatten(state.world, overlord).get_ruler();
-		if (bool(overlord_nation)) {
+		if(bool(overlord_nation)) {
 			row_contents.push_back(overlord_nation.get_identity_from_identity_holder().id);
 		} else {
-			for (auto puppet : state.world.nation_get_overlord_as_ruler(current_nation)) {
+			for(auto puppet : state.world.nation_get_overlord_as_ruler(current_nation)) {
 				row_contents.push_back(puppet.get_subject().get_identity_from_identity_holder().id);
 			}
 		}
@@ -1136,11 +1136,11 @@ void overlapping_puppet_flags::populate_flags(sys::state &state) {
 	}
 }
 
-void overlapping_ally_flags::populate_flags(sys::state &state) {
-	if (bool(current_nation)) {
+void overlapping_ally_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
 		row_contents.clear();
-		for (auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
-			if (rel.get_are_allied()) {
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_are_allied()) {
 				auto ally = nations::get_relationship_partner(state, rel.id, current_nation);
 				auto fat_ally = dcon::fatten(state.world, ally);
 				row_contents.push_back(fat_ally.get_identity_from_identity_holder().id);
@@ -1150,13 +1150,13 @@ void overlapping_ally_flags::populate_flags(sys::state &state) {
 	}
 }
 
-void overlapping_enemy_flags::populate_flags(sys::state &state) {
-	if (bool(current_nation)) {
+void overlapping_enemy_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
 		row_contents.clear();
-		for (auto wa : state.world.nation_get_war_participant(current_nation)) {
+		for(auto wa : state.world.nation_get_war_participant(current_nation)) {
 			bool is_attacker = wa.get_is_attacker();
-			for (auto o : wa.get_war().get_war_participant()) {
-				if (o.get_is_attacker() != is_attacker) {
+			for(auto o : wa.get_war().get_war_participant()) {
+				if(o.get_is_attacker() != is_attacker) {
 					row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 				}
 			}
@@ -1165,11 +1165,11 @@ void overlapping_enemy_flags::populate_flags(sys::state &state) {
 	}
 }
 
-void overlapping_truce_flags::populate_flags(sys::state &state) {
-	if (bool(current_nation)) {
+void overlapping_truce_flags::populate_flags(sys::state& state) {
+	if(bool(current_nation)) {
 		row_contents.clear();
-		for (auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
-			if (rel.get_truce_until()) {
+		for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
+			if(rel.get_truce_until()) {
 				auto nat_id = nations::get_relationship_partner(state, rel.id, current_nation);
 				auto fat_id = dcon::fatten(state.world, nat_id);
 				row_contents.push_back(fat_id.get_identity_from_identity_holder().id);
@@ -1179,12 +1179,12 @@ void overlapping_truce_flags::populate_flags(sys::state &state) {
 	}
 }
 
-dcon::national_identity_id flag_button::get_current_nation(sys::state &state) noexcept {
-	if (parent) {
+dcon::national_identity_id flag_button::get_current_nation(sys::state& state) noexcept {
+	if(parent) {
 		Cyto::Any identity_payload = dcon::national_identity_id{};
 		parent->impl_get(state, identity_payload);
 		auto nation = any_cast<dcon::national_identity_id>(identity_payload);
-		if (bool(nation)) {
+		if(bool(nation)) {
 			return nation;
 		} else {
 			Cyto::Any payload = dcon::nation_id{};
@@ -1195,20 +1195,20 @@ dcon::national_identity_id flag_button::get_current_nation(sys::state &state) no
 	return dcon::national_identity_id{};
 }
 
-void flag_button::button_action(sys::state &state) noexcept {
+void flag_button::button_action(sys::state& state) noexcept {
 	auto fat_id = dcon::fatten(state.world, get_current_nation(state));
 	auto nation = fat_id.get_nation_from_identity_holder();
-	if (bool(nation.id) && nation.get_owned_province_count() != 0) {
+	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		state.open_diplomacy(nation.id);
 	}
 }
 
-void flag_button::set_current_nation(sys::state &state, dcon::national_identity_id identity) noexcept {
-	if (bool(identity)) {
+void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id identity) noexcept {
+	if(bool(identity)) {
 		auto fat_id = dcon::fatten(state.world, identity);
 		auto nation = fat_id.get_nation_from_identity_holder();
 		culture::flag_type flag_type = culture::flag_type{};
-		if (bool(nation.id) && nation.get_owned_province_count() != 0) {
+		if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 			flag_type = culture::get_current_flag_type(state, nation.id);
 		} else {
 			flag_type = culture::get_current_flag_type(state, identity);
@@ -1217,27 +1217,27 @@ void flag_button::set_current_nation(sys::state &state, dcon::national_identity_
 	}
 }
 
-void flag_button::on_update(sys::state &state) noexcept {
+void flag_button::on_update(sys::state& state) noexcept {
 	set_current_nation(state, get_current_nation(state));
 }
 
-void flag_button::on_create(sys::state &state) noexcept {
+void flag_button::on_create(sys::state& state) noexcept {
 	button_element_base::on_create(state);
 	on_update(state);
 }
 
-void flag_button::render(sys::state &state, int32_t x, int32_t y) noexcept {
+void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	dcon::gfx_object_id gid;
-	if (base_data.get_element_type() == element_type::image) {
+	if(base_data.get_element_type() == element_type::image) {
 		gid = base_data.data.image.gfx_object;
-	} else if (base_data.get_element_type() == element_type::button) {
+	} else if(base_data.get_element_type() == element_type::button) {
 		gid = base_data.data.button.button_image;
 	}
-	if (gid && flag_texture_handle > 0) {
-		auto &gfx_def = state.ui_defs.gfx[gid];
-		if (gfx_def.type_dependent) {
+	if(gid && flag_texture_handle > 0) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.type_dependent) {
 			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
-			auto &mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
 			ogl::render_masked_rect(
 			    state,
 			    get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
@@ -1258,19 +1258,19 @@ void flag_button::render(sys::state &state, int32_t x, int32_t y) noexcept {
 	}
 	image_element_base::render(state, x, y);
 }
-void flag_button::update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept {
+void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto ident = get_current_nation(state);
 	auto name = nations::name_from_tag(state, ident);
-	if (name) {
+	if(name) {
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(contents, state, box, name, text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 }
 
-message_result draggable_target::on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	for (auto tmp = parent; tmp != nullptr; tmp = tmp->parent) {
-		if (tmp->base_data.get_element_type() == element_type::window && tmp->base_data.data.window.is_moveable()) {
+message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	for(auto tmp = parent; tmp != nullptr; tmp = tmp->parent) {
+		if(tmp->base_data.get_element_type() == element_type::window && tmp->base_data.data.window.is_moveable()) {
 			state.ui_state.drag_target = tmp;
 			return message_result::consumed;
 		}
@@ -1278,31 +1278,31 @@ message_result draggable_target::on_lbutton_down(sys::state &state, int32_t x, i
 	return message_result::consumed;
 }
 
-std::unique_ptr<element_base> make_element_immediate(sys::state &state, dcon::gui_def_id id) {
-	auto &def = state.ui_defs.gui[id];
-	if (def.get_element_type() == ui::element_type::image) {
+std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id) {
+	auto& def = state.ui_defs.gui[id];
+	if(def.get_element_type() == ui::element_type::image) {
 		auto res = std::make_unique<image_element_base>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		make_size_from_graphics(state, res->base_data);
 		res->on_create(state);
 		return res;
-	} else if (def.get_element_type() == ui::element_type::button) {
+	} else if(def.get_element_type() == ui::element_type::button) {
 		auto res = std::make_unique<button_element_base>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		make_size_from_graphics(state, res->base_data);
 		res->on_create(state);
 		return res;
-	} else if (def.get_element_type() == ui::element_type::window) {
+	} else if(def.get_element_type() == ui::element_type::window) {
 		auto res = std::make_unique<window_element_base>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		res->on_create(state);
 		return res;
-	} else if (def.get_element_type() == ui::element_type::scrollbar) {
+	} else if(def.get_element_type() == ui::element_type::scrollbar) {
 		auto res = std::make_unique<scrollbar>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		res->on_create(state);
 		return res;
-	} else if (def.get_element_type() == ui::element_type::text) {
+	} else if(def.get_element_type() == ui::element_type::text) {
 		auto res = std::make_unique<simple_text_element_base>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 		res->on_create(state);
@@ -1313,23 +1313,23 @@ std::unique_ptr<element_base> make_element_immediate(sys::state &state, dcon::gu
 	return nullptr;
 }
 
-void scrollbar_left::button_action(sys::state &state) noexcept {
-	if (parent) {
+void scrollbar_left::button_action(sys::state& state) noexcept {
+	if(parent) {
 		Cyto::Any payload = value_change{-step_size, true, true};
 		parent->impl_get(state, payload);
 	}
 }
-void scrollbar_right::button_action(sys::state &state) noexcept {
-	if (parent) {
+void scrollbar_right::button_action(sys::state& state) noexcept {
+	if(parent) {
 		Cyto::Any payload = value_change{step_size, true, true};
 		parent->impl_get(state, payload);
 	}
 }
 
-message_result scrollbar_track::on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if (parent) {
+message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(parent) {
 		Cyto::Any payload = scrollbar_settings{};
-		if (parent->impl_get(state, payload) == message_result::consumed) {
+		if(parent->impl_get(state, payload) == message_result::consumed) {
 			scrollbar_settings parent_state = any_cast<scrollbar_settings>(payload);
 			int32_t pos_in_track = parent_state.vertical ? y : x;
 			int32_t clamped_pos = std::clamp(pos_in_track, parent_state.buttons_size / 2, parent_state.track_size - parent_state.buttons_size / 2);
@@ -1343,30 +1343,30 @@ message_result scrollbar_track::on_lbutton_down(sys::state &state, int32_t x, in
 	return message_result::consumed;
 }
 
-message_result scrollbar_slider::on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+message_result scrollbar_slider::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return message_result::consumed;
 }
-void scrollbar_slider::on_drag(sys::state &state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if (!parent)
+void scrollbar_slider::on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(!parent)
 		return;
 
 	auto location_abs = get_absolute_location(*this);
 
 	scrollbar_settings parent_settings = [&]() {
 		Cyto::Any payload = scrollbar_settings{};
-		if (parent->impl_get(state, payload) == message_result::consumed) {
+		if(parent->impl_get(state, payload) == message_result::consumed) {
 			return any_cast<scrollbar_settings>(payload);
 		}
 		return scrollbar_settings{};
 	}();
 
-	if (parent_settings.vertical) {
-		if (!(location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y)) {
+	if(parent_settings.vertical) {
+		if(!(location_abs.y <= oldy && oldy < base_data.size.y + location_abs.y)) {
 			return; // drag has left slider behind
 		}
 	} else {
-		if (!(location_abs.x <= oldx && oldx < base_data.size.x + location_abs.x)) {
+		if(!(location_abs.x <= oldx && oldx < base_data.size.x + location_abs.x)) {
 			return; // drag has left slider behind
 		}
 	}
@@ -1375,7 +1375,7 @@ void scrollbar_slider::on_drag(sys::state &state, int32_t oldx, int32_t oldy, in
 
 	// TODO: take care of case where there are partial range limits
 
-	if (parent_settings.vertical) {
+	if(parent_settings.vertical) {
 		base_data.position.y += int16_t(y - oldy);
 		base_data.position.y = int16_t(std::clamp(int32_t(base_data.position.y), parent_settings.buttons_size, parent_settings.track_size));
 		pos_in_track = base_data.position.y - parent_settings.buttons_size / 2;
@@ -1392,19 +1392,19 @@ void scrollbar_slider::on_drag(sys::state &state, int32_t oldx, int32_t oldy, in
 	parent->impl_get(state, adjustment_payload);
 }
 
-void scrollbar::update_raw_value(sys::state &state, int32_t v) {
+void scrollbar::update_raw_value(sys::state& state, int32_t v) {
 	// TODO: adjust to limits if using limits
 	stored_value = std::clamp(v, settings.lower_value, settings.upper_value);
 	float percentage = float(stored_value - settings.lower_value) / float(settings.upper_value - settings.lower_value);
 	auto offset = settings.buttons_size + int32_t((settings.track_size - settings.buttons_size) * percentage);
-	if (slider && state.ui_state.drag_target != slider) {
-		if (settings.vertical)
+	if(slider && state.ui_state.drag_target != slider) {
+		if(settings.vertical)
 			slider->base_data.position.y = int16_t(offset);
 		else
 			slider->base_data.position.x = int16_t(offset);
 	}
 }
-void scrollbar::update_scaled_value(sys::state &state, float v) {
+void scrollbar::update_scaled_value(sys::state& state, float v) {
 	int32_t rv = std::clamp(int32_t(v * float(settings.scaling_factor)), settings.lower_value, settings.upper_value);
 	update_raw_value(state, rv);
 }
@@ -1412,7 +1412,7 @@ float scrollbar::scaled_value() const {
 	return float(stored_value) / float(settings.scaling_factor);
 }
 
-void scrollbar::change_settings(sys::state &state, mutable_scrollbar_settings const &settings_s) {
+void scrollbar::change_settings(sys::state& state, mutable_scrollbar_settings const & settings_s) {
 	settings.lower_limit = settings_s.lower_limit * settings.scaling_factor;
 	settings.lower_value = settings_s.lower_value * settings.scaling_factor;
 	settings.upper_limit = settings_s.upper_limit * settings.scaling_factor;
@@ -1422,21 +1422,21 @@ void scrollbar::change_settings(sys::state &state, mutable_scrollbar_settings co
 	settings.upper_value = std::max(settings.upper_value, settings.lower_value + 1); // ensure the scrollbar is never of range zero
 
 	// TODO: adjust to limits if using limits
-	if (stored_value < settings.lower_value || stored_value > settings.upper_value) {
+	if(stored_value < settings.lower_value || stored_value > settings.upper_value) {
 		update_raw_value(state, stored_value);
 		on_value_change(state, stored_value);
 	}
 }
 
-void scrollbar::on_create(sys::state &state) noexcept {
+void scrollbar::on_create(sys::state& state) noexcept {
 	// create & position sub elements
 	// fill out settings data
 	// set initial slider pos
 
-	if (base_data.get_element_type() == element_type::scrollbar) {
+	if(base_data.get_element_type() == element_type::scrollbar) {
 		auto step = base_data.data.scrollbar.get_step_size();
 		settings.scaling_factor = 1;
-		switch (step) {
+		switch(step) {
 		case step_size::one:
 			break;
 		case step_size::two:
@@ -1461,7 +1461,7 @@ void scrollbar::on_create(sys::state &state) noexcept {
 
 		auto first_child = base_data.data.scrollbar.first_child;
 		auto num_children = base_data.data.scrollbar.num_children;
-		if (num_children >= 4) {
+		if(num_children >= 4) {
 			{
 				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(2 + first_child.index()));
 				auto ch_res = make_element_by_type<scrollbar_slider>(state, child_tag);
@@ -1475,7 +1475,7 @@ void scrollbar::on_create(sys::state &state) noexcept {
 				add_child_to_back(std::move(ch_res));
 
 				settings.buttons_size = settings.vertical ? left->base_data.size.y : left->base_data.size.x;
-				if (step_size::two == step)
+				if(step_size::two == step)
 					left->step_size = 2;
 				else
 					left->step_size = 1;
@@ -1486,7 +1486,7 @@ void scrollbar::on_create(sys::state &state) noexcept {
 				right = ch_res.get();
 				add_child_to_back(std::move(ch_res));
 
-				if (step_size::two == step)
+				if(step_size::two == step)
 					right->step_size = 2;
 				else
 					right->step_size = 1;
@@ -1501,7 +1501,7 @@ void scrollbar::on_create(sys::state &state) noexcept {
 			}
 			left->base_data.position.x = 0;
 			left->base_data.position.y = 0;
-			if (settings.vertical) {
+			if(settings.vertical) {
 				track->base_data.position.y = int16_t(settings.buttons_size);
 				slider->base_data.position.y = int16_t(settings.buttons_size);
 				right->base_data.position.y = int16_t(settings.track_size + settings.buttons_size);
@@ -1519,32 +1519,32 @@ void scrollbar::on_create(sys::state &state) noexcept {
 		}
 	}
 }
-void scrollbar_slider::on_drag_finish(sys::state &state) noexcept {
-	if (parent) {
+void scrollbar_slider::on_drag_finish(sys::state& state) noexcept {
+	if(parent) {
 		parent->impl_on_drag_finish(state);
 	}
 }
-message_result scrollbar::get(sys::state &state, Cyto::Any &payload) noexcept {
-	if (payload.holds_type<scrollbar_settings>()) {
+message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<scrollbar_settings>()) {
 		settings.track_size = track ? int32_t(settings.vertical ? track->base_data.size.y : track->base_data.size.x) : 1;
 		payload = settings;
 		return message_result::consumed;
-	} else if (payload.holds_type<value_change>()) {
+	} else if(payload.holds_type<value_change>()) {
 		auto adjustments = any_cast<value_change>(payload);
 
-		if (adjustments.is_relative)
+		if(adjustments.is_relative)
 			stored_value += adjustments.new_value;
 		else
 			stored_value = adjustments.new_value;
 
-		if (adjustments.move_slider) {
+		if(adjustments.move_slider) {
 			update_raw_value(state, stored_value);
 		} else {
 			// TODO: adjust to limits if using limits
 			stored_value = std::clamp(stored_value, settings.lower_value, settings.upper_value);
 		}
 
-		if (adjustments.move_slider == true && adjustments.is_relative == false && !state.ui_state.drag_target) { // track click
+		if(adjustments.move_slider == true && adjustments.is_relative == false && !state.ui_state.drag_target) { // track click
 			state.ui_state.drag_target = slider;
 		}
 

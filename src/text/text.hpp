@@ -427,22 +427,22 @@ struct vector_backed_hash {
 	using is_avalanching = void;
 	using is_transparent = void;
 
-	std::vector<char> &text_data;
+	std::vector<char>& text_data;
 
-	vector_backed_hash(std::vector<char> &text_data) : text_data(text_data) {}
+	vector_backed_hash(std::vector<char>& text_data) : text_data(text_data) { }
 
 	auto operator()(std::string_view sv) const noexcept -> uint64_t {
 		return ankerl::unordered_dense::detail::wyhash::hash(sv.data(), sv.size());
 	}
 	auto operator()(dcon::text_key tag) const noexcept -> uint64_t {
 		auto sv = [&]() {
-			if (!tag)
+			if(!tag)
 				return std::string_view();
 			auto start_position = text_data.data() + tag.index();
 			auto data_size = text_data.size();
 			auto end_position = start_position;
-			for (; end_position < text_data.data() + data_size; ++end_position) {
-				if (*end_position == 0)
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
 					break;
 			}
 			return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
@@ -453,22 +453,22 @@ struct vector_backed_hash {
 struct vector_backed_eq {
 	using is_transparent = void;
 
-	std::vector<char> &text_data;
+	std::vector<char>& text_data;
 
-	vector_backed_eq(std::vector<char> &text_data) : text_data(text_data) {}
+	vector_backed_eq(std::vector<char>& text_data) : text_data(text_data) { }
 
 	bool operator()(dcon::text_key l, dcon::text_key r) const noexcept {
 		return l == r;
 	}
 	bool operator()(dcon::text_key l, std::string_view r) const noexcept {
 		auto sv = [&]() {
-			if (!l)
+			if(!l)
 				return std::string_view();
 			auto start_position = text_data.data() + l.index();
 			auto data_size = text_data.size();
 			auto end_position = start_position;
-			for (; end_position < text_data.data() + data_size; ++end_position) {
-				if (*end_position == 0)
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
 					break;
 			}
 			return std::string_view(text_data.data() + l.index(), size_t(end_position - start_position));
@@ -477,43 +477,43 @@ struct vector_backed_eq {
 	}
 	bool operator()(std::string_view r, dcon::text_key l) const noexcept {
 		auto sv = [&]() {
-			if (!l)
+			if(!l)
 				return std::string_view();
 			auto start_position = text_data.data() + l.index();
 			auto data_size = text_data.size();
 			auto end_position = start_position;
-			for (; end_position < text_data.data() + data_size; ++end_position) {
-				if (*end_position == 0)
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
 					break;
 			}
 			return std::string_view(text_data.data() + l.index(), size_t(end_position - start_position));
 		}();
 		return sv == r;
 	}
-	bool operator()(dcon::text_key l, std::string const &r) const noexcept {
+	bool operator()(dcon::text_key l, std::string const & r) const noexcept {
 		auto sv = [&]() {
-			if (!l)
+			if(!l)
 				return std::string_view();
 			auto start_position = text_data.data() + l.index();
 			auto data_size = text_data.size();
 			auto end_position = start_position;
-			for (; end_position < text_data.data() + data_size; ++end_position) {
-				if (*end_position == 0)
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
 					break;
 			}
 			return std::string_view(text_data.data() + l.index(), size_t(end_position - start_position));
 		}();
 		return sv == r;
 	}
-	bool operator()(std::string const &r, dcon::text_key l) const noexcept {
+	bool operator()(std::string const & r, dcon::text_key l) const noexcept {
 		auto sv = [&]() {
-			if (!l)
+			if(!l)
 				return std::string_view();
 			auto start_position = text_data.data() + l.index();
 			auto data_size = text_data.size();
 			auto end_position = start_position;
-			for (; end_position < text_data.data() + data_size; ++end_position) {
-				if (*end_position == 0)
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
 					break;
 			}
 			return std::string_view(text_data.data() + l.index(), size_t(end_position - start_position));
@@ -574,7 +574,7 @@ struct layout_parameters {
 struct layout {
 	std::vector<text_chunk> contents;
 	int32_t number_of_lines = 0;
-	text_chunk const *get_chunk_from_position(int32_t x, int32_t y) const;
+	text_chunk const * get_chunk_from_position(int32_t x, int32_t y) const;
 };
 
 struct layout_box {
@@ -590,12 +590,12 @@ struct layout_box {
 };
 
 struct layout_base {
-	layout &base_layout;
+	layout& base_layout;
 	layout_parameters fixed_parameters;
 
-	layout_base(layout &base_layout, layout_parameters const &fixed_parameters) : base_layout(base_layout), fixed_parameters(fixed_parameters) {}
+	layout_base(layout& base_layout, layout_parameters const & fixed_parameters) : base_layout(base_layout), fixed_parameters(fixed_parameters) { }
 
-	virtual void internal_close_box(layout_box &box) = 0;
+	virtual void internal_close_box(layout_box& box) = 0;
 };
 
 struct columnar_layout : public layout_base {
@@ -605,64 +605,64 @@ struct columnar_layout : public layout_base {
 	int32_t current_column = 0;
 	int32_t column_width = 0;
 
-	columnar_layout(layout &base_layout, layout_parameters const &fixed_parameters, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t current_column = 0, int32_t column_width = 0) : layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor), current_column(current_column), column_width(column_width) {}
+	columnar_layout(layout& base_layout, layout_parameters const & fixed_parameters, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t current_column = 0, int32_t column_width = 0) : layout_base(base_layout, fixed_parameters), used_height(used_height), used_width(used_width), y_cursor(y_cursor), current_column(current_column), column_width(column_width) { }
 
-	void internal_close_box(layout_box &box) final;
+	void internal_close_box(layout_box& box) final;
 };
 
 struct endless_layout : public layout_base {
 	int32_t y_cursor = 0;
 
-	endless_layout(layout &base_layout, layout_parameters const &fixed_parameters, int32_t y_cursor = 0) : layout_base(base_layout, fixed_parameters), y_cursor(y_cursor) {}
+	endless_layout(layout& base_layout, layout_parameters const & fixed_parameters, int32_t y_cursor = 0) : layout_base(base_layout, fixed_parameters), y_cursor(y_cursor) { }
 
-	void internal_close_box(layout_box &box) final;
+	void internal_close_box(layout_box& box) final;
 };
 
 text_color char_to_color(char in);
 
-endless_layout create_endless_layout(layout &dest, layout_parameters const &params);
-void close_layout_box(endless_layout &dest, layout_box &box);
+endless_layout create_endless_layout(layout& dest, layout_parameters const & params);
+void close_layout_box(endless_layout& dest, layout_box& box);
 
-columnar_layout create_columnar_layout(layout &dest, layout_parameters const &params, int32_t column_width);
+columnar_layout create_columnar_layout(layout& dest, layout_parameters const & params, int32_t column_width);
 
-layout_box open_layout_box(layout_base &dest, int32_t indent = 0);
-void close_layout_box(columnar_layout &dest, layout_box &box);
-void add_to_layout_box(layout_base &dest, sys::state &state, layout_box &box, dcon::text_sequence_id source_text, substitution_map const &mp = substitution_map{});
-void add_to_layout_box(layout_base &dest, sys::state &state, layout_box &box, std::string_view, text_color color = text_color::white, substitution source = std::monostate{});
-void add_to_layout_box(layout_base &dest, sys::state &state, layout_box &box, substitution val, text_color color = text_color::white);
-void add_to_layout_box(layout_base &dest, sys::state &state, layout_box &box, std::string const &val, text_color color = text_color::white);
-void add_space_to_layout_box(layout_base &dest, sys::state &state, layout_box &box);
-void add_line_break_to_layout_box(layout_base &dest, sys::state &state, layout_box &box);
+layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
+void close_layout_box(columnar_layout& dest, layout_box& box);
+void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, dcon::text_sequence_id source_text, substitution_map const & mp = substitution_map{});
+void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string_view, text_color color = text_color::white, substitution source = std::monostate{});
+void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, substitution val, text_color color = text_color::white);
+void add_to_layout_box(layout_base& dest, sys::state& state, layout_box& box, std::string const & val, text_color color = text_color::white);
+void add_space_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
+void add_line_break_to_layout_box(layout_base& dest, sys::state& state, layout_box& box);
 
-void close_layout_box(layout_base &dest, layout_box &box);
+void close_layout_box(layout_base& dest, layout_box& box);
 
-void add_to_substitution_map(substitution_map &mp, variable_type key, substitution value);
-void add_to_substitution_map(substitution_map &mp, variable_type key, std::string const &); // DO NOT USE THIS FUNCTION
+void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
+void add_to_substitution_map(substitution_map& mp, variable_type key, std::string const &); // DO NOT USE THIS FUNCTION
 
-void consume_csv_file(sys::state &state, uint32_t language, char const *file_content, uint32_t file_size);
+void consume_csv_file(sys::state& state, uint32_t language, char const * file_content, uint32_t file_size);
 variable_type variable_type_from_name(std::string_view);
-void load_text_data(sys::state &state, uint32_t language);
+void load_text_data(sys::state& state, uint32_t language);
 char16_t win1250toUTF16(char in);
-std::string produce_simple_string(sys::state const &state, dcon::text_sequence_id id);
-std::string produce_simple_string(sys::state const &state, std::string_view key);
-dcon::text_sequence_id find_or_add_key(sys::state &state, std::string_view key);
-std::string date_to_string(sys::state const &state, sys::date date);
+std::string produce_simple_string(sys::state const & state, dcon::text_sequence_id id);
+std::string produce_simple_string(sys::state const & state, std::string_view key);
+dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
+std::string date_to_string(sys::state const & state, sys::date date);
 
 std::string prettify(int64_t num);
 std::string format_money(float num);
 std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
-template <class T>
-std::string get_name_as_string(sys::state const &state, T t);
-template <class T>
-std::string get_adjective_as_string(sys::state const &state, T t);
-std::string get_dynamic_state_name(sys::state const &state, dcon::state_instance_id state_id);
-std::string get_province_state_name(sys::state const &state, dcon::province_id prov_id);
-std::string get_focus_category_name(sys::state const &state, nations::focus_type category);
-std::string get_influence_level_name(sys::state const &state, uint8_t v);
+template<class T>
+std::string get_name_as_string(sys::state const & state, T t);
+template<class T>
+std::string get_adjective_as_string(sys::state const & state, T t);
+std::string get_dynamic_state_name(sys::state const & state, dcon::state_instance_id state_id);
+std::string get_province_state_name(sys::state const & state, dcon::province_id prov_id);
+std::string get_focus_category_name(sys::state const & state, nations::focus_type category);
+std::string get_influence_level_name(sys::state const & state, uint8_t v);
 
-void localised_format_box(sys::state &state, layout_base &dest, layout_box &box, std::string_view key, substitution_map const &sub = substitution_map{});
-void localised_single_sub_box(sys::state &state, layout_base &dest, layout_box &box, std::string_view key, variable_type subkey, substitution value);
-void add_divider_to_layout_box(sys::state &state, layout_base &dest, layout_box &box);
+void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, substitution_map const & sub = substitution_map{});
+void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey, substitution value);
+void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 } // namespace text

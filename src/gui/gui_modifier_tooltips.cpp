@@ -31,8 +31,8 @@ static const modifier_display_info national_modifier_names[sys::national_mod_off
 #undef MOD_LIST_ELEMENT
 };
 
-std::string format_modifier_value(sys::state &state, float value, modifier_display_type type) {
-	switch (type) {
+std::string format_modifier_value(sys::state& state, float value, modifier_display_type type) {
+	switch(type) {
 	case modifier_display_type::integer:
 		return (value > 0.f ? "+" : "") + text::prettify(int64_t(value));
 	case modifier_display_type::percent:
@@ -45,12 +45,12 @@ std::string format_modifier_value(sys::state &state, float value, modifier_displ
 	return "x%";
 }
 
-void modifier_description(sys::state &state, text::layout_base &layout, dcon::modifier_id mid, int32_t indentation) {
+void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation) {
 	auto fat_id = dcon::fatten(state.world, mid);
 
-	const auto &prov_def = fat_id.get_province_values();
-	for (uint32_t i = 0; i < prov_def.modifier_definition_size; ++i) {
-		if (prov_def.values[i] == 0.f)
+	const auto& prov_def = fat_id.get_province_values();
+	for(uint32_t i = 0; i < prov_def.modifier_definition_size; ++i) {
+		if(prov_def.values[i] == 0.f)
 			continue;
 
 		auto offset = uint32_t(prov_def.offsets[i].index());
@@ -67,9 +67,9 @@ void modifier_description(sys::state &state, text::layout_base &layout, dcon::mo
 		text::close_layout_box(layout, box);
 	}
 
-	const auto &nat_def = fat_id.get_national_values();
-	for (uint32_t i = 0; i < nat_def.modifier_definition_size; ++i) {
-		if (nat_def.values[i] == 0.f)
+	const auto& nat_def = fat_id.get_national_values();
+	for(uint32_t i = 0; i < nat_def.modifier_definition_size; ++i) {
+		if(nat_def.values[i] == 0.f)
 			continue;
 
 		auto offset = uint32_t(nat_def.offsets[i].index());

@@ -9,7 +9,7 @@ class window_data_impl {
 public:
 	// HWND hwnd = nullptr;
 	// HDC opengl_window_dc = nullptr;
-	GLFWwindow *window = nullptr;
+	GLFWwindow* window = nullptr;
 
 	int32_t creation_x_size = 600;
 	int32_t creation_y_size = 400;
@@ -141,34 +141,34 @@ static const std::unordered_map<int, sys::virtual_key> glfw_key_to_virtual_key =
     {GLFW_KEY_RIGHT_SUPER, sys::virtual_key::RWIN},
     {GLFW_KEY_MENU, sys::virtual_key::MENU}};
 
-bool is_key_depressed(sys::state const &game_state, sys::virtual_key key) {
-	for (auto it = glfw_key_to_virtual_key.begin(); it != glfw_key_to_virtual_key.end(); ++it)
-		if (it->second == key)
+bool is_key_depressed(sys::state const & game_state, sys::virtual_key key) {
+	for(auto it = glfw_key_to_virtual_key.begin(); it != glfw_key_to_virtual_key.end(); ++it)
+		if(it->second == key)
 			return glfwGetKey(game_state.win_ptr->window, it->first) == GLFW_PRESS;
 
 	return false;
 }
 
-bool is_in_fullscreen(sys::state const &game_state) {
+bool is_in_fullscreen(sys::state const & game_state) {
 	return (game_state.win_ptr) && game_state.win_ptr->in_fullscreen;
 }
 
-void set_borderless_full_screen(sys::state &game_state, bool fullscreen) {
-	if (game_state.win_ptr && game_state.win_ptr->window) {
+void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
+	if(game_state.win_ptr && game_state.win_ptr->window) {
 		// Maybe fix this at some point. Just maximize atm
-		if (fullscreen)
+		if(fullscreen)
 			glfwMaximizeWindow(game_state.win_ptr->window);
 		else
 			glfwRestoreWindow(game_state.win_ptr->window);
 	}
 }
 
-void close_window(sys::state &game_state) {
+void close_window(sys::state& game_state) {
 	// Signal to close window (should close = yes)
 	glfwSetWindowShouldClose(game_state.win_ptr->window, 1);
 }
 
-sys::key_modifiers get_current_modifiers(GLFWwindow *window) {
+sys::key_modifiers get_current_modifiers(GLFWwindow* window) {
 	bool control = (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) ||
 	               (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
 	bool alt = (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) ||
@@ -190,15 +190,15 @@ sys::key_modifiers get_current_modifiers(int glfw_mods) {
 	return sys::key_modifiers(val);
 }
 
-static void glfw_error_callback(int error, const char *description) {
+static void glfw_error_callback(int error, const char* description) {
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-	sys::state *state = (sys::state *)glfwGetWindowUserPointer(window);
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 
 	sys::virtual_key virtual_key = glfw_key_to_virtual_key.at(key);
-	switch (action) {
+	switch(action) {
 	case GLFW_PRESS:
 		state->on_key_down(virtual_key, get_current_modifiers(mods));
 		break;
@@ -208,48 +208,48 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	}
 }
 
-static void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
-	sys::state *state = (sys::state *)glfwGetWindowUserPointer(window);
+static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 
 	int32_t x = (xpos > 0 ? (int32_t)std::round(xpos) : 0);
 	int32_t y = (ypos > 0 ? (int32_t)std::round(ypos) : 0);
 	state->on_mouse_move(x, y, get_current_modifiers(window));
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 		state->on_mouse_drag(x, y, get_current_modifiers(window));
 
 	state->mouse_x_position = x;
 	state->mouse_y_position = y;
 }
 
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
-	sys::state *state = (sys::state *)glfwGetWindowUserPointer(window);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	int32_t x = (xpos > 0 ? (int32_t)std::round(xpos) : 0);
 	int32_t y = (ypos > 0 ? (int32_t)std::round(ypos) : 0);
 
-	switch (action) {
+	switch(action) {
 	case GLFW_PRESS:
-		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		if(button == GLFW_MOUSE_BUTTON_LEFT) {
 			state->on_lbutton_down(x, y, get_current_modifiers(window));
 			state->win_ptr->left_mouse_down = true;
-		} else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		} else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
 			state->on_rbutton_down(x, y, get_current_modifiers(window));
-		} else if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+		} else if(button == GLFW_MOUSE_BUTTON_MIDDLE) {
 			state->on_mbutton_down(x, y, get_current_modifiers(window));
 		}
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
 		break;
 	case GLFW_RELEASE:
-		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		if(button == GLFW_MOUSE_BUTTON_LEFT) {
 			state->on_lbutton_up(x, y, get_current_modifiers(window));
 			state->win_ptr->left_mouse_down = false;
-		} else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		} else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
 			state->on_rbutton_up(x, y, get_current_modifiers(window));
-		} else if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+		} else if(button == GLFW_MOUSE_BUTTON_MIDDLE) {
 			state->on_mbutton_up(x, y, get_current_modifiers(window));
 		}
 		state->mouse_x_position = x;
@@ -258,8 +258,8 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 	}
 }
 
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-	sys::state *state = (sys::state *)glfwGetWindowUserPointer(window);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -271,21 +271,21 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 	state->mouse_y_position = y;
 }
 
-void character_callback(GLFWwindow *window, unsigned int codepoint) {
-	sys::state *state = (sys::state *)glfwGetWindowUserPointer(window);
-	if (state->ui_state.edit_target) {
+void character_callback(GLFWwindow* window, unsigned int codepoint) {
+	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
+	if(state->ui_state.edit_target) {
 		// TODO change UTF32 to (win1250??)
 		state->on_text(char(codepoint));
 	}
 }
 
-void on_window_change(GLFWwindow *window) {
-	sys::state *state = (sys::state *)glfwGetWindowUserPointer(window);
+void on_window_change(GLFWwindow* window) {
+	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 
 	sys::window_state t = sys::window_state::normal;
-	if (glfwGetWindowAttrib(window, GLFW_MAXIMIZED) == GLFW_MAXIMIZED)
+	if(glfwGetWindowAttrib(window, GLFW_MAXIMIZED) == GLFW_MAXIMIZED)
 		t = sys::window_state::maximized;
-	else if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) == GLFW_ICONIFIED)
+	else if(glfwGetWindowAttrib(window, GLFW_ICONIFIED) == GLFW_ICONIFIED)
 		t = sys::window_state::minimized;
 
 	// redo OpenGL viewport
@@ -296,24 +296,24 @@ void on_window_change(GLFWwindow *window) {
 	state->y_size = height;
 }
 
-void window_size_callback(GLFWwindow *window, int width, int height) {
+void window_size_callback(GLFWwindow* window, int width, int height) {
 	// on_window_change(window);
 	// framebuffer_size_callback should be enough
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	on_window_change(window);
 }
 
-void window_iconify_callback(GLFWwindow *window, int iconified) {
+void window_iconify_callback(GLFWwindow* window, int iconified) {
 	on_window_change(window);
 }
 
-void window_maximize_callback(GLFWwindow *window, int maximized) {
+void window_maximize_callback(GLFWwindow* window, int maximized) {
 	on_window_change(window);
 }
 
-void create_window(sys::state &game_state, creation_parameters const &params) {
+void create_window(sys::state& game_state, creation_parameters const & params) {
 	game_state.win_ptr = std::make_unique<window_data_impl>();
 	game_state.win_ptr->creation_x_size = params.size_x;
 	game_state.win_ptr->creation_y_size = params.size_y;
@@ -321,7 +321,7 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 
 	// Setup window
 	glfwSetErrorCallback(glfw_error_callback);
-	if (!glfwInit())
+	if(!glfwInit())
 		std::abort(); // throw "Failed to init glfw\n";
 
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
@@ -331,8 +331,8 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	// Create window with graphics context
-	auto *window = glfwCreateWindow(params.size_x, params.size_y, "Project Alice", NULL, NULL);
-	if (window == NULL)
+	auto* window = glfwCreateWindow(params.size_x, params.size_y, "Project Alice", NULL, NULL);
+	if(window == NULL)
 		std::abort(); // throw "Failed to create window\n";
 	game_state.win_ptr->window = window;
 
@@ -358,7 +358,7 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 
 	game_state.on_create();
 
-	while (!glfwWindowShouldClose(window)) {
+	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		// Run game code
 
@@ -372,9 +372,9 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 	glfwTerminate();
 }
 
-void emit_error_message(std::string const &content, bool fatal) {
+void emit_error_message(std::string const & content, bool fatal) {
 	printf("%s", content.c_str());
-	if (fatal) {
+	if(fatal) {
 		std::terminate();
 	}
 }

@@ -20,71 +20,66 @@
  *
  */
 
-
 /* compat. with non-clang compilers */
 #ifndef __has_attribute
-  #define __has_attribute(x) 0
+#define __has_attribute(x) 0
 #endif
 
 /* compat. with non-clang compilers */
 #ifndef __has_builtin
-#  define __has_builtin(x) 0
+#define __has_builtin(x) 0
 #endif
 
 /* compat. with non-clang compilers */
 #ifndef __has_feature
-#  define __has_feature(x) 0
+#define __has_feature(x) 0
 #endif
 
 /* detects whether we are being compiled under msan */
 #ifndef ZSTD_MEMORY_SANITIZER
-#  if __has_feature(memory_sanitizer)
-#    define ZSTD_MEMORY_SANITIZER 1
-#  else
-#    define ZSTD_MEMORY_SANITIZER 0
-#  endif
+#if __has_feature(memory_sanitizer)
+#define ZSTD_MEMORY_SANITIZER 1
+#else
+#define ZSTD_MEMORY_SANITIZER 0
+#endif
 #endif
 
 /* detects whether we are being compiled under asan */
 #ifndef ZSTD_ADDRESS_SANITIZER
-#  if __has_feature(address_sanitizer)
-#    define ZSTD_ADDRESS_SANITIZER 1
-#  elif defined(__SANITIZE_ADDRESS__)
-#    define ZSTD_ADDRESS_SANITIZER 1
-#  else
-#    define ZSTD_ADDRESS_SANITIZER 0
-#  endif
+#if __has_feature(address_sanitizer)
+#define ZSTD_ADDRESS_SANITIZER 1
+#elif defined(__SANITIZE_ADDRESS__)
+#define ZSTD_ADDRESS_SANITIZER 1
+#else
+#define ZSTD_ADDRESS_SANITIZER 0
+#endif
 #endif
 
 /* detects whether we are being compiled under dfsan */
 #ifndef ZSTD_DATAFLOW_SANITIZER
-# if __has_feature(dataflow_sanitizer)
-#  define ZSTD_DATAFLOW_SANITIZER 1
-# else
-#  define ZSTD_DATAFLOW_SANITIZER 0
-# endif
+#if __has_feature(dataflow_sanitizer)
+#define ZSTD_DATAFLOW_SANITIZER 1
+#else
+#define ZSTD_DATAFLOW_SANITIZER 0
+#endif
 #endif
 
 /* Mark the internal assembly functions as hidden  */
 #ifdef __ELF__
-# define ZSTD_HIDE_ASM_FUNCTION(func) .hidden func
+#define ZSTD_HIDE_ASM_FUNCTION(func) .hidden func
 #else
-# define ZSTD_HIDE_ASM_FUNCTION(func)
+#define ZSTD_HIDE_ASM_FUNCTION(func)
 #endif
 
 /* Enable runtime BMI2 dispatch based on the CPU.
  * Enabled for clang & gcc >=4.8 on x86 when BMI2 isn't enabled by default.
  */
 #ifndef DYNAMIC_BMI2
-  #if ((defined(__clang__) && __has_attribute(__target__)) \
-      || (defined(__GNUC__) \
-          && (__GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)))) \
-      && (defined(__x86_64__) || defined(_M_X64)) \
-      && !defined(__BMI2__)
-  #  define DYNAMIC_BMI2 1
-  #else
-  #  define DYNAMIC_BMI2 0
-  #endif
+#if((defined(__clang__) && __has_attribute(__target__)) || (defined(__GNUC__) && (__GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)))) && (defined(__x86_64__) || defined(_M_X64)) && !defined(__BMI2__)
+#define DYNAMIC_BMI2 1
+#else
+#define DYNAMIC_BMI2 0
+#endif
 #endif
 
 /**
@@ -99,19 +94,19 @@
  * 100% of code to be instrumented to work.
  */
 #if defined(__GNUC__)
-#  if defined(__linux__) || defined(__linux) || defined(__APPLE__)
-#    if ZSTD_MEMORY_SANITIZER
-#      define ZSTD_ASM_SUPPORTED 0
-#    elif ZSTD_DATAFLOW_SANITIZER
-#      define ZSTD_ASM_SUPPORTED 0
-#    else
-#      define ZSTD_ASM_SUPPORTED 1
-#    endif
-#  else
-#    define ZSTD_ASM_SUPPORTED 0
-#  endif
+#if defined(__linux__) || defined(__linux) || defined(__APPLE__)
+#if ZSTD_MEMORY_SANITIZER
+#define ZSTD_ASM_SUPPORTED 0
+#elif ZSTD_DATAFLOW_SANITIZER
+#define ZSTD_ASM_SUPPORTED 0
 #else
-#  define ZSTD_ASM_SUPPORTED 0
+#define ZSTD_ASM_SUPPORTED 1
+#endif
+#else
+#define ZSTD_ASM_SUPPORTED 0
+#endif
+#else
+#define ZSTD_ASM_SUPPORTED 0
 #endif
 
 /**
@@ -125,13 +120,13 @@
  *   - DYNAMIC_BMI2 is enabled
  *   - BMI2 is supported at compile time
  */
-#if !defined(ZSTD_DISABLE_ASM) &&                                 \
-    ZSTD_ASM_SUPPORTED &&                                         \
-    defined(__x86_64__) &&                                        \
+#if !defined(ZSTD_DISABLE_ASM) && \
+    ZSTD_ASM_SUPPORTED &&         \
+    defined(__x86_64__) &&        \
     (DYNAMIC_BMI2 || defined(__BMI2__))
-# define ZSTD_ENABLE_ASM_X86_64_BMI2 1
+#define ZSTD_ENABLE_ASM_X86_64_BMI2 1
 #else
-# define ZSTD_ENABLE_ASM_X86_64_BMI2 0
+#define ZSTD_ENABLE_ASM_X86_64_BMI2 0
 #endif
 
 /*
@@ -141,16 +136,15 @@
  * Additionally, any function that may be called indirectly must begin
  * with ZSTD_CET_ENDBRANCH.
  */
-#if defined(__ELF__) && (defined(__x86_64__) || defined(__i386__)) \
-    && defined(__has_include)
-# if __has_include(<cet.h>)
-#  include <cet.h>
-#  define ZSTD_CET_ENDBRANCH _CET_ENDBR
-# endif
+#if defined(__ELF__) && (defined(__x86_64__) || defined(__i386__)) && defined(__has_include)
+#if __has_include(<cet.h>)
+#include <cet.h>
+#define ZSTD_CET_ENDBRANCH _CET_ENDBR
+#endif
 #endif
 
 #ifndef ZSTD_CET_ENDBRANCH
-# define ZSTD_CET_ENDBRANCH
+#define ZSTD_CET_ENDBRANCH
 #endif
 
 #endif /* ZSTD_PORTABILITY_MACROS_H */

@@ -28,17 +28,17 @@ public:
 	bool left_mouse_down = false;
 };
 
-bool is_key_depressed(sys::state const &game_state, sys::virtual_key key) {
+bool is_key_depressed(sys::state const & game_state, sys::virtual_key key) {
 	return GetKeyState(int32_t(key)) & 0x8000;
 }
 
-bool is_in_fullscreen(sys::state const &game_state) {
+bool is_in_fullscreen(sys::state const & game_state) {
 	return (game_state.win_ptr) && game_state.win_ptr->in_fullscreen;
 }
 
-void set_borderless_full_screen(sys::state &game_state, bool fullscreen) {
-	if (game_state.win_ptr && game_state.win_ptr->hwnd && game_state.win_ptr->in_fullscreen != fullscreen) {
-		if (!fullscreen) {
+void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
+	if(game_state.win_ptr && game_state.win_ptr->hwnd && game_state.win_ptr->in_fullscreen != fullscreen) {
+		if(!fullscreen) {
 
 			auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
 			MONITORINFO mi;
@@ -84,8 +84,8 @@ void set_borderless_full_screen(sys::state &game_state, bool fullscreen) {
 	}
 }
 
-void close_window(sys::state &game_state) {
-	if (game_state.win_ptr && game_state.win_ptr->hwnd)
+void close_window(sys::state& game_state) {
+	if(game_state.win_ptr && game_state.win_ptr->hwnd)
 		PostMessageW(game_state.win_ptr->hwnd, WM_CLOSE, 0, 0);
 }
 
@@ -97,9 +97,9 @@ bool is_high_surrogate(uint16_t char_code) noexcept {
 }
 
 char process_utf16_to_win1250(wchar_t c) {
-	if (c <= 127)
+	if(c <= 127)
 		return char(c);
-	if (is_low_surrogate(c) || is_high_surrogate(c))
+	if(is_low_surrogate(c) || is_high_surrogate(c))
 		return 0;
 	char char_out = 0;
 	WideCharToMultiByte(1250, 0, &c, 1, &char_out, 1, nullptr, nullptr);
@@ -119,9 +119,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	static int drag_x_start = 0;
 	static int drag_y_start = 0;
 
-	if (message == WM_CREATE) {
-		CREATESTRUCTW *cptr = (CREATESTRUCTW *)lParam;
-		sys::state *create_state = (sys::state *)(cptr->lpCreateParams);
+	if(message == WM_CREATE) {
+		CREATESTRUCTW* cptr = (CREATESTRUCTW*)lParam;
+		sys::state* create_state = (sys::state*)(cptr->lpCreateParams);
 
 		create_state->win_ptr->hwnd = hwnd;
 		create_state->win_ptr->opengl_window_dc = GetDC(hwnd);
@@ -136,11 +136,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		return 0;
 	}
 
-	sys::state *state = (sys::state *)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
-	if (!state || !(state->win_ptr))
+	sys::state* state = (sys::state*)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+	if(!state || !(state->win_ptr))
 		return DefWindowProcW(hwnd, message, wParam, lParam);
 
-	switch (message) {
+	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		SetWindowLongPtrW(hwnd, GWLP_USERDATA, (LONG_PTR) nullptr);
@@ -151,11 +151,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		PostQuitMessage(0);
 		return 0;
 	case WM_SETFOCUS:
-		if (state->win_ptr->in_fullscreen)
+		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOSIZE | SWP_NOMOVE);
 		return 0;
 	case WM_KILLFOCUS:
-		if (state->win_ptr->in_fullscreen)
+		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 		return 0;
 	case WM_LBUTTONDOWN: {
@@ -183,7 +183,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		auto y = GET_Y_LPARAM(lParam);
 		state->on_mouse_move(x, y, get_current_modifiers());
 
-		if (wParam & MK_LBUTTON)
+		if(wParam & MK_LBUTTON)
 			state->on_mouse_drag(x, y, get_current_modifiers());
 
 		state->mouse_x_position = x;
@@ -226,11 +226,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_SIZE: {
 		sys::window_state t = sys::window_state::normal;
 
-		if (wParam == SIZE_MAXIMIZED) {
+		if(wParam == SIZE_MAXIMIZED) {
 			t = sys::window_state::maximized;
-		} else if (wParam == SIZE_MINIMIZED) {
+		} else if(wParam == SIZE_MINIMIZED) {
 			t = sys::window_state::minimized;
-		} else if (wParam == SIZE_RESTORED) {
+		} else if(wParam == SIZE_RESTORED) {
 			t = sys::window_state::normal;
 		} else {
 			// other
@@ -256,7 +256,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	}
 	case WM_KEYDOWN: // fallthrough
 	case WM_SYSKEYDOWN:
-		if ((HIWORD(lParam) & KF_REPEAT) != 0)
+		if((HIWORD(lParam) & KF_REPEAT) != 0)
 			return 0;
 		state->on_key_down(sys::virtual_key(wParam), get_current_modifiers());
 		return 0;
@@ -265,9 +265,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->on_key_up(sys::virtual_key(wParam), get_current_modifiers());
 		return 0;
 	case WM_CHAR: {
-		if (state->ui_state.edit_target) {
+		if(state->ui_state.edit_target) {
 			char turned_into = process_utf16_to_win1250(wchar_t(wParam));
-			if (turned_into)
+			if(turned_into)
 				state->on_text(turned_into);
 		}
 		return 0;
@@ -292,7 +292,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	return DefWindowProcW(hwnd, message, wParam, lParam);
 }
 
-void create_window(sys::state &game_state, creation_parameters const &params) {
+void create_window(sys::state& game_state, creation_parameters const & params) {
 	game_state.win_ptr = std::make_unique<window_data_impl>();
 	game_state.win_ptr->creation_x_size = params.size_x;
 	game_state.win_ptr->creation_y_size = params.size_y;
@@ -312,7 +312,7 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 	wcex.hCursor = nullptr;
 	wcex.lpszClassName = L"project_alice_class";
 
-	if (RegisterClassExW(&wcex) == 0) {
+	if(RegisterClassExW(&wcex) == 0) {
 		std::abort();
 	}
 
@@ -335,12 +335,12 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 	    GetModuleHandleW(nullptr),
 	    &game_state);
 
-	if (!game_state.win_ptr->hwnd)
+	if(!game_state.win_ptr->hwnd)
 		return;
 
 	SetCursor(LoadCursor(NULL, IDC_ARROW));
 
-	if (!params.borderless_fullscreen) {
+	if(!params.borderless_fullscreen) {
 
 		auto monitor_handle = MonitorFromWindow(game_state.win_ptr->hwnd, MONITOR_DEFAULTTOPRIMARY);
 		MONITORINFO mi;
@@ -359,9 +359,9 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 		SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_FRAMECHANGED);
 		SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 
-		if (params.initial_state == sys::window_state::maximized)
+		if(params.initial_state == sys::window_state::maximized)
 			ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
-		else if (params.initial_state == sys::window_state::minimized)
+		else if(params.initial_state == sys::window_state::minimized)
 			ShowWindow(game_state.win_ptr->hwnd, SW_MINIMIZE);
 		else
 			ShowWindow(game_state.win_ptr->hwnd, SW_SHOWNORMAL);
@@ -391,12 +391,12 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 
 	MSG msg;
 	// pump message loop
-	while (true) {
-		if (PeekMessageW(&msg, 0, 0, 0, PM_REMOVE)) {
-			if (msg.message == WM_QUIT) {
+	while(true) {
+		if(PeekMessageW(&msg, 0, 0, 0, PM_REMOVE)) {
+			if(msg.message == WM_QUIT) {
 				break;
 			}
-			if (game_state.ui_state.edit_target)
+			if(game_state.ui_state.edit_target)
 				TranslateMessage(&msg);
 			DispatchMessageW(&msg);
 		} else {
@@ -408,9 +408,9 @@ void create_window(sys::state &game_state, creation_parameters const &params) {
 	}
 }
 
-void emit_error_message(std::string const &content, bool fatal) {
+void emit_error_message(std::string const & content, bool fatal) {
 	MessageBoxA(nullptr, content.c_str(), fatal ? "Project Alice has encountered a fatal error:" : "Project Alice has encountered the following problems:", MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
-	if (fatal) {
+	if(fatal) {
 		std::terminate();
 	}
 }

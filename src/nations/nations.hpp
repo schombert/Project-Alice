@@ -143,7 +143,7 @@ constexpr inline uint8_t is_discredited = uint8_t(0x40);
 constexpr inline uint8_t is_banned = uint8_t(0x80);
 
 inline uint8_t increase_level(uint8_t v) {
-	switch (v & level_mask) {
+	switch(v & level_mask) {
 	case level_neutral:
 		return uint8_t((v & ~level_mask) | level_cordial);
 	case level_opposed:
@@ -161,7 +161,7 @@ inline uint8_t increase_level(uint8_t v) {
 	}
 }
 inline uint8_t decrease_level(uint8_t v) {
-	switch (v & level_mask) {
+	switch(v & level_mask) {
 	case level_neutral:
 		return uint8_t((v & ~level_mask) | level_opposed);
 	case level_opposed:
@@ -179,21 +179,21 @@ inline uint8_t decrease_level(uint8_t v) {
 	}
 }
 inline uint8_t increase_priority(uint8_t v) {
-	if ((v & priority_mask) != priority_three) {
+	if((v & priority_mask) != priority_three) {
 		return uint8_t(v + priority_one);
 	} else {
 		return v;
 	}
 }
 inline uint8_t decrease_priority(uint8_t v) {
-	if ((v & priority_mask) != priority_zero) {
+	if((v & priority_mask) != priority_zero) {
 		return uint8_t(v - priority_one);
 	} else {
 		return v;
 	}
 }
 inline bool is_influence_level_greater(int32_t l, int32_t r) {
-	switch (l) {
+	switch(l) {
 	case level_hostile:
 		return false;
 	case level_opposed:
@@ -213,52 +213,52 @@ inline bool is_influence_level_greater(int32_t l, int32_t r) {
 inline bool is_influence_level_greater_or_equal(int32_t l, int32_t r) {
 	return l == r || is_influence_level_greater(l, r);
 }
-int32_t get_level(sys::state &state, dcon::nation_id gp, dcon::nation_id target);
+int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target);
 
 } // namespace influence
 
-dcon::nation_id get_nth_great_power(sys::state const &state, uint16_t n);
+dcon::nation_id get_nth_great_power(sys::state const & state, uint16_t n);
 
 // returns whether a culture is on the accepted list OR is the primary culture
-template <typename T, typename U>
-auto nation_accepts_culture(sys::state const &state, T ids, U c);
+template<typename T, typename U>
+auto nation_accepts_culture(sys::state const & state, T ids, U c);
 
-template <typename T>
-auto primary_culture_group(sys::state const &state, T ids);
-template <typename T>
-auto owner_of_pop(sys::state const &state, T pop_ids);
-template <typename T>
-auto central_reb_controlled_fraction(sys::state const &state, T ids);
-template <typename T>
-auto central_blockaded_fraction(sys::state const &state, T ids);
-template <typename T>
-auto central_has_crime_fraction(sys::state const &state, T ids);
-template <typename T>
-auto occupied_provinces_fraction(sys::state const &state, T ids);
+template<typename T>
+auto primary_culture_group(sys::state const & state, T ids);
+template<typename T>
+auto owner_of_pop(sys::state const & state, T pop_ids);
+template<typename T>
+auto central_reb_controlled_fraction(sys::state const & state, T ids);
+template<typename T>
+auto central_blockaded_fraction(sys::state const & state, T ids);
+template<typename T>
+auto central_has_crime_fraction(sys::state const & state, T ids);
+template<typename T>
+auto occupied_provinces_fraction(sys::state const & state, T ids);
 
-bool can_release_as_vassal(sys::state const &state, dcon::nation_id n, dcon::national_identity_id releasable);
-bool identity_has_holder(sys::state const &state, dcon::national_identity_id ident);
-dcon::nation_id get_relationship_partner(sys::state const &state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
+bool can_release_as_vassal(sys::state const & state, dcon::nation_id n, dcon::national_identity_id releasable);
+bool identity_has_holder(sys::state const & state, dcon::national_identity_id ident);
+dcon::nation_id get_relationship_partner(sys::state const & state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
 
-void update_cached_values(sys::state &state);
-void restore_unsaved_values(sys::state &state);
-void restore_state_instances(sys::state &state);
-void generate_initial_state_instances(sys::state &state);
+void update_cached_values(sys::state& state);
+void restore_unsaved_values(sys::state& state);
+void restore_state_instances(sys::state& state);
+void generate_initial_state_instances(sys::state& state);
 
-dcon::text_sequence_id name_from_tag(sys::state const &state, dcon::national_identity_id tag);
+dcon::text_sequence_id name_from_tag(sys::state const & state, dcon::national_identity_id tag);
 
-void update_administrative_efficiency(sys::state &state);
+void update_administrative_efficiency(sys::state& state);
 
-float daily_research_points(sys::state &state, dcon::nation_id n);
-void update_research_points(sys::state &state);
+float daily_research_points(sys::state& state, dcon::nation_id n);
+void update_research_points(sys::state& state);
 
-void update_industrial_scores(sys::state &state);
-void update_military_scores(sys::state &state);
-void update_rankings(sys::state &state);
-void update_ui_rankings(sys::state &state);
+void update_industrial_scores(sys::state& state);
+void update_military_scores(sys::state& state);
+void update_rankings(sys::state& state);
+void update_ui_rankings(sys::state& state);
 
-bool is_great_power(sys::state const &state, dcon::nation_id n);
-float prestige_score(sys::state const &state, dcon::nation_id n);
+bool is_great_power(sys::state const & state, dcon::nation_id n);
+float prestige_score(sys::state const & state, dcon::nation_id n);
 
 enum class status : uint8_t {
 	great_power,
@@ -268,75 +268,75 @@ enum class status : uint8_t {
 	uncivilized,
 	primitive
 };
-status get_status(sys::state &state, dcon::nation_id n);
+status get_status(sys::state& state, dcon::nation_id n);
 
-dcon::technology_id current_research(sys::state const &state, dcon::nation_id n);
-float suppression_points(sys::state const &state, dcon::nation_id n);
-float diplomatic_points(sys::state const &state, dcon::nation_id n);
-float leadership_points(sys::state const &state, dcon::nation_id n);
-float get_treasury(sys::state &state, dcon::nation_id n);
-float get_bank_funds(sys::state &state, dcon::nation_id n);
-float get_debt(sys::state &state, dcon::nation_id n);
-float tariff_efficiency(sys::state &state, dcon::nation_id n);
-float tax_efficiency(sys::state &state, dcon::nation_id n);
-int32_t free_colonial_points(sys::state &state, dcon::nation_id n);
-int32_t max_colonial_points(sys::state &state, dcon::nation_id n);
+dcon::technology_id current_research(sys::state const & state, dcon::nation_id n);
+float suppression_points(sys::state const & state, dcon::nation_id n);
+float diplomatic_points(sys::state const & state, dcon::nation_id n);
+float leadership_points(sys::state const & state, dcon::nation_id n);
+float get_treasury(sys::state& state, dcon::nation_id n);
+float get_bank_funds(sys::state& state, dcon::nation_id n);
+float get_debt(sys::state& state, dcon::nation_id n);
+float tariff_efficiency(sys::state& state, dcon::nation_id n);
+float tax_efficiency(sys::state& state, dcon::nation_id n);
+int32_t free_colonial_points(sys::state& state, dcon::nation_id n);
+int32_t max_colonial_points(sys::state& state, dcon::nation_id n);
 
-bool has_political_reform_available(sys::state &state, dcon::nation_id n);
-bool has_social_reform_available(sys::state &state, dcon::nation_id n);
-bool has_reform_available(sys::state &state, dcon::nation_id n);
-bool has_decision_available(sys::state &state, dcon::nation_id n);
-int32_t max_national_focuses(sys::state &state, dcon::nation_id n);
-int32_t national_focuses_in_use(sys::state &state, dcon::nation_id n);
-bool can_expand_colony(sys::state &state, dcon::nation_id n);
-bool is_losing_colonial_race(sys::state &state, dcon::nation_id n);
-bool sphereing_progress_is_possible(sys::state &state, dcon::nation_id n); // can increase opinion or add to sphere
-bool is_involved_in_crisis(sys::state const &state, dcon::nation_id n);
-bool can_put_flashpoint_focus_in_state(sys::state &state, dcon::state_instance_id s, dcon::nation_id fp_nation);
-int64_t get_monthly_pop_increase_of_nation(sys::state &state, dcon::nation_id n);
+bool has_political_reform_available(sys::state& state, dcon::nation_id n);
+bool has_social_reform_available(sys::state& state, dcon::nation_id n);
+bool has_reform_available(sys::state& state, dcon::nation_id n);
+bool has_decision_available(sys::state& state, dcon::nation_id n);
+int32_t max_national_focuses(sys::state& state, dcon::nation_id n);
+int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n);
+bool can_expand_colony(sys::state& state, dcon::nation_id n);
+bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
+bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
+bool is_involved_in_crisis(sys::state const & state, dcon::nation_id n);
+bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
+int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 
-std::vector<dcon::political_party_id> get_active_political_parties(sys::state &state, dcon::nation_id n);
+std::vector<dcon::political_party_id> get_active_political_parties(sys::state& state, dcon::nation_id n);
 
-void update_monthly_points(sys::state &state);
+void update_monthly_points(sys::state& state);
 
 // may create a relationship DO NOT call in a context where two or more such functions may run in parallel
-void adjust_relationship(sys::state &state, dcon::nation_id a, dcon::nation_id b, float delta);
+void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta);
 // used for creating a "new" nation when it is released
-void create_nation_based_on_template(sys::state &state, dcon::nation_id n, dcon::nation_id base);
+void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon::nation_id base);
 // call after a nation loses its last province
-void cleanup_nation(sys::state &state, dcon::nation_id n);
+void cleanup_nation(sys::state& state, dcon::nation_id n);
 
-void adjust_prestige(sys::state &state, dcon::nation_id n, float delta);
-void destroy_diplomatic_relationships(sys::state &state, dcon::nation_id n);
-void release_vassal(sys::state &state, dcon::overlord_id rel);
-void break_alliance(sys::state &state, dcon::diplomatic_relation_id rel);
-void break_alliance(sys::state &state, dcon::nation_id a, dcon::nation_id b);
-void make_alliance(sys::state &state, dcon::nation_id a, dcon::nation_id b);
-void adjust_influence(sys::state &state, dcon::nation_id great_power, dcon::nation_id target, float delta);
-void adjust_foreign_investment(sys::state &state, dcon::nation_id great_power, dcon::nation_id target, float delta);
+void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
+void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
+void release_vassal(sys::state& state, dcon::overlord_id rel);
+void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
+void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
+void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 
-void update_great_powers(sys::state &state);
-void update_influence(sys::state &state);
+void update_great_powers(sys::state& state);
+void update_influence(sys::state& state);
 
-void monthly_flashpoint_update(sys::state &state);
-void daily_update_flashpoint_tension(sys::state &state);
-void update_crisis(sys::state &state);
+void monthly_flashpoint_update(sys::state& state);
+void daily_update_flashpoint_tension(sys::state& state);
+void update_crisis(sys::state& state);
 
-void add_as_primary_crisis_defender(sys::state &state, dcon::nation_id n);
-void add_as_primary_crisis_attacker(sys::state &state, dcon::nation_id n);
-void reject_crisis_participation(sys::state &state);
-void cleanup_crisis(sys::state &state);
-void update_crisis(sys::state &state);
+void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n);
+void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
+void reject_crisis_participation(sys::state& state);
+void cleanup_crisis(sys::state& state);
+void update_crisis(sys::state& state);
 
-void update_pop_acceptance(sys::state &state, dcon::nation_id n);
-void liberate_nation_from(sys::state &state, dcon::national_identity_id liberated, dcon::nation_id from);
-void release_nation_from(sys::state &state, dcon::national_identity_id liberated, dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
-void remove_cores_from_owned(sys::state &state, dcon::nation_id n, dcon::national_identity_id tag);
-void perform_nationalization(sys::state &state, dcon::nation_id n);
+void update_pop_acceptance(sys::state& state, dcon::nation_id n);
+void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from);
+void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
+void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag);
+void perform_nationalization(sys::state& state, dcon::nation_id n);
 
-float get_yesterday_income(sys::state &state, dcon::nation_id n);
+float get_yesterday_income(sys::state& state, dcon::nation_id n);
 
-void make_civilized(sys::state &state, dcon::nation_id n);
-void make_uncivilized(sys::state &state, dcon::nation_id n);
+void make_civilized(sys::state& state, dcon::nation_id n);
+void make_uncivilized(sys::state& state, dcon::nation_id n);
 
 } // namespace nations

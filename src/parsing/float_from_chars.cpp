@@ -24,7 +24,7 @@ inline double Pow10(int n) {
 	return e[n];
 }
 
-bool float_from_chars(char const *start, char const *end, float &float_out) { // returns true on success
+bool float_from_chars(char const * start, char const * end, float& float_out) { // returns true on success
 	// first read the chars into an int, keeping track of the magnitude
 	// multiply by a pow of 10
 
@@ -32,36 +32,36 @@ bool float_from_chars(char const *start, char const *end, float &float_out) { //
 	int64_t accumulated = 0;
 	bool after_decimal = false;
 
-	if (start == end) {
+	if(start == end) {
 		float_out = 0.0f;
 		return true;
 	}
 
 	bool is_negative = false;
-	if (*start == '-') {
+	if(*start == '-') {
 		is_negative = true;
 		++start;
-	} else if (*start == '+') {
+	} else if(*start == '+') {
 		++start;
 	}
 
-	for (; start < end; ++start) {
-		if (*start >= '0' && *start <= '9') {
+	for(; start < end; ++start) {
+		if(*start >= '0' && *start <= '9') {
 			accumulated = accumulated * 10 + (*start - '0');
 			magnitude += int32_t(after_decimal);
-		} else if (*start == '.') {
+		} else if(*start == '.') {
 			after_decimal = true;
 		} else {
 			// maybe check for non space and throw an error?
 		}
 	}
-	if (!is_negative) {
-		if (magnitude > 0)
+	if(!is_negative) {
+		if(magnitude > 0)
 			float_out = float(double(accumulated) / Pow10(magnitude));
 		else
 			float_out = float(accumulated);
 	} else {
-		if (magnitude > 0)
+		if(magnitude > 0)
 			float_out = -float(double(accumulated) / Pow10(magnitude));
 		else
 			float_out = -float(accumulated);
@@ -69,40 +69,40 @@ bool float_from_chars(char const *start, char const *end, float &float_out) { //
 	return true;
 }
 
-bool double_from_chars(char const *start, char const *end, double &dbl_out) { // returns true on success
+bool double_from_chars(char const * start, char const * end, double& dbl_out) { // returns true on success
 	int32_t magnitude = 0;
 	int64_t accumulated = 0;
 	bool after_decimal = false;
 
-	if (start == end) {
+	if(start == end) {
 		dbl_out = 0.0;
 		return true;
 	}
 
 	bool is_negative = false;
-	if (*start == '-') {
+	if(*start == '-') {
 		is_negative = true;
 		++start;
-	} else if (*start == '+') {
+	} else if(*start == '+') {
 		++start;
 	}
 
-	for (; start < end; ++start) {
-		if (*start >= '0' && *start <= '9') {
+	for(; start < end; ++start) {
+		if(*start >= '0' && *start <= '9') {
 			accumulated = accumulated * 10 + (*start - '0');
 			magnitude += int32_t(after_decimal);
-		} else if (*start == '.') {
+		} else if(*start == '.') {
 			after_decimal = true;
 		} else {
 		}
 	}
-	if (!is_negative) {
-		if (magnitude > 0)
+	if(!is_negative) {
+		if(magnitude > 0)
 			dbl_out = double(accumulated) / Pow10(magnitude);
 		else
 			dbl_out = double(accumulated);
 	} else {
-		if (magnitude > 0)
+		if(magnitude > 0)
 			dbl_out = -double(accumulated) / Pow10(magnitude);
 		else
 			dbl_out = -double(accumulated);
