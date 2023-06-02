@@ -622,8 +622,9 @@ public:
 
 			row_contents.clear();
 			for (auto wg : state.world.war_get_wargoals_attached(content))
-				if(wg.get_is_attacker() == B)
-					row_contents.push_back(wg.get_wargoal().get_type());
+				for (auto o : dcon::fatten(state.world, content).get_war_participant())
+					if(wg.get_wargoal().get_added_by() == o.get_nation() && o.get_is_attacker() == B)
+						row_contents.push_back(wg.get_wargoal().get_type());
 			update(state);
 		}
 	}
