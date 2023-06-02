@@ -71,7 +71,7 @@ public:
 		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
 	}
 	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+		if (has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
@@ -88,7 +88,7 @@ public:
 		return 0;
 	}
 	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+		if (has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
@@ -182,7 +182,7 @@ public:
 		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
 	}
 	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+		if (has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
@@ -203,7 +203,7 @@ public:
 	std::string_view get_text(sys::state &state) const {
 		return stored_text;
 	}
-	
+
 	message_result on_lbutton_down(sys::state &state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
 	}
@@ -611,7 +611,7 @@ public:
 		return parent ? parent->impl_on_scroll(state, x, y, amount, mods) : message_result::unseen;
 	}
 	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+		if (has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;
 		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}

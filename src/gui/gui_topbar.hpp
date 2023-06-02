@@ -25,11 +25,11 @@ public:
 };
 
 class topbar_flag_button : public flag_button {
-  public:
+public:
 };
 
 class topbar_nation_prestige_text : public nation_prestige_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -77,7 +77,7 @@ class topbar_nation_prestige_text : public nation_prestige_text {
 };
 
 class topbar_nation_industry_score_text : public nation_industry_score_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -98,7 +98,7 @@ class topbar_nation_industry_score_text : public nation_industry_score_text {
 };
 
 class topbar_nation_military_score_text : public nation_military_score_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -123,7 +123,7 @@ public:
 };
 
 class topbar_nation_colonial_power_text : public nation_colonial_power_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -179,7 +179,7 @@ public:
 };
 
 class topbar_nation_budget_funds_text : public nation_budget_funds_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -273,7 +273,7 @@ public:
 };
 
 class topbar_nation_current_research_text : public nation_current_research_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -299,7 +299,7 @@ class topbar_nation_current_research_text : public nation_current_research_text 
 };
 
 class topbar_nation_daily_research_points_text : public nation_daily_research_points_text {
-  private:
+private:
 	float getResearchPointsFromPop(sys::state &state, dcon::pop_type_id pop, dcon::nation_id n) {
 		auto fat_nation = dcon::fatten(state.world, n);
 		auto fat_pop = dcon::fatten(state.world, pop);
@@ -313,7 +313,7 @@ class topbar_nation_daily_research_points_text : public nation_daily_research_po
 		return sum;
 	}
 
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -353,7 +353,7 @@ class topbar_nation_daily_research_points_text : public nation_daily_research_po
 };
 
 class topbar_nation_literacy_text : public nation_literacy_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -383,7 +383,7 @@ public:
 };
 
 class topbar_nation_ruling_party_text : public nation_ruling_party_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -408,7 +408,7 @@ class topbar_nation_ruling_party_text : public nation_ruling_party_text {
 };
 
 class topbar_nation_suppression_points_text : public nation_suppression_points_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -429,7 +429,7 @@ class topbar_nation_suppression_points_text : public nation_suppression_points_t
 };
 
 class topbar_nation_infamy_text : public nation_infamy_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -456,7 +456,7 @@ class topbar_nation_infamy_text : public nation_infamy_text {
 };
 
 class topbar_nation_population_text : public nation_population_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -481,7 +481,7 @@ class topbar_nation_population_text : public nation_population_text {
 };
 
 class topbar_nation_focus_allocation_text : public nation_focus_allocation_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -534,7 +534,7 @@ class topbar_nation_focus_allocation_text : public nation_focus_allocation_text 
 };
 
 class topbar_nation_militancy_text : public nation_militancy_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -559,7 +559,7 @@ class topbar_nation_militancy_text : public nation_militancy_text {
 };
 
 class topbar_nation_consciousness_text : public nation_consciousness_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -589,7 +589,7 @@ public:
 };
 
 class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -610,7 +610,7 @@ class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_tex
 };
 
 class topbar_nation_brigade_allocation_text : public nation_brigade_allocation_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -632,7 +632,7 @@ class topbar_nation_brigade_allocation_text : public nation_brigade_allocation_t
 };
 
 class topbar_nation_navy_allocation_text : public nation_brigade_allocation_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -660,7 +660,7 @@ class topbar_nation_navy_allocation_text : public nation_brigade_allocation_text
 };
 
 class topbar_nation_mobilization_size_text : public nation_mobilization_size_text {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -703,7 +703,7 @@ class topbar_nation_mobilization_size_text : public nation_mobilization_size_tex
 };
 
 class topbar_nation_leadership_points_text : public nation_leadership_points_text {
-  private:
+private:
 	float get_research_points_from_pop(sys::state &state, dcon::pop_type_id pop, dcon::nation_id n) {
 		auto fat_nation = dcon::fatten(state.world, n);
 		auto fat_pop = dcon::fatten(state.world, pop);
@@ -718,7 +718,7 @@ class topbar_nation_leadership_points_text : public nation_leadership_points_tex
 		return sum;
 	}
 
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -908,7 +908,7 @@ public:
 };
 
 class topbar_losing_gp_status_icon : public standard_nation_icon {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!(nations::is_great_power(state, nation_id) && state.world.nation_get_rank(nation_id) > uint16_t(state.defines.great_nations_count)));
 	}
@@ -945,7 +945,7 @@ public:
 };
 
 class topbar_building_factories_icon : public standard_nation_icon {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!economy::nation_is_constructing_factories(state, nation_id));
 	}
@@ -983,7 +983,7 @@ class topbar_building_factories_icon : public standard_nation_icon {
 };
 
 class topbar_closed_factories_icon : public standard_nation_icon {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!economy::nation_has_closed_factories(state, nation_id));
 	}
@@ -1033,13 +1033,14 @@ class topbar_closed_factories_icon : public standard_nation_icon {
 };
 
 class topbar_unemployment_icon : public standard_nation_icon {
-  private:
+private:
 	float get_num_unemployed(sys::state &state, dcon::pop_type_id pop_type, dcon::nation_id nation_id) noexcept {
 		auto total_key = demographics::to_key(state, pop_type);
 		auto employment_key = demographics::to_employment_key(state, pop_type);
 		return state.world.nation_get_demographics(nation_id, total_key) - state.world.nation_get_demographics(nation_id, employment_key);
 	}
-  public:
+
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id);
 		auto secondary_unemployed = get_num_unemployed(state, state.culture_definitions.secondary_factory_worker, nation_id);
@@ -1106,7 +1107,7 @@ class topbar_unemployment_icon : public standard_nation_icon {
 };
 
 class topbar_available_reforms_icon : public standard_nation_button {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!nations::has_reform_available(state, nation_id));
 	}
@@ -1194,7 +1195,7 @@ class topbar_available_reforms_icon : public standard_nation_button {
 };
 
 class topbar_available_decisions_icon : public standard_nation_button {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!nations::has_decision_available(state, nation_id));
 	}
@@ -1235,7 +1236,7 @@ class topbar_available_decisions_icon : public standard_nation_button {
 };
 
 class topbar_ongoing_election_icon : public standard_nation_icon {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		return int32_t(!politics::is_election_ongoing(state, nation_id));
 	}
@@ -1268,7 +1269,7 @@ class topbar_ongoing_election_icon : public standard_nation_icon {
 };
 
 class topbar_rebels_icon : public standard_nation_button {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		auto rebellions_iter = state.world.nation_get_rebellion_within(nation_id);
 		return int32_t(rebellions_iter.begin() == rebellions_iter.end());
@@ -1314,7 +1315,7 @@ class topbar_rebels_icon : public standard_nation_button {
 };
 
 class topbar_colony_icon : public standard_nation_button {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		if (nations::can_expand_colony(state, nation_id)) {
 			return 0;
@@ -1365,7 +1366,7 @@ class topbar_colony_icon : public standard_nation_button {
 };
 
 class topbar_crisis_icon : public standard_nation_icon {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		if (state.current_crisis == sys::crisis_type::none) {
 			return 2;
@@ -1404,7 +1405,7 @@ class topbar_crisis_icon : public standard_nation_icon {
 };
 
 class topbar_sphere_icon : public standard_nation_icon {
-  public:
+public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		if (nations::sphereing_progress_is_possible(state, nation_id)) {
 			return 0;
@@ -1440,7 +1441,6 @@ class topbar_sphere_icon : public standard_nation_icon {
 			text::close_layout_box(contents, box);
 		}
 	}
-	
 };
 
 class topbar_window : public window_element_base {
