@@ -320,7 +320,7 @@ public:
 	void update(sys::state &state);
 };
 
-class flag_button : public add_tooltip<button_element_base> {
+class flag_button : public button_element_base {
 protected:
 	GLuint flag_texture_handle = 0;
 

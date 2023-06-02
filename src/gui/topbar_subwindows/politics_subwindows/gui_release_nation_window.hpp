@@ -107,7 +107,7 @@ public:
 	}
 };
 
-class release_nation_button : public add_tooltip<button_element_base> {
+class release_nation_button : public button_element_base {
 public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
@@ -118,6 +118,10 @@ public:
 			Cyto::Any e_payload = release_emplace_wrapper{nid};
 			parent->impl_get(state, e_payload);
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
