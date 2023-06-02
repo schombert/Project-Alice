@@ -479,17 +479,18 @@ void line_graph::set_data_points(sys::state &state, std::vector<float> const &da
 		}
 	}
 
-	// if(state.user_settings.fake_graphs) {
-	//	std::vector<float> fudged_scaled_datapoints = std::vector<float>(count * 3);
-	//	for(size_t i = 0; i < count; i++) {
-	//		fudged_scaled_datapoints[i * 3 + 0] = scaled_datapoints[i];
-	//		fudged_scaled_datapoints[i * 3 + 1] = scaled_datapoints[i] + (std::fmod(datapoints[i], 1.f) / 10.f);
-	//		fudged_scaled_datapoints[i * 3 + 2] = scaled_datapoints[i] + (std::fmod(datapoints[i] * 7.527f, 1.f) / 10.f);
-	//	}
-	//	lines.set_y(fudged_scaled_datapoints.data());
-	// } else {
-	lines.set_y(scaled_datapoints.data());
-	//}
+	if(state.user_settings.fake_graphs) {
+		std::vector<float> fudged_scaled_datapoints = std::vector<float>(count);
+		for(size_t i = 0; i < count / 4; i++) {
+			fudged_scaled_datapoints[i * 4 + 0] = scaled_datapoints[i];
+			fudged_scaled_datapoints[i * 4 + 1] = scaled_datapoints[i] + (std::fmod(datapoints[i], 1.f) / 10.f);
+			fudged_scaled_datapoints[i * 4 + 2] = scaled_datapoints[i] + (std::fmod(datapoints[i] * 7.527f, 1.f) / 10.f);
+			fudged_scaled_datapoints[i * 4 + 3] = scaled_datapoints[i] + (std::fmod(datapoints[i] * 3.3333f, 1.f) / 10.f);
+		}
+		lines.set_y(fudged_scaled_datapoints.data());
+	} else {
+		lines.set_y(scaled_datapoints.data());
+	}
 }
 
 void line_graph::on_create(sys::state &state) noexcept {

@@ -477,15 +477,21 @@ public:
 };
 
 template <bool IsAttacker>
-class war_side_strength_text : public generic_settable_element<button_element_base, dcon::war_id> {
+class war_side_strength_text : public button_element_base {
 public:
 	void on_update(sys::state &state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		int32_t strength = 0;
-		for (auto o : fat_id.get_war_participant())
-			if (o.get_is_attacker() == IsAttacker)
-				strength += int32_t(o.get_nation().get_military_score());
-		set_button_text(state, std::to_string(strength));
+		if (parent) {
+			Cyto::Any payload = dcon::war_id{};
+			parent->impl_get(state, payload);
+			dcon::war_id content = any_cast<dcon::war_id>(payload);
+		
+			auto fat_id = dcon::fatten(state.world, content);
+			int32_t strength = 0;
+			for (auto o : fat_id.get_war_participant())
+				if (o.get_is_attacker() == IsAttacker)
+					strength += int32_t(o.get_nation().get_military_score());
+			set_button_text(state, std::to_string(strength));
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
@@ -493,18 +499,24 @@ public:
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		for (auto o : fat_id.get_war_participant())
-			if (o.get_is_attacker() == IsAttacker) {
-				auto name = o.get_nation().get_name();
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-				text::add_to_layout_box(contents, state, box, std::string{":"}, text::text_color::yellow);
-				text::add_space_to_layout_box(contents, state, box);
-				auto strength = int32_t(o.get_nation().get_military_score());
-				text::add_to_layout_box(contents, state, box, std::to_string(strength), text::text_color::white);
-				text::close_layout_box(contents, box);
-			}
+		if (parent) {
+			Cyto::Any payload = dcon::war_id{};
+			parent->impl_get(state, payload);
+			dcon::war_id content = any_cast<dcon::war_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, content);
+			for (auto o : fat_id.get_war_participant())
+				if (o.get_is_attacker() == IsAttacker) {
+					auto name = o.get_nation().get_name();
+					auto box = text::open_layout_box(contents, 0);
+					text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+					text::add_to_layout_box(contents, state, box, std::string{":"}, text::text_color::yellow);
+					text::add_space_to_layout_box(contents, state, box);
+					auto strength = int32_t(o.get_nation().get_military_score());
+					text::add_to_layout_box(contents, state, box, std::to_string(strength), text::text_color::white);
+					text::close_layout_box(contents, box);
+				}
+		}
 	}
 };
 
@@ -594,6 +606,30 @@ public:
 	}
 };
 
+template <bool B>
+class diplomacy_war_overlapping_wargoals : public overlapping_listbox_element_base<overlapping_wargoal_icon, dcon::cb_type_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "wargoal";
+	}
+
+public:
+	void on_update(sys::state &state) noexcept override {
+		if (parent) {
+			Cyto::Any payload = dcon::war_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::war_id>(payload);
+
+			row_contents.clear();
+			for (auto wg : state.world.war_get_wargoals_attached(content))
+				for (auto o : dcon::fatten(state.world, content).get_war_participant())
+					if(wg.get_wargoal().get_added_by() == o.get_nation() && o.get_is_attacker() == B)
+						row_contents.push_back(wg.get_wargoal().get_type());
+			update(state);
+		}
+	}
+};
+
 class diplomacy_war_info : public listbox_row_element_base<dcon::war_id> {
 	simple_text_element_base *attackers_strength_text = nullptr;
 	simple_text_element_base *defenders_strength_text = nullptr;
@@ -639,6 +675,10 @@ public:
 			defenders_flags = ptr.get();
 			defenders_flags->base_data.position.y -= 8 - 2;
 			return ptr;
+		} else if(name == "attackers_wargoals") {
+			return make_element_by_type<diplomacy_war_overlapping_wargoals<true>>(state, id);
+		} else if(name == "defenders_wargoals") {
+			return make_element_by_type<diplomacy_war_overlapping_wargoals<false>>(state, id);
 		} else if (name == "join_attackers") {
 			return make_element_by_type<diplomacy_join_war_button<true>>(state, id);
 		} else if (name == "join_defenders") {
@@ -646,11 +686,6 @@ public:
 		} else {
 			return nullptr;
 		}
-	}
-
-	void update(sys::state &state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
 	}
 };
 

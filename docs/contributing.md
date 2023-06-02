@@ -79,7 +79,7 @@ From here compiling is straightforward
         #define GAME_DIR "[insert file path here]"
         #endif
     ```
-    substitute the value otherwise ALice wont work, if you downloaded it on steam then you can just right click Victoria 2 and browse local files
+    substitute the value otherwise Alice wont work, if you downloaded it on steam then you can just right click Victoria 2 and browse local files
     copy the file path and replace [insert file path here] with it, then save.
 7. `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
 8. `cmake --build . -j$(nproc)`

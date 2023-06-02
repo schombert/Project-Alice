@@ -138,6 +138,31 @@ struct mutable_scrollbar_settings {
 ```
 `lower_value` and `upper_value` determine the limits of the scrollbar's range. `upper_limit` and `lower_limit` can be used to set visual stops that restrict the movement of the slider to a smaller portion of that range (not currently implemented), and `using_limits` controls whether these additional stops should be used and displayed. Note that changing the scrollbar settings in this may may cause the position of the slider to be changed, and if it is, you will receive an `on_value_change` message.
 
+#### `progress_bar`
+
+This element inherits from `opaque_element_base`. Represent a progress bar, it will render only a portion of the associated texture image for the progress bar. Use the property `progress` to control the progress displayed (bound between `0.0` and `1.0`, values higher may cause unpredictable behaviour).
+
+#### `vertical_progress_bar`
+
+The vanilla UI system supports rotation of elements, however for performance reasons this isn't supported, so this element is used to display vertical progress bars. Works in the same fashion as the progress bar, except it's rotated 90 degrees counterclockwise.
+
+#### `line_graph`
+
+Linegraphs are implemented as the rendering of consecutive lines using te same texture throughout. The amount of nodes within the linegraph are around 32. It supports fudging (as seen in the original implementation) where fake values would be displayed alongside real ones. This behaviour can be toggled on/off by the user on the main menu.
+
+#### `edit_box_element_base`
+
+Represents an element that can be typed into, by default it handles all of the usual controls for an edit box, `<TAB>`, `<Backspace>`, `<Delete>`, and other commands. It inherits from `simple_text_element_base` so the text is saved on the same place as the aforementioned element. And it can be retrieved by overriding the `edit_box_update` method and reading the associated `std::string_view` containing the whole contents of the edit box.
+
+- `virtual void edit_box_tab(sys::state &state, std::string_view s) noexcept` : Called when a `<TAB>` is pressed (used for autocompletion mainly).
+- `virtual void edit_box_enter(sys::state &state, std::string_view s) noexcept` : Called when `<Enter>` is pressed (used for flushing and parsing the contents).
+- `virtual void edit_box_update(sys::state &state, std::string_view s) noexcept` : Called whenever a new character is typed, a character is deleted, a command is issued or any combination of such.
+- `virtual void edit_box_up(sys::state &state) noexcept` : Called when the `<Up Arrow>` key is pressed.
+- `virtual void edit_box_down(sys::state &state) noexcept` : Called when the `<Down Arrow>` key is pressed.
+- `virtual void edit_box_esc(sys::state &state) noexcept` : Called when the `<Escape>` key is pressed.
+- `virtual void edit_box_backtick(sys::state &state) noexcept` : Called when the `<Backtick>` key is pressed.
+- `virtual void edit_index_position(sys::state &state, int32_t index) noexcept` : Called when the index position is modified; for example, `<Left Arrow>` or `<Right Arrow>` were pressed, and the handler made them go -1 or +1 in the current index, so it will call this function.
+
 ### Text rendering and layout
 
 #### Simple text
