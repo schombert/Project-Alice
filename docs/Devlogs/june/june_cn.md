@@ -1,7 +1,4 @@
-# 以下内容由chatGPT翻译，有所差误。
-欢迎访问[本项目](https://github.com/schombert/Project-Alice)
-
-The following content is translated by chatGPT and may contain some errors or inaccuracies.
+### 以下内容由chatGPT翻译，有所差误。
 
 ---
 
@@ -11,7 +8,7 @@ The following content is translated by chatGPT and may contain some errors or in
 
 ## 新成员加入
 
-- BrickPi：BrickPi 是另一位开发者，也是 OpenVic2 项目的一员。对于我们而言，BrickPi 贡献了一项升级，使得新的 Windows 开发者可以依赖其 Victoria 2 副本的安装路径进行开发，而无需手动拼写来开始开发。
+- BrickPi：BrickPi 是另一位开发者，也是 OpenVic2 项目的一员。对于我们而言，BrickPi 贡献了一项升级，使得新的 Windows 开发者可以依赖其维多利亚2副本的安装路径进行开发，而无需手动拼写来开始开发。
 - Breizh：尽管是新成员，Breizh 自第一天起就参与了我们的 Discord 群组。尽管是新成员，但他本月为完成 UI 工作做出了大量贡献。
 - Ivysaur：Ivysaur 也是我们 Discord 群组中的老成员。Ivysaur 在本月末加入，并目前还没有时间做出更多的贡献，只贡献了一些提示工具。
 
@@ -58,7 +55,7 @@ The following content is translated by chatGPT and may contain some errors or in
 
 没有足够的空间来截取所有其他已添加的操作，但以下是列表：更改国家焦点、开始研究、建造省级建筑物、增加关系、减少关系、建造工厂、建造船只、建造团队、取消单位建造、更改工厂优先级、删除工厂、释放国家、以国家身份进行游戏、提供/取消战争补贴、更改预算设置、开始选举、更改影响力优先级、诋毁顾问、驱逐顾问、禁止大使馆、增加观点、减少观点、加入势力范围、移出势力范围、将殖民地变为州、投资殖民竞赛、干涉战争、扼制运动、西化、任命执政党、采纳/废除改革、参加危机、更改库存设置、做出决策、做出事件选择、编造辩词、请求军事进入、请求联盟。是的，这是很多东西。
 
-## 国内
+## 程序内部
 
 几乎所有日常更新所需的东西（除了军事部分）的第一稿已经添加。这包括从人口迁移到选举，再到叛乱运动、事件和建造单位和建筑物等各种内容。当然，在开发的早期，可能仍然有许多隐藏的错误，但是看到大多数世界的行为大致符合预期还是很令人满意的。
 

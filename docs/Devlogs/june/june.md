@@ -13,7 +13,7 @@ This month has been unusually productive, possibly because a number of our team 
 This month we asked Erik, one of the four founding members of Project Alice and a major contributor to [SOE](https://github.com/symphony-of-empires/symphony-of-empires): "How has working on Project Alice been different from working on SOE?"
 
 > Working on Alice has been significantly smoother, thanks both to having clearer goals and the experience gained from working on SoE. It has been incredibly helpful having worked on a map game before. Progress on Project Alice has also been much faster, which is largely thanks to the excellent work done by all contributors. Another factor is that feature creep is mostly non-existent here.
-
+> 
 > There has been a greater interest in this project, which is to be expected given the large demand for an open source Victoria 2 (just look at the number of forks of Open V2). I'm looking forward to the huge modding potential once 1.0 is completed. Modding in Vic2 is rather limited, and that's something I would like to see improved.
 
 ## UI progress
