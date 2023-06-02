@@ -1,5 +1,7 @@
 #include <stdio.h>
-
+class foobar{};
+class blah:public foobar {
+};
 int
 main
 (
