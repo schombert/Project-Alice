@@ -579,6 +579,27 @@ void invert_trigger(uint16_t *source) {
 	trigger::recurse_over_triggers(source, invert_trigger_internal);
 }
 
+int32_t fold_and_or_trigger(uint16_t *source) {
+	assert(
+		(0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
+	auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
+	if(source[0] == trigger::generic_scope || source[0] == (trigger::generic_scope | trigger::is_disjunctive_scope)) {
+		auto sub_units_start = source + 2 + trigger::trigger_scope_data_payload(source[0]);
+		while (sub_units_start < source + source_size) {
+			const auto size = 1 + trigger::get_trigger_payload_size(sub_units_start);
+			if (sub_units_start[0] == source[0]) {
+				std::copy(sub_units_start + 2, source + source_size, sub_units_start);
+				source_size -= 2;
+			} else {
+				sub_units_start += size;
+			}
+		}
+		source[1] = uint16_t(source_size) - 1;
+		assert(source_size - 1 >= 0);
+	}
+	return source_size;
+}
+
 bool scope_is_empty(const uint16_t *source) {
 	return trigger::get_trigger_scope_payload_size(source) <= 1 + trigger::trigger_scope_data_payload(source[0]);
 }
@@ -593,16 +614,13 @@ int32_t simplify_trigger(uint16_t *source) {
 	assert(
 	    (0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
 	if ((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
+		// simplify each member
+		auto source_size = fold_and_or_trigger(source);
 		if (scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
 		}
-
-		// simplify each member
-		auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
-
 		const auto first_member = source + 2 + trigger::trigger_scope_data_payload(source[0]);
 		auto sub_units_start = first_member;
-
 		while (sub_units_start < source + source_size) {
 			const auto old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
 			const auto new_size = simplify_trigger(sub_units_start);
@@ -637,9 +655,6 @@ int32_t simplify_trigger(uint16_t *source) {
 				source_size -= 2;
 			}
 		}
-
-		// MISSING OPTIMIZATION: fold inner 'and' scope into outer 'and' scope, inner 'or' scope into outer 'or' scope
-
 		return source_size;
 	} else {
 		return 1 + trigger::get_trigger_non_scope_payload_size(source); // non scopes cannot be simplified
@@ -648,6 +663,7 @@ int32_t simplify_trigger(uint16_t *source) {
 
 dcon::trigger_key make_trigger(token_generator &gen, error_handler &err, trigger_building_context &context) {
 	tr_scope_and(gen, err, context);
+	assert(context.compiled_trigger.size() <= std::numeric_limits<uint16_t>::max());
 
 	const auto new_size = simplify_trigger(context.compiled_trigger.data());
 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
@@ -659,6 +675,7 @@ void make_value_modifier_segment(token_generator &gen, error_handler &err, trigg
 	auto old_factor = context.factor;
 	context.factor = 0.0f;
 	tr_scope_and(gen, err, context);
+	assert(context.compiled_trigger.size() <= std::numeric_limits<uint16_t>::max());
 	auto new_factor = context.factor;
 	context.factor = old_factor;
 

@@ -685,6 +685,26 @@ Not an exhaustive list of triggers, be wary the trigger codes **may** have flags
 | 0x0274 | variable_reform_group_name_province | 2 | 
 | 0x0275 | variable_reform_group_name_pop | 2 | 
 
+### Optimizations
+
+Alice performs various optimizations and simplifications upon the trigger code right after it's parsed:
+
+- For scopes:
+    - If the scope is empty (has nothing to evaluate)
+        - Then, Eliminate whole scope.
+        - Otherwise, for each member in the scope:
+            - Run same optimization/simplification algorithm
+    - If a `NOT` scope:
+        - Invert everything inside the NOT scope (to eliminate an entire layer of the scope).
+    - If scope has only 1 member and it's a generic scope:
+        - Eliminate the scope and only leave 1 member
+    - Otherwise, if it's not a generic scope (AND/OR)
+        - Rearrange inner scope (if any) to take the place of the outer AND/OR scope
+    - If it's a generic scope (AND/OR)
+        - Fold it (rearrange inner AND/OR into the outer one)
+
+See `trigger::simplify_trigger` for more information.
+
 ## Effects
 
 ### What's an effect?
