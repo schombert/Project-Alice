@@ -827,9 +827,9 @@ public:
 			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::state_instance_id>(payload);
-			disabled = false;
+			disabled = true;
 			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
-				disabled = disabled || !command::can_set_national_focus(state, state.local_player_nation, content, nfid);
+				disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
 			});
 			frame = get_icon_frame(state);
 		}
