@@ -614,11 +614,12 @@ int32_t simplify_trigger(uint16_t *source) {
 	assert(
 	    (0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
 	if ((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
-		// simplify each member
-		auto source_size = fold_and_or_trigger(source);
 		if (scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
 		}
+
+		// simplify each member
+		auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
 		const auto first_member = source + 2 + trigger::trigger_scope_data_payload(source[0]);
 		auto sub_units_start = first_member;
 		while (sub_units_start < source + source_size) {
@@ -654,6 +655,11 @@ int32_t simplify_trigger(uint16_t *source) {
 
 				source_size -= 2;
 			}
+		}
+		
+		source_size = fold_and_or_trigger(source);
+		if (scope_is_empty(source)) {
+			return 0; // simplify an empty scope to nothing
 		}
 		return source_size;
 	} else {
