@@ -249,7 +249,16 @@ public:
 	}
 
 	void on_update(sys::state &state) noexcept override {
-		frame = get_icon_frame(state);
+		if (parent) {
+			Cyto::Any payload = dcon::state_instance_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::state_instance_id>(payload);
+			disabled = false;
+			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
+				disabled = disabled || !command::can_set_national_focus(state, state.local_player_nation, content, nfid);
+			});
+			frame = get_icon_frame(state);
+		}
 	}
 
 	void button_action(sys::state &state) noexcept override;
