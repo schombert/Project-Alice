@@ -1,21 +1,23 @@
 name: Lint
 
+permissiosn: read-all|write-all
+
 on:
   push:
   pull_request:
-  
+
 jobs:
   run-linters:
     name: Run Linters
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout Git Repo
         uses: actions/checkout@v2
-        
+
       - name: Install ClangFormat
         run: sudo apt-get install -y clang-format
-        
+
       - name: Run Linters
         uses: wearerequired/lint-action@v2
         with:
