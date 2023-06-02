@@ -721,7 +721,7 @@ ZSTD_updateRep(U32 rep[ZSTD_REP_NUM], U32 const offBase, U32 const ll0) {
 			rep[1] = rep[0];
 			rep[0] = currentOffset;
 		} else { /* repCode == 0 */
-			/* nothing to do */
+			     /* nothing to do */
 		}
 	}
 }

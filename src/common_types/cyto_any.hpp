@@ -531,7 +531,7 @@ std::remove_cv_t<std::remove_reference_t<V>>* any_cast(Any* a) noexcept {
 #if ANY_USE_TYPEINFO
 		                          &typeid(U)
 #else
-		                           fallback_typeid<U>()
+		                          fallback_typeid<U>()
 #endif
 		);
 		return (std::is_function<V>{}) ? nullptr : static_cast<T*>(p);
