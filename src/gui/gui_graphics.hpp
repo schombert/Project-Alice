@@ -303,7 +303,7 @@ struct element_data {
 static_assert(sizeof(element_data) == 28);
 
 class definitions {
-  public:
+public:
 	static constexpr dcon::texture_id small_tiles_dialog = dcon::texture_id(0);
 	static constexpr dcon::texture_id tiles_dialog = dcon::texture_id(1);
 	static constexpr dcon::texture_id transparency = dcon::texture_id(2);
@@ -321,7 +321,7 @@ enum class message_result {
 	consumed
 };
 enum class focus_result {
-	ingored,
+	ignored,
 	accepted
 };
 enum class tooltip_behavior {

@@ -12,7 +12,7 @@ struct diplo_reply_taken_notification {
 
 template <bool Left>
 class msg_lr_button : public button_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		frame = Left ? 0 : 1;
@@ -28,7 +28,7 @@ class msg_lr_button : public button_element_base {
 
 template <bool B>
 class msg_reply_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = diplomatic_message::message{};
@@ -43,7 +43,7 @@ class msg_reply_button : public button_element_base {
 };
 
 class msg_title_text : public generic_simple_text<diplomatic_message::message> {
-  public:
+public:
 	std::string get_text(sys::state &state, diplomatic_message::message msg) noexcept override {
 		switch (msg.type) {
 		case diplomatic_message::type_t::none:
@@ -64,7 +64,7 @@ class msg_title_text : public generic_simple_text<diplomatic_message::message> {
 };
 
 class msg_desc_text : public generic_multiline_text<diplomatic_message::message> {
-  public:
+public:
 	void populate_layout(sys::state &state, text::endless_layout &contents, diplomatic_message::message msg) noexcept override {
 		auto box = text::open_layout_box(contents);
 
@@ -98,7 +98,7 @@ class msg_window : public window_element_base {
 	simple_text_element_base *count_text = nullptr;
 	int32_t index = 0;
 
-  public:
+public:
 	std::vector<diplomatic_message::message> messages;
 
 	void on_create(sys::state &state) noexcept override {

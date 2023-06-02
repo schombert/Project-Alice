@@ -201,7 +201,7 @@ struct AnyTraits {
 	}
 #endif // ANY_USE(SMALL_MEMCPY_STRATEGY)
 
-  private:
+private:
 	AnyTraits(const AnyTraits &) = default;
 	AnyTraits(AnyTraits &&) = default;
 	AnyTraits &operator=(const AnyTraits &) = default;
@@ -304,7 +304,7 @@ struct AnyTraits {
 		t.~X();
 	}
 
-  public:
+public:
 	static constexpr AnyActions actions = AnyActions(get<T>, copy<T>, move<T>, drop<T>,
 #if ANY_USE_TYPEINFO
 	                                                 &typeid(T)
@@ -334,7 +334,7 @@ constexpr bool IsAnyInitializerListConstructible =
     IsAnyInitializerListConstructible_<T, U, Args...>::value;
 
 class Any {
-  public:
+public:
 	constexpr Any() noexcept : actions(VoidAnyActions) {}
 
 	template <class V, class T = std::decay_t<V>, std::enable_if_t<IsAnyConstructible<V>, int> = 0>
@@ -460,7 +460,7 @@ class Any {
 	template <class V>
 	friend std::remove_cv_t<std::remove_reference_t<V>> *any_cast(Any *a) noexcept;
 
-  private:
+private:
 	static constexpr AnyActions _VoidAnyActions = AnyActions();
 	static constexpr const AnyActions *const VoidAnyActions = &_VoidAnyActions;
 
@@ -531,7 +531,7 @@ std::remove_cv_t<std::remove_reference_t<V>> *any_cast(Any *a) noexcept {
 #if ANY_USE_TYPEINFO
 		                          &typeid(U)
 #else
-		                           fallback_typeid<U>()
+		                          fallback_typeid<U>()
 #endif
 		);
 		return (std::is_function<V>{}) ? nullptr : static_cast<T *>(p);

@@ -22,7 +22,7 @@ class production_project_input_item : public listbox_row_element_base<production
 	simple_text_element_base *amount_text = nullptr;
 	element_base *commodity_icon = nullptr;
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		listbox_row_element_base<production_project_input_data>::on_create(state);
 		amount_text->base_data.position.y = commodity_icon->base_data.position.y + commodity_icon->base_data.size.y - 4;
@@ -56,14 +56,14 @@ class production_project_input_item : public listbox_row_element_base<production
 };
 
 class production_project_input_listbox : public overlapping_listbox_element_base<production_project_input_item, production_project_input_data> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "goods_need_template";
 	}
 };
 
 class production_project_invest_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::investment_window}};
@@ -106,7 +106,7 @@ class production_project_info : public listbox_row_element_base<production_proje
 		return dcon::state_instance_id{};
 	}
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "state_bg") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -204,12 +204,12 @@ class production_project_info : public listbox_row_element_base<production_proje
 };
 
 class production_project_listbox : public listbox_element_base<production_project_info, production_project_data> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "project_info";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		row_contents.clear();
 		state.world.nation_for_each_state_building_construction_as_nation(state.local_player_nation, [&](dcon::state_building_construction_id id) {

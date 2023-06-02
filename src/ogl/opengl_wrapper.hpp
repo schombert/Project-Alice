@@ -185,12 +185,12 @@ void load_shaders(sys::state &state);
 void load_global_squares(sys::state &state);
 
 class lines {
-  private:
+private:
 	float *buffer = nullptr;
 	GLuint buffer_handle = 0;
 	bool pending_data_update = true;
 
-  public:
+public:
 	uint32_t count = 0;
 
 	lines(uint32_t c) : count(c) {

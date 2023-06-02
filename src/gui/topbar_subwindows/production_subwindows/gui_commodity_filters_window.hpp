@@ -10,8 +10,8 @@ struct commodity_filter_query_data {
 };
 struct commodity_filter_toggle_data : public element_selection_wrapper<dcon::commodity_id> {};
 
-class commodity_filter_button : public button_element_base {
-  public:
+class commodity_filter_button : public add_tooltip<button_element_base> {
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::commodity_id();
@@ -20,10 +20,6 @@ class commodity_filter_button : public button_element_base {
 			Cyto::Any f_payload = commodity_filter_toggle_data{cid};
 			parent->impl_get(state, f_payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -37,7 +33,7 @@ class commodity_filter_button : public button_element_base {
 };
 
 class commodity_filter_enabled_image : public image_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::commodity_id();
@@ -52,7 +48,7 @@ class commodity_filter_enabled_image : public image_element_base {
 };
 
 class commodity_filter_item : public window_element_base {
-  public:
+public:
 	dcon::commodity_id content{};
 
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -77,7 +73,7 @@ class commodity_filter_item : public window_element_base {
 };
 
 class commodity_filters_window : public window_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 

@@ -21,7 +21,7 @@ class msg_settings_item : public listbox_row_element_base<sys::msg_setting_type>
 		}
 	}
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "text") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -38,12 +38,12 @@ class msg_settings_item : public listbox_row_element_base<sys::msg_setting_type>
 };
 
 class msg_settings_listbox : public listbox_element_base<msg_settings_item, sys::msg_setting_type> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "message_entry";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		row_contents.clear();
 		for (auto i = 0; i != uint8_t(sys::msg_setting_type::count); ++i) {
@@ -65,7 +65,7 @@ enum class msg_settings_category : uint8_t {
 };
 
 class msg_settings_window : public generic_tabbed_window<msg_settings_category> {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		generic_tabbed_window<msg_settings_category>::on_create(state);
 		base_data.position.y -= 21; // Nudge
@@ -122,18 +122,18 @@ struct msg_log_data {
 };
 
 class msg_log_entry : public listbox_row_element_base<msg_log_data> {
-  public:
+public:
 };
 
 class msg_log_listbox : public listbox_element_base<msg_log_entry, msg_log_data> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "message_entry";
 	}
 };
 
 template <msg_settings_category Filter>
-class msg_log_filter_checkbox : public checkbox_button {
+class msg_log_filter_checkbox : public add_tooltip<checkbox_button> {
 	static std::string_view get_filter_text_key(msg_settings_category f) noexcept {
 		switch (f) {
 		case msg_settings_category::all:
@@ -155,7 +155,7 @@ class msg_log_filter_checkbox : public checkbox_button {
 		}
 	}
 
-  public:
+public:
 	bool is_active(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = Filter;
@@ -172,10 +172,6 @@ class msg_log_filter_checkbox : public checkbox_button {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto name = get_filter_text_key(Filter);
 		auto box = text::open_layout_box(contents, 0);
@@ -187,7 +183,7 @@ class msg_log_filter_checkbox : public checkbox_button {
 class msg_log_window : public window_element_base {
 	std::vector<bool> cat_filters;
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		cat_filters.resize(size_t(msg_settings_category::count));

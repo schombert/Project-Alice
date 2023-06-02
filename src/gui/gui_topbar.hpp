@@ -21,7 +21,7 @@
 namespace ui {
 
 class topbar_nation_name : public generic_name_text<dcon::nation_id> {
-  public:
+public:
 };
 
 class topbar_flag_button : public flag_button {
@@ -119,7 +119,7 @@ class topbar_nation_military_score_text : public nation_military_score_text {
 };
 
 class topbar_nation_total_score_text : public nation_total_score_text {
-  public:
+public:
 };
 
 class topbar_nation_colonial_power_text : public nation_colonial_power_text {
@@ -159,23 +159,23 @@ class topbar_nation_colonial_power_text : public nation_colonial_power_text {
 };
 
 class topbar_nation_prestige_rank_text : public nation_prestige_rank_text {
-  public:
+public:
 };
 
 class topbar_nation_industry_rank_text : public nation_industry_rank_text {
-  public:
+public:
 };
 
 class topbar_nation_military_rank_text : public nation_military_rank_text {
-  public:
+public:
 };
 
 class topbar_nation_rank_text : public nation_rank_text {
-  public:
+public:
 };
 
 class topbar_nation_flag_frame : public nation_flag_frame {
-  public:
+public:
 };
 
 class topbar_nation_budget_funds_text : public nation_budget_funds_text {
@@ -251,7 +251,7 @@ class topbar_nation_budget_funds_text : public nation_budget_funds_text {
 };
 
 class topbar_budget_line_graph : public line_graph {
-  public:
+public:
 	topbar_budget_line_graph() : line_graph(32) {}
 
 	void on_create(sys::state &state) noexcept override {
@@ -379,7 +379,7 @@ class topbar_nation_literacy_text : public nation_literacy_text {
 };
 
 class topbar_nation_ruling_party_ideology_plupp : public nation_ruling_party_ideology_plupp {
-  public:
+public:
 };
 
 class topbar_nation_ruling_party_text : public nation_ruling_party_text {
@@ -499,7 +499,7 @@ class topbar_nation_focus_allocation_text : public nation_focus_allocation_text 
 				relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
 			}
 			text::add_to_substitution_map(sub1, text::variable_type::num, text::pretty_integer{(int64_t)relevant_pop});
-			auto fPoints = relevant_pop / state.defines.national_focus_divider; // NOTE: Occassionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
+			auto fPoints = relevant_pop / state.defines.national_focus_divider; // NOTE: Occasionally inaccurate by a few 0.01, this doesnt really matter so im leaving it -breizh
 			text::add_to_substitution_map(sub1, text::variable_type::focus, text::fp_two_places{fPoints});
 			text::localised_format_box(state, contents, box, std::string_view("tb_nationalfocus_culture"), sub1);
 			text::add_line_break_to_layout_box(contents, state, box);
@@ -575,7 +575,7 @@ class topbar_nation_consciousness_text : public nation_consciousness_text {
 			auto conChange = (demographics::get_estimated_con_change(state, nation_id) / 30);
 			text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) / state.world.nation_get_demographics(nation_id, demographics::total))});
 			// text::add_to_substitution_map(sub, text::variable_type::val, text::format_float(fDailyUpdate, 2);
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{conChange}); // TODO - This needs to display the estimated conciousness change -breizh
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{conChange}); // TODO - This needs to display the estimated consciousness change -breizh
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 			text::add_line_break_to_layout_box(contents, state, box);
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -585,7 +585,7 @@ class topbar_nation_consciousness_text : public nation_consciousness_text {
 };
 
 class topbar_overlapping_enemy_flags : public overlapping_enemy_flags {
-  public:
+public:
 };
 
 class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_text {
@@ -741,7 +741,7 @@ class topbar_nation_leadership_points_text : public nation_leadership_points_tex
 };
 
 class background_image : public opaque_element_base {
-  public:
+public:
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override {
 		base_data.size.x = int16_t(ui_width(state));
 		base_data.size.y = int16_t(ui_height(state));
@@ -758,7 +758,7 @@ class background_image : public opaque_element_base {
 };
 
 class topbar_tab_button : public checkbox_button {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		const auto override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
@@ -785,7 +785,7 @@ class topbar_tab_button : public checkbox_button {
 };
 
 class population_view_button : public topbar_tab_button {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		const auto override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
@@ -811,7 +811,7 @@ class population_view_button : public topbar_tab_button {
 
 class topbar_date_text : public simple_text_element_base {
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		set_text(state, text::date_to_string(state, state.current_date));
 	}
@@ -823,7 +823,7 @@ class topbar_date_text : public simple_text_element_base {
 };
 
 class topbar_pause_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (state.actual_game_speed <= 0) {
 			state.actual_game_speed = state.ui_state.held_game_speed;
@@ -839,7 +839,7 @@ class topbar_pause_button : public button_element_base {
 };
 
 class topbar_speedup_button : public button_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		base_data.data.button.shortcut = sys::virtual_key::ADD;
@@ -865,7 +865,7 @@ class topbar_speedup_button : public button_element_base {
 };
 
 class topbar_speeddown_button : public button_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		base_data.data.button.shortcut = sys::virtual_key::MINUS;
@@ -891,7 +891,7 @@ class topbar_speeddown_button : public button_element_base {
 };
 
 class topbar_speed_indicator : public topbar_pause_button {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		button_element_base::on_create(state);
 		base_data.data.button.shortcut = sys::virtual_key::SPACE;
@@ -937,7 +937,7 @@ class topbar_losing_gp_status_icon : public standard_nation_icon {
 };
 
 class topbar_at_peace_text : public standard_nation_text {
-  public:
+public:
 	std::string get_text(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		set_visible(state, state.world.nation_get_is_at_war(nation_id));
 		return text::produce_simple_string(state, "atpeace");
@@ -1039,7 +1039,6 @@ class topbar_unemployment_icon : public standard_nation_icon {
 		auto employment_key = demographics::to_employment_key(state, pop_type);
 		return state.world.nation_get_demographics(nation_id, total_key) - state.world.nation_get_demographics(nation_id, employment_key);
 	}
-
   public:
 	int32_t get_icon_frame(sys::state &state, dcon::nation_id nation_id) noexcept override {
 		auto primary_unemployed = get_num_unemployed(state, state.culture_definitions.primary_factory_worker, nation_id);
@@ -1128,8 +1127,8 @@ class topbar_available_reforms_icon : public standard_nation_button {
 			} else if (nations::has_reform_available(state, nation_id)) {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_candoreforms"), text::substitution_map{});
 				text::add_divider_to_layout_box(state, contents, box);
-				// Display Avaliable Reforms
-				// Mostly a copy of nations::has_reform_avaliable
+				// Display Available Reforms
+				// Mostly a copy of nations::has_reform_available
 				auto last_date = state.world.nation_get_last_issue_or_reform_change(nation_id);
 				if (bool(last_date) && (last_date + int32_t(state.defines.min_delay_between_reforms * 30.0f)) > state.current_date) {
 					text::close_layout_box(contents, box);
@@ -1215,7 +1214,7 @@ class topbar_available_decisions_icon : public standard_nation_button {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_no_candodecisions"), text::substitution_map{});
 			} else if (nations::has_decision_available(state, nation_id)) {
 				text::localised_format_box(state, contents, box, std::string_view("countryalert_candodecisions"), text::substitution_map{});
-				// Display Avaliable Decisions
+				// Display Available Decisions
 				state.world.for_each_decision([&](dcon::decision_id di) {
 					if (nation_id != state.local_player_nation || !state.world.decision_get_hide_notification(di)) {
 						auto lim = state.world.decision_get_potential(di);
@@ -1445,10 +1444,10 @@ class topbar_sphere_icon : public standard_nation_icon {
 };
 
 class topbar_window : public window_element_base {
-  private:
+private:
 	dcon::nation_id current_nation{};
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		auto bg_pic = make_element_by_type<background_image>(state, "bg_main_menus");
@@ -1657,7 +1656,7 @@ class topbar_window : public window_element_base {
 		}
 	}
 
-  private:
+private:
 	element_base *background_pic = nullptr;
 
 	friend class topbar_tab_button;

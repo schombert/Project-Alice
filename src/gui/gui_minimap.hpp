@@ -14,7 +14,7 @@
 namespace ui {
 
 class minimap_mapmode_button : public checkbox_button {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		map_mode::set_map_mode(state, target);
 	}
@@ -104,7 +104,7 @@ class minimap_mapmode_button : public checkbox_button {
 };
 
 class minimap_goto_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (!state.ui_state.search_window) {
 			auto window = make_element_by_type<province_search_window>(state, "goto_box");
@@ -130,7 +130,7 @@ class minimap_goto_button : public button_element_base {
 };
 
 class minimap_ledger_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (!state.ui_state.ledger_window) {
 			auto window = make_element_by_type<ledger_window>(state, "ledger");
@@ -156,7 +156,7 @@ class minimap_ledger_button : public button_element_base {
 };
 
 class minimap_msg_settings_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (!state.ui_state.msg_filters_window) {
 			auto window = make_element_by_type<msg_filters_window>(state, "message_filters");
@@ -182,7 +182,7 @@ class minimap_msg_settings_button : public button_element_base {
 };
 
 class minimap_msg_combat_button : public button_element_base {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -195,7 +195,7 @@ class minimap_msg_combat_button : public button_element_base {
 };
 
 class minimap_msg_diplo_button : public button_element_base {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -208,7 +208,7 @@ class minimap_msg_diplo_button : public button_element_base {
 };
 
 class minimap_msg_unit_button : public button_element_base {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -221,7 +221,7 @@ class minimap_msg_unit_button : public button_element_base {
 };
 
 class minimap_msg_province_button : public button_element_base {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -234,7 +234,7 @@ class minimap_msg_province_button : public button_element_base {
 };
 
 class minimap_msg_other_button : public button_element_base {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -247,7 +247,7 @@ class minimap_msg_other_button : public button_element_base {
 };
 
 class minimap_msg_event_button : public button_element_base {
-  public:
+public:
 	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -260,7 +260,7 @@ class minimap_msg_event_button : public button_element_base {
 };
 
 class minimap_menu_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (!state.ui_state.main_menu) {
 			auto window = make_element_by_type<main_menu_window>(state, "alice_main_menu");
@@ -288,7 +288,7 @@ struct open_msg_log_data {
 	int dummy;
 };
 class open_msg_log_button : public button_element_base {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = open_msg_log_data{};
@@ -309,7 +309,7 @@ class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 	element_base *message_log_window = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "messagelog_window") {
 			auto ptr = make_element_by_type<msg_log_window>(state, id);
@@ -381,7 +381,7 @@ class minimap_container_window : public window_element_base {
 };
 
 class minimap_picture_window : public opaque_element_base {
-  public:
+public:
 	void render(sys::state &state, int32_t x, int32_t y) noexcept override {
 		opaque_element_base::render(state, x, y);
 		// TODO draw white box to represent window borders

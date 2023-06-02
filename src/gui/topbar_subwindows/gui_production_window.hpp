@@ -27,8 +27,8 @@ struct production_selection_wrapper {
 	xy_pair focus_pos{0, 0};
 };
 
-class factory_employment_image : public image_element_base {
-  public:
+class factory_employment_image : public add_tooltip<image_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -36,14 +36,6 @@ class factory_employment_image : public image_element_base {
 			auto content = any_cast<dcon::factory_id>(payload);
 			frame = int32_t(state.world.factory_get_primary_employment(content) * 10.f);
 		}
-	}
-
-	message_result test_mouse(sys::state &state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -66,8 +58,8 @@ class factory_employment_image : public image_element_base {
 	}
 };
 
-class factory_priority_button : public button_element_base {
-  public:
+class factory_priority_button : public add_tooltip<button_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -101,10 +93,6 @@ class factory_priority_button : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
@@ -115,7 +103,7 @@ class factory_priority_button : public button_element_base {
 		// TODO - check if we can change the priority,
 		// 	- This appears to depend only on if the ruling party is kosher with it
 		text::localised_format_box(state, contents, box, std::string_view("production_allowed_to_change_prio_tooltip"));
-		// Why pdx, why must the diplomacy priority be used instead of having a seperate priority for prod. ?
+		// Why pdx, why must the diplomacy priority be used instead of having a separate priority for prod. ?
 		// just why
 		switch (economy::factory_priority(state, fid)) {
 		case 0:
@@ -139,8 +127,8 @@ class factory_priority_button : public button_element_base {
 	}
 };
 
-class factory_upgrade_button : public button_element_base {
-  public:
+class factory_upgrade_button : public add_tooltip<button_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -171,10 +159,6 @@ class factory_upgrade_button : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("production_expand_factory_tooltip"));
@@ -189,8 +173,8 @@ class factory_upgrade_button : public button_element_base {
 	}
 };
 
-class factory_shutdown_button : public button_element_base {
-  public:
+class factory_shutdown_button : public add_tooltip<button_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -215,10 +199,6 @@ class factory_shutdown_button : public button_element_base {
 		}*/
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
@@ -236,8 +216,8 @@ class factory_shutdown_button : public button_element_base {
 	}
 };
 
-class factory_subsidise_button : public button_element_base { // Got a problem with mixed variants? too bad, Vic2 does same thing
-  public:
+class factory_subsidise_button : public add_tooltip<button_element_base> { // Got a problem with mixed variants? too bad, Vic2 does same thing
+public:
 	void button_action(sys::state &state) noexcept override {
 		Cyto::Any payload = dcon::factory_id{};
 		parent->impl_get(state, payload);
@@ -255,10 +235,6 @@ class factory_subsidise_button : public button_element_base { // Got a problem w
 				frame = 1;
 			}
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -282,8 +258,8 @@ class factory_subsidise_button : public button_element_base { // Got a problem w
 	}
 };
 
-class factory_delete_button : public button_element_base {
-  public:
+class factory_delete_button : public add_tooltip<button_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::factory_id{};
@@ -302,10 +278,6 @@ class factory_delete_button : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::close_layout_box(contents, box);
@@ -318,7 +290,7 @@ struct production_factory_slot_data {
 };
 
 class factory_build_progress_bar : public progress_bar {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = economy::new_factory{};
@@ -329,7 +301,7 @@ class factory_build_progress_bar : public progress_bar {
 };
 
 class factory_upgrade_progress_bar : public progress_bar {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = economy::upgraded_factory{};
@@ -348,7 +320,7 @@ class production_factory_info : public window_element_base {
 	std::vector<element_base *> build_elements;
 	std::vector<element_base *> closed_elements;
 
-  public:
+public:
 	uint8_t index = 0; // from 0 to int32_t(state.defines.factories_per_state)
 
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -535,7 +507,7 @@ class production_factory_info_bounds_window : public window_element_base {
 		return content.filter;
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		factories.resize(size_t(state.defines.factories_per_state));
@@ -606,8 +578,8 @@ class production_factory_info_bounds_window : public window_element_base {
 	}
 };
 
-class production_build_new_factory : public button_element_base {
-  public:
+class production_build_new_factory : public add_tooltip<button_element_base> {
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -632,10 +604,6 @@ class production_build_new_factory : public button_element_base {
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(contents, state, box, std::string_view("OwO *notices you building new factory*"));
@@ -643,7 +611,7 @@ class production_build_new_factory : public button_element_base {
 	}
 };
 
-class production_national_focus_button : public button_element_base {
+class production_national_focus_button : public add_tooltip<button_element_base> {
 	int32_t get_icon_frame(sys::state &state) noexcept {
 		if (parent) {
 			Cyto::Any payload = dcon::state_instance_id{};
@@ -655,7 +623,7 @@ class production_national_focus_button : public button_element_base {
 		return 0;
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		frame = get_icon_frame(state);
 	}
@@ -667,10 +635,6 @@ class production_national_focus_button : public button_element_base {
 			Cyto::Any s_payload = production_selection_wrapper{any_cast<dcon::state_instance_id>(payload), false, base_data.position};
 			parent->impl_get(state, s_payload);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -688,7 +652,7 @@ class production_national_focus_button : public button_element_base {
 };
 
 class production_state_info : public listbox_row_element_base<dcon::state_instance_id> {
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "state_focus") {
 			return make_element_by_type<production_national_focus_button>(state, id);
@@ -709,12 +673,12 @@ class production_state_info : public listbox_row_element_base<dcon::state_instan
 };
 
 class production_state_listbox : public listbox_element_base<production_state_info, dcon::state_instance_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "state_info";
 	}
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		Cyto::Any payload = bool{};
 		parent->impl_get(state, payload);
@@ -749,7 +713,7 @@ class production_state_listbox : public listbox_element_base<production_state_in
 class production_goods_category_name : public window_element_base {
 	simple_text_element_base *goods_cat_name = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "cat_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -788,7 +752,7 @@ class production_goods_category_name : public window_element_base {
 class commodity_output_total_text : public simple_text_element_base {
 	dcon::commodity_id commodity_id{};
 
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		set_text(state, text::format_float(economy::commodity_daily_production_amount(state, commodity_id), 1));
 	}
@@ -808,7 +772,7 @@ class production_good_info : public window_element_base {
 	commodity_player_production_text *good_output_total = nullptr;
 	image_element_base *good_not_producing_overlay = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "output_factory") {
 			return make_element_by_type<commodity_factory_image>(state, id);
@@ -895,7 +859,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 		set_visible_vector_elements(state, good_elements, false);
 	}
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		generic_tabbed_window::on_create(state);
 

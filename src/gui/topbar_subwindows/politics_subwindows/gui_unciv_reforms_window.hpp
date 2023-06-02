@@ -11,7 +11,7 @@
 namespace ui {
 
 class unciv_reforms_westernize_button : public standard_nation_button {
-  public:
+public:
 	void on_update(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::nation_id{};
@@ -31,8 +31,8 @@ class unciv_reforms_westernize_button : public standard_nation_button {
 	}
 };
 
-class unciv_reforms_reform_button : public button_element_base {
-  public:
+class unciv_reforms_reform_button : public add_tooltip<button_element_base> {
+public:
 	void button_action(sys::state &state) noexcept override {
 		if (parent) {
 			Cyto::Any payload = dcon::reform_option_id{};
@@ -51,10 +51,6 @@ class unciv_reforms_reform_button : public button_element_base {
 
 			disabled = !command::can_enact_reform(state, state.local_player_nation, content);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
@@ -81,7 +77,7 @@ class unciv_reforms_reform_button : public button_element_base {
 class unciv_reforms_option : public listbox_row_element_base<dcon::reform_option_id> {
 	image_element_base *selected_icon = nullptr;
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "reform_name") {
 			return make_element_by_type<generic_name_text<dcon::reform_option_id>>(state, id);
@@ -103,12 +99,12 @@ class unciv_reforms_option : public listbox_row_element_base<dcon::reform_option
 };
 
 class unciv_reforms_listbox : public listbox_element_base<unciv_reforms_option, dcon::reform_option_id> {
-  protected:
+protected:
 	std::string_view get_row_element_name() override {
 		return "reform_option_window";
 	}
 
-  public:
+public:
 	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
 		if (payload.holds_type<dcon::reform_id>()) {
 			auto reform_id = any_cast<dcon::reform_id>(payload);
@@ -129,7 +125,7 @@ class unciv_reforms_listbox : public listbox_element_base<unciv_reforms_option, 
 class unciv_reforms_reform_window : public window_element_base {
 	dcon::reform_id reform_id{};
 
-  public:
+public:
 	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if (name == "reform_name") {
 			return make_element_by_type<generic_multiline_name_text<dcon::reform_id>>(state, id);
@@ -166,7 +162,7 @@ class unciv_reforms_reform_window : public window_element_base {
 };
 
 class unciv_reforms_window : public window_element_base {
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);

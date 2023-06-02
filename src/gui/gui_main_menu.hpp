@@ -6,12 +6,12 @@
 namespace ui {
 
 class ui_scale_left : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
 class ui_scale_right : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
@@ -20,12 +20,12 @@ class ui_scale_display : public simple_text_element_base {
 };
 
 class window_mode_left : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
 class window_mode_right : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
@@ -34,12 +34,12 @@ class window_mode_display : public simple_text_element_base {
 };
 
 class projection_mode_left : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
 class projection_mode_right : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
@@ -48,12 +48,12 @@ class projection_mode_display : public simple_text_element_base {
 };
 
 class fonts_mode_left : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
 class fonts_mode_right : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
@@ -62,12 +62,12 @@ class fonts_mode_display : public simple_text_element_base {
 };
 
 class linegraph_mode_left : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
 class linegraph_mode_right : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override;
 	void on_update(sys::state &state) noexcept override;
 };
@@ -211,7 +211,7 @@ enum class main_menu_sub_window {
 };
 
 class close_application_button : public button_element_base {
-  public:
+public:
 	void button_action(sys::state &state) noexcept override {
 		window::close_window(state);
 	}
@@ -223,7 +223,7 @@ class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
 	audio_menu_window *audio_menu = nullptr;
 	msg_settings_window *message_settings_menu = nullptr;
 
-  public:
+public:
 	void on_create(sys::state &state) noexcept override {
 		window_element_base::on_create(state);
 		// Message settings isn't a topmost window...

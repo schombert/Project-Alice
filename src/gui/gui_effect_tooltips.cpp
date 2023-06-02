@@ -743,7 +743,7 @@ uint32_t es_random_list_scope(EFFECT_DISPLAY_PARAMS) {
 
 		rval = 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 
-		sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start + 1); // each member preceeded by uint16_t
+		sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start + 1); // each member preceded by uint16_t
 	}
 	return rval;
 }

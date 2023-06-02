@@ -6,7 +6,7 @@
 
 namespace window {
 class window_data_impl {
-  public:
+public:
 	// HWND hwnd = nullptr;
 	// HDC opengl_window_dc = nullptr;
 	GLFWwindow *window = nullptr;
