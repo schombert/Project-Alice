@@ -1,8 +1,9 @@
 name: Lint
 
+
 on:
   push:
-  pull_request:
+  pull_request_target:
 
 jobs:
   run-linters:
