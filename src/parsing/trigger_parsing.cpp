@@ -581,13 +581,13 @@ void invert_trigger(uint16_t* source) {
 
 int32_t fold_and_or_trigger(uint16_t* source) {
 	assert(
-		(0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
+	    (0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
 	auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
 	if(source[0] == trigger::generic_scope || source[0] == (trigger::generic_scope | trigger::is_disjunctive_scope)) {
 		auto sub_units_start = source + 2 + trigger::trigger_scope_data_payload(source[0]);
-		while (sub_units_start < source + source_size) {
+		while(sub_units_start < source + source_size) {
 			const auto size = 1 + trigger::get_trigger_payload_size(sub_units_start);
-			if (sub_units_start[0] == source[0]) {
+			if(sub_units_start[0] == source[0]) {
 				std::copy(sub_units_start + 2, source + source_size, sub_units_start);
 				source_size -= 2;
 			} else {
@@ -656,9 +656,9 @@ int32_t simplify_trigger(uint16_t* source) {
 				source_size -= 2;
 			}
 		}
-		
+
 		source_size = fold_and_or_trigger(source);
-		if (scope_is_empty(source)) {
+		if(scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
 		}
 		return source_size;
