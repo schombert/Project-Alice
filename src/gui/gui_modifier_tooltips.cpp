@@ -214,7 +214,7 @@ void acting_modifiers_description(sys::state& state, text::layout_base& layout, 
 	}
 
 	// Provinces of this nation
-	for(auto pc : state.world.nation_get_province_control_as_nation(n)) {
+	for(auto pc : state.world.nation_get_province_ownership_as_nation(n)) {
 		auto p = pc.get_province().id;
 		if(state.national_definitions.land_province)
 			acting_modifier_description(state, layout, state.national_definitions.land_province, identation, nmid);
