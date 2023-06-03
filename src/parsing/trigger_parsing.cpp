@@ -579,27 +579,6 @@ void invert_trigger(uint16_t* source) {
 	trigger::recurse_over_triggers(source, invert_trigger_internal);
 }
 
-int32_t fold_and_or_trigger(uint16_t* source) {
-	assert(
-	    (0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
-	auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
-	if(source[0] == trigger::generic_scope || source[0] == (trigger::generic_scope | trigger::is_disjunctive_scope)) {
-		auto sub_units_start = source + 2 + trigger::trigger_scope_data_payload(source[0]);
-		while(sub_units_start < source + source_size) {
-			const auto size = 1 + trigger::get_trigger_payload_size(sub_units_start);
-			if(sub_units_start[0] == source[0]) {
-				std::copy(sub_units_start + 2, source + source_size, sub_units_start);
-				source_size -= 2;
-			} else {
-				sub_units_start += size;
-			}
-		}
-		source[1] = uint16_t(source_size) - 1;
-		assert(source_size - 1 >= 0);
-	}
-	return source_size;
-}
-
 bool scope_is_empty(const uint16_t* source) {
 	return trigger::get_trigger_scope_payload_size(source) <= 1 + trigger::trigger_scope_data_payload(source[0]);
 }
@@ -621,16 +600,19 @@ int32_t simplify_trigger(uint16_t* source) {
 		// simplify each member
 		auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
 		const auto first_member = source + 2 + trigger::trigger_scope_data_payload(source[0]);
-		auto sub_units_start = first_member;
-		while(sub_units_start < source + source_size) {
-			const auto old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
-			const auto new_size = simplify_trigger(sub_units_start);
 
-			if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
-				std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
-				source_size -= (old_size - new_size);
+		{	
+			auto sub_units_start = first_member;
+			while(sub_units_start < source + source_size) {
+				const auto old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
+				const auto new_size = simplify_trigger(sub_units_start);
+
+				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
+					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
+					source_size -= (old_size - new_size);
+				}
+				sub_units_start += new_size;
 			}
-			sub_units_start += new_size;
 		}
 
 		source[1] = uint16_t(source_size - 1);
@@ -641,10 +623,27 @@ int32_t simplify_trigger(uint16_t* source) {
 			source[0] |= trigger::generic_scope;
 		}
 
-		if(scope_has_single_member(source)) {
+
+		if(source[0] == trigger::generic_scope || source[0] == (trigger::generic_scope | trigger::is_disjunctive_scope)) {
+			auto sub_units_start = first_member;
+			while(sub_units_start < source + source_size) {
+				const auto size = 1 + trigger::get_trigger_payload_size(sub_units_start);
+				if(sub_units_start[0] == source[0]) {
+					std::copy(sub_units_start + 2, source + source_size, sub_units_start);
+					source_size -= 2;
+				} else {
+					sub_units_start += size;
+				}
+			}
+		}
+
+		source[1] = uint16_t(source_size - 1);
+
+		if((source[0] & trigger::code_mask) >= trigger::first_scope_code && scope_has_single_member(source)) {
 			if((source[0] & trigger::code_mask) == trigger::generic_scope) { // remove single-member generic scopes
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
+				source[1] = uint16_t(source_size - 1);
 			} else if((first_member[0] & trigger::code_mask) == trigger::generic_scope) {
 				// scope contains single generic scope
 
@@ -657,8 +656,7 @@ int32_t simplify_trigger(uint16_t* source) {
 			}
 		}
 
-		source_size = fold_and_or_trigger(source);
-		if(scope_is_empty(source)) {
+		if((source[0] & trigger::code_mask) >= trigger::first_scope_code && scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
 		}
 		return source_size;
