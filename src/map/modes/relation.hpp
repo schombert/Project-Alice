@@ -1,6 +1,6 @@
 #pragma once
 
-std::vector<uint32_t> relation_map_from(sys::state &state) {
+std::vector<uint32_t> relation_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
@@ -10,7 +10,7 @@ std::vector<uint32_t> relation_map_from(sys::state &state) {
 	auto fat_id = dcon::fatten(state.world, selected_province);
 	auto selected_nation = fat_id.get_nation_from_province_ownership();
 
-	if (!selected_nation) {
+	if(!selected_nation) {
 		selected_nation = state.local_player_nation;
 	}
 
@@ -20,13 +20,13 @@ std::vector<uint32_t> relation_map_from(sys::state &state) {
 		auto other_nation = state.world.province_get_nation_from_province_ownership(prov_id);
 
 		// if the province has no owners
-		if (!other_nation) {
+		if(!other_nation) {
 			return;
 		}
 
 		uint32_t color;
 
-		if (other_nation == selected_nation.id) {
+		if(other_nation == selected_nation.id) {
 			// the selected nation should be blue
 			color = sys::pack_color(66, 106, 227);
 		} else {

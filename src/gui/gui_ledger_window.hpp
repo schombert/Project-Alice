@@ -12,10 +12,10 @@ public:
 
 class ledger_prev_button : public generic_settable_element<button_element_base, ledger_page_number> {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			auto num = int8_t(content.value - 1);
-			if (num <= 0)
+			if(num <= 0)
 				num = 11;
 			Cyto::Any new_payload = ledger_page_number{num};
 			parent->impl_set(state, new_payload);
@@ -25,10 +25,10 @@ public:
 
 class ledger_next_button : public generic_settable_element<button_element_base, ledger_page_number> {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			auto num = int8_t(content.value + 1);
-			if (num > 11)
+			if(num > 11)
 				num = 1;
 			Cyto::Any new_payload = ledger_page_number{num};
 			parent->impl_set(state, new_payload);
@@ -40,10 +40,10 @@ public:
 // Nation ranking
 //
 class ledger_nation_ranking_entry : public listbox_row_element_base<dcon::nation_id> {
-	flag_button *country_flag = nullptr;
+	flag_button* country_flag = nullptr;
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
@@ -55,7 +55,7 @@ public:
 		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
 		    0};
 		auto cell_width = (972 - cell_offset.x) / 6;
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -98,15 +98,15 @@ public:
 		}
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::nation_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(content);
 			return message_result::consumed;
 		}
 		return listbox_row_element_base::get(state, payload);
 	}
 
-	void update(sys::state &state) noexcept override {
+	void update(sys::state& state) noexcept override {
 		country_flag->on_update(state);
 		Cyto::Any payload = content;
 		impl_set(state, payload);
@@ -119,10 +119,10 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if (state.world.nation_get_owned_province_count(id) != 0)
+			if(state.world.nation_get_owned_province_count(id) != 0)
 				row_contents.push_back(id);
 		});
 		update(state);
@@ -133,10 +133,10 @@ public:
 // Nation comparison
 //
 class ledger_nation_comparison_entry : public listbox_row_element_base<dcon::nation_id> {
-	flag_button *country_flag = nullptr;
+	flag_button* country_flag = nullptr;
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
@@ -148,7 +148,7 @@ public:
 		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
 		    0};
 		auto cell_width = (972 - cell_offset.x) / 8;
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -203,8 +203,8 @@ public:
 		}
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::nation_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(content);
 			return message_result::consumed;
 		}
@@ -218,10 +218,10 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if (state.world.nation_get_owned_province_count(id) != 0)
+			if(state.world.nation_get_owned_province_count(id) != 0)
 				row_contents.push_back(id);
 		});
 		update(state);
@@ -232,10 +232,10 @@ public:
 // Nation political systems
 //
 class ledger_nation_political_systems_entry : public listbox_row_element_base<dcon::nation_id> {
-	flag_button *country_flag = nullptr;
+	flag_button* country_flag = nullptr;
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
@@ -247,7 +247,7 @@ public:
 		    int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x),
 		    0};
 		auto cell_width = (972 - cell_offset.x) / 5;
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -284,8 +284,8 @@ public:
 		}
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::nation_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(content);
 			return message_result::consumed;
 		}
@@ -299,10 +299,10 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if (state.world.nation_get_owned_province_count(id) != 0)
+			if(state.world.nation_get_owned_province_count(id) != 0)
 				row_contents.push_back(id);
 		});
 		update(state);
@@ -316,14 +316,14 @@ class nation_selected_issue_text : public standard_nation_text {
 	dcon::issue_id issue_id{};
 
 public:
-	std::string get_text(sys::state &state, dcon::nation_id nation_id) noexcept override {
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		// Obtain the active issue option for this issue id
 		auto active_issue_option = state.world.nation_get_issues(nation_id, issue_id);
 		return text::produce_simple_string(state, active_issue_option.get_name());
 	}
 
-	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::issue_id>()) {
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_id>()) {
 			issue_id = any_cast<dcon::issue_id>(payload);
 			on_update(state);
 			return message_result::consumed;
@@ -331,12 +331,12 @@ public:
 		return standard_nation_text::set(state, payload);
 	}
 };
-template <bool IsPolitical>
+template<bool IsPolitical>
 class ledger_nation_reforms_entry : public listbox_row_element_base<dcon::nation_id> {
-	flag_button *country_flag = nullptr;
+	flag_button* country_flag = nullptr;
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
@@ -350,14 +350,14 @@ public:
 
 		auto num_issues = 0;
 		state.world.for_each_issue([&](dcon::issue_id id) {
-			if ((state.world.issue_get_issue_type(id) == uint8_t(culture::issue_type::political)) != IsPolitical)
+			if((state.world.issue_get_issue_type(id) == uint8_t(culture::issue_type::political)) != IsPolitical)
 				return;
 			++num_issues;
 		});
 
 		// 1 for the country name
 		auto cell_width = (972 - cell_offset.x) / (1 + num_issues);
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -370,7 +370,7 @@ public:
 		}
 		// For each (political) issue generate
 		state.world.for_each_issue([&](dcon::issue_id id) {
-			if ((state.world.issue_get_issue_type(id) == uint8_t(culture::issue_type::political)) != IsPolitical)
+			if((state.world.issue_get_issue_type(id) == uint8_t(culture::issue_type::political)) != IsPolitical)
 				return;
 
 			auto ptr = make_element_by_type<nation_selected_issue_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
@@ -381,8 +381,8 @@ public:
 		});
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::nation_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(content);
 			return message_result::consumed;
 		}
@@ -396,10 +396,10 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if (state.world.nation_get_owned_province_count(id) != 0)
+			if(state.world.nation_get_owned_province_count(id) != 0)
 				row_contents.push_back(id);
 		});
 		update(state);
@@ -412,10 +412,10 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if (state.world.nation_get_owned_province_count(id) != 0)
+			if(state.world.nation_get_owned_province_count(id) != 0)
 				row_contents.push_back(id);
 		});
 		update(state);
@@ -429,13 +429,13 @@ class nation_population_per_pop_type_text : public standard_nation_text {
 	dcon::pop_type_id pop_type_id{};
 
 public:
-	std::string get_text(sys::state &state, dcon::nation_id nation_id) noexcept override {
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::to_key(state, pop_type_id));
 		return text::prettify(int32_t(total_pop));
 	}
 
-	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::pop_type_id>()) {
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_type_id>()) {
 			pop_type_id = any_cast<dcon::pop_type_id>(payload);
 			on_update(state);
 			return message_result::consumed;
@@ -444,10 +444,10 @@ public:
 	}
 };
 class ledger_nation_population_entry : public listbox_row_element_base<dcon::nation_id> {
-	flag_button *country_flag = nullptr;
+	flag_button* country_flag = nullptr;
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 		// Country flag
 		{
@@ -466,7 +466,7 @@ public:
 
 		// 1 for the country name
 		auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -487,8 +487,8 @@ public:
 		});
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::nation_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(content);
 			return message_result::consumed;
 		}
@@ -502,10 +502,10 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
-			if (state.world.nation_get_owned_province_count(id) != 0)
+			if(state.world.nation_get_owned_province_count(id) != 0)
 				row_contents.push_back(id);
 		});
 		update(state);
@@ -517,13 +517,13 @@ public:
 //
 class ledger_province_entry : public listbox_row_element_base<dcon::province_id> {
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 
 		xy_pair cell_offset{0, 0};
 
 		auto cell_width = (972 - cell_offset.x) / 9;
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -584,15 +584,15 @@ public:
 		}
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::province_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
 			payload.emplace<dcon::province_id>(content);
 			return message_result::consumed;
 		}
 		return listbox_row_element_base::get(state, payload);
 	}
 
-	void update(sys::state &state) noexcept override {
+	void update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
 	}
@@ -604,9 +604,9 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for (auto si : state.world.nation_get_state_ownership(state.local_player_nation))
+		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				row_contents.push_back(p);
 			});
@@ -621,13 +621,13 @@ class province_population_per_pop_type_text : public standard_province_text {
 	dcon::pop_type_id pop_type_id{};
 
 public:
-	std::string get_text(sys::state &state, dcon::province_id province_id) noexcept override {
+	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
 		auto total_pop = state.world.province_get_demographics(province_id, demographics::to_key(state, pop_type_id));
 		return text::prettify(int32_t(total_pop));
 	}
 
-	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::pop_type_id>()) {
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::pop_type_id>()) {
 			pop_type_id = any_cast<dcon::pop_type_id>(payload);
 			on_update(state);
 			return message_result::consumed;
@@ -637,7 +637,7 @@ public:
 };
 class ledger_province_population_entry : public listbox_row_element_base<dcon::province_id> {
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 
 		xy_pair cell_offset{0, 0};
@@ -648,7 +648,7 @@ public:
 		});
 
 		auto cell_width = (972 - cell_offset.x) / (1 + num_pop_types);
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -669,8 +669,8 @@ public:
 		});
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::province_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
 			payload.emplace<dcon::province_id>(content);
 			return message_result::consumed;
 		}
@@ -684,9 +684,9 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for (auto si : state.world.nation_get_state_ownership(state.local_player_nation))
+		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				row_contents.push_back(p);
 			});
@@ -699,13 +699,13 @@ public:
 //
 class ledger_provinces_production_entry : public listbox_row_element_base<dcon::province_id> {
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 
 		xy_pair cell_offset{0, 0};
 
 		auto cell_width = (972 - cell_offset.x) / 7;
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -754,15 +754,15 @@ public:
 		}
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::province_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
 			payload.emplace<dcon::province_id>(content);
 			return message_result::consumed;
 		}
 		return listbox_row_element_base::get(state, payload);
 	}
 
-	void update(sys::state &state) noexcept override {
+	void update(sys::state& state) noexcept override {
 		Cyto::Any payload = content;
 		impl_set(state, payload);
 	}
@@ -774,9 +774,9 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for (auto si : state.world.nation_get_state_ownership(state.local_player_nation))
+		for(auto si : state.world.nation_get_state_ownership(state.local_player_nation))
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				row_contents.push_back(p);
 			});
@@ -789,13 +789,13 @@ public:
 //
 class ledger_factories_production_entry : public listbox_row_element_base<dcon::factory_id> {
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
 
 		xy_pair cell_offset{0, 0};
 
 		auto cell_width = (972 - cell_offset.x) / 6;
-		auto apply_offset = [&](auto &ptr) {
+		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
 			cell_offset.x += ptr->base_data.size.x;
@@ -845,9 +845,9 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for (const auto fat_smemb_id : state.world.nation_get_state_ownership(state.local_player_nation))
+		for(const auto fat_smemb_id : state.world.nation_get_state_ownership(state.local_player_nation))
 			province::for_each_province_in_state_instance(state, fat_smemb_id.get_state(), [&](dcon::province_id pid) {
 				auto fat_id = dcon::fatten(state.world, pid);
 				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
@@ -860,8 +860,8 @@ public:
 
 class ledger_commodity_plupp : public tinted_image_element_base {
 public:
-	uint32_t get_tint_color(sys::state &state) noexcept override {
-		if (parent) {
+	uint32_t get_tint_color(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::commodity_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::commodity_id>(payload);
@@ -876,10 +876,10 @@ public:
 //
 class ledger_commodity_price_entry : public listbox_row_element_base<dcon::commodity_id> {
 public:
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "ledger_default_textbox") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "ledger_default_textbox") {
 			return make_element_by_type<generic_name_text<dcon::commodity_id>>(state, id);
-		} else if (name == "ledger_legend_plupp") {
+		} else if(name == "ledger_legend_plupp") {
 			return make_element_by_type<ledger_commodity_plupp>(state, id);
 		} else {
 			return nullptr;
@@ -893,7 +893,7 @@ protected:
 	}
 
 public:
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			row_contents.push_back(id);
@@ -903,8 +903,8 @@ public:
 };
 class commodity_linegraph_legend_window : public window_element_base {
 public:
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "legend_list") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "legend_list") {
 			return make_element_by_type<ledger_commodity_price_listbox>(state, id);
 		} else {
 			return nullptr;
@@ -915,25 +915,25 @@ public:
 class ledger_window : public window_element_base {
 	dcon::gui_def_id listbox_def_id{};
 
-	window_element_base *commodity_linegraph = nullptr;
-	commodity_linegraph_legend_window *commodity_linegraph_legend = nullptr;
-	image_element_base *commodity_linegraph_image = nullptr;
-	simple_text_element_base *page_number_text = nullptr;
-	simple_text_element_base *ledger_header_text = nullptr;
+	window_element_base* commodity_linegraph = nullptr;
+	commodity_linegraph_legend_window* commodity_linegraph_legend = nullptr;
+	image_element_base* commodity_linegraph_image = nullptr;
+	simple_text_element_base* page_number_text = nullptr;
+	simple_text_element_base* ledger_header_text = nullptr;
 	ledger_page_number page_num{int8_t(1)};
 
-	ledger_nation_ranking_listbox *nation_ranking_listbox = nullptr;
-	ledger_nation_comparison_listbox *nation_compare_listbox = nullptr;
-	ledger_nation_political_systems_listbox *nation_party_listbox = nullptr;
-	ledger_nation_political_reforms_listbox *nation_political_reforms_listbox = nullptr;
-	ledger_nation_social_reforms_listbox *nation_social_reforms_listbox = nullptr;
-	ledger_nation_population_listbox *nation_pops_listbox = nullptr;
-	ledger_province_listbox *provinces_listbox = nullptr;
-	ledger_province_population_listbox *provinces_pops_listbox = nullptr;
-	ledger_provinces_production_listbox *provinces_production_listbox = nullptr;
-	ledger_factories_production_listbox *factory_production_listbox = nullptr;
+	ledger_nation_ranking_listbox* nation_ranking_listbox = nullptr;
+	ledger_nation_comparison_listbox* nation_compare_listbox = nullptr;
+	ledger_nation_political_systems_listbox* nation_party_listbox = nullptr;
+	ledger_nation_political_reforms_listbox* nation_political_reforms_listbox = nullptr;
+	ledger_nation_social_reforms_listbox* nation_social_reforms_listbox = nullptr;
+	ledger_nation_population_listbox* nation_pops_listbox = nullptr;
+	ledger_province_listbox* provinces_listbox = nullptr;
+	ledger_province_population_listbox* provinces_pops_listbox = nullptr;
+	ledger_provinces_production_listbox* provinces_production_listbox = nullptr;
+	ledger_factories_production_listbox* factory_production_listbox = nullptr;
 
-	void hide_sub_windows(sys::state &state) noexcept {
+	void hide_sub_windows(sys::state& state) noexcept {
 		nation_ranking_listbox->set_visible(state, false);
 		nation_compare_listbox->set_visible(state, false);
 		nation_party_listbox->set_visible(state, false);
@@ -952,7 +952,7 @@ class ledger_window : public window_element_base {
 	}
 
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
 		{
@@ -1010,38 +1010,38 @@ public:
 		impl_set(state, payload);
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "close") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "close") {
 			auto ptr = make_element_by_type<generic_close_button>(state, id);
 			ptr->set_button_text(state, "");
 			return ptr;
-		} else if (name == "ledger_bg") {
+		} else if(name == "ledger_bg") {
 			return make_element_by_type<draggable_target>(state, id);
-		} else if (name == "ledger_linegraphs") {
+		} else if(name == "ledger_linegraphs") {
 			auto ptr = make_element_by_type<window_element_base>(state, id);
 			commodity_linegraph = ptr.get();
 			return ptr;
-		} else if (name == "ledger_linegraph_legend") {
+		} else if(name == "ledger_linegraph_legend") {
 			auto ptr = make_element_by_type<commodity_linegraph_legend_window>(state, id);
 			commodity_linegraph_legend = ptr.get();
 			return ptr;
-		} else if (name == "ledger_linegraph_bg") {
+		} else if(name == "ledger_linegraph_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			commodity_linegraph_image = ptr.get();
 			return ptr;
-		} else if (name == "page_number") {
+		} else if(name == "page_number") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			page_number_text = ptr.get();
 			return ptr;
-		} else if (name == "ledger_header") {
+		} else if(name == "ledger_header") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			ledger_header_text = ptr.get();
 			return ptr;
-		} else if (name == "prev") {
+		} else if(name == "prev") {
 			return make_element_by_type<ledger_prev_button>(state, id);
-		} else if (name == "next") {
+		} else if(name == "next") {
 			return make_element_by_type<ledger_next_button>(state, id);
-		} else if (name == "default_listbox") {
+		} else if(name == "default_listbox") {
 			listbox_def_id = id;
 			return nullptr;
 		} else {
@@ -1049,11 +1049,11 @@ public:
 		}
 	}
 
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		page_number_text->set_text(state, std::to_string(page_num.value));
 
 		hide_sub_windows(state);
-		switch (page_num.value) {
+		switch(page_num.value) {
 		case 1:
 			ledger_header_text->set_text(state, text::produce_simple_string(state, "ledger_header_rank"));
 			nation_ranking_listbox->set_visible(state, true);
@@ -1105,10 +1105,10 @@ public:
 		}
 	}
 
-	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<ledger_page_number>()) {
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<ledger_page_number>()) {
 			page_num = any_cast<ledger_page_number>(payload);
-			for (auto &child : children)
+			for(auto& child : children)
 				child->impl_set(state, payload);
 			impl_on_update(state);
 			return message_result::consumed;

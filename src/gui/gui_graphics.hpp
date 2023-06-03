@@ -313,7 +313,7 @@ public:
 	tagged_vector<element_data, dcon::gui_def_id> gui;
 };
 
-void load_text_gui_definitions(sys::state &state, parsers::building_gfx_context &context, parsers::error_handler &err);
+void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context& context, parsers::error_handler& err);
 
 enum class message_result {
 	unseen,
@@ -333,10 +333,10 @@ enum class tooltip_behavior {
 
 class element_base;
 
-xy_pair child_relative_location(element_base const &parent, element_base const &child);
-xy_pair get_absolute_location(element_base const &node);
+xy_pair child_relative_location(element_base const & parent, element_base const & child);
+xy_pair get_absolute_location(element_base const & node);
 
-using ui_hook_fn = std::unique_ptr<element_base> (*)(sys::state &, dcon::gui_def_id);
+using ui_hook_fn = std::unique_ptr<element_base> (*)(sys::state&, dcon::gui_def_id);
 
 struct element_target {
 	ui_hook_fn generator = nullptr;
@@ -346,11 +346,11 @@ struct element_target {
 class tool_tip;
 
 struct state {
-	element_base *under_mouse = nullptr;
-	element_base *scroll_target = nullptr;
-	element_base *drag_target = nullptr;
-	element_base *edit_target = nullptr;
-	element_base *last_tooltip = nullptr;
+	element_base* under_mouse = nullptr;
+	element_base* scroll_target = nullptr;
+	element_base* drag_target = nullptr;
+	element_base* edit_target = nullptr;
+	element_base* last_tooltip = nullptr;
 
 	xy_pair relative_mouse_location = xy_pair{0, 0};
 	std::unique_ptr<element_base> units_root;
@@ -360,33 +360,33 @@ struct state {
 	ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
 
 	// elements we are keeping track of
-	element_base *main_menu = nullptr;
-	element_base *fps_counter = nullptr;
-	element_base *console_window = nullptr; // console window
-	element_base *topbar_window = nullptr;
-	element_base *topbar_subwindow = nullptr; // current tab window
-	element_base *province_window = nullptr;
-	element_base *search_window = nullptr;
-	element_base *ledger_window = nullptr;
-	element_base *diplomacy_subwindow = nullptr;
-	element_base *politics_subwindow = nullptr;
-	element_base *population_subwindow = nullptr;
-	element_base *production_subwindow = nullptr;
-	element_base *trade_subwindow = nullptr;
-	element_base *unit_window_army = nullptr;
-	element_base *unit_window_navy = nullptr;
-	element_base *build_unit_window = nullptr;
-	element_base *msg_filters_window = nullptr;
-	element_base *outliner_window = nullptr;
-	element_base *technology_subwindow = nullptr;
-	element_base *election_window = nullptr;
-	element_base *msg_window = nullptr;
-	element_base *army_status_window = nullptr;
-	element_base *navy_status_window = nullptr;
+	element_base* main_menu = nullptr;
+	element_base* fps_counter = nullptr;
+	element_base* console_window = nullptr; // console window
+	element_base* topbar_window = nullptr;
+	element_base* topbar_subwindow = nullptr; // current tab window
+	element_base* province_window = nullptr;
+	element_base* search_window = nullptr;
+	element_base* ledger_window = nullptr;
+	element_base* diplomacy_subwindow = nullptr;
+	element_base* politics_subwindow = nullptr;
+	element_base* population_subwindow = nullptr;
+	element_base* production_subwindow = nullptr;
+	element_base* trade_subwindow = nullptr;
+	element_base* unit_window_army = nullptr;
+	element_base* unit_window_navy = nullptr;
+	element_base* build_unit_window = nullptr;
+	element_base* msg_filters_window = nullptr;
+	element_base* outliner_window = nullptr;
+	element_base* technology_subwindow = nullptr;
+	element_base* election_window = nullptr;
+	element_base* msg_window = nullptr;
+	element_base* army_status_window = nullptr;
+	element_base* navy_status_window = nullptr;
 
-	element_base *major_event_window = nullptr;
-	element_base *national_event_window = nullptr;
-	element_base *provincial_event_window = nullptr;
+	element_base* major_event_window = nullptr;
+	element_base* national_event_window = nullptr;
+	element_base* provincial_event_window = nullptr;
 
 	int32_t held_game_speed = 1; // used to keep track of speed while paused
 
@@ -396,21 +396,21 @@ struct state {
 };
 
 struct mouse_probe {
-	element_base *under_mouse;
+	element_base* under_mouse;
 	xy_pair relative_location;
 };
 
-template <typename T>
+template<typename T>
 constexpr ui_hook_fn hook() {
-	return +[](sys::state &, dcon::gui_def_id) { return std::make_unique<T>(); };
+	return +[](sys::state&, dcon::gui_def_id) { return std::make_unique<T>(); };
 }
 
-void populate_definitions_map(sys::state &state);
-void make_size_from_graphics(sys::state &state, ui::element_data &dat);
-std::unique_ptr<element_base> make_element(sys::state &state, std::string_view name);
-std::unique_ptr<element_base> make_element_immediate(sys::state &state, dcon::gui_def_id id); // bypasses global map
+void populate_definitions_map(sys::state& state);
+void make_size_from_graphics(sys::state& state, ui::element_data& dat);
+std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
+std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id); // bypasses global map
 
-void show_main_menu(sys::state &state);
-int32_t ui_width(sys::state const &state);
-int32_t ui_height(sys::state const &state);
+void show_main_menu(sys::state& state);
+int32_t ui_width(sys::state const & state);
+int32_t ui_height(sys::state const & state);
 } // namespace ui

@@ -226,7 +226,7 @@ struct unit_variable_stats {
 	float siege_or_torpedo_attack = 0.0f;
 	float reconnaissance_or_fire_range = 0.0f;
 
-	void operator+=(unit_variable_stats const &other) {
+	void operator+=(unit_variable_stats const & other) {
 		build_time += other.build_time;
 		default_organisation += other.default_organisation;
 		maximum_speed += other.maximum_speed;
@@ -237,7 +237,7 @@ struct unit_variable_stats {
 		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
 		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
 	}
-	void operator-=(unit_variable_stats const &other) {
+	void operator-=(unit_variable_stats const & other) {
 		build_time -= other.build_time;
 		default_organisation -= other.default_organisation;
 		maximum_speed -= other.maximum_speed;
@@ -265,16 +265,16 @@ struct dated_modifier {
 };
 
 // restores values after loading a save
-void repopulate_modifier_effects(sys::state &state);
+void repopulate_modifier_effects(sys::state& state);
 
-void update_modifier_effects(sys::state &state);
-void update_single_nation_modifiers(sys::state &state, dcon::nation_id n);
+void update_modifier_effects(sys::state& state);
+void update_single_nation_modifiers(sys::state& state, dcon::nation_id n);
 
-void add_modifier_to_nation(sys::state &state, dcon::nation_id target_nation, dcon::modifier_id mod_id, sys::date expiration);   // default construct date for no expiration
-void add_modifier_to_province(sys::state &state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration
-void remove_modifier_from_nation(sys::state &state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
-void remove_modifier_from_province(sys::state &state, dcon::province_id target_prov, dcon::modifier_id mod_id);
-void remove_expired_modifiers_from_nation(sys::state &state, dcon::nation_id target_nation);
-void remove_expired_modifiers_from_province(sys::state &state, dcon::province_id target_prov);
+void add_modifier_to_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id, sys::date expiration);   // default construct date for no expiration
+void add_modifier_to_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id, sys::date expiration); // default construct date for no expiration
+void remove_modifier_from_nation(sys::state& state, dcon::nation_id target_nation, dcon::modifier_id mod_id);
+void remove_modifier_from_province(sys::state& state, dcon::province_id target_prov, dcon::modifier_id mod_id);
+void remove_expired_modifiers_from_nation(sys::state& state, dcon::nation_id target_nation);
+void remove_expired_modifiers_from_province(sys::state& state, dcon::province_id target_prov);
 
 } // namespace sys

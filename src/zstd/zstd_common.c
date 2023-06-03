@@ -8,29 +8,25 @@
  * You may select, at your option, one of the above-listed licenses.
  */
 
-
-
 /*-*************************************
-*  Dependencies
-***************************************/
+ *  Dependencies
+ ***************************************/
 #define ZSTD_DEPS_NEED_MALLOC
-#include "zstd_deps.h"   /* ZSTD_malloc, ZSTD_calloc, ZSTD_free, ZSTD_memset */
+#include "zstd_deps.h" /* ZSTD_malloc, ZSTD_calloc, ZSTD_free, ZSTD_memset */
 #include "error_private.h"
 #include "zstd_internal.h"
 
-
 /*-****************************************
-*  Version
-******************************************/
+ *  Version
+ ******************************************/
 unsigned ZSTD_versionNumber(void) { return ZSTD_VERSION_NUMBER; }
 
 const char* ZSTD_versionString(void) { return ZSTD_VERSION_STRING; }
 
-
 /*-****************************************
-*  ZSTD Error Management
-******************************************/
-#undef ZSTD_isError   /* defined within zstd_internal.h */
+ *  ZSTD Error Management
+ ******************************************/
+#undef ZSTD_isError /* defined within zstd_internal.h */
 /*! ZSTD_isError() :
  *  tells if a return value is an error code
  *  symbol is required for external callers */
@@ -48,36 +44,31 @@ ZSTD_ErrorCode ZSTD_getErrorCode(size_t code) { return ERR_getErrorCode(code); }
  *  provides error code string from enum */
 const char* ZSTD_getErrorString(ZSTD_ErrorCode code) { return ERR_getErrorString(code); }
 
-
-
 /*=**************************************************************
-*  Custom allocator
-****************************************************************/
-void* ZSTD_customMalloc(size_t size, ZSTD_customMem customMem)
-{
-    if (customMem.customAlloc)
-        return customMem.customAlloc(customMem.opaque, size);
-    return ZSTD_malloc(size);
+ *  Custom allocator
+ ****************************************************************/
+void* ZSTD_customMalloc(size_t size, ZSTD_customMem customMem) {
+	if(customMem.customAlloc)
+		return customMem.customAlloc(customMem.opaque, size);
+	return ZSTD_malloc(size);
 }
 
-void* ZSTD_customCalloc(size_t size, ZSTD_customMem customMem)
-{
-    if (customMem.customAlloc) {
-        /* calloc implemented as malloc+memset;
-         * not as efficient as calloc, but next best guess for custom malloc */
-        void* const ptr = customMem.customAlloc(customMem.opaque, size);
-        ZSTD_memset(ptr, 0, size);
-        return ptr;
-    }
-    return ZSTD_calloc(1, size);
+void* ZSTD_customCalloc(size_t size, ZSTD_customMem customMem) {
+	if(customMem.customAlloc) {
+		/* calloc implemented as malloc+memset;
+		 * not as efficient as calloc, but next best guess for custom malloc */
+		void* const ptr = customMem.customAlloc(customMem.opaque, size);
+		ZSTD_memset(ptr, 0, size);
+		return ptr;
+	}
+	return ZSTD_calloc(1, size);
 }
 
-void ZSTD_customFree(void* ptr, ZSTD_customMem customMem)
-{
-    if (ptr!=NULL) {
-        if (customMem.customFree)
-            customMem.customFree(customMem.opaque, ptr);
-        else
-            ZSTD_free(ptr);
-    }
+void ZSTD_customFree(void* ptr, ZSTD_customMem customMem) {
+	if(ptr != NULL) {
+		if(customMem.customFree)
+			customMem.customFree(customMem.opaque, ptr);
+		else
+			ZSTD_free(ptr);
+	}
 }

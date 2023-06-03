@@ -24,7 +24,7 @@ with fujitsu compiler (_FCC).
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
-#define R123_BUILTIN_EXPECT(expr,likely) expr
+#define R123_BUILTIN_EXPECT(expr, likely) expr
 #endif
 
 #ifndef R123_USE_WMMINTRIN_H
@@ -56,7 +56,7 @@ with fujitsu compiler (_FCC).
 #endif
 
 #ifndef R123_USE_MULHILO64_MULHI_INTRIN
-#if (defined(__powerpc64__))
+#if(defined(__powerpc64__))
 #define R123_USE_MULHILO64_MULHI_INTRIN 1
 #else
 #define R123_USE_MULHILO64_MULHI_INTRIN 0

@@ -6,26 +6,17 @@ If you're impertinent to try out the mods, you may be able to apply the followin
 
 ```diff
 diff --git a/src/entry_point_nix.cpp b/src/entry_point_nix.cpp
-index 2cad53b..8061b74 100644
+index 2dc422d..f5c0f44 100644
 --- a/src/entry_point_nix.cpp
 +++ b/src/entry_point_nix.cpp
-@@ -1,13 +1,29 @@
- #include "system_state.hpp"
- 
--int main() {
-+int main(int argc, char *argv[]) {
- 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
- 
- 	assert(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
+@@ -7,6 +7,23 @@ int main() {
  	add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
- 	add_root(game_state->common_fs, NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
--	
+ 	add_root(game_state->common_fs, NATIVE("."));        // will add the working directory as first root -- for the moment this lets us find the shader files
  
 +	{
 +		std::vector<std::string> cmd_args;
 +		for(int i = 1; i < argc; ++i)
 +			cmd_args.push_back(std::string{ argv[i] });
-+
 +		parsers::error_handler err("");
 +		parsers::scenario_building_context context(*game_state);
 +		auto root = get_root(game_state->common_fs);
@@ -38,37 +29,31 @@ index 2cad53b..8061b74 100644
 +			parsers::parse_mod_file(gen, err, mod_file_context);
 +		}
 +	}
- 
++
  	if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("development_test_file.bin"))) {
  		// scenario making functions
+ 		game_state->load_scenario_data();
 diff --git a/src/entry_point_win.cpp b/src/entry_point_win.cpp
-index fd4794a..6fb718a 100644
+index 3144322..ba5adbf 100644
 --- a/src/entry_point_win.cpp
 +++ b/src/entry_point_win.cpp
-@@ -13,10 +13,10 @@
- #pragma comment(lib, "Ole32.lib")
- 
+@@ -15,7 +15,7 @@
  int WINAPI wWinMain(
--	HINSTANCE /*hInstance*/,
--	HINSTANCE /*hPrevInstance*/,
--	LPWSTR /*lpCmdLine*/,
--	int /*nCmdShow*/
-+	HINSTANCE hInstance,
-+	HINSTANCE hPrevInstance,
-+	LPWSTR lpCmdLine,
-+	int nCmdShow
+     HINSTANCE /*hInstance*/,
+     HINSTANCE /*hPrevInstance*/,
+-    LPWSTR /*lpCmdLine*/,
++    LPWSTR lpCmdLine,
+     int /*nCmdShow*/
  ) {
  
- #ifdef _DEBUG
 @@ -50,6 +50,18 @@ int WINAPI wWinMain(
  			RegCloseKey(hKey);
  		}
- 		
+ 
 +		if(lpCmdLine) {
 +			parsers::error_handler err("");
 +			parsers::scenario_building_context context(*game_state);
 +			auto root = get_root(game_state->common_fs);
-+
 +			auto mod_file = open_file(root, lpCmdLine);
 +			auto content = view_contents(*mod_file);
 +			err.file_name = lpCmdLine;
@@ -76,103 +61,100 @@ index fd4794a..6fb718a 100644
 +			parsers::mod_file_context mod_file_context(context);
 +			parsers::parse_mod_file(gen, err, mod_file_context);
 +		}
- 
++
  		if(!sys::try_read_scenario_and_save_file(*game_state, NATIVE("development_test_file.bin"))) {
  			// scenario making functions
+ 			game_state->load_scenario_data();
 diff --git a/src/gamestate/modifiers.hpp b/src/gamestate/modifiers.hpp
-index 8ed8b54..3c2f771 100644
+index 794a61c..0f89293 100644
 --- a/src/gamestate/modifiers.hpp
 +++ b/src/gamestate/modifiers.hpp
-@@ -199,14 +199,14 @@ constexpr inline uint32_t count = MOD_NAT_LIST_COUNT;
- 
+@@ -197,14 +197,14 @@ constexpr inline uint32_t count = MOD_NAT_LIST_COUNT;
+ } // namespace national_mod_offsets
  
  struct provincial_modifier_definition {
 -	static constexpr uint32_t modifier_definition_size = 10;
 +	static constexpr uint32_t modifier_definition_size = 24;
  
- 	float values[modifier_definition_size] = { 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
- 	dcon::provincial_modifier_value offsets[modifier_definition_size] = { dcon::provincial_modifier_value{} };
+ 	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+ 	dcon::provincial_modifier_value offsets[modifier_definition_size] = {dcon::provincial_modifier_value{}};
  };
  
  struct national_modifier_definition {
 -	static constexpr uint32_t modifier_definition_size = 10;
 +	static constexpr uint32_t modifier_definition_size = 24;
  
- 	float values[modifier_definition_size] = { 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
- 	dcon::national_modifier_value offsets[modifier_definition_size] = { dcon::national_modifier_value{} }; 
+ 	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+ 	dcon::national_modifier_value offsets[modifier_definition_size] = {dcon::national_modifier_value{}};
 diff --git a/src/map/map.cpp b/src/map/map.cpp
-index 316f76a..8fda427 100644
+index c0d9e61..298f79f 100644
 --- a/src/map/map.cpp
 +++ b/src/map/map.cpp
-@@ -882,6 +882,9 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
+@@ -876,6 +876,9 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
+ }
  
- GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
- 	auto file = simple_fs::open_file(dir, file_name);
+ GLuint load_dds_texture(simple_fs::directory const & dir, native_string_view file_name) {
 +	if(!bool(file))
 +		return 0;
 +
+ 	auto file = simple_fs::open_file(dir, file_name);
  	auto content = simple_fs::view_contents(*file);
  	uint32_t size_x, size_y;
- 	uint8_t const* data = (uint8_t const*)(content.data);
 diff --git a/src/parsing/parsers_declarations.cpp b/src/parsing/parsers_declarations.cpp
-index 0811d56..40a5c4d 100644
+index 270a4d8..bd8fef0 100644
 --- a/src/parsing/parsers_declarations.cpp
 +++ b/src/parsing/parsers_declarations.cpp
-@@ -2525,22 +2525,24 @@ void mod_file::finish(mod_file_context& context) {
- 		return;
- 	
+@@ -2530,13 +2530,16 @@ void mod_file::finish(mod_file_context& context) {
  	auto& fs = context.outer_context.state.common_fs;
--	
--	// Add root of mod_path
+ 
+ 	// Add root of mod_path
 -	for(auto replace_path : context.replace_paths) {
 -		native_string path_block = simple_fs::list_roots(fs)[0];
 -		path_block += NATIVE_DIR_SEPARATOR;
 -		path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
 -		if(path_block.back() != NATIVE_DIR_SEPARATOR)
+-			path_block += NATIVE_DIR_SEPARATOR;
+-
++ 	auto& fs = context.outer_context.state.common_fs;
 +	const auto roots = simple_fs::list_roots(fs);
 +	for(const auto& root : roots) {
-+		// Add root of mod_path
 +		for(auto replace_path : context.replace_paths) {
 +			native_string path_block = root;
- 			path_block += NATIVE_DIR_SEPARATOR;
++ 			path_block += NATIVE_DIR_SEPARATOR;
 +			path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
 +			if(path_block.back() != NATIVE_DIR_SEPARATOR)
 +				path_block += NATIVE_DIR_SEPARATOR;
- 
--		simple_fs::add_ignore_path(fs, path_block);
--	}
-+			simple_fs::add_ignore_path(fs, path_block);
 +		}
+ 		simple_fs::add_ignore_path(fs, path_block);
+ 	}
  
--	native_string mod_path = simple_fs::list_roots(fs)[0];
--	mod_path += NATIVE_DIR_SEPARATOR;
--	mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(context.path));
--	add_root(fs, mod_path);
-+		native_string mod_path = root;
-+		mod_path += NATIVE_DIR_SEPARATOR;
-+		mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(context.path));
-+		add_root(fs, mod_path);
-+	}
- }
- 
- }
 diff --git a/src/parsing/trigger_parsing.cpp b/src/parsing/trigger_parsing.cpp
-index 9de50c1..b9e18aa 100644
+index 5a3fb74..440ea83 100644
 --- a/src/parsing/trigger_parsing.cpp
 +++ b/src/parsing/trigger_parsing.cpp
-@@ -650,10 +650,11 @@ int32_t simplify_trigger(uint16_t* source) {
- 
+@@ -670,6 +670,8 @@ int32_t simplify_trigger(uint16_t* source) {
  dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
  	tr_scope_and(gen, err, context);
--
+ 	assert(context.compiled_trigger.size() <= std::numeric_limits<uint16_t>::max());
++	if(!err.accumulated_errors.empty())
++		return dcon::trigger_key{1}; // Can't rely on a trigger with errors!
+ 
  	const auto new_size = simplify_trigger(context.compiled_trigger.data());
  	context.compiled_trigger.resize(static_cast<size_t>(new_size));
--
-+	// Can't rely on a trigger with errors!
-+	if(!err.accumulated_errors.empty())
-+		return dcon::trigger_key{0};
- 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
- }
+
+diff --git a/src/common_types/container_types.hpp b/src/common_types/container_types.hpp
+index 5505214..b9d085a 100644
+--- a/src/common_types/container_types.hpp
++++ b/src/common_types/container_types.hpp
+@@ -48,7 +48,7 @@ struct event_option {
+ 	dcon::effect_key effect;
+ };
+ 
+-constexpr int32_t max_event_options = 6;
++constexpr int32_t max_event_options = 8;
+ 
+ struct modifier_hash {
+ 	using is_avalanching = void;
 ```
 
 What this patch does is that it increments the size of possible modifiers (thus allowing mods to add as many modifiers as they wish, more than it's normally allowed) - this however, incurs a huge penalty on memory size and speed.

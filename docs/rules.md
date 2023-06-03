@@ -502,9 +502,13 @@ The game also apparently supports special premade names between specific nations
 
 In addition to first and second, country_adj and state are also available in these strings.
 
+### War goals and war score
+
 #### Adding a war goal
 
-When you add a war goal (including the one that the war is declared with) it is removed from your constructed CBs list. Once the war is going: no war goals may be added if there is a status quo wargoal present on the side of the conflict of the nation that wants to add a wargoal. The wargoal must be valid (see below). The nation adding the wargoal must have positive warscore against the target of the wargoal (see below). And the nation must be already able to use the CB in question (e.g. it as fabricated previously) or it must be a fabricatable CB and the nation adding the wargoal must have overall jingoism support >= defines:WARGOAL_JINGOISM_REQUIREMENT (x defines:GW_JINGOISM_REQUIREMENT_MOD in a great war).
+When you add a war goal (including the one that the war is declared with) it is removed from your constructed CBs list. Once the war is going: no war goals may be added if there is a status quo war goal present on the side of the conflict of the nation that wants to add a war goal. The war goal must be valid (see below). The nation adding the war goal must have positive war score against the target of the war goal (see below). And the nation must be already able to use the CB in question (e.g. it as fabricated previously) or it must be a constructible CB and the nation adding the war goal must have overall jingoism support >= defines:WARGOAL_JINGOISM_REQUIREMENT (x defines:GW_JINGOISM_REQUIREMENT_MOD in a great war).
+
+When a war goal is added, its on_add effect runs. The nation adding the war goal is placed in the primary slot, with the nation targeted by the war goal in the from slot. The nation adding the war goal gains infamy (if the war goal was not already available). This is done by adding up the infamy as determined by the po tags and multiplying by the CB's `badboy_factor`. If it is a great war, this value is further multiplied by defines:GW_JUSTIFY_CB_BADBOY_IMPACT.
 
 #### Testing if a war goal is valid
 
@@ -514,29 +518,37 @@ The allowed country condition, if present, must be satisfied (evaluated with the
 - Allowed states:
 If the war goal has `all_allowed_states` it will affect all states satisfying the condition. In any case, there must be some state owned by the target nation that passes the `allowed_states` condition if present (evaluated with that state in the primary slot, the nation adding the war goal in the this slot, and any other nation associated with the war goal -- for example the liberation target -- in the from slot if any).
 
-- 
+#### Peace cost
 
-### Ticking war score
+Each war goal has a value that determines how much it is worth in a peace offer (and peace offers are capped at 100 points of war goals). Great war obligatory war goals cost 0. Then we iterate over the po tags and sum up the peace cost for each. Some tags have a fixed cost in the defines, such as define:PEACE_COST_RELEASE_PUPPET. For anything that conquers provinces directly (ex: demand state), each province is worth its value relative to the total cost of provinces owned by the target (see below) x 2.8. For po_clear_union_sphere, the cost is defines:PEACE_COST_CLEAR_UNION_SPHERE x the number of nations that will be affected. If the war is a great war, this cost is multiplied by defines:GW_WARSCORE_COST_MOD. If it is a great war, world wars are enabled, and the war score is at least defines:GW_WARSCORE_2_THRESHOLD, the cost is multiplied by defines:GW_WARSCORE_COST_MOD_2 instead. The peace cost of a single war goal is capped at 100.0.
+
+#### Ticking war score
 
 - ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
-- limited by define: TWS_CB_LIMIT_DEFAULT
+- limited by define:TWS_CB_LIMIT_DEFAULT
 - to calculate: first you need to figure out the percentage of the war goal complete. This is percentage of provinces occupied or, for war score from battles see Battle score below
 
-### Battle score
+#### Battle score
 
 - zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
 - calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
 
-### Directed war score
+#### Directed war score
 
-Directed war score is how much warscore a particular nation has against another particular nation on the other side of the conflict. This is used when adding wargoals, and when one nation is trying to make a separate peace with another.
+Directed war score is how much war score a particular nation has against another particular nation on the other side of the conflict. This is used when adding war goals, and when one nation is trying to make a separate peace with another. Directed war score is considered to be 100 if the attacker has all provinces that they possibly can occupied and either 50% of the provinces of the target occupied or the target's capital occupied. (Or, -100 if the reverse is true. This appears to be a kind of forced capitulation condition.) If at least one of the two nations involved is a leader of their side, war score from battles applied. This score is capped at define:MAX_WARSCORE_FROM_BATTLES. For each land battle the winner gets the difference in strength losses (or zero if they won with more strength losses) / 10 plus an additional 0.1 added to their "direction" of the war score.
+
+War score from occupations requires us to know the value of provinces. All provinces have a base value of 1. For non colonial provinces: each level of naval base increases its value by 1. If it is a state capital, its value increases by 1 for every factory in the state (factory level does not matter). Provinces get 1 point per fort level. This value is the doubled for non-overseas provinces where the owner has a core. It is then tripled for the nation's capital province.
+
+For each province owned by B that A occupies, it gets credit toward its side of the war score equal to 100 x that province's value as a fraction of all the provinces owned by B. However, that province counts for only 3/4 of that value if it is currently blockaded by an enemy (why?).
+
+Finally, war score is affected by any war goals in play against either side that have war score associated with them.
 
 ### Invalid  war states
 
 - A primary belligerent may not be a vassal or substate of another nation
 - War goals must remain valid (must pass their is-valid trigger check, must have existing target countries, target countries must pass any trigger checks, there must be a valid state in the target country, the country that added them must still be in the war, etc)
 - Crisis war goals may not be removed -- this may override other validity checks
-- There must be at least one wargoal (other than status quo) in the war
+- There must be at least one war goal (other than status quo) in the war
 - idle for too long -- if the war goes too long without some event happening within it (battle or occupation) it may be terminated. If something is occupied, I believe the war is safe from termination in this way
 
 ### Mobilization

@@ -11,22 +11,22 @@
 #ifndef ZSTD_LDM_H
 #define ZSTD_LDM_H
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
-#include "zstd_compress_internal.h"   /* ldmParams_t, U32 */
-#include "zstd.h"   /* ZSTD_CCtx, size_t */
+#include "zstd_compress_internal.h" /* ldmParams_t, U32 */
+#include "zstd.h"                   /* ZSTD_CCtx, size_t */
 
 /*-*************************************
-*  Long distance matching
-***************************************/
+ *  Long distance matching
+ ***************************************/
 
 #define ZSTD_LDM_DEFAULT_WINDOW_LOG ZSTD_WINDOWLOG_LIMIT_DEFAULT
 
 void ZSTD_ldm_fillHashTable(
-            ldmState_t* state, const BYTE* ip,
-            const BYTE* iend, ldmParams_t const* params);
+    ldmState_t* state, const BYTE* ip,
+    const BYTE* iend, ldmParams_t const * params);
 
 /**
  * ZSTD_ldm_generateSequences():
@@ -43,8 +43,8 @@ void ZSTD_ldm_fillHashTable(
  *       sequences.
  */
 size_t ZSTD_ldm_generateSequences(
-            ldmState_t* ldms, rawSeqStore_t* sequences,
-            ldmParams_t const* params, void const* src, size_t srcSize);
+    ldmState_t* ldms, rawSeqStore_t* sequences,
+    ldmParams_t const * params, void const * src, size_t srcSize);
 
 /**
  * ZSTD_ldm_blockCompress():
@@ -65,9 +65,9 @@ size_t ZSTD_ldm_generateSequences(
  * NOTE: This function does not return any errors.
  */
 size_t ZSTD_ldm_blockCompress(rawSeqStore_t* rawSeqStore,
-            ZSTD_matchState_t* ms, seqStore_t* seqStore, U32 rep[ZSTD_REP_NUM],
-            ZSTD_paramSwitch_e useRowMatchFinder,
-            void const* src, size_t srcSize);
+                              ZSTD_matchState_t* ms, seqStore_t* seqStore, U32 rep[ZSTD_REP_NUM],
+                              ZSTD_paramSwitch_e useRowMatchFinder,
+                              void const * src, size_t srcSize);
 
 /**
  * ZSTD_ldm_skipSequences():
@@ -77,7 +77,7 @@ size_t ZSTD_ldm_blockCompress(rawSeqStore_t* rawSeqStore,
  * Must be called for data that is not passed to ZSTD_ldm_blockCompress().
  */
 void ZSTD_ldm_skipSequences(rawSeqStore_t* rawSeqStore, size_t srcSize,
-    U32 const minMatch);
+                            U32 const minMatch);
 
 /* ZSTD_ldm_skipRawSeqStoreBytes():
  * Moves forward in rawSeqStore by nbBytes, updating fields 'pos' and 'posInSequence'.
@@ -108,9 +108,9 @@ size_t ZSTD_ldm_getMaxNbSeq(ldmParams_t params, size_t maxChunkSize);
  *  Ensures that the minMatchLength >= targetLength during optimal parsing.
  */
 void ZSTD_ldm_adjustParameters(ldmParams_t* params,
-                               ZSTD_compressionParameters const* cParams);
+                               ZSTD_compressionParameters const * cParams);
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 }
 #endif
 

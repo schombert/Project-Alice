@@ -86,12 +86,12 @@ typedef ::double2 double2;
 #endif
 
 #if R123_NO_SINCOS /* enable this if sincos and sincosf are not in the math library */
-R123_CUDA_DEVICE R123_STATIC_INLINE void sincosf(float x, float *s, float *c) {
+R123_CUDA_DEVICE R123_STATIC_INLINE void sincosf(float x, float* s, float* c) {
 	*s = sinf(x);
 	*c = cosf(x);
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE void sincos(double x, double *s, double *c) {
+R123_CUDA_DEVICE R123_STATIC_INLINE void sincos(double x, double* s, double* c) {
 	*s = sin(x);
 	*c = cos(x);
 }
@@ -99,12 +99,12 @@ R123_CUDA_DEVICE R123_STATIC_INLINE void sincos(double x, double *s, double *c) 
 
 #if !defined(CUDART_VERSION) || CUDART_VERSION < 5000 /* enabled if sincospi and sincospif are not in math lib */
 
-R123_CUDA_DEVICE R123_STATIC_INLINE void sincospif(float x, float *s, float *c) {
+R123_CUDA_DEVICE R123_STATIC_INLINE void sincospif(float x, float* s, float* c) {
 	const float PIf = 3.1415926535897932f;
 	sincosf(PIf * x, s, c);
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE void sincospi(double x, double *s, double *c) {
+R123_CUDA_DEVICE R123_STATIC_INLINE void sincospi(double x, double* s, double* c) {
 	const double PI = 3.1415926535897932;
 	sincos(PI * x, s, c);
 }

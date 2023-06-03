@@ -8,8 +8,8 @@ namespace ui {
 
 class reforms_reform_button : public button_element_base {
 public:
-	void button_action(sys::state &state) noexcept override {
-		if (parent) {
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::issue_option_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::issue_option_id>(payload);
@@ -18,8 +18,8 @@ public:
 		}
 	}
 
-	void on_update(sys::state &state) noexcept override {
-		if (parent) {
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::issue_option_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::issue_option_id>(payload);
@@ -28,25 +28,25 @@ public:
 		}
 	}
 
-	tooltip_behavior has_tooltip(sys::state &state) noexcept override {
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void update_tooltip(sys::state &state, int32_t x, int32_t y, text::columnar_layout &contents) noexcept override {
-		if (parent) {
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
 			Cyto::Any payload = dcon::issue_option_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::issue_option_id>(payload);
 
 			auto fat_id = dcon::fatten(state.world, content);
 			auto name = fat_id.get_name();
-			if (bool(name)) {
+			if(bool(name)) {
 				auto box = text::open_layout_box(contents, 0);
 				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
 			auto mod_id = fat_id.get_modifier().id;
-			if (bool(mod_id)) {
+			if(bool(mod_id)) {
 				modifier_description(state, contents, mod_id);
 			}
 		}
@@ -54,24 +54,24 @@ public:
 };
 
 class reforms_option : public listbox_row_element_base<dcon::issue_option_id> {
-	image_element_base *selected_icon = nullptr;
+	image_element_base* selected_icon = nullptr;
 
 public:
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "reform_name") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "reform_name") {
 			return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
-		} else if (name == "selected") {
+		} else if(name == "selected") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			selected_icon = ptr.get();
 			return ptr;
-		} else if (name == "reform_option") {
+		} else if(name == "reform_option") {
 			return make_element_by_type<reforms_reform_button>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 
-	void on_update(sys::state &state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		selected_icon->set_visible(state, politics::issue_is_selected(state, state.local_player_nation, content));
 		update(state);
 	}
@@ -84,13 +84,13 @@ protected:
 	}
 
 public:
-	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::issue_id>()) {
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_id>()) {
 			auto issue_id = any_cast<dcon::issue_id>(payload);
 			row_contents.clear();
 			auto fat_id = dcon::fatten(state.world, issue_id);
-			for (auto &option : fat_id.get_options())
-				if (option)
+			for(auto& option : fat_id.get_options())
+				if(option)
 					row_contents.push_back(option);
 			update(state);
 			return message_result::consumed;
@@ -103,15 +103,15 @@ class reforms_reform_window : public window_element_base {
 	dcon::issue_id issue_id{};
 
 public:
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (name == "reform_name") {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "reform_name") {
 			return make_element_by_type<generic_multiline_name_text<dcon::issue_id>>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto reforms_box = std::make_unique<reforms_listbox>();
 		reforms_box->base_data.size.x = 130;
@@ -121,16 +121,16 @@ public:
 		add_child_to_front(std::move(reforms_box));
 	}
 
-	message_result get(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::issue_id>()) {
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_id>()) {
 			payload.emplace<dcon::issue_id>(issue_id);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
 	}
 
-	message_result set(sys::state &state, Cyto::Any &payload) noexcept override {
-		if (payload.holds_type<dcon::issue_id>()) {
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::issue_id>()) {
 			issue_id = any_cast<dcon::issue_id>(payload);
 			return message_result::consumed;
 		}
@@ -140,13 +140,13 @@ public:
 
 class reforms_window : public window_element_base {
 public:
-	void on_create(sys::state &state) noexcept override {
+	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state &state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if (auto issue_id = politics::get_issue_by_name(state, name); bool(issue_id)) {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(auto issue_id = politics::get_issue_by_name(state, name); bool(issue_id)) {
 			auto ptr = make_element_by_type<reforms_reform_window>(state, id);
 			Cyto::Any payload = issue_id;
 			ptr->impl_set(state, payload);

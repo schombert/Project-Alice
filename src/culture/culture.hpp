@@ -87,7 +87,7 @@ struct government_type {
 };
 
 constexpr inline uint32_t to_bits(dcon::ideology_id id) {
-	if (id)
+	if(id)
 		return uint32_t(1 << id.index());
 	else
 		return 0;
@@ -216,26 +216,26 @@ enum class rebel_independence : uint8_t {
 };
 
 // these functions are to be called only after loading a save
-void repopulate_technology_effects(sys::state &state);
-void repopulate_invention_effects(sys::state &state);
-void apply_technology(sys::state &state, dcon::nation_id target_nation, dcon::technology_id tech_id);
-void apply_invention(sys::state &state, dcon::nation_id target_nation, dcon::invention_id inv_id);
-void remove_technology(sys::state &state, dcon::nation_id target_nation, dcon::technology_id tech_id);
-void remove_invention(sys::state &state, dcon::nation_id target_nation, dcon::invention_id inv_id);
-uint32_t get_remapped_flag_type(sys::state const &state, flag_type type);
-flag_type get_current_flag_type(sys::state const &state, dcon::nation_id target_nation);
-flag_type get_current_flag_type(sys::state const &state, dcon::national_identity_id identity);
-void update_nation_issue_rules(sys::state &state, dcon::nation_id n_id); // note: does react to changes in slavery rule
-void update_all_nations_issue_rules(sys::state &state);                  // note: doesn't react to changes in slavery rule
+void repopulate_technology_effects(sys::state& state);
+void repopulate_invention_effects(sys::state& state);
+void apply_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
+void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id inv_id);
+void remove_technology(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
+void remove_invention(sys::state& state, dcon::nation_id target_nation, dcon::invention_id inv_id);
+uint32_t get_remapped_flag_type(sys::state const & state, flag_type type);
+flag_type get_current_flag_type(sys::state const & state, dcon::nation_id target_nation);
+flag_type get_current_flag_type(sys::state const & state, dcon::national_identity_id identity);
+void update_nation_issue_rules(sys::state& state, dcon::nation_id n_id); // note: does react to changes in slavery rule
+void update_all_nations_issue_rules(sys::state& state);                  // note: doesn't react to changes in slavery rule
 
-void create_initial_ideology_and_issues_distribution(sys::state &state);
-void set_default_issue_and_reform_options(sys::state &state);
-void restore_unsaved_values(sys::state &state);
+void create_initial_ideology_and_issues_distribution(sys::state& state);
+void set_default_issue_and_reform_options(sys::state& state);
+void restore_unsaved_values(sys::state& state);
 
-float effective_technology_cost(sys::state &state, dcon::nation_id target_nation, dcon::technology_id tech_id);
-void update_reasearch(sys::state &state, uint32_t current_year);
-void discover_inventions(sys::state &state);
+float effective_technology_cost(sys::state& state, dcon::nation_id target_nation, dcon::technology_id tech_id);
+void update_reasearch(sys::state& state, uint32_t current_year);
+void discover_inventions(sys::state& state);
 
-void replace_cores(sys::state &state, dcon::national_identity_id old_tag, dcon::national_identity_id new_tag);
+void replace_cores(sys::state& state, dcon::national_identity_id old_tag, dcon::national_identity_id new_tag);
 
 } // namespace culture

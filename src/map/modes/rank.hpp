@@ -1,6 +1,6 @@
 #pragma once
 
-std::vector<uint32_t> rank_map_from(sys::state &state) {
+std::vector<uint32_t> rank_map_from(sys::state& state) {
 	// These colors are arbitrary
 	// 1 to 8 -> green #30f233
 	// 9 to 16 -> blue #242fff
@@ -14,8 +14,8 @@ std::vector<uint32_t> rank_map_from(sys::state &state) {
 
 	auto num_nations = state.world.nation_size();
 	auto unciv_rank = num_nations;
-	for (uint32_t i = 0; i < num_nations; ++i) {
-		if (!state.world.nation_get_is_civilized(state.nations_by_rank[i])) {
+	for(uint32_t i = 0; i < num_nations; ++i) {
+		if(!state.world.nation_get_is_civilized(state.nations_by_rank[i])) {
 			unciv_rank = i;
 			break;
 		}
@@ -28,18 +28,18 @@ std::vector<uint32_t> rank_map_from(sys::state &state) {
 		auto status = nations::get_status(state, nation_id);
 
 		float darkness = 0.0f;
-		if (status == nations::status::great_power)
+		if(status == nations::status::great_power)
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id)) / state.defines.great_nations_count;
-		else if (status == nations::status::secondary_power)
+		else if(status == nations::status::secondary_power)
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.great_nations_count) / (state.defines.colonial_rank - state.defines.great_nations_count);
-		else if (status == nations::status::civilized)
+		else if(status == nations::status::civilized)
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - state.defines.colonial_rank) / std::max(1.0f, (float(unciv_rank) - state.defines.colonial_rank));
 		else
 			darkness = 1.0f - 0.7f * (state.world.nation_get_rank(nation_id) - unciv_rank) / std::max(1.0f, (float(num_nations) - float(unciv_rank)));
 
 		uint32_t color;
-		if (bool(nation_id)) {
-			switch (status) {
+		if(bool(nation_id)) {
+			switch(status) {
 			case nations::status::great_power:
 				color = sys::pack_color(
 				    int32_t(48 * darkness),

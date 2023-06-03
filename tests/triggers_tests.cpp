@@ -411,6 +411,22 @@ TEST_CASE("scope absorbsion", "[trigger_tests]") {
 	}
 }
 
+TEST_CASE("and folding", "[trigger_tests]") {
+	{
+		std::vector<uint16_t> t;
+		t.push_back(uint16_t(trigger::generic_scope));
+		t.push_back(uint16_t(5));
+		t.push_back(uint16_t(trigger::generic_scope));
+		t.push_back(uint16_t(1));
+		t.push_back(uint16_t(trigger::generic_scope));
+		t.push_back(uint16_t(1));
+
+		const auto new_size = parsers::simplify_trigger(t.data());
+
+		REQUIRE(0 == new_size);
+	}
+}
+
 TEST_CASE("effect scope absorbsion", "[effect_tests]") {
 	{
 		std::vector<uint16_t> t;
