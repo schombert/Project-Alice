@@ -275,9 +275,11 @@ void event_requirements_icon::update_tooltip(sys::state& state, int32_t x, int32
 		parent->impl_get(state, payload);
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
-		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, std::string_view("event_show_requirements"));
-		text::close_layout_box(contents, box);
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("event_show_requirements"));
+			text::close_layout_box(contents, box);
+		}
 
 		if(std::holds_alternative<event::pending_human_p_event>(content) || std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto box = text::open_layout_box(contents);
@@ -299,9 +301,11 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 		parent->impl_get(state, payload);
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
-		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, std::string_view("event_show_odds"));
-		text::close_layout_box(contents, box);
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("event_show_odds"));
+			text::close_layout_box(contents, box);
+		}
 
 		if(std::holds_alternative<event::pending_human_p_event>(content) || std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto box = text::open_layout_box(contents);
@@ -309,10 +313,10 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 			text::close_layout_box(contents, box);
 		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 			auto phe = std::get<event::pending_human_f_p_event>(content);
-			value_modifier_description(state, contents, state.world.free_provincial_event_get_mtth(phe.e), trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
+			multiplicative_value_modifier_description(state, contents, state.world.free_provincial_event_get_mtth(phe.e), trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
-			value_modifier_description(state, contents, state.world.free_national_event_get_mtth(phe.e), trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
+			multiplicative_value_modifier_description(state, contents, state.world.free_national_event_get_mtth(phe.e), trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
 		}
 	}
 }

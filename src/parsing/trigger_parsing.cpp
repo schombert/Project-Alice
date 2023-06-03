@@ -634,15 +634,13 @@ int32_t simplify_trigger(uint16_t* source) {
 					sub_units_start += size;
 				}
 			}
+			source[1] = uint16_t(source_size - 1);
 		}
-
-		source[1] = uint16_t(source_size - 1);
 
 		if((source[0] & trigger::code_mask) >= trigger::first_scope_code && scope_has_single_member(source)) {
 			if((source[0] & trigger::code_mask) == trigger::generic_scope) { // remove single-member generic scopes
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
-				source[1] = uint16_t(source_size - 1);
 			} else if((first_member[0] & trigger::code_mask) == trigger::generic_scope) {
 				// scope contains single generic scope
 
