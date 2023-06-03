@@ -6735,7 +6735,7 @@ void make_trigger_description(
 } // namespace trigger_tooltip
 
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
-	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + k.index(), primary_slot, this_slot, from_slot, 0, true);
+	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[k.index()], primary_slot, this_slot, from_slot, 0, true);
 }
 
 void value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {

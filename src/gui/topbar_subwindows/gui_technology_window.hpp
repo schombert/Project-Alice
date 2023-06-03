@@ -598,7 +598,7 @@ public:
 			state.world.for_each_invention([&](dcon::invention_id id) {
 				auto lim_trigger_k = state.world.invention_get_limit(id);
 				bool activable_by_this_tech = false;
-				trigger::recurse_over_triggers(state.trigger_data.data() + lim_trigger_k.index(), [&](uint16_t* tval) {
+				trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index()], [&](uint16_t* tval) {
 					if((tval[0] & trigger::code_mask) == trigger::technology && trigger::payload(tval[1]).tech_id == content)
 						activable_by_this_tech = true;
 				});

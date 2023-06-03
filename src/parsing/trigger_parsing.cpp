@@ -667,8 +667,6 @@ int32_t simplify_trigger(uint16_t* source) {
 
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	tr_scope_and(gen, err, context);
-	assert(context.compiled_trigger.size() <= std::numeric_limits<uint16_t>::max());
-
 	const auto new_size = simplify_trigger(context.compiled_trigger.data());
 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
 
@@ -679,7 +677,6 @@ void make_value_modifier_segment(token_generator& gen, error_handler& err, trigg
 	auto old_factor = context.factor;
 	context.factor = 0.0f;
 	tr_scope_and(gen, err, context);
-	assert(context.compiled_trigger.size() <= std::numeric_limits<uint16_t>::max());
 	auto new_factor = context.factor;
 	context.factor = old_factor;
 

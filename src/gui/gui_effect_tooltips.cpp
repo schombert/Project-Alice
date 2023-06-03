@@ -153,7 +153,7 @@ void show_limit(sys::state& ws, uint16_t const * tval, text::layout_base& layout
 		text::add_to_layout_box(layout, ws, box, text::produce_simple_string(ws, "where"));
 		text::close_layout_box(layout, box);
 
-		trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + limit.index(), -1, this_slot, from_slot, indentation + 2 * indentation_amount, false);
+		trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[limit.index()], -1, this_slot, from_slot, indentation + 2 * indentation_amount, false);
 	}
 }
 
