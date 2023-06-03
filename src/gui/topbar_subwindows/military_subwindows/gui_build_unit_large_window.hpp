@@ -144,6 +144,20 @@ public:
 					build_button->unit_type_id = dcon::unit_type_id(i);
 					build_button->culture_id = dcon::fatten(state.world, content.pop_info).get_culture();
 					build_button->province_id = dcon::fatten(state.world, content.pop_info).get_province_from_pop_location();
+
+					/* if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].primary_culture) {
+						if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+							int cult_it = 0;
+							for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+								if(culture_id.id == element) {
+									cult_it++;
+								}
+							}
+							if(cult_it == 0) {
+								set_visible(state, false);
+							}
+						}
+					}*/
 				}
 			}
 			province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(state.world.pop_location_get_province(state.world.pop_get_pop_location(content.pop_info)))));
@@ -213,6 +227,7 @@ public:
 	// false == army
 	// true == navy
 	bool is_navy = true;
+	dcon::unit_type_id unit_type;
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 
@@ -230,12 +245,37 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										 for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
@@ -245,12 +285,37 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								}
 							} else if(!state.world.province_get_is_owner_core(fat_id2.get_province())) {
@@ -262,12 +327,37 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
@@ -277,12 +367,37 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								}
 							} else {
@@ -294,12 +409,37 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
@@ -309,12 +449,37 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								}
 							}
@@ -335,6 +500,20 @@ public:
 		}
 
 		update(state);
+	}
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<unit_folder_message_variables>()) {
+			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == Cyto::any_cast<unit_folder_message_variables>(payload).unit_type) {
+					unit_type = dcon::unit_type_id(i);
+					on_update(state);
+				}
+			}
+			//unit_type = Cyto::any_cast<unit_folder_message_variables>(payload).unit_type;
+			
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
