@@ -26,8 +26,8 @@ if(WIN32)
 	endif()
 else() # GCC or CLANG
 	target_compile_options(tests_project PRIVATE
-									# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter
-		$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
+									-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wshadow
+		$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -D_FORTIFY_SOURCE=2>
 		$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti>)
 endif()
 
