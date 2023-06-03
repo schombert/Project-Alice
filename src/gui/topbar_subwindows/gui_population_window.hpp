@@ -1205,7 +1205,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = state.world.pop_location_get_province(pop_loc);
 		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
-		value_modifier_description(state, contents, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
+		additive_value_modifier_description(state, contents, mod_key, trigger::to_generic(prov_id), trigger::to_generic(nat_id), 0);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {

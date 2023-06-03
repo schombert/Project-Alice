@@ -6738,13 +6738,21 @@ void trigger_description(sys::state& state, text::layout_base& layout, dcon::tri
 	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[k.index()], primary_slot, this_slot, from_slot, 0, true);
 }
 
-void value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
+void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 
 	{
 		text::substitution_map map{};
-		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{base.base_factor});
+		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{trigger::evaluate_multiplicative_modifier(state, modifier, primary_slot, this_slot, from_slot)});
 		auto box = text::open_layout_box(layout, 0);
+		text::localised_format_box(state, layout, box, std::string_view("value_mod_product"), map);
+		text::close_layout_box(layout, box);
+	}
+
+	{
+		text::substitution_map map{};
+		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{base.base_factor});
+		auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 		text::localised_format_box(state, layout, box, std::string_view("comwid_base"), map);
 		text::close_layout_box(layout, box);
 	}
@@ -6752,11 +6760,60 @@ void value_modifier_description(sys::state& state, text::layout_base& layout, dc
 	for(uint32_t i = 0; i < base.segments_count; ++i) {
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
 		if(seg.condition) {
-			auto box = text::open_layout_box(layout, 0);
-			text::add_to_layout_box(layout, state, box, text::format_percentage(seg.factor, 2), seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
+			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
+
+			if(trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot)) {
+				text::add_to_layout_box(layout, state, box, std::string_view("\x02"), text::text_color::green);
+				text::add_space_to_layout_box(layout, state, box);
+			} else {
+				text::add_to_layout_box(layout, state, box, std::string_view("\x01"), text::text_color::red);
+				text::add_space_to_layout_box(layout, state, box);
+			}
+
+			text::add_to_layout_box(layout, state, box, text::fp_two_places{seg.factor}, seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
 			text::close_layout_box(layout, box);
 
-			trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[seg.condition.index()], primary_slot, this_slot, from_slot, 1, true);
+			trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[seg.condition.index()], primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount * 2, true);
+		}
+	}
+}
+
+void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
+	auto base = state.value_modifiers[modifier];
+
+	{
+		text::substitution_map map{};
+		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{trigger::evaluate_additive_modifier(state, modifier, primary_slot, this_slot, from_slot)});
+		auto box = text::open_layout_box(layout, 0);
+		text::localised_format_box(state, layout, box, std::string_view("value_mod_sum"), map);
+		text::close_layout_box(layout, box);
+	}
+
+	{
+		text::substitution_map map{};
+		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{base.base_factor});
+		auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
+		text::localised_format_box(state, layout, box, std::string_view("comwid_base"), map);
+		text::close_layout_box(layout, box);
+	}
+
+	for(uint32_t i = 0; i < base.segments_count; ++i) {
+		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
+		if(seg.condition) {
+			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
+
+			if(trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot)) {
+				text::add_to_layout_box(layout, state, box, std::string_view("\x02"), text::text_color::green);
+				text::add_space_to_layout_box(layout, state, box);
+			} else {
+				text::add_to_layout_box(layout, state, box, std::string_view("\x01"), text::text_color::red);
+				text::add_space_to_layout_box(layout, state, box);
+			}
+
+			text::add_to_layout_box(layout, state, box, text::fp_two_places{seg.factor}, seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
+			text::close_layout_box(layout, box);
+
+			trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[seg.condition.index()], primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount * 2, true);
 		}
 	}
 }
