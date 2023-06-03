@@ -67,7 +67,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(6, reinforce_speed, true, modifier_display_type::percent, "modifier_reinforce_speed")                                                           \
 	MOD_LIST_ELEMENT(7, land_organisation, true, modifier_display_type::percent, "modifier_land_organisation")                                                       \
 	MOD_LIST_ELEMENT(8, naval_organisation, true, modifier_display_type::percent, "modifier_naval_organisation")                                                     \
-	MOD_LIST_ELEMENT(9, research_points, true, modifier_display_type::fp_two_places, "modifier_research_points")                                                     \
+	MOD_LIST_ELEMENT(9, research_points, false, modifier_display_type::percent, "modifier_research_points")                                                     \
 	MOD_LIST_ELEMENT(10, research_points_modifier, true, modifier_display_type::percent, "modifier_research_points_modifier")                                        \
 	MOD_LIST_ELEMENT(11, research_points_on_conquer, true, modifier_display_type::percent, "modifier_research_points_on_conquer")                                    \
 	MOD_LIST_ELEMENT(12, import_cost, false, modifier_display_type::percent, "modifier_import_cost")                                                                 \
