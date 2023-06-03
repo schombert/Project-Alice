@@ -6743,7 +6743,7 @@ void value_modifier_description(sys::state& state, text::layout_base& layout, dc
 
 	{
 		text::substitution_map map{};
-		text::add_to_substitution_map(map, text::variable_type::val, text::fp_two_places{base.base_factor});
+		text::add_to_substitution_map(map, text::variable_type::val, text::fp_percentage{base.base_factor});
 		auto box = text::open_layout_box(layout, 0);
 		text::localised_format_box(state, layout, box, std::string_view("comwid_base"), map);
 		text::close_layout_box(layout, box);

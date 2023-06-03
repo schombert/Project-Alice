@@ -601,7 +601,7 @@ int32_t simplify_trigger(uint16_t* source) {
 		auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
 		const auto first_member = source + 2 + trigger::trigger_scope_data_payload(source[0]);
 
-		{	
+		{
 			auto sub_units_start = first_member;
 			while(sub_units_start < source + source_size) {
 				const auto old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
@@ -622,7 +622,6 @@ int32_t simplify_trigger(uint16_t* source) {
 			source[0] &= ~trigger::code_mask;
 			source[0] |= trigger::generic_scope;
 		}
-
 
 		if(source[0] == trigger::generic_scope || source[0] == (trigger::generic_scope | trigger::is_disjunctive_scope)) {
 			auto sub_units_start = first_member;
