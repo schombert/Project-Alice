@@ -350,8 +350,8 @@ public:
 			text::add_divider_to_layout_box(state, contents, box);
 			text::close_layout_box(contents, box);
 
-			acting_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::research_points, dcon::provincial_modifier_value{});
-			acting_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::research_points_modifier, dcon::provincial_modifier_value{});
+			acting_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::research_points);
+			acting_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::research_points_modifier);
 		}
 	}
 };

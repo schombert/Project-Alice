@@ -28,7 +28,7 @@ void trigger_description(sys::state& state, text::layout_base& layout, dcon::tri
 void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
 void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
-void acting_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid, dcon::provincial_modifier_value pmid);
+void acting_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid);
 void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 
 // Filters used on both production and diplomacy tabs for the country lists
@@ -1169,7 +1169,7 @@ public:
 			text::add_divider_to_layout_box(state, contents, box);
 			text::close_layout_box(contents, box);
 
-			acting_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::research_points, dcon::provincial_modifier_value{});
+			acting_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::research_points);
 		}
 	}
 };
