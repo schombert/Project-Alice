@@ -231,12 +231,20 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 
+		//ARMY
 		if(is_navy == false) {
+			//Checks each province of player nation
 			for(const auto fat_id : state.world.nation_get_province_ownership(state.local_player_nation)) {
+				//Checks if province is occupied or not
 				if(fat_id.get_province().get_province_control().get_nation() == fat_id.get_nation()) {
+					//Checks each pop of the province
 					for(const auto fat_id2 : state.world.province_get_pop_location(fat_id.get_province().id)) {
+						//Checks if pop are soldiers
 						if(fat_id2.get_pop().get_poptype().id == state.culture_definitions.soldiers) {
+							//Checks if province is colonial
 							if(state.world.province_get_is_colonial(fat_id2.get_province())) {
+								//Checks if pop is greater in size than size of regiment (3000 in vanilla) times COLONIAL min size multiplier (5 in vanilla)
+								//If so, divide pop by (size of regiment*colonial min size multiplier) and ADD ONE to get number of regiments possible from that pop
 								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier) {
 									int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier))) + 1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -277,6 +285,8 @@ public:
 											row_contents.push_back(information);
 										}
 									}
+								// Checks if pop is greater in size than the pop_min_size_for_regiment (1000 in vanilla)
+								// If so, number of possible regiments from pop is ONE
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -318,7 +328,10 @@ public:
 										}
 									}
 								}
+							//Checks if province is core of owner
 							} else if(!state.world.province_get_is_owner_core(fat_id2.get_province())) {
+								// Checks if pop is greater in size than size of regiment (3000 in vanilla) times CORE min size multiplier (3 in vanilla)
+								// If so, divide pop by (size of regiment*core min size multiplier) and ADD ONE to get number of regiments possible from that pop
 								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier) {
 									int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier))) + 1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -359,6 +372,8 @@ public:
 											row_contents.push_back(information);
 										}
 									}
+								// Checks if pop is greater in size than the pop_min_size_for_regiment (1000 in vanilla)
+								// If so, number of possible regiments from pop is ONE
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -400,7 +415,10 @@ public:
 										}
 									}
 								}
+							//Covers all provinces that are neither of the above
 							} else {
+								// Checks if pop is greater in size than size of regiment (3000 in vanilla)
+								// If so, divide pop by (size of regiment) and ADD ONE to get number of regiments possible from that pop
 								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment) {
 									int32_t total = int32_t(((fat_id2.get_pop().get_size() / state.defines.pop_size_per_regiment)) + 1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -441,6 +459,8 @@ public:
 											row_contents.push_back(information);
 										}
 									}
+								//Checks if pop is greater in size than the pop_min_size_for_regiment (1000 in vanilla)
+								//If so, number of possible regiments from pop is ONE
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -487,6 +507,7 @@ public:
 					}
 				}
 			}
+		//NAVY
 		} else {
 			for(const auto fat_id : state.world.nation_get_province_ownership(state.local_player_nation)) {
 				if(fat_id.get_province().get_is_coast()) {
