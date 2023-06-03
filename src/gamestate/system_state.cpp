@@ -158,9 +158,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto* c1 = new_n_event.front();
 			while(c1) {
 				if(world.national_event_get_is_major(c1->e)) {
-					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{*c1});
+					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::event_data_wrapper{*c1});
 				} else {
-					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{*c1});
+					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::event_data_wrapper{*c1});
 				}
 				new_n_event.pop();
 				c1 = new_n_event.front();
@@ -169,9 +169,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto* c2 = new_f_n_event.front();
 			while(c2) {
 				if(world.free_national_event_get_is_major(c2->e)) {
-					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::national_event_data_wrapper{*c2});
+					static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.push_back(ui::event_data_wrapper{*c2});
 				} else {
-					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::national_event_data_wrapper{*c2});
+					static_cast<ui::national_event_window<false>*>(ui_state.national_event_window)->events.push_back(ui::event_data_wrapper{*c2});
 				}
 				new_f_n_event.pop();
 				c2 = new_f_n_event.front();
@@ -179,14 +179,14 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Provincial events
 			auto* c3 = new_p_event.front();
 			while(c3) {
-				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{*c3});
+				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::event_data_wrapper{*c3});
 				new_p_event.pop();
 				c3 = new_p_event.front();
 			}
 			// Free provincial events
 			auto* c4 = new_f_p_event.front();
 			while(c4) {
-				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::provincial_event_data_wrapper{*c4});
+				static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.push_back(ui::event_data_wrapper{*c4});
 				new_f_p_event.pop();
 				c4 = new_f_p_event.front();
 			}
@@ -566,19 +566,32 @@ std::string_view state::to_string_view(dcon::unit_name_id tag) const {
 }
 
 dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
-	if(data.size() == 0)
+	if(data.size() == 0) {
+		if(trigger_data_indices.empty())
+			trigger_data_indices.push_back(int32_t(0));
 		return dcon::trigger_key();
+	}
 
 	auto search_result = std::search(trigger_data.data(), trigger_data.data() + trigger_data.size(), std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
 	if(search_result != trigger_data.data() + trigger_data.size()) {
-		return dcon::trigger_key(uint16_t(search_result - trigger_data.data()));
+		const auto start = search_result - trigger_data.data();
+		auto it = std::find(trigger_data_indices.begin(), trigger_data_indices.end(), int32_t(start));
+		if(it != trigger_data_indices.end()) {
+			auto d = std::distance(trigger_data_indices.begin(), it);
+			return dcon::trigger_key(dcon::trigger_key::value_base_t(d));
+		} else {
+			trigger_data_indices.push_back(int32_t(start));
+			assert(trigger_data_indices.size() <= std::numeric_limits<uint16_t>::max());
+			return dcon::trigger_key(dcon::trigger_key::value_base_t(trigger_data_indices.size() - 1));
+		}
 	} else {
 		auto start = trigger_data.size();
 		auto size = data.size();
-
 		trigger_data.resize(start + size, uint16_t(0));
 		std::copy_n(data.data(), size, trigger_data.data() + start);
-		return dcon::trigger_key(uint16_t(start));
+		trigger_data_indices.push_back(int32_t(start));
+		assert(trigger_data_indices.size() <= std::numeric_limits<uint16_t>::max());
+		return dcon::trigger_key(dcon::trigger_key::value_base_t(trigger_data_indices.size() - 1));
 	}
 }
 

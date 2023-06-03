@@ -448,4 +448,7 @@ percentage;percentage;;;porcentaje;;;;;;;;;x
 stockpile;stockpile;;;almacen;;;;;;;;;x
 this_nat_religion;the national religion of this country;;;la religion nacional de este pais;;;;;;;;;x
 from_nat_religion;the national religion of the from country;;;la religion nacional de ese pais;;;;;;;;;x
+event_show_requirements;Requirements for the event;;;Requerimientos para el evento;;;;;;;;;x
+event_only_other_requirements;This event is only triggered by other events;;;Este evento solamente se realiza por otros eventos;;;;;;;;;x
+event_show_odds;Odds of the event;;;Probabilidades del evento;;;;;;;;;x
 ;;;;;;;;;;;;;x
