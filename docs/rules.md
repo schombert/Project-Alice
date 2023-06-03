@@ -541,7 +541,9 @@ War score from occupations requires us to know the value of provinces. All provi
 
 For each province owned by B that A occupies, it gets credit toward its side of the war score equal to 100 x that province's value as a fraction of all the provinces owned by B. However, that province counts for only 3/4 of that value if it is currently blockaded by an enemy (why?).
 
-Finally, war score is affected by any war goals in play against either side that have war score associated with them.
+Finally, war score is affected by any war goals in play against either side that have war score associated with them. Take the peace cost of the war goal and calculate 1^(peace-cost / define:TWS_CB_LIMIT_DEFAULT) x current-war-goal-score. This value is also added into the effective war score.
+
+Directed war score is always treated as being in the -100 to 100 range.
 
 ### Invalid  war states
 
