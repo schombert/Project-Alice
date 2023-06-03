@@ -225,6 +225,7 @@ uint8_t const * read_scenario_section(uint8_t const * ptr_in, uint8_t const * se
 	ptr_in = memcpy_deserialize(ptr_in, state.start_date);
 	ptr_in = memcpy_deserialize(ptr_in, state.end_date);
 	ptr_in = deserialize(ptr_in, state.trigger_data);
+	ptr_in = deserialize(ptr_in, state.trigger_data_indices);
 	ptr_in = deserialize(ptr_in, state.effect_data);
 	ptr_in = deserialize(ptr_in, state.value_modifier_segments);
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
@@ -395,6 +396,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.start_date);
 	ptr_in = memcpy_serialize(ptr_in, state.end_date);
 	ptr_in = serialize(ptr_in, state.trigger_data);
+	ptr_in = serialize(ptr_in, state.trigger_data_indices);
 	ptr_in = serialize(ptr_in, state.effect_data);
 	ptr_in = serialize(ptr_in, state.value_modifier_segments);
 	ptr_in = serialize(ptr_in, state.value_modifiers);
@@ -563,6 +565,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 	sz += sizeof(state.start_date);
 	sz += sizeof(state.end_date);
 	sz += serialize_size(state.trigger_data);
+	sz += serialize_size(state.trigger_data_indices);
 	sz += serialize_size(state.effect_data);
 	sz += serialize_size(state.value_modifier_segments);
 	sz += serialize_size(state.value_modifiers);

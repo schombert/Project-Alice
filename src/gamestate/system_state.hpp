@@ -125,6 +125,7 @@ struct alignas(64) state {
 	absolute_time_point end_date;
 
 	std::vector<uint16_t> trigger_data;
+	std::vector<int32_t> trigger_data_indices;
 	std::vector<uint16_t> effect_data;
 	std::vector<value_modifier_segment> value_modifier_segments;
 	tagged_vector<value_modifier_description, dcon::value_modifier_key> value_modifiers;
