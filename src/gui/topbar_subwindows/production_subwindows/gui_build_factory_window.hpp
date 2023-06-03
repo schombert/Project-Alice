@@ -76,7 +76,7 @@ public:
 			if(bool(cid)) {
 				total += state.world.commodity_get_current_price(cid) * name.commodity_amounts[i];
 			}
-		}	// Credit to leaf for this code :3
+		} // Credit to leaf for this code :3
 		return text::format_money(total);
 	}
 
@@ -140,9 +140,9 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "bg") {
 			auto ptr = make_element_by_type<factory_build_item_button>(state, id);
-			ptr->base_data.size.x *= 2; // Nudge
+			ptr->base_data.size.x *= 2;  // Nudge
 			ptr->base_data.size.x += 42; // Nudge
-			ptr->base_data.size.y += 5; // Nudge
+			ptr->base_data.size.y += 5;  // Nudge
 			return ptr;
 
 		} else if(name == "output") {
@@ -176,8 +176,9 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "new_factory_option";
 	}
+
 public:
-	void on_update(sys::state& state) noexcept override{
+	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any s_payload = dcon::state_instance_id{};
 			parent->impl_get(state, s_payload);
@@ -282,11 +283,10 @@ public:
 	}
 };
 
-
-
 class factory_build_window : public window_element_base {
 private:
 	dcon::factory_type_id factory_to_build{};
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -301,16 +301,13 @@ public:
 		if(name == "bg") {
 			return make_element_by_type<draggable_target>(state, id);
 
-		} else
-		if(name == "state_name") {
+		} else if(name == "state_name") {
 			return make_element_by_type<state_name_text>(state, id);
 
-		} else
-		if(name == "factory_type") {
+		} else if(name == "factory_type") {
 			return make_element_by_type<factory_build_list>(state, id);
 
-		} else
-		if(name == "input_label") {
+		} else if(name == "input_label") {
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else
@@ -318,101 +315,80 @@ public:
 			// input_1_amount
 			// input_2_amount
 			// input_3_amount
-		if(name == "output") {
-			return make_element_by_type<commodity_factory_image>(state, id);
+			if(name == "output") {
+				return make_element_by_type<commodity_factory_image>(state, id);
 
-		} else
-		if(name == "building_name") {
-			return make_element_by_type<factory_title>(state, id);
+			} else if(name == "building_name") {
+				return make_element_by_type<factory_title>(state, id);
 
-		} else
-		if(name == "output_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			} else if(name == "output_label") {
+				return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "output_amount") {
-			return make_element_by_type<output_amount_text>(state, id);
+			} else if(name == "output_amount") {
+				return make_element_by_type<output_amount_text>(state, id);
 
-		} else
-			// input_0
-			// input_1
-			// input_2
-			// input_3
-		if(name == "description_text") {
-			return make_element_by_type<factory_build_description>(state, id);
+			} else
+				// input_0
+				// input_1
+				// input_2
+				// input_3
+				if(name == "description_text") {
+					return make_element_by_type<factory_build_description>(state, id);
 
-		} else
-		if(name == "needed_workers") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "needed_workers") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "needed_workers_count") {
-			return make_element_by_type<needed_workers_count_text>(state, id);
+				} else if(name == "needed_workers_count") {
+					return make_element_by_type<needed_workers_count_text>(state, id);
 
-		} else
-		if(name == "available_workers") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "available_workers") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "resource_cost_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "resource_cost_label") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "in_stockpile_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "in_stockpile_label") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "base_price_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "base_price_label") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "input_price_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "input_price_label") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "total_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "total_label") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "current_funds_label") {
-			return make_element_by_type<factory_current_funds_text>(state, id);
+				} else if(name == "current_funds_label") {
+					return make_element_by_type<factory_current_funds_text>(state, id);
 
-		} else
-		if(name == "base_price") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "base_price") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "input_price") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "input_price") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "total_price") {
-			return make_element_by_type<factory_build_cost_text>(state, id);
+				} else if(name == "total_price") {
+					return make_element_by_type<factory_build_cost_text>(state, id);
 
-		} else
-		if(name == "you_have") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "you_have") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "prod_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "prod_label") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "prod_cost") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+				} else if(name == "prod_cost") {
+					return make_element_by_type<simple_text_element_base>(state, id);
 
-		} else
-		if(name == "cancel") {
-			return make_element_by_type<factory_build_cancel_button>(state, id);
+				} else if(name == "cancel") {
+					return make_element_by_type<factory_build_cancel_button>(state, id);
 
-		} else
-		if(name == "build") {
-			return make_element_by_type<factory_build_button>(state, id);
+				} else if(name == "build") {
+					return make_element_by_type<factory_build_button>(state, id);
 
-		} else {
-			return nullptr;
-
-		}
+				} else {
+					return nullptr;
+				}
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -433,4 +409,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

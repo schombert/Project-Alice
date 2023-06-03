@@ -18,11 +18,11 @@
 namespace ui {
 
 typedef std::variant<
-	std::monostate,
-	dcon::nation_id,
-	dcon::state_instance_id,
-	dcon::province_id
-> pop_list_filter;
+    std::monostate,
+    dcon::nation_id,
+    dcon::state_instance_id,
+    dcon::province_id>
+    pop_list_filter;
 
 void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
 void value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
@@ -37,10 +37,10 @@ enum class country_list_filter : uint8_t {
 	enemies,
 	allies,
 	deselect_all, // Used only by message filter window
-	best_guess, // Used only by message filter window
+	best_guess,   // Used only by message filter window
 	continent
 };
-class button_press_notification{};
+class button_press_notification { };
 
 template<class T, class K>
 class generic_settable_element : public T {
@@ -81,12 +81,11 @@ public:
 			T content = any_cast<T>(payload);
 			auto color = multiline_text_element_base::black_text ? text::text_color::black : text::text_color::white;
 			auto container = text::create_endless_layout(
-				multiline_text_element_base::internal_layout,
-				text::layout_parameters{ 0, 0, multiline_text_element_base::base_data.size.x, multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0, text::alignment::left, color }
-			);
+			    multiline_text_element_base::internal_layout,
+			    text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x, multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0, text::alignment::left, color});
 			auto fat_id = dcon::fatten(state.world, content);
 			auto box = text::open_layout_box(container);
-			text::add_to_layout_box(container, state, box, fat_id.get_name(), text::substitution_map{ });
+			text::add_to_layout_box(container, state, box, fat_id.get_name(), text::substitution_map{});
 			text::close_layout_box(container, box);
 		}
 	}
@@ -104,7 +103,6 @@ public:
 			Cyto::Any payload = T{};
 			parent->impl_get(state, payload);
 			T content = any_cast<T>(payload);
-			auto fat_id = dcon::fatten(state.world, content);
 			simple_text_element_base::set_text(state, get_text(state, content));
 		}
 	}
@@ -122,9 +120,8 @@ public:
 			auto content = any_cast<T>(payload);
 			auto color = black_text ? text::text_color::black : text::text_color::white;
 			auto container = text::create_endless_layout(
-				internal_layout,
-				text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
-			);
+			    internal_layout,
+			    text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color});
 			populate_layout(state, container, content);
 		}
 	}
@@ -164,7 +161,7 @@ public:
 		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
 		auto aristocrat_key = demographics::to_key(state, state.culture_definitions.aristocrat);
 		auto aristocrat_amount = state.world.state_instance_get_demographics(content, aristocrat_key);
-		return text::format_percentage(aristocrat_amount / total_pop, 1);
+		return text::format_percentage(total_pop > 0 ? aristocrat_amount / total_pop : 0.0f, 1);
 	}
 };
 
@@ -181,7 +178,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, std::string_view("provinceview_totalpop"), text::substitution_map{ });
+		text::localised_format_box(state, contents, box, std::string_view("provinceview_totalpop"), text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 };
@@ -220,7 +217,7 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map lr_sub;
-			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{ float(state.world.province_get_life_rating(prov_id)) });
+			text::add_to_substitution_map(lr_sub, text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
 			text::localised_format_box(state, contents, box, std::string_view("provinceview_liferating"), lr_sub);
 			text::close_layout_box(contents, box);
 		}
@@ -272,7 +269,7 @@ public:
 			auto rgo_good = state.world.province_get_rgo(prov_id);
 			if(rgo_good) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, state.world.commodity_get_name(rgo_good), text::substitution_map{ });
+				text::add_to_layout_box(contents, state, box, state.world.commodity_get_name(rgo_good), text::substitution_map{});
 				text::close_layout_box(contents, box);
 			}
 		}
@@ -339,9 +336,8 @@ public:
 
 			auto color = black_text ? text::text_color::black : text::text_color::white;
 			auto container = text::create_endless_layout(
-				internal_layout,
-				text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
-			);
+			    internal_layout,
+			    text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color});
 			populate_layout(state, container, content);
 		}
 	}
@@ -399,10 +395,6 @@ public:
 			auto content = any_cast<dcon::province_id>(payload);
 			set_text(state, get_text(state, content));
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 };
 
@@ -567,7 +559,7 @@ public:
 class province_rebel_percent_text : public standard_province_text {
 public:
 	std::string get_text(sys::state& state, dcon::province_id province_id) noexcept override {
-		return text::format_float(province::revolt_risk(state, province_id),2);
+		return text::format_float(province::revolt_risk(state, province_id), 2);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -681,9 +673,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto color = black_text ? text::text_color::black : text::text_color::white;
 		auto container = text::create_endless_layout(
-			internal_layout,
-			text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color }
-		);
+		    internal_layout,
+		    text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color});
 		populate_layout(state, container);
 	}
 
@@ -728,7 +719,7 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		const auto great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
-			return "-";
+			return "0";
 		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, great_power_rel);
 		auto influence = fat_id.get_influence();
@@ -751,7 +742,7 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		const auto great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
-			return "-";
+			return text::format_money(0.f);
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
 		auto fat_id = dcon::fatten(state.world, uni_rel);
 		return text::format_money(fat_id.get_foreign_investment());
@@ -760,6 +751,7 @@ public:
 
 class nation_overlord_flag : public flag_button {
 	dcon::nation_id sphereling_id{};
+
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
 		auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
@@ -822,7 +814,6 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return text::format_money(economy::estimate_diplomatic_balance(state, nation_id));
 	}
-
 };
 
 class nation_subsidy_spending_text : public standard_nation_text {
@@ -984,9 +975,9 @@ public:
 		auto gp_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
 		if(bool(gp_rel_id)) {
 			const auto status = state.world.gp_relationship_get_status(gp_rel_id);
-			return text::produce_simple_string(state, text::get_influence_level_name(state, status));
+			return text::get_influence_level_name(state, status);
 		}
-		return "-";
+		return text::produce_simple_string(state, "rel_neutral");
 	}
 };
 
@@ -1127,10 +1118,6 @@ public:
 		return text::format_float(points, 2);
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -1144,17 +1131,17 @@ public:
 			float sum_from_pops = 0;
 			float total_clergy = 0;
 			state.world.for_each_pop_type([&](dcon::pop_type_id t) {
-					auto rp = state.world.pop_type_get_research_points(t);
-					if(rp > 0) {
-						total_clergy += state.world.nation_get_demographics(nation_id, demographics::to_key(state, t));
-						sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, t)) / (state.world.nation_get_demographics(nation_id, demographics::total) * state.world.pop_type_get_research_optimum(t)));
-					}
+				auto rp = state.world.pop_type_get_research_points(t);
+				if(rp > 0) {
+					total_clergy += state.world.nation_get_demographics(nation_id, demographics::to_key(state, t));
+					sum_from_pops += rp * std::min(1.0f, state.world.nation_get_demographics(nation_id, demographics::to_key(state, t)) / (state.world.nation_get_demographics(nation_id, demographics::total) * state.world.pop_type_get_research_optimum(t)));
+				}
 			});
 
-			total_clergy = (total_clergy / state.world.nation_get_demographics(nation_id, demographics::total)) * 100;	// TODO - there is most certainly a better way to do this, it also fails to replicate vic2 closely enough, atleast in my opinion -breizh
+			total_clergy = (total_clergy / state.world.nation_get_demographics(nation_id, demographics::total)) * 100; // TODO - there is most certainly a better way to do this, it also fails to replicate vic2 closely enough, atleast in my opinion -breizh
 
 			auto box = text::open_layout_box(contents, 0);
-			bool clergy_passed = false;	// Ugly fix but it should work -breizh
+			bool clergy_passed = false; // Ugly fix but it should work -breizh
 
 			if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.clergy))) > 1.0f) {
 				text::substitution_map sub1;
@@ -1168,7 +1155,9 @@ public:
 
 			if(ceil(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker))) > 1.0f) {
 				text::substitution_map sub2;
-				if(clergy_passed) { text::add_line_break_to_layout_box(contents, state, box); }
+				if(clergy_passed) {
+					text::add_line_break_to_layout_box(contents, state, box);
+				}
 				text::add_to_substitution_map(sub2, text::variable_type::poptype, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker));
 				text::add_to_substitution_map(sub2, text::variable_type::value, std::string_view("PLACEHOLDER"));
 				text::add_to_substitution_map(sub2, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
@@ -1231,6 +1220,7 @@ protected:
 				++total;
 		return total;
 	}
+
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return std::to_string(get_ship_count(state, nation_id));
@@ -1930,9 +1920,8 @@ public:
 			auto text = (is_positive ? "+" : "") + text::format_float(profit, 2);
 			// Create colour
 			auto contents = text::create_endless_layout(
-				internal_layout,
-				text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
-			);
+			    internal_layout,
+			    text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(contents, state, box, text, is_positive ? text::text_color::dark_green : text::text_color::dark_red);
 			text::close_layout_box(contents, box);
@@ -1981,7 +1970,7 @@ public:
 			auto content = any_cast<dcon::national_focus_id>(payload);
 			if(bool(content)) {
 				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{ });
+				text::add_to_layout_box(contents, state, box, state.world.national_focus_get_name(content), text::substitution_map{});
 				text::close_layout_box(contents, box);
 			}
 		}
@@ -2023,6 +2012,7 @@ class national_focus_category : public window_element_base {
 private:
 	simple_text_element_base* category_label = nullptr;
 	national_focus_category_list* focus_list = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
@@ -2104,4 +2094,67 @@ public:
 };
 // -----------------------------------------------------------------------------
 
-}
+class war_name_text : public generic_multiline_text<dcon::war_id> {
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::war_id id) noexcept override {
+		auto war = dcon::fatten(state.world, id);
+		dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
+		dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
+
+		for(auto wg : state.world.war_get_wargoals_attached(war)) {
+			if(wg.get_wargoal().get_added_by() == primary_attacker && wg.get_wargoal().get_target_nation() == primary_defender) {
+				auto box = text::open_layout_box(contents);
+				text::substitution_map sub{};
+				auto pa_adj = state.world.nation_get_adjective(primary_attacker);
+				text::add_to_substitution_map(sub, text::variable_type::first, pa_adj);
+				auto sdef = wg.get_wargoal().get_associated_state();
+				auto bits = state.world.cb_type_get_type_bits(wg.get_wargoal().get_type());
+				if(dcon::fatten(state.world, sdef).is_valid()) {
+					auto name = state.world.state_definition_get_name(sdef);
+					text::add_to_substitution_map(sub, text::variable_type::second, name);
+				} else if((bits & (military::cb_flag::po_annex | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
+					text::add_to_substitution_map(sub, text::variable_type::second, primary_defender);
+				} else if((bits & (military::cb_flag::po_liberate | military::cb_flag::po_take_from_sphere)) != 0) {
+					auto niid = wg.get_wargoal().get_associated_tag();
+					auto adj = state.world.national_identity_get_adjective(niid);
+					text::add_to_substitution_map(sub, text::variable_type::second, adj);
+				} else {
+					auto adj = state.world.nation_get_adjective(primary_defender);
+					text::add_to_substitution_map(sub, text::variable_type::second, adj);
+				}
+
+				// TODO: ordinal numbering, 1st, 2nd, 3rd, 4th, etc...
+				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+
+				// First, start by using the base name of the wargoal
+				std::string full_key = "normal_" + text::produce_simple_string(state, state.world.cb_type_get_war_name(wg.get_wargoal().get_type()));
+				if(auto k1 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k1 != state.key_to_text_sequence.end()) {
+					// Check if an specialization exists, for example:
+					// normal_take_name_eng_tur would apply if ENG is vs. TUR
+					auto att_tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(primary_attacker)));
+					std::transform(att_tag.begin(), att_tag.end(), att_tag.begin(), [](auto c) {
+						return char(tolower(char(c)));
+					});
+					full_key += "_" + att_tag;
+					if(auto k2 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k2 != state.key_to_text_sequence.end()) {
+						auto def_tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(primary_defender)));
+						std::transform(def_tag.begin(), def_tag.end(), def_tag.begin(), [](auto c) {
+							return char(tolower(char(c)));
+						});
+						full_key += "_" + def_tag;
+						if(auto k3 = state.key_to_text_sequence.find(std::string_view(full_key.c_str())); k3 != state.key_to_text_sequence.end()) {
+							text::add_to_layout_box(contents, state, box, k3->second, sub);
+						} else {
+							text::add_to_layout_box(contents, state, box, k2->second, sub);
+						}
+					} else {
+						text::add_to_layout_box(contents, state, box, k1->second, sub);
+					}
+				}
+				text::close_layout_box(contents, box);
+				break;
+			}
+		}
+	}
+};
+
+} // namespace ui

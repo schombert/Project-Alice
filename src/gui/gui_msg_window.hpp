@@ -6,7 +6,9 @@
 
 namespace ui {
 
-struct diplo_reply_taken_notification { int a = 0; };
+struct diplo_reply_taken_notification {
+	int a = 0;
+};
 
 template<bool Left>
 class msg_lr_button : public button_element_base {
@@ -18,7 +20,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{ Left };
+			Cyto::Any payload = element_selection_wrapper<bool>{Left};
 			parent->impl_get(state, payload);
 		}
 	}
@@ -40,17 +42,70 @@ public:
 	}
 };
 
+class msg_title_text : public generic_simple_text<diplomatic_message::message> {
+public:
+	std::string get_text(sys::state& state, diplomatic_message::message msg) noexcept override {
+		switch(msg.type) {
+		case diplomatic_message::type_t::none:
+			return std::string("???");
+		case diplomatic_message::type_t::access_request:
+			return text::produce_simple_string(state, "askmilitaryaccess_button");
+		case diplomatic_message::type_t::alliance_request:
+			return text::produce_simple_string(state, "alliance_button");
+		case diplomatic_message::type_t::call_ally_request:
+			return text::produce_simple_string(state, "callally_button");
+		case diplomatic_message::type_t::be_crisis_primary_defender:
+			return text::produce_simple_string(state, "back_crisis_button");
+		case diplomatic_message::type_t::be_crisis_primary_attacker:
+			return text::produce_simple_string(state, "crisis_offer_button");
+		}
+		return std::string("???");
+	}
+};
+
+class msg_desc_text : public generic_multiline_text<diplomatic_message::message> {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents, diplomatic_message::message msg) noexcept override {
+		auto box = text::open_layout_box(contents);
+
+		text::substitution_map sub{};
+		text::add_to_substitution_map(sub, text::variable_type::actor, state.world.nation_get_name(msg.from));
+		switch(msg.type) {
+		case diplomatic_message::type_t::none:
+			break;
+		case diplomatic_message::type_t::access_request:
+			text::localised_format_box(state, contents, box, std::string_view("askmilitaryaccess_offer"), sub);
+			break;
+		case diplomatic_message::type_t::alliance_request:
+			text::localised_format_box(state, contents, box, std::string_view("alliance_offer"), sub);
+			break;
+		case diplomatic_message::type_t::call_ally_request:
+			// TODO: War name on data.war, in $LIST$
+			text::localised_format_box(state, contents, box, std::string_view("callally_offer"), sub);
+			break;
+		case diplomatic_message::type_t::be_crisis_primary_defender:
+			text::localised_format_box(state, contents, box, std::string_view("back_crisis_offer"), sub);
+			break;
+		case diplomatic_message::type_t::be_crisis_primary_attacker:
+			text::localised_format_box(state, contents, box, std::string_view("crisis_offer_offer"), sub);
+			break;
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
 class msg_window : public window_element_base {
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
+
 public:
-	std::vector<diplomatic_message::message> messages{};
+	std::vector<diplomatic_message::message> messages;
 
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		xy_pair cur_pos{ 0, 0 };
+		xy_pair cur_pos{0, 0};
 		{
-			auto ptr = make_element_by_type<event_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			auto ptr = make_element_by_type<msg_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
@@ -64,19 +119,19 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<event_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			auto ptr = make_element_by_type<msg_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
 		set_visible(state, false);
 	}
-	
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "title") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<msg_title_text>(state, id);
 		} else if(name == "description") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<msg_desc_text>(state, id);
 		} else if(name == "agreebutton") {
 			return make_element_by_type<msg_reply_button<true>>(state, id);
 		} else if(name == "declinebutton") {
@@ -95,18 +150,16 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
+			return m.when + diplomatic_message::expiration_in_days <= state.current_date;
+		});
+		auto r = std::distance(it, messages.end());
+		messages.erase(it, messages.end());
+
 		if(messages.empty()) {
 			set_visible(state, false);
-		} else {
-			for(auto it = messages.begin(); it != messages.end(); it++) {
-				sys::date date = it->when;
-				if(date + 15 <= state.current_date) {
-					// Remove expired messages
-					messages.erase(it);
-					it--;
-				}
-			}
 		}
+
 		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -135,12 +188,14 @@ public:
 			}
 			return message_result::consumed;
 		} else if(payload.holds_type<diplo_reply_taken_notification>()) {
-			if(!messages.empty())
+			if(!messages.empty()) {
 				messages.erase(messages.begin() + size_t(index));
+				impl_on_update(state);
+			}
 			return message_result::consumed;
 		}
 		return window_element_base::get(state, payload);
 	}
 };
 
-}
+} // namespace ui

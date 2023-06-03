@@ -6,6 +6,5 @@ std::vector<uint32_t> national_focus_map_from(sys::state& state) {
 
 	std::vector<uint32_t> prov_color(texture_size * 2);
 
-
 	return prov_color;
 }

@@ -51,7 +51,7 @@ public:
 			disabled = !command::can_make_vassal(state, state.local_player_nation, niid);
 		}
 	}
-	
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
@@ -115,7 +115,7 @@ public:
 			parent->impl_get(state, payload);
 			auto niid = any_cast<dcon::national_identity_id>(payload);
 			auto nid = state.world.national_identity_get_nation_from_identity_holder(niid);
-			Cyto::Any e_payload = release_emplace_wrapper{ nid };
+			Cyto::Any e_payload = release_emplace_wrapper{nid};
 			parent->impl_get(state, e_payload);
 		}
 	}
@@ -155,6 +155,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "vassal_nation";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
@@ -183,7 +184,7 @@ public:
 	}
 };
 
-// NOTE FOR OTHERS - THIS CODE IS NOT INTERCHANGABLE WITH ITS SIMIARLY NAMED VERSION ABOVE DO NOT REMOVE THIS
+// NOTE FOR OTHERS - THIS CODE IS NOT INTERCHANGEABLE WITH ITS SIMIARLY NAMED VERSION ABOVE DO NOT REMOVE THIS
 class release_nation_window_description_text : public generic_multiline_text<dcon::national_identity_id> {
 protected:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::national_identity_id id) noexcept override {
@@ -211,13 +212,13 @@ protected:
 		}
 		text::close_layout_box(contents, box);
 	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_multiline_text<dcon::national_identity_id>::on_create(state);
 		black_text = false; // Nudge force to white text
 	}
 };
-
 
 class politics_release_nation_window : public window_element_base {
 public:
@@ -233,7 +234,7 @@ public:
 			ptr->base_data.size = base_data.size; // Nudge
 			return ptr;
 		} else if(name == "default_popup_banner")
-			return make_element_by_type<image_element_base>(state, id);	// Not used in Vic2?
+			return make_element_by_type<image_element_base>(state, id); // Not used in Vic2?
 		else if(name == "title")
 			return make_element_by_type<politics_release_nation_window_title>(state, id);
 		else if(name == "description")
@@ -266,4 +267,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

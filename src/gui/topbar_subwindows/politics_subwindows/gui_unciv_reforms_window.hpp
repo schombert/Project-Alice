@@ -43,6 +43,10 @@ public:
 		}
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::reform_option_id{};
@@ -51,10 +55,6 @@ public:
 
 			disabled = !command::can_enact_reform(state, state.local_player_nation, content);
 		}
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -80,6 +80,7 @@ public:
 
 class unciv_reforms_option : public listbox_row_element_base<dcon::reform_option_id> {
 	image_element_base* selected_icon = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
@@ -104,8 +105,9 @@ public:
 class unciv_reforms_listbox : public listbox_element_base<unciv_reforms_option, dcon::reform_option_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "reform_option_window";
-    }
+		return "reform_option_window";
+	}
+
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::reform_id>()) {
@@ -126,6 +128,7 @@ public:
 
 class unciv_reforms_reform_window : public window_element_base {
 	dcon::reform_id reform_id{};
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
@@ -195,4 +198,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

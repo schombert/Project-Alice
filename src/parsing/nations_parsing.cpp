@@ -22,7 +22,6 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	context.file_names_for_idents.resize(context.state.world.national_identity_size());
 	context.file_names_for_idents[new_ident] = txt;
 	context.map_of_ident_names.insert_or_assign(as_int, new_ident);
-
 }
 
 void triggered_modifier::finish(triggered_modifier_context& context) {
@@ -47,7 +46,7 @@ void make_triggered_modifier(std::string_view name, token_generator& gen, error_
 	auto index = uint32_t(context.state.national_definitions.triggered_modifiers.size());
 	context.state.national_definitions.triggered_modifiers.emplace_back();
 
-	triggered_modifier_context new_context{context, index, name };
+	triggered_modifier_context new_context{context, index, name};
 	parse_triggered_modifier(gen, err, new_context);
 }
 
@@ -665,12 +664,11 @@ void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_
 	context.state.national_definitions.in_bankrupcy = new_modifier;
 }
 
-
 void make_event_modifier(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto name_id = text::find_or_add_key(context.state, name);
 
 	auto parsed_modifier = parse_modifier_base(gen, err, context);
-	
+
 	auto new_modifier = context.state.world.create_modifier();
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
@@ -678,7 +676,7 @@ void make_event_modifier(std::string_view name, token_generator& gen, error_hand
 
 	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
-	
+
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 }
 
@@ -691,24 +689,22 @@ void make_party(token_generator& gen, error_handler& err, country_file_context& 
 		context.outer_context.state.world.national_identity_get_political_party_count(context.id) += uint8_t(1);
 	}
 
-	party_context new_context{ context.outer_context, party_id };
+	party_context new_context{context.outer_context, party_id};
 	parse_party(gen, err, new_context);
 }
 
 void make_unit_names_list(std::string_view name, token_generator& gen, error_handler& err, country_file_context& context) {
 	if(auto it = context.outer_context.map_of_unit_types.find(std::string(name)); it != context.outer_context.map_of_unit_types.end()) {
 		auto found_type = it->second;
-		unit_names_context new_context{ context.outer_context, context.id, found_type };
+		unit_names_context new_context{context.outer_context, context.id, found_type};
 		parse_unit_names_list(gen, err, new_context);
 	} else {
 		err.accumulated_errors += "No unit type named " + std::string(name) + " (" + err.file_name + ")\n";
 		gen.discard_group();
 	}
-
-	
 }
 
-dcon::national_variable_id scenario_building_context::get_national_variable(std::string const& name) {
+dcon::national_variable_id scenario_building_context::get_national_variable(std::string const & name) {
 	if(auto it = map_of_national_variables.find(name); it != map_of_national_variables.end()) {
 		return it->second;
 	} else {
@@ -720,7 +716,7 @@ dcon::national_variable_id scenario_building_context::get_national_variable(std:
 	}
 }
 
-dcon::national_flag_id scenario_building_context::get_national_flag(std::string const& name) {
+dcon::national_flag_id scenario_building_context::get_national_flag(std::string const & name) {
 	if(auto it = map_of_national_flags.find(name); it != map_of_national_flags.end()) {
 		return it->second;
 	} else {
@@ -732,7 +728,7 @@ dcon::national_flag_id scenario_building_context::get_national_flag(std::string 
 	}
 }
 
-dcon::global_flag_id scenario_building_context::get_global_flag(std::string const& name) {
+dcon::global_flag_id scenario_building_context::get_global_flag(std::string const & name) {
 	if(auto it = map_of_global_flags.find(name); it != map_of_global_flags.end()) {
 		return it->second;
 	} else {
@@ -745,12 +741,12 @@ dcon::global_flag_id scenario_building_context::get_global_flag(std::string cons
 }
 
 dcon::trigger_key read_triggered_modifier_condition(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	trigger_building_context t_context{context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_trigger(gen, err, t_context);
 }
 
 dcon::trigger_key make_focus_limit(token_generator& gen, error_handler& err, national_focus_context& context) {
-	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_trigger(gen, err, t_context);
 }
 void make_focus(std::string_view name, token_generator& gen, error_handler& err, national_focus_context& context) {
@@ -779,20 +775,20 @@ void make_focus_group(std::string_view name, token_generator& gen, error_handler
 	else
 		err.accumulated_errors += "Unknown national focus group name " + std::string(name) + " (" + err.file_name + ")\n";
 
-	national_focus_context new_context{ context, dcon::national_focus_id{},  t};
+	national_focus_context new_context{context, dcon::national_focus_id{}, t};
 	parse_focus_group(gen, err, new_context);
 }
 
 dcon::value_modifier_key make_decision_ai_choice(token_generator& gen, error_handler& err, decision_context& context) {
-	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_value_modifier(gen, err, t_context);
 }
 dcon::trigger_key make_decision_trigger(token_generator& gen, error_handler& err, decision_context& context) {
-	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_trigger(gen, err, t_context);
 }
 dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, decision_context& context) {
-	effect_building_context e_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	effect_building_context e_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_effect(gen, err, e_context);
 }
 
@@ -843,7 +839,7 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 	context.state.world.decision_set_name(new_decision, name_id);
 	context.state.world.decision_set_description(new_decision, desc_id);
 
-	decision_context new_context{ context, new_decision };
+	decision_context new_context{context, new_decision};
 	parse_decision(gen, err, new_context);
 }
 
@@ -860,7 +856,7 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 				it->second.text_assigned = true;
 			}
 		} else {
-			context.map_of_provincial_events.insert_or_assign(scan_result.id, pending_prov_event{ dcon::provincial_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty, gen });
+			context.map_of_provincial_events.insert_or_assign(scan_result.id, pending_prov_event{dcon::provincial_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty, gen});
 		}
 		gen = scan_copy;
 	} else {
@@ -873,7 +869,7 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 			}
 		}
 
-		event_building_context e_context{ context, trigger::slot_contents::province, trigger::slot_contents::nation, trigger::slot_contents::empty };
+		event_building_context e_context{context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::empty};
 		auto event_result = parse_generic_event(gen, err, e_context);
 		auto new_id = context.state.world.create_free_provincial_event();
 		auto fid = fatten(context.state.world, new_id);
@@ -898,7 +894,7 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 				it->second.text_assigned = true;
 			}
 		} else {
-			context.map_of_national_events.insert_or_assign(scan_result.id, pending_nat_event{ dcon::national_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty, gen });
+			context.map_of_national_events.insert_or_assign(scan_result.id, pending_nat_event{dcon::national_event_id(), trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty, gen});
 		}
 		gen = scan_copy;
 	} else {
@@ -911,7 +907,7 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 			}
 		}
 
-		event_building_context e_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty };
+		event_building_context e_context{context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty};
 		auto event_result = parse_generic_event(gen, err, e_context);
 		auto new_id = context.state.world.create_free_national_event();
 		auto fid = fatten(context.state.world, new_id);
@@ -928,25 +924,25 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 }
 
 dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, event_building_context& context) {
-	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	trigger_building_context t_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
 	return make_trigger(gen, err, t_context);
 }
 dcon::effect_key make_immediate_effect(token_generator& gen, error_handler& err, event_building_context& context) {
-	effect_building_context e_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	effect_building_context e_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
 	return make_effect(gen, err, e_context);
 }
 dcon::value_modifier_key make_event_mtth(token_generator& gen, error_handler& err, event_building_context& context) {
-	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	trigger_building_context t_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
 	return make_value_modifier(gen, err, t_context);
 }
 dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handler& err, effect_building_context& context) {
-	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	trigger_building_context t_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
 	return make_value_modifier(gen, err, t_context);
 }
 sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context) {
-	effect_building_context e_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	effect_building_context e_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
 
-	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope));
+	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
 	e_context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = e_context.compiled_effect.size() - 1;
 	e_context.limit_position = e_context.compiled_effect.size();
@@ -964,8 +960,8 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
 	e_context.compiled_effect.resize(static_cast<size_t>(new_size));
 
 	auto effect_id = context.outer_context.state.commit_effect_data(e_context.compiled_effect);
-	
-	return sys::event_option{opt_result.name_, opt_result.ai_chance, effect_id };
+
+	return sys::event_option{opt_result.name_, opt_result.ai_chance, effect_id};
 }
 void commit_pending_events(error_handler& err, scenario_building_context& context) {
 	int32_t count = 0;
@@ -980,7 +976,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				if(!bool(e.second.id))
 					e.second.id = context.state.world.create_national_event();
 
-				event_building_context e_context{ context, e.second.main_slot, e.second.this_slot, e.second.from_slot };
+				event_building_context e_context{context, e.second.main_slot, e.second.this_slot, e.second.from_slot};
 				auto event_result = parse_generic_event(e.second.generator_state, err, e_context);
 
 				auto fid = fatten(context.state.world, e.second.id);
@@ -1081,7 +1077,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				if(!bool(e.second.id))
 					e.second.id = context.state.world.create_provincial_event();
 
-				event_building_context e_context{ context, e.second.main_slot, e.second.this_slot, e.second.from_slot };
+				event_building_context e_context{context, e.second.main_slot, e.second.this_slot, e.second.from_slot};
 				auto event_result = parse_generic_event(e.second.generator_state, err, e_context);
 
 				auto fid = fatten(context.state.world, e.second.id);
@@ -1122,13 +1118,12 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 	}
 }
 
-
 void make_oob_relationship(std::string_view tag, token_generator& gen, error_handler& err, oob_file_context& context) {
 	if(tag.length() == 3) {
 		if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(tag[0], tag[1], tag[2])); it != context.outer_context.map_of_ident_names.end()) {
 			auto holder = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 			if(holder) {
-				oob_file_relation_context new_context{ context.outer_context, context.nation_for, holder };
+				oob_file_relation_context new_context{context.outer_context, context.nation_for, holder};
 				parse_oob_relationship(gen, err, new_context);
 			} else {
 				gen.discard_group();
@@ -1177,4 +1172,4 @@ void enter_country_file_dated_block(std::string_view label, token_generator& gen
 	}
 }
 
-}
+} // namespace parsers

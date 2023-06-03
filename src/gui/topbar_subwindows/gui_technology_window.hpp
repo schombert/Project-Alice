@@ -17,7 +17,7 @@ static void technology_description(element_base& element, sys::state& state, tex
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "naval_base"), text::text_color::white);
 		text::add_space_to_layout_box(contents, state, box);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(contents, state, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_to_layout_box(contents, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(contents, state, box);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "+1"), text::text_color::green);
 		text::close_layout_box(contents, box);
@@ -29,7 +29,7 @@ static void technology_description(element_base& element, sys::state& state, tex
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "railroad"), text::text_color::white);
 		text::add_space_to_layout_box(contents, state, box);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(contents, state, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_to_layout_box(contents, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(contents, state, box);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "+1"), text::text_color::green);
 		text::close_layout_box(contents, box);
@@ -41,7 +41,7 @@ static void technology_description(element_base& element, sys::state& state, tex
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "fort"), text::text_color::white);
 		text::add_space_to_layout_box(contents, state, box);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "tech_max_level"), text::text_color::white);
-		text::add_to_layout_box(contents, state, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_to_layout_box(contents, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(contents, state, box);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "+1"), text::text_color::green);
 		text::close_layout_box(contents, box);
@@ -94,7 +94,7 @@ static void technology_description(element_base& element, sys::state& state, tex
 				text::add_space_to_layout_box(contents, state, box);
 			}
 			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(mod.type) ? locale_base_name : locale_farm_base_name), text::text_color::white);
-			text::add_to_layout_box(contents, state, box, std::string{ ":" }, text::text_color::white);
+			text::add_to_layout_box(contents, state, box, std::string{":"}, text::text_color::white);
 			text::add_space_to_layout_box(contents, state, box);
 			auto color = mod.amount > 0.f ? text::text_color::green : text::text_color::red;
 			text::add_to_layout_box(contents, state, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color);
@@ -109,7 +109,7 @@ static void technology_description(element_base& element, sys::state& state, tex
 	if(colonial_points != 0) {
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, "colonial_points_tech"), text::text_color::white);
-		text::add_to_layout_box(contents, state, box, std::string_view{ ":" }, text::text_color::white);
+		text::add_to_layout_box(contents, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(contents, state, box);
 		auto color = colonial_points > 0.f ? text::text_color::green : text::text_color::red;
 		text::add_to_layout_box(contents, state, box, (colonial_points > 0.f ? "+" : "") + text::prettify(int64_t(colonial_points)), color);
@@ -172,6 +172,7 @@ class technology_num_discovered_text : public simple_text_element_base {
 		});
 		return text::produce_simple_string(state, std::to_string(discovered) + "/" + std::to_string(total));
 	}
+
 public:
 	culture::tech_category category{};
 	void on_update(sys::state& state) noexcept override {
@@ -185,6 +186,7 @@ class technology_folder_tab_button : public window_element_base {
 	technology_folder_tab_sub_button* folder_button = nullptr;
 	technology_tab_progress* folder_progress = nullptr;
 	technology_num_discovered_text* folder_num_discovered = nullptr;
+
 public:
 	culture::tech_category category{};
 	void set_category(sys::state& state, culture::tech_category new_category) {
@@ -255,6 +257,7 @@ class technology_research_progress_name_text : public simple_text_element_base {
 			return text::produce_simple_string(state, "tb_tech_no_current");
 		}
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state));
@@ -267,7 +270,7 @@ class technology_research_progress_category_text : public simple_text_element_ba
 		if(tech_id) {
 			auto tech = dcon::fatten(state.world, tech_id);
 			const auto& folder = state.culture_definitions.tech_folders[tech.get_folder_index()];
-			
+
 			std::string str{};
 			str += text::produce_simple_string(state, folder.name);
 			str += ", ";
@@ -295,6 +298,7 @@ class technology_research_progress_category_text : public simple_text_element_ba
 			return "";
 		}
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		set_text(state, get_text(state));
@@ -304,7 +308,7 @@ public:
 struct technology_select_tech {
 	dcon::technology_id tech_id;
 };
-class technology_item_button : public button_element_base  {
+class technology_item_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -312,7 +316,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::technology_id>(payload);
 			if(state.ui_state.technology_subwindow) {
-				Cyto::Any sl_payload = technology_select_tech{ content };
+				Cyto::Any sl_payload = technology_select_tech{content};
 				state.ui_state.technology_subwindow->impl_set(state, sl_payload);
 			}
 		}
@@ -343,6 +347,7 @@ public:
 class technology_item_window : public window_element_base {
 	technology_item_button* tech_button = nullptr;
 	culture::tech_category category;
+
 public:
 	dcon::technology_id tech_id{};
 
@@ -406,27 +411,27 @@ public:
 			Cyto::Any payload = dcon::invention_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::invention_id>(payload);
-		
+
 			auto category = static_cast<culture::tech_category>(state.world.invention_get_technology_type(content));
 			std::string category_name{};
 			switch(category) {
-				case culture::tech_category::army:
-					category_name = "army_tech";
-					break;
-				case culture::tech_category::navy:
-					category_name = "navy_tech";
-					break;
-				case culture::tech_category::commerce:
-					category_name = "commerce_tech";
-					break;
-				case culture::tech_category::culture:
-					category_name = "culture_tech";
-					break;
-				case culture::tech_category::industry:
-					category_name = "industry_tech";
-					break;
-				default:
-					break;
+			case culture::tech_category::army:
+				category_name = "army_tech";
+				break;
+			case culture::tech_category::navy:
+				category_name = "navy_tech";
+				break;
+			case culture::tech_category::commerce:
+				category_name = "commerce_tech";
+				break;
+			case culture::tech_category::culture:
+				category_name = "culture_tech";
+				break;
+			case culture::tech_category::industry:
+				category_name = "industry_tech";
+				break;
+			default:
+				break;
 			}
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, category_name), text::text_color::white);
@@ -444,10 +449,6 @@ public:
 			auto content = any_cast<dcon::invention_id>(payload);
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -484,10 +485,6 @@ public:
 			auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 			set_text(state, text::format_percentage(chances / 100.f, 0));
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -536,8 +533,9 @@ public:
 class technology_possible_invention_listbox : public listbox_element_base<technology_possible_invention, dcon::invention_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "invention_window";
-    }
+		return "invention_window";
+	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
@@ -567,7 +565,7 @@ public:
 				auto tech_id = any_cast<dcon::technology_id>(tech_payload);
 				if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
 					frame = 1; // Active technology but not invention
-			} 
+			}
 		}
 	}
 };
@@ -586,8 +584,9 @@ public:
 class technology_selected_inventions_listbox : public listbox_element_base<technology_selected_invention, dcon::invention_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "invention_icon_window";
-    }
+		return "invention_icon_window";
+	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -599,7 +598,7 @@ public:
 			state.world.for_each_invention([&](dcon::invention_id id) {
 				auto lim_trigger_k = state.world.invention_get_limit(id);
 				bool activable_by_this_tech = false;
-				trigger::recurse_over_triggers(state.trigger_data.data() + lim_trigger_k.index(), [&](uint16_t* tval) {
+				trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index()], [&](uint16_t* tval) {
 					if((tval[0] & trigger::code_mask) == trigger::technology && trigger::payload(tval[1]).tech_id == content)
 						activable_by_this_tech = true;
 				});
@@ -624,7 +623,7 @@ public:
 	}
 };
 
-class technology_year_text : public simple_text_element_base  {
+class technology_year_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -650,7 +649,7 @@ public:
 	}
 };
 
-class technology_selected_effect_text : public multiline_text_element_base  {
+class technology_selected_effect_text : public multiline_text_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		multiline_text_element_base::on_create(state);
@@ -665,15 +664,14 @@ public:
 			auto content = any_cast<dcon::technology_id>(payload);
 
 			auto layout = text::create_endless_layout(
-				internal_layout,
-				text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
-			);
+			    internal_layout,
+			    text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 			technology_description(*this, state, layout, content);
 		}
 	}
 
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::unseen;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::consumed;
 	}
 };
 
@@ -687,7 +685,7 @@ public:
 			disabled = !command::can_start_research(state, state.local_player_nation, content);
 		}
 	}
-	
+
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = dcon::technology_id{};
@@ -729,6 +727,7 @@ public:
 
 class technology_tech_group_window : public window_element_base {
 	simple_text_element_base* group_name = nullptr;
+
 public:
 	culture::tech_category category{};
 
@@ -759,7 +758,7 @@ public:
 class technology_sort_by_type_button : public button_element_base {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -772,7 +771,7 @@ public:
 class technology_sort_by_name_button : public button_element_base {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -785,7 +784,7 @@ public:
 class technology_sort_by_percent_button : public button_element_base {
 public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
@@ -798,15 +797,15 @@ public:
 class technology_window : public generic_tabbed_window<culture::tech_category> {
 	technology_selected_tech_window* selected_tech_win = nullptr;
 	dcon::technology_id tech_id{};
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 
 		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("folder_offset")->second.definition].position;
 		for(auto curr_folder = culture::tech_category::army;
-			curr_folder != culture::tech_category::count;
-			curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1))
-		{	
+		    curr_folder != culture::tech_category::count;
+		    curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1)) {
 			auto ptr = make_element_by_type<technology_folder_tab_button>(state, state.ui_state.defs_by_name.find("folder_window")->second.definition);
 			ptr->set_category(state, curr_folder);
 			ptr->base_data.position = folder_offset;
@@ -818,7 +817,7 @@ public:
 		// will be determined by this:
 		// Order of category
 		// **** Order of folders within category
-		// ******** Order of appareance of technologies that have said folder?
+		// ******** Order of appearance of technologies that have said folder?
 		std::vector<std::vector<size_t>> folders_by_category(static_cast<size_t>(culture::tech_category::count));
 		for(size_t i = 0; i < state.culture_definitions.tech_folders.size(); i++) {
 			const auto& folder = state.culture_definitions.tech_folders[i];
@@ -839,15 +838,14 @@ public:
 		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_offset")->second.definition].position;
 
 		for(auto cat = culture::tech_category::army;
-			cat != culture::tech_category::count;
-			cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1))
-		{
+		    cat != culture::tech_category::count;
+		    cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1)) {
 			// Add tech group names
 			int16_t group_count = 0;
 			for(const auto& folder : state.culture_definitions.tech_folders) {
 				if(folder.category != cat)
 					continue;
-				
+
 				auto ptr = make_element_by_type<technology_tech_group_window>(state, state.ui_state.defs_by_name.find("tech_group")->second.definition);
 
 				ptr->category = cat;
@@ -867,7 +865,7 @@ public:
 				const auto& folder = state.culture_definitions.tech_folders[folder_id];
 				if(folder.category != cat)
 					return;
-				
+
 				auto ptr = make_element_by_type<technology_item_window>(state, state.ui_state.defs_by_name.find("tech_window")->second.definition);
 
 				Cyto::Any payload = tid;
@@ -943,4 +941,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

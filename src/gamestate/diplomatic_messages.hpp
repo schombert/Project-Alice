@@ -5,6 +5,8 @@
 
 namespace diplomatic_message {
 
+constexpr inline int32_t expiration_in_days = 15;
+
 enum class type_t : uint8_t {
 	none = 0,
 	access_request = 1,
@@ -30,10 +32,10 @@ struct message {
 
 using type = type_t;
 
-void decline_message(sys::state& state, message const& m);
-void accept_message(sys::state& state, message const& m);
+void decline(sys::state& state, message const & m);
+void accept(sys::state& state, message const & m);
 
-void post_message(sys::state& state, message const& m);
-void update_pending_messages(sys::state& state);
+void post(sys::state& state, message const & m);
+void update_pending(sys::state& state);
 
-}
+} // namespace diplomatic_message

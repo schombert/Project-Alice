@@ -18,7 +18,6 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 
 		prov_color[i] = color;
 		prov_color[i + texture_size] = color;
-
 	});
 
 	return prov_color;

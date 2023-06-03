@@ -164,24 +164,130 @@ enum class key_modifiers : uint8_t {
 	modifiers_all = 0x7
 };
 constexpr inline float ui_scales[] = {
-	0.75f,
-	1.0f,
-	1.25f,
-	1.5f,
-	1.75f,
-	2.0f,
-	2.5f,
-	3.0f
-};
+    0.75f,
+    1.0f,
+    1.25f,
+    1.5f,
+    1.75f,
+    2.0f,
+    2.5f,
+    3.0f};
 constexpr inline uint32_t ui_scales_count = 8;
 
 enum class leader_type : uint8_t {
-	european = 0, southamerican, russian, arab, asian, indian, nativeamerican, african, polar_bear
+	european = 0,
+	southamerican,
+	russian,
+	arab,
+	asian,
+	indian,
+	nativeamerican,
+	african,
+	polar_bear
 };
 enum class commodity_group : uint8_t {
-	military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, count
+	military_goods = 0,
+	raw_material_goods,
+	industrial_goods,
+	consumer_goods,
+	count
 };
-}
+
+#define MSG_SETTING_LIST                                                             \
+	MSG_SETTING_ITEM(gaincb, "wegaincb")                                             \
+	MSG_SETTING_ITEM(gaincb_target, "wegaincb_target")                               \
+	MSG_SETTING_ITEM_R(cb_justify_no_longer_valid)                                   \
+	MSG_SETTING_ITEM_R(losecb_target)                                                \
+	MSG_SETTING_ITEM(revoltalliance_cause, "revoltalliance")                         \
+	MSG_SETTING_ITEM(revoltalliance_target, "revoltalliance")                        \
+	MSG_SETTING_ITEM(war_cause, "war_they_accept")                                   \
+	MSG_SETTING_ITEM(war_target, "war_we_accept")                                    \
+	MSG_SETTING_ITEM(wargoal_cause, "wargoal_they_accept")                           \
+	MSG_SETTING_ITEM(wargoal_target, "wargoal_we_accept")                            \
+	MSG_SETTING_ITEM_R(socreform)                                                    \
+	MSG_SETTING_ITEM_R(socreform_bad)                                                \
+	MSG_SETTING_ITEM_R(polreform)                                                    \
+	MSG_SETTING_ITEM_R(polreform_bad)                                                \
+	MSG_SETTING_ITEM_R(economicreform)                                               \
+	MSG_SETTING_ITEM_R(economicreform_bad)                                           \
+	MSG_SETTING_ITEM_R(militaryreform)                                               \
+	MSG_SETTING_ITEM_R(militaryreform_bad)                                           \
+	MSG_SETTING_ITEM_R(setparty)                                                     \
+	MSG_SETTING_ITEM_R(upperhouse)                                                   \
+	MSG_SETTING_ITEM_R(electionstart)                                                \
+	MSG_SETTING_ITEM_R(electiondone)                                                 \
+	MSG_SETTING_ITEM_R(breakcountry)                                                 \
+	MSG_SETTING_ITEM(rebels, "partisans")                                            \
+	MSG_SETTING_ITEM(annex_cause, "annex")                                           \
+	MSG_SETTING_ITEM(annex_target, "annex")                                          \
+	MSG_SETTING_ITEM(peace_accept_cause, "peace_they_accept")                        \
+	MSG_SETTING_ITEM(peace_accept_target, "peace_we_accept")                         \
+	MSG_SETTING_ITEM(peace_decline_cause, "peace_they_decline")                      \
+	MSG_SETTING_ITEM(peace_decline_target, "peace_we_decline")                       \
+	MSG_SETTING_ITEM(mobilize, "we_mobilize")                                        \
+	MSG_SETTING_ITEM(demobilize, "we_demobilize")                                    \
+	MSG_SETTING_ITEM_R(building_done)                                                \
+	MSG_SETTING_ITEM_R(eventhappenother)                                             \
+	MSG_SETTING_ITEM_R(eventhappenotheroption)                                       \
+	MSG_SETTING_ITEM_R(majoreventhappenother)                                        \
+	MSG_SETTING_ITEM_R(majoreventhappenotheroption)                                  \
+	MSG_SETTING_ITEM_R(invention)                                                    \
+	MSG_SETTING_ITEM(tech, "tech_once")                                              \
+	MSG_SETTING_ITEM_R(leaderdied)                                                   \
+	MSG_SETTING_ITEM_R(landbattleover)                                               \
+	MSG_SETTING_ITEM_R(navalbattleover)                                              \
+	MSG_SETTING_ITEM_R(decisionother)                                                \
+	MSG_SETTING_ITEM(no_longer_great_power, "we_no_longer_great_power")              \
+	MSG_SETTING_ITEM(became_great_power, "we_became_great_power")                    \
+	MSG_SETTING_ITEM(alliance_accept_cause, "alliance_they_accept")                  \
+	MSG_SETTING_ITEM(alliance_accept_target, "alliance_we_accept")                   \
+	MSG_SETTING_ITEM(alliance_decline_cause, "alliance_they_decline")                \
+	MSG_SETTING_ITEM(alliance_decline_target, "alliance_we_decline")                 \
+	MSG_SETTING_ITEM(cancelalliance_cause, "cancelalliance_they_accept")             \
+	MSG_SETTING_ITEM(cancelalliance_target, "cancelalliance_we_accept")              \
+	MSG_SETTING_ITEM(increaseopinion_cause, "increaseopinion_they_accept")           \
+	MSG_SETTING_ITEM(increaseopinion_target, "increaseopinion_we_accept")            \
+	MSG_SETTING_ITEM(addtosphere_cause, "addtosphere_they_accept")                   \
+	MSG_SETTING_ITEM(addtosphere_target, "addtosphere_we_accept")                    \
+	MSG_SETTING_ITEM(removefromsphere_cause, "removefromsphere_they_accept")         \
+	MSG_SETTING_ITEM(removefromsphere_target, "removefromsphere_we_accept")          \
+	MSG_SETTING_ITEM(removefromsphere_other_target, "removefromsphere_other_accept") \
+	MSG_SETTING_ITEM(increaserelation_cause, "increaserelation_they_accept")         \
+	MSG_SETTING_ITEM(increaserelation_target, "increaserelation_we_accept")          \
+	MSG_SETTING_ITEM(decreaserelation_cause, "decreaserelation_they_accept")         \
+	MSG_SETTING_ITEM(decreaserelation_target, "decreaserelation_we_accept")          \
+	MSG_SETTING_ITEM(intervention_same_side, "intervention_our_side")                \
+	MSG_SETTING_ITEM(intervention_other_side, "intervention_their_side")             \
+	MSG_SETTING_ITEM(intervention, "intervention_other_side")                        \
+	MSG_SETTING_ITEM_R(bankruptcy)                                                   \
+	MSG_SETTING_ITEM_R(new_party_avail)                                              \
+	MSG_SETTING_ITEM_R(party_unavail)                                                \
+	MSG_SETTING_ITEM(cb_detected_cause, "others_cb_detected")                        \
+	MSG_SETTING_ITEM(cb_detected_target, "our_cb_detected")                          \
+	MSG_SETTING_ITEM(join_crisis_offer_cause, "crisis_offer_they_accept")            \
+	MSG_SETTING_ITEM(join_crisis_offer_target, "crisis_offer_we_accept")             \
+	MSG_SETTING_ITEM(join_crisis_offer_declind_cause, "crisis_offer_they_decline")   \
+	MSG_SETTING_ITEM(join_crisis_offer_decline_target, "crisis_offer_we_decline")    \
+	MSG_SETTING_ITEM(join_crisis_cause, "crisis_offer_we_accept")                    \
+	MSG_SETTING_ITEM(join_crisis_target, "crisis_offer_other_accept")                \
+	MSG_SETTING_ITEM(crisis_offer_cause, "crisis_offer_they_accept")                 \
+	MSG_SETTING_ITEM(crisis_offer_target, "crisis_offer_we_accept")                  \
+	MSG_SETTING_ITEM(crisis_offer_decline_cause, "crisis_offer_they_decline")        \
+	MSG_SETTING_ITEM(crisis_offer_decline_target, "crisis_offer_we_decline")         \
+	MSG_SETTING_ITEM(crisis_resolved_cause, "crisis_back_down_they_accept")          \
+	MSG_SETTING_ITEM(crisis_resolved_target, "crisis_back_down_we_accept")           \
+	MSG_SETTING_ITEM_R(crisis_started)                                               \
+	MSG_SETTING_ITEM(crisis_became_war_target, "crisis_became_war")
+#define MSG_SETTING_ITEM_R(name) MSG_SETTING_ITEM(name, #name)
+
+enum class msg_setting_type : uint8_t {
+#define MSG_SETTING_ITEM(name, locale_name) name,
+	MSG_SETTING_LIST
+	    count
+#undef MSG_SETTING_ITEM
+};
+
+} // namespace sys
 
 namespace culture {
 inline constexpr int32_t max_issue_options = 6;
@@ -195,5 +301,5 @@ constexpr inline uint8_t coastal_bit = 0x04;
 constexpr inline uint8_t impassible_bit = 0x08;
 constexpr inline uint8_t non_adjacent_bit = 0x10;
 constexpr inline uint8_t river_crossing_bit = 0x20;
-}
-}
+} // namespace border
+} // namespace province

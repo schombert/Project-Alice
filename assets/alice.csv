@@ -11,6 +11,9 @@ map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
+linegraph_mode;Linegraph mode;;;Modo de grafica linear;;;;;;;;;x
+linegraph_mode_accurate;Accurate;;;Reliable;;;;;;;;;x
+linegraph_mode_aesthetic;Aesthetic;;;Aestetica;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
 music_volume_label;Music volume;;;Volumen de la musica;;;;;;;;;x
 interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
@@ -177,7 +180,7 @@ support_for_blank;support for $text$;;;soporte para $text$;;;;;;;;;x
 up_to;up to ;;;hasta;;;;;;;;;x
 scaled_support; proportional to support of $text$;;; proporcional al soporte para $text$;;;;;;;;;x
 scaled_unemployment; proportional to unemployment;;; proporcional al desempleo;;;;;;;;;x
-stockpile_of;to national stockpile of ;;;en la reserva nacional de;;;;;;;;;x
+stockpile_of;to national stockpile of $text$;;;en la reserva nacional de;;;;;;;;;x
 create_general;a new general is created;;;se crea un nuevo general;;;;;;;;;x
 create_admiral;a new admiral is created;;;se crea un nuevo admiral;;;;;;;;;x
 add_war_goal;a $text$ war goal is added against $nation$;;;la meta de guerra $text$ se a�ade contra $nation$;;;;;;;;;x
@@ -285,6 +288,7 @@ in;in;;;en;;;;;;;;;x
 a_casus_belli_against;a casus belli against;;;un cassus belli en contra de;;;;;;;;;x
 military_access_with;military access with;;;acceso militar con;;;;;;;;;x
 prestige_of;the prestige of;;;el prestigio d;;;;;;;;;x
+prestige;prestige;;;prestigio;;;;;;;;;x
 a_railroad;a railroad;;;un ferrocarril;;;;;;;;;x
 a_fort;a fort;;;una fortaleza;;;;;;;;;x
 a_naval_base;a naval base;;;una base naval;;;;;;;;;x

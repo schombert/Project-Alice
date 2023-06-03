@@ -33,14 +33,15 @@ enum {
 };
 
 unsigned int SOIL_direct_load_DDS_from_memory(
-		const unsigned char* const buffer,
-		unsigned int buffer_length,
-		unsigned int& width,
-		unsigned int& height,
-		int flags);
+    const unsigned char* const buffer,
+    unsigned int buffer_length,
+    unsigned int& width,
+    unsigned int& height,
+    int flags);
 
 class texture {
 	GLuint texture_handle = 0;
+
 public:
 	uint8_t* data = nullptr;
 	int32_t size_x = 0;
@@ -50,22 +51,23 @@ public:
 	bool loaded = false;
 
 	texture() { }
-	texture(texture const&) = delete;
+	texture(texture const &) = delete;
 	texture(texture&& other) noexcept;
 	~texture();
 
-	texture& operator=(texture const&) = delete;
+	texture& operator=(texture const &) = delete;
 	texture& operator=(texture&& other) noexcept;
 
 	GLuint get_texture_handle() const;
 
 	friend GLuint get_texture_handle(sys::state& state, dcon::texture_id id, bool keep_data);
-	friend GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture, bool keep_data);
+	friend GLuint load_file_and_return_handle(native_string const & native_name, simple_fs::file_system const & fs, texture& asset_texture, bool keep_data);
 	friend GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type);
 };
 
 class data_texture {
 	GLuint texture_handle = 0;
+
 public:
 	uint8_t* data = nullptr;
 	int32_t size = 0;
@@ -74,10 +76,10 @@ public:
 	bool data_updated = false;
 
 	data_texture(int32_t sz, int32_t ch);
-	data_texture(data_texture const&) = delete;
+	data_texture(data_texture const &) = delete;
 	data_texture(data_texture&& other) noexcept;
 
-	data_texture& operator=(data_texture const&) = delete;
+	data_texture& operator=(data_texture const &) = delete;
 	data_texture& operator=(data_texture&& other) noexcept;
 
 	GLuint handle();
@@ -91,4 +93,4 @@ struct font_texture_result {
 
 font_texture_result make_font_texture(simple_fs::file& f);
 
-}
+} // namespace ogl

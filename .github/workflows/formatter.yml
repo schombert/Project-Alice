@@ -1,0 +1,31 @@
+name: Lint
+
+
+on:
+  push:
+  pull_request_target:
+
+jobs:
+  run-linters:
+    name: Run Linters
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: write
+      pull-requests: write
+      contents: write
+      checks: write
+
+    steps:
+      - name: Checkout Git Repo
+        uses: actions/checkout@v2
+
+      - name: Install ClangFormat
+        run: sudo apt-get install -y clang-format
+
+      - name: Run Linters
+        uses: wearerequired/lint-action@v2
+        with:
+          clang_format: true
+          clang_format_dir: src
+          clang_format_args: -style=file -i --ferror-limit=5

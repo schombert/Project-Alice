@@ -81,6 +81,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "milview_leader_entry";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
@@ -131,4 +132,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

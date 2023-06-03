@@ -13,12 +13,11 @@ std::vector<party_info> get_sorted_parties_info(sys::state& state, dcon::provinc
 	state.world.for_each_ideology([&](dcon::ideology_id ideology) {
 		auto loyalty = state.world.province_get_party_loyalty(prov_id, ideology);
 		if(loyalty > 0) {
-			result.push_back({ ideology, loyalty, state.world.ideology_get_color(ideology) });
+			result.push_back({ideology, loyalty, state.world.ideology_get_color(ideology)});
 		}
 	});
 
 	std::sort(result.begin(), result.end(), [&](party_info a, party_info b) { return a.loyalty > b.loyalty; });
-
 
 	return result;
 }
@@ -34,7 +33,6 @@ std::vector<uint32_t> party_loyalty_map_from(sys::state& state) {
 			auto parties_info = get_sorted_parties_info(state, prov_id);
 
 			auto i = province::to_map_id(prov_id);
-
 
 			if(parties_info.size() == 0) {
 

@@ -61,6 +61,19 @@ class fonts_mode_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class linegraph_mode_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class linegraph_mode_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class linegraph_mode_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
 
 class master_volume : public scrollbar {
 	void on_value_change(sys::state& state, int32_t v) noexcept final;
@@ -79,7 +92,7 @@ class interface_volume : public scrollbar {
 	void on_update(sys::state& state) noexcept final;
 };
 
-struct notify_setting_update{ };
+struct notify_setting_update { };
 
 class controls_menu_window : public window_element_base {
 	bool setting_changed = false;
@@ -135,7 +148,13 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<fonts_mode_right>(state, id);
 		else if(name == "fonts_right")
 			return make_element_by_type<fonts_mode_right>(state, id);
-		//window_mode_left
+		else if(name == "linegraph_mode_value")
+			return make_element_by_type<linegraph_mode_display>(state, id);
+		else if(name == "linegraph_mode_left")
+			return make_element_by_type<linegraph_mode_right>(state, id);
+		else if(name == "linegraph_mode_right")
+			return make_element_by_type<linegraph_mode_right>(state, id);
+		// window_mode_left
 		else
 			return nullptr;
 	}
@@ -185,7 +204,10 @@ class audio_menu_window : public window_element_base {
 };
 
 enum class main_menu_sub_window {
-	controls, audio, graphics, message_settings
+	controls,
+	audio,
+	graphics,
+	message_settings
 };
 
 class close_application_button : public button_element_base {
@@ -200,11 +222,12 @@ class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
 	graphics_menu_window* graphics_menu = nullptr;
 	audio_menu_window* audio_menu = nullptr;
 	msg_settings_window* message_settings_menu = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		// Message settings isn't a topmost window...
-		for(size_t i = state.ui_defs.gui.size(); i-- > 0; ) {
+		for(size_t i = state.ui_defs.gui.size(); i-- > 0;) {
 			auto gdef_id = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
 			auto key = state.to_string_view(state.ui_defs.gui[gdef_id].name);
 			if(key == "menu_message_settings") {
@@ -293,4 +316,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

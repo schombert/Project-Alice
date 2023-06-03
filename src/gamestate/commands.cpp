@@ -26,8 +26,7 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 			if(focus == state.national_definitions.flashpoint_focus)
 				return false;
 			if(auto ideo = state.world.national_focus_get_ideology(focus); ideo) {
-				if(state.world.ideology_get_enabled(ideo) == false
-					|| (state.world.ideology_get_is_civilized_only(ideo) && !state.world.nation_get_is_civilized(source))) {
+				if(state.world.ideology_get_enabled(ideo) == false || (state.world.ideology_get_is_civilized_only(ideo) && !state.world.nation_get_is_civilized(source))) {
 					return false;
 				}
 			}
@@ -134,7 +133,7 @@ bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nat
 		return false; // Can't be at war
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel && state.world.unilateral_relationship_get_war_subsidies(rel))
-		return false; // Can't already be giving war subsidies
+		return false;                                                                                    // Can't already be giving war subsidies
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.warsubsidy_diplomatic_cost; // Enough diplomatic points
 }
 void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -163,7 +162,7 @@ bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::n
 		return false; // Can't be at war
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 	if(rel && !state.world.unilateral_relationship_get_war_subsidies(rel))
-		return false; // Must already be giving war subsidies
+		return false;                                                                                          // Must already be giving war subsidies
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.cancelwarsubsidy_diplomatic_cost; // Enough diplomatic points
 }
 void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -192,7 +191,7 @@ bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nat
 		return false; // Can't be at war
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
 	if(rel && state.world.diplomatic_relation_get_value(rel) >= 200.f)
-		return false; // Maxxed out
+		return false;                                                                                          // Maxxed out
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.increaserelation_diplomatic_cost; // Enough diplomatic points
 }
 void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -219,7 +218,7 @@ bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nat
 		return false; // Can't be at war
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
 	if(rel && state.world.diplomatic_relation_get_value(rel) <= -200.f)
-		return false; // Maxxed out
+		return false;                                                                                          // Maxxed out
 	return state.world.nation_get_diplomatic_points(source) >= state.defines.decreaserelation_diplomatic_cost; // Enough diplomatic points
 }
 void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -243,12 +242,12 @@ void begin_province_building_construction(sys::state& state, dcon::nation_id sou
 bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type) {
 
 	switch(type) {
-		case economy::province_building_type::railroad:
-			return province::can_build_railroads(state, p, source);
-		case economy::province_building_type::fort:
-			return province::can_build_fort(state, p, source);
-		case economy::province_building_type::naval_base:
-			return province::can_build_naval_base(state, p, source);
+	case economy::province_building_type::railroad:
+		return province::can_build_railroads(state, p, source);
+	case economy::province_building_type::fort:
+		return province::can_build_fort(state, p, source);
+	case economy::province_building_type::naval_base:
+		return province::can_build_naval_base(state, p, source);
 	}
 
 	return false;
@@ -371,7 +370,6 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 					if(f.get_factory().get_building_type() == type && f.get_factory().get_level() < uint8_t(255)) {
 						return true;
 					}
-
 				}
 			}
 		}
@@ -383,7 +381,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 				return false;
 		}
 
-		//For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be present.
+		// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be present.
 		int32_t num_factories = 0;
 
 		auto d = state.world.state_instance_get_definition(location);
@@ -481,7 +479,6 @@ void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id so
 	if(!can_start_naval_unit_construction(state, source, location, type))
 		return;
 
-	
 	auto c = fatten(state.world, state.world.try_create_province_naval_construction(location, source));
 	c.set_type(type);
 }
@@ -526,11 +523,10 @@ void execute_start_land_unit_construction(sys::state& state, dcon::nation_id sou
 		return;
 
 	auto soldier = military::find_available_soldier(state, location, soldier_culture);
-	
+
 	auto c = fatten(state.world, state.world.try_create_province_land_construction(soldier, source));
 	c.set_type(type);
 }
-
 
 void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 	payload p;
@@ -557,7 +553,6 @@ void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id s
 		}
 	}
 	state.world.delete_province_naval_construction(c);
-	
 }
 
 void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
@@ -663,7 +658,6 @@ void execute_change_factory_settings(sys::state& state, dcon::nation_id source, 
 
 	auto rules = state.world.nation_get_combined_issue_rules(source);
 
-
 	if(subsidized && (rules & issue_rule::can_subsidise) == 0) {
 		return;
 	}
@@ -741,7 +735,7 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
-void change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
+void change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const & values) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::change_budget;
@@ -749,7 +743,7 @@ void change_budget_settings(sys::state& state, dcon::nation_id source, budget_se
 	p.data.budget_data = values;
 	auto b = state.incoming_commands.try_push(p);
 }
-void execute_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
+void execute_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const & values) {
 	if(!can_change_budget_settings(state, source, values))
 		return;
 
@@ -816,7 +810,7 @@ void change_influence_priority(sys::state& state, dcon::nation_id source, dcon::
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority) {
-	//The source must be a great power, while the target must not be a great power.
+	// The source must be a great power, while the target must not be a great power.
 	return state.world.nation_get_is_great_power(source) && !state.world.nation_get_is_great_power(influence_target);
 }
 void execute_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority) {
@@ -828,20 +822,20 @@ void execute_change_influence_priority(sys::state& state, dcon::nation_id source
 	}
 	auto& flags = state.world.gp_relationship_get_status(rel);
 	switch(priority) {
-		case 0:
-			flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_zero;
-			break;
-		case 1:
-			flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_one;
-			break;
-		case 2:
-			flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_two;
-			break;
-		case 3:
-			flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_three;
-			break;
-		default:
-			break;
+	case 0:
+		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_zero;
+		break;
+	case 1:
+		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_one;
+		break;
+	case 2:
+		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_two;
+		break;
+	case 3:
+		flags = (flags & ~nations::influence::priority_mask) | nations::influence::priority_three;
+		break;
+	default:
+		break;
 	}
 }
 
@@ -903,7 +897,6 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 	nations::adjust_relationship(state, source, affected_gp, state.defines.discredit_relation_on_accept);
 	state.world.gp_relationship_get_status(orel) |= nations::influence::is_discredited;
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.discredit_days));
-
 }
 
 void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
@@ -1260,10 +1253,10 @@ void execute_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, 
 		return;
 
 	province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
-		//Provinces in the state stop being colonial.
+		// Provinces in the state stop being colonial.
 		state.world.province_set_is_colonial(p, false);
 
-		//All timed modifiers active for provinces in the state expire
+		// All timed modifiers active for provinces in the state expire
 		auto timed_modifiers = state.world.province_get_current_modifiers(p);
 		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
 			if(bool(timed_modifiers[i].expiration)) {
@@ -1272,16 +1265,16 @@ void execute_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, 
 		}
 	});
 
-	//Gain define:COLONY_TO_STATE_PRESTIGE_GAIN x(1.0 + colony - prestige - from - tech) x(1.0 + prestige - from - tech)
+	// Gain define:COLONY_TO_STATE_PRESTIGE_GAIN x(1.0 + colony - prestige - from - tech) x(1.0 + prestige - from - tech)
 	nations::adjust_prestige(state, source, state.defines.colony_to_state_prestige_gain * (1.0f + state.world.nation_get_modifier_values(source, sys::national_mod_offsets::colonial_prestige)));
 
-	//An event from `on_colony_to_state` happens(with the state in scope)
-	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state, trigger::to_generic(si), source, -1);
+	// An event from `on_colony_to_state` happens(with the state in scope)
+	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state, trigger::to_generic(si), event::slot_type::state, source, -1, event::slot_type::none);
 
-	//An event from `on_colony_to_state_free_slaves` happens(with the state in scope)
-	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state_free_slaves, trigger::to_generic(si), source, -1);
+	// An event from `on_colony_to_state_free_slaves` happens(with the state in scope)
+	event::fire_fixed_event(state, state.national_definitions.on_colony_to_state_free_slaves, trigger::to_generic(si), event::slot_type::state, source, -1, event::slot_type::none);
 
-	//Update is colonial nation
+	// Update is colonial nation
 	state.world.nation_set_is_colonial_nation(source, false);
 	for(auto p : state.world.nation_get_province_ownership(source)) {
 		if(p.get_province().get_is_colonial()) {
@@ -1322,7 +1315,6 @@ void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::p
 				}
 			}
 		}
-
 
 		for(auto rel : state.world.state_definition_get_colonization(state_def)) {
 			if(rel.get_colonizer() == source) {
@@ -1419,7 +1411,6 @@ void execute_abandon_colony(sys::state& state, dcon::nation_id source, dcon::pro
 			state.world.delete_colonization(rel);
 		}
 	}
-
 }
 
 void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
@@ -1443,9 +1434,7 @@ void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon
 	if(!can_finish_colonization(state, source, p))
 		return;
 
-
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-
 
 	for(auto pr : state.world.state_definition_get_abstract_state_membership(state_def)) {
 		if(!pr.get_province().get_nation_from_province_ownership()) {
@@ -1456,7 +1445,8 @@ void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon
 	state.world.state_definition_set_colonization_temperature(state_def, 0.0f);
 	state.world.state_definition_set_colonization_stage(state_def, uint8_t(0));
 
-	auto rng = state.world.state_definition_get_colonization(state_def);;
+	auto rng = state.world.state_definition_get_colonization(state_def);
+	;
 	while(rng.begin() != rng.end()) {
 		state.world.delete_colonization(*rng.begin());
 	}
@@ -1540,7 +1530,6 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 		}
 	}
 	return false;
-
 }
 void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker) {
 	if(!can_intervene_in_war(state, source, w, for_attacker))
@@ -1684,7 +1673,7 @@ void execute_enact_reform(sys::state& state, dcon::nation_id source, dcon::refor
 	if(e) {
 		auto t = state.world.reform_option_get_on_execute_trigger(r);
 		if(!t || trigger::evaluate(state, t, trigger::to_generic(source), trigger::to_generic(source), 0))
-		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value), uint32_t(source.index()));
+			effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value), uint32_t(source.index()));
 	}
 
 	// - Subtract research points (see discussion of when the reform is possible for how many)
@@ -1759,7 +1748,6 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 		}
 	}
 
-
 	/*
 	- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing the opposite of the reform (calculated in the same way as determining when the upper house will support the reform or repeal) militancy
 	*/
@@ -1770,9 +1758,9 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 	for(auto id : state.world.in_ideology) {
 
 		auto condition =
-			is_social
-				? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id) : state.world.ideology_get_add_social_reform(id))
-				: (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id) : state.world.ideology_get_add_political_reform(id));
+		    is_social
+		        ? (i.index() > current.index() ? state.world.ideology_get_remove_social_reform(id) : state.world.ideology_get_add_social_reform(id))
+		        : (i.index() > current.index() ? state.world.ideology_get_remove_political_reform(id) : state.world.ideology_get_add_political_reform(id));
 		if(condition) {
 			auto factor = trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0);
 			auto const idsupport_key = pop_demographics::to_key(state, id);
@@ -1957,7 +1945,7 @@ void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::deci
 		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value), uint32_t(source.index() << 4 ^ d.index()));
 }
 
-void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id) {
+void make_event_choice(sys::state& state, event::pending_human_n_event const & e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::make_n_event_choice;
@@ -1965,13 +1953,15 @@ void make_event_choice(sys::state& state, event::pending_human_n_event const& e,
 	p.data.pending_human_n_event.date = e.date;
 	p.data.pending_human_n_event.e = e.e;
 	p.data.pending_human_n_event.from_slot = e.from_slot;
+	p.data.pending_human_n_event.ft = e.ft;
 	p.data.pending_human_n_event.opt_choice = option_id;
 	p.data.pending_human_n_event.primary_slot = e.primary_slot;
+	p.data.pending_human_n_event.pt = e.pt;
 	p.data.pending_human_n_event.r_hi = e.r_hi;
 	p.data.pending_human_n_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
 }
-void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id) {
+void make_event_choice(sys::state& state, event::pending_human_f_n_event const & e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::make_f_n_event_choice;
@@ -1983,7 +1973,7 @@ void make_event_choice(sys::state& state, event::pending_human_f_n_event const& 
 	p.data.pending_human_f_n_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
 }
-void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id) {
+void make_event_choice(sys::state& state, event::pending_human_p_event const & e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::make_p_event_choice;
@@ -1992,12 +1982,13 @@ void make_event_choice(sys::state& state, event::pending_human_p_event const& e,
 	p.data.pending_human_p_event.e = e.e;
 	p.data.pending_human_p_event.p = e.p;
 	p.data.pending_human_p_event.from_slot = e.from_slot;
+	p.data.pending_human_p_event.ft = e.ft;
 	p.data.pending_human_p_event.opt_choice = option_id;
 	p.data.pending_human_p_event.r_hi = e.r_hi;
 	p.data.pending_human_p_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
 }
-void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id) {
+void make_event_choice(sys::state& state, event::pending_human_f_p_event const & e, uint8_t option_id) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::make_f_p_event_choice;
@@ -2010,29 +2001,29 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 	p.data.pending_human_f_p_event.r_lo = e.r_lo;
 	auto b = state.incoming_commands.try_push(p);
 }
-void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
-	event::take_option(state, event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date}, e.opt_choice);
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const & e) {
+	event::take_option(state, event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft, e.e, source, e.date}, e.opt_choice);
 }
-void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
-	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const & e) {
+	event::take_option(state, event::pending_human_f_n_event{e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
 }
-void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const & e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
-	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.e, e.p, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_p_event{e.r_lo, e.r_hi, e.from_slot, e.ft, e.e, e.p, e.date}, e.opt_choice);
 }
-void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
+void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const & e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
-	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.e, e.p, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_f_p_event{e.r_lo, e.r_hi, e.e, e.p, e.date}, e.opt_choice);
 }
 
 void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_cb_fabrication;
+	p.type = command_type::fabricate_cb;
 	p.source = source;
 	p.data.cb_fabrication.target = target;
 	p.data.cb_fabrication.type = type;
@@ -2048,7 +2039,7 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	*/
 
 	auto ol = state.world.nation_get_overlord_as_subject(source);
-	if(ol && state.world.overlord_get_ruler(ol) != target)
+	if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
 		return false;
 
 	if(state.world.nation_get_in_sphere_of(target) == source)
@@ -2096,7 +2087,6 @@ void execute_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
 	state.world.nation_set_constructing_cb_type(source, dcon::cb_type_id{});
 }
 
-
 void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2133,7 +2123,7 @@ void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nati
 	m.from = asker;
 	m.type = diplomatic_message::type::access_request;
 
-	diplomatic_message::post_message(state, m);
+	diplomatic_message::post(state, m);
 }
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
@@ -2181,7 +2171,7 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 	m.from = asker;
 	m.type = diplomatic_message::type::alliance_request;
 
-	diplomatic_message::post_message(state, m);
+	diplomatic_message::post(state, m);
 }
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
@@ -2214,7 +2204,7 @@ void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation
 	m.data.war = w;
 	m.type = diplomatic_message::type::call_ally_request;
 
-	diplomatic_message::post_message(state, m);
+	diplomatic_message::post(state, m);
 }
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept) {
@@ -2232,9 +2222,9 @@ void execute_respond_to_diplomatic_message(sys::state& state, dcon::nation_id so
 		if(m.type == type && m.from == from && m.to == source) {
 
 			if(accept)
-				diplomatic_message::accept_message(state, m);
+				diplomatic_message::accept(state, m);
 			else
-				diplomatic_message::decline_message(state, m);
+				diplomatic_message::decline(state, m);
 
 			m.type = diplomatic_message::type::none;
 
@@ -2342,171 +2332,171 @@ void execute_pending_commands(sys::state& state) {
 		command_executed = true;
 
 		switch(c->type) {
-			case command_type::invalid:
-				std::abort(); // invalid command
-				break;
-			case command_type::change_nat_focus:
-				execute_set_national_focus(state, c->source, c->data.nat_focus.target_state, c->data.nat_focus.focus);
-				break;
-			case command_type::start_research:
-				execute_start_research(state, c->source, c->data.start_research.tech);
-				break;
-			case command_type::make_leader:
-				execute_make_leader(state, c->source, c->data.make_leader.is_general);
-				break;
-			case command_type::begin_province_building_construction:
-				execute_begin_province_building_construction(state, c->source, c->data.start_province_building.location, c->data.start_province_building.type);
-				break;
-			case command_type::war_subsidies:
-				execute_give_war_subsidies(state, c->source, c->data.diplo_action.target);
-				break;
-			case command_type::cancel_war_subsidies:
-				execute_cancel_war_subsidies(state, c->source, c->data.diplo_action.target);
-				break;
-			case command_type::increase_relations:
-				execute_increase_relations(state, c->source, c->data.diplo_action.target);
-				break;
-			case command_type::decrease_relations:
-				execute_decrease_relations(state, c->source, c->data.diplo_action.target);
-				break;
-			case command_type::begin_factory_building_construction:
-				execute_begin_factory_building_construction(state, c->source, c->data.start_factory_building.location, c->data.start_factory_building.type, c->data.start_factory_building.is_upgrade);
-				break;
-			case command_type::begin_naval_unit_construction:
-				execute_start_naval_unit_construction(state, c->source, c->data.naval_unit_construction.location, c->data.naval_unit_construction.type);
-				break;
-			case command_type::cancel_naval_unit_construction:
-				execute_cancel_naval_unit_construction(state, c->source, c->data.naval_unit_construction.location, c->data.naval_unit_construction.type);
-				break;
-			case command_type::begin_land_unit_construction:
-				execute_start_land_unit_construction(state, c->source, c->data.land_unit_construction.location, c->data.land_unit_construction.pop_culture, c->data.land_unit_construction.type);
-				break;
-			case command_type::cancel_land_unit_construction:
-				execute_cancel_land_unit_construction(state, c->source, c->data.land_unit_construction.location, c->data.land_unit_construction.pop_culture, c->data.land_unit_construction.type);
-				break;
-			case command_type::delete_factory:
-				execute_delete_factory(state, c->source, c->data.factory.location, c->data.factory.type);
-				break;
-			case command_type::change_factory_settings:
-				execute_change_factory_settings(state, c->source, c->data.factory.location, c->data.factory.type, c->data.factory.priority, c->data.factory.subsidize);
-				break;
-			case command_type::make_vassal:
-				execute_make_vassal(state, c->source, c->data.tag_target.ident);
-				break;
-			case command_type::release_and_play_nation:
-				execute_release_and_play_as(state, c->source, c->data.tag_target.ident);
-				break;
-			case command_type::change_budget:
-				execute_change_budget_settings(state, c->source, c->data.budget_data);
-				break;
-			case command_type::start_election:
-				execute_start_election(state, c->source);
-				break;
-			case command_type::change_influence_priority:
-				execute_change_influence_priority(state, c->source, c->data.influence_priority.influence_target, c->data.influence_priority.priority);
-				break;
-			case command_type::expel_advisors:
-				execute_expel_advisors(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
-				break;
-			case command_type::ban_embassy:
-				execute_ban_embassy(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
-				break;
-			case command_type::discredit_advisors:
-				execute_discredit_advisors(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
-				break;
-			case command_type::decrease_opinion:
-				execute_decrease_opinion(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
-				break;
-			case command_type::remove_from_sphere:
-				execute_remove_from_sphere(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
-				break;
-			case command_type::increase_opinion:
-				execute_increase_opinion(state, c->source, c->data.influence_action.influence_target);
-				break;
-			case command_type::add_to_sphere:
-				execute_add_to_sphere(state, c->source, c->data.influence_action.influence_target);
-				break;
-			case command_type::upgrade_colony_to_state:
-				execute_upgrade_colony_to_state(state, c->source, state.world.province_get_state_membership(c->data.generic_location.prov));
-				break;
-			case command_type::invest_in_colony:
-				execute_invest_in_colony(state, c->source, c->data.generic_location.prov);
-				break;
-			case command_type::abandon_colony:
-				execute_abandon_colony(state, c->source, c->data.generic_location.prov);
-				break;
-			case command_type::finish_colonization:
-				execute_finish_colonization(state, c->source, c->data.generic_location.prov);
-				break;
-			case command_type::intervene_in_war:
-				execute_intervene_in_war(state, c->source, c->data.war_target.war, c->data.war_target.for_attacker);
-				break;
-			case command_type::suppress_movement:
-				execute_suppress_movement(state, c->source, c->data.movement.iopt, c->data.movement.tag);
-				break;
-			case command_type::civilize_nation:
-				execute_civilize_nation(state, c->source);
-				break;
-			case command_type::appoint_ruling_party:
-				execute_appoint_ruling_party(state, c->source, c->data.political_party.p);
-				break;
-			case command_type::change_issue_option:
-				execute_enact_issue(state, c->source, c->data.issue_selection.r);
-				break;
-			case command_type::change_reform_option:
-				execute_enact_reform(state, c->source, c->data.reform_selection.r);
-				break;
-			case command_type::become_interested_in_crisis:
-				execute_become_interested_in_crisis(state, c->source);
-				break;
-			case command_type::take_sides_in_crisis:
-				execute_take_sides_in_crisis(state, c->source, c->data.crisis_join.join_attackers);
-				break;
-			case command_type::change_stockpile_settings:
-				execute_change_stockpile_settings(state, c->source, c->data.stockpile_settings.c, c->data.stockpile_settings.amount, c->data.stockpile_settings.draw_on_stockpiles);
-				break;
-			case command_type::take_decision:
-				execute_take_decision(state, c->source, c->data.decision.d);
-				break;
-			case command_type::make_n_event_choice:
-				execute_make_event_choice(state, c->source, c->data.pending_human_n_event);
-				break;
-			case command_type::make_f_n_event_choice:
-				execute_make_event_choice(state, c->source, c->data.pending_human_f_n_event);
-				break;
-			case command_type::make_p_event_choice:
-				execute_make_event_choice(state, c->source, c->data.pending_human_p_event);
-				break;
-			case command_type::make_f_p_event_choice:
-				execute_make_event_choice(state, c->source, c->data.pending_human_f_p_event);
-				break;
-			case command_type::cancel_cb_fabrication:
-				execute_cancel_cb_fabrication(state, c->source);
-				break;
-			case command_type::fabricate_cb:
-				execute_fabricate_cb(state, c->source, c->data.cb_fabrication.target, c->data.cb_fabrication.type);
-				break;
-			case command_type::ask_for_military_access:
-				execute_ask_for_access(state, c->source, c->data.diplo_action.target);
-				break;
-			case command_type::ask_for_alliance:
-				execute_ask_for_alliance(state, c->source, c->data.diplo_action.target);
-				break;
-			case command_type::call_to_arms:
-				execute_call_to_arms(state, c->source, c->data.call_to_arms.target, c->data.call_to_arms.war);
-				break;
-			case command_type::respond_to_diplomatic_message:
-				execute_respond_to_diplomatic_message(state, c->source, c->data.message.from, c->data.message.type, c->data.message.accept);
-				break;
-			case command_type::cancel_military_access:
-				execute_cancel_military_access(state, c->source, c->data.diplo_action.target);
-				break;
-			case command_type::cancel_alliance:
-				execute_cancel_alliance(state, c->source, c->data.diplo_action.target);
-				break;
-			case command_type::cancel_given_military_access:
-				execute_cancel_given_military_access(state, c->source, c->data.diplo_action.target);
-				break;
+		case command_type::invalid:
+			std::abort(); // invalid command
+			break;
+		case command_type::change_nat_focus:
+			execute_set_national_focus(state, c->source, c->data.nat_focus.target_state, c->data.nat_focus.focus);
+			break;
+		case command_type::start_research:
+			execute_start_research(state, c->source, c->data.start_research.tech);
+			break;
+		case command_type::make_leader:
+			execute_make_leader(state, c->source, c->data.make_leader.is_general);
+			break;
+		case command_type::begin_province_building_construction:
+			execute_begin_province_building_construction(state, c->source, c->data.start_province_building.location, c->data.start_province_building.type);
+			break;
+		case command_type::war_subsidies:
+			execute_give_war_subsidies(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::cancel_war_subsidies:
+			execute_cancel_war_subsidies(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::increase_relations:
+			execute_increase_relations(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::decrease_relations:
+			execute_decrease_relations(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::begin_factory_building_construction:
+			execute_begin_factory_building_construction(state, c->source, c->data.start_factory_building.location, c->data.start_factory_building.type, c->data.start_factory_building.is_upgrade);
+			break;
+		case command_type::begin_naval_unit_construction:
+			execute_start_naval_unit_construction(state, c->source, c->data.naval_unit_construction.location, c->data.naval_unit_construction.type);
+			break;
+		case command_type::cancel_naval_unit_construction:
+			execute_cancel_naval_unit_construction(state, c->source, c->data.naval_unit_construction.location, c->data.naval_unit_construction.type);
+			break;
+		case command_type::begin_land_unit_construction:
+			execute_start_land_unit_construction(state, c->source, c->data.land_unit_construction.location, c->data.land_unit_construction.pop_culture, c->data.land_unit_construction.type);
+			break;
+		case command_type::cancel_land_unit_construction:
+			execute_cancel_land_unit_construction(state, c->source, c->data.land_unit_construction.location, c->data.land_unit_construction.pop_culture, c->data.land_unit_construction.type);
+			break;
+		case command_type::delete_factory:
+			execute_delete_factory(state, c->source, c->data.factory.location, c->data.factory.type);
+			break;
+		case command_type::change_factory_settings:
+			execute_change_factory_settings(state, c->source, c->data.factory.location, c->data.factory.type, c->data.factory.priority, c->data.factory.subsidize);
+			break;
+		case command_type::make_vassal:
+			execute_make_vassal(state, c->source, c->data.tag_target.ident);
+			break;
+		case command_type::release_and_play_nation:
+			execute_release_and_play_as(state, c->source, c->data.tag_target.ident);
+			break;
+		case command_type::change_budget:
+			execute_change_budget_settings(state, c->source, c->data.budget_data);
+			break;
+		case command_type::start_election:
+			execute_start_election(state, c->source);
+			break;
+		case command_type::change_influence_priority:
+			execute_change_influence_priority(state, c->source, c->data.influence_priority.influence_target, c->data.influence_priority.priority);
+			break;
+		case command_type::expel_advisors:
+			execute_expel_advisors(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
+			break;
+		case command_type::ban_embassy:
+			execute_ban_embassy(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
+			break;
+		case command_type::discredit_advisors:
+			execute_discredit_advisors(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
+			break;
+		case command_type::decrease_opinion:
+			execute_decrease_opinion(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
+			break;
+		case command_type::remove_from_sphere:
+			execute_remove_from_sphere(state, c->source, c->data.influence_action.influence_target, c->data.influence_action.gp_target);
+			break;
+		case command_type::increase_opinion:
+			execute_increase_opinion(state, c->source, c->data.influence_action.influence_target);
+			break;
+		case command_type::add_to_sphere:
+			execute_add_to_sphere(state, c->source, c->data.influence_action.influence_target);
+			break;
+		case command_type::upgrade_colony_to_state:
+			execute_upgrade_colony_to_state(state, c->source, state.world.province_get_state_membership(c->data.generic_location.prov));
+			break;
+		case command_type::invest_in_colony:
+			execute_invest_in_colony(state, c->source, c->data.generic_location.prov);
+			break;
+		case command_type::abandon_colony:
+			execute_abandon_colony(state, c->source, c->data.generic_location.prov);
+			break;
+		case command_type::finish_colonization:
+			execute_finish_colonization(state, c->source, c->data.generic_location.prov);
+			break;
+		case command_type::intervene_in_war:
+			execute_intervene_in_war(state, c->source, c->data.war_target.war, c->data.war_target.for_attacker);
+			break;
+		case command_type::suppress_movement:
+			execute_suppress_movement(state, c->source, c->data.movement.iopt, c->data.movement.tag);
+			break;
+		case command_type::civilize_nation:
+			execute_civilize_nation(state, c->source);
+			break;
+		case command_type::appoint_ruling_party:
+			execute_appoint_ruling_party(state, c->source, c->data.political_party.p);
+			break;
+		case command_type::change_issue_option:
+			execute_enact_issue(state, c->source, c->data.issue_selection.r);
+			break;
+		case command_type::change_reform_option:
+			execute_enact_reform(state, c->source, c->data.reform_selection.r);
+			break;
+		case command_type::become_interested_in_crisis:
+			execute_become_interested_in_crisis(state, c->source);
+			break;
+		case command_type::take_sides_in_crisis:
+			execute_take_sides_in_crisis(state, c->source, c->data.crisis_join.join_attackers);
+			break;
+		case command_type::change_stockpile_settings:
+			execute_change_stockpile_settings(state, c->source, c->data.stockpile_settings.c, c->data.stockpile_settings.amount, c->data.stockpile_settings.draw_on_stockpiles);
+			break;
+		case command_type::take_decision:
+			execute_take_decision(state, c->source, c->data.decision.d);
+			break;
+		case command_type::make_n_event_choice:
+			execute_make_event_choice(state, c->source, c->data.pending_human_n_event);
+			break;
+		case command_type::make_f_n_event_choice:
+			execute_make_event_choice(state, c->source, c->data.pending_human_f_n_event);
+			break;
+		case command_type::make_p_event_choice:
+			execute_make_event_choice(state, c->source, c->data.pending_human_p_event);
+			break;
+		case command_type::make_f_p_event_choice:
+			execute_make_event_choice(state, c->source, c->data.pending_human_f_p_event);
+			break;
+		case command_type::cancel_cb_fabrication:
+			execute_cancel_cb_fabrication(state, c->source);
+			break;
+		case command_type::fabricate_cb:
+			execute_fabricate_cb(state, c->source, c->data.cb_fabrication.target, c->data.cb_fabrication.type);
+			break;
+		case command_type::ask_for_military_access:
+			execute_ask_for_access(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::ask_for_alliance:
+			execute_ask_for_alliance(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::call_to_arms:
+			execute_call_to_arms(state, c->source, c->data.call_to_arms.target, c->data.call_to_arms.war);
+			break;
+		case command_type::respond_to_diplomatic_message:
+			execute_respond_to_diplomatic_message(state, c->source, c->data.message.from, c->data.message.type, c->data.message.accept);
+			break;
+		case command_type::cancel_military_access:
+			execute_cancel_military_access(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::cancel_alliance:
+			execute_cancel_alliance(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::cancel_given_military_access:
+			execute_cancel_given_military_access(state, c->source, c->data.diplo_action.target);
+			break;
 		}
 
 		state.incoming_commands.pop();
@@ -2518,4 +2508,4 @@ void execute_pending_commands(sys::state& state) {
 	}
 }
 
-}
+} // namespace command

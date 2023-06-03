@@ -21,8 +21,9 @@ public:
 class trade_market_activity_listbox : public listbox_element_base<trade_market_activity_entry, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "market_activity_entry";
-    }
+		return "market_activity_entry";
+	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -51,8 +52,9 @@ public:
 class trade_stockpile_listbox : public listbox_element_base<trade_stockpile_entry, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "stockpile_entry";
-    }
+		return "stockpile_entry";
+	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -83,8 +85,9 @@ public:
 class trade_common_market_listbox : public listbox_element_base<trade_common_market_entry, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "common_market_entry";
-    }
+		return "common_market_entry";
+	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -113,8 +116,9 @@ public:
 class trade_government_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_government_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "goods_needs_entry";
-    }
+		return "goods_needs_entry";
+	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -134,8 +138,9 @@ public:
 class trade_factory_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_factory_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "goods_needs_entry";
-    }
+		return "goods_needs_entry";
+	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -155,8 +160,9 @@ public:
 class trade_pop_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_pop_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "goods_needs_entry";
-    }
+		return "goods_needs_entry";
+	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -178,9 +184,10 @@ struct trade_details_select_commodity {
 };
 class trade_commodity_entry_button : public button_element_base {
 	dcon::commodity_id commodity_id{};
+
 public:
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = trade_details_select_commodity{ commodity_id };
+		Cyto::Any payload = trade_details_select_commodity{commodity_id};
 		state.ui_state.trade_subwindow->impl_get(state, payload);
 	}
 
@@ -194,6 +201,7 @@ public:
 };
 class trade_commodity_entry : public window_element_base {
 	dcon::commodity_id commodity_id{};
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "entry_button") {
@@ -240,11 +248,11 @@ public:
 		may_be_used_by
 	} value_type{};
 	union {
-		dcon::factory_id factory_id; // factory
-		dcon::province_id province_id; // province
+		dcon::factory_id factory_id;       // factory
+		dcon::province_id province_id;     // province
 		dcon::province_id pop_province_id; // pop
-		dcon::army_id army_id; // army
-		dcon::navy_id navy_id; // navy
+		dcon::army_id army_id;             // army
+		dcon::navy_id navy_id;             // navy
 	} data{};
 };
 class trade_flow_entry : public listbox_row_element_base<trade_flow_data> {
@@ -252,6 +260,7 @@ class trade_flow_entry : public listbox_row_element_base<trade_flow_data> {
 	simple_text_element_base* title = nullptr;
 	simple_text_element_base* value = nullptr;
 	image_element_base* output_icon = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "icon") {
@@ -344,8 +353,8 @@ public:
 class trade_flow_listbox_base : public listbox_element_base<trade_flow_entry, trade_flow_data> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "trade_flow_entry";
-    }
+		return "trade_flow_entry";
+	}
 
 	template<typename F>
 	void populate_rows(sys::state& state, F&& factory_func, enum trade_flow_data::value_type vt) {
@@ -379,6 +388,7 @@ protected:
 			}
 		}
 	}
+
 public:
 };
 
@@ -391,10 +401,12 @@ public:
 			auto commodity_id = any_cast<dcon::commodity_id>(payload);
 
 			row_contents.clear();
-			populate_rows(state, [&](dcon::factory_id fid) -> bool {
-				auto ftid = state.world.factory_get_building_type(fid);
-				return state.world.factory_type_get_output(ftid) == commodity_id;
-			}, trade_flow_data::value_type::produced_by);
+			populate_rows(
+			    state, [&](dcon::factory_id fid) -> bool {
+				    auto ftid = state.world.factory_get_building_type(fid);
+				    return state.world.factory_type_get_output(ftid) == commodity_id;
+			    },
+			    trade_flow_data::value_type::produced_by);
 			update(state);
 		}
 	}
@@ -408,14 +420,16 @@ public:
 			auto commodity_id = any_cast<dcon::commodity_id>(payload);
 
 			row_contents.clear();
-			populate_rows(state, [&](dcon::factory_id fid) -> bool {
-				auto ftid = state.world.factory_get_building_type(fid);
-				auto& inputs = state.world.factory_type_get_inputs(ftid);
-				for(uint32_t i = 0; i < inputs.set_size; ++i)
-					if(inputs.commodity_type[i] == commodity_id)
-						return inputs.commodity_amounts[i] > 0.f; // Some inputs taken
-				return false;
-			}, trade_flow_data::value_type::used_by);
+			populate_rows(
+			    state, [&](dcon::factory_id fid) -> bool {
+				    auto ftid = state.world.factory_get_building_type(fid);
+				    auto& inputs = state.world.factory_type_get_inputs(ftid);
+				    for(uint32_t i = 0; i < inputs.set_size; ++i)
+					    if(inputs.commodity_type[i] == commodity_id)
+						    return inputs.commodity_amounts[i] > 0.f; // Some inputs taken
+				    return false;
+			    },
+			    trade_flow_data::value_type::used_by);
 			update(state);
 		}
 	}
@@ -429,14 +443,16 @@ public:
 			auto commodity_id = any_cast<dcon::commodity_id>(payload);
 
 			row_contents.clear();
-			populate_rows(state, [&](dcon::factory_id fid) -> bool {
-				auto ftid = state.world.factory_get_building_type(fid);
-				auto& inputs = state.world.factory_type_get_inputs(ftid);
-				for(uint32_t i = 0; i < inputs.set_size; ++i)
-					if(inputs.commodity_type[i] == commodity_id)
-						return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
-				return false;
-			}, trade_flow_data::value_type::may_be_used_by);
+			populate_rows(
+			    state, [&](dcon::factory_id fid) -> bool {
+				    auto ftid = state.world.factory_get_building_type(fid);
+				    auto& inputs = state.world.factory_type_get_inputs(ftid);
+				    for(uint32_t i = 0; i < inputs.set_size; ++i)
+					    if(inputs.commodity_type[i] == commodity_id)
+						    return inputs.commodity_amounts[i] == 0.f; // No inputs intaken
+				    return false;
+			    },
+			    trade_flow_data::value_type::may_be_used_by);
 			update(state);
 		}
 	}
@@ -543,14 +559,14 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("goods_entry_offset")->second.definition].position;
-		xy_pair offset{ 0, 0 };
+		xy_pair offset{0, 0};
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != Group)
 				return;
 			auto ptr = make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
 			ptr->base_data.position = offset;
 			offset.x += cell_size.x;
-			if(offset.x + cell_size.x >= base_data.size.x) {
+			if(offset.x + cell_size.x - 1 >= base_data.size.x) {
 				offset.x = 0;
 				offset.y += cell_size.y;
 				if(offset.y + cell_size.y >= base_data.size.y) {
@@ -576,7 +592,7 @@ public:
 			parent->impl_get(state, payload);
 			auto commodity_id = any_cast<dcon::commodity_id>(payload);
 
-			Cyto::Any dt_payload = trade_details_open_window{ commodity_id };
+			Cyto::Any dt_payload = trade_details_open_window{commodity_id};
 			state.ui_state.trade_subwindow->impl_get(state, dt_payload);
 		}
 	}
@@ -603,7 +619,7 @@ class trade_slider : public scrollbar {
 public:
 	void on_value_change(sys::state& state, int32_t v) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<float>{float{scaled_value()}};	// Why
+			Cyto::Any payload = element_selection_wrapper<float>{float{scaled_value()}}; // Why
 			parent->impl_get(state, payload);
 		}
 	}
@@ -622,6 +638,7 @@ public:
 class trade_details_window : public window_element_base {
 private:
 	float trade_amount = 0.0f;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "trade_flow_bg") {
@@ -682,6 +699,7 @@ class trade_window : public window_element_base {
 	trade_flow_window* trade_flow_win = nullptr;
 	trade_details_window* details_win = nullptr;
 	dcon::commodity_id commodity_id{};
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -726,7 +744,7 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		// Special mesage rebroadcasted by the details button from the hierachy
+		// Special message rebroadcasted by the details button from the hierarchy
 		if(payload.holds_type<dcon::commodity_id>()) {
 			payload.emplace<dcon::commodity_id>(commodity_id);
 			return message_result::consumed;
@@ -744,4 +762,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

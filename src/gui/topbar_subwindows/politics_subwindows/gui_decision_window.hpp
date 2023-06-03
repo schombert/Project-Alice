@@ -19,13 +19,13 @@ public:
 			parent->impl_get(state, payload);
 			auto id = any_cast<dcon::decision_id>(payload);
 
-						auto fat_id = dcon::fatten(state.world, id);
-						auto name = fat_id.get_name();
-						if(bool(name)) {
-								auto box = text::open_layout_box(contents, 0);
-								text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-								text::close_layout_box(contents, box);
-						}
+			auto fat_id = dcon::fatten(state.world, id);
+			auto name = fat_id.get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
 
 			auto ef = fat_id.get_effect();
 			if(bool(ef))
@@ -34,7 +34,7 @@ public:
 	}
 };
 
-class make_decision : public  button_element_base {
+class make_decision : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -120,7 +120,7 @@ private:
 	dcon::text_sequence_id description;
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(contents, state, box, description, text::substitution_map{ });
+		text::add_to_layout_box(contents, state, box, description, text::substitution_map{});
 		text::close_layout_box(contents, box);
 	}
 
@@ -139,9 +139,8 @@ public:
 			description = fat_id.get_description();
 		}
 		auto container = text::create_endless_layout(
-			delegate->internal_layout,
-			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black }
-		);
+		    delegate->internal_layout,
+		    text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
 	}
@@ -184,15 +183,15 @@ public:
 	std::unique_ptr<ui::element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "decision_name") {
 			return make_element_by_type<decision_name>(state, id);
-		} else if (name == "decision_image"){
+		} else if(name == "decision_image") {
 			return make_element_by_type<decision_image>(state, id);
-		} else if (name == "decision_desc") {
+		} else if(name == "decision_desc") {
 			return make_element_by_type<decision_desc>(state, id);
-		} else if (name == "requirements") {
+		} else if(name == "requirements") {
 			return make_element_by_type<decision_requirements>(state, id);
-		} else if (name == "ignore_checkbox") {
+		} else if(name == "ignore_checkbox") {
 			return make_element_by_type<ignore_checkbox>(state, id);
-		} else if (name == "make_decision") {
+		} else if(name == "make_decision") {
 			return make_element_by_type<make_decision>(state, id);
 		} else {
 			return nullptr;
@@ -203,7 +202,7 @@ public:
 		if(payload.holds_type<dcon::decision_id>()) {
 			payload.emplace<dcon::decision_id>(content);
 			return message_result::consumed;
-		} else if (payload.holds_type<wrapped_listbox_row_content<dcon::decision_id>>()) {
+		} else if(payload.holds_type<wrapped_listbox_row_content<dcon::decision_id>>()) {
 			return listbox_row_element_base<dcon::decision_id>::get(state, payload);
 		} else {
 			return message_result::unseen;
@@ -211,7 +210,7 @@ public:
 	}
 
 	void update(sys::state& state) noexcept override {
-		for(auto& child : children){
+		for(auto& child : children) {
 			child->impl_on_update(state);
 		}
 	}
@@ -239,8 +238,8 @@ private:
 	std::vector<dcon::decision_id> get_decisions(sys::state& state) {
 		std::vector<dcon::decision_id> list;
 		auto n = state.local_player_nation;
-		for(uint32_t i = state.world.decision_size(); i-- > 0; ) {
-			dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+		for(uint32_t i = state.world.decision_size(); i-- > 0;) {
+			dcon::decision_id did{dcon::decision_id::value_base_t(i)};
 			auto lim = state.world.decision_get_potential(did);
 			if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
 				list.push_back(did);
@@ -274,4 +273,4 @@ public:
 	}
 };
 
-} //namespace
+} // namespace ui

@@ -41,15 +41,15 @@ public:
 		} else if(name == "max") {
 			return make_element_by_type<button_element_base>(state, id);
 		} else if(name == "current_budget_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);		// NOT
+			return make_element_by_type<simple_text_element_base>(state, id); // NOT
 		} else if(name == "your_investment_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);		// NOT
+			return make_element_by_type<simple_text_element_base>(state, id); // NOT
 		} else if(name == "left_value") {
 			return make_element_by_type<project_investment_current_funds>(state, id);
 		} else if(name == "your_investment") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "right_value") {
-			return make_element_by_type<simple_text_element_base>(state, id);		// NOT
+			return make_element_by_type<simple_text_element_base>(state, id); // NOT
 		} else if(name == "transfer_slider") {
 			return make_element_by_type<scrollbar>(state, id);
 		} else {
@@ -58,4 +58,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

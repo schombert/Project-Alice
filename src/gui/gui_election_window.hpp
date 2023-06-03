@@ -10,11 +10,11 @@
 namespace ui {
 
 /*	##   ##		       ##   ##
-	##   ##  ##   ##   ##  ##   ##
-	##   ##  ##   ##   ##  ##   ##
-	##   ##  ##   ##   ##  ##   ##
-	 ## ##    ## #### ##    ## ##
-	  ###      ###  ###      ###
+    ##   ##  ##   ##   ##  ##   ##
+    ##   ##  ##   ##   ##  ##   ##
+    ##   ##  ##   ##   ##  ##   ##
+     ## ##    ## #### ##    ## ##
+      ###      ###  ###      ###
 */
 
 class election_event_window : public window_element_base {
@@ -50,7 +50,7 @@ public:
 			return make_element_by_type<simple_text_element_base>(state, id);
 
 		} else if(name == "parties_listbox") {
-			return nullptr;		// This should be a listbox >w<
+			return nullptr; // This should be a listbox >w<
 
 		} else if(name == "popularity_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -62,7 +62,7 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "popularity_listbox") {
-			return nullptr;		// This should also be a listbox UwU
+			return nullptr; // This should also be a listbox UwU
 
 		} else if(name == "voter_issues_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
@@ -74,13 +74,12 @@ public:
 			return make_element_by_type<button_element_base>(state, id);
 
 		} else if(name == "issues_listbox") {
-			return nullptr;		// OwO *notices another listbox to add*
+			return nullptr; // OwO *notices another listbox to add*
 
 		} else {
 			return nullptr;
 		}
 	}
-
 };
 
-}
+} // namespace ui

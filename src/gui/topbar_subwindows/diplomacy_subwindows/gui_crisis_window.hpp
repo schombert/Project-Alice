@@ -27,9 +27,9 @@ public:
 class diplomacy_crisis_attacker_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) {		// Liberation
+		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			return state.crisis_liberation_tag;
-		} else if(state.current_crisis != sys::crisis_type::liberation) {	// Colonial
+		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
 			return dcon::fatten(state.world, state.primary_crisis_attacker).get_identity_from_identity_holder();
 		}
 
@@ -40,11 +40,11 @@ public:
 class diplomacy_crisis_sponsor_attacker_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) {		// Liberation
+		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_attacker);
 			return fat_id.get_identity_from_identity_holder();
-		} else if(state.current_crisis != sys::crisis_type::liberation) {	// Colonial
-			return dcon::national_identity_id{0};	// TODO - this should only appear for things that would need a GP, and a GP cant have a sponser i think?
+		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
+			return dcon::national_identity_id{0};                         // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
 		}
 		return dcon::national_identity_id{0};
 	}
@@ -53,10 +53,10 @@ public:
 class diplomacy_crisis_attacker_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) {		// Liberation
+		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.crisis_liberation_tag).get_name()));
 			return;
-		} else if(state.current_crisis != sys::crisis_type::liberation) {	// Colonial
+		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
 			set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.primary_crisis_attacker).get_name()));
 			return;
 		}
@@ -85,7 +85,7 @@ public:
 		if(name == "country_flag") {
 			return make_element_by_type<diplomacy_crisis_attacker_flag>(state, id);
 
-		} else if(name == "sponsored_flag") {	// Brought to you BY no one, fuck companies >w<
+		} else if(name == "sponsored_flag") { // Brought to you BY no one, fuck companies >w<
 			return make_element_by_type<diplomacy_crisis_sponsor_attacker_flag>(state, id);
 
 		} else if(name == "country_name") {
@@ -118,13 +118,13 @@ public:
 class diplomacy_crisis_defender_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) {		// Liberation
+		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			if(nations::is_great_power(state, state.primary_crisis_defender)) {
 				return state.crisis_liberation_tag;
 			} else {
 				return dcon::fatten(state.world, state.crisis_state).get_nation_from_state_ownership().get_identity_from_identity_holder().id;
 			}
-		} else if(state.current_crisis != sys::crisis_type::liberation) {	// Colonial
+		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
 			return dcon::fatten(state.world, state.primary_crisis_defender).get_identity_from_identity_holder();
 		}
 
@@ -135,11 +135,11 @@ public:
 class diplomacy_crisis_sponsor_defender_flag : public flag_button {
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		if(state.current_crisis != sys::crisis_type::colonial) {		// Liberation
+		if(state.current_crisis != sys::crisis_type::colonial) { // Liberation
 			auto fat_id = dcon::fatten(state.world, state.primary_crisis_defender);
 			return fat_id.get_identity_from_identity_holder();
-		} else if(state.current_crisis != sys::crisis_type::liberation) {	// Colonial
-			return dcon::national_identity_id{0};	// TODO - this should only appear for things that would need a GP, and a GP cant have a sponser i think?
+		} else if(state.current_crisis != sys::crisis_type::liberation) { // Colonial
+			return dcon::national_identity_id{0};                         // TODO - this should only appear for things that would need a GP, and a GP cant have a sponsor i think?
 		}
 		return dcon::national_identity_id{0};
 	}
@@ -175,7 +175,7 @@ public:
 		if(name == "country_flag") {
 			return make_element_by_type<diplomacy_crisis_defender_flag>(state, id);
 
-		} else if(name == "sponsored_flag") {	// Brought to you BY no one, fuck companies >w<
+		} else if(name == "sponsored_flag") { // Brought to you BY no one, fuck companies >w<
 			return make_element_by_type<diplomacy_crisis_sponsor_defender_flag>(state, id);
 
 		} else if(name == "country_name") {
@@ -201,7 +201,6 @@ public:
 
 		} else {
 			return nullptr;
-
 		}
 	}
 };
@@ -223,21 +222,21 @@ class diplomacy_crisis_subtitle_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		switch(state.current_crisis) {
-			case sys::crisis_type::none:
-				set_text(state, "Im having a mental crisis >w<");
-				break;
-			case sys::crisis_type::claim:
-				set_text(state, text::produce_simple_string(state, "crisis_description_reclaim"));
-				break;
-			case sys::crisis_type::liberation:
-				set_text(state, text::produce_simple_string(state, "crisis_description_liberation"));
-				break;
-			case sys::crisis_type::colonial:
-				set_text(state, text::produce_simple_string(state, "crisis_description_colonize"));
-				break;
-			case sys::crisis_type::influence:
-				set_text(state, text::produce_simple_string(state, "crisis_description_influence"));
-				break;
+		case sys::crisis_type::none:
+			set_text(state, "Im having a mental crisis >w<");
+			break;
+		case sys::crisis_type::claim:
+			set_text(state, text::produce_simple_string(state, "crisis_description_reclaim"));
+			break;
+		case sys::crisis_type::liberation:
+			set_text(state, text::produce_simple_string(state, "crisis_description_liberation"));
+			break;
+		case sys::crisis_type::colonial:
+			set_text(state, text::produce_simple_string(state, "crisis_description_colonize"));
+			break;
+		case sys::crisis_type::influence:
+			set_text(state, text::produce_simple_string(state, "crisis_description_influence"));
+			break;
 		};
 	}
 };
@@ -253,18 +252,18 @@ class diplomacy_crisis_status_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		switch(state.current_crisis_mode) {
-			case sys::crisis_mode::inactive:
-				set_text(state, text::produce_simple_string(state, "has_no_crisis"));
-				break;
-			case sys::crisis_mode::finding_attacker:
-				set_text(state, text::produce_simple_string(state, "crisis_waiting_on_backer"));
-				break;
-			case sys::crisis_mode::finding_defender:
-				set_text(state, text::produce_simple_string(state, "crisis_waiting_on_backer"));
-				break;
-			case sys::crisis_mode::heating_up:
-				set_text(state, text::produce_simple_string(state, "has_crisis"));	// TODO - find the correct CSV Key for this...
-				break;
+		case sys::crisis_mode::inactive:
+			set_text(state, text::produce_simple_string(state, "has_no_crisis"));
+			break;
+		case sys::crisis_mode::finding_attacker:
+			set_text(state, text::produce_simple_string(state, "crisis_waiting_on_backer"));
+			break;
+		case sys::crisis_mode::finding_defender:
+			set_text(state, text::produce_simple_string(state, "crisis_waiting_on_backer"));
+			break;
+		case sys::crisis_mode::heating_up:
+			set_text(state, text::produce_simple_string(state, "has_crisis")); // TODO - find the correct CSV Key for this...
+			break;
 		}
 	}
 };
@@ -304,9 +303,8 @@ public:
 
 		} else {
 			return nullptr;
-
 		}
 	}
 };
 
-}
+} // namespace ui

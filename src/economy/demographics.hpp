@@ -6,13 +6,13 @@ namespace pop_demographics {
 
 constexpr inline uint32_t count_special_keys = 0;
 
-dcon::pop_demographics_key to_key(sys::state const& state, dcon::ideology_id v);
-dcon::pop_demographics_key to_key(sys::state const& state, dcon::issue_option_id v);
-uint32_t size(sys::state const& state);
+dcon::pop_demographics_key to_key(sys::state const & state, dcon::ideology_id v);
+dcon::pop_demographics_key to_key(sys::state const & state, dcon::issue_option_id v);
+uint32_t size(sys::state const & state);
 
 void regenerate_is_primary_or_accepted(sys::state& state);
 
-}
+} // namespace pop_demographics
 namespace demographics {
 
 constexpr inline dcon::demographics_key total(0);
@@ -41,14 +41,14 @@ constexpr inline dcon::demographics_key rich_total(22);
 
 constexpr inline uint32_t count_special_keys = 23;
 
-dcon::demographics_key to_key(sys::state const& state, dcon::ideology_id v);
-dcon::demographics_key to_key(sys::state const& state, dcon::issue_option_id v);
-dcon::demographics_key to_key(sys::state const& state, dcon::pop_type_id v);
-dcon::demographics_key to_key(sys::state const& state, dcon::culture_id v);
-dcon::demographics_key to_key(sys::state const& state, dcon::religion_id v);
-dcon::demographics_key to_employment_key(sys::state const& state, dcon::pop_type_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::ideology_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::issue_option_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::pop_type_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::culture_id v);
+dcon::demographics_key to_key(sys::state const & state, dcon::religion_id v);
+dcon::demographics_key to_employment_key(sys::state const & state, dcon::pop_type_id v);
 
-uint32_t size(sys::state const& state);
+uint32_t size(sys::state const & state);
 
 void regenerate_from_pop_data(sys::state& state);
 
@@ -175,4 +175,4 @@ int64_t get_monthly_pop_increase(sys::state& state, dcon::pop_id);
 int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n);
 int64_t get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n);
 
-}
+} // namespace demographics

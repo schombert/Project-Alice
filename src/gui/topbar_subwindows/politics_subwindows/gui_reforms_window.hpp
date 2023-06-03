@@ -55,6 +55,7 @@ public:
 
 class reforms_option : public listbox_row_element_base<dcon::issue_option_id> {
 	image_element_base* selected_icon = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
@@ -79,8 +80,9 @@ public:
 class reforms_listbox : public listbox_element_base<reforms_option, dcon::issue_option_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "reform_option_window";
-    }
+		return "reform_option_window";
+	}
+
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::issue_id>()) {
@@ -99,6 +101,7 @@ public:
 
 class reforms_reform_window : public window_element_base {
 	dcon::issue_id issue_id{};
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
@@ -154,4 +157,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

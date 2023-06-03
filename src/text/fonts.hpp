@@ -28,12 +28,11 @@ class font {
 private:
 	font(const font&) = delete;
 	font(font&&) = default;
-	font& operator=(font const&) = delete;
+	font& operator=(font const &) = delete;
 	font& operator=(font&&) noexcept = default;
 	font() = default;
-public:
-	
 
+public:
 	FT_Face font_face;
 	float internal_line_height = 0.0f;
 	float internal_ascender = 0.0f;
@@ -42,9 +41,9 @@ public:
 
 	bool loaded = false;
 
-	float glyph_advances[256] = { 0.0f };
-	uint32_t textures[4] = { 0, 0, 0, 0 };
-	bool glyph_loaded[256] = { false };
+	float glyph_advances[256] = {0.0f};
+	uint32_t textures[4] = {0, 0, 0, 0};
+	bool glyph_loaded[256] = {false};
 	glyph_sub_offset glyph_positions[256] = {};
 
 	std::unique_ptr<FT_Byte[]> file_data;
@@ -72,7 +71,7 @@ public:
 	ankerl::unordered_dense::map<uint16_t, BMFont> bitmap_fonts;
 	FT_Library ft_library;
 
-	void load_font(font& fnt, char const* file_data, uint32_t file_size);
+	void load_font(font& fnt, char const * file_data, uint32_t file_size);
 	void load_all_glyphs();
 
 	float line_height(sys::state& state, uint16_t font_id) const;
@@ -81,4 +80,4 @@ public:
 
 void load_standard_fonts(sys::state& state);
 void load_bmfonts(sys::state& state);
-}
+} // namespace text

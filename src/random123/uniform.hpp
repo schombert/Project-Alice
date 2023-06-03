@@ -51,7 +51,7 @@ There are three templated functions:
     return 1.0 or -1.0 if and only if the number of output mantissa bits
     is less than the width of the input.
 
- - u01fixedpt:  output is "fixed point", equispaced, open at both ends, 
+ - u01fixedpt:  output is "fixed point", equispaced, open at both ends,
      and is never 0.0, 0.5 nor 1.0.
 
 The behavior of u01 and uneg11 depend on the pre-processor symbol:
@@ -94,7 +94,7 @@ improvements.
 #include <array>
 #endif
 
-namespace r123{
+namespace r123 {
 /**
 @{
 @cond HIDDEN_FROM_DOXYGEN
@@ -107,13 +107,27 @@ using std::make_unsigned;
 // Sigh... We could try to find another <type_traits>, e.g., from
 // boost or TR1.  Or we can do it ourselves in the r123 namespace.
 // It's not clear which will cause less headache...
-template <typename T> struct make_signed{};
-template <typename T> struct make_unsigned{};
-#define R123_MK_SIGNED_UNSIGNED(ST, UT)                 \
-template<> struct make_signed<ST>{ typedef ST type; }; \
-template<> struct make_signed<UT>{ typedef ST type; }; \
-template<> struct make_unsigned<ST>{ typedef UT type; }; \
-template<> struct make_unsigned<UT>{ typedef UT type; }
+template<typename T>
+struct make_signed { };
+template<typename T>
+struct make_unsigned { };
+#define R123_MK_SIGNED_UNSIGNED(ST, UT) \
+	template<>                          \
+	struct make_signed<ST> {            \
+		typedef ST type;                \
+	};                                  \
+	template<>                          \
+	struct make_signed<UT> {            \
+		typedef ST type;                \
+	};                                  \
+	template<>                          \
+	struct make_unsigned<ST> {          \
+		typedef UT type;                \
+	};                                  \
+	template<>                          \
+	struct make_unsigned<UT> {          \
+		typedef UT type;                \
+	}
 
 R123_MK_SIGNED_UNSIGNED(int8_t, uint8_t);
 R123_MK_SIGNED_UNSIGNED(int16_t, uint16_t);
@@ -127,25 +141,25 @@ R123_MK_SIGNED_UNSIGNED(__int128_t, __uint128_t);
 
 #if defined(__CUDACC__) || defined(_LIBCPP_HAS_NO_CONSTEXPR)
 // Amazing! cuda thinks numeric_limits::max() is a __host__ function, so
-// we can't use it in a device function.  
+// we can't use it in a device function.
 //
 // The LIBCPP_HAS_NO_CONSTEXP test catches situations where the libc++
 // library thinks that the compiler doesn't support constexpr, but we
 // think it does.  As a consequence, the library declares
 // numeric_limits::max without constexpr.  This workaround should only
 // affect a narrow range of compiler/library pairings.
-// 
+//
 // In both cases, we find max() by computing ~(unsigned)0 right-shifted
 // by is_signed.
-template <typename T>
-R123_CONSTEXPR R123_STATIC_INLINE R123_CUDA_DEVICE T maxTvalue(){
-    typedef typename make_unsigned<T>::type uT;
-    return (~uT(0)) >> std::numeric_limits<T>::is_signed;
- }
+template<typename T>
+R123_CONSTEXPR R123_STATIC_INLINE R123_CUDA_DEVICE T maxTvalue() {
+	typedef typename make_unsigned<T>::type uT;
+	return (~uT(0)) >> std::numeric_limits<T>::is_signed;
+}
 #else
-template <typename T>
-R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue(){
-    return std::numeric_limits<T>::max();
+template<typename T>
+R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue() {
+	return std::numeric_limits<T>::max();
 }
 #endif
 /** @endcond
@@ -160,26 +174,27 @@ R123_CONSTEXPR R123_STATIC_INLINE T maxTvalue(){
      Ftype(2^(-W-1)).  A good compiler should optimize it down to an
      int-to-float conversion followed by a multiply and an add, which
      might be fused, depending on the architecture.
-   
+
     If the input is a uniformly distributed integer, and if Ftype
     arithmetic follows IEEE754 round-to-nearest rules, then the
     result is a uniformly distributed floating point number in (0, 1].
 
--    The result is never exactly 0.0.  
+-    The result is never exactly 0.0.
 -    The smallest value returned is 2^-(W-1).
 -    Let M be the number of mantissa bits in Ftype (typically 24 or 53).
   -    If W>M  then the largest value retured is 1.0.
   -    If W<=M then the largest value returned is Ftype(1.0 - 2^(-W-1)).
 */
-template <typename Ftype, typename Itype>
-R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01(Itype in){
-    typedef typename make_unsigned<Itype>::type Utype;
-    R123_CONSTEXPR Ftype factor = Ftype(1.)/(Ftype(maxTvalue<Utype>()) + Ftype(1.));
-    R123_CONSTEXPR Ftype halffactor = Ftype(0.5)*factor;
+template<typename Ftype, typename Itype>
+R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01(Itype in) {
+	typedef typename make_unsigned<Itype>::type Utype;
+	R123_CONSTEXPR Ftype factor = Ftype(1.) / (Ftype(maxTvalue<Utype>()) + Ftype(1.));
+	R123_CONSTEXPR Ftype halffactor = Ftype(0.5) * factor;
 #if R123_UNIFORM_FLOAT_STORE
-    volatile Ftype x = Utype(in)*factor; return x+halffactor;
+	volatile Ftype x = Utype(in) * factor;
+	return x + halffactor;
 #else
-    return Utype(in)*factor + halffactor;
+	return Utype(in) * factor + halffactor;
 #endif
 }
 
@@ -202,15 +217,16 @@ R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01(Itype in){
   - If W<=M then the largest value returned is the Ftype(1.0 - 2^-W)
     and the smallest value returned is -Ftype(1.0 - 2^-W).
 */
-template <typename Ftype, typename Itype>
-R123_CUDA_DEVICE R123_STATIC_INLINE Ftype uneg11(Itype in){
-    typedef typename make_signed<Itype>::type Stype;
-    R123_CONSTEXPR Ftype factor = Ftype(1.)/(Ftype(maxTvalue<Stype>()) + Ftype(1.));
-    R123_CONSTEXPR Ftype halffactor = Ftype(0.5)*factor;
+template<typename Ftype, typename Itype>
+R123_CUDA_DEVICE R123_STATIC_INLINE Ftype uneg11(Itype in) {
+	typedef typename make_signed<Itype>::type Stype;
+	R123_CONSTEXPR Ftype factor = Ftype(1.) / (Ftype(maxTvalue<Stype>()) + Ftype(1.));
+	R123_CONSTEXPR Ftype halffactor = Ftype(0.5) * factor;
 #if R123_UNIFORM_FLOAT_STORE
-    volatile Ftype x = Stype(in)*factor; return x+halffactor;
+	volatile Ftype x = Stype(in) * factor;
+	return x + halffactor;
 #else
-    return Stype(in)*factor + halffactor;
+	return Stype(in) * factor + halffactor;
 #endif
 }
 
@@ -235,16 +251,16 @@ R123_CUDA_DEVICE R123_STATIC_INLINE Ftype uneg11(Itype in){
      - are uniformly spaced by 2^-(B-1),
      - are balanced around 0.5
 */
-template <typename Ftype, typename Itype>
-R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01fixedpt(Itype in){
-    typedef typename make_unsigned<Itype>::type Utype;
-    R123_CONSTEXPR int excess = std::numeric_limits<Utype>::digits - std::numeric_limits<Ftype>::digits;
-    if(excess>=0){
-        R123_CONSTEXPR int ex_nowarn = (excess>=0) ? excess : 0;
-        R123_CONSTEXPR Ftype factor = Ftype(1.)/(Ftype(1.) + Ftype((maxTvalue<Utype>()>>ex_nowarn)));
-        return (1 | (Utype(in)>>ex_nowarn)) * factor;
-    }else
-        return u01<Ftype>(in);
+template<typename Ftype, typename Itype>
+R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01fixedpt(Itype in) {
+	typedef typename make_unsigned<Itype>::type Utype;
+	R123_CONSTEXPR int excess = std::numeric_limits<Utype>::digits - std::numeric_limits<Ftype>::digits;
+	if(excess >= 0) {
+		R123_CONSTEXPR int ex_nowarn = (excess >= 0) ? excess : 0;
+		R123_CONSTEXPR Ftype factor = Ftype(1.) / (Ftype(1.) + Ftype((maxTvalue<Utype>() >> ex_nowarn)));
+		return (1 | (Utype(in) >> ex_nowarn)) * factor;
+	} else
+		return u01<Ftype>(in);
 }
 
 #if R123_USE_CXX11_STD_ARRAY
@@ -255,16 +271,14 @@ R123_CUDA_DEVICE R123_STATIC_INLINE Ftype u01fixedpt(Itype in){
  * The argument type may be any integer collection with a constexpr static_size member,
  * e.g., an r123array or a std::array of an integer type.
  */
-template <typename Ftype, typename CollType>
-static inline
-std::array<Ftype, CollType::static_size> u01all(CollType in)
-{
-    std::array<Ftype, CollType::static_size> ret;
-    auto p = ret.begin();
-    for(auto e : in){
-        *p++ = u01<Ftype>(e);
-    }
-    return ret;
+template<typename Ftype, typename CollType>
+static inline std::array<Ftype, CollType::static_size> u01all(CollType in) {
+	std::array<Ftype, CollType::static_size> ret;
+	auto p = ret.begin();
+	for(auto e : in) {
+		*p++ = u01<Ftype>(e);
+	}
+	return ret;
 }
 
 //! Apply uneg11 to every item in an r123array, returning a std::array
@@ -273,38 +287,33 @@ std::array<Ftype, CollType::static_size> u01all(CollType in)
  * The argument type may be any integer collection with a constexpr static_size member,
  * e.g., an r123array or a std::array of an integer type.
  */
-template <typename Ftype, typename CollType>
-static inline
-std::array<Ftype, CollType::static_size> uneg11all(CollType in)
-{
-    std::array<Ftype, CollType::static_size> ret;
-    auto p = ret.begin();
-    for(auto e : in){
-        *p++ = uneg11<Ftype>(e);
-    }
-    return ret;
+template<typename Ftype, typename CollType>
+static inline std::array<Ftype, CollType::static_size> uneg11all(CollType in) {
+	std::array<Ftype, CollType::static_size> ret;
+	auto p = ret.begin();
+	for(auto e : in) {
+		*p++ = uneg11<Ftype>(e);
+	}
+	return ret;
 }
 
 //! Apply u01fixedpt to every item in an r123array, returning a std::array
-/** @ingroup uniform 
+/** @ingroup uniform
  * Only in C++11 and newer.
  * The argument type may be any integer collection with a constexpr static_size member,
  * e.g., an r123array or a std::array of an integer type.
-*/
-template <typename Ftype, typename CollType>
-static inline
-std::array<Ftype, CollType::static_size> u01fixedptall(CollType in)
-{
-    std::array<Ftype, CollType::static_size> ret;
-    auto p = ret.begin();
-    for(auto e : in){
-        *p++ = u01fixedpt<Ftype>(e);
-    }
-    return ret;
+ */
+template<typename Ftype, typename CollType>
+static inline std::array<Ftype, CollType::static_size> u01fixedptall(CollType in) {
+	std::array<Ftype, CollType::static_size> ret;
+	auto p = ret.begin();
+	for(auto e : in) {
+		*p++ = u01fixedpt<Ftype>(e);
+	}
+	return ret;
 }
 #endif // __cplusplus >= 201103L
 
 } // namespace r123
 
 #endif
-

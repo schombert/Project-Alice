@@ -45,6 +45,7 @@
 #include "gui_modifier_tooltips.cpp"
 #include "commands.cpp"
 #include "diplomatic_messages.cpp"
+#include "notifications.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
@@ -79,10 +80,10 @@
 #include "prng.cpp"
 
 namespace sys {
-	state::~state() {
-		// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
-	}
+state::~state() {
+	// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
 }
+} // namespace sys
 
 // zstd
 

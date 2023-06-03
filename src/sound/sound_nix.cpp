@@ -12,17 +12,16 @@ public:
 
 	audio_instance() = default;
 
-	audio_instance& operator=(audio_instance const& o) {
+	audio_instance& operator=(audio_instance const & o) {
 		filename = o.filename;
 		return *this;
 	}
 
-	audio_instance(simple_fs::unopened_file const& file) {
+	audio_instance(simple_fs::unopened_file const & file) {
 		filename = simple_fs::get_full_name(file);
 	}
 
 	~audio_instance() {
-
 	}
 };
 
@@ -99,7 +98,7 @@ void initialize_sound_system(sys::state& state) {
 	auto root = get_root(state.common_fs);
 
 	const auto music_directory = open_directory(root, NATIVE("music"));
-	for(const auto& mp3_file : list_files(music_directory , NATIVE(".mp3"))) {
+	for(const auto& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
 		state.sound_ptr->music_list.emplace_back(mp3_file);
 
 		auto file_name = get_full_name(mp3_file);
@@ -151,4 +150,4 @@ audio_instance& get_click_sound(sys::state& state) {
 	return state.sound_ptr->click_sound;
 }
 
-}
+} // namespace sound

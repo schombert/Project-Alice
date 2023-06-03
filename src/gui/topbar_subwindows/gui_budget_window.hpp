@@ -25,6 +25,7 @@ public:
 };
 class pop_satisfaction_wrapper_fat {
 	static text_sequence_id names[5];
+
 public:
 	uint8_t value = 0;
 	void set_name(text_sequence_id text) noexcept {
@@ -32,23 +33,23 @@ public:
 	}
 	text_sequence_id get_name() noexcept {
 		switch(value) {
-		case 0: // No needs fullfilled
+		case 0: // No needs fulfilled
 		case 1: // Some life needs
 		case 2: // All life needs
 		case 3: // All everyday
 		case 4: // All luxury
 			return names[value];
 		}
-		return text_sequence_id{ 0 };
+		return text_sequence_id{0};
 	}
 };
-pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept {
-	return pop_satisfaction_wrapper_fat{ id.value };
+pop_satisfaction_wrapper_fat fatten(data_container const & c, pop_satisfaction_wrapper_id id) noexcept {
+	return pop_satisfaction_wrapper_fat{id.value};
 }
-}
+} // namespace dcon
 namespace ogl {
 template<>
-uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id){
+uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
 	switch(id.value) {
 	case 0: // red
 		return sys::pack_color(1.0f, 0.1f, 0.1f);
@@ -63,7 +64,7 @@ uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id){
 	}
 	return 0;
 }
-}
+} // namespace ogl
 
 namespace ui {
 template<culture::pop_strata Strata>
@@ -94,16 +95,16 @@ protected:
 					// OR All everyday needs
 					// OR All life needs
 					// OR Some life needs
-					// OR No needs fullfilled...
+					// OR No needs fulfilled...
 					sat_pool[(pop_id.get_luxury_needs_satisfaction() > 0.f)
-						? 4
-						: (pop_id.get_everyday_needs_satisfaction() > 0.f)
-							? 3
-							: (pop_id.get_life_needs_satisfaction() >= 1.f)
-								? 2
-								: (pop_id.get_life_needs_satisfaction() > 0.f)
-									? 1
-									: 0] += pop_size;
+					             ? 4
+					         : (pop_id.get_everyday_needs_satisfaction() > 0.f)
+					             ? 3
+					         : (pop_id.get_life_needs_satisfaction() >= 1.f)
+					             ? 2
+					         : (pop_id.get_life_needs_satisfaction() > 0.f)
+					             ? 1
+					             : 0] += pop_size;
 					total += pop_size;
 				}
 			});
@@ -117,14 +118,15 @@ protected:
 		}
 		return distrib;
 	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		// Fill-in static information...
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{ 0 }).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{ 1 }).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{ 2 }).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{ 3 }).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
-		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{ 4 }).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{0}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NO_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{1}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{2}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{3}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
+		dcon::fatten(state.world, dcon::pop_satisfaction_wrapper_id{4}).set_name(text::find_or_add_key(state, "BUDGET_STRATA_NEED"));
 
 		piechart::on_create(state);
 	}
@@ -187,7 +189,7 @@ public:
 		}
 		if(parent) {
 			float amount = float(v) / 100.f;
-			Cyto::Any payload = budget_slider_signal{ SliderTarget, amount };
+			Cyto::Any payload = budget_slider_signal{SliderTarget, amount};
 			parent->impl_set(state, payload);
 		}
 	}
@@ -196,7 +198,7 @@ public:
 		return 0;
 	}
 
-	void on_drag_finish(sys::state & state) noexcept override {
+	void on_drag_finish(sys::state& state) noexcept override {
 		commit_changes(state);
 	}
 
@@ -207,33 +209,44 @@ private:
 		command::change_budget_settings(state, state.local_player_nation, budget_settings);
 	}
 
-	void update_budget_settings(command::budget_settings_data &budget_settings) noexcept {
+	void update_budget_settings(command::budget_settings_data& budget_settings) noexcept {
 		auto new_val = int8_t(scaled_value());
-		switch (SliderTarget) {
-			case budget_slider_target::poor_tax:
-				budget_settings.poor_tax = new_val; break;
-			case budget_slider_target::middle_tax:
-				budget_settings.middle_tax = new_val; break;
-			case budget_slider_target::rich_tax:
-				budget_settings.rich_tax = new_val; break;
-			case budget_slider_target::army_stock:
-				budget_settings.land_spending = new_val; break;
-			case budget_slider_target::navy_stock:
-				budget_settings.naval_spending = new_val; break;
-			case budget_slider_target::construction_stock:
-				budget_settings.construction_spending = new_val; break;
-			case budget_slider_target::education:
-				budget_settings.education_spending = new_val; break;
-			case budget_slider_target::admin:
-				budget_settings.administrative_spending = new_val; break;
-			case budget_slider_target::social:
-				budget_settings.social_spending = new_val; break;
-			case budget_slider_target::military:
-				budget_settings.military_spending = new_val; break;
-			case budget_slider_target::tariffs:
-				budget_settings.tariffs = new_val; break;
-			default:
-				break;
+		switch(SliderTarget) {
+		case budget_slider_target::poor_tax:
+			budget_settings.poor_tax = new_val;
+			break;
+		case budget_slider_target::middle_tax:
+			budget_settings.middle_tax = new_val;
+			break;
+		case budget_slider_target::rich_tax:
+			budget_settings.rich_tax = new_val;
+			break;
+		case budget_slider_target::army_stock:
+			budget_settings.land_spending = new_val;
+			break;
+		case budget_slider_target::navy_stock:
+			budget_settings.naval_spending = new_val;
+			break;
+		case budget_slider_target::construction_stock:
+			budget_settings.construction_spending = new_val;
+			break;
+		case budget_slider_target::education:
+			budget_settings.education_spending = new_val;
+			break;
+		case budget_slider_target::admin:
+			budget_settings.administrative_spending = new_val;
+			break;
+		case budget_slider_target::social:
+			budget_settings.social_spending = new_val;
+			break;
+		case budget_slider_target::military:
+			budget_settings.military_spending = new_val;
+			break;
+		case budget_slider_target::tariffs:
+			budget_settings.tariffs = new_val;
+			break;
+		default:
+			break;
 		}
 	}
 };
@@ -484,8 +497,9 @@ public:
 		} else if(name == "money_value") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} /*else if(name == "money_slider") {
-			return nullptr;
-		}*/ else {
+		    return nullptr;
+		}*/
+		else {
 			return nullptr;
 		}
 	}
@@ -505,8 +519,9 @@ public:
 		} else if(name == "money_value") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} /*else if(name == "money_slider") {
-			return nullptr;
-		}*/ else {
+		    return nullptr;
+		}*/
+		else {
 			return nullptr;
 		}
 	}
@@ -567,9 +582,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		overlapping_listbox_element_base<budget_pop_list_item, dcon::pop_type_id>::on_create(state);
 		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-			if(state.world.pop_type_get_life_needs_income_type(pt) == uint8_t(Income)
-				|| state.world.pop_type_get_everyday_needs_income_type(pt) == uint8_t(Income)
-				|| state.world.pop_type_get_luxury_needs_income_type(pt) == uint8_t(Income)) {
+			if(state.world.pop_type_get_life_needs_income_type(pt) == uint8_t(Income) || state.world.pop_type_get_everyday_needs_income_type(pt) == uint8_t(Income) || state.world.pop_type_get_luxury_needs_income_type(pt) == uint8_t(Income)) {
 				row_contents.push_back(pt);
 			}
 		});
@@ -589,19 +602,20 @@ class budget_window : public window_element_base {
 private:
 	budget_take_loan_window* budget_take_loan_win = nullptr;
 	budget_repay_loan_window* budget_repay_loan_win = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
 		auto win1337 = make_element_by_type<budget_take_loan_window>(state, state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
 		budget_take_loan_win = win1337.get();
-		win1337->base_data.position.y -= 66;	// Nudge >w<
+		win1337->base_data.position.y -= 66; // Nudge >w<
 		win1337->set_visible(state, false);
 		add_child_to_front(std::move(win1337));
 
 		auto win101 = make_element_by_type<budget_repay_loan_window>(state, state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
 		budget_repay_loan_win = win101.get();
-		win101->base_data.position.y -= 66;	// Nudge >w<
+		win101->base_data.position.y -= 66; // Nudge >w<
 		win101->set_visible(state, false);
 		add_child_to_front(std::move(win101));
 
@@ -701,8 +715,8 @@ public:
 			return make_element_by_type<budget_small_pop_income_list<culture::income_type::education>>(state, id);
 		} else if(name == "exp_1_pops") {
 			return make_element_by_type<budget_small_pop_income_list<culture::income_type::administration>>(state, id);
-		// } else if(name == "exp_2_pops") {   // intentionally unused
-		// 	return make_element_by_type<budget_pop_income_list<culture::income_type::reforms>>(state, id);
+			// } else if(name == "exp_2_pops") {   // intentionally unused
+			// 	return make_element_by_type<budget_pop_income_list<culture::income_type::reforms>>(state, id);
 		} else if(name == "exp_3_pops") {
 			return make_element_by_type<budget_pop_income_list<culture::income_type::military>>(state, id);
 		} else {
@@ -718,10 +732,10 @@ public:
 		//=====================================================================
 		else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			bool type = any_cast<element_selection_wrapper<bool>>(payload).data;
-			if(type) {	// Take Loan Win.
+			if(type) { // Take Loan Win.
 				budget_take_loan_win->set_visible(state, true);
 				move_child_to_front(budget_take_loan_win);
-			} else {	// Repay Loan Win.
+			} else { // Repay Loan Win.
 				budget_repay_loan_win->set_visible(state, true);
 				move_child_to_front(budget_repay_loan_win);
 			}
@@ -732,4 +746,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

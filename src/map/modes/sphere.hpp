@@ -1,6 +1,5 @@
 #pragma once
 
-
 std::vector<uint32_t> get_global_sphere_color(sys::state& state) {
 
 	uint32_t province_size = state.world.province_size() + 1;
@@ -48,7 +47,7 @@ std::vector<uint32_t> get_selected_sphere_color(sys::state& state) {
 	 *	Paint only the tags influenced by the master, including spherearlings
 	 * Else
 	 *	Paint the tags that influence the country + the country
-	**/
+	 **/
 
 	// Todo: Get better colors?
 	uint32_t gp_color = 0x00FF00;        // Green

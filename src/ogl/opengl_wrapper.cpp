@@ -21,7 +21,7 @@ void load_special_icons(sys::state& state) {
 	if(money_dds) {
 		auto content = simple_fs::view_contents(*money_dds);
 		uint32_t size_x, size_y;
-		state.open_gl.money_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+		state.open_gl.money_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const *>(content.data), content.file_size, size_x, size_y, 0));
 	}
 
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
@@ -29,13 +29,13 @@ void load_special_icons(sys::state& state) {
 	if(cross_dds) {
 		auto content = simple_fs::view_contents(*cross_dds);
 		uint32_t size_x, size_y;
-		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const *>(content.data), content.file_size, size_x, size_y, 0));
 	}
 	auto checkmark_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes.dds"));
 	if(checkmark_dds) {
 		auto content = simple_fs::view_contents(*checkmark_dds);
 		uint32_t size_x, size_y;
-		state.open_gl.checkmark_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+		state.open_gl.checkmark_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const *>(content.data), content.file_size, size_x, size_y, 0));
 	}
 }
 
@@ -45,7 +45,7 @@ void initialize_opengl(sys::state& state) {
 	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 	glEnable(GL_LINE_SMOOTH);
 
-	load_shaders(state); // create shaders
+	load_shaders(state);        // create shaders
 	load_global_squares(state); // create various squares to drive the shaders with
 
 	state.flag_type_map.resize(size_t(culture::flag_type::count), 0);
@@ -60,7 +60,7 @@ void initialize_opengl(sys::state& state) {
 	});
 	// Eliminate duplicates
 	std::sort(state.flag_types.begin(), state.flag_types.end());
-    state.flag_types.erase(std::unique(state.flag_types.begin(), state.flag_types.end()), state.flag_types.end());
+	state.flag_types.erase(std::unique(state.flag_types.begin(), state.flag_types.end()), state.flag_types.end());
 
 	// Automatically assign texture offsets to the flag_types
 	auto id = 0;
@@ -83,8 +83,8 @@ GLint compile_shader(std::string_view source, GLenum type) {
 	if(return_value == 0) {
 		notify_user_of_fatal_opengl_error("shader creation failed");
 	}
-	GLchar const* texts[] = { source.data() };
-	GLint lengths[] = { GLint(source.length()) };
+	GLchar const * texts[] = {source.data()};
+	GLint lengths[] = {GLint(source.length())};
 
 	glShaderSource(return_value, 1, texts, lengths);
 	glCompileShader(return_value);
@@ -108,7 +108,6 @@ GLuint create_program(std::string_view vertex_shader, std::string_view fragment_
 	if(return_value == 0) {
 		notify_user_of_fatal_opengl_error("program creation failed");
 	}
-
 
 	auto v_shader = compile_shader(vertex_shader, GL_VERTEX_SHADER);
 	auto f_shader = compile_shader(fragment_shader, GL_FRAGMENT_SHADER);
@@ -136,47 +135,40 @@ GLuint create_program(std::string_view vertex_shader, std::string_view fragment_
 }
 
 static GLfloat global_square_data[] = {
-			0.0f, 0.0f, 0.0f, 0.0f,
-			0.0f, 1.0f, 0.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 0.0f, 1.0f, 0.0f
-};
+    0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 1.0f, 1.0f,
+    1.0f, 0.0f, 1.0f, 0.0f};
 
 static GLfloat global_square_right_data[] = {
-	0.0f, 0.0f, 0.0f, 1.0f,
-	0.0f, 1.0f, 1.0f, 1.0f,
-	1.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 0.0f, 0.0f, 0.0f
-};
+    0.0f, 0.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f, 0.0f,
+    1.0f, 0.0f, 0.0f, 0.0f};
 
 static GLfloat global_square_left_data[] = {
-	0.0f, 0.0f, 1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 1.0f, 0.0f, 1.0f,
-	1.0f, 0.0f, 1.0f, 1.0f
-};
-
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 1.0f, 1.0f};
 
 static GLfloat global_square_flipped_data[] = {
-	0.0f, 0.0f, 0.0f, 1.0f,
-	0.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 0.0f, 1.0f, 1.0f
-};
+    0.0f, 0.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    1.0f, 1.0f, 1.0f, 0.0f,
+    1.0f, 0.0f, 1.0f, 1.0f};
 
 static GLfloat global_square_right_flipped_data[] = {
-	0.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 1.0f, 0.0f,
-	1.0f, 1.0f, 1.0f, 1.0f,
-	1.0f, 0.0f, 0.0f, 1.0f
-};
+    0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 1.0f, 1.0f,
+    1.0f, 0.0f, 0.0f, 1.0f};
 
 static GLfloat global_square_left_flipped_data[] = {
-	0.0f, 0.0f, 1.0f, 1.0f,
-	0.0f, 1.0f, 0.0f, 1.0f,
-	1.0f, 1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 1.0f, 0.0f
-};
+    0.0f, 0.0f, 1.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 1.0f, 0.0f};
 
 void load_shaders(sys::state& state) {
 	auto root = get_root(state.common_fs);
@@ -186,8 +178,8 @@ void load_shaders(sys::state& state) {
 		auto vertex_content = view_contents(*ui_vshader);
 		auto fragment_content = view_contents(*ui_fshader);
 		state.open_gl.ui_shader_program = create_program(
-			std::string_view(vertex_content.data, vertex_content.file_size),
-			std::string_view(fragment_content.data, fragment_content.file_size));
+		    std::string_view(vertex_content.data, vertex_content.file_size),
+		    std::string_view(fragment_content.data, fragment_content.file_size));
 	} else {
 		notify_user_of_fatal_opengl_error("Unable to open a necessary shader file");
 	}
@@ -202,16 +194,15 @@ void load_global_squares(sys::state& state) {
 
 	glGenVertexArrays(1, &state.open_gl.global_square_vao);
 	glBindVertexArray(state.open_gl.global_square_vao);
-	glEnableVertexAttribArray(0); //position
-	glEnableVertexAttribArray(1); //texture coordinates
+	glEnableVertexAttribArray(0); // position
+	glEnableVertexAttribArray(1); // texture coordinates
 
 	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
 
-	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0); //position
-	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2); //texture coordinates
-	glVertexAttribBinding(0, 0); //position -> to array zero
-	glVertexAttribBinding(1, 0); //texture coordinates -> to array zero
-
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0);                   // position
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2); // texture coordinates
+	glVertexAttribBinding(0, 0);                                         // position -> to array zero
+	glVertexAttribBinding(1, 0);                                         // texture coordinates -> to array zero
 
 	glGenBuffers(1, &state.open_gl.global_square_left_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_left_buffer);
@@ -220,7 +211,6 @@ void load_global_squares(sys::state& state) {
 	glGenBuffers(1, &state.open_gl.global_square_right_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_right_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_right_data, GL_STATIC_DRAW);
-
 
 	glGenBuffers(1, &state.open_gl.global_square_right_flipped_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_right_flipped_buffer);
@@ -234,7 +224,6 @@ void load_global_squares(sys::state& state) {
 	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_flipped_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_flipped_data, GL_STATIC_DRAW);
 
-
 	glGenBuffers(64, state.open_gl.sub_square_buffers);
 	for(uint32_t i = 0; i < 64; ++i) {
 		glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.sub_square_buffers[i]);
@@ -243,72 +232,70 @@ void load_global_squares(sys::state& state) {
 		const float cell_y = static_cast<float>((i >> 3) & 7) / 8.0f;
 
 		GLfloat global_sub_square_data[] = {
-			0.0f, 0.0f, cell_x, cell_y,
-			0.0f, 1.0f, cell_x, cell_y + 1.0f / 8.0f,
-			1.0f, 1.0f, cell_x + 1.0f / 8.0f, cell_y + 1.0f / 8.0f,
-			1.0f, 0.0f, cell_x + 1.0f / 8.0f, cell_y
-		};
+		    0.0f, 0.0f, cell_x, cell_y,
+		    0.0f, 1.0f, cell_x, cell_y + 1.0f / 8.0f,
+		    1.0f, 1.0f, cell_x + 1.0f / 8.0f, cell_y + 1.0f / 8.0f,
+		    1.0f, 0.0f, cell_x + 1.0f / 8.0f, cell_y};
 
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_sub_square_data, GL_STATIC_DRAW);
 	}
 }
 
-
 inline auto map_color_modification_to_index(color_modification e) {
 	switch(e) {
-		case color_modification::disabled:
-			return parameters::disabled;
-		case color_modification::interactable:
-			return parameters::interactable;
-		case color_modification::interactable_disabled:
-			return parameters::interactable_disabled;
-		default:
-		case color_modification::none:
-			return parameters::enabled;
+	case color_modification::disabled:
+		return parameters::disabled;
+	case color_modification::interactable:
+		return parameters::interactable;
+	case color_modification::interactable_disabled:
+		return parameters::interactable_disabled;
+	default:
+	case color_modification::none:
+		return parameters::enabled;
 	}
 }
 
-void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool flipped) {
+void bind_vertices_by_rotation(sys::state const & state, ui::rotation r, bool flipped) {
 	switch(r) {
-		case ui::rotation::upright:
-			if(!flipped)
-				glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
-			else
-				glBindVertexBuffer(0, state.open_gl.global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
-			break;
-		case ui::rotation::r90_left:
-			if(!flipped)
-				glBindVertexBuffer(0, state.open_gl.global_square_left_buffer, 0, sizeof(GLfloat) * 4);
-			else
-				glBindVertexBuffer(0, state.open_gl.global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
-			break;
-		case ui::rotation::r90_right:
-			if(!flipped)
-				glBindVertexBuffer(0, state.open_gl.global_square_right_buffer, 0, sizeof(GLfloat) * 4);
-			else
-				glBindVertexBuffer(0, state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
-			break;
+	case ui::rotation::upright:
+		if(!flipped)
+			glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+		else
+			glBindVertexBuffer(0, state.open_gl.global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		break;
+	case ui::rotation::r90_left:
+		if(!flipped)
+			glBindVertexBuffer(0, state.open_gl.global_square_left_buffer, 0, sizeof(GLfloat) * 4);
+		else
+			glBindVertexBuffer(0, state.open_gl.global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		break;
+	case ui::rotation::r90_right:
+		if(!flipped)
+			glBindVertexBuffer(0, state.open_gl.global_square_right_buffer, 0, sizeof(GLfloat) * 4);
+		else
+			glBindVertexBuffer(0, state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		break;
 	}
 }
 
-void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
+void render_textured_rect(sys::state const & state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	bind_vertices_by_rotation(state, r, flipped);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
-	//glUniform4f(parameters::drawing_rectangle, 0, 0, width, height);
+	// glUniform4f(parameters::drawing_rectangle, 0, 0, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle) {
+void render_textured_rect_direct(sys::state const & state, float x, float y, float width, float height, uint32_t handle) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
@@ -318,13 +305,13 @@ void render_textured_rect_direct(sys::state const& state, float x, float y, floa
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, handle);
 
-	GLuint subroutines[2] = { parameters::enabled, parameters::no_filter };
+	GLuint subroutines[2] = {parameters::enabled, parameters::no_filter};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, lines& l) {
+void render_linegraph(sys::state const & state, color_modification enabled, float x, float y, float width, float height, lines& l) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	l.bind_buffer();
@@ -332,30 +319,29 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 	glLineWidth(2.0f);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::linegraph};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
-void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height, data_texture& t, ui::rotation r, bool flipped) {
+void render_barchart(sys::state const & state, color_modification enabled, float x, float y, float width, float height, data_texture& t, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	bind_vertices_by_rotation(state, r, flipped);
-
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, t.handle());
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::barchart };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::barchart};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t) {
+void render_piechart(sys::state const & state, color_modification enabled, float x, float y, float size, data_texture& t) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
@@ -365,17 +351,16 @@ void render_piechart(sys::state const& state, color_modification enabled, float 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, t.handle());
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::piechart };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::piechart};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
+void render_bordered_rect(sys::state const & state, color_modification enabled, float border_size, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	bind_vertices_by_rotation(state, r, flipped);
-
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 	glUniform1f(parameters::border_size, border_size);
@@ -383,17 +368,16 @@ void render_bordered_rect(sys::state const& state, color_modification enabled, f
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::frame_stretch };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::frame_stretch};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped) {
+void render_masked_rect(sys::state const & state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	bind_vertices_by_rotation(state, r, flipped);
-
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 
@@ -402,17 +386,16 @@ void render_masked_rect(sys::state const& state, color_modification enabled, flo
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, mask_texture_handle);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::use_mask };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::use_mask};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_progress_bar(sys::state const& state, color_modification enabled, float progress, float x, float y, float width, float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped) {
+void render_progress_bar(sys::state const & state, color_modification enabled, float progress, float x, float y, float width, float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	bind_vertices_by_rotation(state, r, flipped);
-
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 	glUniform1f(parameters::border_size, progress);
@@ -422,13 +405,13 @@ void render_progress_bar(sys::state const& state, color_modification enabled, fl
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, right_texture_handle);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::progress_bar };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::progress_bar};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_tinted_textured_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped) {
+void render_tinted_textured_rect(sys::state const & state, float x, float y, float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	bind_vertices_by_rotation(state, rot, flipped);
@@ -439,13 +422,13 @@ void render_tinted_textured_rect(sys::state const& state, float x, float y, floa
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-	GLuint subroutines[2] = { parameters::tint, parameters::no_filter };
+	GLuint subroutines[2] = {parameters::tint, parameters::no_filter};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
+void render_subsprite(sys::state const & state, color_modification enabled, int frame, int total_frames, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	bind_vertices_by_rotation(state, r, flipped);
@@ -457,16 +440,15 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::sub_sprite };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::sub_sprite};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-
-void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, text::font& f) {
+void render_character(sys::state const & state, char codepoint, color_modification enabled, float x, float y, float size, text::font& f) {
 	if(text::win1250toUTF16(codepoint) != ' ') {
-		//f.make_glyph(codepoint);
+		// f.make_glyph(codepoint);
 
 		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
@@ -476,17 +458,17 @@ void render_character(sys::state const& state, char codepoint, color_modificatio
 		glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
 		glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
-		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
+		GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::border_filter};
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 }
 
-void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, const GLuint *subroutines, const GLuint *icon_subroutines) {
+void internal_text_render(sys::state const & state, char const * codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, const GLuint* subroutines, const GLuint* icon_subroutines) {
 	for(uint32_t i = 0; i < count; ++i) {
 		if(text::win1250toUTF16(codepoints[i]) != ' ') {
-			//f.make_glyph(codepoints[i]);
+			// f.make_glyph(codepoints[i]);
 			if(text::win1250toUTF16(codepoints[i]) != u'\u0001' && text::win1250toUTF16(codepoints[i]) != u'\u0002') {
 				glBindVertexBuffer(0, state.open_gl.sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
 				glActiveTexture(GL_TEXTURE0);
@@ -502,10 +484,10 @@ void internal_text_render(sys::state const& state, char const* codepoints, uint3
 				glBindTexture(GL_TEXTURE_2D, text::win1250toUTF16(codepoints[i]) == u'\u0001' ? state.open_gl.cross_icon_tex : state.open_gl.checkmark_icon_tex);
 				glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[0x4D].x * size / 64.0f, baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
 				glUniform4f(ogl::parameters::subrect,
-					0.f /* x offset */,
-					1.f /* x width */,
-					0.f /* y offset */,
-					1.f /* y height */
+				            0.f /* x offset */,
+				            1.f /* x width */,
+				            0.f /* y offset */,
+				            1.f /* y height */
 				);
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
@@ -518,38 +500,36 @@ void internal_text_render(sys::state const& state, char const* codepoints, uint3
 	}
 }
 
-
-void render_new_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
+void render_new_text(sys::state const & state, char const * codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
-	GLuint icon_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::filter};
+	GLuint icon_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 	internal_text_render(state, codepoints, count, x, y + size, size, f, subroutines, icon_subroutines);
 }
 
-void render_classic_text(sys::state const& state, float x, float y, char const* codepoints, uint32_t count, color_modification enabled, const color3f& c, text::BMFont const& font) {
-	float adv = (float)1.0 / font.Width;                      // Font texture atlas spacing.
-
+void render_classic_text(sys::state const & state, float x, float y, char const * codepoints, uint32_t count, color_modification enabled, const color3f& c, text::BMFont const & font) {
+	float adv = (float)1.0 / font.Width; // Font texture atlas spacing.
 
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::subsprite_b };
+	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::subsprite_b};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
-	//Set Text Color, all one color for now.
+	// Set Text Color, all one color for now.
 
 	//------ FOR SCHOMBERT ------//
-	//Every iteration of this loop draws one character of the string 'fmt'.
+	// Every iteration of this loop draws one character of the string 'fmt'.
 	//'texlst' contains information for each vertex of each rectangle for each character.
-	//Every 4 elements in 'texlst' is one complete rectangle, and one character.
+	// Every 4 elements in 'texlst' is one complete rectangle, and one character.
 	//'texlst[i].texx' and 'texlst[i].texy' are the intended texture coordinates of a vertex on the texture.
 	//'texlst[i].x' and 'texlst[i].y' are the coordinates of a vertex of the rendered rectangle in the window.
-	//The color variables are unused currently.
+	// The color variables are unused currently.
 	//
-	//Spacing, kearning, etc. are already applied.
-	//Scaling (unintentionally) is also applied (by whatever part of Alice scales the normal fonts).
+	// Spacing, kearning, etc. are already applied.
+	// Scaling (unintentionally) is also applied (by whatever part of Alice scales the normal fonts).
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, font.ftexid);
@@ -557,7 +537,7 @@ void render_classic_text(sys::state const& state, float x, float y, char const* 
 	for(uint32_t i = 0; i < count; ++i) {
 		auto f = font.Chars[0];
 		if(uint8_t(codepoints[i]) == 0xA4 || uint8_t(codepoints[i]) == 0x01 || uint8_t(codepoints[i]) == 0x02) {
-			GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+			GLuint money_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
 			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
 			f = font.Chars[0x4D];
 			float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
@@ -566,16 +546,16 @@ void render_classic_text(sys::state const& state, float x, float y, char const* 
 			float CurY = y + f.YOffset - (float(f.Height) * offset);
 			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.Width) * scaling, float(f.Height) * scaling);
 			glBindTexture(GL_TEXTURE_2D, uint8_t(codepoints[i]) == 0xA4
-				? state.open_gl.money_icon_tex
-				: uint8_t(codepoints[i]) == 0x01
-					? state.open_gl.cross_icon_tex
-					: state.open_gl.checkmark_icon_tex);
+			                                 ? state.open_gl.money_icon_tex
+			                             : uint8_t(codepoints[i]) == 0x01
+			                                 ? state.open_gl.cross_icon_tex
+			                                 : state.open_gl.checkmark_icon_tex);
 			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 			glUniform4f(ogl::parameters::subrect,
-				float(f.x) / float(font.Width) /* x offset */,
-				float(f.Width) / float(font.Width) /* x width */,
-				float(f.y) / float(font.Width) /* y offset */,
-				float(f.Height) / float(font.Width) /* y height */
+			            float(f.x) / float(font.Width) /* x offset */,
+			            float(f.Width) / float(font.Width) /* x width */,
+			            float(f.y) / float(font.Width) /* y offset */,
+			            float(f.Height) / float(font.Width) /* y height */
 			);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 			// Restore affected state
@@ -588,16 +568,16 @@ void render_classic_text(sys::state const& state, float x, float y, char const* 
 			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.Width), float(f.Height));
 			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 			glUniform4f(ogl::parameters::subrect,
-				float(f.x) / float(font.Width) /* x offset */,
-				float(f.Width) / float(font.Width) /* x width */,
-				float(f.y) / float(font.Width) /* y offset */,
-				float(f.Height) / float(font.Width) /* y height */
+			            float(f.x) / float(font.Width) /* x offset */,
+			            float(f.Width) / float(font.Width) /* x width */,
+			            float(f.y) / float(font.Width) /* y offset */,
+			            float(f.Height) / float(font.Width) /* y height */
 			);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 
-		//Only check kerning if there is greater then 1 character and
-		//if the check character is 1 less then the end of the string.
+		// Only check kerning if there is greater then 1 character and
+		// if the check character is 1 less then the end of the string.
 		if(i != count - 1) {
 			x += font.GetKerningPair(codepoints[i], codepoints[i + 1]);
 		}
@@ -605,7 +585,7 @@ void render_classic_text(sys::state const& state, float x, float y, char const* 
 	}
 }
 
-void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, const color3f& c, uint16_t font_id) {
+void render_text(sys::state& state, char const * codepoints, uint32_t count, color_modification enabled, float x, float y, const color3f& c, uint16_t font_id) {
 	if(state.user_settings.use_classic_fonts) {
 		render_classic_text(state, x, y, codepoints, count, enabled, c, text::get_bm_font(state, font_id));
 	} else {
@@ -649,4 +629,4 @@ void lines::bind_buffer() {
 	glBindVertexBuffer(0, buffer_handle, 0, sizeof(GLfloat) * 4);
 }
 
-}
+} // namespace ogl

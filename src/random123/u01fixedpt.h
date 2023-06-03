@@ -56,7 +56,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
      -  W = 32 or 64
      -  M = 24 (float) or 53 (double)
      -  open0 or closed0 : whether the output is open or closed at 0.0
-     -  open1 or closed1 : whether the output is open or closed at 1.0 
+     -  open1 or closed1 : whether the output is open or closed at 1.0
 
     The W=64 M=24 cases are not implemented.  To obtain an M=24 float
     from a uint64_t, use a cast (possibly with right-shift and bitwise
@@ -83,7 +83,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         there are 2^P possible values:
         {1, 2, ..., 2^P}/2^P
 
-     open_open:   Let P=min(M, W+1) 
+     open_open:   Let P=min(M, W+1)
         there are 2^(P-1) possible values:
         {1, 3, 5, ..., 2^P-1}/2^P
 
@@ -93,7 +93,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         The extreme values (0.0 and 1.0) are
         returned with half the frequency of
         all others.
-    
+
     On x86 hardware, especially on 32bit machines, the use of
     internal 80bit x87-style floating point may result in
     'bonus' precision, which may cause closed intervals to not
@@ -114,13 +114,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    We cross our fingers and hope that the compiler does the compile-time
    constant arithmetic properly.
 */
-#define R123_0x1p_31f (1.f/(1024.f*1024.f*1024.f*2.f))
-#define R123_0x1p_24f (128.f*R123_0x1p_31f)
-#define R123_0x1p_23f (256.f*R123_0x1p_31f)
-#define R123_0x1p_32  (1./(1024.*1024.*1024.*4.))
-#define R123_0x1p_63 (2.*R123_0x1p_32*R123_0x1p_32)
-#define R123_0x1p_53 (1024.*R123_0x1p_63)
-#define R123_0x1p_52 (2048.*R123_0x1p_63)
+#define R123_0x1p_31f (1.f / (1024.f * 1024.f * 1024.f * 2.f))
+#define R123_0x1p_24f (128.f * R123_0x1p_31f)
+#define R123_0x1p_23f (256.f * R123_0x1p_31f)
+#define R123_0x1p_32 (1. / (1024. * 1024. * 1024. * 4.))
+#define R123_0x1p_63 (2. * R123_0x1p_32 * R123_0x1p_32)
+#define R123_0x1p_53 (1024. * R123_0x1p_63)
+#define R123_0x1p_52 (2048. * R123_0x1p_63)
 
 /** @endcond */
 
@@ -129,66 +129,66 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
 
 /* narrowing conversions:  uint32_t to float */
-R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_closed_closed_32_float(uint32_t i){
-    /* N.B.  we ignore the high bit, so output is not monotonic */
-    return ((i&0x7fffffc0) + (i&0x40))*R123_0x1p_31f; /* 0x1.p-31f */
+R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_closed_closed_32_float(uint32_t i) {
+	/* N.B.  we ignore the high bit, so output is not monotonic */
+	return ((i & 0x7fffffc0) + (i & 0x40)) * R123_0x1p_31f; /* 0x1.p-31f */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_closed_open_32_float(uint32_t i){
-    return (i>>8)*R123_0x1p_24f; /* 0x1.0p-24f; */
+R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_closed_open_32_float(uint32_t i) {
+	return (i >> 8) * R123_0x1p_24f; /* 0x1.0p-24f; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_open_closed_32_float(uint32_t i){
-    return (1+(i>>8))*R123_0x1p_24f; /* *0x1.0p-24f; */
+R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_open_closed_32_float(uint32_t i) {
+	return (1 + (i >> 8)) * R123_0x1p_24f; /* *0x1.0p-24f; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_open_open_32_float(uint32_t i){
-    return (0.5f+(i>>9))*R123_0x1p_23f; /* 0x1.p-23f; */
+R123_CUDA_DEVICE R123_STATIC_INLINE float u01fixedpt_open_open_32_float(uint32_t i) {
+	return (0.5f + (i >> 9)) * R123_0x1p_23f; /* 0x1.p-23f; */
 }
 
 #if R123_USE_U01_DOUBLE
 /* narrowing conversions:  uint64_t to double */
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_closed_64_double(uint64_t i){
-    /* N.B.  we ignore the high bit, so output is not monotonic */
-    return ((i&R123_64BIT(0x7ffffffffffffe00)) + (i&0x200))*R123_0x1p_63; /* 0x1.p-63; */
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_closed_64_double(uint64_t i) {
+	/* N.B.  we ignore the high bit, so output is not monotonic */
+	return ((i & R123_64BIT(0x7ffffffffffffe00)) + (i & 0x200)) * R123_0x1p_63; /* 0x1.p-63; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_64_double(uint64_t i){
-    return (i>>11)*R123_0x1p_53; /* 0x1.0p-53; */
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_64_double(uint64_t i) {
+	return (i >> 11) * R123_0x1p_53; /* 0x1.0p-53; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_64_double(uint64_t i){
-    return (1+(i>>11))*R123_0x1p_53; /* 0x1.0p-53; */
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_64_double(uint64_t i) {
+	return (1 + (i >> 11)) * R123_0x1p_53; /* 0x1.0p-53; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_64_double(uint64_t i){
-    return (0.5+(i>>12))*R123_0x1p_52; /* 0x1.0p-52; */
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_64_double(uint64_t i) {
+	return (0.5 + (i >> 12)) * R123_0x1p_52; /* 0x1.0p-52; */
 }
 
 /* widening conversions:  u32 to double */
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_closed_32_double(uint32_t i){
-    /* j = i+(i&1) takes on 2^31+1 possible values with a 'trapezoid' distribution:
-      p_j =  1 0 2 0 2 .... 2 0 2 0 1
-      j   =  0 1 2 3 4 ....        2^32
-      by converting to double *before* doing the add, we don't wrap the high bit.
-    */
-    return (((double)(i&1)) + i)*R123_0x1p_32; /* 0x1.p-32; */
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_closed_32_double(uint32_t i) {
+	/* j = i+(i&1) takes on 2^31+1 possible values with a 'trapezoid' distribution:
+	  p_j =  1 0 2 0 2 .... 2 0 2 0 1
+	  j   =  0 1 2 3 4 ....        2^32
+	  by converting to double *before* doing the add, we don't wrap the high bit.
+	*/
+	return (((double)(i & 1)) + i) * R123_0x1p_32; /* 0x1.p-32; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_32_double(uint32_t i){
-    return i*R123_0x1p_32; /* 0x1.p-32; */
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_closed_open_32_double(uint32_t i) {
+	return i * R123_0x1p_32; /* 0x1.p-32; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_32_double(uint32_t i){
-    return (1.+i)*R123_0x1p_32; /* 0x1.p-32; */
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_closed_32_double(uint32_t i) {
+	return (1. + i) * R123_0x1p_32; /* 0x1.p-32; */
 }
 
-R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_32_double(uint32_t i){
-    return (0.5+i)*R123_0x1p_32; /* 0x1.p-32; */
+R123_CUDA_DEVICE R123_STATIC_INLINE double u01fixedpt_open_open_32_double(uint32_t i) {
+	return (0.5 + i) * R123_0x1p_32; /* 0x1.p-32; */
 }
 #endif /* R123_USE_U01_DOUBLE */
 

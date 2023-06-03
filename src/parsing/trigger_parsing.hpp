@@ -23,7 +23,6 @@ struct trigger_building_context {
 	trigger::slot_contents this_slot = trigger::slot_contents::empty;
 	trigger::slot_contents from_slot = trigger::slot_contents::empty;
 
-
 	trigger_building_context(scenario_building_context& outer_context, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : outer_context(outer_context), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
 
 	void add_float_to_payload(float f) {
@@ -75,46 +74,76 @@ inline std::string slot_contents_to_string(trigger::slot_contents v) {
 
 inline uint16_t association_to_trigger_code(association_type a) {
 	switch(a) {
-		case association_type::eq: return trigger::association_eq;
-		case association_type::eq_default: return trigger::association_ge;
-		case association_type::ge: return trigger::association_ge;
-		case association_type::gt: return trigger::association_gt;
-		case association_type::lt: return trigger::association_lt;
-		case association_type::le: return trigger::association_le;
-		case association_type::ne: return trigger::association_ne;
-		case association_type::none: return trigger::association_ge;
-		case association_type::list: return trigger::association_ge;
-		default: return trigger::association_ge;
+	case association_type::eq:
+		return trigger::association_eq;
+	case association_type::eq_default:
+		return trigger::association_ge;
+	case association_type::ge:
+		return trigger::association_ge;
+	case association_type::gt:
+		return trigger::association_gt;
+	case association_type::lt:
+		return trigger::association_lt;
+	case association_type::le:
+		return trigger::association_le;
+	case association_type::ne:
+		return trigger::association_ne;
+	case association_type::none:
+		return trigger::association_ge;
+	case association_type::list:
+		return trigger::association_ge;
+	default:
+		return trigger::association_ge;
 	}
 }
 
 inline uint16_t association_to_le_trigger_code(association_type a) {
 	switch(a) {
-		case association_type::eq: return trigger::association_eq;
-		case association_type::eq_default: return trigger::association_le;
-		case association_type::ge: return trigger::association_ge;
-		case association_type::gt: return trigger::association_gt;
-		case association_type::lt: return trigger::association_lt;
-		case association_type::le: return trigger::association_le;
-		case association_type::ne: return trigger::association_ne;
-		case association_type::none: return trigger::association_le;
-		case association_type::list: return trigger::association_le;
-		default: return trigger::association_le;
+	case association_type::eq:
+		return trigger::association_eq;
+	case association_type::eq_default:
+		return trigger::association_le;
+	case association_type::ge:
+		return trigger::association_ge;
+	case association_type::gt:
+		return trigger::association_gt;
+	case association_type::lt:
+		return trigger::association_lt;
+	case association_type::le:
+		return trigger::association_le;
+	case association_type::ne:
+		return trigger::association_ne;
+	case association_type::none:
+		return trigger::association_le;
+	case association_type::list:
+		return trigger::association_le;
+	default:
+		return trigger::association_le;
 	}
 }
 
 inline uint16_t association_to_bool_code(association_type a) {
 	switch(a) {
-		case association_type::eq: return trigger::association_eq;
-		case association_type::eq_default: return trigger::association_eq;
-		case association_type::ge: return trigger::association_eq;
-		case association_type::gt: return trigger::association_ne;
-		case association_type::lt: return trigger::association_ne;
-		case association_type::le: return trigger::association_eq;
-		case association_type::ne: return trigger::association_ne;
-		case association_type::none: return trigger::association_ge;
-		case association_type::list: return trigger::association_ge;
-		default: return trigger::association_ge;
+	case association_type::eq:
+		return trigger::association_eq;
+	case association_type::eq_default:
+		return trigger::association_eq;
+	case association_type::ge:
+		return trigger::association_eq;
+	case association_type::gt:
+		return trigger::association_ne;
+	case association_type::lt:
+		return trigger::association_ne;
+	case association_type::le:
+		return trigger::association_eq;
+	case association_type::ne:
+		return trigger::association_ne;
+	case association_type::none:
+		return trigger::association_ge;
+	case association_type::list:
+		return trigger::association_ge;
+	default:
+		return trigger::association_ge;
 	}
 }
 
@@ -341,7 +370,7 @@ struct trigger_body {
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_trigger.push_back(uint16_t(trigger::political_movement | trigger::no_payload | association_to_bool_code(a, value)));
 		} else if(context.from_slot == trigger::slot_contents::rebel) {
-				context.compiled_trigger.push_back(uint16_t(trigger::political_movement_from_reb | trigger::no_payload | association_to_bool_code(a, value)));
+			context.compiled_trigger.push_back(uint16_t(trigger::political_movement_from_reb | trigger::no_payload | association_to_bool_code(a, value)));
 		} else {
 			err.accumulated_errors += "political_movement trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -846,7 +875,6 @@ struct trigger_body {
 		context.add_float_to_payload(value);
 	}
 
-
 	void poor_strata_life_needs(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_trigger.push_back(uint16_t(trigger::poor_strata_life_needs_nation | association_to_trigger_code(a)));
@@ -1129,7 +1157,7 @@ struct trigger_body {
 		}
 	}
 	void invention(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
-		
+
 		if(auto it = context.outer_context.map_of_technologies.find(std::string(value)); it != context.outer_context.map_of_technologies.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_trigger.push_back(uint16_t(trigger::technology | association_to_bool_code(a)));
@@ -2155,10 +2183,10 @@ struct trigger_body {
 	void exists(association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "yes") || is_fixed_token_ci(value.data(), value.data() + value.length(), "no")) {
 			if(context.main_slot == trigger::slot_contents::nation)
-					context.compiled_trigger.push_back(uint16_t(trigger::exists_bool | trigger::no_payload | association_to_bool_code(a, parse_bool(value, line, err))));
+				context.compiled_trigger.push_back(uint16_t(trigger::exists_bool | trigger::no_payload | association_to_bool_code(a, parse_bool(value, line, err))));
 			else {
 				err.accumulated_errors += "exists = bool trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
-					return;
+				return;
 			}
 		} else if(value.length() == 3) {
 			if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2])); it != context.outer_context.map_of_ident_names.end()) {
@@ -2167,7 +2195,7 @@ struct trigger_body {
 			} else {
 				err.accumulated_errors += "exists trigger supplied with an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			}
-			
+
 		} else {
 			err.accumulated_errors += "exists trigger supplied with an invalid value (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3553,7 +3581,7 @@ struct trigger_body {
 		}
 	}
 
-	void diplomatic_influence(tr_diplomatic_influence const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void diplomatic_influence(tr_diplomatic_influence const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "diplomatic_influence trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3590,7 +3618,7 @@ struct trigger_body {
 			return;
 		}
 	}
-	void pop_unemployment(tr_pop_unemployment const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void pop_unemployment(tr_pop_unemployment const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(is_from(value.type)) {
 			if(context.this_slot != trigger::slot_contents::pop) {
 				err.accumulated_errors += "pop_unemployment = this trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3627,7 +3655,7 @@ struct trigger_body {
 			return;
 		}
 	}
-	void relation(tr_relation const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void relation(tr_relation const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "relation trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3664,12 +3692,12 @@ struct trigger_body {
 			return;
 		}
 	}
-	void check_variable(tr_check_variable const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void check_variable(tr_check_variable const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		context.compiled_trigger.push_back(uint16_t(trigger::check_variable | association_to_trigger_code(value.a)));
 		context.add_float_to_payload(value.value_);
 		context.compiled_trigger.push_back(trigger::payload(context.outer_context.get_national_variable(std::string(value.which))).value);
 	}
-	void upper_house(tr_upper_house const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void upper_house(tr_upper_house const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_ideologies.find(std::string(value.ideology)); it != context.outer_context.map_of_ideologies.end()) {
 			if(context.main_slot != trigger::slot_contents::nation) {
 				err.accumulated_errors += "upper_house trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3683,7 +3711,7 @@ struct trigger_body {
 			return;
 		}
 	}
-	void unemployment_by_type(tr_unemployment_by_type const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void unemployment_by_type(tr_unemployment_by_type const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_poptypes.find(std::string(value.type)); it != context.outer_context.map_of_poptypes.end()) {
 			if(context.main_slot == trigger::slot_contents::nation)
 				context.compiled_trigger.push_back(uint16_t(trigger::unemployment_by_type_nation | association_to_trigger_code(value.a)));
@@ -3705,7 +3733,7 @@ struct trigger_body {
 		}
 	}
 
-	void party_loyalty(tr_party_loyalty const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void party_loyalty(tr_party_loyalty const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_ideologies.find(std::string(value.ideology)); it != context.outer_context.map_of_ideologies.end()) {
 			if(value.province_id != 0) {
 				if(0 <= value.province_id && size_t(value.province_id) < context.outer_context.original_id_to_prov_id_map.size()) {
@@ -3749,7 +3777,7 @@ struct trigger_body {
 		}
 	}
 
-	void can_build_in_province(tr_can_build_in_province const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void can_build_in_province(tr_can_build_in_province const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::province) {
 			err.accumulated_errors += "can_build_in_province trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3793,7 +3821,7 @@ struct trigger_body {
 			}
 		}
 	}
-	void can_build_railway_in_capital(tr_can_build_railway_in_capital const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void can_build_railway_in_capital(tr_can_build_railway_in_capital const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "can_build_railway_in_capital trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3809,7 +3837,7 @@ struct trigger_body {
 				context.compiled_trigger.push_back(uint16_t(trigger::can_build_railway_in_capital_no_whole_state_no_limit | trigger::association_eq | trigger::no_payload));
 		}
 	}
-	void can_build_fort_in_capital(tr_can_build_fort_in_capital const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void can_build_fort_in_capital(tr_can_build_fort_in_capital const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors += "can_build_fort_in_capital trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3826,7 +3854,7 @@ struct trigger_body {
 		}
 	}
 
-	void work_available(tr_work_available const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void work_available(tr_work_available const & value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(value.pop_type_list.size() > 1 || value.pop_type_list.size() == 0) {
 			err.accumulated_errors += "work_available trigger used with an unsupported number of worker types (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
@@ -3846,7 +3874,7 @@ struct trigger_body {
 	}
 
 	void any_value(std::string_view label, association_type a, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
-		std::string str_label{ label };
+		std::string str_label{label};
 		if(auto it = context.outer_context.map_of_technologies.find(str_label); it != context.outer_context.map_of_technologies.end()) {
 			if(context.main_slot != trigger::slot_contents::nation) {
 				err.accumulated_errors += "named technology trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -4007,12 +4035,11 @@ struct value_modifier_definition {
 	void years(association_type, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		factor = value * 365.0f;
 	}
-	void group(value_modifier_definition const& value, error_handler& err, int32_t line, trigger_building_context& context) { }
+	void group(value_modifier_definition const & value, error_handler& err, int32_t line, trigger_building_context& context) { }
 	void finish(trigger_building_context&) { }
 };
 
 void make_value_modifier_segment(token_generator& gen, error_handler& err, trigger_building_context& context);
 dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler& err, trigger_building_context& context);
 
-}
-
+} // namespace parsers

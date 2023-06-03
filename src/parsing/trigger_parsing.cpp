@@ -505,7 +505,7 @@ void tr_state_scope(token_generator& gen, error_handler& err, trigger_building_c
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
 void tr_scope_variable(std::string_view name, token_generator& gen, error_handler& err, trigger_building_context& context) {
-	std::string label_str{ name };
+	std::string label_str{name};
 	if(auto it = context.outer_context.map_of_state_names.find(label_str); it != context.outer_context.map_of_state_names.end()) {
 		context.compiled_trigger.push_back(uint16_t(trigger::x_provinces_in_variable_region));
 
@@ -538,7 +538,7 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 			err.accumulated_errors += "integer trigger scope given an invalid province id (" + err.file_name + ")\n";
 			context.compiled_trigger.push_back(trigger::payload(dcon::province_id()).value);
 		}
-		
+
 	} else if(name.length() == 3) {
 		if(auto itb = context.outer_context.map_of_ident_names.find(nations::tag_to_int(name[0], name[1], name[2])); itb != context.outer_context.map_of_ident_names.end()) {
 			context.compiled_trigger.push_back(uint16_t(trigger::tag_scope));
@@ -554,14 +554,13 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 			context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 		} else {
 			err.accumulated_errors += "unknown scope " + label_str + " introduced in a trigger (" + err.file_name + ")\n";
-				return;
+			return;
 		}
 	} else {
 		err.accumulated_errors += "unknown scope " + label_str + " introduced in a trigger (" + err.file_name + ")\n";
 		return;
 	}
 }
-
 
 inline void invert_trigger_internal(uint16_t* source) {
 	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
@@ -583,37 +582,37 @@ void invert_trigger(uint16_t* source) {
 bool scope_is_empty(const uint16_t* source) {
 	return trigger::get_trigger_scope_payload_size(source) <= 1 + trigger::trigger_scope_data_payload(source[0]);
 }
-//precondition: scope known to not be empty
+// precondition: scope known to not be empty
 bool scope_has_single_member(const uint16_t* source) {
 	const auto data_offset = 2 + trigger::trigger_scope_data_payload(source[0]);
 	return trigger::get_trigger_scope_payload_size(source) == data_offset + trigger::get_trigger_payload_size(source + data_offset);
 }
 
-//yields new source size
+// yields new source size
 int32_t simplify_trigger(uint16_t* source) {
 	assert(
-		(0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code)
-		|| (*source & trigger::code_mask) == trigger::placeholder_not_scope);
+	    (0 <= (*source & trigger::code_mask) && (*source & trigger::code_mask) < trigger::first_invalid_code) || (*source & trigger::code_mask) == trigger::placeholder_not_scope);
 	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
 		if(scope_is_empty(source)) {
 			return 0; // simplify an empty scope to nothing
 		}
 
-		//simplify each member
+		// simplify each member
 		auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
-
 		const auto first_member = source + 2 + trigger::trigger_scope_data_payload(source[0]);
-		auto sub_units_start = first_member;
 
-		while(sub_units_start < source + source_size) {
-			const auto old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
-			const auto new_size = simplify_trigger(sub_units_start);
+		{	
+			auto sub_units_start = first_member;
+			while(sub_units_start < source + source_size) {
+				const auto old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
+				const auto new_size = simplify_trigger(sub_units_start);
 
-			if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
-				std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
-				source_size -= (old_size - new_size);
+				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
+					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
+					source_size -= (old_size - new_size);
+				}
+				sub_units_start += new_size;
 			}
-			sub_units_start += new_size;
 		}
 
 		source[1] = uint16_t(source_size - 1);
@@ -624,10 +623,27 @@ int32_t simplify_trigger(uint16_t* source) {
 			source[0] |= trigger::generic_scope;
 		}
 
-		if(scope_has_single_member(source)) {
+
+		if(source[0] == trigger::generic_scope || source[0] == (trigger::generic_scope | trigger::is_disjunctive_scope)) {
+			auto sub_units_start = first_member;
+			while(sub_units_start < source + source_size) {
+				const auto size = 1 + trigger::get_trigger_payload_size(sub_units_start);
+				if(sub_units_start[0] == source[0]) {
+					std::copy(sub_units_start + 2, source + source_size, sub_units_start);
+					source_size -= 2;
+				} else {
+					sub_units_start += size;
+				}
+			}
+		}
+
+		source[1] = uint16_t(source_size - 1);
+
+		if((source[0] & trigger::code_mask) >= trigger::first_scope_code && scope_has_single_member(source)) {
 			if((source[0] & trigger::code_mask) == trigger::generic_scope) { // remove single-member generic scopes
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
+				source[1] = uint16_t(source_size - 1);
 			} else if((first_member[0] & trigger::code_mask) == trigger::generic_scope) {
 				// scope contains single generic scope
 
@@ -640,8 +656,9 @@ int32_t simplify_trigger(uint16_t* source) {
 			}
 		}
 
-		//MISSING OPTIMIZATION: fold inner 'and' scope into outer 'and' scope, inner 'or' scope into outer 'or' scope
-
+		if((source[0] & trigger::code_mask) >= trigger::first_scope_code && scope_is_empty(source)) {
+			return 0; // simplify an empty scope to nothing
+		}
 		return source_size;
 	} else {
 		return 1 + trigger::get_trigger_non_scope_payload_size(source); // non scopes cannot be simplified
@@ -650,7 +667,6 @@ int32_t simplify_trigger(uint16_t* source) {
 
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	tr_scope_and(gen, err, context);
-
 	const auto new_size = simplify_trigger(context.compiled_trigger.data());
 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
 
@@ -670,7 +686,7 @@ void make_value_modifier_segment(token_generator& gen, error_handler& err, trigg
 	auto tkey = context.outer_context.state.commit_trigger_data(context.compiled_trigger);
 	context.compiled_trigger.clear();
 
-	context.outer_context.state.value_modifier_segments.push_back(sys::value_modifier_segment{ new_factor, tkey });
+	context.outer_context.state.value_modifier_segments.push_back(sys::value_modifier_segment{new_factor, tkey});
 }
 
 dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler& err, trigger_building_context& context) {
@@ -680,7 +696,7 @@ dcon::value_modifier_key make_value_modifier(token_generator& gen, error_handler
 	auto overall_factor = result.factor;
 	auto new_count = context.outer_context.state.value_modifier_segments.size();
 
-	return context.outer_context.state.value_modifiers.push_back(sys::value_modifier_description{ overall_factor, uint16_t(old_count), uint16_t(new_count - old_count) });
+	return context.outer_context.state.value_modifiers.push_back(sys::value_modifier_description{overall_factor, uint16_t(old_count), uint16_t(new_count - old_count)});
 }
 
 void trigger_body::is_canal_enabled(association_type a, int32_t value, error_handler& err, int32_t line, trigger_building_context& context) {
@@ -726,4 +742,4 @@ void trigger_body::has_leader(association_type a, std::string_view value, error_
 	context.compiled_trigger.push_back(trigger::payload(name_id).value);
 }
 
-}
+} // namespace parsers

@@ -6,6 +6,7 @@ namespace ui {
 
 class pop_sort_buttons_window : public window_element_base {
 	xy_pair sort_template_offset{};
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -35,4 +36,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

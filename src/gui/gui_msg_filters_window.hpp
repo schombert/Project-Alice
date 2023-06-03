@@ -16,7 +16,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);	
+			auto content = any_cast<dcon::nation_id>(payload);
 			frame = state.world.nation_get_is_interesting(content) ? 1 : 0;
 		}
 	}
@@ -25,8 +25,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);	
-			
+			auto content = any_cast<dcon::nation_id>(payload);
+
 			auto fat_id = dcon::fatten(state.world, content);
 			fat_id.set_is_interesting(!fat_id.get_is_interesting());
 			parent->impl_on_update(state);
@@ -60,6 +60,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "message_filters_entry";
 	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -78,6 +79,7 @@ public:
 
 class msg_filters_window : public window_element_base {
 	msg_filters_country_listbox* country_listbox = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
@@ -122,7 +124,7 @@ public:
 			state.ui_defs.gui[id].data.button.font_handle = text::name_into_font_id(state, "vic_18_black"); // Nudge font
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
 			ptr->target = ([&]() {
-				dcon::modifier_id filter_mod_id{ 0 };
+				dcon::modifier_id filter_mod_id{0};
 				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
 				if(it != state.key_to_text_sequence.end())
 					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
@@ -168,4 +170,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

@@ -45,7 +45,6 @@ std::vector<uint32_t> get_nationality_global_color(sys::state& state) {
 			prov_color[id] = primary_culture_color;
 			prov_color[id + texture_size] = primary_culture_color;
 		}
-
 	});
 
 	return prov_color;
@@ -96,4 +95,3 @@ std::vector<uint32_t> nationality_map_from(sys::state& state) {
 
 	return prov_color;
 }
-

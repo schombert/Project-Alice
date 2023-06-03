@@ -55,9 +55,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // or msvcfeatures.h
 
 //#ifdef  __CUDA_ARCH__ allows Philox32 and Philox64 to be compiled
-//for both device and host functions in CUDA by setting compiler flags
-//for the device function
-#ifdef  __CUDA_ARCH__
+// for both device and host functions in CUDA by setting compiler flags
+// for the device function
+#ifdef __CUDA_ARCH__
 #ifndef R123_CUDA_DEVICE
 #define R123_CUDA_DEVICE __device__
 #endif
@@ -68,15 +68,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef R123_THROW
 // No exceptions in CUDA, at least upto 4.0
-#define R123_THROW(x)    R123_ASSERT(0)
+#define R123_THROW(x) R123_ASSERT(0)
 #endif
 
 #ifndef R123_ASSERT
-#define R123_ASSERT(x) if((x)) ; else asm("trap;")
+#define R123_ASSERT(x) \
+	if((x))            \
+		;              \
+	else               \
+		asm("trap;")
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
-#define R123_BUILTIN_EXPECT(expr,likely) expr
+#define R123_BUILTIN_EXPECT(expr, likely) expr
 #endif
 
 #ifndef R123_USE_AES_NI

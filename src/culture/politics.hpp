@@ -51,4 +51,4 @@ void start_election(sys::state& state, dcon::nation_id n);
 void set_issue_option(sys::state& state, dcon::nation_id n, dcon::issue_option_id opt);
 void set_reform_option(sys::state& state, dcon::nation_id n, dcon::reform_option_id opt);
 
-}
+} // namespace politics

@@ -27,4 +27,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

@@ -14,9 +14,9 @@ std::vector<uint32_t> admin_map_from(sys::state& state) {
 			auto admin_efficiency = province::state_admin_efficiency(state, fat_id.get_state_membership());
 
 			uint32_t color = ogl::color_gradient(
-				admin_efficiency,
-				sys::pack_color(46, 247, 15), // red
-				sys::pack_color(247, 15, 15) // green
+			    admin_efficiency,
+			    sys::pack_color(46, 247, 15), // red
+			    sys::pack_color(247, 15, 15)  // green
 			);
 
 			auto i = province::to_map_id(prov_id);

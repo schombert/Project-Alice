@@ -8,7 +8,7 @@ struct state;
 
 namespace sound {
 
-class sound_impl; // use this to store implementation dependent data
+class sound_impl;     // use this to store implementation dependent data
 class audio_instance; // implementation dependent structure for storing a single music/audio file
 
 // called on startup and shutdown -- initialize should also load the list of available music files and load sound effects
@@ -32,4 +32,4 @@ void update_music_track(sys::state& state); // linux may not need this function,
 //    we implement more of the fixed sound effects
 audio_instance& get_click_sound(sys::state& state);
 
-}
+} // namespace sound

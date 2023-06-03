@@ -30,7 +30,6 @@ std::vector<uint32_t> recruitment_map_from(sys::state& state) {
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
 		}
-
 	});
 
 	return prov_color;

@@ -6,6 +6,6 @@ using native_string = std::wstring;
 using native_string_view = std::wstring_view;
 using native_char = wchar_t;
 
-#define NATIVE(X) L ## X
+#define NATIVE(X) L##X
 #define NATIVE_M(X) NATIVE(X)
 #define NATIVE_DIR_SEPARATOR L'\\'

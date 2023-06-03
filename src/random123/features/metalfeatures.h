@@ -62,7 +62,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
-#define R123_BUILTIN_EXPECT(expr,likely) expr
+#define R123_BUILTIN_EXPECT(expr, likely) expr
 #endif
 
 #ifndef R123_USE_GNU_UINT128
@@ -105,7 +105,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef R123_ULONG_LONG
 /* the longest integer type in Metal (Feb 2019, Specification-2) is a
  * 32-bit unsigned int.  Let's hope for the best... */
-#define R123_ULONG_LONG unsigned int 
+#define R123_ULONG_LONG unsigned int
 #endif
 
 #endif
