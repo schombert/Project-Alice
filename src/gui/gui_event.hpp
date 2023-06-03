@@ -28,8 +28,8 @@ struct option_taken_notification {
 typedef std::variant<
     event::pending_human_n_event,
     event::pending_human_f_n_event,
-	event::pending_human_p_event,
-	event::pending_human_f_p_event>
+    event::pending_human_p_event,
+    event::pending_human_f_p_event>
     event_data_wrapper;
 class event_option_button : public button_element_base {
 public:

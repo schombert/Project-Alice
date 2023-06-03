@@ -623,7 +623,6 @@ int32_t simplify_trigger(uint16_t* source) {
 			source[0] |= trigger::generic_scope;
 		}
 
-
 		if(source[0] == trigger::generic_scope || source[0] == (trigger::generic_scope | trigger::is_disjunctive_scope)) {
 			auto sub_units_start = first_member;
 			while(sub_units_start < source + source_size) {

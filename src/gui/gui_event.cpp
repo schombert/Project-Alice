@@ -119,7 +119,7 @@ void event_option_button::on_update(sys::state& state) noexcept {
 		parent->impl_get(state, payload);
 		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 		dcon::text_sequence_id name{};
-		
+
 		if(std::holds_alternative<event::pending_human_n_event>(content))
 			name = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index].name;
 		else if(std::holds_alternative<event::pending_human_f_n_event>(content))
@@ -128,7 +128,7 @@ void event_option_button::on_update(sys::state& state) noexcept {
 			name = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index].name;
 		else if(std::holds_alternative<event::pending_human_f_p_event>(content))
 			name = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index].name;
-		
+
 		if(bool(name)) {
 			set_button_text(state, text::produce_simple_string(state, name));
 		} else {
