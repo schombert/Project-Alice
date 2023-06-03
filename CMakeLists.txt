@@ -77,12 +77,12 @@ else() # GCC or CLANG
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(Alice PRIVATE
 										-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field
-			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
+			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -D_FORTIFY_SOURCE=2>
 			$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
 		target_compile_options(Alice PRIVATE
 										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
-			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
+			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -D_FORTIFY_SOURCE=2>
 			$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()
 endif()
