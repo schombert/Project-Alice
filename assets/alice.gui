@@ -559,6 +559,20 @@ guiTypes = {
 		orientation = "UPPER_LEFT"
 		format = centre
 	}
+	iconType = {
+		name = "alice_event_requirements"
+		position = { x = 0 y = 0 }
+		size = { x = 24 y = 24 }
+		spriteType = "GFX_decision_info"
+		Orientation = "UPPER_LEFT"
+	}
+	iconType = {
+		name = "alice_event_odds"
+		position = { x = 0 y = 0 }
+		size = { x = 24 y = 24 }
+		spriteType = "GFX_alice_odds"
+		Orientation = "UPPER_LEFT"
+	}
 
 	guiButtonType = {
 		name = "goto_location_button"
