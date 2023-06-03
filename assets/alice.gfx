@@ -10,6 +10,11 @@ spriteTypes = {
 		noOfFrames = 2
 	}
 
+	textSpriteType = {
+		name = "GFX_alice_odds"
+		texturefile = "assets\\odds_icon.dds"
+	}
+
 	# Solves quirk with eu3dialog.gui, line 16
     textSpriteType = {
 		name = "GFX_icon_merchant"
