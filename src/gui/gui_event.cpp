@@ -113,16 +113,22 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj, state.world.nation_get_adjective(state.primary_crisis_defender));
 }
 
-void national_event_option_button::on_update(sys::state& state) noexcept {
+void event_option_button::on_update(sys::state& state) noexcept {
 	if(parent) {
-		Cyto::Any payload = national_event_data_wrapper{};
+		Cyto::Any payload = event_data_wrapper{};
 		parent->impl_get(state, payload);
-		national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
+		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 		dcon::text_sequence_id name{};
+
 		if(std::holds_alternative<event::pending_human_n_event>(content))
 			name = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index].name;
 		else if(std::holds_alternative<event::pending_human_f_n_event>(content))
 			name = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index].name;
+		else if(std::holds_alternative<event::pending_human_p_event>(content))
+			name = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index].name;
+		else if(std::holds_alternative<event::pending_human_f_p_event>(content))
+			name = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index].name;
+
 		if(bool(name)) {
 			set_button_text(state, text::produce_simple_string(state, name));
 		} else {
@@ -131,31 +137,43 @@ void national_event_option_button::on_update(sys::state& state) noexcept {
 	}
 }
 
-void national_event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	if(parent) {
-		Cyto::Any payload = national_event_data_wrapper{};
+		Cyto::Any payload = event_data_wrapper{};
 		parent->impl_get(state, payload);
-		national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
+		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 		if(std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto phe = std::get<event::pending_human_n_event>(content);
 			effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot, trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
 			effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.n), -1, -1, phe.r_lo, phe.r_hi);
+		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto phe = std::get<event::pending_human_p_event>(content);
+			effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
+			effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
 		}
 	}
 }
 
-void national_event_option_button::button_action(sys::state& state) noexcept {
+void event_option_button::button_action(sys::state& state) noexcept {
 	if(parent) {
-		Cyto::Any payload = national_event_data_wrapper{};
+		Cyto::Any payload = event_data_wrapper{};
 		parent->impl_get(state, payload);
-		national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
+		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 		if(std::holds_alternative<event::pending_human_n_event>(content)) {
 			auto phe = std::get<event::pending_human_n_event>(content);
 			command::make_event_choice(state, phe, index);
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
+			command::make_event_choice(state, phe, index);
+		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto phe = std::get<event::pending_human_p_event>(content);
+			command::make_event_choice(state, phe, index);
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
 			command::make_event_choice(state, phe, index);
 		}
 		Cyto::Any n_payload = option_taken_notification{};
@@ -163,11 +181,11 @@ void national_event_option_button::button_action(sys::state& state) noexcept {
 	}
 }
 
-void national_event_image::on_update(sys::state& state) noexcept {
+void event_image::on_update(sys::state& state) noexcept {
 	if(parent) {
-		Cyto::Any payload = national_event_data_wrapper{};
+		Cyto::Any payload = event_data_wrapper{};
 		parent->impl_get(state, payload);
-		national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
+		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 		if(std::holds_alternative<event::pending_human_n_event>(content))
 			base_data.data.image.gfx_object = state.world.national_event_get_image(std::get<event::pending_human_n_event>(content).e);
 		else if(std::holds_alternative<event::pending_human_f_n_event>(content))
@@ -175,16 +193,16 @@ void national_event_image::on_update(sys::state& state) noexcept {
 	}
 }
 
-void national_event_desc_text::on_create(sys::state& state) noexcept {
+void event_desc_text::on_create(sys::state& state) noexcept {
 	multiline_text_element_base::on_create(state);
 	base_data.data.text.font_handle = text::name_into_font_id(state, "ToolTip_Font");
 }
 
-void national_event_desc_text::on_update(sys::state& state) noexcept {
+void event_desc_text::on_update(sys::state& state) noexcept {
 	if(parent) {
-		Cyto::Any payload = national_event_data_wrapper{};
+		Cyto::Any payload = event_data_wrapper{};
 		parent->impl_get(state, payload);
-		national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
+		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
 		auto contents = text::create_endless_layout(
 		    internal_layout,
@@ -202,17 +220,25 @@ void national_event_desc_text::on_update(sys::state& state) noexcept {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
 			description = state.world.free_national_event_get_description(phe.e);
 			populate_event_submap(state, sub, phe);
+		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto phe = std::get<event::pending_human_p_event>(content);
+			description = state.world.provincial_event_get_description(phe.e);
+			populate_event_submap(state, sub, phe);
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
+			description = state.world.free_provincial_event_get_description(phe.e);
+			populate_event_submap(state, sub, phe);
 		}
 		text::add_to_layout_box(contents, state, box, description, sub);
 		text::close_layout_box(contents, box);
 	}
 }
 
-void national_event_name_text::on_update(sys::state& state) noexcept {
+void event_name_text::on_update(sys::state& state) noexcept {
 	if(parent) {
-		Cyto::Any payload = national_event_data_wrapper{};
+		Cyto::Any payload = event_data_wrapper{};
 		parent->impl_get(state, payload);
-		national_event_data_wrapper content = any_cast<national_event_data_wrapper>(payload);
+		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
 
 		auto contents = text::create_endless_layout(
 		    internal_layout,
@@ -229,9 +255,69 @@ void national_event_name_text::on_update(sys::state& state) noexcept {
 			auto phe = std::get<event::pending_human_f_n_event>(content);
 			name = state.world.free_national_event_get_name(phe.e);
 			populate_event_submap(state, sub, phe);
+		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto phe = std::get<event::pending_human_p_event>(content);
+			name = state.world.provincial_event_get_name(phe.e);
+			populate_event_submap(state, sub, phe);
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
+			name = state.world.free_provincial_event_get_name(phe.e);
+			populate_event_submap(state, sub, phe);
 		}
 		text::add_to_layout_box(contents, state, box, name, sub);
 		text::close_layout_box(contents, box);
+	}
+}
+
+void event_requirements_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(parent) {
+		Cyto::Any payload = event_data_wrapper{};
+		parent->impl_get(state, payload);
+		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
+
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("event_show_requirements"));
+			text::close_layout_box(contents, box);
+		}
+
+		if(std::holds_alternative<event::pending_human_p_event>(content) || std::holds_alternative<event::pending_human_n_event>(content)) {
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
+			text::close_layout_box(contents, box);
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
+			trigger_description(state, contents, state.world.free_provincial_event_get_trigger(phe.e), trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1);
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+			auto phe = std::get<event::pending_human_f_n_event>(content);
+			trigger_description(state, contents, state.world.free_national_event_get_trigger(phe.e), trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1);
+		}
+	}
+}
+
+void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(parent) {
+		Cyto::Any payload = event_data_wrapper{};
+		parent->impl_get(state, payload);
+		event_data_wrapper content = any_cast<event_data_wrapper>(payload);
+
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("event_show_odds"));
+			text::close_layout_box(contents, box);
+		}
+
+		if(std::holds_alternative<event::pending_human_p_event>(content) || std::holds_alternative<event::pending_human_n_event>(content)) {
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
+			text::close_layout_box(contents, box);
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
+			multiplicative_value_modifier_description(state, contents, state.world.free_provincial_event_get_mtth(phe.e), trigger::to_generic(phe.p), trigger::to_generic(phe.p), 0);
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+			auto phe = std::get<event::pending_human_f_n_event>(content);
+			multiplicative_value_modifier_description(state, contents, state.world.free_national_event_get_mtth(phe.e), trigger::to_generic(phe.n), trigger::to_generic(phe.n), 0);
+		}
 	}
 }
 
@@ -245,7 +331,7 @@ void national_event_window<IsMajor>::on_create(sys::state& state) noexcept {
 	xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(s1)->second.definition].position;
 	xy_pair offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(s2)->second.definition].position;
 	for(size_t i = 0; i < size_t(sys::max_event_options); ++i) {
-		auto ptr = make_element_by_type<national_event_option_button>(state, state.ui_state.defs_by_name.find(s3)->second.definition);
+		auto ptr = make_element_by_type<event_option_button>(state, state.ui_state.defs_by_name.find(s3)->second.definition);
 		ptr->base_data.position = cur_offset;
 		ptr->index = uint8_t(i);
 		option_buttons[i] = ptr.get();
@@ -263,7 +349,7 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 		xy_pair cur_pos{0, 0};
 		{
 			auto ptr = make_element_by_type<event_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 2);
+			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
@@ -281,13 +367,27 @@ std::unique_ptr<element_base> national_event_window<IsMajor>::make_child(sys::st
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
+		{
+			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+			ptr->base_data.position = bg_ptr->base_data.position;
+			ptr->base_data.position.y = cur_pos.y;
+			ptr->base_data.position.x += ptr->base_data.size.x;
+			add_child_to_front(std::move(ptr));
+		}
+		{
+			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			ptr->base_data.position = bg_ptr->base_data.position;
+			ptr->base_data.position.y = cur_pos.y;
+			ptr->base_data.position.x += ptr->base_data.size.x * 2;
+			add_child_to_front(std::move(ptr));
+		}
 		return bg_ptr;
 	} else if(name == "title") {
-		return make_element_by_type<national_event_name_text>(state, id);
+		return make_element_by_type<event_name_text>(state, id);
 	} else if(name == "description") {
-		return make_element_by_type<national_event_desc_text>(state, id);
-	} else if(name == "image") {
-		return make_element_by_type<national_event_image>(state, id);
+		return make_element_by_type<event_desc_text>(state, id);
+	} else if(name == "event_images") {
+		return make_element_by_type<event_image>(state, id);
 	} else if(name == "date") {
 		return make_element_by_type<simple_text_element_base>(state, id);
 	} else {
@@ -346,11 +446,11 @@ message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any&
 	if(payload.holds_type<dcon::nation_id>()) {
 		payload.emplace<dcon::nation_id>(state.local_player_nation);
 		return message_result::consumed;
-	} else if(payload.holds_type<national_event_data_wrapper>()) {
+	} else if(payload.holds_type<event_data_wrapper>()) {
 		if(events.empty()) {
-			payload.emplace<national_event_data_wrapper>(national_event_data_wrapper{});
+			payload.emplace<event_data_wrapper>(event_data_wrapper{});
 		} else {
-			payload.emplace<national_event_data_wrapper>(events[index]);
+			payload.emplace<event_data_wrapper>(events[index]);
 		}
 		return message_result::consumed;
 	} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
@@ -368,122 +468,15 @@ message_result national_event_window<IsMajor>::get(sys::state& state, Cyto::Any&
 	return message_result::unseen;
 }
 
-void provincial_event_option_button::on_update(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = provincial_event_data_wrapper{};
-		parent->impl_get(state, payload);
-		provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
-		dcon::text_sequence_id name{};
-		if(std::holds_alternative<event::pending_human_p_event>(content))
-			name = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index].name;
-		else if(std::holds_alternative<event::pending_human_f_p_event>(content))
-			name = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index].name;
-		if(bool(name)) {
-			set_button_text(state, text::produce_simple_string(state, name));
-			set_visible(state, true);
-		} else {
-			set_visible(state, false);
-		}
-	}
-}
-
-void provincial_event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	if(parent) {
-		Cyto::Any payload = provincial_event_data_wrapper{};
-		parent->impl_get(state, payload);
-		provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
-		if(std::holds_alternative<event::pending_human_p_event>(content)) {
-			auto phe = std::get<event::pending_human_p_event>(content);
-			effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect, trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
-		}
-	}
-}
-
-void provincial_event_option_button::button_action(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = provincial_event_data_wrapper{};
-		parent->impl_get(state, payload);
-		provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
-		if(std::holds_alternative<event::pending_human_p_event>(content)) {
-			auto phe = std::get<event::pending_human_p_event>(content);
-			command::make_event_choice(state, phe, index);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			command::make_event_choice(state, phe, index);
-		}
-		Cyto::Any n_payload = option_taken_notification{};
-		parent->impl_get(state, n_payload);
-	}
-}
-
-void provincial_event_desc_text::on_create(sys::state& state) noexcept {
-	multiline_text_element_base::on_create(state);
-	base_data.data.text.font_handle = text::name_into_font_id(state, "ToolTip_Font");
-}
-
-void provincial_event_desc_text::on_update(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = provincial_event_data_wrapper{};
-		parent->impl_get(state, payload);
-		provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
-
-		auto contents = text::create_endless_layout(
-		    internal_layout,
-		    text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
-
-		auto box = text::open_layout_box(contents);
-		text::substitution_map sub{};
-		dcon::text_sequence_id description{};
-		if(std::holds_alternative<event::pending_human_p_event>(content)) {
-			auto phe = std::get<event::pending_human_p_event>(content);
-			description = state.world.provincial_event_get_description(phe.e);
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			description = state.world.free_provincial_event_get_description(phe.e);
-			populate_event_submap(state, sub, phe);
-		}
-		text::add_to_layout_box(contents, state, box, description, sub);
-		text::close_layout_box(contents, box);
-	}
-}
-
-void provincial_event_name_text::on_update(sys::state& state) noexcept {
-	if(parent) {
-		Cyto::Any payload = provincial_event_data_wrapper{};
-		parent->impl_get(state, payload);
-		provincial_event_data_wrapper content = any_cast<provincial_event_data_wrapper>(payload);
-
-		auto contents = text::create_endless_layout(
-		    internal_layout,
-		    text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black});
-
-		auto box = text::open_layout_box(contents);
-		text::substitution_map sub{};
-		dcon::text_sequence_id name{};
-		if(std::holds_alternative<event::pending_human_p_event>(content)) {
-			auto phe = std::get<event::pending_human_p_event>(content);
-			name = state.world.provincial_event_get_name(phe.e);
-			populate_event_submap(state, sub, phe);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			name = state.world.free_provincial_event_get_name(phe.e);
-			populate_event_submap(state, sub, phe);
-		}
-		text::add_to_layout_box(contents, state, box, name, sub);
-		text::close_layout_box(contents, box);
-	}
-}
-
 void provincial_event_window::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
 	xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
 	xy_pair offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_offset")->second.definition].position;
+	divider_image->base_data.position.y = cur_offset.y;
+	divider_image->base_data.position.y -= 150; // Omega nudge??
+	cur_offset.y += divider_image->base_data.size.y;
 	for(size_t i = 0; i < size_t(sys::max_event_options); ++i) {
-		auto ptr = make_element_by_type<provincial_event_option_button>(state, state.ui_state.defs_by_name.find("event_province_optionbutton")->second.definition);
+		auto ptr = make_element_by_type<event_option_button>(state, state.ui_state.defs_by_name.find("event_province_optionbutton")->second.definition);
 		ptr->base_data.position = cur_offset;
 		ptr->base_data.position.y -= 150; // Omega nudge??
 		ptr->index = uint8_t(i);
@@ -500,7 +493,7 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 		xy_pair cur_pos{0, 0};
 		{
 			auto ptr = make_element_by_type<event_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
-			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 2);
+			cur_pos.x = bg_ptr->base_data.size.x - (ptr->base_data.size.x * 3);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
@@ -518,11 +511,33 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
 		}
+		{
+			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+			ptr->base_data.position = bg_ptr->base_data.position;
+			ptr->base_data.position.y = cur_pos.y;
+			ptr->base_data.position.x += ptr->base_data.size.x;
+			add_child_to_front(std::move(ptr));
+		}
+		{
+			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			ptr->base_data.position = bg_ptr->base_data.position;
+			ptr->base_data.position.y = cur_pos.y;
+			ptr->base_data.position.x += ptr->base_data.size.x * 2;
+			add_child_to_front(std::move(ptr));
+		}
 		return bg_ptr;
+	} else if(name == "event_images") {
+		auto ptr = make_element_by_type<event_name_text>(state, id);
+		ptr->set_visible(state, false);
+		return ptr;
+	} else if(name == "event_separator_image") {
+		auto ptr = make_element_by_type<image_element_base>(state, id);
+		divider_image = ptr.get();
+		return ptr;
 	} else if(name == "title") {
-		return make_element_by_type<provincial_event_name_text>(state, id);
+		return make_element_by_type<event_name_text>(state, id);
 	} else if(name == "description") {
-		return make_element_by_type<provincial_event_desc_text>(state, id);
+		return make_element_by_type<event_desc_text>(state, id);
 	} else if(name == "date") {
 		return make_element_by_type<simple_text_element_base>(state, id);
 	} else {
@@ -558,11 +573,11 @@ message_result provincial_event_window::get(sys::state& state, Cyto::Any& payloa
 	if(payload.holds_type<dcon::nation_id>()) {
 		payload.emplace<dcon::nation_id>(state.local_player_nation);
 		return message_result::consumed;
-	} else if(payload.holds_type<provincial_event_data_wrapper>()) {
+	} else if(payload.holds_type<event_data_wrapper>()) {
 		if(events.empty()) {
-			payload.emplace<provincial_event_data_wrapper>(provincial_event_data_wrapper{});
+			payload.emplace<event_data_wrapper>(event_data_wrapper{});
 		} else {
-			payload.emplace<provincial_event_data_wrapper>(events[index]);
+			payload.emplace<event_data_wrapper>(events[index]);
 		}
 		return message_result::consumed;
 	} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
