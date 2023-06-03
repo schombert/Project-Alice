@@ -34,9 +34,9 @@ static const modifier_display_info national_modifier_names[sys::national_mod_off
 std::string format_modifier_value(sys::state& state, float value, modifier_display_type type) {
 	switch(type) {
 	case modifier_display_type::integer:
-		return (value > 0.f ? "+" : "") + text::prettify(int64_t(value));
+		return (value >= 0.f ? "+" : "") + text::prettify(int64_t(value));
 	case modifier_display_type::percent:
-		return (value > 0.f ? "+" : "") + text::format_percentage(value, 1);
+		return (value >= 0.f ? "+" : "") + text::format_percentage(value, 1);
 	case modifier_display_type::fp_two_places:
 		return text::format_float(value, 2);
 	case modifier_display_type::fp_three_places:
@@ -52,16 +52,14 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 	for(uint32_t i = 0; i < prov_def.modifier_definition_size; ++i) {
 		if(!bool(prov_def.offsets[i]))
 			break;
-
-		auto offset = uint32_t(prov_def.offsets[i].index());
-		auto data = province_modifier_names[offset];
+		auto data = province_modifier_names[prov_def.offsets[i].index()];
 		auto box = text::open_layout_box(layout, indentation);
 		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
 		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(layout, state, box);
 		auto color = data.positive_is_green
-		                 ? (prov_def.values[i] > 0.f ? text::text_color::green : text::text_color::red)
-		                 : (prov_def.values[i] > 0.f ? text::text_color::red : text::text_color::green);
+		                 ? (prov_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red)
+		                 : (prov_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
 		text::add_to_layout_box(layout, state, box, format_modifier_value(state, prov_def.values[i], data.type), color);
 		text::close_layout_box(layout, box);
 	}
@@ -70,16 +68,14 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 	for(uint32_t i = 0; i < nat_def.modifier_definition_size; ++i) {
 		if(!bool(nat_def.offsets[i]))
 			break;
-
-		auto offset = uint32_t(nat_def.offsets[i].index());
-		auto data = national_modifier_names[offset];
+		auto data = national_modifier_names[nat_def.offsets[i].index()];
 		auto box = text::open_layout_box(layout, indentation);
 		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, data.name), text::text_color::white);
 		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);
 		text::add_space_to_layout_box(layout, state, box);
 		auto color = data.positive_is_green
-		                 ? (nat_def.values[i] > 0.f ? text::text_color::green : text::text_color::red)
-		                 : (nat_def.values[i] > 0.f ? text::text_color::red : text::text_color::green);
+		                 ? (nat_def.values[i] >= 0.f ? text::text_color::green : text::text_color::red)
+		                 : (nat_def.values[i] >= 0.f ? text::text_color::red : text::text_color::green);
 		text::add_to_layout_box(layout, state, box, format_modifier_value(state, nat_def.values[i], data.type), color);
 		text::close_layout_box(layout, box);
 	}
@@ -113,7 +109,7 @@ static void acting_modifier_description(sys::state& state, text::layout_base& la
 		if(nat_def.offsets[i] != nmid)
 			continue;
 		
-		auto data = province_modifier_names[nmid.index()];
+		auto data = national_modifier_names[nmid.index()];
 		auto box = text::open_layout_box(layout, indentation);
 		text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, fat_id.get_name()), text::text_color::white);
 		text::add_to_layout_box(layout, state, box, std::string_view{":"}, text::text_color::white);

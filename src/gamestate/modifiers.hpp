@@ -67,7 +67,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(6, reinforce_speed, true, modifier_display_type::percent, "modifier_reinforce_speed")                                                           \
 	MOD_LIST_ELEMENT(7, land_organisation, true, modifier_display_type::percent, "modifier_land_organisation")                                                       \
 	MOD_LIST_ELEMENT(8, naval_organisation, true, modifier_display_type::percent, "modifier_naval_organisation")                                                     \
-	MOD_LIST_ELEMENT(9, research_points, false, modifier_display_type::percent, "modifier_research_points")                                                     \
+	MOD_LIST_ELEMENT(9, research_points, true, modifier_display_type::integer, "modifier_research_points")                                                     \
 	MOD_LIST_ELEMENT(10, research_points_modifier, true, modifier_display_type::percent, "modifier_research_points_modifier")                                        \
 	MOD_LIST_ELEMENT(11, research_points_on_conquer, true, modifier_display_type::percent, "modifier_research_points_on_conquer")                                    \
 	MOD_LIST_ELEMENT(12, import_cost, false, modifier_display_type::percent, "modifier_import_cost")                                                                 \
@@ -197,14 +197,14 @@ constexpr inline uint32_t count = MOD_NAT_LIST_COUNT;
 } // namespace national_mod_offsets
 
 struct provincial_modifier_definition {
-	static constexpr uint32_t modifier_definition_size = 10;
+	static constexpr uint32_t modifier_definition_size = 24;
 
 	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 	dcon::provincial_modifier_value offsets[modifier_definition_size] = {dcon::provincial_modifier_value{}};
 };
 
 struct national_modifier_definition {
-	static constexpr uint32_t modifier_definition_size = 10;
+	static constexpr uint32_t modifier_definition_size = 24;
 
 	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 	dcon::national_modifier_value offsets[modifier_definition_size] = {dcon::national_modifier_value{}};
