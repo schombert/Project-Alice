@@ -101,13 +101,12 @@ bool are_allied_in_war(sys::state const & state, dcon::nation_id a, dcon::nation
 dcon::war_id find_war_between(sys::state const & state, dcon::nation_id a, dcon::nation_id b);
 bool has_truce_with(sys::state const & state, dcon::nation_id attacker, dcon::nation_id target);
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
-float cb_infamy(sys::state const & state, dcon::cb_type_id t);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 bool joining_war_does_not_violate_constraints(sys::state const & state, dcon::nation_id a, dcon::war_id w, bool as_attacker); // tests whether joining the war would violate the constraint that you can't both be in a war with and fighting against the same nation or fighting against them twice
 bool is_civil_war(sys::state const & state, dcon::war_id w);
 bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w);
 bool defenders_have_non_status_quo_wargoal(sys::state const & state, dcon::war_id w);
-float primary_warscore(sys::state const & state, dcon::war_id w); // warscore from the perspective of the primary attacker offering a peace deal to the primary defender
+float primary_warscore(sys::state const & state, dcon::war_id w); // warscore from the perspective of the primary attacker offering a peace deal to the primary defender; -100 to 100
 bool is_defender_wargoal(sys::state const & state, dcon::war_id w, dcon::wargoal_id wg);
 
 template<typename T>
@@ -165,5 +164,20 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 void call_defender_allies(sys::state& state, dcon::war_id wfor);
 void call_attacker_allies(sys::state& state, dcon::war_id wfor);
 void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id sd, dcon::national_identity_id tag);
+
+float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id type);
+float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);
+float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id type);
+
+int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from, dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state, dcon::national_identity_id wargoal_t);
+
+float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nation_id actor);
+float cb_infamy(sys::state const & state, dcon::cb_type_id t); // the fabrication cost in infamy
+float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
+
+bool cb_requires_selection_of_a_vassal(sys::state const & state, dcon::cb_type_id t);
+bool cb_requires_selection_of_a_sphere_member(sys::state const & state, dcon::cb_type_id t);
+bool cb_requires_selection_of_a_liberatable_tag(sys::state const & state, dcon::cb_type_id t);
+bool cb_requires_selection_of_a_state(sys::state const & state, dcon::cb_type_id t);
 
 } // namespace military

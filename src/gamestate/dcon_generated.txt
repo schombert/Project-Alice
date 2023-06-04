@@ -1785,6 +1785,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ secondary_nation }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
 		name{ associated_state }
 		type{ state_definition_id }
 		tag{ save }
