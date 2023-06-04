@@ -248,22 +248,6 @@ public:
 	}
 };
 
-class technology_research_progress_name_text : public simple_text_element_base {
-	std::string get_text(sys::state& state) noexcept {
-		auto tech_id = nations::current_research(state, state.local_player_nation);
-		if(tech_id) {
-			return text::get_name_as_string(state, dcon::fatten(state.world, tech_id));
-		} else {
-			return text::produce_simple_string(state, "tb_tech_no_current");
-		}
-	}
-
-public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, get_text(state));
-	}
-};
-
 class technology_research_progress_category_text : public simple_text_element_base {
 	std::string get_text(sys::state& state) noexcept {
 		auto tech_id = nations::current_research(state, state.local_player_nation);
@@ -894,7 +878,7 @@ public:
 		} else if(name == "research_progress") {
 			return make_element_by_type<nation_technology_research_progress>(state, id);
 		} else if(name == "research_progress_name") {
-			return make_element_by_type<technology_research_progress_name_text>(state, id);
+			return make_element_by_type<nation_current_research_text>(state, id);
 		} else if(name == "research_progress_category") {
 			return make_element_by_type<technology_research_progress_category_text>(state, id);
 		} else if(name == "selected_tech_window") {
@@ -935,6 +919,9 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::technology_id>()) {
 			payload.emplace<dcon::technology_id>(tech_id);
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(state.local_player_nation);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

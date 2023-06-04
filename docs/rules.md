@@ -492,6 +492,14 @@ All defender allies that could possibly join get a call to arms. The attacker ma
 
 When you join (or declare) a war your relations with nations on the opposite side decrease by -100. If you end up on the opposite side of a war as an ally, your alliance breaks, but without any extra relations penalty. Substates and vassals are automatically dragged into the war.
 
+#### Calling allies
+
+Allies may be called into a war. In a defensive war, the sphere leader of the target will be called in. Any ally called must be able to join the war:
+
+Standard war-joining conditions: can't join if you are already at war against any attacker or defender. Can't join a civil war. Can't join a war against your sphere leader or overlord . Can't join a crisis war prior to great wars being invented (i.e. you have to be in the crisis). Can't join as an attacker against someone you have a truce with.
+
+There are somewhat opaque rules about when an ally called into the war will take over war leadership. We may choose either to keep war leadership fixed or to let the highest ranked participant be the leader.
+
 #### Naming the war
 
 The name of the war is determined by the `war_name` property of the CB that the war was declared with prefixed with either NORMAL_ or AGRESSION_ (yes, with that spelling. yes, I know). (It gets the aggression prefix if the attacker has no valid cb as the war is declared ... which shouldn't be possible right, since the war name comes from the CB that the war is declared with, right ...). If there is no declaring CB, the war defaults to NORMAL_WAR_NAME or AGRESSION_WAR_NAME.
@@ -501,6 +509,65 @@ A great war is named GREAT_WAR_NAME
 The game also apparently supports special premade names between specific nations (or rather, specific tags). I don't intend to support this.
 
 In addition to first and second, country_adj and state are also available in these strings.
+
+#### Special Crisis rules
+
+A pending crisis acts much like an active war in that war goals can be added and peace offers made. When adding a war goal to the crisis as an offer to get someone to join, multiply the normal infamy cost by define:CRISIS_WARGOAL_INFAMY_MULT.
+
+#### Peace action
+
+Costs define:PEACE_DIPLOMATIC_COST (although you seem to be able to clear a war with no war goals for free). Peace requires a war leader on at least one side of the offer, except in crisis wars, in which no separate peaces are possible.
+
+When a peace offer is accepted, relations between the nations increase by defines:PEACE_RELATION_ON_ACCEPT, If it is refused, relations increase by define:PEACE_RELATION_ON_DECLINE.
+
+If a "good" peace offer is refused, the refusing nation gains define:GOOD_PEACE_REFUSAL_WAREXH war exhaustion and all of its pops gain define:GOOD_PEACE_REFUSAL_MILITANCY. What counts as a good offer, well if the peace offer is considered "better" than expected. This seems to be a complicated thing to calculate involving: the direction the war is going in (sign of the latest war score change), the overall quantity of forces on each side (with navies counting for less), time since the war began, war exhaustion, war score, the peace cost of the offer, and whether the recipient will be annexed as a result.
+
+A peace offer must be accepted when war score reaches 100.
+
+When a losing peace offer is accepted, the ruling party in the losing nation has its party loyalty reduced by define:PARTY_LOYALTY_HIT_ON_WAR_LOSS percent in all provinces (this includes accepting a crisis resolution offer in which you lose). When a nation exits a war, it takes all of its vassals / substates with it. The nations on the other side of the war get a truce with the nation for define:BASE_TRUCE_MONTHS + the greatest truce months for any CB in the peach deal.
+
+When a war goal is failed (the nation it targets leaves the war without that war goal being enacted): the nation that added it loses WAR_FAILED_GOAL_PRESTIGE_BASE^(WAR_FAILED_GOAL_PRESTIGE x current-prestige) x CB-penalty-factor prestige. Every pop in that nation gains CB-penalty-factor x define:WAR_FAILED_GOAL_MILITANCY militancy.
+
+War goal results:
+po_annex: nation is annexed, vassals and substates are freed, diplomatic relations are dissolved.
+po_demand_state: state is taken (this can turn into annex if it is the last state)
+po_remove_cores: also cores are removed from any territory taken / target territory if it is already owned by sender
+po_transfer_provinces: all the valid states are transferred to the nation specified in the war goal. Relations between that country and the nation that added the war goal increase by define:LIBERATE_STATE_RELATION_INCREASE. If the nation is newly created by this, the nation it was created from gets a truce of define:BASE_TRUCE_MONTHS months with it (and it is placed in the liberator's sphere if that nation is a GP).
+po_add_to_sphere: leaves its current sphere and has its opinion of that nation set to hostile. Is added to the nation that added the war goal's sphere with max influence.
+po_clear_union_sphere: every nation of the actors culture group in the target nation's sphere leaves (and has relation set to friendly) and is added to the actor nation's sphere with max influence. All vassals of the target nation affected by this are freed.
+po_release_puppet: nation stops being a vassal
+po_make_puppet: the target nation releases all of its vassals and then becomes a vassal of the acting nation.
+po_destory_forts: reduces fort levels to zero in any targeted states
+po_destory_naval_bases: as above
+po_disarmament: a random define:DISARMAMENT_ARMY_HIT fraction of the nations units are destroyed. All current unit constructions are canceled. The nation is disarmed. Disarmament lasts until define:REPARATIONS_YEARS or the nation is at war again.
+po_reparations: the nation is set to pay reparations for define:REPARATIONS_YEARS
+po_remove_prestige: the target loses (current-prestige x define:PRESTIGE_REDUCTION) + define:PRESTIGE_REDUCTION_BASE prestige
+po_install_communist_gov: The target switches its government type and ruling ideology (if possible) to that of the nation that added the war goal. Relations with the nation that added the war goal are set to 0. The nation leaves its current sphere and enters the actor's sphere if it is a GP. If the war continues, the war leader on the opposite side gains the appropriate `counter_wargoal_on_install_communist_gov` CB, if any and allowed by the conditions of that CB.
+po_uninstall_communist_gov_type: The target switches its government type to that of the nation that added the war goal. The nation leaves its current sphere and enters the actor's sphere if it is a GP.
+po_colony: colonization finishes, with the adder of the war goal getting the colony and all other colonizers being kicked out
+other/in general: the `on_po_accepted` member of the CB is run. Primary slot: target of the war goal. This slot: nation that added the war goal.
+The nation that added the war goal gains prestige. This is done, by calculating the sum ,over all the po tags, of base-prestige-for-that-tag v (nations-current-prestige x prestige-for-that-tag) and then multiplying the result by the CB's prestige factor. The nation that was targeted by the war goal also loses that much prestige.
+
+When a nation is annexed by a war goal, the war leader on that side gains a `counter_wargoal_on_annex` CB if possible
+(NOTE: these CBs are actually resolved through the tweaks.lua file, which contains:
+```
+counter_wargoal_on_annex = { cb = "free_peoples" },
+counter_wargoal_on_install_communist_gov = { cb = "uninstall_communist_gov_cb" },
+```
+)
+A war goal added in this way will result in a status quo war goal on that side being removed.
+
+Any war ending probably requires checking that units aren't stuck in invalid combats, updating blockade status, etc.
+
+#### Crisis offers
+
+Crisis resolution offers function much in the same way as peace offers. Every refused crisis offer increases the temperature of the current crisis by define:CRISIS_TEMPERATURE_ON_OFFER_DECLINE.
+
+When a war goal is failed (i.e. the crisis ends in peace without the goal being pressed): the nation that added it loses WAR_FAILED_GOAL_PRESTIGE_BASE^(WAR_FAILED_GOAL_PRESTIGE x current-prestige) x CB-penalty-factor prestige x define:CRISIS_WARGOAL_PRESTIGE_MULT. Every pop in that nation gains CB-penalty-factor x define:WAR_FAILED_GOAL_MILITANCY militancy. Every pop in that nation gains CB-penalty-factor x define:WAR_FAILED_GOAL_MILITANCY x define:CRISIS_WARGOAL_MILITANCY_MULT militancy.
+
+For war goals that are enforced, the winners get the normal amount of prestige x define:CRISIS_WARGOAL_PRESTIGE_MULT
+
+The crisis winner also gets year-after-start-date x define:CRISIS_WINNER_PRESTIGE_FACTOR_YEAR prestige. The crisis winner gains define:CRISIS_WINNER_RELATIONS_IMPACT relations with everyone on their side, except everyone with an unfulfilled war goal gains -define:CRISIS_WINNER_RELATIONS_IMPACT relations with the leader of their side.
 
 ### War goals and war score
 
