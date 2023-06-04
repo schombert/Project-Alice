@@ -65,18 +65,17 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			dcon::nation_id content = Cyto::any_cast<dcon::nation_id>(payload);
-			disabled = !state.world.nation_get_active_unit(content, unit_type);
+			dcon::nation_id n = Cyto::any_cast<dcon::nation_id>(payload);
+			disabled = state.world.nation_get_active_unit(n, unit_type) == false && state.military_definitions.unit_base_definitions[unit_type].active == false;
 		}
 	}
 };
 
-class buildable_units : public listbox_row_element_base<buildable_unit_entry_info> {
+class units_build_item : public listbox_row_element_base<buildable_unit_entry_info> {
 public:
 	ui::unit_build_button* build_button;
 	ui::simple_text_element_base* unit_name = nullptr;
 	ui::image_element_base* unit_icon = nullptr;
-	ui::simple_text_element_base* province_name = nullptr;
 
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base::on_create(state);
@@ -100,9 +99,7 @@ public:
 			unit_icon = ptr.get();
 			return ptr;
 		} else if(name == "province") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			province_name = ptr.get();
-			return ptr;
+			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -135,10 +132,8 @@ public:
 						}
 					}
 				}*/
-				province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(state.world.pop_location_get_province(state.world.pop_get_pop_location(content.pop_info)))));
 			} else {
 				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
-				province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(content.province_info)));
 			}
 		}
 	}
@@ -155,7 +150,7 @@ public:
 	}
 };
 
-class build_units_listbox : public listbox_element_base<buildable_units, buildable_unit_entry_info> {
+class units_build_listbox : public listbox_element_base<units_build_item, buildable_unit_entry_info> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "build_unit_entry_wide";
@@ -209,6 +204,104 @@ public:
 	}
 };
 
+class units_queue_item : public listbox_row_element_base<std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>> {
+public:
+	ui::image_element_base* unit_icon = nullptr;
+	ui::simple_text_element_base* unit_name = nullptr;
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "button") {
+			return make_element_by_type<button_element_base>(state, id);
+		} else if(name == "button2") {
+			auto ptr = make_element_by_type<button_element_base>(state, id);
+			ptr->set_visible(state, false);
+			return ptr;
+		} else if(name == "unit_strip") {
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			unit_icon = ptr.get();
+			return ptr;
+		} else if(name == "name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			unit_name = ptr.get();
+			return ptr;
+		} else if(name == "province") {
+			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
+		} else if(name == "continent") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	void update(sys::state& state) noexcept override {
+		if(parent) {
+			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
+				auto c = std::get<dcon::province_land_construction_id>(content);
+
+				dcon::unit_type_id utid = state.world.province_land_construction_get_type(c);
+				unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
+
+				auto culture_content = text::produce_simple_string(state, state.world.pop_get_culture(state.world.province_land_construction_get_pop(c)).get_name());
+				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name);
+				unit_name->set_text(state, culture_content + " " + unit_type_name);
+			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
+				auto c = std::get<dcon::province_naval_construction_id>(content);
+
+				dcon::unit_type_id utid = state.world.province_naval_construction_get_type(c);
+				unit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
+
+				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+			}
+		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::province_id>()) {
+			dcon::province_id p{};
+			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
+				auto c = std::get<dcon::province_land_construction_id>(content);
+				p = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(state.world.province_land_construction_get_pop(c)));
+			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
+				auto c = std::get<dcon::province_naval_construction_id>(content);
+				p = state.world.province_naval_construction_get_province(c);
+			}
+			payload.emplace<dcon::province_id>(p);
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>>::get(state, payload);
+	}
+};
+
+class units_queue_listbox : public listbox_element_base<units_queue_item, std::variant<dcon::province_land_construction_id, dcon::province_naval_construction_id>> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "queue_unit_entry";
+	}
+public:
+	// false == army
+	// true == navy
+	bool is_navy = true;
+
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		if(parent) {
+			Cyto::Any payload = dcon::unit_type_id{};
+			parent->impl_get(state, payload);
+			dcon::unit_type_id utid = Cyto::any_cast<dcon::unit_type_id>(payload);
+			if(is_navy == false) {
+				state.world.nation_for_each_province_land_construction_as_nation(state.local_player_nation, [&](dcon::province_land_construction_id c) {
+					row_contents.push_back(c);
+				});
+			} else {
+				state.world.nation_for_each_province_naval_construction_as_nation(state.local_player_nation, [&](dcon::province_naval_construction_id c) {
+					row_contents.push_back(c);
+				});
+			}
+		}
+		update(state);
+	}
+};
+
 class build_unit_large_window : public window_element_base {
 	dcon::unit_type_id unit_type{};
 	dcon::unit_type_id first_land_type{};
@@ -233,8 +326,12 @@ public:
 			auto ptr = make_element_by_type<build_unit_close_button>(state, id);
 			return ptr;
 		} else if(name == "list") {
-			auto ptr = make_element_by_type<build_units_listbox>(state, id);
-			buildable_units = ptr.get();
+			auto ptr = make_element_by_type<units_build_listbox>(state, id);
+			units_listbox = ptr.get();
+			return ptr;
+		} else if(name == "queue") {
+			auto ptr = make_element_by_type<units_queue_listbox>(state, id);
+			units_queue = ptr.get();
 			return ptr;
 		} else if(name == "external_scroll_slider_list") {
 			auto ptr = make_element_by_type<element_base>(state, id);
@@ -246,43 +343,19 @@ public:
 			return ptr;
 		} else if(name.substr(0, 12) == "unit_folder_") {
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
-			auto value = std::stoi(std::string(name.substr(12)));
+			int32_t value = std::stoi(std::string(name.substr(12)));
 			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == value) {
+				auto def = state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)];
+				if(def.icon == value) {
 					ptr->unit_type = dcon::unit_type_id(i);
-					break;
+					if(def.is_land) {
+						first_land_type = ptr->unit_type;
+						army_elements.push_back(ptr.get());
+					} else {
+						first_naval_type = ptr->unit_type;
+						navy_elements.push_back(ptr.get());
+					}
 				}
-			}
-			switch(value) {
-			case 1:
-			case 2:
-			case 3:
-			case 13:
-			case 14:
-			case 15:
-			case 16:
-			case 17:
-			case 18:
-			case 19:
-			case 20:
-				first_land_type = ptr->unit_type;
-				army_elements.push_back(ptr.get());
-				break;
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-			case 9:
-			case 10:
-			case 11:
-			case 12:
-			case 21:
-				first_naval_type = ptr->unit_type;
-				navy_elements.push_back(ptr.get());
-				break;
-			default:
-				break;
 			}
 			return ptr;
 		} else {
@@ -291,10 +364,11 @@ public:
 	}
 
 	void set_army_visible(sys::state& state) {
-		buildable_units->is_navy = false;
+		units_queue->is_navy = units_listbox->is_navy = false;
 		for(auto element : army_elements)
 			element->set_visible(state, true);
-		buildable_units->impl_on_update(state);
+		units_listbox->impl_on_update(state);
+		units_queue->impl_on_update(state);
 	}
 
 	void set_army_invisible(sys::state& state) {
@@ -303,10 +377,11 @@ public:
 	}
 
 	void set_navy_visible(sys::state& state) {
-		buildable_units->is_navy = true;
+		units_queue->is_navy = units_listbox->is_navy = true;
 		for(auto element : navy_elements)
 			element->set_visible(state, true);
-		buildable_units->impl_on_update(state);
+		units_listbox->impl_on_update(state);
+		units_queue->impl_on_update(state);
 	}
 
 	void set_navy_invisible(sys::state& state) {
@@ -332,7 +407,8 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<dcon::unit_type_id>>()) {
 			unit_type = Cyto::any_cast<element_selection_wrapper<dcon::unit_type_id>>(payload).data;
-			buildable_units->impl_on_update(state);
+			units_listbox->impl_on_update(state);
+			units_queue->impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::unit_type_id>()) {
 			payload.emplace<dcon::unit_type_id>(unit_type);
@@ -343,7 +419,8 @@ public:
 
 	std::vector<element_base*> army_elements;
 	std::vector<element_base*> navy_elements;
-	ui::build_units_listbox* buildable_units = nullptr;
+	ui::units_build_listbox* units_listbox = nullptr;
+	ui::units_queue_listbox* units_queue = nullptr;
 };
 
 } // namespace ui

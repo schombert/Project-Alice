@@ -225,40 +225,6 @@ public:
 	}
 };
 
-class military_armies_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			dcon::nation_id n = Cyto::any_cast<dcon::nation_id>(payload);
-
-			int32_t count = 0;
-			state.world.nation_for_each_army_control_as_controller(n, [&](dcon::army_control_id acid) {
-				++count;
-			});
-			set_text(state, std::to_string(count));
-		}
-	}
-};
-
-class military_navies_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			dcon::nation_id n = Cyto::any_cast<dcon::nation_id>(payload);
-
-			int32_t count = 0;
-			state.world.nation_for_each_navy_control_as_controller(n, [&](dcon::navy_control_id acid) {
-				++count;
-			});
-			set_text(state, std::to_string(count));
-		}
-	}
-};
-
 template<class T>
 class build_unit_button : public button_element_base {
 public:
@@ -287,15 +253,15 @@ public:
 			return make_element_by_type<military_units_listbox<T>>(state, id);
 		} else if(name == "current_count") {
 			if constexpr(std::is_same_v<T, dcon::army_id>)
-				return make_element_by_type<military_armies_text>(state, id);
+				return make_element_by_type<nation_brigades_text>(state, id);
 			else
-				return make_element_by_type<military_navies_text>(state, id);
+				return make_element_by_type<nation_ships_text>(state, id);
 		} else if(name == "build_new") {
 			auto ptr = make_element_by_type<build_unit_button<T>>(state, id);
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				ptr->set_button_text(state, text::produce_simple_string(state, "MILITARY_BUILD_ARMY_LABEL"));
+				ptr->set_button_text(state, text::produce_simple_string(state, "military_build_army_label"));
 			} else {
-				ptr->set_button_text(state, text::produce_simple_string(state, "MILITARY_BUILD_NAVY_LABEL"));
+				ptr->set_button_text(state, text::produce_simple_string(state, "military_build_navy_label"));
 			}
 			ptr->set_visible(state, true);
 			return ptr;
