@@ -127,7 +127,7 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 		if(!header) {
 			header = true;
 			auto box = text::open_layout_box(layout, 0);
-			text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, national_modifier_names[nmid.index()].name), text::text_color::yellow);
+			text::add_to_layout_box(layout, state, box, text::produce_simple_string(state, national_modifier_names[pmid.index()].name), text::text_color::yellow);
 			text::add_to_layout_box(layout, state, box, std::string_view(":"), text::text_color::yellow);
 			text::close_layout_box(layout, box);
 		}
