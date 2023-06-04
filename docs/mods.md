@@ -5,6 +5,19 @@ As of writing, Alice doesn't properly support most of the popular mods without a
 If you're impertinent to try out the mods, you may be able to apply the following diff patch to your Alice codebase:
 
 ```diff
+diff --git a/src/common_types/container_types.hpp b/src/common_types/container_types.hpp
+index 5505214..b9d085a 100644
+--- a/src/common_types/container_types.hpp
++++ b/src/common_types/container_types.hpp
+@@ -48,7 +48,7 @@ struct event_option {
+ 	dcon::effect_key effect;
+ };
+ 
+-constexpr int32_t max_event_options = 6;
++constexpr int32_t max_event_options = 8;
+ 
+ struct modifier_hash {
+ 	using is_avalanching = void;
 diff --git a/src/entry_point_nix.cpp b/src/entry_point_nix.cpp
 index 2dc422d..f5c0f44 100644
 --- a/src/entry_point_nix.cpp
@@ -101,7 +114,7 @@ index c0d9e61..298f79f 100644
  	auto content = simple_fs::view_contents(*file);
  	uint32_t size_x, size_y;
 diff --git a/src/parsing/parsers_declarations.cpp b/src/parsing/parsers_declarations.cpp
-index 270a4d8..bd8fef0 100644
+index 270a4d8..f15a14d 100644
 --- a/src/parsing/parsers_declarations.cpp
 +++ b/src/parsing/parsers_declarations.cpp
 @@ -2530,13 +2530,16 @@ void mod_file::finish(mod_file_context& context) {
@@ -113,14 +126,13 @@ index 270a4d8..bd8fef0 100644
 -		path_block += NATIVE_DIR_SEPARATOR;
 -		path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
 -		if(path_block.back() != NATIVE_DIR_SEPARATOR)
--			path_block += NATIVE_DIR_SEPARATOR;
--
-+ 	auto& fs = context.outer_context.state.common_fs;
++	auto& fs = context.outer_context.state.common_fs;
 +	const auto roots = simple_fs::list_roots(fs);
 +	for(const auto& root : roots) {
 +		for(auto replace_path : context.replace_paths) {
 +			native_string path_block = root;
-+ 			path_block += NATIVE_DIR_SEPARATOR;
+ 			path_block += NATIVE_DIR_SEPARATOR;
+-
 +			path_block += simple_fs::correct_slashes(simple_fs::utf8_to_native(replace_path));
 +			if(path_block.back() != NATIVE_DIR_SEPARATOR)
 +				path_block += NATIVE_DIR_SEPARATOR;
@@ -129,32 +141,30 @@ index 270a4d8..bd8fef0 100644
  	}
  
 diff --git a/src/parsing/trigger_parsing.cpp b/src/parsing/trigger_parsing.cpp
-index 5a3fb74..440ea83 100644
+index 93d4aa0..9f825d4 100644
 --- a/src/parsing/trigger_parsing.cpp
 +++ b/src/parsing/trigger_parsing.cpp
-@@ -670,6 +670,8 @@ int32_t simplify_trigger(uint16_t* source) {
+@@ -664,6 +664,9 @@ int32_t simplify_trigger(uint16_t* source) {
+ 
  dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
  	tr_scope_and(gen, err, context);
- 	assert(context.compiled_trigger.size() <= std::numeric_limits<uint16_t>::max());
 +	if(!err.accumulated_errors.empty())
 +		return dcon::trigger_key{1}; // Can't rely on a trigger with errors!
- 
++
  	const auto new_size = simplify_trigger(context.compiled_trigger.data());
  	context.compiled_trigger.resize(static_cast<size_t>(new_size));
+ 
+@@ -674,6 +677,9 @@ void make_value_modifier_segment(token_generator& gen, error_handler& err, trigg
+ 	auto old_factor = context.factor;
+ 	context.factor = 0.0f;
+ 	tr_scope_and(gen, err, context);
++	if(!err.accumulated_errors.empty())
++		return dcon::trigger_key{1}; // Can't rely on a trigger with errors!
++
+ 	auto new_factor = context.factor;
+ 	context.factor = old_factor;
+ 
 
-diff --git a/src/common_types/container_types.hpp b/src/common_types/container_types.hpp
-index 5505214..b9d085a 100644
---- a/src/common_types/container_types.hpp
-+++ b/src/common_types/container_types.hpp
-@@ -48,7 +48,7 @@ struct event_option {
- 	dcon::effect_key effect;
- };
- 
--constexpr int32_t max_event_options = 6;
-+constexpr int32_t max_event_options = 8;
- 
- struct modifier_hash {
- 	using is_avalanching = void;
 ```
 
 What this patch does is that it increments the size of possible modifiers (thus allowing mods to add as many modifiers as they wish, more than it's normally allowed) - this however, incurs a huge penalty on memory size and speed.
