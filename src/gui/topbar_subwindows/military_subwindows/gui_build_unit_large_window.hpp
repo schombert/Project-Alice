@@ -144,6 +144,20 @@ public:
 					build_button->unit_type_id = dcon::unit_type_id(i);
 					build_button->culture_id = dcon::fatten(state.world, content.pop_info).get_culture();
 					build_button->province_id = dcon::fatten(state.world, content.pop_info).get_province_from_pop_location();
+
+					/* if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].primary_culture) {
+						if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+							int cult_it = 0;
+							for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+								if(culture_id.id == element) {
+									cult_it++;
+								}
+							}
+							if(cult_it == 0) {
+								set_visible(state, false);
+							}
+						}
+					}*/
 				}
 			}
 			province_name->set_text(state, text::produce_simple_string(state, state.world.province_get_name(state.world.pop_location_get_province(state.world.pop_get_pop_location(content.pop_info)))));
@@ -213,15 +227,24 @@ public:
 	// false == army
 	// true == navy
 	bool is_navy = true;
+	dcon::unit_type_id unit_type;
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 
+		//ARMY
 		if(is_navy == false) {
+			//Checks each province of player nation
 			for(const auto fat_id : state.world.nation_get_province_ownership(state.local_player_nation)) {
+				//Checks if province is occupied or not
 				if(fat_id.get_province().get_province_control().get_nation() == fat_id.get_nation()) {
+					//Checks each pop of the province
 					for(const auto fat_id2 : state.world.province_get_pop_location(fat_id.get_province().id)) {
+						//Checks if pop are soldiers
 						if(fat_id2.get_pop().get_poptype().id == state.culture_definitions.soldiers) {
+							//Checks if province is colonial
 							if(state.world.province_get_is_colonial(fat_id2.get_province())) {
+								//Checks if pop is greater in size than size of regiment (3000 in vanilla) times COLONIAL min size multiplier (5 in vanilla)
+								//If so, divide pop by (size of regiment*colonial min size multiplier) and ADD ONE to get number of regiments possible from that pop
 								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier) {
 									int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier))) + 1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -230,13 +253,40 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										 for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
+								// Checks if pop is greater in size than the pop_min_size_for_regiment (1000 in vanilla)
+								// If so, number of possible regiments from pop is ONE
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -245,15 +295,43 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								}
+							//Checks if province is core of owner
 							} else if(!state.world.province_get_is_owner_core(fat_id2.get_province())) {
+								// Checks if pop is greater in size than size of regiment (3000 in vanilla) times CORE min size multiplier (3 in vanilla)
+								// If so, divide pop by (size of regiment*core min size multiplier) and ADD ONE to get number of regiments possible from that pop
 								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier) {
 									int32_t total = int32_t(((fat_id2.get_pop().get_size() / (state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier))) + 1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -262,13 +340,40 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
+								// Checks if pop is greater in size than the pop_min_size_for_regiment (1000 in vanilla)
+								// If so, number of possible regiments from pop is ONE
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -277,15 +382,43 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								}
+							//Covers all provinces that are neither of the above
 							} else {
+								// Checks if pop is greater in size than size of regiment (3000 in vanilla)
+								// If so, divide pop by (size of regiment) and ADD ONE to get number of regiments possible from that pop
 								if(fat_id2.get_pop().get_size() >= state.defines.pop_size_per_regiment) {
 									int32_t total = int32_t(((fat_id2.get_pop().get_size() / state.defines.pop_size_per_regiment)) + 1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -294,13 +427,40 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
+								//Checks if pop is greater in size than the pop_min_size_for_regiment (1000 in vanilla)
+								//If so, number of possible regiments from pop is ONE
 								} else if(fat_id2.get_pop().get_size() >= state.defines.pop_min_size_for_regiment) {
 									int32_t total = int32_t(1);
 									for(const auto fat_id3 : fat_id2.get_pop().get_regiment_source()) {
@@ -309,12 +469,37 @@ public:
 									for(const auto fat_id3 : state.world.pop_get_province_land_construction(fat_id2.get_pop())) {
 										total--;
 									}
-									for(int32_t i = 0; i < total; i++) {
-										buildable_unit_entry_info information;
-										information.is_navy = false;
-										information.pop_info = fat_id2.get_pop().id;
-										information.province_info = fat_id2.get_province().id;
-										row_contents.push_back(information);
+									auto culture_id = state.world.pop_get_culture(fat_id2.get_pop().id);
+									if(state.military_definitions.unit_base_definitions[unit_type].primary_culture) {
+										if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+											for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+												if(culture_id.id == element) {
+													for(int32_t i = 0; i < total; i++) {
+														buildable_unit_entry_info information;
+														information.is_navy = false;
+														information.pop_info = fat_id2.get_pop().id;
+														information.province_info = fat_id2.get_province().id;
+														row_contents.push_back(information);
+													}
+												}
+											}
+										} else {
+											for(int32_t i = 0; i < total; i++) {
+												buildable_unit_entry_info information;
+												information.is_navy = false;
+												information.pop_info = fat_id2.get_pop().id;
+												information.province_info = fat_id2.get_province().id;
+												row_contents.push_back(information);
+											}
+										}
+									} else {
+										for(int32_t i = 0; i < total; i++) {
+											buildable_unit_entry_info information;
+											information.is_navy = false;
+											information.pop_info = fat_id2.get_pop().id;
+											information.province_info = fat_id2.get_province().id;
+											row_contents.push_back(information);
+										}
 									}
 								}
 							}
@@ -322,6 +507,7 @@ public:
 					}
 				}
 			}
+		//NAVY
 		} else {
 			for(const auto fat_id : state.world.nation_get_province_ownership(state.local_player_nation)) {
 				if(fat_id.get_province().get_is_coast()) {
@@ -335,6 +521,20 @@ public:
 		}
 
 		update(state);
+	}
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<unit_folder_message_variables>()) {
+			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].icon == Cyto::any_cast<unit_folder_message_variables>(payload).unit_type) {
+					unit_type = dcon::unit_type_id(i);
+					on_update(state);
+				}
+			}
+			//unit_type = Cyto::any_cast<unit_folder_message_variables>(payload).unit_type;
+			
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
