@@ -28,8 +28,7 @@ void trigger_description(sys::state& state, text::layout_base& layout, dcon::tri
 void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
 void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid);
-void active_modifiers_description_with_name(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid, bool header);
 void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 
 // Filters used on both production and diplomacy tabs for the country lists
@@ -1067,9 +1066,9 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description_with_name(state, contents, nation_id, 0, sys::national_mod_offsets::global_pop_militancy_modifier);
-			active_modifiers_description_with_name(state, contents, nation_id, 0, sys::national_mod_offsets::core_pop_militancy_modifier);
-			active_modifiers_description_with_name(state, contents, nation_id, 0, sys::national_mod_offsets::non_accepted_pop_militancy_modifier);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::global_pop_militancy_modifier, true);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::core_pop_militancy_modifier, true);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::non_accepted_pop_militancy_modifier, true);
 		}
 	}
 };
@@ -1103,9 +1102,9 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description_with_name(state, contents, nation_id, 0, sys::national_mod_offsets::global_pop_consciousness_modifier);
-			active_modifiers_description_with_name(state, contents, nation_id, 0, sys::national_mod_offsets::core_pop_consciousness_modifier);
-			active_modifiers_description_with_name(state, contents, nation_id, 0, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::global_pop_consciousness_modifier, true);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::core_pop_consciousness_modifier, true);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier, true);
 		}
 	}
 };
@@ -1204,7 +1203,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::badboy);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::badboy, false);
 		}
 	}
 };
@@ -1232,7 +1231,7 @@ public:
 			// TODO - check if the nation is at peace, if it is then we display stuff
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::war_exhaustion);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::war_exhaustion, false);
 		}
 	}
 };
@@ -1264,7 +1263,7 @@ public:
 			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_population_visual"), text::variable_type::curr, text::pretty_integer{int32_t(state.world.nation_get_demographics(nation_id, demographics::total)) * 4});
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, false);
 		}
 	}
 };
@@ -1335,8 +1334,8 @@ public:
 			}
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
 		}
 	}
 };
@@ -1372,7 +1371,7 @@ public:
 			text::add_to_layout_box(contents, state, box, text::fp_two_places{nations::suppression_points(state, nation_id)});
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::suppression_points_modifier);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::suppression_points_modifier, false);
 		}
 	}
 };
@@ -1433,7 +1432,7 @@ public:
 			}
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::max_national_focus);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::max_national_focus, false);
 		}
 	}
 };
@@ -1443,6 +1442,27 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::diplomatic_points(state, nation_id);
 		return text::format_float(points, 0);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::diplomatic_points(state, nation_id)});
+			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
+			text::add_divider_to_layout_box(state, contents, box);
+			text::close_layout_box(contents, box);
+
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::diplomatic_points_modifier, false);
+		}
 	}
 };
 
@@ -1625,8 +1645,8 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.officers)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
 			text::add_to_substitution_map(sub, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.officers) * 100)});
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership_modifier);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership, false);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership_modifier, false);
 		}
 	}
 };
@@ -1796,19 +1816,19 @@ public:
 				auto fidx = state.world.technology_get_folder_index(tech_id);
 				switch(state.culture_definitions.tech_folders[fidx].category) {
 				case culture::tech_category::army:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::army_tech_research_bonus);
+					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::army_tech_research_bonus, true);
 					break;
 				case culture::tech_category::navy:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::navy_tech_research_bonus);
+					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::navy_tech_research_bonus, true);
 					break;
 				case culture::tech_category::commerce:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::commerce_tech_research_bonus);
+					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::commerce_tech_research_bonus, true);
 					break;
 				case culture::tech_category::culture:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::culture_tech_research_bonus);
+					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::culture_tech_research_bonus, true);
 					break;
 				case culture::tech_category::industry:
-					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::industry_tech_research_bonus);
+					active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::industry_tech_research_bonus, true);
 					break;
 				default:
 					break;

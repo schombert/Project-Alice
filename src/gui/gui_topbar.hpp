@@ -272,30 +272,6 @@ public:
 	}
 };
 
-class topbar_nation_diplomatic_points_text : public nation_diplomatic_points_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::diplomatic_points(state, nation_id)});
-			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
-			text::add_divider_to_layout_box(state, contents, box);
-			text::close_layout_box(contents, box);
-
-			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::diplomatic_points_modifier);
-		}
-	}
-};
-
 class background_image : public opaque_element_base {
 public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -1159,7 +1135,7 @@ public:
 			ptr->base_data.position.y -= ptr->base_data.position.y / 4;
 			return ptr;
 		} else if(name == "diplomacy_diplopoints_value") {
-			return make_element_by_type<topbar_nation_diplomatic_points_text>(state, id);
+			return make_element_by_type<nation_diplomatic_points_text>(state, id);
 		} else if(name == "alert_colony") {
 			return make_element_by_type<topbar_colony_icon>(state, id);
 		} else if(name == "alert_crisis") {
