@@ -72,3 +72,5 @@ Project Alice 在中文 Victora 2 社区引起了一些关注。由于语言障�
 ## 结束语
 
 下个月再见！（或者，如果您不想等待，请加入我们的 [Discord](https://discord.gg/QUJExr4mRn) ）
+
+[English](./june.md)（此版本由 Stevezxc 翻译于 2023/*06/04* 15:45 UTC+8）
