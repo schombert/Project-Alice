@@ -53,6 +53,14 @@ public:
 			return nullptr;
 		}
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(state.local_player_nation);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
 } // namespace ui
