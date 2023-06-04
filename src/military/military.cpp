@@ -240,7 +240,7 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 	int32_t total = 0;
 	if(state.world.province_get_is_colonial(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+		float minimum = state.defines.pop_min_size_for_regiment;
 
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
@@ -251,7 +251,7 @@ int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_i
 		}
 	} else if(!state.world.province_get_is_owner_core(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+		float minimum = state.defines.pop_min_size_for_regiment;
 
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
@@ -292,7 +292,7 @@ int32_t main_culture_regiments_max_possible_from_province(sys::state& state, dco
 	int32_t total = 0;
 	if(state.world.province_get_is_colonial(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+		float minimum = state.defines.pop_min_size_for_regiment;
 
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers && pop.get_pop().get_is_primary_or_accepted_culture()) {
@@ -303,7 +303,7 @@ int32_t main_culture_regiments_max_possible_from_province(sys::state& state, dco
 		}
 	} else if(!state.world.province_get_is_owner_core(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+		float minimum = state.defines.pop_min_size_for_regiment;
 
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers && pop.get_pop().get_is_primary_or_accepted_culture()) {
@@ -350,7 +350,7 @@ int32_t main_culture_regiments_under_construction_in_province(sys::state& state,
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture) {
 	if(state.world.province_get_is_colonial(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+		float minimum = state.defines.pop_min_size_for_regiment;
 
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
@@ -368,7 +368,7 @@ dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon
 		return dcon::pop_id{};
 	} else if(!state.world.province_get_is_owner_core(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+		float minimum = state.defines.pop_min_size_for_regiment;
 
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
@@ -408,7 +408,7 @@ dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, bool require_accepted) {
 	if(state.world.province_get_is_colonial(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+		float minimum = state.defines.pop_min_size_for_regiment;
 
 		dcon::pop_id non_preferred;
 		for(auto pop : state.world.province_get_pop_location(p)) {
@@ -430,7 +430,7 @@ dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, bool
 		return non_preferred;
 	} else if(!state.world.province_get_is_owner_core(p)) {
 		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+		float minimum = state.defines.pop_min_size_for_regiment;
 
 		dcon::pop_id non_preferred;
 		for(auto pop : state.world.province_get_pop_location(p)) {
