@@ -2029,6 +2029,8 @@ void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id tar
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
+	if(source == target)
+		return false;
 
 	if(state.world.nation_get_constructing_cb_type(source))
 		return false;
@@ -2098,6 +2100,9 @@ bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	/*
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have military access.
 	*/
+	if(asker == target)
+		return false;
+	
 	if(state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
 		return false;
 
@@ -2137,6 +2142,8 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	/*
 	Must not have an alliance. Must not be in a war against each other. Costs defines:ALLIANCE_DIPLOMATIC_COST diplomatic points. Great powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with their overlords.
 	*/
+	if(asker == target)
+		return false;
 
 	if(state.world.nation_get_diplomatic_points(asker) < state.defines.alliance_diplomatic_cost)
 		return false;
@@ -2183,6 +2190,9 @@ void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id targ
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
+	if(asker == target)
+		return false;
+
 	if(state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
 		return false;
 
@@ -2248,8 +2258,10 @@ void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nat
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(source == target)
+		return false;
+	
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
-
 	if(state.world.nation_get_diplomatic_points(source) < state.defines.cancelaskmilaccess_diplomatic_cost)
 		return false;
 
@@ -2308,6 +2320,9 @@ void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	auto b = state.incoming_commands.try_push(p);
 }
 bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(source == target)
+		return false;
+	
 	if(state.world.nation_get_diplomatic_points(source) < state.defines.cancelalliance_diplomatic_cost)
 		return false;
 
@@ -2346,12 +2361,14 @@ void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id targ
 }
 
 bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
-
 	dcon::nation_id real_target = target;
 
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
 	if(state.world.overlord_get_ruler(target_ol_rel))
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
+	
+	if(source == target || source == real_target)
+		return false;
 
 	if(military::are_allied_in_war(state, source, real_target) || military::are_at_war(state, source, real_target))
 		return false;
@@ -2438,6 +2455,8 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 	/*
 	The nation adding the war goal must have positive war score against the target of the war goal (see below). And the nation must be already able to use the CB in question (e.g. it as fabricated previously) or it must be a constructible CB and the nation adding the war goal must have overall jingoism support >= defines:WARGOAL_JINGOISM_REQUIREMENT (x defines:GW_JINGOISM_REQUIREMENT_MOD in a great war).
 	*/
+	if(source == target)
+		return false;
 
 	if(state.world.nation_get_diplomatic_points(source) < state.defines.addwargoal_diplomatic_cost)
 		return false;

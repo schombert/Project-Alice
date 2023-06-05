@@ -267,7 +267,7 @@ public:
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 
-			disabled = !(military::are_at_war(state, state.local_player_nation, content) && state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost)
+			disabled = !(military::are_at_war(state, state.local_player_nation, content) && state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost);
 		}
 	}
 
@@ -1316,12 +1316,6 @@ public:
 			Cyto::Any new_payload = facts_nation_id;
 			auto fat = dcon::fatten(state.world, facts_nation_id);
 			switch(v) {
-			case diplomacy_action::decrease_opinion:
-				gp_action_dialog_win->set_visible(state, true);
-				gp_action_dialog_win->impl_set(state, new_payload);
-				gp_action_dialog_win->impl_set(state, payload);
-				gp_action_dialog_win->impl_on_update(state);
-				break;
 			case diplomacy_action::add_to_sphere:
 				command::add_to_sphere(state, state.local_player_nation, facts_nation_id);
 				break;
@@ -1330,6 +1324,24 @@ public:
 				break;
 			case diplomacy_action::cancel_military_access:
 				command::cancel_military_access(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::give_military_access:
+				// TODO: Give military access
+				break;
+			case diplomacy_action::cancel_give_military_access:
+				command::cancel_given_military_access(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::increase_relations:
+				command::increase_relations(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::decrease_relations:
+				command::decrease_relations(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::war_subsidies:
+				command::give_war_subsidies(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::cancel_war_subsidies:
+				command::cancel_war_subsidies(state, state.local_player_nation, facts_nation_id);
 				break;
 			case diplomacy_action::ally:
 				command::ask_for_alliance(state, state.local_player_nation, facts_nation_id);
@@ -1343,7 +1355,11 @@ public:
 				}
 				break;
 			case diplomacy_action::remove_from_sphere:
-				// TODO - gp_action_dialog_win probably needs to be used here, so figure that out ig
+			case diplomacy_action::decrease_opinion:
+				gp_action_dialog_win->set_visible(state, true);
+				gp_action_dialog_win->impl_set(state, new_payload);
+				gp_action_dialog_win->impl_set(state, payload);
+				gp_action_dialog_win->impl_on_update(state);
 				break;
 			case diplomacy_action::declare_war:
 			case diplomacy_action::add_wargoal:

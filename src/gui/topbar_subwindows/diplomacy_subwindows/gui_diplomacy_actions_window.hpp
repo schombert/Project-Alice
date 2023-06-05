@@ -1001,7 +1001,7 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			disabled = !(!military::are_at_war(state, state.local_player_nation, content) && state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.make_cb_diplomatic_cost);
+			disabled = !(!military::are_at_war(state, state.local_player_nation, content) && state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.make_cb_diplomatic_cost && state.local_player_nation != content);
 		}
 	}
 
@@ -1044,8 +1044,8 @@ public:
 };
 
 class diplomacy_action_dialog_title_text : public generic_settable_element<simple_text_element_base, diplomacy_action> {
-	std::string_view get_title_key() noexcept {
-		switch(content) {
+	static std::string_view get_title_key(diplomacy_action v) noexcept {
+		switch(v) {
 		case diplomacy_action::ally:
 			return "alliancetitle";
 		case diplomacy_action::cancel_ally:
@@ -1098,12 +1098,12 @@ class diplomacy_action_dialog_title_text : public generic_settable_element<simpl
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, get_title_key()));
+		set_text(state, text::produce_simple_string(state, get_title_key(content)));
 	}
 };
-class diplomacy_action_dialog_description_text : public generic_settable_element<simple_text_element_base, diplomacy_action> {
-	std::string_view get_title_key() noexcept {
-		switch(content) {
+class diplomacy_action_dialog_description_text : public generic_settable_element<multiline_text_element_base, diplomacy_action> {
+	static std::string_view get_title_key(diplomacy_action v) noexcept {
+		switch(v) {
 		case diplomacy_action::ally:
 			return "alliancenewdesc";
 		case diplomacy_action::cancel_ally:
@@ -1156,7 +1156,12 @@ class diplomacy_action_dialog_description_text : public generic_settable_element
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, get_title_key()));
+		auto contents = text::create_endless_layout(
+			internal_layout,
+			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::white});
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, get_title_key(content));
+		text::close_layout_box(contents, box);
 	}
 };
 
