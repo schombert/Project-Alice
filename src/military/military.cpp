@@ -151,29 +151,29 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 }
 
 template<typename T>
-auto province_is_blockaded(sys::state const & state, T ids) {
+auto province_is_blockaded(sys::state const& state, T ids) {
 	// TODO: implement function
 	return false;
 }
 
 template<typename T>
-auto province_is_under_siege(sys::state const & state, T ids) {
+auto province_is_under_siege(sys::state const& state, T ids) {
 	// TODO: implement function
 	return false;
 }
 
 template<typename T>
-auto battle_is_ongoing_in_province(sys::state const & state, T ids) {
+auto battle_is_ongoing_in_province(sys::state const& state, T ids) {
 	// TODO: implement function
 	return false;
 }
 
-float recruited_pop_fraction(sys::state const & state, dcon::nation_id n) {
+float recruited_pop_fraction(sys::state const& state, dcon::nation_id n) {
 	// TODO: implement function
 	return 0.0f;
 }
 
-bool state_has_naval_base(sys::state const & state, dcon::state_instance_id si) {
+bool state_has_naval_base(sys::state const& state, dcon::state_instance_id si) {
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
 	auto def = state.world.state_instance_get_definition(si);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(def)) {
@@ -185,7 +185,7 @@ bool state_has_naval_base(sys::state const & state, dcon::state_instance_id si) 
 	return false;
 }
 
-bool are_at_war(sys::state const & state, dcon::nation_id a, dcon::nation_id b) {
+bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {
@@ -196,7 +196,7 @@ bool are_at_war(sys::state const & state, dcon::nation_id a, dcon::nation_id b) 
 	return false;
 }
 
-bool are_allied_in_war(sys::state const & state, dcon::nation_id a, dcon::nation_id b) {
+bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {
@@ -207,7 +207,7 @@ bool are_allied_in_war(sys::state const & state, dcon::nation_id a, dcon::nation
 	return false;
 }
 
-dcon::war_id find_war_between(sys::state const & state, dcon::nation_id a, dcon::nation_id b) {
+dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b) {
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {
@@ -222,7 +222,7 @@ dcon::war_id find_war_between(sys::state const & state, dcon::nation_id a, dcon:
 	return dcon::war_id{};
 }
 
-bool joining_war_does_not_violate_constraints(sys::state const & state, dcon::nation_id a, dcon::war_id w, bool as_attacker) {
+bool joining_war_does_not_violate_constraints(sys::state const& state, dcon::nation_id a, dcon::war_id w, bool as_attacker) {
 	auto target_war_participants = state.world.war_get_war_participant(w);
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		for(auto other_participants : wa.get_war().get_war_participant()) {
@@ -242,7 +242,7 @@ bool joining_war_does_not_violate_constraints(sys::state const & state, dcon::na
 	return true;
 }
 
-bool is_civil_war(sys::state const & state, dcon::war_id w) {
+bool is_civil_war(sys::state const& state, dcon::war_id w) {
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
 		if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::is_civil_war) != 0)
 			return true;
@@ -250,7 +250,7 @@ bool is_civil_war(sys::state const & state, dcon::war_id w) {
 	return false;
 }
 
-bool is_defender_wargoal(sys::state const & state, dcon::war_id w, dcon::wargoal_id wg) {
+bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_id wg) {
 	auto from = state.world.wargoal_get_added_by(wg);
 	for(auto p : state.world.war_get_war_participant(w)) {
 		if(p.get_nation() == from)
@@ -259,7 +259,7 @@ bool is_defender_wargoal(sys::state const & state, dcon::war_id w, dcon::wargoal
 	return false;
 }
 
-bool defenders_have_non_status_quo_wargoal(sys::state const & state, dcon::war_id w) {
+bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w) {
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
 		if(is_defender_wargoal(state, w, wg.get_wargoal()) && (wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_status_quo) != 0)
 			return true;
@@ -727,11 +727,11 @@ void update_naval_supply_points(sys::state& state) {
 	});
 }
 
-float mobilization_size(sys::state const & state, dcon::nation_id n) {
+float mobilization_size(sys::state const& state, dcon::nation_id n) {
 	// Mobilization size = national-modifier-to-mobilization-size + technology-modifier-to-mobilization-size
 	return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_size);
 }
-float mobilization_impact(sys::state const & state, dcon::nation_id n) {
+float mobilization_impact(sys::state const& state, dcon::nation_id n) {
 	// Mobilization impact = 1 - mobilization-size x (national-mobilization-economy-impact-modifier + technology-mobilization-impact-modifier), to a minimum of zero.
 	return std::clamp(
 	    1.0f - mobilization_size(state, n) * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact),
@@ -870,7 +870,7 @@ void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nat
 	// TODO: notify
 }
 
-float cb_infamy(sys::state const & state, dcon::cb_type_id t) {
+float cb_infamy(sys::state const& state, dcon::cb_type_id t) {
 	float total = 0.0f;
 	auto bits = state.world.cb_type_get_type_bits(t);
 
@@ -1333,19 +1333,19 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 		return cb_infamy(state, type);
 }
 
-bool cb_requires_selection_of_a_vassal(sys::state const & state, dcon::cb_type_id t) {
+bool cb_requires_selection_of_a_vassal(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
 	return (bits & (cb_flag::po_release_puppet)) != 0;
 }
-bool cb_requires_selection_of_a_sphere_member(sys::state const & state, dcon::cb_type_id t) {
+bool cb_requires_selection_of_a_sphere_member(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
 	return (bits & (cb_flag::po_take_from_sphere | cb_flag::po_add_to_sphere)) != 0;
 }
-bool cb_requires_selection_of_a_liberatable_tag(sys::state const & state, dcon::cb_type_id t) {
+bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
 	return (bits & (cb_flag::po_liberate | cb_flag::po_transfer_provinces)) != 0;
 }
-bool cb_requires_selection_of_a_state(sys::state const & state, dcon::cb_type_id t) {
+bool cb_requires_selection_of_a_state(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
 	return (bits & (cb_flag::po_demand_state | cb_flag::po_transfer_provinces | cb_flag::po_destroy_naval_bases | cb_flag::po_destroy_forts)) != 0 && (bits & cb_flag::all_allowed_states) == 0;
 }
@@ -1708,7 +1708,7 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 	}
 }
 
-float primary_warscore(sys::state const & state, dcon::war_id w) {
+float primary_warscore(sys::state const& state, dcon::war_id w) {
 	// TODO
 	return 0.0f;
 }
