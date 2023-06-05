@@ -484,12 +484,11 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
+			disabled = true;
+			for(auto& cb : state.world.nation_get_available_cbs(state.local_player_nation))
+				if(cb.target == content && cb.expiration >= state.current_date)
+					disabled = false;
 		}
 	}
 
@@ -516,7 +515,10 @@ public:
 			if(content == state.local_player_nation) {
 				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
 			} else {
-				text::localised_format_box(state, contents, box, std::string_view("dip_enough_diplo"));
+				text::substitution_map dp_map{};
+				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.declarewar_diplomatic_cost ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
 				text::substitution_map ai_map{};
