@@ -344,10 +344,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::province_id{};
 			parent->impl_get(state, payload);
-			auto prov_id = any_cast<dcon::province_id>(payload);
-
+			dcon::province_id prov_id = any_cast<dcon::province_id>(payload);
 			dcon::province_fat_id fat_id = dcon::fatten(state.world, prov_id);
-			auto state_fat_id = fat_id.get_state_membership();
 			colony_button->set_visible(state, fat_id.get_is_colonial());
 			slave_icon->set_visible(state, fat_id.get_is_slave());
 		}

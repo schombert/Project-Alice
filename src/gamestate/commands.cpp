@@ -2361,8 +2361,9 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 		return false;
 
 	auto source_ol_rel = state.world.nation_get_overlord_as_subject(source);
-	if(state.world.overlord_get_ruler(source_ol_rel) != real_target)
+	if(state.world.overlord_get_ruler(source_ol_rel) && state.world.overlord_get_ruler(source_ol_rel) != real_target)
 		return false;
+	
 	if(state.world.nation_get_in_sphere_of(real_target) == source)
 		return false;
 

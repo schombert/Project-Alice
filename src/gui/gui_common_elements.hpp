@@ -1007,11 +1007,10 @@ public:
 class nation_industries_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		size_t num_factories = 0;
+		uint32_t num_factories = 0;
 		for(auto si : state.world.nation_get_state_ownership(nation_id))
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
-				for(auto f : state.world.province_get_factory_location(p))
-					++num_factories;
+				num_factories += uint32_t(state.world.province_get_factory_location(p).end() - state.world.province_get_factory_location(p).begin());
 			});
 		return std::to_string(num_factories);
 	}
@@ -1282,15 +1281,13 @@ public:
 
 class nation_daily_research_points_text : public standard_nation_text {
 	float get_research_points_from_pop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
-		auto fat_nation = dcon::fatten(state.world, n);
 		auto fat_pop = dcon::fatten(state.world, pop);
 		/*
 		Now imagine that Rock Hudson is standing at the top of the water slide hurling Nintendo consoles down the water slide.
 		If it weren't for the ladders, which allow the water to pass through but not the Nintendo consoles,
 		the Nintendo consoles could hit someone in the wave pool on the head, in which case the water park could get sued.
 		*/
-		auto sum = (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state, fat_pop)) / state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum()));
-
+		float sum = (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state, fat_pop)) / state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum()));
 		return sum;
 	}
 
@@ -1418,8 +1415,6 @@ public:
 						auto staat = fat_state_id.get_state();
 						if(staat.is_valid()) {
 							auto natl_fat_id = staat.get_owner_focus();
-							auto fp_fat_id = staat.get_flashpoint_focus();
-
 							if(natl_fat_id.is_valid()) {
 								text::add_to_layout_box(contents, state, box, natl_fat_id.get_name());
 								text::add_line_break_to_layout_box(contents, state, box);
@@ -1481,8 +1476,7 @@ protected:
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		int32_t total = 0;
 		for(auto nv : fat_id.get_navy_control())
-			for(auto shp : nv.get_navy().get_navy_membership())
-				++total;
+			total += int32_t(nv.get_navy().get_navy_membership().end() - nv.get_navy().get_navy_membership().begin());
 		return total;
 	}
 
@@ -1610,16 +1604,12 @@ public:
 class nation_leadership_points_text : public standard_nation_text {
 private:
 	float get_research_points_from_pop(sys::state& state, dcon::pop_type_id pop, dcon::nation_id n) {
-		auto fat_nation = dcon::fatten(state.world, n);
-		auto fat_pop = dcon::fatten(state.world, pop);
 		/*
 		Now imagine that Rock Hudson is standing at the top of the water slide hurling Nintendo consoles down the water slide.
 		If it weren't for the ladders, which allow the water to pass through but not the Nintendo consoles,
 		the Nintendo consoles could hit someone in the wave pool on the head, in which case the water park could get sued.
 		*/
-		// auto sum =  (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state, fat_pop)) / state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum() ));
 		auto sum = ((state.world.nation_get_demographics(n, demographics::to_key(state, pop)) / state.world.nation_get_demographics(n, demographics::total)) / state.world.pop_type_get_research_optimum(state.culture_definitions.officers));
-
 		return sum;
 	}
 
@@ -1646,6 +1636,8 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{get_research_points_from_pop(state, state.culture_definitions.officers, nation_id)});
 			text::add_to_substitution_map(sub, text::variable_type::fraction, text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.officers)) / state.world.nation_get_demographics(nation_id, demographics::total)) * 100});
 			text::add_to_substitution_map(sub, text::variable_type::optimal, text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.officers) * 100)});
+			text::localised_format_box(state, contents, box, std::string_view("topbar_leadership_tooltip"), sub);
+			text::close_layout_box(contents, box);
 
 			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership, false);
 			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership_modifier, false);

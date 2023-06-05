@@ -186,6 +186,8 @@ Some issues are solved by Project Alice already, some aren't, feel free to add y
 - No unicode support
 - Several bugs with investment and the economy overall, making it very broken on some mods
 - Hidden AI weights
+- Selecting which wars to call an ally into
+- "Transfer land/states" diplomacy action
 
 ## Mod support
 

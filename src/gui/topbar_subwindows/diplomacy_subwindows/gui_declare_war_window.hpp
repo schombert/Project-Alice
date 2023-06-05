@@ -363,6 +363,42 @@ public:
 			parent->set_visible(state, false);
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(payload);
+			Cyto::Any s_payload = dcon::state_definition_id{};
+			parent->impl_get(state, s_payload);
+			dcon::state_definition_id s = any_cast<dcon::state_definition_id>(s_payload);
+			Cyto::Any n_payload = dcon::national_identity_id{};
+			parent->impl_get(state, n_payload);
+			dcon::national_identity_id ni = any_cast<dcon::national_identity_id>(n_payload);
+			Cyto::Any c_payload = dcon::cb_type_id{};
+			parent->impl_get(state, c_payload);
+			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			if(command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni))) {
+				text::localised_format_box(state, contents, box, std::string_view("valid_wartarget"));
+			} else {
+				if(military::are_allied_in_war(state, state.local_player_nation, n)) {
+					text::localised_format_box(state, contents, box, std::string_view("invalid_wartarget_shared_war"));
+				}
+				auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, n);
+				if(state.world.diplomatic_relation_get_are_allied(rel)) {
+					text::localised_format_box(state, contents, box, std::string_view("no_war_allied"));
+				}
+				
+			}
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class diplomacy_declare_war_description1 : public generic_multiline_text<dcon::cb_type_id> {
@@ -709,20 +745,19 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-
-			row_contents.clear();
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			state.world.for_each_cb_type([&](dcon::cb_type_id cb) {
 				// if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb) && dcon::fatten(state.world, cb).is_valid()) {
 				if(command::can_fabricate_cb(state, state.local_player_nation, content, cb) && dcon::fatten(state.world, cb).is_valid()) {
 					row_contents.push_back(cb);
 				}
 			});
-			update(state);
 		}
+		update(state);
 	}
 };
 
