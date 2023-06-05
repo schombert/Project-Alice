@@ -636,7 +636,7 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
-				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.discredit_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.discredit_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
@@ -692,7 +692,7 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
-				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.expeladvisors_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.expeladvisors_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
@@ -749,7 +749,7 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
-				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.banembassy_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.banembassy_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
@@ -805,7 +805,7 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
-				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.increaseopinion_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.increaseopinion_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
@@ -862,7 +862,7 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
-				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.decreaseopinion_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.decreaseopinion_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
@@ -918,7 +918,7 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
-				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.addtosphere_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.addtosphere_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 
@@ -975,7 +975,7 @@ public:
 			} else {
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
-				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.removefromsphere_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.removefromsphere_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
 

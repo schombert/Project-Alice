@@ -394,7 +394,6 @@ public:
 				if(state.world.diplomatic_relation_get_are_allied(rel)) {
 					text::localised_format_box(state, contents, box, std::string_view("no_war_allied"));
 				}
-				
 			}
 			text::close_layout_box(contents, box);
 		}

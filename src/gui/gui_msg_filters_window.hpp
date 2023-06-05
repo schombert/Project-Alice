@@ -144,9 +144,41 @@ public:
 		if(payload.holds_type<country_list_filter>()) {
 			auto filter = any_cast<country_list_filter>(payload);
 			switch(filter) {
+			case country_list_filter::best_guess:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
+					if(state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id) || military::are_at_war(state, state.local_player_nation, id) || state.world.nation_get_in_sphere_of(id) == state.local_player_nation || state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id))
+						state.world.nation_set_is_interesting(id, true);
+				});
+				break;
 			case country_list_filter::deselect_all:
 				state.world.for_each_nation([&](dcon::nation_id id) {
 					state.world.nation_set_is_interesting(id, false);
+				});
+				break;
+			case country_list_filter::allies:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
+					if(state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id))
+						state.world.nation_set_is_interesting(id, true);
+				});
+				break;
+			case country_list_filter::enemies:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					if(military::are_at_war(state, state.local_player_nation, id))
+						state.world.nation_set_is_interesting(id, true);
+				});
+				break;
+			case country_list_filter::sphere:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					if(state.world.nation_get_in_sphere_of(id) == state.local_player_nation)
+						state.world.nation_set_is_interesting(id, true);
+				});
+				break;
+			case country_list_filter::neighbors:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					if(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id))
+						state.world.nation_set_is_interesting(id, true);
 				});
 				break;
 			default:

@@ -2374,7 +2374,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	if(!military::cb_instance_conditions_satisfied(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation))
 		return false;
 
-	return false;
+	return true;
 }
 
 void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
