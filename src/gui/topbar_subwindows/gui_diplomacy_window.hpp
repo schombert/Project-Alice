@@ -251,12 +251,55 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 			auto one_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
-			for(auto& cb : one_cbs) {
-				if(cb.target == content && cb.expiration >= state.current_date) {
+			for(auto& cb : one_cbs)
+				if(cb.target == content && cb.expiration >= state.current_date)
 					row_contents.push_back(cb.cb_type);
-				}
-			}
 			update(state);
+		}
+	}
+};
+
+class diplomacy_action_add_wargoal_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
+
+			disabled = !(military::are_at_war(state, state.local_player_nation, content) && state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost);
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = diplomacy_action::add_wargoal;
+			parent->impl_get(state, payload);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("act_wardesc"));
+			text::add_divider_to_layout_box(state, contents, box);
+			if(content == state.local_player_nation) {
+				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
+			} else {
+				text::substitution_map dp_map{};
+				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
+				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.addwargoal_diplomatic_cost});
+				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
+			}
+			text::close_layout_box(contents, box);
 		}
 	}
 };
@@ -352,6 +395,8 @@ public:
 			return make_element_by_type<diplomacy_nation_brigades_text>(state, id);
 		} else if(name == "ships_text") {
 			return make_element_by_type<diplomacy_nation_ships_text>(state, id);
+		} else if(name == "add_wargoal") {
+			return make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1271,12 +1316,6 @@ public:
 			Cyto::Any new_payload = facts_nation_id;
 			auto fat = dcon::fatten(state.world, facts_nation_id);
 			switch(v) {
-			case diplomacy_action::decrease_opinion:
-				gp_action_dialog_win->set_visible(state, true);
-				gp_action_dialog_win->impl_set(state, new_payload);
-				gp_action_dialog_win->impl_set(state, payload);
-				gp_action_dialog_win->impl_on_update(state);
-				break;
 			case diplomacy_action::add_to_sphere:
 				command::add_to_sphere(state, state.local_player_nation, facts_nation_id);
 				break;
@@ -1285,6 +1324,24 @@ public:
 				break;
 			case diplomacy_action::cancel_military_access:
 				command::cancel_military_access(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::give_military_access:
+				// TODO: Give military access
+				break;
+			case diplomacy_action::cancel_give_military_access:
+				command::cancel_given_military_access(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::increase_relations:
+				command::increase_relations(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::decrease_relations:
+				command::decrease_relations(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::war_subsidies:
+				command::give_war_subsidies(state, state.local_player_nation, facts_nation_id);
+				break;
+			case diplomacy_action::cancel_war_subsidies:
+				command::cancel_war_subsidies(state, state.local_player_nation, facts_nation_id);
 				break;
 			case diplomacy_action::ally:
 				command::ask_for_alliance(state, state.local_player_nation, facts_nation_id);
@@ -1297,10 +1354,18 @@ public:
 					command::call_to_arms(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, war_par).get_war().id);
 				}
 				break;
+			case diplomacy_action::discredit:
+			case diplomacy_action::expel_advisors:
+			case diplomacy_action::ban_embassy:
+			case diplomacy_action::decrease_opinion:
 			case diplomacy_action::remove_from_sphere:
-				// TODO - gp_action_dialog_win probably needs to be used here, so figure that out ig
+				gp_action_dialog_win->set_visible(state, true);
+				gp_action_dialog_win->impl_set(state, new_payload);
+				gp_action_dialog_win->impl_set(state, payload);
+				gp_action_dialog_win->impl_on_update(state);
 				break;
 			case diplomacy_action::declare_war:
+			case diplomacy_action::add_wargoal:
 				declare_war_win->set_visible(state, true);
 				declare_war_win->impl_set(state, new_payload);
 				declare_war_win->impl_set(state, payload);

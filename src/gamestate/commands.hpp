@@ -64,6 +64,7 @@ enum class command_type : uint8_t {
 	cancel_given_military_access = 54,
 	declare_war = 55,
 	add_war_goal = 56,
+	switch_nation = 57,
 };
 
 struct national_focus_data {
@@ -466,6 +467,10 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 
 void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+
+void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 
 void execute_pending_commands(sys::state& state);
 

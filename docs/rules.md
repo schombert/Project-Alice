@@ -1418,6 +1418,16 @@ Must not be at war and the country being released must not already exist. The as
 
 Release the nation from any cores owned by the sender of the command. The command sender loses all cores on those provinces. The command sender gains define:RELEASE_NATION_PRESTIGE. The command sender gains define:RELEASE_NATION_INFAMY. The released nation has the same government as the releaser (this may force changing the ruling party, and thus changing the active party issues).
 
+### Switch nations
+
+#### Conditions
+
+Target tag mustn't be controlled by another player. The tag should exist.
+
+#### Effect
+
+Switches nation to tag - no effect on AI controlled nations.
+
 ### Change budget settings
 
 #### Conditions
