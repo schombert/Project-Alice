@@ -4,71 +4,15 @@
 
 namespace ui {
 
-/*
-class wargoal_state_select : public window_element_base {
+class wargoal_cancel_button : public button_element_base {
 public:
-    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-        if(name == "state_list") {
-            // TODO - Listbox here
-            return nullptr;
-        } else if(name == "cancel_select") {
-            return make_element_by_type<button_element_base>(state, id);
-        } else {
-            return nullptr;
-        }
-    }
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<dcon::cb_type_id>{};
+			parent->impl_get(state, payload);
+		}
+	}
 };
-
-class wargoal_country_select : public window_element_base {
-public:
-    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-        if(name == "country_list") {
-            // TODO - Listbox here
-            return nullptr;
-        } else if(name == "cancel_select") {
-            return make_element_by_type<button_element_base>(state, id);
-        } else {
-            return nullptr;
-        }
-    }
-};
-
-class wargoal_state_listboxrow : public listbox_row_element_base<bool> {
-public:
-    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-        if(name == "select_state") {
-            return make_element_by_type<button_element_base>(state, id);
-        } else {
-            return nullptr;
-        }
-    }
-};
-
-class wargoal_country_listboxrow : public listbox_row_element_base<bool> {
-public:
-    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-        if(name == "select_country") {
-            return make_element_by_type<button_element_base>(state, id);
-        } else {
-            return nullptr;
-        }
-    }
-};
-
-class wargoal_item_listboxrow : public listbox_row_element_base<bool> {
-public:
-    std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-        if(name == "wargoal_icon") {
-            return make_element_by_type<image_element_base>(state, id);
-        } else if(name == "select_goal_invalid") {
-            return make_element_by_type<button_element_base>(state, id);
-        } else if(name == "select_goal") {
-            return make_element_by_type<button_element_base>(state, id);
-        } else {
-            return nullptr;
-        }
-    }
-};*/
 
 //====================================================================================================================================
 
@@ -90,10 +34,9 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::cb_type_id>(payload);
-
-			Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{content};
-			parent->impl_get(state, newpayload);
+			dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
+			Cyto::Any c_payload = element_selection_wrapper<dcon::cb_type_id>{content};
+			parent->impl_get(state, c_payload);
 		}
 	}
 
@@ -101,9 +44,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::cb_type_id>(payload);
+			dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
 			auto fat = dcon::fatten(state.world, content);
-
 			set_button_text(state, text::produce_simple_string(state, fat.get_name()));
 		}
 	}
@@ -138,22 +80,16 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
 		if(parent) {
-			row_contents.clear();
-
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-
-			auto one_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
-			for(auto& cb : one_cbs) {
-				if(cb.target == content && cb.expiration >= state.current_date) {
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
+			for(auto& cb : state.world.nation_get_available_cbs(state.local_player_nation))
+				if(cb.target == content && cb.expiration >= state.current_date)
 					row_contents.push_back(cb.cb_type);
-				}
-			}
-
-			update(state);
 		}
+		update(state);
 	}
 };
 
@@ -162,6 +98,8 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_list") {
 			return make_element_by_type<wargoal_type_listbox>(state, id);
+		} else if(name == "cancel_select") {
+			return make_element_by_type<wargoal_cancel_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -176,8 +114,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::state_definition_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_definition_id>(payload);
-
+			dcon::state_definition_id content = any_cast<dcon::state_definition_id>(payload);
 			Cyto::Any newpayload = element_selection_wrapper<dcon::state_definition_id>{content};
 			parent->impl_get(state, newpayload);
 		}
@@ -187,9 +124,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::state_definition_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::state_definition_id>(payload);
+			dcon::state_definition_id content = any_cast<dcon::state_definition_id>(payload);
 			auto fat = dcon::fatten(state.world, content);
-
 			set_button_text(state, text::produce_simple_string(state, fat.get_name()));
 		}
 	}
@@ -236,7 +172,7 @@ public:
 		if(name == "state_list") {
 			return make_element_by_type<wargoal_state_listbox>(state, id);
 		} else if(name == "cancel_select") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<wargoal_cancel_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -251,8 +187,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::national_identity_id>(payload);
-
+			dcon::national_identity_id content = any_cast<dcon::national_identity_id>(payload);
 			Cyto::Any newpayload = element_selection_wrapper<dcon::national_identity_id>{content};
 			parent->impl_get(state, newpayload);
 		}
@@ -262,8 +197,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::national_identity_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::national_identity_id>(payload);
-
+			dcon::national_identity_id content = any_cast<dcon::national_identity_id>(payload);
 			set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		}
 	}
@@ -311,7 +245,7 @@ public:
 		if(name == "country_list") {
 			return make_element_by_type<wargoal_country_listbox>(state, id);
 		} else if(name == "cancel_select") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<wargoal_cancel_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -398,57 +332,42 @@ public:
 
 class diplomacy_declare_war_agree_button : public button_element_base {
 public:
-	void button_action(sys::state& state) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any cb_payload = dcon::cb_type_id{};
-			parent->impl_get(state, cb_payload);
-			auto fat_cb = dcon::fatten(state.world, any_cast<dcon::cb_type_id>(cb_payload));
-			Cyto::Any state_payload = dcon::state_definition_id{};
-			parent->impl_get(state, state_payload);
-			auto fat_state = dcon::fatten(state.world, any_cast<dcon::state_definition_id>(state_payload));
-			Cyto::Any nation_payload = dcon::national_identity_id{};
-			parent->impl_get(state, nation_payload);
-			auto fat_nation = dcon::fatten(state.world, any_cast<dcon::cb_type_id>(nation_payload));
-			Cyto::Any target_nation = dcon::nation_id{};
-			parent->impl_get(state, target_nation);
-			auto content = any_cast<dcon::nation_id>(target_nation);
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(payload);
+			Cyto::Any s_payload = dcon::state_definition_id{};
+			parent->impl_get(state, s_payload);
+			dcon::state_definition_id s = any_cast<dcon::state_definition_id>(s_payload);
+			Cyto::Any n_payload = dcon::national_identity_id{};
+			parent->impl_get(state, n_payload);
+			dcon::national_identity_id ni = any_cast<dcon::national_identity_id>(n_payload);
+			Cyto::Any c_payload = dcon::cb_type_id{};
+			parent->impl_get(state, c_payload);
+			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
 
-			auto bits = state.world.cb_type_get_type_bits(fat_cb.id);
-
-			if((bits & (military::cb_flag::po_annex)) != 0) {
-				// TODO
-				// command::declare_war(state, state.local_player_nation, content, fat_cb.id, fat_state.id);
-			} else if((bits & (military::cb_flag::po_liberate | military::cb_flag::po_take_from_sphere | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
-				// TODO
-				// command::declare_war(state, state.local_player_nation, content, fat_cb.id, fat_nation.id);
-			}
+			disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
 		}
 	}
 
-	void on_update(sys::state& state) noexcept override {
+	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any cb_payload = dcon::cb_type_id{};
-			parent->impl_get(state, cb_payload);
-			auto fat_cb = dcon::fatten(state.world, any_cast<dcon::cb_type_id>(cb_payload));
-			Cyto::Any state_payload = dcon::state_definition_id{};
-			parent->impl_get(state, state_payload);
-			auto fat_state = dcon::fatten(state.world, any_cast<dcon::state_definition_id>(state_payload));
-			Cyto::Any nation_payload = dcon::national_identity_id{};
-			parent->impl_get(state, nation_payload);
-			auto fat_nation = dcon::fatten(state.world, any_cast<dcon::cb_type_id>(nation_payload));
-			Cyto::Any target_nation = dcon::nation_id{};
-			parent->impl_get(state, target_nation);
-			auto content = any_cast<dcon::nation_id>(target_nation);
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(payload);
+			Cyto::Any s_payload = dcon::state_definition_id{};
+			parent->impl_get(state, s_payload);
+			dcon::state_definition_id s = any_cast<dcon::state_definition_id>(s_payload);
+			Cyto::Any n_payload = dcon::national_identity_id{};
+			parent->impl_get(state, n_payload);
+			dcon::national_identity_id ni = any_cast<dcon::national_identity_id>(n_payload);
+			Cyto::Any c_payload = dcon::cb_type_id{};
+			parent->impl_get(state, c_payload);
+			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
 
-			auto bits = state.world.cb_type_get_type_bits(fat_cb.id);
-
-			if((bits & (military::cb_flag::po_annex)) != 0) {
-				// TODO
-				// disabled = !command::can_declare_war(state, state.local_player_nation, content, fat_cb.id, fat_state.id);
-			} else if((bits & (military::cb_flag::po_liberate | military::cb_flag::po_take_from_sphere | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
-				// TODO
-				// disabled = !command::can_declare_war(state, state.local_player_nation, content, fat_cb.id, fat_nation.id);
-			}
+			command::declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+			parent->set_visible(state, false);
 		}
 	}
 };
@@ -510,16 +429,15 @@ public:
 	}
 };
 
-class diplomacy_declare_war_call_allies_button : public button_element_base {
+class diplomacy_declare_war_call_allies_checkbox : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			Cyto::Any payload = bool{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<bool>(payload);
-
-			Cyto::Any newpayload = element_selection_wrapper<bool>{!content};
-			parent->impl_get(state, payload);
+			bool content = any_cast<bool>(payload);
+			Cyto::Any b_payload = element_selection_wrapper<bool>{!content};
+			parent->impl_get(state, b_payload);
 		}
 	}
 
@@ -527,57 +445,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = bool{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<bool>(payload);
-
-			frame = int8_t(content);
-		}
-	}
-};
-
-class diplomacy_declare_war_button : public button_element_base {
-private:
-	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto n = any_cast<dcon::nation_id>(payload);
-
-			Cyto::Any s_payload = dcon::state_definition_id{};
-			parent->impl_get(state, s_payload);
-			auto s = any_cast<dcon::state_definition_id>(s_payload);
-
-			Cyto::Any n_payload = dcon::national_identity_id{};
-			parent->impl_get(state, n_payload);
-			auto ni = any_cast<dcon::national_identity_id>(n_payload);
-
-			Cyto::Any c_payload = dcon::cb_type_id{};
-			parent->impl_get(state, c_payload);
-			auto c = any_cast<dcon::cb_type_id>(c_payload);
-
-			disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
-		}
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto n = any_cast<dcon::nation_id>(payload);
-
-			Cyto::Any s_payload = dcon::state_definition_id{};
-			parent->impl_get(state, s_payload);
-			auto s = any_cast<dcon::state_definition_id>(s_payload);
-
-			Cyto::Any n_payload = dcon::national_identity_id{};
-			parent->impl_get(state, n_payload);
-			auto ni = any_cast<dcon::national_identity_id>(n_payload);
-
-			Cyto::Any c_payload = dcon::cb_type_id{};
-			parent->impl_get(state, c_payload);
-			auto c = any_cast<dcon::cb_type_id>(c_payload);
-
-			command::declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
-			parent->set_visible(state, false);
+			bool content = any_cast<bool>(payload);
+			frame = content ? 1 : 0;
 		}
 	}
 };
@@ -591,7 +460,7 @@ private:
 	dcon::cb_type_id cb_to_use{};
 	dcon::state_definition_id target_state{};
 	dcon::national_identity_id target_country{};
-	bool bWillCallAllies = false;
+	bool will_call_allies = false;
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -620,11 +489,11 @@ public:
 		} else if(name == "acceptance") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "call_allies_checkbox") {
-			return make_element_by_type<diplomacy_declare_war_call_allies_button>(state, id);
+			return make_element_by_type<diplomacy_declare_war_call_allies_checkbox>(state, id);
 		} else if(name == "call_allies_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "agreebutton") {
-			return make_element_by_type<diplomacy_declare_war_button>(state, id);
+			return make_element_by_type<diplomacy_declare_war_agree_button>(state, id);
 		} else if(name == "declinebutton") {
 			return make_element_by_type<generic_close_button>(state, id);
 
@@ -654,26 +523,33 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
 			cb_to_use = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
-
 			auto bits = state.world.cb_type_get_type_bits(cb_to_use);
-
 			if((bits & (military::cb_flag::po_annex)) != 0) {
 				wargoal_setup_win->set_visible(state, false);
 				wargoal_state_win->set_visible(state, true);
+				wargoal_country_win->set_visible(state, false);
 			} else if((bits & (military::cb_flag::po_liberate | military::cb_flag::po_take_from_sphere | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
 				wargoal_setup_win->set_visible(state, false);
+				wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, true);
+			} else {
+				wargoal_setup_win->set_visible(state, true);
+				wargoal_state_win->set_visible(state, false);
+				wargoal_country_win->set_visible(state, false);
 			}
-
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<dcon::state_definition_id>>()) {
 			target_state = any_cast<element_selection_wrapper<dcon::state_definition_id>>(payload).data;
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<dcon::national_identity_id>>()) {
 			target_country = any_cast<element_selection_wrapper<dcon::national_identity_id>>(payload).data;
+			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
-			bWillCallAllies = any_cast<element_selection_wrapper<bool>>(payload).data;
+			will_call_allies = any_cast<element_selection_wrapper<bool>>(payload).data;
+			impl_on_update(state);
 			return message_result::consumed;
 		}
 		//=======================================================================================================
@@ -687,7 +563,7 @@ public:
 			payload.emplace<dcon::national_identity_id>(target_country);
 			return message_result::consumed;
 		} else if(payload.holds_type<bool>()) {
-			payload.emplace<bool>(bWillCallAllies);
+			payload.emplace<bool>(will_call_allies);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -803,7 +679,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::cb_type_id>(payload);
+			dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
 			set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		}
 	}
@@ -812,8 +688,7 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::cb_type_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::cb_type_id>(payload);
-
+			dcon::cb_type_id content = any_cast<dcon::cb_type_id>(payload);
 			Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{content};
 			parent->impl_get(state, newpayload);
 		}
