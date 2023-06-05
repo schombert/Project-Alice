@@ -1354,8 +1354,11 @@ public:
 					command::call_to_arms(state, state.local_player_nation, facts_nation_id, dcon::fatten(state.world, war_par).get_war().id);
 				}
 				break;
-			case diplomacy_action::remove_from_sphere:
+			case diplomacy_action::discredit:
+			case diplomacy_action::expel_advisors:
+			case diplomacy_action::ban_embassy:
 			case diplomacy_action::decrease_opinion:
+			case diplomacy_action::remove_from_sphere:
 				gp_action_dialog_win->set_visible(state, true);
 				gp_action_dialog_win->impl_set(state, new_payload);
 				gp_action_dialog_win->impl_set(state, payload);
