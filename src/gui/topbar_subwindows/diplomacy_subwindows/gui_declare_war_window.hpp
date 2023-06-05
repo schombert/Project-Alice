@@ -150,19 +150,15 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
 		if(parent) {
-			row_contents.clear();
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
-
-			for(auto staat : fat.get_state_ownership()) {
-				row_contents.push_back(dcon::fatten(state.world, staat).get_state().get_definition().id);
-			}
-
-			update(state);
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
+			for(auto so : dcon::fatten(state.world, content).get_state_ownership())
+				row_contents.push_back(dcon::fatten(state.world, so).get_state().get_definition().id);
 		}
+		update(state);
 	}
 };
 
@@ -222,20 +218,17 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			state.world.for_each_national_identity([&](dcon::national_identity_id ident) {
-				if(nations::can_release_as_vassal(state, content, ident)) {
+				if(nations::can_release_as_vassal(state, content, ident))
 					row_contents.push_back(ident);
-				}
 			});
-
-			row_contents.clear();
-			update(state);
 		}
+		update(state);
 	}
 };
 
