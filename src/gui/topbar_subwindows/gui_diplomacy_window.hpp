@@ -1224,6 +1224,8 @@ public:
 				break;
 			case country_list_filter::allies:
 				filter_countries(state, [&](dcon::nation_id id) {
+					if(id == state.local_player_nation)
+						return false;
 					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
 					return state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id);
 				});
