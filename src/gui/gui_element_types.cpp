@@ -1083,17 +1083,20 @@ void overlapping_listbox_element_base<ItemWinT, ItemConT>::update(sys::state& st
 	}
 }
 
-void overlapping_flags_box::on_update(sys::state& state) noexcept {
-	populate_flags(state);
+std::string_view overlapping_flags_box::get_row_element_name() {
+	return "flag_list_flag";
 }
 
-message_result overlapping_flags_box::set(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<dcon::nation_id>()) {
+void overlapping_flags_box::update_subwindow(sys::state& state, overlapping_flags_flag_button& subwindow, dcon::national_identity_id content) {
+	subwindow.set_current_nation(state, content);
+}
+
+void overlapping_flags_box::on_update(sys::state& state) noexcept {
+	if(parent) {
+		Cyto::Any payload = dcon::nation_id{};
+		parent->impl_get(state, payload);
 		current_nation = any_cast<dcon::nation_id>(payload);
 		populate_flags(state);
-		return message_result::consumed;
-	} else {
-		return message_result::unseen;
 	}
 }
 

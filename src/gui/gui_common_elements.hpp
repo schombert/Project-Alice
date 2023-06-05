@@ -665,32 +665,6 @@ public:
 	}
 };
 
-class standard_nation_multiline_text : public multiline_text_element_base {
-protected:
-	dcon::nation_id nation_id{};
-
-public:
-	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
-
-	void on_update(sys::state& state) noexcept override {
-		auto color = black_text ? text::text_color::black : text::text_color::white;
-		auto container = text::create_endless_layout(
-		    internal_layout,
-		    text::layout_parameters{0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color});
-		populate_layout(state, container);
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			nation_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
 class national_identity_vassal_type_text : public generic_simple_text<dcon::national_identity_id> {
 public:
 	std::string get_text(sys::state& state, dcon::national_identity_id content) noexcept override {
@@ -752,14 +726,17 @@ public:
 };
 
 class nation_overlord_flag : public flag_button {
-	dcon::nation_id sphereling_id{};
-
 public:
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
-		if(bool(ovr_id)) {
-			auto fat_id = dcon::fatten(state.world, ovr_id);
-			return fat_id.get_identity_from_identity_holder();
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			dcon::nation_id sphereling_id = Cyto::any_cast<dcon::nation_id>(payload);
+			auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
+			if(bool(ovr_id)) {
+				auto fat_id = dcon::fatten(state.world, ovr_id);
+				return fat_id.get_identity_from_identity_holder();
+			}
 		}
 		return dcon::national_identity_id{};
 	}
@@ -768,15 +745,6 @@ public:
 		// Only show if there is any overlord
 		set_visible(state, bool(get_current_nation(state)));
 		set_current_nation(state, get_current_nation(state));
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			sphereling_id = any_cast<dcon::nation_id>(payload);
-			on_update(state);
-			return message_result::consumed;
-		}
-		return message_result::unseen;
 	}
 };
 

@@ -281,9 +281,9 @@ public:
 	}
 };
 
-class nation_government_description_text : public standard_nation_multiline_text {
+class nation_government_description_text : public generic_multiline_text<dcon::nation_id> {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::nation_id nation_id) noexcept override {
 		if(politics::can_appoint_ruling_party(state, nation_id)) {
 			auto k = state.key_to_text_sequence.find(std::string_view("can_appoint_ruling_party"));
 			if(k != state.key_to_text_sequence.end()) {

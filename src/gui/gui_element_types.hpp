@@ -363,16 +363,9 @@ protected:
 	virtual void populate_flags(sys::state& state) { }
 
 public:
-	std::string_view get_row_element_name() override {
-		return "flag_list_flag";
-	}
-
-	void update_subwindow(sys::state& state, overlapping_flags_flag_button& subwindow, dcon::national_identity_id content) override {
-		subwindow.set_current_nation(state, content);
-	}
-
+	std::string_view get_row_element_name() override;
+	void update_subwindow(sys::state& state, overlapping_flags_flag_button& subwindow, dcon::national_identity_id content) override;
 	void on_update(sys::state& state) noexcept override;
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
 class overlapping_sphere_flags : public overlapping_flags_box {
