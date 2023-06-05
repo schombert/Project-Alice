@@ -30,6 +30,7 @@ enum diplomacy_action : uint8_t {
 	make_peace,
 	crisis_backdown,
 	crisis_support,
+	add_wargoal,
 };
 
 class diplomacy_action_ally_button : public button_element_base {

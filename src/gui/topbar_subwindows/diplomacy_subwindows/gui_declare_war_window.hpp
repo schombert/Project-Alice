@@ -85,9 +85,25 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			for(auto& cb : state.world.nation_get_available_cbs(state.local_player_nation))
-				if(cb.target == content && cb.expiration >= state.current_date)
-					row_contents.push_back(cb.cb_type);
+			if(military::are_at_war(state, state.local_player_nation, content)) {
+				state.world.for_each_cb_type([&](dcon::cb_type_id cbt) {
+					bool is_valid = false;
+					dcon::war_id w = military::find_war_between(state, state.local_player_nation, content);
+					state.world.nation_for_each_state_ownership_as_nation(content, [&](dcon::state_ownership_id soi) {
+						dcon::state_definition_id sdef = state.world.state_instance_get_definition(state.world.state_ownership_get_state(soi));
+						state.world.for_each_national_identity([&](dcon::national_identity_id nid) {
+							if(command::can_add_war_goal(state, state.local_player_nation, w, content, cbt, sdef, nid, state.world.national_identity_get_nation_from_identity_holder(nid)))
+								is_valid = true;
+						});
+					});
+					if(is_valid)
+						row_contents.push_back(cbt);
+				});
+			} else {
+				for(auto& cb : state.world.nation_get_available_cbs(state.local_player_nation))
+					if(cb.target == content && cb.expiration >= state.current_date)
+						row_contents.push_back(cb.cb_type);
+			}
 		}
 		update(state);
 	}
@@ -247,7 +263,7 @@ public:
 
 //====================================================================================================================================
 
-class wargoal_add_window : public window_element_base {
+class diplomacy_wargoal_add_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_gain_effect_text") {
@@ -270,7 +286,7 @@ public:
 	}
 };
 
-class wargoal_success_window : public window_element_base {
+class diplomacy_wargoal_success_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_gain_effect_text") {
@@ -293,7 +309,7 @@ public:
 	}
 };
 
-class wargoal_failure_window : public window_element_base {
+class diplomacy_wargoal_failure_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_gain_effect_text") {
@@ -340,7 +356,12 @@ public:
 			parent->impl_get(state, c_payload);
 			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
 
-			disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+			if(military::are_at_war(state, state.local_player_nation, n)) {
+				dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
+				disabled = !command::can_add_war_goal(state, state.local_player_nation, w, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+			} else {
+				disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+			}
 		}
 	}
 
@@ -359,7 +380,12 @@ public:
 			parent->impl_get(state, c_payload);
 			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
 
-			command::declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+			if(military::are_at_war(state, state.local_player_nation, n)) {
+				dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
+				command::add_war_goal(state, state.local_player_nation, w, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+			} else {
+				command::declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+			}
 			parent->set_visible(state, false);
 		}
 	}
@@ -507,11 +533,11 @@ public:
 		} else if(name == "description") {
 			return make_element_by_type<diplomacy_declare_war_description1>(state, id);
 		} else if(name == "wargoal_add_effect") {
-			return make_element_by_type<wargoal_add_window>(state, id);
+			return make_element_by_type<diplomacy_wargoal_add_window>(state, id);
 		} else if(name == "wargoal_success_effect") {
-			return make_element_by_type<wargoal_success_window>(state, id);
+			return make_element_by_type<diplomacy_wargoal_success_window>(state, id);
 		} else if(name == "wargoal_failure_effect") {
-			return make_element_by_type<wargoal_failure_window>(state, id);
+			return make_element_by_type<diplomacy_wargoal_failure_window>(state, id);
 		} else if(name == "description2") {
 			return make_element_by_type<diplomacy_declare_war_description2>(state, id);
 		} else if(name == "acceptance") {
@@ -524,25 +550,21 @@ public:
 			return make_element_by_type<diplomacy_declare_war_agree_button>(state, id);
 		} else if(name == "declinebutton") {
 			return make_element_by_type<generic_close_button>(state, id);
-
 		} else if(name == "wargoal_setup") {
 			auto ptr = make_element_by_type<wargoal_setup_window>(state, id);
 			wargoal_setup_win = ptr.get();
 			ptr->set_visible(state, true);
 			return ptr;
-
 		} else if(name == "wargoal_state_select") {
 			auto ptr = make_element_by_type<wargoal_state_select_window>(state, id);
 			wargoal_state_win = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
-
 		} else if(name == "wargoal_country_select") {
 			auto ptr = make_element_by_type<wargoal_country_select_window>(state, id);
 			wargoal_country_win = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
-
 		} else {
 			return nullptr;
 		}
@@ -723,7 +745,7 @@ public:
 	}
 };
 
-class cb_type_row : public listbox_row_element_base<dcon::cb_type_id> {
+class diplomacy_make_cb_type : public listbox_row_element_base<dcon::cb_type_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_icon") {
@@ -736,7 +758,7 @@ public:
 	}
 };
 
-class cb_listbox : public listbox_element_base<cb_type_row, dcon::cb_type_id> {
+class diplomacy_make_cb_listbox : public listbox_element_base<diplomacy_make_cb_type, dcon::cb_type_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "cb_type_item";
@@ -750,17 +772,15 @@ public:
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 			state.world.for_each_cb_type([&](dcon::cb_type_id cb) {
-				// if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb) && dcon::fatten(state.world, cb).is_valid()) {
-				if(command::can_fabricate_cb(state, state.local_player_nation, content, cb) && dcon::fatten(state.world, cb).is_valid()) {
+				if(command::can_fabricate_cb(state, state.local_player_nation, content, cb))
 					row_contents.push_back(cb);
-				}
 			});
 		}
 		update(state);
 	}
 };
 
-class make_cb_button : public button_element_base {
+class diplomacy_make_cb_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -792,7 +812,7 @@ public:
 	}
 };
 
-class make_cb_desc : public generic_multiline_text<dcon::cb_type_id> {
+class diplomacy_make_cb_desc : public generic_multiline_text<dcon::cb_type_id> {
 public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::cb_type_id id) noexcept override {
 		auto fat_cb = dcon::fatten(state.world, id);
@@ -833,17 +853,17 @@ public:
 		} else if(name == "title") {
 			return make_element_by_type<make_cb_title>(state, id);
 		} else if(name == "description") {
-			return make_element_by_type<make_cb_desc>(state, id);
+			return make_element_by_type<diplomacy_make_cb_desc>(state, id);
 		} else if(name == "leftshield") {
 			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "agreebutton") {
-			return make_element_by_type<make_cb_button>(state, id);
+			return make_element_by_type<diplomacy_make_cb_button>(state, id);
 		} else if(name == "declinebutton") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "cb_list") {
-			return make_element_by_type<cb_listbox>(state, id);
+			return make_element_by_type<diplomacy_make_cb_listbox>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -864,7 +884,7 @@ public:
 	}
 };
 
-class setup_crisis_pick_side_window : public window_element_base {
+class diplomacy_crisis_setup_crisis_pick_side_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "crisis_desc") {
@@ -883,7 +903,7 @@ public:
 	}
 };
 
-class setup_crisis_setup_goals_window : public window_element_base {
+class diplomacy_crisis_setup_goals_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "wargoal_list") {
@@ -915,9 +935,9 @@ public:
 		} else if(name == "declinebutton") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "pick_side") {
-			return make_element_by_type<setup_crisis_pick_side_window>(state, id);
+			return make_element_by_type<diplomacy_crisis_setup_crisis_pick_side_window>(state, id);
 		} else if(name == "setup_goals") {
-			return make_element_by_type<setup_crisis_setup_goals_window>(state, id);
+			return make_element_by_type<diplomacy_crisis_setup_goals_window>(state, id);
 		} else {
 			return nullptr;
 		}

@@ -1457,7 +1457,7 @@ public:
 			text::add_divider_to_layout_box(state, contents, box);
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::diplomatic_points_modifier, false);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::diplomatic_points_modifier, false);
 		}
 	}
 };
