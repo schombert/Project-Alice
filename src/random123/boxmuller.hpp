@@ -100,12 +100,12 @@ R123_CUDA_DEVICE R123_STATIC_INLINE void sincos(double x, double* s, double* c) 
 #if !defined(CUDART_VERSION) || CUDART_VERSION < 5000 /* enabled if sincospi and sincospif are not in math lib */
 
 R123_CUDA_DEVICE R123_STATIC_INLINE void sincospif(float x, float* s, float* c) {
-	const float PIf = 3.1415926535897932f;
+	float const PIf = 3.1415926535897932f;
 	sincosf(PIf * x, s, c);
 }
 
 R123_CUDA_DEVICE R123_STATIC_INLINE void sincospi(double x, double* s, double* c) {
-	const double PI = 3.1415926535897932;
+	double const PI = 3.1415926535897932;
 	sincos(PI * x, s, c);
 }
 #endif /* sincospi is not in math lib */

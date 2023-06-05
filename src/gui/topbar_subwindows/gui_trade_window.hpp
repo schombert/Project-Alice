@@ -363,7 +363,7 @@ protected:
 			parent->impl_get(state, payload);
 			auto commodity_id = any_cast<dcon::commodity_id>(payload);
 
-			for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+			for(auto const fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
 				province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
 					auto fat_id = dcon::fatten(state.world, pid);
 					fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
@@ -473,7 +473,7 @@ class trade_flow_total_produced_text : public generic_simple_text<dcon::commodit
 public:
 	std::string get_text(sys::state& state, dcon::commodity_id commodity_id) noexcept override {
 		auto amount = 0.f;
-		for(const auto fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+		for(auto const fat_stown_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
 			province::for_each_province_in_state_instance(state, fat_stown_id.get_state(), [&](dcon::province_id pid) {
 				auto fat_id = dcon::fatten(state.world, pid);
 				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {

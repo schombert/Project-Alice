@@ -847,7 +847,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(const auto fat_smemb_id : state.world.nation_get_state_ownership(state.local_player_nation))
+		for(auto const fat_smemb_id : state.world.nation_get_state_ownership(state.local_player_nation))
 			province::for_each_province_in_state_instance(state, fat_smemb_id.get_state(), [&](dcon::province_id pid) {
 				auto fat_id = dcon::fatten(state.world, pid);
 				fat_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {

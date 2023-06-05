@@ -190,7 +190,7 @@ sys::key_modifiers get_current_modifiers(int glfw_mods) {
 	return sys::key_modifiers(val);
 }
 
-static void glfw_error_callback(int error, const char* description) {
+static void glfw_error_callback(int error, char const * description) {
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 

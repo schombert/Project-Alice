@@ -173,7 +173,7 @@ void load_text_data(sys::state& state, uint32_t language) {
 }
 
 template<size_t N>
-bool is_fixed_token_ci(std::string_view v, const char (&t)[N]) {
+bool is_fixed_token_ci(std::string_view v, char const (&t)[N]) {
 	if(v.length() != (N - 1))
 		return false;
 	for(unsigned int i = 0; i < N - 1; ++i) {

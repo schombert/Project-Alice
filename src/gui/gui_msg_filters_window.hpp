@@ -120,7 +120,7 @@ public:
 			ptr->target = country_list_filter::sphere;
 			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
-			const auto filter_name = name.substr(7);
+			auto const filter_name = name.substr(7);
 			state.ui_defs.gui[id].data.button.font_handle = text::name_into_font_id(state, "vic_18_black"); // Nudge font
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
 			ptr->target = ([&]() {

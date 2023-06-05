@@ -719,7 +719,7 @@ class nation_gp_opinion_text : public standard_nation_text {
 public:
 	uint16_t rank = 0;
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		const auto great_power_id = nations::get_nth_great_power(state, rank);
+		auto const great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
 			return "0";
 		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
@@ -742,7 +742,7 @@ class nation_gp_investment_text : public standard_nation_text {
 public:
 	uint16_t rank = 0;
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		const auto great_power_id = nations::get_nth_great_power(state, rank);
+		auto const great_power_id = nations::get_nth_great_power(state, rank);
 		if(!bool(great_power_id))
 			return text::format_money(0.f);
 		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
@@ -997,7 +997,7 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto gp_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
 		if(bool(gp_rel_id)) {
-			const auto status = state.world.gp_relationship_get_status(gp_rel_id);
+			auto const status = state.world.gp_relationship_get_status(gp_rel_id);
 			return text::get_influence_level_name(state, status);
 		}
 		return text::produce_simple_string(state, "rel_neutral");
@@ -1293,6 +1293,7 @@ class nation_daily_research_points_text : public standard_nation_text {
 
 		return sum;
 	}
+
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::daily_research_points(state, nation_id);
@@ -1621,6 +1622,7 @@ private:
 
 		return sum;
 	}
+
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto points = nations::leadership_points(state, nation_id);
@@ -1965,7 +1967,7 @@ class nation_gp_flag : public flag_button {
 public:
 	uint16_t rank = 0;
 	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		const auto nat_id = nations::get_nth_great_power(state, rank);
+		auto const nat_id = nations::get_nth_great_power(state, rank);
 		if(!bool(nat_id))
 			return dcon::national_identity_id{};
 		auto fat_id = dcon::fatten(state.world, nat_id);

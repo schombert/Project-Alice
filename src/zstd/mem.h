@@ -91,21 +91,21 @@ MEM_STATIC unsigned MEM_64bits(void);
 MEM_STATIC unsigned MEM_isLittleEndian(void);
 
 /*=== Native unaligned read/write ===*/
-MEM_STATIC U16 MEM_read16(const void* memPtr);
-MEM_STATIC U32 MEM_read32(const void* memPtr);
-MEM_STATIC U64 MEM_read64(const void* memPtr);
-MEM_STATIC size_t MEM_readST(const void* memPtr);
+MEM_STATIC U16 MEM_read16(void const * memPtr);
+MEM_STATIC U32 MEM_read32(void const * memPtr);
+MEM_STATIC U64 MEM_read64(void const * memPtr);
+MEM_STATIC size_t MEM_readST(void const * memPtr);
 
 MEM_STATIC void MEM_write16(void* memPtr, U16 value);
 MEM_STATIC void MEM_write32(void* memPtr, U32 value);
 MEM_STATIC void MEM_write64(void* memPtr, U64 value);
 
 /*=== Little endian unaligned read/write ===*/
-MEM_STATIC U16 MEM_readLE16(const void* memPtr);
-MEM_STATIC U32 MEM_readLE24(const void* memPtr);
-MEM_STATIC U32 MEM_readLE32(const void* memPtr);
-MEM_STATIC U64 MEM_readLE64(const void* memPtr);
-MEM_STATIC size_t MEM_readLEST(const void* memPtr);
+MEM_STATIC U16 MEM_readLE16(void const * memPtr);
+MEM_STATIC U32 MEM_readLE24(void const * memPtr);
+MEM_STATIC U32 MEM_readLE32(void const * memPtr);
+MEM_STATIC U64 MEM_readLE64(void const * memPtr);
+MEM_STATIC size_t MEM_readLEST(void const * memPtr);
 
 MEM_STATIC void MEM_writeLE16(void* memPtr, U16 val);
 MEM_STATIC void MEM_writeLE24(void* memPtr, U32 val);
@@ -114,9 +114,9 @@ MEM_STATIC void MEM_writeLE64(void* memPtr, U64 val64);
 MEM_STATIC void MEM_writeLEST(void* memPtr, size_t val);
 
 /*=== Big endian unaligned read/write ===*/
-MEM_STATIC U32 MEM_readBE32(const void* memPtr);
-MEM_STATIC U64 MEM_readBE64(const void* memPtr);
-MEM_STATIC size_t MEM_readBEST(const void* memPtr);
+MEM_STATIC U32 MEM_readBE32(void const * memPtr);
+MEM_STATIC U64 MEM_readBE64(void const * memPtr);
+MEM_STATIC size_t MEM_readBEST(void const * memPtr);
 
 MEM_STATIC void MEM_writeBE32(void* memPtr, U32 val32);
 MEM_STATIC void MEM_writeBE64(void* memPtr, U64 val64);
@@ -172,10 +172,10 @@ MEM_STATIC unsigned MEM_isLittleEndian(void) {
 
 /* violates C standard, by lying on structure alignment.
 Only use if no other choice to achieve best performance on target platform */
-MEM_STATIC U16 MEM_read16(const void* memPtr) { return *(const U16*)memPtr; }
-MEM_STATIC U32 MEM_read32(const void* memPtr) { return *(const U32*)memPtr; }
-MEM_STATIC U64 MEM_read64(const void* memPtr) { return *(const U64*)memPtr; }
-MEM_STATIC size_t MEM_readST(const void* memPtr) { return *(const size_t*)memPtr; }
+MEM_STATIC U16 MEM_read16(void const * memPtr) { return *(const U16*)memPtr; }
+MEM_STATIC U32 MEM_read32(void const * memPtr) { return *(const U32*)memPtr; }
+MEM_STATIC U64 MEM_read64(void const * memPtr) { return *(const U64*)memPtr; }
+MEM_STATIC size_t MEM_readST(void const * memPtr) { return *(size_t const *)memPtr; }
 
 MEM_STATIC void MEM_write16(void* memPtr, U16 value) { *(U16*)memPtr = value; }
 MEM_STATIC void MEM_write32(void* memPtr, U32 value) { *(U32*)memPtr = value; }
@@ -188,10 +188,10 @@ typedef __attribute__((aligned(1))) U32 unalign32;
 typedef __attribute__((aligned(1))) U64 unalign64;
 typedef __attribute__((aligned(1))) size_t unalignArch;
 
-MEM_STATIC U16 MEM_read16(const void* ptr) { return *(const unalign16*)ptr; }
-MEM_STATIC U32 MEM_read32(const void* ptr) { return *(const unalign32*)ptr; }
-MEM_STATIC U64 MEM_read64(const void* ptr) { return *(const unalign64*)ptr; }
-MEM_STATIC size_t MEM_readST(const void* ptr) { return *(const unalignArch*)ptr; }
+MEM_STATIC U16 MEM_read16(void const * ptr) { return *(unalign16 const *)ptr; }
+MEM_STATIC U32 MEM_read32(void const * ptr) { return *(unalign32 const *)ptr; }
+MEM_STATIC U64 MEM_read64(void const * ptr) { return *(unalign64 const *)ptr; }
+MEM_STATIC size_t MEM_readST(void const * ptr) { return *(unalignArch const *)ptr; }
 
 MEM_STATIC void MEM_write16(void* memPtr, U16 value) { *(unalign16*)memPtr = value; }
 MEM_STATIC void MEM_write32(void* memPtr, U32 value) { *(unalign32*)memPtr = value; }
@@ -202,25 +202,25 @@ MEM_STATIC void MEM_write64(void* memPtr, U64 value) { *(unalign64*)memPtr = val
 /* default method, safe and standard.
    can sometimes prove slower */
 
-MEM_STATIC U16 MEM_read16(const void* memPtr) {
+MEM_STATIC U16 MEM_read16(void const * memPtr) {
 	U16 val;
 	ZSTD_memcpy(&val, memPtr, sizeof(val));
 	return val;
 }
 
-MEM_STATIC U32 MEM_read32(const void* memPtr) {
+MEM_STATIC U32 MEM_read32(void const * memPtr) {
 	U32 val;
 	ZSTD_memcpy(&val, memPtr, sizeof(val));
 	return val;
 }
 
-MEM_STATIC U64 MEM_read64(const void* memPtr) {
+MEM_STATIC U64 MEM_read64(void const * memPtr) {
 	U64 val;
 	ZSTD_memcpy(&val, memPtr, sizeof(val));
 	return val;
 }
 
-MEM_STATIC size_t MEM_readST(const void* memPtr) {
+MEM_STATIC size_t MEM_readST(void const * memPtr) {
 	size_t val;
 	ZSTD_memcpy(&val, memPtr, sizeof(val));
 	return val;
@@ -287,7 +287,7 @@ MEM_STATIC size_t MEM_swapST(size_t in) {
 
 /*=== Little endian r/w ===*/
 
-MEM_STATIC U16 MEM_readLE16(const void* memPtr) {
+MEM_STATIC U16 MEM_readLE16(void const * memPtr) {
 	if(MEM_isLittleEndian())
 		return MEM_read16(memPtr);
 	else {
@@ -306,7 +306,7 @@ MEM_STATIC void MEM_writeLE16(void* memPtr, U16 val) {
 	}
 }
 
-MEM_STATIC U32 MEM_readLE24(const void* memPtr) {
+MEM_STATIC U32 MEM_readLE24(void const * memPtr) {
 	return (U32)MEM_readLE16(memPtr) + ((U32)(((const BYTE*)memPtr)[2]) << 16);
 }
 
@@ -315,7 +315,7 @@ MEM_STATIC void MEM_writeLE24(void* memPtr, U32 val) {
 	((BYTE*)memPtr)[2] = (BYTE)(val >> 16);
 }
 
-MEM_STATIC U32 MEM_readLE32(const void* memPtr) {
+MEM_STATIC U32 MEM_readLE32(void const * memPtr) {
 	if(MEM_isLittleEndian())
 		return MEM_read32(memPtr);
 	else
@@ -329,7 +329,7 @@ MEM_STATIC void MEM_writeLE32(void* memPtr, U32 val32) {
 		MEM_write32(memPtr, MEM_swap32(val32));
 }
 
-MEM_STATIC U64 MEM_readLE64(const void* memPtr) {
+MEM_STATIC U64 MEM_readLE64(void const * memPtr) {
 	if(MEM_isLittleEndian())
 		return MEM_read64(memPtr);
 	else
@@ -343,7 +343,7 @@ MEM_STATIC void MEM_writeLE64(void* memPtr, U64 val64) {
 		MEM_write64(memPtr, MEM_swap64(val64));
 }
 
-MEM_STATIC size_t MEM_readLEST(const void* memPtr) {
+MEM_STATIC size_t MEM_readLEST(void const * memPtr) {
 	if(MEM_32bits())
 		return (size_t)MEM_readLE32(memPtr);
 	else
@@ -359,7 +359,7 @@ MEM_STATIC void MEM_writeLEST(void* memPtr, size_t val) {
 
 /*=== Big endian r/w ===*/
 
-MEM_STATIC U32 MEM_readBE32(const void* memPtr) {
+MEM_STATIC U32 MEM_readBE32(void const * memPtr) {
 	if(MEM_isLittleEndian())
 		return MEM_swap32(MEM_read32(memPtr));
 	else
@@ -373,7 +373,7 @@ MEM_STATIC void MEM_writeBE32(void* memPtr, U32 val32) {
 		MEM_write32(memPtr, val32);
 }
 
-MEM_STATIC U64 MEM_readBE64(const void* memPtr) {
+MEM_STATIC U64 MEM_readBE64(void const * memPtr) {
 	if(MEM_isLittleEndian())
 		return MEM_swap64(MEM_read64(memPtr));
 	else
@@ -387,7 +387,7 @@ MEM_STATIC void MEM_writeBE64(void* memPtr, U64 val64) {
 		MEM_write64(memPtr, val64);
 }
 
-MEM_STATIC size_t MEM_readBEST(const void* memPtr) {
+MEM_STATIC size_t MEM_readBEST(void const * memPtr) {
 	if(MEM_32bits())
 		return (size_t)MEM_readBE32(memPtr);
 	else

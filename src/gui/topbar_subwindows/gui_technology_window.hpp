@@ -85,7 +85,7 @@ static void technology_description(element_base& element, sys::state& state, tex
 		activate_factory_description(id);
 	}
 
-	auto commodity_mod_description = [&](const auto& list, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
+	auto commodity_mod_description = [&](auto const & list, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
 		for(const auto mod : list) {
 			auto box = text::open_layout_box(contents, 0);
 			auto name = state.world.commodity_get_name(mod.type);
@@ -253,7 +253,7 @@ class technology_research_progress_category_text : public simple_text_element_ba
 		auto tech_id = nations::current_research(state, state.local_player_nation);
 		if(tech_id) {
 			auto tech = dcon::fatten(state.world, tech_id);
-			const auto& folder = state.culture_definitions.tech_folders[tech.get_folder_index()];
+			auto const & folder = state.culture_definitions.tech_folders[tech.get_folder_index()];
 
 			std::string str{};
 			str += text::produce_simple_string(state, folder.name);
@@ -804,15 +804,15 @@ public:
 		// ******** Order of appearance of technologies that have said folder?
 		std::vector<std::vector<size_t>> folders_by_category(static_cast<size_t>(culture::tech_category::count));
 		for(size_t i = 0; i < state.culture_definitions.tech_folders.size(); i++) {
-			const auto& folder = state.culture_definitions.tech_folders[i];
+			auto const & folder = state.culture_definitions.tech_folders[i];
 			folders_by_category[static_cast<size_t>(folder.category)].push_back(i);
 		}
 		// Now obtain the x-offsets of each folder (remember only one category of folders
 		// is ever shown at a time)
 		std::vector<size_t> folder_x_offset(state.culture_definitions.tech_folders.size(), 0);
-		for(const auto& folder_category : folders_by_category) {
+		for(auto const & folder_category : folders_by_category) {
 			size_t y_offset = 0;
-			for(const auto folder_index : folder_category)
+			for(auto const folder_index : folder_category)
 				folder_x_offset[folder_index] = y_offset++;
 		}
 		// Technologies per folder (used for positioning!!!)
@@ -826,7 +826,7 @@ public:
 		    cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1)) {
 			// Add tech group names
 			int16_t group_count = 0;
-			for(const auto& folder : state.culture_definitions.tech_folders) {
+			for(auto const & folder : state.culture_definitions.tech_folders) {
 				if(folder.category != cat)
 					continue;
 

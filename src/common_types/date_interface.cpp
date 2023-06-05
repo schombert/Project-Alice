@@ -6,10 +6,10 @@ namespace sys {
 
 constexpr int days_from_civil(int y, unsigned m, unsigned d) noexcept {
 	y -= m <= 2;
-	const int era = (y >= 0 ? y : y - 399) / 400;
-	const unsigned yoe = static_cast<unsigned>(y - era * 400);            // [0, 399]
-	const unsigned doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1; // [0, 365]
-	const unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;           // [0, 146096]
+	int const era = (y >= 0 ? y : y - 399) / 400;
+	unsigned const yoe = static_cast<unsigned>(y - era * 400);            // [0, 399]
+	unsigned const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1; // [0, 365]
+	unsigned const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;           // [0, 146096]
 	return era * 146097 + static_cast<int>(doe) - 719468;
 }
 
@@ -17,13 +17,13 @@ constexpr year_month_day
 civil_from_days(int64_t z) noexcept {
 	z += 719468;
 	const int32_t era = int32_t((z >= 0 ? z : z - 146096) / 146097);
-	const unsigned doe = static_cast<unsigned>(z - era * 146097);               // [0, 146096]
-	const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365; // [0, 399]
+	unsigned const doe = static_cast<unsigned>(z - era * 146097);               // [0, 146096]
+	unsigned const yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365; // [0, 399]
 	const int32_t y = static_cast<int32_t>(yoe) + era * 400;
-	const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100); // [0, 365]
-	const unsigned mp = (5 * doy + 2) / 153;                      // [0, 11]
-	const unsigned d = doy - (153 * mp + 2) / 5 + 1;              // [1, 31]
-	const unsigned m = mp < 10 ? mp + 3 : mp - 9;                 // [1, 12]
+	unsigned const doy = doe - (365 * yoe + yoe / 4 - yoe / 100); // [0, 365]
+	unsigned const mp = (5 * doy + 2) / 153;                      // [0, 11]
+	unsigned const d = doy - (153 * mp + 2) / 5 + 1;              // [1, 31]
+	unsigned const m = mp < 10 ? mp + 3 : mp - 9;                 // [1, 12]
 	return year_month_day{int32_t(y + (m <= 2)), uint16_t(m), uint16_t(d)};
 }
 

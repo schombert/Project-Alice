@@ -48,7 +48,7 @@ std::string format_modifier_value(sys::state& state, float value, modifier_displ
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation) {
 	auto fat_id = dcon::fatten(state.world, mid);
 
-	const auto& prov_def = fat_id.get_province_values();
+	auto const & prov_def = fat_id.get_province_values();
 	for(uint32_t i = 0; i < prov_def.modifier_definition_size; ++i) {
 		if(!bool(prov_def.offsets[i]))
 			break;
@@ -64,7 +64,7 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 		text::close_layout_box(layout, box);
 	}
 
-	const auto& nat_def = fat_id.get_national_values();
+	auto const & nat_def = fat_id.get_national_values();
 	for(uint32_t i = 0; i < nat_def.modifier_definition_size; ++i) {
 		if(!bool(nat_def.offsets[i]))
 			break;
@@ -85,7 +85,7 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 	if(scaled == 0.f)
 		return;
 	auto fat_id = dcon::fatten(state.world, mid);
-	const auto& def = fat_id.get_national_values();
+	auto const & def = fat_id.get_national_values();
 	for(uint32_t i = 0; i < def.modifier_definition_size; ++i) {
 		if(!bool(def.offsets[i]))
 			break;
@@ -117,13 +117,13 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 	if(scaled == 0.f)
 		return;
 	auto fat_id = dcon::fatten(state.world, mid);
-	const auto& def = fat_id.get_province_values();
+	auto const & def = fat_id.get_province_values();
 	for(uint32_t i = 0; i < def.modifier_definition_size; ++i) {
 		if(!bool(def.offsets[i]))
 			break;
 		if(def.offsets[i] != pmid)
 			continue;
-		
+
 		if(!header) {
 			header = true;
 			auto box = text::open_layout_box(layout, 0);

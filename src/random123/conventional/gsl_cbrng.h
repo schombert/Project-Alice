@@ -65,7 +65,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #define GSL_CBRNG(NAME, CBRNGNAME)                                               \
-	const gsl_rng_type* gsl_rng_##NAME;                                          \
+	gsl_rng_type const * gsl_rng_##NAME;                                         \
                                                                                  \
 	typedef struct {                                                             \
 		CBRNGNAME##_ctr_t ctr;                                                   \
@@ -76,7 +76,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                                                                                  \
 	static unsigned long int NAME##_get(void* vstate) {                          \
 		NAME##_state* st = (NAME##_state*)vstate;                                \
-		const int N = sizeof(st->ctr.v) / sizeof(st->ctr.v[0]);                  \
+		int const N = sizeof(st->ctr.v) / sizeof(st->ctr.v[0]);                  \
 		if(st->elem == 0) {                                                      \
 			++st->ctr.v[0];                                                      \
 			if(N > 1 && st->ctr.v[0] == 0)                                       \
@@ -123,6 +123,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	    &NAME##_get,                                                             \
 	    &NAME##_get_double};                                                     \
                                                                                  \
-	const gsl_rng_type* gsl_rng_##NAME = &NAME##_type
+	gsl_rng_type const * gsl_rng_##NAME = &NAME##_type
 
 #endif

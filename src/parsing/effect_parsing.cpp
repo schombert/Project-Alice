@@ -1011,8 +1011,8 @@ int32_t simplify_effect(uint16_t* source) {
 			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
 
 			while(sub_units_start < source + source_size) {
-				const auto old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
-				const auto new_size = simplify_effect(sub_units_start);
+				auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
+				auto const new_size = simplify_effect(sub_units_start);
 				if(new_size > 0) {
 					if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
 						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
@@ -1028,8 +1028,8 @@ int32_t simplify_effect(uint16_t* source) {
 			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
 
 			while(sub_units_start < source + source_size) {
-				const auto old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
-				const auto new_size = simplify_effect(sub_units_start);
+				auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
+				auto const new_size = simplify_effect(sub_units_start);
 
 				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
 					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
@@ -1069,7 +1069,7 @@ void recurse_over_effects(uint16_t* source, const T& f) {
 
 	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
 		if((source[0] & effect::code_mask) == effect::random_list_scope) {
-			const auto source_size = 1 + effect::get_generic_effect_payload_size(source);
+			auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
 
 			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
 			while(sub_units_start < source + source_size) {
@@ -1077,7 +1077,7 @@ void recurse_over_effects(uint16_t* source, const T& f) {
 				sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start); // each member preceded by uint16_t
 			}
 		} else {
-			const auto source_size = 1 + effect::get_generic_effect_payload_size(source);
+			auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
 
 			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
 			while(sub_units_start < source + source_size) {
@@ -1096,7 +1096,7 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
 		return dcon::effect_key{0};
 	}
 
-	const auto new_size = simplify_effect(context.compiled_effect.data());
+	auto const new_size = simplify_effect(context.compiled_effect.data());
 	context.compiled_effect.resize(static_cast<size_t>(new_size));
 
 	return context.outer_context.state.commit_effect_data(context.compiled_effect);

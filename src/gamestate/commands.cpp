@@ -307,7 +307,7 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 	if(!is_upgrade) {
 		// Check factories being built
 		bool has_dup = false;
-		economy::for_each_new_factory(state, location, [&](const economy::new_factory& nf) {
+		economy::for_each_new_factory(state, location, [&](economy::new_factory const & nf) {
 			has_dup = has_dup || nf.type == type;
 		});
 		if(has_dup)

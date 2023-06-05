@@ -202,7 +202,7 @@ int BMFont::GetKerningPair(char first, char second) const {
 		return 0;
 }
 
-float BMFont::GetStringWidth(const char* string, uint32_t count) const {
+float BMFont::GetStringWidth(char const * string, uint32_t count) const {
 	float total = 0;
 
 	for(uint32_t i = 0; i < count; ++i) {

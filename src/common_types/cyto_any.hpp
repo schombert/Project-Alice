@@ -115,9 +115,9 @@ constexpr bool IsStorageBufferSized = IsStorageBufferSized_<T>::value;
 
 union Storage {
 	constexpr Storage() { }
-	Storage(const Storage&) = delete;
+	Storage(Storage const &) = delete;
 	Storage(Storage&&) = delete;
-	Storage& operator=(const Storage&) = delete;
+	Storage& operator=(Storage const &) = delete;
 	Storage& operator=(Storage&&) = delete;
 
 	StorageBuffer buf;
@@ -133,18 +133,18 @@ template<class T>
 int fallback_typeinfo<T>::id = 0;
 
 template<class T>
-ANY_ALWAYS_INLINE constexpr const void* fallback_typeid() {
+ANY_ALWAYS_INLINE constexpr void const * fallback_typeid() {
 	return &fallback_typeinfo<std::decay_t<T>>::id;
 }
 #endif // !ANY_USE(TYPEINFO)
 
 ANY_ALWAYS_INLINE
-static constexpr void* void_get(Storage* s, const void* info) {
+static constexpr void* void_get(Storage* s, void const * info) {
 	return nullptr;
 }
 
 ANY_ALWAYS_INLINE
-static constexpr void void_copy(Storage* dst, const Storage* src) { }
+static constexpr void void_copy(Storage* dst, Storage const * src) { }
 
 ANY_ALWAYS_INLINE
 static constexpr void void_move(Storage* dst, Storage* src) { }
@@ -153,23 +153,23 @@ ANY_ALWAYS_INLINE
 static constexpr void void_drop(Storage* s) { }
 
 struct AnyActions {
-	using Get = void* (*)(Storage* s, const void* type);
-	using Copy = void (*)(Storage* dst, const Storage* src);
+	using Get = void* (*)(Storage* s, void const * type);
+	using Copy = void (*)(Storage* dst, Storage const * src);
 	using Move = void (*)(Storage* dst, Storage* src);
 	using Drop = void (*)(Storage* s);
 
 	constexpr AnyActions() noexcept { }
 
-	constexpr AnyActions(Get g, Copy c, Move m, Drop d, const void* t) noexcept : get(g), copy(c), move(m), drop(d), type(t) { }
+	constexpr AnyActions(Get g, Copy c, Move m, Drop d, void const * t) noexcept : get(g), copy(c), move(m), drop(d), type(t) { }
 
 	Get get = void_get;
 	Copy copy = void_copy;
 	Move move = void_move;
 	Drop drop = void_drop;
 #if ANY_USE_TYPEINFO
-	const void* type = static_cast<const void*>(&typeid(void));
+	void const * type = static_cast<void const *>(&typeid(void));
 #else
-	const void* type = fallback_typeid<void>();
+	void const * type = fallback_typeid<void>();
 #endif
 };
 
@@ -202,15 +202,15 @@ struct AnyTraits {
 #endif // ANY_USE(SMALL_MEMCPY_STRATEGY)
 
 private:
-	AnyTraits(const AnyTraits&) = default;
+	AnyTraits(AnyTraits const &) = default;
 	AnyTraits(AnyTraits&&) = default;
-	AnyTraits& operator=(const AnyTraits&) = default;
+	AnyTraits& operator=(AnyTraits const &) = default;
 	AnyTraits& operator=(AnyTraits&&) = default;
 
 	template<class X = T>
-	ANY_ALWAYS_INLINE static bool compare_typeid(const void* id) {
+	ANY_ALWAYS_INLINE static bool compare_typeid(void const * id) {
 #if ANY_USE_TYPEINFO
-		return *(static_cast<const std::type_info*>(id)) == typeid(X);
+		return *(static_cast< std::type_info const *>(id)) == typeid(X);
 #else
 		return (id && id == fallback_typeid<X>());
 #endif
@@ -221,13 +221,13 @@ private:
 	//
 	template<class X = T,
 	         std::enable_if_t<std::is_same_v<X, void>, int> = 0>
-	ANY_ALWAYS_INLINE static void* get(Storage* s, const void* type) {
+	ANY_ALWAYS_INLINE static void* get(Storage* s, void const * type) {
 		return nullptr;
 	}
 
 	template<class X = T,
 	         std::enable_if_t<IsStorageBufferSized<X>, int> = 0>
-	ANY_ALWAYS_INLINE static void* get(Storage* s, const void* type) {
+	ANY_ALWAYS_INLINE static void* get(Storage* s, void const * type) {
 		if(compare_typeid<X>(type)) {
 			return static_cast<void*>(&s->buf);
 		}
@@ -239,12 +239,12 @@ private:
 	//
 	template<class X = T,
 	         std::enable_if_t<std::is_same_v<X, void>, int> = 0>
-	ANY_ALWAYS_INLINE static void copy(Storage* dst, const Storage* src) { }
+	ANY_ALWAYS_INLINE static void copy(Storage* dst, Storage const * src) { }
 
 #if ANY_USE_SMALL_MEMCPY_STRATEGY
 	template<class X = T,
 	         std::enable_if_t<IsStorageBufferSized<X> && std::is_trivially_copyable_v<X>, int> = 0>
-	ANY_ALWAYS_INLINE static void copy(Storage* dst, const Storage* src) {
+	ANY_ALWAYS_INLINE static void copy(Storage* dst, Storage const * src) {
 		memcpy(static_cast<void*>(&dst->buf), static_cast<void*>(const_cast<StorageBuffer*>(&src->buf)), sizeof(X));
 	}
 
@@ -252,7 +252,7 @@ private:
 	         std::enable_if_t<IsStorageBufferSized<X> && !std::is_trivially_copyable_v<X> &&
 	                              std::is_nothrow_move_constructible_v<X>,
 	                          int> = 0>
-	ANY_ALWAYS_INLINE static void copy(Storage* dst, const Storage* src) {
+	ANY_ALWAYS_INLINE static void copy(Storage* dst, Storage const * src) {
 		AnyTraits::make(dst, std::in_place_type_t<X>(), *static_cast<X const *>(static_cast<void const *>(&src->buf)));
 	}
 #else  // ANY_USE(SMALL_MEMCPY_STRATEGY)
@@ -260,7 +260,7 @@ private:
 	         std::enable_if_t<IsStorageBufferSized<X> &&
 	                              std::is_nothrow_move_constructible_v<X>,
 	                          int> = 0>
-	ANY_ALWAYS_INLINE static void copy(Storage* dst, const Storage* src) {
+	ANY_ALWAYS_INLINE static void copy(Storage* dst, Storage const * src) {
 		AnyTraits::make(dst, std::in_place_type_t<X>(), *static_cast<X const *>(static_cast<void const *>(&src->buf)));
 	}
 #endif // ANY_USE(SMALL_MEMCPY_STRATEGY)
@@ -353,7 +353,7 @@ public:
 		AnyTraits<T>::make(&storage, vtype, V{list, std::forward<Args>(args)...});
 	}
 
-	Any(const Any& other) : actions(other.actions) {
+	Any(Any const & other) : actions(other.actions) {
 		actions->copy(&storage, &other.storage);
 	}
 
@@ -362,7 +362,7 @@ public:
 		other.actions = VoidAnyActions;
 	}
 
-	Any& operator=(const Any& other) {
+	Any& operator=(Any const & other) {
 		if(this != &other) {
 			actions->drop(&storage);
 			actions = other.actions;
@@ -443,15 +443,15 @@ public:
 	}
 
 #if ANY_USE_TYPEINFO
-	const std::type_info& type() const noexcept {
-		return *static_cast<const std::type_info*>(actions->type);
+	std::type_info const & type() const noexcept {
+		return *static_cast< std::type_info const *>(actions->type);
 	}
 #endif
 
 	template<typename CHECK_TYPE>
 	ANY_ALWAYS_INLINE bool holds_type() const noexcept {
 #if ANY_USE_TYPEINFO
-		return typeid(CHECK_TYPE) == *static_cast<const std::type_info*>(actions->type);
+		return typeid(CHECK_TYPE) == *static_cast< std::type_info const *>(actions->type);
 #else
 		return (actions->type == fallback_typeid<CHECK_TYPE>());
 #endif
@@ -462,9 +462,9 @@ public:
 
 private:
 	static constexpr AnyActions _VoidAnyActions = AnyActions();
-	static constexpr const AnyActions* const VoidAnyActions = &_VoidAnyActions;
+	static constexpr AnyActions const * const VoidAnyActions = &_VoidAnyActions;
 
-	const AnyActions* actions;
+	AnyActions const * actions;
 	Storage storage;
 };
 
@@ -489,7 +489,7 @@ ANY_ALWAYS_INLINE
 
 template<class V, class T = std::remove_cv_t<std::remove_reference_t<V>>,
          std::enable_if_t<std::is_constructible<V, const T&>{}, int> = 0>
-V any_cast(const Any& a) {
+V any_cast(Any const & a) {
 	auto tmp = any_cast<std::add_const_t<T>>(&a);
 	if(tmp == nullptr) {
 		handle_bad_any_cast();
@@ -518,7 +518,7 @@ V any_cast(Any&& a) {
 }
 
 template<class V, class T = std::remove_cv_t<std::remove_reference_t<V>>>
-const T* any_cast(const Any* a) noexcept {
+const T* any_cast(Any const * a) noexcept {
 	return any_cast<V>(const_cast<Any*>(a));
 }
 

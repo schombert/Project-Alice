@@ -118,25 +118,25 @@ struct aesni1xm128i_key_t {
 		uk.v[0].m = _mm_setzero_si128();
 		aesni1xm128iexpand(uk, k);
 	}
-	aesni1xm128i_key_t(const aesni1xm128i_ukey_t& uk) {
+	aesni1xm128i_key_t(aesni1xm128i_ukey_t const & uk) {
 		aesni1xm128iexpand(uk, k);
 	}
-	aesni1xm128i_key_t(const aesni4x32_ukey_t& uk) {
+	aesni1xm128i_key_t(aesni4x32_ukey_t const & uk) {
 		aesni1xm128i_ukey_t uk128;
 		uk128.v[0].m = _mm_set_epi32(uk.v[3], uk.v[2], uk.v[1], uk.v[0]);
 		aesni1xm128iexpand(uk128, k);
 	}
-	aesni1xm128i_key_t& operator=(const aesni1xm128i_ukey_t& uk) {
+	aesni1xm128i_key_t& operator=(aesni1xm128i_ukey_t const & uk) {
 		aesni1xm128iexpand(uk, k);
 		return *this;
 	}
-	aesni1xm128i_key_t& operator=(const aesni4x32_ukey_t& uk) {
+	aesni1xm128i_key_t& operator=(aesni4x32_ukey_t const & uk) {
 		aesni1xm128i_ukey_t uk128;
 		uk128.v[0].m = _mm_set_epi32(uk.v[3], uk.v[2], uk.v[1], uk.v[0]);
 		aesni1xm128iexpand(uk128, k);
 		return *this;
 	}
-	bool operator==(const aesni1xm128i_key_t& rhs) const {
+	bool operator==(aesni1xm128i_key_t const & rhs) const {
 		for(int i = 0; i < 11; ++i) {
 			// Sigh... No r123m128i(__m128i) constructor!
 			r123m128i li;
@@ -148,10 +148,10 @@ struct aesni1xm128i_key_t {
 		}
 		return true;
 	}
-	bool operator!=(const aesni1xm128i_key_t& rhs) const {
+	bool operator!=(aesni1xm128i_key_t const & rhs) const {
 		return !(*this == rhs);
 	}
-	friend std::ostream& operator<<(std::ostream& os, const aesni1xm128i_key_t& v) {
+	friend std::ostream& operator<<(std::ostream& os, aesni1xm128i_key_t const & v) {
 		r123m128i ki;
 		for(int i = 0; i < 10; ++i) {
 			ki.m = v.k[i];
@@ -276,7 +276,7 @@ struct AESNI1xm128i {
 	typedef aesni1xm128i_ctr_t ctr_type;
 	typedef aesni1xm128i_ukey_t ukey_type;
 	typedef aesni1xm128i_key_t key_type;
-	static const unsigned int rounds = 10;
+	static unsigned int const rounds = 10;
 	ctr_type operator()(ctr_type ctr, key_type key) const {
 		return aesni1xm128i(ctr, key);
 	}
@@ -287,7 +287,7 @@ struct AESNI4x32 {
 	typedef aesni4x32_ctr_t ctr_type;
 	typedef aesni4x32_ukey_t ukey_type;
 	typedef aesni4x32_key_t key_type;
-	static const unsigned int rounds = 10;
+	static unsigned int const rounds = 10;
 	ctr_type operator()(ctr_type ctr, key_type key) const {
 		return aesni4x32(ctr, key);
 	}
@@ -323,24 +323,24 @@ struct aesopenssl16x8_key_t {
 	AES_KEY k;
 	aesopenssl16x8_key_t() {
 		aesopenssl16x8_ukey_t ukey = {{}};
-		AES_set_encrypt_key((const unsigned char*)&ukey.v[0], 128, &k);
+		AES_set_encrypt_key((unsigned char const *)&ukey.v[0], 128, &k);
 	}
-	aesopenssl16x8_key_t(const aesopenssl16x8_ukey_t& ukey) {
-		AES_set_encrypt_key((const unsigned char*)&ukey.v[0], 128, &k);
+	aesopenssl16x8_key_t(aesopenssl16x8_ukey_t const & ukey) {
+		AES_set_encrypt_key((unsigned char const *)&ukey.v[0], 128, &k);
 	}
-	aesopenssl16x8_key_t& operator=(const aesopenssl16x8_ukey_t& ukey) {
-		AES_set_encrypt_key((const unsigned char*)&ukey.v[0], 128, &k);
+	aesopenssl16x8_key_t& operator=(aesopenssl16x8_ukey_t const & ukey) {
+		AES_set_encrypt_key((unsigned char const *)&ukey.v[0], 128, &k);
 		return *this;
 	}
-	bool operator==(const aesopenssl16x8_key_t& rhs) const {
+	bool operator==(aesopenssl16x8_key_t const & rhs) const {
 		return (k.rounds == rhs.k.rounds) && 0 == ::memcmp(&k.rd_key[0], &rhs.k.rd_key[0], (k.rounds + 1) * 4 * sizeof(uint32_t));
 	}
-	bool operator!=(const aesopenssl16x8_key_t& rhs) const {
+	bool operator!=(aesopenssl16x8_key_t const & rhs) const {
 		return !(*this == rhs);
 	}
-	friend std::ostream& operator<<(std::ostream& os, const aesopenssl16x8_key_t& v) {
+	friend std::ostream& operator<<(std::ostream& os, aesopenssl16x8_key_t const & v) {
 		os << v.k.rounds;
-		const unsigned int* p = &v.k.rd_key[0];
+		unsigned int const * p = &v.k.rd_key[0];
 		for(int i = 0; i < (v.k.rounds + 1); ++i) {
 			os << " " << p[0] << " " << p[1] << " " << p[2] << " " << p[3];
 			p += 4;
@@ -363,7 +363,7 @@ typedef struct aesopenssl16x8_key_t {
 } aesopenssl16x8_key_t;
 R123_STATIC_INLINE struct aesopenssl16x8_key_t aesopenssl16x8keyinit(aesopenssl16x8_ukey_t uk) {
 	aesopenssl16x8_key_t ret;
-	AES_set_encrypt_key((const unsigned char*)&uk.v[0], 128, &ret.k);
+	AES_set_encrypt_key((unsigned char const *)&uk.v[0], 128, &ret.k);
 	return ret;
 }
 #endif
@@ -372,7 +372,7 @@ R123_STATIC_INLINE R123_FORCE_INLINE(aesopenssl16x8_ctr_t aesopenssl16x8_R(aesop
 R123_STATIC_INLINE
 aesopenssl16x8_ctr_t aesopenssl16x8_R(aesopenssl16x8_ctr_t ctr, aesopenssl16x8_key_t key) {
 	aesopenssl16x8_ctr_t ret;
-	AES_encrypt((const unsigned char*)&ctr.v[0], (unsigned char*)&ret.v[0], &key.k);
+	AES_encrypt((unsigned char const *)&ctr.v[0], (unsigned char*)&ret.v[0], &key.k);
 	return ret;
 }
 
@@ -385,10 +385,10 @@ struct AESOpenSSL16x8 {
 	typedef aesopenssl16x8_ctr_t ctr_type;
 	typedef aesopenssl16x8_key_t key_type;
 	typedef aesopenssl16x8_ukey_t ukey_type;
-	static const unsigned int rounds = 10;
-	ctr_type operator()(const ctr_type& in, const key_type& k) {
+	static unsigned int const rounds = 10;
+	ctr_type operator()(ctr_type const & in, key_type const & k) {
 		ctr_type out;
-		AES_encrypt((const unsigned char*)&in[0], (unsigned char*)&out[0], &k.k);
+		AES_encrypt((unsigned char const *)&in[0], (unsigned char*)&out[0], &k.k);
 		return out;
 	}
 };

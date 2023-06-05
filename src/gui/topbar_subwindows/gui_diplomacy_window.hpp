@@ -366,14 +366,14 @@ public:
 			country_relation->set_visible(state, content != state.local_player_nation);
 			country_relation_icon->set_visible(state, content != state.local_player_nation);
 			{
-				const auto culture_id = fat_id.get_primary_culture();
+				auto const culture_id = fat_id.get_primary_culture();
 				auto culture = dcon::fatten(state.world, culture_id);
-				const auto text = text::produce_simple_string(state, culture.get_name());
+				auto const text = text::produce_simple_string(state, culture.get_name());
 				country_primary_cultures->set_text(state, text);
 			}
 			{
 				std::string text{};
-				for(const auto culture_id : fat_id.get_accepted_cultures()) {
+				for(auto const culture_id : fat_id.get_accepted_cultures()) {
 					auto culture = dcon::fatten(state.world, culture_id);
 					text += text::produce_simple_string(state, culture.get_name()) + ", ";
 				}
@@ -1150,7 +1150,7 @@ public:
 			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
-			const auto filter_name = name.substr(7);
+			auto const filter_name = name.substr(7);
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
 			ptr->target = ([&]() {
 				dcon::modifier_id filter_mod_id{0};

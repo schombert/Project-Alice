@@ -228,8 +228,8 @@ void load_global_squares(sys::state& state) {
 	for(uint32_t i = 0; i < 64; ++i) {
 		glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.sub_square_buffers[i]);
 
-		const float cell_x = static_cast<float>(i & 7) / 8.0f;
-		const float cell_y = static_cast<float>((i >> 3) & 7) / 8.0f;
+		float const cell_x = static_cast<float>(i & 7) / 8.0f;
+		float const cell_y = static_cast<float>((i >> 3) & 7) / 8.0f;
 
 		GLfloat global_sub_square_data[] = {
 		    0.0f, 0.0f, cell_x, cell_y,
@@ -433,7 +433,7 @@ void render_subsprite(sys::state const & state, color_modification enabled, int 
 
 	bind_vertices_by_rotation(state, r, flipped);
 
-	const auto scale = 1.0f / static_cast<float>(total_frames);
+	auto const scale = 1.0f / static_cast<float>(total_frames);
 	glUniform3f(parameters::inner_color, static_cast<float>(frame) * scale, scale, 0.0f);
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 
@@ -465,7 +465,7 @@ void render_character(sys::state const & state, char codepoint, color_modificati
 	}
 }
 
-void internal_text_render(sys::state const & state, char const * codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, const GLuint* subroutines, const GLuint* icon_subroutines) {
+void internal_text_render(sys::state const & state, char const * codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, GLuint const * subroutines, GLuint const * icon_subroutines) {
 	for(uint32_t i = 0; i < count; ++i) {
 		if(text::win1250toUTF16(codepoints[i]) != ' ') {
 			// f.make_glyph(codepoints[i]);
@@ -500,7 +500,7 @@ void internal_text_render(sys::state const & state, char const * codepoints, uin
 	}
 }
 
-void render_new_text(sys::state const & state, char const * codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color3f& c, text::font& f) {
+void render_new_text(sys::state const & state, char const * codepoints, uint32_t count, color_modification enabled, float x, float y, float size, color3f const & c, text::font& f) {
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
@@ -510,7 +510,7 @@ void render_new_text(sys::state const & state, char const * codepoints, uint32_t
 	internal_text_render(state, codepoints, count, x, y + size, size, f, subroutines, icon_subroutines);
 }
 
-void render_classic_text(sys::state const & state, float x, float y, char const * codepoints, uint32_t count, color_modification enabled, const color3f& c, text::BMFont const & font) {
+void render_classic_text(sys::state const & state, float x, float y, char const * codepoints, uint32_t count, color_modification enabled, color3f const & c, text::BMFont const & font) {
 	float adv = (float)1.0 / font.Width; // Font texture atlas spacing.
 
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
@@ -585,7 +585,7 @@ void render_classic_text(sys::state const & state, float x, float y, char const 
 	}
 }
 
-void render_text(sys::state& state, char const * codepoints, uint32_t count, color_modification enabled, float x, float y, const color3f& c, uint16_t font_id) {
+void render_text(sys::state& state, char const * codepoints, uint32_t count, color_modification enabled, float x, float y, color3f const & c, uint16_t font_id) {
 	if(state.user_settings.use_classic_fonts) {
 		render_classic_text(state, x, y, codepoints, count, enabled, c, text::get_bm_font(state, font_id));
 	} else {

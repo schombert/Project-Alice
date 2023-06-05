@@ -113,12 +113,12 @@ public:
 		v.back() = e.v.back();
 		fix_invariant();
 	}
-	Engine(const Engine& e) : b(e.b), key(e.key), c(e.c) {
+	Engine(Engine const & e) : b(e.b), key(e.key), c(e.c) {
 		v.back() = e.v.back();
 		fix_invariant();
 	}
 #if __cplusplus >= 201103L
-	Engine& operator=(const Engine&) = default;
+	Engine& operator=(Engine const &) = default;
 	Engine& operator=(Engine&&) = default;
 #endif
 
@@ -149,14 +149,14 @@ public:
 	void seed() {
 		*this = Engine();
 	}
-	friend bool operator==(const Engine& lhs, const Engine& rhs) {
+	friend bool operator==(Engine const & lhs, Engine const & rhs) {
 		return lhs.c == rhs.c && lhs.v.back() == rhs.v.back() && lhs.key == rhs.key;
 	}
-	friend bool operator!=(const Engine& lhs, const Engine& rhs) {
+	friend bool operator!=(Engine const & lhs, Engine const & rhs) {
 		return lhs.c != rhs.c || lhs.v.back() != rhs.v.back() || lhs.key != rhs.key;
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const Engine& be) {
+	friend std::ostream& operator<<(std::ostream& os, Engine const & be) {
 		return os << be.c << " " << be.key << " " << be.v.back();
 	}
 
@@ -217,9 +217,9 @@ public:
 
 	// Constructors and seed() method for ukey_type seem useful
 	// We need const and non-const to supersede the SeedSeq template.
-	explicit Engine(const ukey_type& uk) : key(uk), c() { v.back() = 0; }
+	explicit Engine(ukey_type const & uk) : key(uk), c() { v.back() = 0; }
 	explicit Engine(ukey_type& uk) : key(uk), c() { v.back() = 0; }
-	void seed(const ukey_type& uk) {
+	void seed(ukey_type const & uk) {
 		*this = Engine(uk);
 	}
 	void seed(ukey_type& uk) {
@@ -228,12 +228,12 @@ public:
 
 #if R123_USE_CXX11_TYPE_TRAITS
 	template<typename DUMMY = void>
-	explicit Engine(const key_type& k,
+	explicit Engine(key_type const & k,
 	                typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0)
 	    : key(k), c() { v.back() = 0; }
 
 	template<typename DUMMY = void>
-	void seed(const key_type& k,
+	void seed(key_type const & k,
 	          typename std::enable_if<!std::is_same<ukey_type, key_type>::value, DUMMY>::type* = 0) {
 		*this = Engine(k);
 	}
@@ -241,7 +241,7 @@ public:
 
 	// Forward the e(counter) to the CBRNG we are templated
 	// on, using the current value of the key.
-	ctr_type operator()(const ctr_type& c) const {
+	ctr_type operator()(ctr_type const & c) const {
 		return b(c, key);
 	}
 
@@ -252,7 +252,7 @@ public:
 	// N.B.  setkey(k) is different from seed(k) because seed(k) zeros
 	// the counter (per the C++11 requirements for an Engine), whereas
 	// setkey does not.
-	void setkey(const key_type& k) {
+	void setkey(key_type const & k) {
 		key = k;
 		fix_invariant();
 	}
@@ -265,7 +265,7 @@ public:
 	}
 
 	// And the inverse.
-	void setcounter(const ctr_type& _c, result_type _elem) {
+	void setcounter(ctr_type const & _c, result_type _elem) {
 		static const size_t nelem = c.size();
 		if(_elem >= nelem)
 			throw std::range_error("Engine::setcounter called  with elem out of range");
@@ -274,7 +274,7 @@ public:
 		fix_invariant();
 	}
 
-	void setcounter(const std::pair<ctr_type, result_type>& ce) {
+	void setcounter(std::pair<ctr_type, result_type> const & ce) {
 		setcounter(ce.first, ce.second);
 	}
 };

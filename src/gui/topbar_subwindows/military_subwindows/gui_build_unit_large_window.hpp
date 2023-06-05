@@ -56,7 +56,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<dcon::unit_type_id>{ unit_type };
+			Cyto::Any payload = element_selection_wrapper<dcon::unit_type_id>{unit_type};
 			parent->impl_get(state, payload);
 		}
 	}
@@ -120,17 +120,17 @@ public:
 				unit_name->set_text(state, culture_content + " " + unit_type_name);
 
 				/* if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].primary_culture) {
-					if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
-						int cult_it = 0;
-						for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
-							if(culture_id.id == element) {
-								cult_it++;
-							}
-						}
-						if(cult_it == 0) {
-							set_visible(state, false);
-						}
-					}
+				    if(culture_id != state.world.nation_get_primary_culture(state.local_player_nation)) {
+				        int cult_it = 0;
+				        for(auto element : state.world.nation_get_accepted_cultures(state.local_player_nation)) {
+				            if(culture_id.id == element) {
+				                cult_it++;
+				            }
+				        }
+				        if(cult_it == 0) {
+				            set_visible(state, false);
+				        }
+				    }
 				}*/
 			} else {
 				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
@@ -277,6 +277,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "queue_unit_entry";
 	}
+
 public:
 	// false == army
 	// true == navy
@@ -306,6 +307,7 @@ class build_unit_large_window : public window_element_base {
 	dcon::unit_type_id unit_type{};
 	dcon::unit_type_id first_land_type{};
 	dcon::unit_type_id first_naval_type{};
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);

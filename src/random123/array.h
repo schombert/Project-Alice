@@ -105,7 +105,7 @@ public:                                                                         
 	typedef T* iterator;                                                                               \
 	typedef const T* const_iterator;                                                                   \
 	typedef value_type& reference;                                                                     \
-	typedef const value_type& const_reference;                                                         \
+	typedef value_type const & const_reference;                                                        \
 	typedef size_t size_type;                                                                          \
 	typedef ptrdiff_t difference_type;                                                                 \
 	typedef T* pointer;                                                                                \
@@ -148,7 +148,7 @@ public:                                                                         
 	}                                                                                                  \
 	R123_CUDA_DEVICE bool operator!=(const r123array##_N##x##W& rhs) const { return !(*this == rhs); } \
 	/* CUDA3 does not have std::fill_n */                                                              \
-	R123_CUDA_DEVICE void fill(const value_type& val) {                                                \
+	R123_CUDA_DEVICE void fill(value_type const & val) {                                               \
 		for(size_t i = 0; i < _N; ++i)                                                                 \
 			v[i] = val;                                                                                \
 	}                                                                                                  \
@@ -220,7 +220,7 @@ protected:                                                                      
 		value_type vtn;                                                                                \
 		vtn = n;                                                                                       \
 		v[0] += n;                                                                                     \
-		const unsigned rshift = 8 * ((sizeof(n) > sizeof(value_type)) ? sizeof(value_type) : 0);       \
+		unsigned const rshift = 8 * ((sizeof(n) > sizeof(value_type)) ? sizeof(value_type) : 0);       \
 		for(size_t i = 1; i < _N; ++i) {                                                               \
 			if(rshift) {                                                                               \
 				n >>= rshift;                                                                          \
@@ -252,16 +252,16 @@ template<typename T>
 struct r123arrayinsertable {
 	const T& v;
 	r123arrayinsertable(const T& t_) : v(t_) { }
-	friend std::ostream& operator<<(std::ostream& os, const r123arrayinsertable<T>& t) {
+	friend std::ostream& operator<<(std::ostream& os, r123arrayinsertable<T> const & t) {
 		return os << t.v;
 	}
 };
 
 template<>
 struct r123arrayinsertable<uint8_t> {
-	const uint8_t& v;
-	r123arrayinsertable(const uint8_t& t_) : v(t_) { }
-	friend std::ostream& operator<<(std::ostream& os, const r123arrayinsertable<uint8_t>& t) {
+	uint8_t const & v;
+	r123arrayinsertable(uint8_t const & t_) : v(t_) { }
+	friend std::ostream& operator<<(std::ostream& os, r123arrayinsertable<uint8_t> const & t) {
 		return os << (int)t.v;
 	}
 };

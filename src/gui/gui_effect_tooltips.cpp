@@ -16,7 +16,7 @@ uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS);
 
 inline uint32_t display_subeffects(EFFECT_DISPLAY_PARAMS) {
 
-	const auto source_size = 1 + effect::get_effect_scope_payload_size(tval);
+	auto const source_size = 1 + effect::get_effect_scope_payload_size(tval);
 	auto sub_units_start = tval + 2 + effect::effect_scope_data_payload(tval[0]);
 
 	uint32_t i = 0;
@@ -729,7 +729,7 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 }
 uint32_t es_random_list_scope(EFFECT_DISPLAY_PARAMS) {
 
-	const auto source_size = 1 + effect::get_effect_scope_payload_size(tval);
+	auto const source_size = 1 + effect::get_effect_scope_payload_size(tval);
 	auto chances_total = tval[2];
 
 	auto sub_units_start = tval + 3; // [code] + [payload size] + [chances total] + [first sub effect chance]

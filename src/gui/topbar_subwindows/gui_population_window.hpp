@@ -9,7 +9,7 @@
 
 namespace ui {
 
-const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state);
+std::vector<dcon::pop_id> const & get_pop_window_list(sys::state& state);
 dcon::pop_id get_pop_details_pop(sys::state& state);
 
 class nation_growth_indicator : public opaque_element_base {
@@ -393,8 +393,8 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
 
-			const auto fat_id = dcon::fatten(state.world, content);
-			const auto cfat_id = dcon::fatten(state.world, fat_id.get_culture());
+			auto const fat_id = dcon::fatten(state.world, content);
+			auto const cfat_id = dcon::fatten(state.world, fat_id.get_culture());
 			set_text(state, text::produce_simple_string(state, cfat_id.get_name()));
 		}
 	}
@@ -416,7 +416,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
 
-			const auto fat_id = dcon::fatten(state.world, content);
+			auto const fat_id = dcon::fatten(state.world, content);
 			set_text(state, std::to_string(int32_t(fat_id.get_size())));
 		}
 	}
@@ -443,7 +443,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
 
-			const auto fat_id = dcon::fatten(state.world, content);
+			auto const fat_id = dcon::fatten(state.world, content);
 			set_text(state, text::format_float(fat_id.get_militancy()));
 		}
 	}
@@ -468,7 +468,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
 
-			const auto fat_id = dcon::fatten(state.world, content);
+			auto const fat_id = dcon::fatten(state.world, content);
 			set_text(state, text::format_float(fat_id.get_consciousness()));
 		}
 	}
@@ -493,7 +493,7 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::pop_id>(payload);
 
-			const auto fat_id = dcon::fatten(state.world, content);
+			auto const fat_id = dcon::fatten(state.world, content);
 			set_text(state, text::format_percentage(fat_id.get_literacy(), 2));
 		}
 	}
@@ -983,7 +983,7 @@ template<typename T, bool Multiple>
 class pop_distribution_piechart : public piechart<T> {
 	float iterate_one_pop(sys::state& state, std::unordered_map<typename T::value_base_t, float>& distrib, dcon::pop_id pop_id) {
 		auto amount = 0.f;
-		const auto weight_fn = [&](auto id) {
+		auto const weight_fn = [&](auto id) {
 			auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
 			distrib[typename T::value_base_t(id.index())] += weight;
 			amount += weight;
@@ -1034,7 +1034,7 @@ protected:
 			auto total = 0.f;
 			if constexpr(Multiple) {
 				auto& pop_list = get_pop_window_list(state);
-				for(const auto pop_id : pop_list)
+				for(auto const pop_id : pop_list)
 					total += iterate_one_pop(state, distrib, pop_id);
 			} else {
 				total = iterate_one_pop(state, distrib, get_pop_details_pop(state));
@@ -1134,8 +1134,8 @@ public:
 			auto& pop_list = get_pop_window_list(state);
 
 			std::unordered_map<typename T::value_base_t, float> distrib{};
-			for(const auto pop_id : pop_list) {
-				const auto weight_fn = [&](auto id) {
+			for(auto const pop_id : pop_list) {
+				auto const weight_fn = [&](auto id) {
 					auto weight = state.world.pop_get_demographics(pop_id, pop_demographics::to_key(state, id));
 					distrib[typename T::value_base_t(id.index())] += weight;
 				};
@@ -1169,7 +1169,7 @@ public:
 			}
 
 			std::vector<std::pair<T, float>> sorted_distrib{};
-			for(const auto& e : distrib)
+			for(auto const & e : distrib)
 				if(e.second > 0.f)
 					sorted_distrib.emplace_back(T(e.first), e.second);
 			std::sort(sorted_distrib.begin(), sorted_distrib.end(), [&](std::pair<T, float> a, std::pair<T, float> b) {
@@ -1179,9 +1179,9 @@ public:
 			distrib_listbox->row_contents.clear();
 			// Add (and scale elements) into the distribution listbox
 			auto total = 0.f;
-			for(const auto& e : sorted_distrib)
+			for(auto const & e : sorted_distrib)
 				total += e.second;
-			for(const auto& e : sorted_distrib)
+			for(auto const & e : sorted_distrib)
 				distrib_listbox->row_contents.emplace_back(e.first, e.second / total);
 			distrib_listbox->update(state);
 		}
@@ -1359,7 +1359,7 @@ public:
 		const xy_pair cell_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdetaildistribution_start")->second.definition].position;
 		const xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdetaildistribution_offset")->second.definition].position;
 		xy_pair offset = cell_offset;
-		for(const auto win : dist_windows) {
+		for(auto const win : dist_windows) {
 			win->base_data.position = offset;
 			offset.x += cell_size.x;
 			if(offset.x + cell_size.x >= base_data.size.x) {
@@ -1452,7 +1452,7 @@ public:
 		});
 		// And then show them as appropriate!
 		size_t index = 0;
-		for(const auto& e : distrib)
+		for(auto const & e : distrib)
 			if(e.second > 0.f && index < promotion_windows.size()) {
 				promotion_windows[index]->set_visible(state, true);
 				Cyto::Any pt_payload = dcon::pop_type_id(e.first);
@@ -1955,7 +1955,7 @@ private:
 		});
 
 		std::vector<dcon::province_id> province_list;
-		for(const auto state_id : state_list) {
+		for(auto const state_id : state_list) {
 			left_side_listbox->row_contents.push_back(pop_left_side_data(state_id));
 			// Provinces are sorted by total population too
 			province_list.clear();
@@ -1968,7 +1968,7 @@ private:
 			});
 			// Only put if the state is "expanded"
 			if(view_expanded_state[dcon::state_instance_id::value_base_t(state_id.index())] == true)
-				for(const auto province_id : province_list)
+				for(auto const province_id : province_list)
 					left_side_listbox->row_contents.push_back(pop_left_side_data(province_id));
 		}
 	}
@@ -2001,7 +2001,7 @@ public:
 			const xy_pair cell_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdistribution_start")->second.definition].position;
 			const xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("popdistribution_offset")->second.definition].position;
 			xy_pair offset = cell_offset;
-			for(const auto win : dist_windows) {
+			for(auto const win : dist_windows) {
 				win->base_data.position = offset;
 				offset.x += cell_size.x;
 				if(offset.x + cell_size.x >= base_data.size.x) {
@@ -2215,7 +2215,7 @@ public:
 	}
 
 	friend class pop_national_focus_button;
-	friend const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state);
+	friend std::vector<dcon::pop_id> const & get_pop_window_list(sys::state& state);
 	friend dcon::pop_id get_pop_details_pop(sys::state& state);
 };
 
@@ -2233,7 +2233,7 @@ void pop_national_focus_button::button_action(sys::state& state) noexcept {
 	}
 }
 
-const std::vector<dcon::pop_id>& get_pop_window_list(sys::state& state) {
+std::vector<dcon::pop_id> const & get_pop_window_list(sys::state& state) {
 	static const std::vector<dcon::pop_id> empty{};
 	if(state.ui_state.population_subwindow)
 		return static_cast<population_window*>(state.ui_state.population_subwindow)->country_pop_listbox->row_contents;

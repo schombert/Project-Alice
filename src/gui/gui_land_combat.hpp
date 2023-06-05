@@ -102,6 +102,7 @@ public:
 
 class land_combat_window : public window_element_base {
 	image_element_base* land_combat_may_retreat = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "combat_bg") {
@@ -136,4 +137,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

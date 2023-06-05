@@ -121,7 +121,7 @@ static parser_state parse_command(sys::state& state, std::string_view text) {
 	// Parse command
 	parser_state pstate{};
 	pstate.cmd = possible_commands[0];
-	for(const auto& cmd : possible_commands)
+	for(auto const & cmd : possible_commands)
 		if(s.starts_with(cmd.name)) {
 			pstate.cmd = cmd;
 			break;
@@ -218,8 +218,8 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
 		// Still typing command - so suggest commands
-		std::pair<uint32_t, const command_info*> closest_match = std::make_pair<uint32_t, const command_info*>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
-		for(const auto& cmd : possible_commands) {
+		std::pair<uint32_t, command_info const *> closest_match = std::make_pair<uint32_t, command_info const *>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
+		for(auto const & cmd : possible_commands) {
 			std::string_view name = cmd.name;
 			if(name.starts_with(s)) {
 				if(name == s)
@@ -279,7 +279,7 @@ void ui::console_edit::edit_box_tab(sys::state& state, std::string_view s) noexc
 	closest_match.first = std::numeric_limits<uint32_t>::max();
 
 	// Loop through possible_commands
-	for(const auto& cmd : possible_commands) {
+	for(auto const & cmd : possible_commands) {
 		std::string_view name = cmd.name;
 		if(name.starts_with(s)) {
 			uint32_t dist = levenshtein_distance(s, name);
@@ -431,7 +431,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		if(std::holds_alternative<std::string>(pstate.arg_slots[0])) {
 			auto cmd_name = std::get<std::string>(pstate.arg_slots[0]);
 			bool found = false;
-			for(const auto& cmd : possible_commands)
+			for(auto const & cmd : possible_commands)
 				if(cmd.name == cmd_name) {
 					log_command_info(cmd);
 					found = true;
@@ -442,7 +442,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				// Give the user a command they might've mispelt!
 				std::pair<uint32_t, command_info> closest_match{};
 				closest_match.first = std::numeric_limits<uint32_t>::max();
-				for(const auto& cmd : possible_commands) {
+				for(auto const & cmd : possible_commands) {
 					const uint32_t distance = levenshtein_distance(cmd_name, cmd.name);
 					if(distance < closest_match.first) {
 						closest_match.first = distance;
@@ -454,7 +454,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			}
 		} else {
 			log_to_console(state, parent, "Here's some helpful commands ^-^");
-			for(const auto& cmd : possible_commands)
+			for(auto const & cmd : possible_commands)
 				log_command_info(cmd);
 		}
 	} break;
@@ -478,7 +478,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			count
 		};
 		uint8_t v = 0;
-		const auto k = std::get<std::string>(pstate.arg_slots[0]);
+		auto const k = std::get<std::string>(pstate.arg_slots[0]);
 		if(k[0] == 'd' && k[1] == 'e') { // de(mo)
 			v |= uint8_t(flags::demographics);
 		} else if(k[0] == 'd') { // d(iplo)

@@ -156,7 +156,7 @@ std::vector<unopened_file> list_files(directory const & dir, native_char const *
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
 			DIR* d;
 			struct dirent* dir_ent;
-			const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+			auto const appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
 
 			if(simple_fs::is_ignored_path(*dir.parent_system, appended_path + NATIVE("/"))) {
 				continue;
@@ -181,7 +181,7 @@ std::vector<unopened_file> list_files(directory const & dir, native_char const *
 					if(impl::contains_non_ascii(dir_ent->d_name))
 						continue;
 
-					auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = dir_ent->d_name](const auto& f) {
+					auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = dir_ent->d_name](auto const & f) {
 						return f.file_name.compare(n) == 0;
 					});
 					if(search_result == accumulated_results.end()) {
@@ -192,7 +192,7 @@ std::vector<unopened_file> list_files(directory const & dir, native_char const *
 			}
 		}
 	} else {
-		const auto appended_path = dir.relative_path;
+		auto const appended_path = dir.relative_path;
 		DIR* d;
 		struct dirent* dir_ent;
 		d = opendir(appended_path.c_str());
@@ -235,7 +235,7 @@ std::vector<directory> list_subdirectories(directory const & dir) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
 			DIR* d;
 			struct dirent* dir_ent;
-			const auto appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+			auto const appended_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
 			if(simple_fs::is_ignored_path(*dir.parent_system, appended_path + NATIVE("/"))) {
 				continue;
 			}
@@ -251,7 +251,7 @@ std::vector<directory> list_subdirectories(directory const & dir) {
 
 					native_string const rel_name = dir.relative_path + NATIVE("/") + dir_ent->d_name;
 					if(dir_ent->d_name[0] != NATIVE('.')) {
-						auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [&rel_name](const auto& s) {
+						auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [&rel_name](auto const & s) {
 							return s.relative_path.compare(rel_name) == 0;
 						});
 						if(search_result == accumulated_results.end()) {
@@ -263,7 +263,7 @@ std::vector<directory> list_subdirectories(directory const & dir) {
 			}
 		}
 	} else {
-		const auto appended_path = dir.relative_path;
+		auto const appended_path = dir.relative_path;
 		DIR* d;
 		struct dirent* dir_ent;
 		d = opendir(appended_path.c_str());
@@ -356,7 +356,7 @@ std::vector<native_string> list_roots(file_system const & fs) {
 }
 
 bool is_ignored_path(file_system const & fs, native_string_view path) {
-	for(const auto& replace_path : fs.ignored_paths) {
+	for(auto const & replace_path : fs.ignored_paths) {
 		if(path.starts_with(replace_path))
 			return true;
 	}

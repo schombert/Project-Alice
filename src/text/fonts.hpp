@@ -26,7 +26,7 @@ class font_manager;
 
 class font {
 private:
-	font(const font&) = delete;
+	font(font const &) = delete;
 	font(font&&) = default;
 	font& operator=(font const &) = delete;
 	font& operator=(font&&) noexcept = default;
@@ -56,7 +56,7 @@ public:
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
 	float kerning(char codepoint_first, char codepoint_second) const;
-	float text_extent(const char* codepoints, uint32_t count, int32_t size) const;
+	float text_extent(char const * codepoints, uint32_t count, int32_t size) const;
 
 	friend class font_manager;
 };
@@ -75,7 +75,7 @@ public:
 	void load_all_glyphs();
 
 	float line_height(sys::state& state, uint16_t font_id) const;
-	float text_extent(sys::state& state, const char* codepoints, uint32_t count, uint16_t font_id) const;
+	float text_extent(sys::state& state, char const * codepoints, uint32_t count, uint16_t font_id) const;
 };
 
 void load_standard_fonts(sys::state& state);

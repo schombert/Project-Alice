@@ -564,13 +564,13 @@ void tr_scope_variable(std::string_view name, token_generator& gen, error_handle
 
 inline void invert_trigger_internal(uint16_t* source) {
 	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
-		const auto neg_disjunctive_bit = trigger::is_disjunctive_scope & ~source[0];
-		const auto neg_existence_bit = scope_has_any_all(source[0] & trigger::code_mask) ? (trigger::is_existence_scope & ~source[0]) : 0;
-		const auto masked_source = source[0] & ~(trigger::is_disjunctive_scope | trigger::is_existence_scope);
+		auto const neg_disjunctive_bit = trigger::is_disjunctive_scope & ~source[0];
+		auto const neg_existence_bit = scope_has_any_all(source[0] & trigger::code_mask) ? (trigger::is_existence_scope & ~source[0]) : 0;
+		auto const masked_source = source[0] & ~(trigger::is_disjunctive_scope | trigger::is_existence_scope);
 
 		source[0] = uint16_t(masked_source | neg_disjunctive_bit | neg_existence_bit);
 	} else {
-		const auto inverse_association = invert_association(uint16_t(source[0] & trigger::association_mask));
+		auto const inverse_association = invert_association(uint16_t(source[0] & trigger::association_mask));
 		source[0] = uint16_t((source[0] & ~trigger::association_mask) | inverse_association);
 	}
 }
@@ -579,12 +579,12 @@ void invert_trigger(uint16_t* source) {
 	trigger::recurse_over_triggers(source, invert_trigger_internal);
 }
 
-bool scope_is_empty(const uint16_t* source) {
+bool scope_is_empty(uint16_t const * source) {
 	return trigger::get_trigger_scope_payload_size(source) <= 1 + trigger::trigger_scope_data_payload(source[0]);
 }
 // precondition: scope known to not be empty
-bool scope_has_single_member(const uint16_t* source) {
-	const auto data_offset = 2 + trigger::trigger_scope_data_payload(source[0]);
+bool scope_has_single_member(uint16_t const * source) {
+	auto const data_offset = 2 + trigger::trigger_scope_data_payload(source[0]);
 	return trigger::get_trigger_scope_payload_size(source) == data_offset + trigger::get_trigger_payload_size(source + data_offset);
 }
 
@@ -599,13 +599,13 @@ int32_t simplify_trigger(uint16_t* source) {
 
 		// simplify each member
 		auto source_size = 1 + trigger::get_trigger_scope_payload_size(source);
-		const auto first_member = source + 2 + trigger::trigger_scope_data_payload(source[0]);
+		auto const first_member = source + 2 + trigger::trigger_scope_data_payload(source[0]);
 
 		{
 			auto sub_units_start = first_member;
 			while(sub_units_start < source + source_size) {
-				const auto old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
-				const auto new_size = simplify_trigger(sub_units_start);
+				auto const old_size = 1 + trigger::get_trigger_payload_size(sub_units_start);
+				auto const new_size = simplify_trigger(sub_units_start);
 
 				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
 					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
@@ -626,7 +626,7 @@ int32_t simplify_trigger(uint16_t* source) {
 		if(source[0] == trigger::generic_scope || source[0] == (trigger::generic_scope | trigger::is_disjunctive_scope)) {
 			auto sub_units_start = first_member;
 			while(sub_units_start < source + source_size) {
-				const auto size = 1 + trigger::get_trigger_payload_size(sub_units_start);
+				auto const size = 1 + trigger::get_trigger_payload_size(sub_units_start);
 				if(sub_units_start[0] == source[0]) {
 					std::copy(sub_units_start + 2, source + source_size, sub_units_start);
 					source_size -= 2;
@@ -664,7 +664,7 @@ int32_t simplify_trigger(uint16_t* source) {
 
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	tr_scope_and(gen, err, context);
-	const auto new_size = simplify_trigger(context.compiled_trigger.data());
+	auto const new_size = simplify_trigger(context.compiled_trigger.data());
 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
 
 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
@@ -677,7 +677,7 @@ void make_value_modifier_segment(token_generator& gen, error_handler& err, trigg
 	auto new_factor = context.factor;
 	context.factor = old_factor;
 
-	const auto new_size = simplify_trigger(context.compiled_trigger.data());
+	auto const new_size = simplify_trigger(context.compiled_trigger.data());
 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
 
 	auto tkey = context.outer_context.state.commit_trigger_data(context.compiled_trigger);
