@@ -745,9 +745,34 @@ public:
 	}
 };
 
+class topbar_commodity_xport_icon : public image_element_base {
+public:
+	uint8_t slot = 0;
+	dcon::commodity_id commodity_id{};
+	float amount = 0.f;
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, state.world.commodity_get_name(commodity_id)), text::text_color::white);
+			text::add_to_layout_box(contents, state, box, std::string_view(":"), text::text_color::white);
+			text::add_space_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, text::format_float(amount, 2), text::text_color::white);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class topbar_window : public window_element_base {
 private:
 	dcon::nation_id current_nation{};
+	std::vector<topbar_commodity_xport_icon*> import_icons;
+	std::vector<topbar_commodity_xport_icon*> export_icons;
+	std::vector<topbar_commodity_xport_icon*> produced_icons;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -927,6 +952,27 @@ public:
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			ptr->set_visible(state, false);
 			return ptr;
+		} else if(name == "topbar_import") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "topbar_export") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "topbar_produced") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name.substr(0, 13) == "topbar_import") {
+			auto ptr = make_element_by_type<topbar_commodity_xport_icon>(state, id);
+			ptr->slot = std::stoi(std::string{name.substr(13)});
+			import_icons.push_back(ptr.get());
+			return ptr;
+		} else if(name.substr(0, 13) == "topbar_export") {
+			auto ptr = make_element_by_type<topbar_commodity_xport_icon>(state, id);
+			ptr->slot = std::stoi(std::string{name.substr(13)});
+			export_icons.push_back(ptr.get());
+			return ptr;
+		} else if(name.substr(0, 15) == "topbar_produced") {
+			auto ptr = make_element_by_type<topbar_commodity_xport_icon>(state, id);
+			ptr->slot = std::stoi(std::string{name.substr(15)});
+			produced_icons.push_back(ptr.get());
+			return ptr;
 		} else {
 			return nullptr;
 		}
@@ -937,6 +983,71 @@ public:
 			current_nation = state.local_player_nation;
 			Cyto::Any payload = current_nation;
 			impl_set(state, payload);
+		}
+
+		for(auto& e : export_icons)
+			e->set_visible(state, false);
+		for(auto& e : import_icons)
+			e->set_visible(state, false);
+		for(auto& e : produced_icons)
+			e->set_visible(state, false);
+
+		{
+			std::map<float, dcon::commodity_id::value_base_t> v;
+			state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				if(!bool(cid))
+					return;
+				float produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, cid);
+				float consumed = state.world.nation_get_real_demand(state.local_player_nation, cid) * state.world.nation_get_demand_satisfaction(state.local_player_nation, cid);
+				v.insert({ produced - consumed, cid.index() });
+			});
+
+			uint8_t slot = 0;
+			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
+				for(const auto& e : export_icons)
+					if(e->slot == slot) {
+						dcon::commodity_id cid = dcon::commodity_id(it->second);
+						e->frame = state.world.commodity_get_icon(cid);
+						e->commodity_id = cid;
+						e->amount = it->first;
+						e->set_visible(state, true);
+					}
+				++slot;
+			}
+			slot = 0;
+			for(auto it = v.begin(); it != v.end(); it++) {
+				for(const auto& e : import_icons)
+					if(e->slot == slot) {
+						dcon::commodity_id cid = dcon::commodity_id(it->second);
+						e->frame = state.world.commodity_get_icon(cid);
+						e->commodity_id = cid;
+						e->amount = it->first;
+						e->set_visible(state, true);
+					}
+				++slot;
+			}
+		}
+
+		{
+			std::map<float, dcon::commodity_id::value_base_t> v;
+			state.world.for_each_commodity([&](dcon::commodity_id cid) {
+				if(!bool(cid))
+					return;
+				v.insert({ state.world.nation_get_domestic_market_pool(state.local_player_nation, cid), cid.index() });
+			});
+
+			uint8_t slot = 0;
+			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
+				for(const auto& e : produced_icons)
+					if(e->slot == slot) {
+						dcon::commodity_id cid = dcon::commodity_id(it->second);
+						e->frame = state.world.commodity_get_icon(cid);
+						e->commodity_id = cid;
+						e->amount = it->first;
+						e->set_visible(state, true);
+					}
+				++slot;
+			}
 		}
 	}
 
