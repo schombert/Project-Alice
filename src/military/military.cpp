@@ -1708,6 +1708,36 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 	}
 }
 
+void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_attacker) {
+	auto wp = fatten(state.world, state.world.force_create_war_participant(w, n));
+	wp.set_is_attacker(is_attacker);
+	state.world.nation_set_is_at_war(n, true);
+
+	if(state.military_definitions.great_wars_enabled && !state.world.war_get_is_great(w)) {
+		int32_t gp_attackers = 0;
+		int32_t gp_defenders = 0;
+
+		for(auto par : state.world.war_get_war_participant(w)) {
+			if(nations::is_great_power(state, par.get_nation())) {
+				if(par.get_is_attacker())
+					++gp_attackers;
+				else
+					++gp_defenders;
+			}
+		}
+
+		if(gp_attackers >= 2 && gp_defenders >= 2) {
+			state.world.war_set_is_great(w, true);
+			auto it = state.key_to_text_sequence.find(std::string_view{"great_war_name"}); // misspelling is intentional; DO NOT CORRECT
+			if(it != state.key_to_text_sequence.end()) {
+				state.world.war_set_name(w, it->second);
+			}
+
+			// TODO: notify
+		}
+	}
+}
+
 float primary_warscore(sys::state const& state, dcon::war_id w) {
 	// TODO
 	return 0.0f;
