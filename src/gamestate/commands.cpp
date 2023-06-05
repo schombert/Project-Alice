@@ -4,6 +4,12 @@
 
 namespace command {
 
+bool console_command(sys::state& state, command_type t) {
+	if(t == command_type::switch_nation)
+		return true;
+	return false;
+}
+
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
