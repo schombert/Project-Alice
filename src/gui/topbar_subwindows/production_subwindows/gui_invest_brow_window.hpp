@@ -171,6 +171,22 @@ public:
 			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
 			ptr->target = country_list_filter::all;
 			return ptr;
+		} else if(name == "filter_enemies") {
+			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
+			ptr->target = country_list_filter::enemies;
+			return ptr;
+		} else if(name == "filter_allies") {
+			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
+			ptr->target = country_list_filter::allies;
+			return ptr;
+		} else if(name == "filter_neighbours") {
+			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
+			ptr->target = country_list_filter::neighbors;
+			return ptr;
+		} else if(name == "filter_sphere") {
+			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
+			ptr->target = country_list_filter::sphere;
+			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
 			auto const filter_name = name.substr(7);
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
@@ -205,7 +221,30 @@ public:
 			auto filter = any_cast<country_list_filter>(payload);
 			switch(filter) {
 			case country_list_filter::all:
-				filter_countries(state, [](auto) { return true; });
+				filter_countries(state, [&](dcon::nation_id) {
+					return true;
+				});
+				break;
+			case country_list_filter::allies:
+				filter_countries(state, [&](dcon::nation_id id) {
+					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
+					return state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id);
+				});
+				break;
+			case country_list_filter::enemies:
+				filter_countries(state, [&](dcon::nation_id id) {
+					return military::are_at_war(state, state.local_player_nation, id);
+				});
+				break;
+			case country_list_filter::sphere:
+				filter_countries(state, [&](dcon::nation_id id) {
+					return state.world.nation_get_in_sphere_of(id) == state.local_player_nation;
+				});
+				break;
+			case country_list_filter::neighbors:
+				filter_countries(state, [&](dcon::nation_id id) {
+					return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
+				});
 				break;
 			default:
 				break;
