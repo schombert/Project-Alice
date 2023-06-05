@@ -97,13 +97,13 @@ void parsing::defines::parse_line(sys::state& state, int32_t line, std::string_v
 		    uint16_t(parsers::parse_uint(std::string_view(month_start, month_end - month_start), line, err)),
 		    uint16_t(parsers::parse_uint(std::string_view(day_start, day_end - day_start), line, err))});
 	} else {
-		const auto value = parsers::parse_float(std::string_view(value_start, value_end - value_start), line, err);
+		auto const value = parsers::parse_float(std::string_view(value_start, value_end - value_start), line, err);
 		assign_define(state, line, std::string_view(first_non_ws, identifier_end - first_non_ws), value, err);
 	}
 }
 
 void parsing::defines::parse_file(sys::state& state, std::string_view data, parsers::error_handler& err) {
-	const auto remove_comments = [](std::string_view text) -> std::string_view {
+	auto const remove_comments = [](std::string_view text) -> std::string_view {
 		auto end_it = text.end();
 		for(auto it = text.begin(); it != text.end(); it++) {
 			if(it != text.end() && (it + 1) != text.end() && it[0] == '-' && it[1] == '-') {
@@ -118,7 +118,7 @@ void parsing::defines::parse_file(sys::state& state, std::string_view data, pars
 	auto line_num = 1;
 	for(auto it = data.begin(); it != data.end(); it++) {
 		if(*it == '\n') {
-			const auto line_text = data.substr(std::distance(data.begin(), start_it), std::distance(start_it, it));
+			auto const line_text = data.substr(std::distance(data.begin(), start_it), std::distance(start_it, it));
 			parse_line(state, line_num, remove_comments(line_text), err);
 			start_it = it + 1;
 			line_num++;

@@ -760,17 +760,17 @@ inline constexpr int32_t data_sizes[] = {
     0, // constexpr inline uint16_t assimilate_state = 0x014D;
 };
 
-inline int32_t get_effect_non_scope_payload_size(const uint16_t* data) {
+inline int32_t get_effect_non_scope_payload_size(uint16_t const * data) {
 	return effect::data_sizes[data[0] & effect::code_mask];
 }
-inline int32_t get_effect_scope_payload_size(const uint16_t* data) {
+inline int32_t get_effect_scope_payload_size(uint16_t const * data) {
 	return data[1];
 }
-inline int32_t get_generic_effect_payload_size(const uint16_t* data) {
+inline int32_t get_generic_effect_payload_size(uint16_t const * data) {
 	return (data[0] & effect::code_mask) >= first_scope_code ? get_effect_scope_payload_size(data) : get_effect_non_scope_payload_size(data);
 }
 inline int32_t effect_scope_data_payload(uint16_t code) {
-	const auto masked_code = code & effect::code_mask;
+	auto const masked_code = code & effect::code_mask;
 	if((masked_code == effect::tag_scope) ||
 	   (masked_code == effect::integer_scope) ||
 	   (masked_code == effect::pop_type_scope_nation) ||
@@ -781,8 +781,8 @@ inline int32_t effect_scope_data_payload(uint16_t code) {
 		return 1 + ((code & effect::scope_has_limit) != 0);
 	return 0 + ((code & effect::scope_has_limit) != 0);
 }
-inline bool effect_scope_has_single_member(const uint16_t* source) { // precondition: scope known to not be empty
-	const auto data_offset = 2 + effect_scope_data_payload(source[0]);
+inline bool effect_scope_has_single_member(uint16_t const * source) { // precondition: scope known to not be empty
+	auto const data_offset = 2 + effect_scope_data_payload(source[0]);
 	return get_effect_scope_payload_size(source) == data_offset + get_generic_effect_payload_size(source + data_offset);
 }
 
@@ -2205,7 +2205,7 @@ union payload {
 	// events::event_tag event;
 	// trigger_tag trigger;
 
-	payload(const payload& i) noexcept : value(i.value) {
+	payload(payload const & i) noexcept : value(i.value) {
 	}
 	payload(uint16_t i) : value(i) { }
 	payload(int16_t i) : signed_value(i) { }
@@ -2345,20 +2345,20 @@ union payload {
 
 static_assert(sizeof(payload) == 2);
 
-inline int32_t get_trigger_non_scope_payload_size(const uint16_t* data) {
+inline int32_t get_trigger_non_scope_payload_size(uint16_t const * data) {
 	return trigger::data_sizes[data[0] & trigger::code_mask];
 }
-inline int32_t get_trigger_scope_payload_size(const uint16_t* data) {
+inline int32_t get_trigger_scope_payload_size(uint16_t const * data) {
 	return data[1];
 }
-inline int32_t get_trigger_payload_size(const uint16_t* data) {
+inline int32_t get_trigger_payload_size(uint16_t const * data) {
 	if((data[0] & trigger::code_mask) >= trigger::first_scope_code)
 		return get_trigger_scope_payload_size(data);
 	else
 		return get_trigger_non_scope_payload_size(data);
 }
 inline int32_t trigger_scope_data_payload(uint16_t code) {
-	const auto masked_code = code & trigger::code_mask;
+	auto const masked_code = code & trigger::code_mask;
 	if((masked_code == trigger::x_provinces_in_variable_region) ||
 	   (masked_code == trigger::tag_scope) ||
 	   (masked_code == trigger::integer_scope))
@@ -2372,7 +2372,7 @@ uint16_t* recurse_over_triggers(uint16_t* source, const T& f) {
 	assert((source[0] & trigger::code_mask) < trigger::first_invalid_code || (source[0] & trigger::code_mask) == trigger::code_mask);
 
 	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
-		const auto source_size = 1 + get_trigger_scope_payload_size(source);
+		auto const source_size = 1 + get_trigger_scope_payload_size(source);
 
 		auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
 		while(sub_units_start < source + source_size) {
@@ -2387,7 +2387,7 @@ uint16_t* recurse_over_triggers(uint16_t* source, const T& f) {
 inline uint32_t count_subtriggers(uint16_t const * source) {
 	uint32_t count = 0;
 	if((source[0] & trigger::code_mask) >= trigger::first_scope_code) {
-		const auto source_size = 1 + get_trigger_scope_payload_size(source);
+		auto const source_size = 1 + get_trigger_scope_payload_size(source);
 		auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
 		while(sub_units_start < source + source_size) {
 			++count;

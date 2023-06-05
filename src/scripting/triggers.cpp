@@ -108,7 +108,7 @@ template<typename A>
 		return !value_a;
 	}
 }
-float read_float_from_payload(const uint16_t* data) {
+float read_float_from_payload(uint16_t const * data) {
 	union {
 		struct {
 			uint16_t low;
@@ -185,7 +185,7 @@ bool compare(ve::vbitfield_type a, ve::vbitfield_type b) {
 }
 
 TRIGGER_FUNCTION(apply_disjuctively) {
-	const auto source_size = 1 + get_trigger_scope_payload_size(tval);
+	auto const source_size = 1 + get_trigger_scope_payload_size(tval);
 	auto sub_units_start = tval + 2 + trigger_scope_data_payload(tval[0]);
 
 	return_type result = return_type(false);
@@ -202,7 +202,7 @@ TRIGGER_FUNCTION(apply_disjuctively) {
 }
 
 TRIGGER_FUNCTION(apply_conjuctively) {
-	const auto source_size = 1 + get_trigger_scope_payload_size(tval);
+	auto const source_size = 1 + get_trigger_scope_payload_size(tval);
 	auto sub_units_start = tval + 2 + trigger_scope_data_payload(tval[0]);
 
 	return_type result = return_type(true);
@@ -2070,7 +2070,7 @@ TRIGGER_FUNCTION(tf_is_blockaded) {
 	return compare_to_true(tval[0], military::province_is_blockaded(ws, to_prov(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_has_country_modifier) {
-	const auto mod = trigger::payload(tval[1]).mod_id;
+	auto const mod = trigger::payload(tval[1]).mod_id;
 	auto result = ve::apply([&ws, mod](dcon::nation_id n) {
 		for(auto m : ws.world.nation_get_current_modifiers(n)) {
 			if(m.mod_id == mod)
@@ -2083,7 +2083,7 @@ TRIGGER_FUNCTION(tf_has_country_modifier) {
 }
 TRIGGER_FUNCTION(tf_has_country_modifier_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	const auto mod = trigger::payload(tval[1]).mod_id;
+	auto const mod = trigger::payload(tval[1]).mod_id;
 	auto result = ve::apply([&ws, mod](dcon::nation_id n) {
 		for(auto m : ws.world.nation_get_current_modifiers(n)) {
 			if(m.mod_id == mod)
@@ -2095,7 +2095,7 @@ TRIGGER_FUNCTION(tf_has_country_modifier_province) {
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_has_province_modifier) {
-	const auto mod = trigger::payload(tval[2]).mod_id;
+	auto const mod = trigger::payload(tval[2]).mod_id;
 	auto result = ve::apply([&ws, mod](dcon::province_id n) {
 		for(auto m : ws.world.province_get_current_modifiers(n)) {
 			if(m.mod_id == mod)

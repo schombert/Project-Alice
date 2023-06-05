@@ -8,7 +8,7 @@ namespace effect {
 uint32_t internal_execute_effect(EFFECT_PARAMTERS);
 
 inline uint32_t apply_subeffects(EFFECT_PARAMTERS) {
-	const auto source_size = 1 + get_effect_scope_payload_size(tval);
+	auto const source_size = 1 + get_effect_scope_payload_size(tval);
 	auto sub_units_start = tval + 2 + effect_scope_data_payload(tval[0]);
 
 	uint32_t i = 0;
@@ -831,7 +831,7 @@ uint32_t es_x_state_scope(EFFECT_PARAMTERS) {
 	}
 }
 uint32_t es_random_list_scope(EFFECT_PARAMTERS) {
-	const auto source_size = 1 + effect::get_effect_scope_payload_size(tval);
+	auto const source_size = 1 + effect::get_effect_scope_payload_size(tval);
 	auto chances_total = tval[2];
 
 	auto r = int32_t(rng::get_random(ws, r_hi, r_lo) % chances_total);

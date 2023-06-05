@@ -157,7 +157,7 @@ struct r123m128i {
 	r123m128i() = default;
 	r123m128i(__m128i _m) : m(_m) { }
 #endif
-	r123m128i& operator=(const __m128i& rhs) {
+	r123m128i& operator=(__m128i const & rhs) {
 		m = rhs;
 		return *this;
 	}
@@ -173,7 +173,7 @@ struct r123m128i {
 #else
 	// Pre-C++11, we have to do something else.  Google for the "safe bool"
 	// idiom for other ideas...
-	operator const void *() const { return _bool() ? this : 0; }
+	operator void const *() const { return _bool() ? this : 0; }
 #endif
 	operator __m128i() const { return m; }
 
@@ -222,41 +222,41 @@ R123_STATIC_INLINE r123m128i& operator+=(r123m128i& lhs, R123_ULONG_LONG n) {
 }
 
 // We need this one because it's present, but never used in r123array1xm128i::incr
-R123_STATIC_INLINE bool operator<=(R123_ULONG_LONG, const r123m128i&) {
+R123_STATIC_INLINE bool operator<=(R123_ULONG_LONG, r123m128i const &) {
 	std::abort();
 }
 
 // The comparisons aren't implemented, but if we leave them out, and
 // somebody writes, e.g., M1 < M2, the compiler will do an implicit
 // conversion through void*.  Sigh...
-R123_STATIC_INLINE bool operator<(const r123m128i&, const r123m128i&) {
+R123_STATIC_INLINE bool operator<(r123m128i const &, r123m128i const &) {
 	std::abort();
 }
-R123_STATIC_INLINE bool operator<=(const r123m128i&, const r123m128i&) {
+R123_STATIC_INLINE bool operator<=(r123m128i const &, r123m128i const &) {
 	std::abort();
 }
-R123_STATIC_INLINE bool operator>(const r123m128i&, const r123m128i&) {
+R123_STATIC_INLINE bool operator>(r123m128i const &, r123m128i const &) {
 	std::abort();
 }
-R123_STATIC_INLINE bool operator>=(const r123m128i&, const r123m128i&) {
+R123_STATIC_INLINE bool operator>=(r123m128i const &, r123m128i const &) {
 	std::abort();
 }
 
-R123_STATIC_INLINE bool operator==(const r123m128i& lhs, const r123m128i& rhs) {
+R123_STATIC_INLINE bool operator==(r123m128i const & lhs, r123m128i const & rhs) {
 	return 0xf == _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(lhs, rhs)));
 }
-R123_STATIC_INLINE bool operator!=(const r123m128i& lhs, const r123m128i& rhs) {
+R123_STATIC_INLINE bool operator!=(r123m128i const & lhs, r123m128i const & rhs) {
 	return !(lhs == rhs);
 }
-R123_STATIC_INLINE bool operator==(R123_ULONG_LONG lhs, const r123m128i& rhs) {
+R123_STATIC_INLINE bool operator==(R123_ULONG_LONG lhs, r123m128i const & rhs) {
 	r123m128i LHS;
 	LHS.m = _mm_set_epi64x(0, lhs);
 	return LHS == rhs;
 }
-R123_STATIC_INLINE bool operator!=(R123_ULONG_LONG lhs, const r123m128i& rhs) {
+R123_STATIC_INLINE bool operator!=(R123_ULONG_LONG lhs, r123m128i const & rhs) {
 	return !(lhs == rhs);
 }
-R123_STATIC_INLINE std::ostream& operator<<(std::ostream& os, const r123m128i& m) {
+R123_STATIC_INLINE std::ostream& operator<<(std::ostream& os, r123m128i const & m) {
 	union {
 		uint64_t u64[2];
 		__m128i m;

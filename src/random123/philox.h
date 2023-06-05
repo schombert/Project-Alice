@@ -133,7 +133,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #define _mulhilo_c99_tpl(W, Word)                                                                   \
 	R123_STATIC_INLINE Word mulhilo##W(Word a, Word b, R123_METAL_THREAD_ADDRESS_SPACE Word* hip) { \
-		const unsigned WHALF = W / 2;                                                               \
+		unsigned const WHALF = W / 2;                                                               \
 		const Word LOMASK = ((((Word)1) << WHALF) - 1);                                             \
 		Word lo = a * b; /* full low multiply */                                                    \
 		Word ahi = a >> WHALF;                                                                      \

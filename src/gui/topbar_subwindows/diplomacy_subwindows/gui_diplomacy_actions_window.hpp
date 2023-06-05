@@ -113,13 +113,15 @@ public:
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::nation_id>(payload);
 
+			disabled = true;
 			auto fat = dcon::fatten(state.world, content);
 			for(auto war_par : fat.get_war_participant()) {
 				if(command::can_call_to_arms(state, state.local_player_nation, content, dcon::fatten(state.world, war_par).get_war().id)) {
-					disabled = !command::can_call_to_arms(state, state.local_player_nation, content, dcon::fatten(state.world, war_par).get_war().id);
+					disabled = false;
 					break;
 				}
 			}
+
 			// TODO: Conditions for enabling/disabling
 			/*
 			disabled = false;
@@ -1157,8 +1159,12 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 				return command::can_ask_for_alliance(state, state.local_player_nation, target);
 			case diplomacy_action::cancel_ally:
 				return command::can_cancel_alliance(state, state.local_player_nation, target);
-			case diplomacy_action::call_ally:
+			case diplomacy_action::call_ally: {
+				for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
+					if(command::can_call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id))
+						return true;
 				return false;
+			}
 			case diplomacy_action::declare_war:
 				return false;
 			case diplomacy_action::military_access:
@@ -1232,6 +1238,8 @@ public:
 				command::cancel_alliance(state, state.local_player_nation, target);
 				break;
 			case diplomacy_action::call_ally:
+				for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
+					command::call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id);
 				break;
 			case diplomacy_action::declare_war:
 				break;

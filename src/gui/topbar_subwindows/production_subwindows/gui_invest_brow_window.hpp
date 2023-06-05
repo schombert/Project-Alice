@@ -172,7 +172,7 @@ public:
 			ptr->target = country_list_filter::all;
 			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
-			const auto filter_name = name.substr(7);
+			auto const filter_name = name.substr(7);
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
 			ptr->target = ([&]() {
 				dcon::modifier_id filter_mod_id{0};

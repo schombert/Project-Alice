@@ -21,11 +21,11 @@ bool is_black_font(std::string_view txt) {
 }
 
 uint32_t font_size(std::string_view txt) {
-	const char* first_int = txt.data();
-	const char* end = txt.data() + txt.size();
+	char const * first_int = txt.data();
+	char const * end = txt.data() + txt.size();
 	while(first_int != end && !isdigit(*first_int))
 		++first_int;
-	const char* last_int = first_int;
+	char const * last_int = first_int;
 	while(last_int != end && isdigit(*last_int))
 		++last_int;
 
@@ -147,7 +147,7 @@ constexpr float rt_2 = 1.41421356237309504f;
 void init_in_map(bool in_map[dr_size * dr_size], uint8_t* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
 	for(int32_t j = 0; j < dr_size; ++j) {
 		for(int32_t i = 0; i < dr_size; ++i) {
-			const auto boff = transform_offset_b(i, j, btmap_x_off, btmap_y_off, width, height, pitch);
+			auto const boff = transform_offset_b(i, j, btmap_x_off, btmap_y_off, width, height, pitch);
 			in_map[i + dr_size * j] = (boff != -1) ? (bmp_data[boff] > 127) : false;
 		}
 	}
@@ -158,7 +158,7 @@ void init_in_map(bool in_map[dr_size * dr_size], uint8_t* bmp_data, int32_t btma
 // Grevera, George J. (2004) Computer Vision and Image Understanding 95 pages 317–333
 //
 
-void dead_reckoning(float distance_map[dr_size * dr_size], const bool in_map[dr_size * dr_size]) {
+void dead_reckoning(float distance_map[dr_size * dr_size], bool const in_map[dr_size * dr_size]) {
 	int16_t yborder[dr_size * dr_size] = {0};
 	int16_t xborder[dr_size * dr_size] = {0};
 
@@ -265,7 +265,7 @@ void font_manager::load_font(font& fnt, char const * file_data, uint32_t file_si
 	// load all glyph metrics
 
 	for(int32_t i = 0; i < 256; ++i) {
-		const auto index_in_this_font = FT_Get_Char_Index(fnt.font_face, win1250toUTF16(char(i)));
+		auto const index_in_this_font = FT_Get_Char_Index(fnt.font_face, win1250toUTF16(char(i)));
 		if(index_in_this_font) {
 			FT_Load_Glyph(fnt.font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL);
 			fnt.glyph_advances[i] = static_cast<float>(fnt.font_face->glyph->metrics.horiAdvance) / static_cast<float>((1 << 6) * magnification_factor);
@@ -276,8 +276,8 @@ void font_manager::load_font(font& fnt, char const * file_data, uint32_t file_si
 float font::kerning(char codepoint_first, char codepoint_second) const {
 	auto utf16_first = win1250toUTF16(codepoint_first);
 	auto utf16_second = win1250toUTF16(codepoint_second);
-	const auto index_a = FT_Get_Char_Index(font_face, utf16_first);
-	const auto index_b = FT_Get_Char_Index(font_face, utf16_second);
+	auto const index_a = FT_Get_Char_Index(font_face, utf16_first);
+	auto const index_b = FT_Get_Char_Index(font_face, utf16_second);
 
 	if((index_a == 0) || (index_b == 0)) {
 		return 0.0f;
@@ -312,7 +312,7 @@ float font_manager::line_height(sys::state& state, uint16_t font_id) const {
 		return float(fonts[text::font_index_from_font_id(font_id) - 1].line_height(text::size_from_font_id(font_id)));
 	}
 }
-float font_manager::text_extent(sys::state& state, const char* codepoints, uint32_t count, uint16_t font_id) const {
+float font_manager::text_extent(sys::state& state, char const * codepoints, uint32_t count, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).GetStringWidth(codepoints, count);
 	} else {
@@ -329,7 +329,7 @@ void font::make_glyph(char ch_in) {
 	if(codepoint == ' ')
 		return;
 
-	const auto index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
+	auto const index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
 	if(index_in_this_font) {
 		FT_Load_Glyph(font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
 
@@ -353,15 +353,15 @@ void font::make_glyph(char ch_in) {
 
 		FT_Bitmap& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
 
-		const float hb_x = static_cast<float>(font_face->glyph->metrics.horiBearingX) / static_cast<float>(1 << 6);
-		const float hb_y = static_cast<float>(font_face->glyph->metrics.horiBearingY) / static_cast<float>(1 << 6);
+		float const hb_x = static_cast<float>(font_face->glyph->metrics.horiBearingX) / static_cast<float>(1 << 6);
+		float const hb_y = static_cast<float>(font_face->glyph->metrics.horiBearingY) / static_cast<float>(1 << 6);
 
 		auto sub_index = (uint8_t(ch_in) & 63);
 
 		uint8_t pixel_buffer[64 * 64];
 
-		const int btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
-		const int btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
+		int const btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
+		int const btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
 
 		glyph_positions[uint8_t(ch_in)].x = (hb_x - static_cast<float>(btmap_x_off)) * 1.0f / static_cast<float>(magnification_factor);
 		glyph_positions[uint8_t(ch_in)].y = (-hb_y - static_cast<float>(btmap_y_off)) * 1.0f / static_cast<float>(magnification_factor);
@@ -376,10 +376,10 @@ void font::make_glyph(char ch_in) {
 			for(int x = 0; x < 64; ++x) {
 
 				const size_t index = static_cast<size_t>(x + y * 64);
-				const float distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) +
+				float const distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) +
 				                                          (y * magnification_factor + magnification_factor / 2) * dr_size] /
 				                             static_cast<float>(magnification_factor * 64);
-				const int int_value = static_cast<int>(distance_value * -255.0f + 128.0f);
+				int const int_value = static_cast<int>(distance_value * -255.0f + 128.0f);
 				const uint8_t small_value = static_cast<uint8_t>(std::min(255, std::max(0, int_value)));
 
 				pixel_buffer[index] = small_value;
@@ -397,7 +397,7 @@ void font::make_glyph(char ch_in) {
 	}
 }
 
-float font::text_extent(const char* codepoints, uint32_t count, int32_t size) const {
+float font::text_extent(char const * codepoints, uint32_t count, int32_t size) const {
 	float total = 0.0f;
 	for(; count-- > 0;) {
 		auto c = uint8_t(codepoints[count]);

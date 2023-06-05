@@ -292,7 +292,7 @@ public:
 class topbar_tab_button : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override {
-		const auto override_and_show_tab = [&]() {
+		auto const override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
 			topbar_subwindow->impl_on_update(state);
 			state.ui_state.root->move_child_to_front(topbar_subwindow);
@@ -319,7 +319,7 @@ public:
 class population_view_button : public topbar_tab_button {
 public:
 	void button_action(sys::state& state) noexcept override {
-		const auto override_and_show_tab = [&]() {
+		auto const override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
 			topbar_subwindow->impl_on_update(state);
 

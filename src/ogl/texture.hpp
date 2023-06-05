@@ -33,7 +33,7 @@ enum {
 };
 
 unsigned int SOIL_direct_load_DDS_from_memory(
-    const unsigned char* const buffer,
+    unsigned char const * const buffer,
     unsigned int buffer_length,
     unsigned int& width,
     unsigned int& height,

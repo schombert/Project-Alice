@@ -445,26 +445,26 @@ public:
 			economy::new_factory nf = std::get<economy::new_factory>(content.data);
 			fat_btid = dcon::fatten(state.world, nf.type);
 
-			for(const auto& e : factory_elements)
+			for(auto const & e : factory_elements)
 				e->set_visible(state, false);
-			for(const auto& e : upgrade_elements)
+			for(auto const & e : upgrade_elements)
 				e->set_visible(state, false);
-			for(const auto& e : build_elements)
+			for(auto const & e : build_elements)
 				e->set_visible(state, true);
-			for(const auto& e : closed_elements)
+			for(auto const & e : closed_elements)
 				e->set_visible(state, false);
 		} else if(std::holds_alternative<economy::upgraded_factory>(content.data)) {
 			// Upgrade
 			economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.data);
 			fat_btid = dcon::fatten(state.world, uf.type);
 
-			for(const auto& e : factory_elements)
+			for(auto const & e : factory_elements)
 				e->set_visible(state, true);
-			for(const auto& e : upgrade_elements)
+			for(auto const & e : upgrade_elements)
 				e->set_visible(state, true);
-			for(const auto& e : build_elements)
+			for(auto const & e : build_elements)
 				e->set_visible(state, false);
-			for(const auto& e : closed_elements)
+			for(auto const & e : closed_elements)
 				e->set_visible(state, false);
 		} else if(std::holds_alternative<dcon::factory_id>(content.data)) {
 			// "Normal" factory, not being upgraded or built
@@ -472,13 +472,13 @@ public:
 			fat_btid = state.world.factory_get_building_type(fid);
 
 			bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < 0.05;
-			for(const auto& e : factory_elements)
+			for(auto const & e : factory_elements)
 				e->set_visible(state, true);
-			for(const auto& e : upgrade_elements)
+			for(auto const & e : upgrade_elements)
 				e->set_visible(state, false);
-			for(const auto& e : build_elements)
+			for(auto const & e : build_elements)
 				e->set_visible(state, false);
-			for(const auto& e : closed_elements)
+			for(auto const & e : closed_elements)
 				e->set_visible(state, is_closed);
 		}
 
@@ -550,13 +550,13 @@ public:
 		parent->impl_get(state, payload);
 		auto state_id = any_cast<dcon::state_instance_id>(payload);
 
-		for(const auto c : infos)
+		for(auto const c : infos)
 			c->set_visible(state, false);
 
 		std::vector<bool> visited_types(state.world.factory_type_size(), false);
 		size_t index = 0;
 		// First, the new factories are taken into account
-		economy::for_each_new_factory(state, state_id, [&](const economy::new_factory& nf) {
+		economy::for_each_new_factory(state, state_id, [&](economy::new_factory const & nf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(nf.type).id;
 			if(!visited_types[nf.type.index()] && get_filter(state, cid)) {
 				factories[index] = nf;
@@ -566,7 +566,7 @@ public:
 			}
 		});
 		// Then, the factories being upgraded
-		economy::for_each_upgraded_factory(state, state_id, [&](const economy::upgraded_factory& uf) {
+		economy::for_each_upgraded_factory(state, state_id, [&](economy::upgraded_factory const & uf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(uf.type).id;
 			if(!visited_types[uf.type.index()] && get_filter(state, cid)) {
 				factories[index] = uf;
@@ -726,7 +726,7 @@ public:
 		auto show_empty = any_cast<bool>(payload);
 
 		row_contents.clear();
-		for(const auto fat_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
+		for(auto const fat_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
 			if(show_empty) {
 				row_contents.push_back(fat_id.get_state());
 			} else if(economy::has_factory(state, fat_id.get_state().id)) {

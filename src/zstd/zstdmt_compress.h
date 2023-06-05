@@ -56,7 +56,7 @@ size_t ZSTDMT_sizeof_CCtx(ZSTDMT_CCtx* mtctx);
 
 /* ===   Streaming functions   === */
 
-size_t ZSTDMT_nextInputSizeHint(const ZSTDMT_CCtx* mtctx);
+size_t ZSTDMT_nextInputSizeHint(ZSTDMT_CCtx const * mtctx);
 
 /*! ZSTDMT_initCStream_internal() :
  *  Private use only. Init streaming operation.
@@ -67,8 +67,8 @@ size_t ZSTDMT_nextInputSizeHint(const ZSTDMT_CCtx* mtctx);
  *  even if they are not needed for the current compression.
  *  @return : 0, or an error code */
 size_t ZSTDMT_initCStream_internal(ZSTDMT_CCtx* mtctx,
-                                   const void* dict, size_t dictSize, ZSTD_dictContentType_e dictContentType,
-                                   const ZSTD_CDict* cdict,
+                                   void const * dict, size_t dictSize, ZSTD_dictContentType_e dictContentType,
+                                   ZSTD_CDict const * cdict,
                                    ZSTD_CCtx_params params, unsigned long long pledgedSrcSize);
 
 /*! ZSTDMT_compressStream_generic() :
@@ -94,7 +94,7 @@ size_t ZSTDMT_toFlushNow(ZSTDMT_CCtx* mtctx);
 /*! ZSTDMT_updateCParams_whileCompressing() :
  *  Updates only a selected set of compression parameters, to remain compatible with current frame.
  *  New parameters will be applied to next compression job. */
-void ZSTDMT_updateCParams_whileCompressing(ZSTDMT_CCtx* mtctx, const ZSTD_CCtx_params* cctxParams);
+void ZSTDMT_updateCParams_whileCompressing(ZSTDMT_CCtx* mtctx, ZSTD_CCtx_params const * cctxParams);
 
 /*! ZSTDMT_getFrameProgression():
  *  tells how much data has been consumed (input) and produced (output) for current frame.

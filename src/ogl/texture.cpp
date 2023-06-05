@@ -87,7 +87,7 @@ typedef struct {
 } DDS_header;
 
 unsigned int SOIL_direct_load_DDS_from_memory(
-    const unsigned char* const buffer,
+    unsigned char const * const buffer,
     unsigned int buffer_length,
     unsigned int& width,
     unsigned int& height,
@@ -111,7 +111,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		return 0;
 	}
 	/*	try reading in the header	*/
-	memcpy((void*)(&header), (const void*)buffer, sizeof(DDS_header));
+	memcpy((void*)(&header), (void const *)buffer, sizeof(DDS_header));
 	buffer_index = sizeof(DDS_header);
 
 	/*	validate the header (warning, "goto"'s ahead, shield your eyes!!)	*/
@@ -256,7 +256,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	for(cf_target = ogl_target_start; cf_target <= ogl_target_end; ++cf_target) {
 		if(buffer_index + DDS_full_size <= (unsigned int)buffer_length) {
 			unsigned int byte_offset = DDS_main_size;
-			memcpy((void*)DDS_data, (const void*)(&buffer[buffer_index]), DDS_full_size);
+			memcpy((void*)DDS_data, (void const *)(&buffer[buffer_index]), DDS_full_size);
 			buffer_index += DDS_full_size;
 			/*	upload the main chunk	*/
 			if(uncompressed) {
@@ -420,7 +420,7 @@ GLuint load_file_and_return_handle(native_string const & native_name, simple_fs:
 }
 
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
-	const auto offset = culture::get_remapped_flag_type(state, type);
+	auto const offset = culture::get_remapped_flag_type(state, type);
 	dcon::texture_id id = dcon::texture_id{dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset)};
 
 	if(state.open_gl.asset_textures[id].loaded) {

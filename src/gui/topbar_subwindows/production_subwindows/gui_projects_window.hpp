@@ -79,7 +79,7 @@ class production_project_info : public listbox_row_element_base<production_proje
 	simple_text_element_base* cost_text = nullptr;
 	production_project_input_listbox* input_listbox = nullptr;
 
-	float get_cost(sys::state& state, const economy::commodity_set& cset) {
+	float get_cost(sys::state& state, economy::commodity_set const & cset) {
 		float total = 0.f;
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			dcon::commodity_id cid = cset.commodity_type[i];

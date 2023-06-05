@@ -84,7 +84,7 @@ class MicroURNG {
 	// a MicroURNG.
 public:
 	typedef CBRNG cbrng_type;
-	static const int BITS = 32;
+	static int const BITS = 32;
 	typedef typename cbrng_type::ctr_type ctr_type;
 	typedef typename cbrng_type::key_type key_type;
 	typedef typename cbrng_type::ukey_type ukey_type;
@@ -119,7 +119,7 @@ public:
 	static R123_CONSTEXPR result_type min R123_NO_MACRO_SUBST() { return _Min; }
 	static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST() { return _Max; }
 	// extra methods:
-	const ctr_type& counter() const { return c0; }
+	ctr_type const & counter() const { return c0; }
 	void reset(ctr_type _c0, ukey_type _uk) {
 		c0 = _c0;
 		chkhighbits();

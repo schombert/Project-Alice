@@ -2275,7 +2275,7 @@ void country_history_file::nonstate_consciousness(association_type, float value,
 	}
 }
 
-void country_history_file::govt_flag(const govt_flag_block& value, error_handler& err, int32_t line, country_history_context& context) {
+void country_history_file::govt_flag(govt_flag_block const & value, error_handler& err, int32_t line, country_history_context& context) {
 	context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_, uint8_t(value.flag_) + uint8_t(1));
 }
 

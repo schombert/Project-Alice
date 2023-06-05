@@ -165,7 +165,7 @@ struct ARS1xm128i_R {
 	typedef ars1xm128i_ctr_t ctr_type;
 	typedef ars1xm128i_key_t key_type;
 	typedef ars1xm128i_key_t ukey_type;
-	static const unsigned int rounds = ROUNDS;
+	static unsigned int const rounds = ROUNDS;
 	R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const) {
 		return ars1xm128i_R(ROUNDS, ctr, key);
 	}
@@ -180,7 +180,7 @@ struct ARS4x32_R {
 	typedef ars4x32_ctr_t ctr_type;
 	typedef ars4x32_key_t key_type;
 	typedef ars4x32_key_t ukey_type;
-	static const unsigned int rounds = ROUNDS;
+	static unsigned int const rounds = ROUNDS;
 	R123_FORCE_INLINE(ctr_type operator()(ctr_type ctr, key_type key) const) {
 		return ars4x32_R(ROUNDS, ctr, key);
 	}

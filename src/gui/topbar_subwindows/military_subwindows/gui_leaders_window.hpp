@@ -85,7 +85,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(const auto fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
+		for(auto const fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
 			row_contents.push_back(fat_id.get_leader());
 		update(state);
 	}

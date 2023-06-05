@@ -135,7 +135,7 @@ inline void display_subtriggers(
     int32_t indentation,
     bool show_condition) {
 
-	const auto source_size = 1 + trigger::get_trigger_payload_size(source);
+	auto const source_size = 1 + trigger::get_trigger_payload_size(source);
 	auto sub_units_start = source + 2 + trigger::trigger_scope_data_payload(source[0]);
 	while(sub_units_start < source + source_size) {
 		make_trigger_description(ws, layout,

@@ -75,59 +75,59 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#define GSL_MICRORNG(NAME, CBRNGNAME)                                                                   \
-	const gsl_rng_type* gsl_rng_##NAME;                                                                 \
-                                                                                                        \
-	typedef struct {                                                                                    \
-		CBRNGNAME##_ctr_t ctr;                                                                          \
-		CBRNGNAME##_ctr_t r;                                                                            \
-		CBRNGNAME##_key_t key;                                                                          \
-		R123_ULONG_LONG n;                                                                              \
-		int elem;                                                                                       \
-	} NAME##_state;                                                                                     \
-                                                                                                        \
-	static unsigned long int NAME##_get(void* vstate) {                                                 \
-		NAME##_state* st = (NAME##_state*)vstate;                                                       \
-		const int N = sizeof(st->ctr.v) / sizeof(st->ctr.v[0]);                                         \
-		if(st->elem == 0) {                                                                             \
-			CBRNGNAME##_ctr_t c = st->ctr;                                                              \
-			c.v[N - 1] |= st->n << (R123_W(CBRNGNAME##_ctr_t) - 32);                                    \
-			st->n++;                                                                                    \
-			st->r = CBRNGNAME(c, st->key);                                                              \
-			st->elem = N;                                                                               \
-		}                                                                                               \
-		return 0xffffffff & st->r.v[--st->elem];                                                        \
-	}                                                                                                   \
-                                                                                                        \
-	static double                                                                                       \
-	    NAME##_get_double(void* vstate) {                                                               \
-		return NAME##_get(vstate) / 4294967296.;                                                        \
-	}                                                                                                   \
-                                                                                                        \
-	static void NAME##_set(void* vstate, unsigned long int s) {                                         \
-		NAME##_state* st = (NAME##_state*)vstate;                                                       \
-		(void)s; /* ignored */                                                                          \
-		st->elem = 0;                                                                                   \
-		st->n = ~0; /* will abort if _reset is not called */                                            \
-	}                                                                                                   \
-                                                                                                        \
-	static const gsl_rng_type NAME##_type = {                                                           \
-	    #NAME,                                                                                          \
-	    0xffffffffUL,                                                                                   \
-	    0,                                                                                              \
-	    sizeof(NAME##_state),                                                                           \
-	    &NAME##_set,                                                                                    \
-	    &NAME##_get,                                                                                    \
-	    &NAME##_get_double};                                                                            \
-                                                                                                        \
-	R123_STATIC_INLINE void NAME##_reset(const gsl_rng* gr, CBRNGNAME##_ctr_t c, CBRNGNAME##_key_t k) { \
-		NAME##_state* state = (NAME##_state*)gr->state;                                                 \
-		state->ctr = c;                                                                                 \
-		state->key = k;                                                                                 \
-		state->n = 0;                                                                                   \
-		state->elem = 0;                                                                                \
-	}                                                                                                   \
-                                                                                                        \
-	const gsl_rng_type* gsl_rng_##NAME = &NAME##_type
+#define GSL_MICRORNG(NAME, CBRNGNAME)                                                                    \
+	gsl_rng_type const * gsl_rng_##NAME;                                                                 \
+                                                                                                         \
+	typedef struct {                                                                                     \
+		CBRNGNAME##_ctr_t ctr;                                                                           \
+		CBRNGNAME##_ctr_t r;                                                                             \
+		CBRNGNAME##_key_t key;                                                                           \
+		R123_ULONG_LONG n;                                                                               \
+		int elem;                                                                                        \
+	} NAME##_state;                                                                                      \
+                                                                                                         \
+	static unsigned long int NAME##_get(void* vstate) {                                                  \
+		NAME##_state* st = (NAME##_state*)vstate;                                                        \
+		int const N = sizeof(st->ctr.v) / sizeof(st->ctr.v[0]);                                          \
+		if(st->elem == 0) {                                                                              \
+			CBRNGNAME##_ctr_t c = st->ctr;                                                               \
+			c.v[N - 1] |= st->n << (R123_W(CBRNGNAME##_ctr_t) - 32);                                     \
+			st->n++;                                                                                     \
+			st->r = CBRNGNAME(c, st->key);                                                               \
+			st->elem = N;                                                                                \
+		}                                                                                                \
+		return 0xffffffff & st->r.v[--st->elem];                                                         \
+	}                                                                                                    \
+                                                                                                         \
+	static double                                                                                        \
+	    NAME##_get_double(void* vstate) {                                                                \
+		return NAME##_get(vstate) / 4294967296.;                                                         \
+	}                                                                                                    \
+                                                                                                         \
+	static void NAME##_set(void* vstate, unsigned long int s) {                                          \
+		NAME##_state* st = (NAME##_state*)vstate;                                                        \
+		(void)s; /* ignored */                                                                           \
+		st->elem = 0;                                                                                    \
+		st->n = ~0; /* will abort if _reset is not called */                                             \
+	}                                                                                                    \
+                                                                                                         \
+	static const gsl_rng_type NAME##_type = {                                                            \
+	    #NAME,                                                                                           \
+	    0xffffffffUL,                                                                                    \
+	    0,                                                                                               \
+	    sizeof(NAME##_state),                                                                            \
+	    &NAME##_set,                                                                                     \
+	    &NAME##_get,                                                                                     \
+	    &NAME##_get_double};                                                                             \
+                                                                                                         \
+	R123_STATIC_INLINE void NAME##_reset(gsl_rng const * gr, CBRNGNAME##_ctr_t c, CBRNGNAME##_key_t k) { \
+		NAME##_state* state = (NAME##_state*)gr->state;                                                  \
+		state->ctr = c;                                                                                  \
+		state->key = k;                                                                                  \
+		state->n = 0;                                                                                    \
+		state->elem = 0;                                                                                 \
+	}                                                                                                    \
+                                                                                                         \
+	gsl_rng_type const * gsl_rng_##NAME = &NAME##_type
 
 #endif

@@ -181,10 +181,10 @@ char const * parse_first_and_nth_csv_values(uint32_t nth, char const * start, ch
 // other utility functions
 //
 
-bool is_integer(const char* start, const char* end);
+bool is_integer(char const * start, char const * end);
 
 template<size_t N>
-bool has_fixed_prefix(const char* start, const char* end, const char (&t)[N]) {
+bool has_fixed_prefix(char const * start, char const * end, char const (&t)[N]) {
 	if(end - start < ((std::ptrdiff_t)N - 1))
 		return false;
 	for(unsigned int i = 0; i < N - 1; ++i) {
@@ -195,7 +195,7 @@ bool has_fixed_prefix(const char* start, const char* end, const char (&t)[N]) {
 }
 
 template<size_t N>
-bool has_fixed_prefix_ci(const char* start, const char* end, const char (&t)[N]) {
+bool has_fixed_prefix_ci(char const * start, char const * end, char const (&t)[N]) {
 	if(end - start < ((std::ptrdiff_t)N - 1))
 		return false;
 	for(unsigned int i = 0; i < N - 1; ++i) {
@@ -206,7 +206,7 @@ bool has_fixed_prefix_ci(const char* start, const char* end, const char (&t)[N])
 }
 
 template<size_t N>
-bool has_fixed_suffix(const char* start, const char* end, const char (&t)[N]) {
+bool has_fixed_suffix(char const * start, char const * end, char const (&t)[N]) {
 	if(end - start < ((std::ptrdiff_t)N - 1))
 		return false;
 	for(int32_t i = 0; i < int32_t(N) - 1; ++i) {
@@ -217,7 +217,7 @@ bool has_fixed_suffix(const char* start, const char* end, const char (&t)[N]) {
 }
 
 template<size_t N>
-bool has_fixed_suffix_ci(const char* start, const char* end, const char (&t)[N]) {
+bool has_fixed_suffix_ci(char const * start, char const * end, char const (&t)[N]) {
 	if(end - start < ((std::ptrdiff_t)N - 1))
 		return false;
 	for(int32_t i = 0; i < int32_t(N) - 1; ++i) {
@@ -229,7 +229,7 @@ bool has_fixed_suffix_ci(const char* start, const char* end, const char (&t)[N])
 
 #ifdef _WIN64
 template<size_t N>
-bool native_has_fixed_suffix_ci(const wchar_t* start, const wchar_t* end, const wchar_t (&t)[N]) {
+bool native_has_fixed_suffix_ci(wchar_t const * start, wchar_t const * end, const wchar_t (&t)[N]) {
 	if(end - start < ((std::ptrdiff_t)N - 1))
 		return false;
 	for(int32_t i = 0; i < int32_t(N) - 1; ++i) {
@@ -240,7 +240,7 @@ bool native_has_fixed_suffix_ci(const wchar_t* start, const wchar_t* end, const 
 }
 #else
 template<size_t N>
-bool native_has_fixed_suffix_ci(const char* start, const char* end, const char (&t)[N]) {
+bool native_has_fixed_suffix_ci(char const * start, char const * end, char const (&t)[N]) {
 	if(end - start < ((std::ptrdiff_t)N - 1))
 		return false;
 	for(int32_t i = 0; i < int32_t(N) - 1; ++i) {
@@ -252,7 +252,7 @@ bool native_has_fixed_suffix_ci(const char* start, const char* end, const char (
 #endif
 
 template<size_t N>
-bool is_fixed_token(const char* start, const char* end, const char (&t)[N]) {
+bool is_fixed_token(char const * start, char const * end, char const (&t)[N]) {
 	if(end - start != (N - 1))
 		return false;
 	for(unsigned int i = 0; i < N - 1; ++i) {
@@ -263,7 +263,7 @@ bool is_fixed_token(const char* start, const char* end, const char (&t)[N]) {
 }
 
 template<size_t N>
-bool is_fixed_token_ci(const char* start, const char* end, const char (&t)[N]) {
+bool is_fixed_token_ci(char const * start, char const * end, char const (&t)[N]) {
 	if(end - start != (N - 1))
 		return false;
 	for(unsigned int i = 0; i < N - 1; ++i) {

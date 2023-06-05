@@ -28,7 +28,7 @@ void create_opengl_context(sys::state& state) {
 
 	HDC window_dc = state.win_ptr->opengl_window_dc;
 
-	const int pixel_format = ChoosePixelFormat(window_dc, &pfd);
+	int const pixel_format = ChoosePixelFormat(window_dc, &pfd);
 	SetPixelFormat(window_dc, pixel_format, &pfd);
 
 	auto handle_to_ogl_dc = wglCreateContext(window_dc);

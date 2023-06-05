@@ -154,8 +154,8 @@ std::vector<unopened_file> list_files(directory const & dir, native_char const *
 	std::vector<unopened_file> accumulated_results;
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
-			const auto dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
-			const auto appended_path = dir_path + NATIVE("\\*") + extension;
+			auto const dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+			auto const appended_path = dir_path + NATIVE("\\*") + extension;
 
 			if(simple_fs::is_ignored_path(*dir.parent_system, appended_path)) {
 				continue;
@@ -166,7 +166,7 @@ std::vector<unopened_file> list_files(directory const & dir, native_char const *
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
 					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
-						if(auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = find_result.cFileName](const auto& f) {
+						if(auto search_result = std::find_if(accumulated_results.begin(), accumulated_results.end(), [n = find_result.cFileName](auto const & f) {
 							   return f.file_name.compare(n) == 0;
 						   });
 						   search_result == accumulated_results.end()) {
@@ -179,7 +179,7 @@ std::vector<unopened_file> list_files(directory const & dir, native_char const *
 			}
 		}
 	} else {
-		const auto appended_path = dir.relative_path + NATIVE("\\*") + extension;
+		auto const appended_path = dir.relative_path + NATIVE("\\*") + extension;
 		WIN32_FIND_DATAW find_result;
 		auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 		if(find_handle != INVALID_HANDLE_VALUE) {
@@ -205,8 +205,8 @@ std::vector<directory> list_subdirectories(directory const & dir) {
 	std::vector<directory> accumulated_results;
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
-			const auto dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
-			const auto appended_path = dir_path + NATIVE("\\*");
+			auto const dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+			auto const appended_path = dir_path + NATIVE("\\*");
 			if(simple_fs::is_ignored_path(*dir.parent_system, appended_path)) {
 				continue;
 			}
@@ -217,7 +217,7 @@ std::vector<directory> list_subdirectories(directory const & dir) {
 					if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
 						native_string const rel_name = dir.relative_path + NATIVE("\\") + find_result.cFileName;
 						if(find_result.cFileName[0] != NATIVE('.') && std::find_if(accumulated_results.begin(), accumulated_results.end(),
-						                                                           [&rel_name](const auto& s) {
+						                                                           [&rel_name](auto const & s) {
 							                                                           return s.relative_path.compare(rel_name) == 0;
 						                                                           }) == accumulated_results.end()) {
 							accumulated_results.emplace_back(dir.parent_system, rel_name);
@@ -228,7 +228,7 @@ std::vector<directory> list_subdirectories(directory const & dir) {
 			}
 		}
 	} else {
-		const auto appended_path = dir.relative_path + NATIVE("\\*");
+		auto const appended_path = dir.relative_path + NATIVE("\\*");
 		WIN32_FIND_DATAW find_result;
 		auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
 		if(find_handle != INVALID_HANDLE_VALUE) {
@@ -318,7 +318,7 @@ std::vector<native_string> list_roots(file_system const & fs) {
 
 bool is_ignored_path(file_system const & fs, native_string_view path) {
 
-	for(const auto& replace_path : fs.ignored_paths) {
+	for(auto const & replace_path : fs.ignored_paths) {
 		if(path.starts_with(replace_path))
 			return true;
 	}

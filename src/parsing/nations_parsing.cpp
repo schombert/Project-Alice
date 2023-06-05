@@ -956,7 +956,7 @@ sys::event_option make_event_option(token_generator& gen, error_handler& err, ev
 		err.accumulated_errors += "effect " + text::produce_simple_string(context.outer_context.state, opt_result.name_) + " is " + std::to_string(e_context.compiled_effect.size()) + " cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")";
 		return sys::event_option{opt_result.name_, opt_result.ai_chance, dcon::effect_key{0}};
 	}
-	const auto new_size = simplify_effect(e_context.compiled_effect.data());
+	auto const new_size = simplify_effect(e_context.compiled_effect.data());
 	e_context.compiled_effect.resize(static_cast<size_t>(new_size));
 
 	auto effect_id = context.outer_context.state.commit_effect_data(e_context.compiled_effect);

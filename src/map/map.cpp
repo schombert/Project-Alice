@@ -366,7 +366,7 @@ void display_data::update_borders(sys::state& state) {
 	}
 }
 
-void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* offset) {
+void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, void const * offset) {
 	glVertexAttribFormat(index, size, type, normalized, stride);
 	glEnableVertexAttribArray(index);
 	glVertexAttribBinding(index, 0);

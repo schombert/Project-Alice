@@ -11,6 +11,7 @@ class naval_combat_ship_lslot : public window_element_base {
 	image_element_base* nav_icon_retreat = nullptr;
 	image_element_base* nav_icon_disengaged = nullptr;
 	image_element_base* nav_icon_seeking = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "attacker_icon_normal") {
@@ -42,7 +43,6 @@ public:
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			nav_icon_seeking = ptr.get();
 			return ptr;
-
 
 		} else if(name == "str") {
 			return make_element_by_type<vertical_progress_bar>(state, id);
@@ -72,6 +72,7 @@ class naval_combat_ship_rslot : public window_element_base {
 	image_element_base* nav_icon_retreat = nullptr;
 	image_element_base* nav_icon_disengaged = nullptr;
 	image_element_base* nav_icon_seeking = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "attacker_icon_normal") {
@@ -103,7 +104,6 @@ public:
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			nav_icon_seeking = ptr.get();
 			return ptr;
-
 
 		} else if(name == "str") {
 			return make_element_by_type<vertical_progress_bar>(state, id);
@@ -173,6 +173,7 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "ship_unit";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -336,4 +337,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

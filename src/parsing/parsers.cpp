@@ -32,7 +32,7 @@ bool single_quote_termination(char c) {
 	return (c == '\r') || (c == '\n') || (c == '\'');
 }
 
-bool is_positive_integer(const char* start, const char* end) {
+bool is_positive_integer(char const * start, char const * end) {
 	if(start == end)
 		return false;
 	while(start < end) {
@@ -43,7 +43,7 @@ bool is_positive_integer(const char* start, const char* end) {
 	return true;
 }
 
-bool is_integer(const char* start, const char* end) {
+bool is_integer(char const * start, char const * end) {
 	if(start == end)
 		return false;
 	if(*start == '-')
@@ -52,8 +52,8 @@ bool is_integer(const char* start, const char* end) {
 		return is_positive_integer(start, end);
 }
 
-bool is_positive_fp(const char* start, const char* end) {
-	const auto decimal = std::find(start, end, '.');
+bool is_positive_fp(char const * start, char const * end) {
+	auto const decimal = std::find(start, end, '.');
 	if(decimal == end) {
 		return is_positive_integer(start, end);
 	} else if(decimal == start) {
@@ -63,7 +63,7 @@ bool is_positive_fp(const char* start, const char* end) {
 	}
 }
 
-bool is_fp(const char* start, const char* end) {
+bool is_fp(char const * start, char const * end) {
 	if(start == end)
 		return false;
 	if(*start == '-')
@@ -96,7 +96,7 @@ char const * scan_for_not_match(char const * start, char const * end, int32_t& c
 }
 
 char const * advance_position_to_next_line(char const * start, char const * end, int32_t& current_line) {
-	const auto start_lterm = scan_for_match(start, end, current_line, line_termination);
+	auto const start_lterm = scan_for_match(start, end, current_line, line_termination);
 	return scan_for_not_match(start_lterm, end, current_line, line_termination);
 }
 
@@ -130,11 +130,11 @@ token_and_type token_generator::internal_next() {
 			position = non_ws + 1;
 			return token_and_type{std::string_view(non_ws, 1), current_line, token_type::close_brace};
 		} else if(*non_ws == '\"') {
-			const auto close = scan_for_match(non_ws + 1, file_end, current_line, double_quote_termination);
+			auto const close = scan_for_match(non_ws + 1, file_end, current_line, double_quote_termination);
 			position = close + 1;
 			return token_and_type{std::string_view(non_ws + 1, close - (non_ws + 1)), current_line, token_type::quoted_string};
 		} else if(*non_ws == '\'') {
-			const auto close = scan_for_match(non_ws + 1, file_end, current_line, single_quote_termination);
+			auto const close = scan_for_match(non_ws + 1, file_end, current_line, single_quote_termination);
 			position = close + 1;
 			return token_and_type{std::string_view(non_ws + 1, close - (non_ws + 1)), current_line, token_type::quoted_string};
 		} else if(has_fixed_prefix(non_ws, file_end, "==") || has_fixed_prefix(non_ws, file_end, "<=") || has_fixed_prefix(non_ws, file_end, ">=") || has_fixed_prefix(non_ws, file_end, "<>") || has_fixed_prefix(non_ws, file_end, "!=")) {

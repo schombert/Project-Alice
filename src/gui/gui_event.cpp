@@ -3,7 +3,7 @@
 
 namespace ui {
 
-static void populate_event_submap(sys::state& state, text::substitution_map& sub, const std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event>& phe) noexcept {
+static void populate_event_submap(sys::state& state, text::substitution_map& sub, std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event> const & phe) noexcept {
 	dcon::nation_id target_nation{};
 	dcon::nation_id from_nation{};
 	dcon::province_id target_province{};
@@ -19,7 +19,7 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 	int32_t primary_slot = -1;
 
 	if(std::holds_alternative<event::pending_human_n_event>(phe)) {
-		const auto& e = std::get<event::pending_human_n_event>(phe);
+		auto const & e = std::get<event::pending_human_n_event>(phe);
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
 
@@ -28,11 +28,11 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 		primary_slot = e.primary_slot;
 		pt = e.pt;
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(phe)) {
-		const auto& e = std::get<event::pending_human_f_n_event>(phe);
+		auto const & e = std::get<event::pending_human_f_n_event>(phe);
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
 	} else if(std::holds_alternative<event::pending_human_p_event>(phe)) {
-		const auto& e = std::get<event::pending_human_p_event>(phe);
+		auto const & e = std::get<event::pending_human_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
 		target_state = state.world.province_get_state_membership(e.p);
 		target_capital = state.world.state_instance_get_capital(target_state);
@@ -41,7 +41,7 @@ static void populate_event_submap(sys::state& state, text::substitution_map& sub
 		from_slot = e.from_slot;
 		ft = e.ft;
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(phe)) {
-		const auto& e = std::get<event::pending_human_f_p_event>(phe);
+		auto const & e = std::get<event::pending_human_f_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
 		target_state = state.world.province_get_state_membership(e.p);
 		target_capital = state.world.state_instance_get_capital(target_state);

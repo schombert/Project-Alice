@@ -2336,7 +2336,7 @@ struct country_history_file {
 	void non_state_culture_literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
 	void consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
 	void nonstate_consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
-	void govt_flag(const govt_flag_block& value, error_handler& err, int32_t line, country_history_context& context);
+	void govt_flag(govt_flag_block const & value, error_handler& err, int32_t line, country_history_context& context);
 	void ruling_party(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 };
 

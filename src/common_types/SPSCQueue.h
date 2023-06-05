@@ -57,7 +57,7 @@ class SPSCQueue {
 
 public:
 	explicit SPSCQueue(const size_t capacity,
-	                   const Allocator& allocator = Allocator())
+	                   Allocator const & allocator = Allocator())
 	    : capacity_(capacity), allocator_(allocator) {
 		// The queue needs at least one element
 		if(capacity_ < 1) {
@@ -99,8 +99,8 @@ public:
 	}
 
 	// non-copyable and non-movable
-	SPSCQueue(const SPSCQueue&) = delete;
-	SPSCQueue& operator=(const SPSCQueue&) = delete;
+	SPSCQueue(SPSCQueue const &) = delete;
+	SPSCQueue& operator=(SPSCQueue const &) = delete;
 
 	template<typename... Args>
 	void emplace(Args&&... args) noexcept(

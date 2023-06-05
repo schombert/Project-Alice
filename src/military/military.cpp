@@ -51,7 +51,6 @@ bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id
 	return false;
 }
 
-
 bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary) {
 
 	auto can_use = state.world.cb_type_get_can_use(cb);
@@ -1154,7 +1153,6 @@ int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal
 		return 0;
 	}
 
-	
 	if((bits & cb_flag::po_gunboat) != 0) {
 		total += state.defines.peace_cost_gunboat;
 	}
@@ -1244,7 +1242,7 @@ int32_t peace_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal
 				break;
 			}
 		}
-		if(state.military_definitions.world_wars_enabled && ((is_attacker && primary_warscore(state, war) >= state.defines.gw_warscore_2_threshold) || (!is_attacker && primary_warscore(state, war) <= -state.defines.gw_warscore_2_threshold)) ) {
+		if(state.military_definitions.world_wars_enabled && ((is_attacker && primary_warscore(state, war) >= state.defines.gw_warscore_2_threshold) || (!is_attacker && primary_warscore(state, war) <= -state.defines.gw_warscore_2_threshold))) {
 			total *= state.defines.gw_warscore_cost_mod_2;
 		} else {
 			total *= state.defines.gw_warscore_cost_mod;
@@ -1335,19 +1333,19 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 		return cb_infamy(state, type);
 }
 
-bool cb_requires_selection_of_a_vassal(sys::state const& state, dcon::cb_type_id t) {
+bool cb_requires_selection_of_a_vassal(sys::state const & state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
 	return (bits & (cb_flag::po_release_puppet)) != 0;
 }
-bool cb_requires_selection_of_a_sphere_member(sys::state const& state, dcon::cb_type_id t) {
+bool cb_requires_selection_of_a_sphere_member(sys::state const & state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
 	return (bits & (cb_flag::po_take_from_sphere | cb_flag::po_add_to_sphere)) != 0;
 }
-bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::cb_type_id t) {
+bool cb_requires_selection_of_a_liberatable_tag(sys::state const & state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
 	return (bits & (cb_flag::po_liberate | cb_flag::po_transfer_provinces)) != 0;
 }
-bool cb_requires_selection_of_a_state(sys::state const& state, dcon::cb_type_id t) {
+bool cb_requires_selection_of_a_state(sys::state const & state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
 	return (bits & (cb_flag::po_demand_state | cb_flag::po_transfer_provinces | cb_flag::po_destroy_naval_bases | cb_flag::po_destroy_forts)) != 0 && (bits & cb_flag::all_allowed_states) == 0;
 }
@@ -1611,13 +1609,9 @@ bool standard_war_joining_is_possible(sys::state& state, dcon::war_id wfor, dcon
 	auto ol_nation = state.world.overlord_get_ruler(ol_relation);
 
 	if(!as_attacker) {
-		return joining_war_does_not_violate_constraints(state, n, wfor, false)
-			&& state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor)
-			&& ol_nation != state.world.war_get_primary_attacker(wfor);
+		return joining_war_does_not_violate_constraints(state, n, wfor, false) && state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor) && ol_nation != state.world.war_get_primary_attacker(wfor);
 	} else {
-		return joining_war_does_not_violate_constraints(state, n, wfor, true)
-			&& state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor)
-			&& ol_nation != state.world.war_get_primary_attacker(wfor);
+		return joining_war_does_not_violate_constraints(state, n, wfor, true) && state.world.nation_get_in_sphere_of(n) != state.world.war_get_primary_attacker(wfor) && ol_nation != state.world.war_get_primary_attacker(wfor);
 	}
 }
 void call_defender_allies(sys::state& state, dcon::war_id wfor) {
@@ -1671,7 +1665,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
 	}
 }
 void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation) {
-	
+
 	if(sd) {
 		auto for_attacker = is_attacker(state, wfor, added_by);
 		std::vector<dcon::nation_id> targets;

@@ -64,7 +64,7 @@ public:
 	float GetHeight() const {
 		return LineHeight;
 	}
-	float GetStringWidth(const char*, uint32_t) const;
+	float GetStringWidth(char const *, uint32_t) const;
 
 	BMFont(simple_fs::file& font_metrics, simple_fs::file& font_image) {
 		auto font_result = ogl::make_font_texture(font_image);

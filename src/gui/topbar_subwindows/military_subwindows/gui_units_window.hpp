@@ -6,7 +6,6 @@ namespace ui {
 
 template<typename T>
 struct military_unit_info : public std::variant<T, dcon::province_land_construction_id, dcon::province_naval_construction_id> {
-
 };
 
 template<typename T>
@@ -106,7 +105,7 @@ public:
 	}
 
 	void update(sys::state& state) noexcept override {
-		const auto& content = listbox_row_element_base<military_unit_info<T>>::content;
+		auto const & content = listbox_row_element_base<military_unit_info<T>>::content;
 
 		bool is_building = !std::holds_alternative<T>(content);
 		bool is_moving = false;
@@ -168,7 +167,7 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		auto const& content = listbox_row_element_base<military_unit_info<T>>::content;
+		auto const & content = listbox_row_element_base<military_unit_info<T>>::content;
 		if(payload.holds_type<dcon::province_id>()) {
 			dcon::province_id p{};
 			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
@@ -204,20 +203,20 @@ public:
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				state.world.nation_for_each_army_control_as_controller(n, [&](dcon::army_control_id acid) {
 					auto aid = state.world.army_control_get_army(acid);
-					row_contents.push_back(military_unit_info<T>{ aid });
+					row_contents.push_back(military_unit_info<T>{aid});
 				});
 				state.world.nation_for_each_province_land_construction_as_nation(n, [&](dcon::province_land_construction_id p) {
-					row_contents.push_back(military_unit_info<T>{ p });
+					row_contents.push_back(military_unit_info<T>{p});
 				});
 			}
 			// Navies
 			if constexpr(std::is_same_v<T, dcon::navy_id>) {
 				state.world.nation_for_each_navy_control_as_controller(n, [&](dcon::navy_control_id ncid) {
 					auto nid = state.world.navy_control_get_navy(ncid);
-					row_contents.push_back(military_unit_info<T>{ nid });
+					row_contents.push_back(military_unit_info<T>{nid});
 				});
 				state.world.nation_for_each_province_naval_construction_as_nation(n, [&](dcon::province_naval_construction_id p) {
-					row_contents.push_back(military_unit_info<T>{ p });
+					row_contents.push_back(military_unit_info<T>{p});
 				});
 			}
 		}
