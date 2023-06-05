@@ -387,44 +387,32 @@ class overlapping_attacker_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override {
 		row_contents.clear();
-		auto war = dcon::fatten(state.world, war_id);
-		for(auto o : war.get_war_participant())
-			if(o.get_is_attacker() == true)
-				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
-		update(state);
-	}
-	dcon::war_id war_id{};
-
-public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::war_id>()) {
-			war_id = any_cast<dcon::war_id>(payload);
-			on_update(state);
-			return message_result::consumed;
+		if(parent) {
+			Cyto::Any payload = dcon::war_id{};
+			parent->impl_get(state, payload);
+			dcon::war_id w = any_cast<dcon::war_id>(payload);
+			auto war = dcon::fatten(state.world, w);
+			for(auto o : war.get_war_participant())
+				if(o.get_is_attacker() == true)
+					row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		}
-		return overlapping_flags_box::set(state, payload);
+		update(state);
 	}
 };
 class overlapping_defender_flags : public overlapping_flags_box {
 protected:
 	void populate_flags(sys::state& state) override {
 		row_contents.clear();
-		auto war = dcon::fatten(state.world, war_id);
-		for(auto o : war.get_war_participant())
-			if(o.get_is_attacker() == false)
-				row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
-		update(state);
-	}
-	dcon::war_id war_id{};
-
-public:
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::war_id>()) {
-			war_id = any_cast<dcon::war_id>(payload);
-			on_update(state);
-			return message_result::consumed;
+		if(parent) {
+			Cyto::Any payload = dcon::war_id{};
+			parent->impl_get(state, payload);
+			dcon::war_id w = any_cast<dcon::war_id>(payload);
+			auto war = dcon::fatten(state.world, w);
+			for(auto o : war.get_war_participant())
+				if(o.get_is_attacker() == false)
+					row_contents.push_back(o.get_nation().get_identity_from_identity_holder().id);
 		}
-		return overlapping_flags_box::set(state, payload);
+		update(state);
 	}
 };
 
