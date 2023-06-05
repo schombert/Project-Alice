@@ -109,10 +109,10 @@ void post(sys::state& state, message const & m) {
 			accept(state, m);
 			return;
 		case type::alliance_request:
-			decline(state, m);
+			accept(state, m);
 			return;
 		case type::call_ally_request:
-			decline(state, m);
+			accept(state, m);
 			return;
 		case type::be_crisis_primary_defender:
 			nations::add_as_primary_crisis_defender(state, m.to);

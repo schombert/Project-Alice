@@ -534,6 +534,54 @@ public:
 	}
 };
 
+class diplomacy_declare_war_button : public button_element_base {
+private:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto n = any_cast<dcon::nation_id>(payload);
+
+			Cyto::Any s_payload = dcon::state_definition_id{};
+			parent->impl_get(state, s_payload);
+			auto s = any_cast<dcon::state_definition_id>(s_payload);
+
+			Cyto::Any n_payload = dcon::national_identity_id{};
+			parent->impl_get(state, n_payload);
+			auto ni = any_cast<dcon::national_identity_id>(n_payload);
+
+			Cyto::Any c_payload = dcon::cb_type_id{};
+			parent->impl_get(state, c_payload);
+			auto c = any_cast<dcon::cb_type_id>(c_payload);
+
+			disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto n = any_cast<dcon::nation_id>(payload);
+
+			Cyto::Any s_payload = dcon::state_definition_id{};
+			parent->impl_get(state, s_payload);
+			auto s = any_cast<dcon::state_definition_id>(s_payload);
+
+			Cyto::Any n_payload = dcon::national_identity_id{};
+			parent->impl_get(state, n_payload);
+			auto ni = any_cast<dcon::national_identity_id>(n_payload);
+
+			Cyto::Any c_payload = dcon::cb_type_id{};
+			parent->impl_get(state, c_payload);
+			auto c = any_cast<dcon::cb_type_id>(c_payload);
+
+			command::declare_war(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni));
+			parent->set_visible(state, false);
+		}
+	}
+};
+
 class diplomacy_declare_war_dialog : public window_element_base { // eu3dialogtype
 private:
 	wargoal_setup_window* wargoal_setup_win = nullptr;
@@ -576,7 +624,7 @@ public:
 		} else if(name == "call_allies_text") {
 			return make_element_by_type<simple_text_element_base>(state, id);
 		} else if(name == "agreebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<diplomacy_declare_war_button>(state, id);
 		} else if(name == "declinebutton") {
 			return make_element_by_type<generic_close_button>(state, id);
 
