@@ -805,6 +805,55 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		return std::to_string(int32_t(nations::prestige_score(state, nation_id)));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("rank_prestige"), text::substitution_map{});
+			text::add_line_break_to_layout_box(contents, state, box);
+			switch(nations::get_status(state, nation_id)) {
+			case(nations::status::great_power):
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"), text::substitution_map{});
+				break;
+			case(nations::status::secondary_power):
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_colonialnation_status"), text::substitution_map{});
+				break;
+			case(nations::status::civilized):
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_civilizednation_status"), text::substitution_map{});
+				// Civil
+				break;
+			case(nations::status::westernizing):
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_almost_western_nation_status"), text::substitution_map{});
+				// ???
+				break;
+			case(nations::status::uncivilized):
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_uncivilizednation_status"), text::substitution_map{});
+				// Nothing
+				break;
+			case(nations::status::primitive):
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_primitivenation_status"), text::substitution_map{});
+				// Nothing
+				break;
+			default:
+				break;
+			};
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("rank_prestige_d"), text::substitution_map{});
+			text::close_layout_box(contents, box);
+
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::prestige, true);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::colonial_prestige, true);
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::permanent_prestige, true);
+		}
+	}
 };
 
 class nation_industry_score_text : public standard_nation_text {
@@ -813,6 +862,24 @@ public:
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(int32_t(fat_id.get_industrial_score()));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("rank_industry"), text::substitution_map{});
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("rank_industry_d"), text::substitution_map{});
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class nation_military_score_text : public standard_nation_text {
@@ -820,6 +887,24 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(int32_t(fat_id.get_military_score()));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("rank_military"), text::substitution_map{});
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("rank_military_d"), text::substitution_map{});
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -1083,6 +1168,39 @@ public:
 		auto mcp = nations::max_colonial_points(state, nation_id);
 		return text::format_ratio(fcp, mcp);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			float points = 0.f;
+			state.world.for_each_technology([&](dcon::technology_id t) {
+				if(state.world.nation_get_active_technologies(nation_id, t))
+					points += float(state.world.technology_get_colonial_points(t));
+			});
+
+			text::substitution_map sub;
+			std::string value;
+			value = text::prettify(nations::free_colonial_points(state, nation_id));
+			text::add_to_substitution_map(sub, text::variable_type::value, std::string_view(value));
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("colonial_points"), sub);
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("available_colonial_power"), sub);
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_format_box(state, contents, box, std::string_view("from_technology"), sub);
+			text::add_space_to_layout_box(contents, state, box);
+			text::add_to_layout_box(contents, state, box, text::format_float(points, 0), text::text_color::green);
+
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class nation_budget_funds_text : public standard_nation_text {
@@ -1090,6 +1208,75 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto budget = nations::get_treasury(state, nation_id);
 		return text::format_money(budget);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+
+			text::substitution_map sub{};
+
+			auto total_income = economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor);
+			total_income += economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle);
+			total_income += economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich);
+			total_income += economy::estimate_gold_income(state, nation_id);
+
+			auto total_expense = economy::estimate_construction_spending(state, nation_id);
+			total_expense += economy::estimate_land_spending(state, nation_id);
+			total_expense += economy::estimate_naval_spending(state, nation_id);
+			total_expense += economy::estimate_social_spending(state, nation_id);
+			total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education);
+			total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration);
+			total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military);
+			total_expense += economy::estimate_loan_payments(state, nation_id);
+			total_expense += economy::estimate_subsidy_spending(state, nation_id);
+
+			text::add_to_substitution_map(sub, text::variable_type::yesterday, text::fp_currency{nations::get_yesterday_income(state, nation_id)});
+			text::add_to_substitution_map(sub, text::variable_type::cash, text::fp_currency{nations::get_treasury(state, nation_id)});
+
+			text::localised_format_box(state, contents, box, std::string_view("topbar_funds"), sub); // $YESTERDAY && $CASH
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_income"), text::variable_type::val, text::fp_currency{total_income}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_poor"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::poor)}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_middle"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::middle)}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("taxes_rich"), text::variable_type::val, text::fp_currency{economy::estimate_tax_income_by_strata(state, nation_id, culture::pop_strata::rich)}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("tariffs_income"), text::variable_type::val, text::fp_currency{economy::estimate_tariff_income(state, nation_id)}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_format_box(state, contents, box, std::string_view("budget_exports"), text::substitution_map{}); // $VAL	TODO
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_gold"), text::variable_type::val, text::fp_currency{economy::estimate_gold_income(state, nation_id)}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_total_expense"), text::variable_type::val, text::fp_currency{-total_expense}); // $VAL	TODO
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_expense_slider_education"), text::variable_type::val, text::fp_currency{-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education)}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_administration"), text::variable_type::val, text::fp_currency{-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration)}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_social_spending"), text::variable_type::val, text::fp_currency{-economy::estimate_social_spending(state, nation_id)}); // $VAL - presumably loan payments == interest (?)
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_slider_military_spending"), text::variable_type::val, text::fp_currency{-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military)}); // $VAL
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_interest"), text::variable_type::val, text::fp_currency{-economy::estimate_loan_payments(state, nation_id)}); // $VAL - presumably loan payments == interest (?)
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("budget_imports"), text::variable_type::val, text::fp_currency{-economy::nation_total_imports(state, nation_id)}); // $VAL - presumably nation_total_imports is for national stockpile (?)
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::add_line_break_to_layout_box(contents, state, box);
+			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_projected_income"), text::variable_type::val, text::fp_currency{economy::estimate_daily_income(state, nation_id)}); // $VAL	TODO
+
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -1430,30 +1617,6 @@ public:
 	}
 };
 
-class nation_brigades_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		return std::to_string(fat_id.get_active_regiments());
-	}
-};
-
-class nation_ships_text : public standard_nation_text {
-protected:
-	int32_t get_ship_count(sys::state& state, dcon::nation_id nation_id) {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		int32_t total = 0;
-		for(auto nv : fat_id.get_navy_control())
-			total += int32_t(nv.get_navy().get_navy_membership().end() - nv.get_navy().get_navy_membership().begin());
-		return total;
-	}
-
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return std::to_string(get_ship_count(state, nation_id));
-	}
-};
-
 class nation_brigade_allocation_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
@@ -1475,7 +1638,7 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
-			text::add_to_substitution_map(sub, text::variable_type::max, (state.world.nation_get_recruitable_regiments(nation_id) + state.world.nation_get_active_regiments(nation_id)));
+			text::add_to_substitution_map(sub, text::variable_type::max, state.world.nation_get_recruitable_regiments(nation_id));
 			text::localised_format_box(state, contents, box, std::string_view("topbar_army_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		}
@@ -1618,6 +1781,20 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto plurality = state.world.nation_get_plurality(nation_id);
 		return std::to_string(int32_t(plurality)) + '%';
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::plurality, false);
+		}
 	}
 };
 

@@ -191,13 +191,13 @@ public:
 		}
 		// Brigades
 		{
-			auto ptr = make_element_by_type<nation_brigades_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_brigade_allocation_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
 		// Ships
 		{
-			auto ptr = make_element_by_type<nation_ships_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			auto ptr = make_element_by_type<nation_navy_allocation_text>(state, state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
