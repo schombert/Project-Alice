@@ -994,13 +994,11 @@ public:
 
 		{
 			std::map<float, dcon::commodity_id::value_base_t> v;
-			state.world.for_each_commodity([&](dcon::commodity_id cid) {
-				if(!bool(cid))
-					return;
+			for(dcon::commodity_id cid : state.world.in_commodity) {
 				float produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, cid);
 				float consumed = state.world.nation_get_real_demand(state.local_player_nation, cid) * state.world.nation_get_demand_satisfaction(state.local_player_nation, cid);
 				v.insert({ produced - consumed, cid.index() });
-			});
+			}
 
 			uint8_t slot = 0;
 			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
@@ -1030,11 +1028,9 @@ public:
 
 		{
 			std::map<float, dcon::commodity_id::value_base_t> v;
-			state.world.for_each_commodity([&](dcon::commodity_id cid) {
-				if(!bool(cid))
-					return;
+			for(dcon::commodity_id cid : state.world.in_commodity) {
 				v.insert({ state.world.nation_get_domestic_market_pool(state.local_player_nation, cid), cid.index() });
-			});
+			}
 
 			uint8_t slot = 0;
 			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
