@@ -83,7 +83,7 @@ void accept(sys::state& state, message const & m) {
 		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
 			return;
 
-		// TODO: join war
+		military::join_war(state, m.data.war, m.to, military::is_attacker(state, m.data.war, m.from));
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.callally_relation_on_accept);
 		break;

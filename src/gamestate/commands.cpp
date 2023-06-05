@@ -1535,6 +1535,8 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 	if(!can_intervene_in_war(state, source, w, for_attacker))
 		return;
 
+	military::join_war(state, w, source, for_attacker);
+
 	if(!state.world.war_get_is_great(w)) {
 		bool status_quo_added = false;
 		for(auto wg : state.world.war_get_wargoals_attached(w)) {
@@ -1555,9 +1557,6 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 			military::add_wargoal(state, w, source, state.world.war_get_primary_attacker(w), status_quo, dcon::state_definition_id{}, dcon::national_identity_id{}, dcon::nation_id{});
 		}
 	}
-	auto wp = fatten(state.world, state.world.force_create_war_participant(w, source));
-	wp.set_is_attacker(for_attacker);
-	state.world.nation_set_is_at_war(source, true);
 }
 
 void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
@@ -2187,7 +2186,14 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	if(state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
 		return false;
 
-	// TODO
+	if(military::is_civil_war(state, w))
+		return false;
+
+	if(!military::standard_war_joining_is_possible(state, w, target, military::is_attacker(state, w, target)))
+		return false;
+
+	if(state.world.war_get_is_crisis_war(w) && !state.military_definitions.great_wars_enabled)
+		return false;
 
 	return true;
 }
