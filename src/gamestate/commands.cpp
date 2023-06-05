@@ -2497,6 +2497,31 @@ void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_i
 	military::add_wargoal(state, w, source, target, cb_type, cb_state, cb_tag, cb_secondary_nation);
 }
 
+void switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::switch_nation;
+	p.source = source;
+	p.data.tag_target.ident = t;
+	auto b = state.incoming_commands.try_push(p);
+}
+bool can_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	dcon::nation_id n = state.world.national_identity_get_nation_from_identity_holder(t);
+	if(state.world.nation_get_is_player_controlled(n))
+		return false;
+	return true;
+}
+void execute_switch_nation(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
+	if(!can_switch_nation(state, source, t))
+		return;
+	
+	state.world.nation_set_is_player_controlled(state.local_player_nation, false);
+	if(source == state.local_player_nation) {
+		state.local_player_nation = state.world.national_identity_get_nation_from_identity_holder(t);
+	}
+	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -2674,6 +2699,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::add_war_goal:
 			execute_add_war_goal(state, c->source, c->data.new_war_goal.war, c->data.new_war_goal.target, c->data.new_war_goal.cb_type, c->data.new_war_goal.cb_state, c->data.new_war_goal.cb_tag, c->data.new_war_goal.cb_secondary_nation);
+			break;
+		case command_type::switch_nation:
+			execute_switch_nation(state, c->source, c->data.tag_target.ident);
 			break;
 		}
 
