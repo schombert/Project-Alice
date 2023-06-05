@@ -35,51 +35,6 @@ public:
 	}
 };
 
-class diplomacy_nation_ships_text : public nation_ships_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_ships"), text::variable_type::value, get_ship_count(state, nation_id));
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("navy_technology_levels"));
-			text::close_layout_box(contents, box);
-		}
-	}
-};
-
-class diplomacy_nation_brigades_text : public nation_brigades_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto num = dcon::fatten(state.world, nation_id).get_active_regiments();
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_brigades"), text::variable_type::value, num);
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("army_technology_levels"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("mil_tactics_tech"));
-			text::close_layout_box(contents, box);
-		}
-	}
-};
-
 class diplomacy_priority_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -392,9 +347,9 @@ public:
 		} else if(name == "warexhastion_text") {
 			return make_element_by_type<nation_war_exhaustion_text>(state, id);
 		} else if(name == "brigade_text") {
-			return make_element_by_type<diplomacy_nation_brigades_text>(state, id);
+			return make_element_by_type<nation_brigade_allocation_text>(state, id);
 		} else if(name == "ships_text") {
-			return make_element_by_type<diplomacy_nation_ships_text>(state, id);
+			return make_element_by_type<nation_navy_allocation_text>(state, id);
 		} else if(name == "add_wargoal") {
 			return make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 		} else {
