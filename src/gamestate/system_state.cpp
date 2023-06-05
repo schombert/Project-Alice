@@ -493,7 +493,7 @@ std::string_view state::to_string_view(dcon::text_key tag) const {
 	return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
 }
 
-dcon::text_key state::add_to_pool_lowercase(std::string const & new_text) {
+dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
 	auto res = add_to_pool(new_text);
 	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
 		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
@@ -507,7 +507,7 @@ dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
 	}
 	return res;
 }
-dcon::text_key state::add_to_pool(std::string const & new_text) {
+dcon::text_key state::add_to_pool(std::string const& new_text) {
 	auto start = text_data.size();
 	auto size = new_text.length();
 	if(size == 0)
@@ -527,7 +527,7 @@ dcon::text_key state::add_to_pool(std::string_view new_text) {
 	return dcon::text_key(uint32_t(start));
 }
 
-dcon::text_key state::add_unique_to_pool(std::string const & new_text) {
+dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
 	if(new_text.length() > 0) {
 		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(), std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
 		if(search_result != text_data.data() + text_data.size()) {
@@ -609,7 +609,7 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 
 void state::save_user_settings() const {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
-	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), reinterpret_cast<char const *>(&user_settings), uint32_t(sizeof(user_settings_s)));
+	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), reinterpret_cast<char const*>(&user_settings), uint32_t(sizeof(user_settings_s)));
 }
 void state::load_user_settings() {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
@@ -1740,27 +1740,27 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 
 	// reshow pending events, messages, etc
-	for(auto const & e : pending_n_event) {
+	for(auto const& e : pending_n_event) {
 		if(e.n == local_player_nation) {
 			new_n_event.push(e);
 		}
 	}
-	for(auto const & e : pending_f_n_event) {
+	for(auto const& e : pending_f_n_event) {
 		if(e.n == local_player_nation) {
 			new_f_n_event.push(e);
 		}
 	}
-	for(auto const & e : pending_p_event) {
+	for(auto const& e : pending_p_event) {
 		if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
 			new_p_event.push(e);
 		}
 	}
-	for(auto const & e : pending_f_p_event) {
+	for(auto const& e : pending_f_p_event) {
 		if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
 			new_f_p_event.push(e);
 		}
 	}
-	for(auto const & m : pending_messages) {
+	for(auto const& m : pending_messages) {
 		if(m.to == local_player_nation) {
 			new_requests.push(m);
 		}

@@ -65,17 +65,17 @@ struct gfx_object {
 };
 
 struct gfx_object_outer {
-	void spritetype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
-	void corneredtilespritetype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
-	void maskedshieldtype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
-	void textspritetype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
-	void tilespritetype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
-	void progressbartype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
-	void barcharttype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
-	void piecharttype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
-	void linecharttype(gfx_object const & obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void spritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void corneredtilespritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void maskedshieldtype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void textspritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void tilespritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void progressbartype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void barcharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void piecharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void linecharttype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
 
-	void finish(building_gfx_context const & context) {
+	void finish(building_gfx_context const& context) {
 	}
 };
 
@@ -94,8 +94,8 @@ struct gui_element_common {
 	ui::element_data target;
 
 	gui_element_common() { }
-	void size(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context);
-	void position(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void size(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void position(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void orientation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void name(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void rotation(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
@@ -124,7 +124,7 @@ struct image : public gui_element_common {
 
 struct textbox : public gui_element_common {
 	textbox();
-	void bordersize(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void fixedsize(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
 	void font(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void format(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
@@ -135,8 +135,8 @@ struct textbox : public gui_element_common {
 struct listbox : public gui_element_common {
 	listbox();
 	void background(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
-	void bordersize(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context);
-	void offset(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void offset(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void spacing(association_type, uint32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 };
 
@@ -167,9 +167,9 @@ struct scrollbar : public gui_element_common {
 	void track(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void stepsize(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void userangelimit(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
-	void bordersize(gfx_xy_pair const & pr, error_handler& err, int32_t line, building_gfx_context& context);
-	void guibuttontype(button const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void icontype(image const & v, error_handler& err, int32_t line, building_gfx_context& context);
+	void bordersize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void finish(building_gfx_context& context);
 };
 
@@ -178,38 +178,38 @@ struct window : public gui_element_common {
 	window();
 	void fullscreen(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
 	void moveable(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
-	void guibuttontype(button const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void icontype(image const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void eu3dialogtype(window const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void instanttextboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void listboxtype(listbox const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void positiontype(gui_element_common const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void scrollbartype(scrollbar const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void windowtype(window const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void checkboxtype(button const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void shieldtype(image const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void overlappingelementsboxtype(overlapping const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void editboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void textboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context);
+	void guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void instanttextboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void listboxtype(listbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void positiontype(gui_element_common const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void scrollbartype(scrollbar const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void windowtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void checkboxtype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void shieldtype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void finish(building_gfx_context& context);
 };
 
 struct guitypes {
 	void finish(building_gfx_context& context) {
 	}
-	void guibuttontype(button const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void icontype(image const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void eu3dialogtype(window const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void instanttextboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void listboxtype(listbox const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void positiontype(gui_element_common const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void scrollbartype(scrollbar const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void windowtype(window const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void checkboxtype(button const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void shieldtype(image const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void overlappingelementsboxtype(overlapping const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void editboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context);
-	void textboxtype(textbox const & v, error_handler& err, int32_t line, building_gfx_context& context);
+	void guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void instanttextboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void listboxtype(listbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void positiontype(gui_element_common const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void scrollbartype(scrollbar const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void windowtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void checkboxtype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void shieldtype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void overlappingelementsboxtype(overlapping const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void editboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
 };
 struct gui_files {
 	void finish(building_gfx_context& context) {
@@ -272,7 +272,7 @@ struct pending_nat_event {
 
 	pending_nat_event() = default;
 	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
-	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const & generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
+	pending_nat_event(dcon::national_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
 };
 struct pending_prov_event {
 	dcon::provincial_event_id id;
@@ -285,7 +285,7 @@ struct pending_prov_event {
 
 	pending_prov_event() = default;
 	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot) { }
-	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const & generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
+	pending_prov_event(dcon::provincial_event_id id, trigger::slot_contents main_slot, trigger::slot_contents this_slot, trigger::slot_contents from_slot, token_generator const& generator_state) : id(id), main_slot(main_slot), this_slot(this_slot), from_slot(from_slot), generator_state(generator_state), text_assigned(true) { }
 };
 struct scenario_building_context {
 	building_gfx_context gfx_context;
@@ -348,9 +348,9 @@ struct scenario_building_context {
 
 	scenario_building_context(sys::state& state);
 
-	dcon::national_variable_id get_national_variable(std::string const & name);
-	dcon::national_flag_id get_national_flag(std::string const & name);
-	dcon::global_flag_id get_global_flag(std::string const & name);
+	dcon::national_variable_id get_national_variable(std::string const& name);
+	dcon::national_flag_id get_national_flag(std::string const& name);
+	dcon::global_flag_id get_global_flag(std::string const& name);
 
 	int32_t number_of_commodities_seen = 0;
 	int32_t number_of_national_values_seen = 0;
@@ -720,10 +720,10 @@ public:
 	template<typename T>
 	void finish(T& context) { }
 
-	sys::provincial_modifier_definition const & peek_province_mod() const {
+	sys::provincial_modifier_definition const& peek_province_mod() const {
 		return constructed_definition_p;
 	}
-	sys::national_modifier_definition const & peek_national_mod() const {
+	sys::national_modifier_definition const& peek_national_mod() const {
 		return constructed_definition_n;
 	}
 	sys::national_modifier_definition force_national_mod() const {
@@ -1137,8 +1137,8 @@ struct default_map_file {
 	void finish(scenario_building_context&);
 };
 
-void read_map_colors(char const * start, char const * end, error_handler& err, scenario_building_context& context);
-void read_map_adjacency(char const * start, char const * end, error_handler& err, scenario_building_context& context);
+void read_map_colors(char const* start, char const* end, error_handler& err, scenario_building_context& context);
+void read_map_adjacency(char const* start, char const* end, error_handler& err, scenario_building_context& context);
 
 struct terrain_modifier : public modifier_base {
 	color_from_3i color;
@@ -1379,8 +1379,8 @@ struct province_history_file {
 	void terrain(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
 	void add_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void remove_core(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
-	void party_loyalty(pv_party_loyalty const & value, error_handler& err, int32_t line, province_file_context& context);
-	void state_building(pv_state_building const & value, error_handler& err, int32_t line, province_file_context& context);
+	void party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line, province_file_context& context);
+	void state_building(pv_state_building const& value, error_handler& err, int32_t line, province_file_context& context);
 	void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context);
 	void finish(province_file_context&) { }
 };
@@ -1405,7 +1405,7 @@ struct pop_history_definition {
 };
 
 struct pop_province_list {
-	void any_group(std::string_view type, pop_history_definition const & def, error_handler& err, int32_t line, pop_history_province_context& context);
+	void any_group(std::string_view type, pop_history_definition const& def, error_handler& err, int32_t line, pop_history_province_context& context);
 	void finish(pop_history_province_context&) { }
 };
 
@@ -1472,16 +1472,16 @@ struct poptype_file {
 	void workplace_input(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
 	void workplace_output(association_type, float value, error_handler& err, int32_t line, poptype_context& context);
 	void equivalent(association_type, std::string_view value, error_handler& err, int32_t line, poptype_context& context);
-	void life_needs(commodity_array const & value, error_handler& err, int32_t line, poptype_context& context);
-	void everyday_needs(commodity_array const & value, error_handler& err, int32_t line, poptype_context& context);
-	void luxury_needs(commodity_array const & value, error_handler& err, int32_t line, poptype_context& context);
+	void life_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context);
+	void everyday_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context);
+	void luxury_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context);
 	promotion_targets promote_to;
 	pop_ideologies ideologies;
 	pop_issues issues;
 
-	void life_needs_income(income const & value, error_handler& err, int32_t line, poptype_context& context);
-	void everyday_needs_income(income const & value, error_handler& err, int32_t line, poptype_context& context);
-	void luxury_needs_income(income const & value, error_handler& err, int32_t line, poptype_context& context);
+	void life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context);
+	void everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context);
+	void luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context);
 };
 
 commodity_array stub_commodity_array(token_generator& gen, error_handler& err, poptype_context& context);
@@ -1676,12 +1676,12 @@ struct issue_option_body : public modifier_base {
 	void war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_option_context& context);
 	void administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_option_context& context);
 	void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_option_context& context);
-	void on_execute(on_execute_body const & value, error_handler& err, int32_t line, individual_option_context& context);
+	void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context);
 
 	void technology_cost(association_type, int32_t value, error_handler& err, int32_t line, individual_roption_context& context);
 	void war_exhaustion_effect(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context);
 	void administrative_multiplier(association_type, float value, error_handler& err, int32_t line, individual_roption_context& context);
-	void on_execute(on_execute_body const & value, error_handler& err, int32_t line, individual_roption_context& context);
+	void on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_roption_context& context);
 	void is_jingoism(association_type, bool value, error_handler& err, int32_t line, individual_roption_context& context) { }
 	option_rules rules;
 };
@@ -1762,7 +1762,7 @@ struct tech_rgo_size {
 };
 
 struct technology_contents : public modifier_base {
-	void any_group(std::string_view label, unit_modifier_body const & value, error_handler& err, int32_t line, tech_context& context);
+	void any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line, tech_context& context);
 	void ai_chance(dcon::value_modifier_key value, error_handler& err, int32_t line, tech_context& context);
 	void year(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
 	void cost(association_type, int32_t value, error_handler& err, int32_t line, tech_context& context);
@@ -1806,7 +1806,7 @@ struct inv_rebel_org_gain {
 	void faction(association_type, std::string_view v, error_handler& err, int32_t line, invention_context& context);
 };
 struct inv_effect : public modifier_base {
-	void any_group(std::string_view label, unit_modifier_body const & value, error_handler& err, int32_t line, invention_context& context);
+	void any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line, invention_context& context);
 	void activate_unit(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
 	void activate_building(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
 	inv_rgo_goods_output rgo_goods_output;
@@ -1817,13 +1817,13 @@ struct inv_effect : public modifier_base {
 	void enable_crime(association_type, std::string_view value, error_handler& err, int32_t line, invention_context& context);
 	void gas_attack(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
 	void gas_defence(association_type, bool value, error_handler& err, int32_t line, invention_context& context);
-	void rebel_org_gain(inv_rebel_org_gain const & value, error_handler& err, int32_t line, invention_context& context);
+	void rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context);
 };
 
 struct invention_contents : public modifier_base {
 	void limit(dcon::trigger_key value, error_handler& err, int32_t line, invention_context& context);
 	void chance(dcon::value_modifier_key value, error_handler& err, int32_t line, invention_context& context);
-	void effect(inv_effect const & value, error_handler& err, int32_t line, invention_context& context);
+	void effect(inv_effect const& value, error_handler& err, int32_t line, invention_context& context);
 };
 
 dcon::value_modifier_key make_inv_chance(token_generator& gen, error_handler& err, invention_context& context);
@@ -2036,7 +2036,7 @@ struct generic_event {
 
 	void title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
 	void desc(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
-	void option(sys::event_option const & value, error_handler& err, int32_t line, event_building_context& context);
+	void option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context);
 	void immediate(dcon::effect_key value, error_handler& err, int32_t line, event_building_context& context) {
 		if(!bool(immediate_))
 			immediate_ = value;
@@ -2121,7 +2121,7 @@ struct oob_army {
 	void finish(oob_file_army_context&) { }
 	void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_army_context& context);
 	void location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_army_context& context);
-	void leader(oob_leader const & value, error_handler& err, int32_t line, oob_file_army_context& context);
+	void leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_army_context& context);
 };
 struct oob_navy {
 	void finish(oob_file_navy_context&) { }
@@ -2149,7 +2149,7 @@ struct oob_relationship {
 };
 struct oob_file {
 	void finish(oob_file_context&) { }
-	void leader(oob_leader const & value, error_handler& err, int32_t line, oob_file_context& context);
+	void leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_context& context);
 };
 
 oob_leader make_army_leader(token_generator& gen, error_handler& err, oob_file_army_context& context);
@@ -2183,7 +2183,7 @@ struct production_employee {
 struct production_employee_set {
 	std::vector<production_employee> employees;
 	void finish(production_context&) { }
-	void free_group(production_employee const & value, error_handler& err, int32_t line, production_context& context) {
+	void free_group(production_employee const& value, error_handler& err, int32_t line, production_context& context) {
 		employees.push_back(value);
 	}
 };
@@ -2223,7 +2223,7 @@ struct production_type {
 			err.accumulated_errors += "Invalid commodity name " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
-	void bonus(production_bonus const & v, error_handler& err, int32_t line, production_context& context) {
+	void bonus(production_bonus const& v, error_handler& err, int32_t line, production_context& context) {
 		bonuses.push_back(v);
 	}
 	void type(association_type, std::string_view v, error_handler& err, int32_t line, production_context& context) {
@@ -2336,7 +2336,7 @@ struct country_history_file {
 	void non_state_culture_literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
 	void consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
 	void nonstate_consciousness(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
-	void govt_flag(govt_flag_block const & value, error_handler& err, int32_t line, country_history_context& context);
+	void govt_flag(govt_flag_block const& value, error_handler& err, int32_t line, country_history_context& context);
 	void ruling_party(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 };
 
@@ -2372,7 +2372,7 @@ struct war_block {
 	void add_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void rem_attacker(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
 	void rem_defender(association_type, std::string_view tag, error_handler& err, int32_t line, war_history_context& context);
-	void war_goal(history_war_goal const & value, error_handler& err, int32_t line, war_history_context& context) {
+	void war_goal(history_war_goal const& value, error_handler& err, int32_t line, war_history_context& context) {
 		context.wargoals.push_back(value);
 	}
 

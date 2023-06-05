@@ -390,7 +390,7 @@ void pop_history_definition::rebel_type(association_type, std::string_view value
 	}
 }
 
-void pop_province_list::any_group(std::string_view type, pop_history_definition const & def, error_handler& err, int32_t line, pop_history_province_context& context) {
+void pop_province_list::any_group(std::string_view type, pop_history_definition const& def, error_handler& err, int32_t line, pop_history_province_context& context) {
 	dcon::pop_type_id ptype;
 	if(auto it = context.outer_context.map_of_poptypes.find(std::string(type)); it != context.outer_context.map_of_poptypes.end()) {
 		ptype = it->second;
@@ -527,38 +527,38 @@ void poptype_file::equivalent(association_type, std::string_view value, error_ha
 	}
 }
 
-void poptype_file::life_needs(commodity_array const & value, error_handler& err, int32_t line, poptype_context& context) {
+void poptype_file::life_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
 	context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		if(cid.index() < value.data.ssize())
 			context.outer_context.state.world.pop_type_set_life_needs(context.id, cid, value.data[cid]);
 	});
 }
 
-void poptype_file::everyday_needs(commodity_array const & value, error_handler& err, int32_t line, poptype_context& context) {
+void poptype_file::everyday_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
 	context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		if(cid.index() < value.data.ssize())
 			context.outer_context.state.world.pop_type_set_everyday_needs(context.id, cid, value.data[cid]);
 	});
 }
 
-void poptype_file::luxury_needs(commodity_array const & value, error_handler& err, int32_t line, poptype_context& context) {
+void poptype_file::luxury_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
 	context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		if(cid.index() < value.data.ssize())
 			context.outer_context.state.world.pop_type_set_luxury_needs(context.id, cid, value.data[cid]);
 	});
 }
 
-void poptype_file::life_needs_income(income const & value, error_handler& err, int32_t line, poptype_context& context) {
+void poptype_file::life_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
 	// context.outer_context.state.world.pop_type_set_life_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_life_needs_income_type(context.id, uint8_t(value.itype));
 }
 
-void poptype_file::everyday_needs_income(income const & value, error_handler& err, int32_t line, poptype_context& context) {
+void poptype_file::everyday_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
 	// context.outer_context.state.world.pop_type_set_everyday_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_everyday_needs_income_type(context.id, uint8_t(value.itype));
 }
 
-void poptype_file::luxury_needs_income(income const & value, error_handler& err, int32_t line, poptype_context& context) {
+void poptype_file::luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
 	// context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_luxury_needs_income_type(context.id, uint8_t(value.itype));
 }
@@ -1188,12 +1188,12 @@ void issue_option_body::administrative_multiplier(association_type, float value,
 	err.accumulated_errors += "Error, only issues can have an administrative multiplier (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
-void issue_option_body::on_execute(on_execute_body const & value, error_handler& err, int32_t line, individual_option_context& context) {
+void issue_option_body::on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_option_context& context) {
 	context.outer_context.state.world.issue_option_set_on_execute_trigger(context.id, value.trigger);
 	context.outer_context.state.world.issue_option_set_on_execute_effect(context.id, value.effect);
 }
 
-void issue_option_body::on_execute(on_execute_body const & value, error_handler& err, int32_t line, individual_roption_context& context) {
+void issue_option_body::on_execute(on_execute_body const& value, error_handler& err, int32_t line, individual_roption_context& context) {
 	context.outer_context.state.world.reform_option_set_on_execute_trigger(context.id, value.trigger);
 	context.outer_context.state.world.reform_option_set_on_execute_effect(context.id, value.effect);
 }
@@ -1299,7 +1299,7 @@ void tech_rgo_size::any_value(std::string_view label, association_type, float va
 	}
 }
 
-void technology_contents::any_group(std::string_view label, unit_modifier_body const & value, error_handler& err, int32_t line, tech_context& context) {
+void technology_contents::any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line, tech_context& context) {
 	if(auto it = context.outer_context.map_of_unit_types.find(std::string(label)); it != context.outer_context.map_of_unit_types.end()) {
 		sys::unit_modifier temp = value;
 		temp.type = it->second;
@@ -1413,7 +1413,7 @@ void inv_rebel_org_gain::faction(association_type, std::string_view v, error_han
 	}
 }
 
-void inv_effect::any_group(std::string_view label, unit_modifier_body const & value, error_handler& err, int32_t line, invention_context& context) {
+void inv_effect::any_group(std::string_view label, unit_modifier_body const& value, error_handler& err, int32_t line, invention_context& context) {
 	if(auto it = context.outer_context.map_of_unit_types.find(std::string(label)); it != context.outer_context.map_of_unit_types.end()) {
 		sys::unit_modifier temp = value;
 		temp.type = it->second;
@@ -1459,7 +1459,7 @@ void inv_effect::gas_defence(association_type, bool value, error_handler& err, i
 	context.outer_context.state.world.invention_set_enable_gas_defense(context.id, value);
 }
 
-void inv_effect::rebel_org_gain(inv_rebel_org_gain const & value, error_handler& err, int32_t line, invention_context& context) {
+void inv_effect::rebel_org_gain(inv_rebel_org_gain const& value, error_handler& err, int32_t line, invention_context& context) {
 	context.outer_context.state.world.invention_get_rebel_org(context.id).push_back(sys::rebel_org_modifier{value.value, value.faction_});
 }
 
@@ -1471,7 +1471,7 @@ void invention_contents::chance(dcon::value_modifier_key value, error_handler& e
 	context.outer_context.state.world.invention_set_chance(context.id, value);
 }
 
-void invention_contents::effect(inv_effect const & value, error_handler& err, int32_t line, invention_context& context) {
+void invention_contents::effect(inv_effect const& value, error_handler& err, int32_t line, invention_context& context) {
 	for(uint32_t i = 0; i < value.next_to_add_n; ++i) {
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifiers attached to invention (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -1850,7 +1850,7 @@ void oob_army::location(association_type, int32_t value, error_handler& err, int
 	}
 }
 
-void oob_army::leader(oob_leader const & value, error_handler& err, int32_t line, oob_file_army_context& context) {
+void oob_army::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_army_context& context) {
 	if(value.is_general) {
 		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
@@ -1967,7 +1967,7 @@ void oob_relationship::influence_value(association_type, float v, error_handler&
 	}
 }
 
-void oob_file::leader(oob_leader const & value, error_handler& err, int32_t line, oob_file_context& context) {
+void oob_file::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_context& context) {
 	if(value.is_general) {
 		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
 		l_id.set_background(value.background_);
@@ -2275,7 +2275,7 @@ void country_history_file::nonstate_consciousness(association_type, float value,
 	}
 }
 
-void country_history_file::govt_flag(govt_flag_block const & value, error_handler& err, int32_t line, country_history_context& context) {
+void country_history_file::govt_flag(govt_flag_block const& value, error_handler& err, int32_t line, country_history_context& context) {
 	context.outer_context.state.world.national_identity_set_government_flag_type(context.nat_ident, value.government_, uint8_t(value.flag_) + uint8_t(1));
 }
 
@@ -2333,7 +2333,7 @@ void generic_event::desc(association_type, std::string_view value, error_handler
 	desc_ = text::find_or_add_key(context.outer_context.state, value);
 }
 
-void generic_event::option(sys::event_option const & value, error_handler& err, int32_t line, event_building_context& context) {
+void generic_event::option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context) {
 	if(last_option_added < sys::max_event_options) {
 		options[last_option_added] = value;
 		++last_option_added;

@@ -28,13 +28,13 @@ struct global_provincial_state {
 };
 
 template<typename F>
-void for_each_land_province(sys::state& state, F const & func);
+void for_each_land_province(sys::state& state, F const& func);
 template<typename F>
-void for_each_sea_province(sys::state& state, F const & func);
+void for_each_sea_province(sys::state& state, F const& func);
 template<typename F>
-void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const & func);
+void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
 template<typename F>
-void ve_for_each_land_province(sys::state& state, F const & func);
+void ve_for_each_land_province(sys::state& state, F const& func);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void update_connected_regions(sys::state& state);
@@ -42,7 +42,7 @@ void update_cached_values(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 
 template<typename T>
-auto is_overseas(sys::state const & state, T ids);
+auto is_overseas(sys::state const& state, T ids);
 bool can_integrate_colony(sys::state& state, dcon::state_instance_id id);
 dcon::province_id get_connected_province(sys::state& state, dcon::province_adjacency_id adj, dcon::province_id curr);
 float colony_integration_cost(sys::state& state, dcon::state_instance_id id);

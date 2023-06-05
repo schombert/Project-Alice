@@ -9,7 +9,7 @@ int32_t most_recent_price_record_index(sys::state& state) {
 	return (state.current_date.value >> 4) % 32;
 }
 
-float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const & effective_prices);
+float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices);
 void populate_army_consumption(sys::state& state);
 void populate_navy_consumption(sys::state& state);
 void populate_construction_consumption(sys::state& state);
@@ -28,7 +28,7 @@ float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_
 	return 0.f;
 }
 
-bool has_factory(sys::state const & state, dcon::state_instance_id si) {
+bool has_factory(sys::state const& state, dcon::state_instance_id si) {
 	auto sdef = state.world.state_instance_get_definition(si);
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
@@ -41,7 +41,7 @@ bool has_factory(sys::state const & state, dcon::state_instance_id si) {
 	return false;
 }
 
-bool has_building(sys::state const & state, dcon::state_instance_id si, dcon::factory_type_id fac) {
+bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac) {
 	auto sdef = state.world.state_instance_get_definition(si);
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
 	for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
@@ -215,7 +215,7 @@ void initialize(sys::state& state) {
 	});
 }
 
-float sphere_leader_share_factor(sys::state const & state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
+float sphere_leader_share_factor(sys::state const& state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
 	/*
 	Share factor : If the nation is a civ and is a secondary power start with define : SECOND_RANK_BASE_SHARE_FACTOR, and otherwise start with define : CIV_BASE_SHARE_FACTOR.Also calculate the sphere owner's foreign investment in the nation as a fraction of the total foreign investment in the nation (I believe that this is treated as zero if there is no foreign investment at all). The share factor is (1 - base share factor) x sphere owner investment fraction + base share factor. For uncivs, the share factor is simply equal to define:UNCIV_BASE_SHARE_FACTOR (so 1, by default). If a nation isn't in a sphere, we let the share factor be 0 if it needs to be used in any other calculation.
 	*/
@@ -263,13 +263,13 @@ void give_sphere_leader_production(sys::state& state, dcon::nation_id n) {
 	}
 }
 
-float effective_tariff_rate(sys::state const & state, dcon::nation_id n) {
+float effective_tariff_rate(sys::state const& state, dcon::nation_id n) {
 	//- tariff efficiency: define:BASE_TARIFF_EFFICIENCY + national-modifier-to-tariff-efficiency + administrative-efficiency, limited to at most 1.0
 	auto tariff_efficiency = std::clamp(state.defines.base_tariff_efficiency + state.world.nation_get_administrative_efficiency(n) + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tariff_efficiency_modifier), 0.001f, 1.0f);
 	return tariff_efficiency * float(state.world.nation_get_tariffs(n)) / 100.0f;
 }
 
-float global_market_price_multiplier(sys::state const & state, dcon::nation_id n) {
+float global_market_price_multiplier(sys::state const& state, dcon::nation_id n) {
 	auto central_ports = state.world.nation_get_central_ports(n);
 	if(central_ports > 0) {
 		return std::max(0.0f, effective_tariff_rate(state, n)) + float(state.world.nation_get_central_blockaded(n)) / float(central_ports) + 1.0f;
@@ -305,7 +305,7 @@ void update_factory_triggered_modifiers(sys::state& state) {
 	});
 }
 
-float rgo_effective_size(sys::state const & state, dcon::nation_id n, dcon::province_id p) {
+float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p) {
 	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 
 	// - We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size + technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
@@ -318,18 +318,18 @@ float rgo_effective_size(sys::state const & state, dcon::nation_id n, dcon::prov
 
 inline constexpr float rgo_per_size_employment = 40'000.0f;
 
-float rgo_max_employment(sys::state const & state, dcon::nation_id n, dcon::province_id p) {
+float rgo_max_employment(sys::state const& state, dcon::nation_id n, dcon::province_id p) {
 	return rgo_per_size_employment * rgo_effective_size(state, n, p);
 }
 
-int32_t factory_priority(sys::state const & state, dcon::factory_id f) {
+int32_t factory_priority(sys::state const& state, dcon::factory_id f) {
 	return (state.world.factory_get_priority_low(f) ? 1 : 0) + (state.world.factory_get_priority_high(f) ? 2 : 0);
 }
 void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority) {
 	state.world.factory_set_priority_high(f, priority >= 2);
 	state.world.factory_set_priority_low(f, (priority & 1) != 0);
 }
-bool factory_is_profitable(sys::state const & state, dcon::factory_id f) {
+bool factory_is_profitable(sys::state const& state, dcon::factory_id f) {
 	return state.world.factory_get_unprofitable(f) == false || state.world.factory_get_subsidized(f);
 }
 
@@ -360,11 +360,11 @@ void update_rgo_employment(sys::state& state) {
 
 inline constexpr float factory_per_level_employment = 10'000.0f;
 
-float factory_max_employment(sys::state const & state, dcon::factory_id f) {
+float factory_max_employment(sys::state const& state, dcon::factory_id f) {
 	return factory_per_level_employment * state.world.factory_get_level(f);
 }
 
-float factory_total_employment(sys::state const & state, dcon::factory_id f) {
+float factory_total_employment(sys::state const& state, dcon::factory_id f) {
 	// TODO: Document this, also is this a stub?
 	auto primary_employment = state.world.factory_get_primary_employment(f);
 	auto secondary_employment = state.world.factory_get_secondary_employment(f);
@@ -459,7 +459,7 @@ void update_factory_employment(sys::state& state) {
 
 */
 
-float factory_full_production_quantity(sys::state const & state, dcon::factory_id f, dcon::nation_id n, float mobilization_impact) {
+float factory_full_production_quantity(sys::state const& state, dcon::factory_id f, dcon::nation_id n, float mobilization_impact) {
 	auto fac = fatten(state.world, f);
 	auto fac_type = fac.get_building_type();
 
@@ -476,7 +476,7 @@ float factory_full_production_quantity(sys::state const & state, dcon::factory_i
 	return throughput_multiplier * output_multiplier * max_production_scale;
 }
 
-float rgo_full_production_quantity(sys::state const & state, dcon::nation_id n, dcon::province_id p) {
+float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, dcon::province_id p) {
 	/*
 	- We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size + technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
 	- We add its production to domestic supply, calculating that amount basically in the same way we do for factories, by computing RGO-throughput x RGO-output x RGO-size x base-commodity-production-quantity, except that it is affected by different modifiers.
@@ -492,7 +492,7 @@ float rgo_full_production_quantity(sys::state const & state, dcon::nation_id n, 
 
 inline constexpr float production_scale_delta = 0.05f;
 
-void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, ve::vectorizable_buffer<float, dcon::commodity_id> const & effective_prices, float mobilization_impact, float expected_min_wage, bool occupied, bool overseas) {
+void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, float mobilization_impact, float expected_min_wage, bool occupied, bool overseas) {
 
 	auto fac = fatten(state.world, f);
 	auto fac_type = fac.get_building_type();
@@ -647,7 +647,7 @@ void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon
 	}
 }
 
-void update_province_artisan_consumption(sys::state& state, dcon::province_id p, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const & effective_prices, float mobilization_impact, float expected_min_wage, bool occupied) {
+void update_province_artisan_consumption(sys::state& state, dcon::province_id p, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, float mobilization_impact, float expected_min_wage, bool occupied) {
 
 	if((state.current_date.to_raw_value() & 63) == (p.value & 63)) {
 		randomly_assign_artisan_production(state, p); // randomly switch once every other month
@@ -966,7 +966,7 @@ void populate_private_construction_consumption(sys::state& state) {
 	}
 }
 
-float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const & effective_prices) {
+float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices) {
 
 	float total = 0.0f;
 	uint32_t total_commodities = state.world.commodity_size();
@@ -1060,7 +1060,7 @@ float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_
 	return total;
 }
 
-float full_private_investment_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const & effective_prices) {
+float full_private_investment_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices) {
 
 	float total = 0.0f;
 	uint32_t total_commodities = state.world.commodity_size();
@@ -1071,7 +1071,7 @@ float full_private_investment_cost(sys::state& state, dcon::nation_id n, ve::vec
 	return total;
 }
 
-void update_national_consumption(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const & effective_prices, float spending_scale) { // returns: national spending level
+void update_national_consumption(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, float spending_scale) { // returns: national spending level
 
 	uint32_t total_commodities = state.world.commodity_size();
 
@@ -1212,7 +1212,7 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, dcon::province
 	});
 }
 
-void populate_needs_costs(sys::state& state, ve::vectorizable_buffer<float, dcon::commodity_id> const & effective_prices, dcon::nation_id n, float base_demand, float invention_factor) {
+void populate_needs_costs(sys::state& state, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, dcon::nation_id n, float base_demand, float invention_factor) {
 
 	/*
 	- Each pop strata and needs type has its own demand modifier, calculated as follows:

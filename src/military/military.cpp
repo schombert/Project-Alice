@@ -1706,6 +1706,16 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
 		effect::execute(state, on_add, trigger::to_generic(added_by), trigger::to_generic(added_by), trigger::to_generic(target), uint32_t(state.current_date.value), uint32_t((added_by.index() << 7) ^ target.index() ^ (type.index() << 3)));
 	}
+
+	if((state.world.cb_type_get_type_bits(type) & cb_flag::always) == 0) {
+		auto cb_set = state.world.nation_get_available_cbs(added_by);
+		for(uint32_t i = cb_set.size(); i-- > 0;) {
+			if(cb_set.at(i).cb_type == type && cb_set.at(i).target == target) {
+				cb_set.remove_at(i);
+				break;
+			}
+		}
+	}
 }
 
 void join_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool is_attacker) {

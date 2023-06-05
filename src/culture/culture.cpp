@@ -582,11 +582,11 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation, dcon::in
 	}
 }
 
-uint32_t get_remapped_flag_type(sys::state const & state, flag_type type) {
+uint32_t get_remapped_flag_type(sys::state const& state, flag_type type) {
 	return state.flag_type_map[static_cast<size_t>(type)];
 }
 
-flag_type get_current_flag_type(sys::state const & state, dcon::nation_id target_nation) {
+flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation) {
 	auto gov_type = state.world.nation_get_government_type(target_nation);
 	auto id = state.world.national_identity_get_government_flag_type(
 	    state.world.nation_get_identity_from_identity_holder(target_nation),
@@ -596,7 +596,7 @@ flag_type get_current_flag_type(sys::state const & state, dcon::nation_id target
 	return state.culture_definitions.governments[gov_type].flag;
 }
 
-flag_type get_current_flag_type(sys::state const & state, dcon::national_identity_id identity) {
+flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity) {
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(identity);
 	if(holder && state.world.nation_get_owned_province_count(holder) > 0) {
 		return get_current_flag_type(state, holder);

@@ -4,7 +4,7 @@
 
 namespace diplomatic_message {
 
-void decline(sys::state& state, message const & m) {
+void decline(sys::state& state, message const& m) {
 	switch(m.type) {
 	case type::none:
 		std::abort();
@@ -49,7 +49,7 @@ void decline(sys::state& state, message const & m) {
 		break;
 	}
 }
-void accept(sys::state& state, message const & m) {
+void accept(sys::state& state, message const& m) {
 	switch(m.type) {
 	case type::none:
 		std::abort();
@@ -97,7 +97,7 @@ void accept(sys::state& state, message const & m) {
 	}
 }
 
-void post(sys::state& state, message const & m) {
+void post(sys::state& state, message const& m) {
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
 		// TODO : call AI logic to decide responses to requests
 

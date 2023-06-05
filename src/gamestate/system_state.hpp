@@ -265,15 +265,15 @@ struct alignas(64) state {
 
 	std::string_view to_string_view(dcon::text_key tag) const; // takes a stored tag and give you the text
 
-	dcon::text_key add_to_pool(std::string const & text); // returns the newly added text
+	dcon::text_key add_to_pool(std::string const& text); // returns the newly added text
 	dcon::text_key add_to_pool(std::string_view text);
-	dcon::text_key add_to_pool_lowercase(std::string const & text); // these functions are as above, but force the text into lower case
+	dcon::text_key add_to_pool_lowercase(std::string const& text); // these functions are as above, but force the text into lower case
 	dcon::text_key add_to_pool_lowercase(std::string_view text);
 
 	// searches the string pool for any existing string, appends if it is new
 	// use this function sparingly; i.e. only when you think it is likely that
 	// the text has already been added. Searching *all* the text may not be cheap
-	dcon::text_key add_unique_to_pool(std::string const & text);
+	dcon::text_key add_unique_to_pool(std::string const& text);
 
 	dcon::unit_name_id add_unit_name(std::string_view text);       // returns the newly added text
 	std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text

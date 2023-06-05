@@ -217,35 +217,35 @@ int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target)
 
 } // namespace influence
 
-dcon::nation_id get_nth_great_power(sys::state const & state, uint16_t n);
+dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
 
 // returns whether a culture is on the accepted list OR is the primary culture
 template<typename T, typename U>
-auto nation_accepts_culture(sys::state const & state, T ids, U c);
+auto nation_accepts_culture(sys::state const& state, T ids, U c);
 
 template<typename T>
-auto primary_culture_group(sys::state const & state, T ids);
+auto primary_culture_group(sys::state const& state, T ids);
 template<typename T>
-auto owner_of_pop(sys::state const & state, T pop_ids);
+auto owner_of_pop(sys::state const& state, T pop_ids);
 template<typename T>
-auto central_reb_controlled_fraction(sys::state const & state, T ids);
+auto central_reb_controlled_fraction(sys::state const& state, T ids);
 template<typename T>
-auto central_blockaded_fraction(sys::state const & state, T ids);
+auto central_blockaded_fraction(sys::state const& state, T ids);
 template<typename T>
-auto central_has_crime_fraction(sys::state const & state, T ids);
+auto central_has_crime_fraction(sys::state const& state, T ids);
 template<typename T>
-auto occupied_provinces_fraction(sys::state const & state, T ids);
+auto occupied_provinces_fraction(sys::state const& state, T ids);
 
-bool can_release_as_vassal(sys::state const & state, dcon::nation_id n, dcon::national_identity_id releasable);
-bool identity_has_holder(sys::state const & state, dcon::national_identity_id ident);
-dcon::nation_id get_relationship_partner(sys::state const & state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
+bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
+bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
+dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
 
 void update_cached_values(sys::state& state);
 void restore_unsaved_values(sys::state& state);
 void restore_state_instances(sys::state& state);
 void generate_initial_state_instances(sys::state& state);
 
-dcon::text_sequence_id name_from_tag(sys::state const & state, dcon::national_identity_id tag);
+dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag);
 
 void update_administrative_efficiency(sys::state& state);
 
@@ -257,8 +257,8 @@ void update_military_scores(sys::state& state);
 void update_rankings(sys::state& state);
 void update_ui_rankings(sys::state& state);
 
-bool is_great_power(sys::state const & state, dcon::nation_id n);
-float prestige_score(sys::state const & state, dcon::nation_id n);
+bool is_great_power(sys::state const& state, dcon::nation_id n);
+float prestige_score(sys::state const& state, dcon::nation_id n);
 
 enum class status : uint8_t {
 	great_power,
@@ -270,10 +270,10 @@ enum class status : uint8_t {
 };
 status get_status(sys::state& state, dcon::nation_id n);
 
-dcon::technology_id current_research(sys::state const & state, dcon::nation_id n);
-float suppression_points(sys::state const & state, dcon::nation_id n);
-float diplomatic_points(sys::state const & state, dcon::nation_id n);
-float leadership_points(sys::state const & state, dcon::nation_id n);
+dcon::technology_id current_research(sys::state const& state, dcon::nation_id n);
+float suppression_points(sys::state const& state, dcon::nation_id n);
+float diplomatic_points(sys::state const& state, dcon::nation_id n);
+float leadership_points(sys::state const& state, dcon::nation_id n);
 float get_treasury(sys::state& state, dcon::nation_id n);
 float get_bank_funds(sys::state& state, dcon::nation_id n);
 float get_debt(sys::state& state, dcon::nation_id n);
@@ -291,7 +291,7 @@ int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n);
 bool can_expand_colony(sys::state& state, dcon::nation_id n);
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
-bool is_involved_in_crisis(sys::state const & state, dcon::nation_id n);
+bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 

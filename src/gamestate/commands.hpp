@@ -63,6 +63,7 @@ enum class command_type : uint8_t {
 	cancel_alliance = 53,
 	cancel_given_military_access = 54,
 	declare_war = 55,
+	add_war_goal = 56,
 };
 
 struct national_focus_data {
@@ -234,10 +235,19 @@ struct cb_fabrication_data {
 
 struct new_war_data {
 	dcon::nation_id target;
-	dcon::cb_type_id primary_cb;
 	dcon::state_definition_id cb_state;
 	dcon::national_identity_id cb_tag;
 	dcon::nation_id cb_secondary_nation;
+	dcon::cb_type_id primary_cb;
+};
+
+struct new_war_goal_data {
+	dcon::nation_id target;
+	dcon::state_definition_id cb_state;
+	dcon::national_identity_id cb_tag;
+	dcon::nation_id cb_secondary_nation;
+	dcon::war_id war;
+	dcon::cb_type_id cb_type;
 };
 
 struct payload {
@@ -272,6 +282,7 @@ struct payload {
 		message_data message;
 		call_to_arms_data call_to_arms;
 		new_war_data new_war;
+		new_war_goal_data new_war_goal;
 
 		dtype() { }
 	} data;
@@ -452,6 +463,9 @@ bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source,
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+
+void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
 void execute_pending_commands(sys::state& state);
 
