@@ -960,17 +960,17 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name.substr(0, 13) == "topbar_import") {
 			auto ptr = make_element_by_type<topbar_commodity_xport_icon>(state, id);
-			ptr->slot = std::stoi(std::string{name.substr(13)});
+			ptr->slot = uint8_t(std::stoi(std::string{name.substr(13)}));
 			import_icons.push_back(ptr.get());
 			return ptr;
 		} else if(name.substr(0, 13) == "topbar_export") {
 			auto ptr = make_element_by_type<topbar_commodity_xport_icon>(state, id);
-			ptr->slot = std::stoi(std::string{name.substr(13)});
+			ptr->slot = uint8_t(std::stoi(std::string{name.substr(13)}));
 			export_icons.push_back(ptr.get());
 			return ptr;
 		} else if(name.substr(0, 15) == "topbar_produced") {
 			auto ptr = make_element_by_type<topbar_commodity_xport_icon>(state, id);
-			ptr->slot = std::stoi(std::string{name.substr(15)});
+			ptr->slot = uint8_t(std::stoi(std::string{name.substr(15)}));
 			produced_icons.push_back(ptr.get());
 			return ptr;
 		} else {
