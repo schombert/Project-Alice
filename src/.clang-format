@@ -25,3 +25,4 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 ReferenceAlignment: Left
 PointerAlignment: Left
+QualifierAlignment: Right

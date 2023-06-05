@@ -770,7 +770,7 @@ void cb_body::po_destroy_naval_bases(association_type, bool value, error_handler
 }
 
 void cb_body::war_name(association_type, std::string_view value, error_handler& err, int32_t line, individual_cb_context& context) {
-	context.outer_context.state.world.cb_type_set_war_name(context.id, text::find_or_add_key(context.outer_context.state, value));
+	context.outer_context.state.world.cb_type_set_war_name(context.id, text::find_or_add_key(context.outer_context.state, std::string("normal_") + std::string(value)));
 }
 
 void cb_body::badboy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {

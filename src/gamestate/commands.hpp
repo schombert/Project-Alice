@@ -62,6 +62,7 @@ enum class command_type : uint8_t {
 	cancel_military_access = 52,
 	cancel_alliance = 53,
 	cancel_given_military_access = 54,
+	declare_war = 55,
 };
 
 struct national_focus_data {
@@ -231,6 +232,14 @@ struct cb_fabrication_data {
 	dcon::cb_type_id type;
 };
 
+struct new_war_data {
+	dcon::nation_id target;
+	dcon::cb_type_id primary_cb;
+	dcon::state_definition_id cb_state;
+	dcon::national_identity_id cb_tag;
+	dcon::nation_id cb_secondary_nation;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -262,6 +271,7 @@ struct payload {
 		cb_fabrication_data cb_fabrication;
 		message_data message;
 		call_to_arms_data call_to_arms;
+		new_war_data new_war;
 
 		dtype() { }
 	} data;
@@ -439,6 +449,9 @@ bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation
 
 void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target); // this is for cancelling the access someone has with you
 bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
 void execute_pending_commands(sys::state& state);
 

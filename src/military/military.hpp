@@ -99,7 +99,7 @@ void restore_unsaved_values(sys::state& state); // must run after determining co
 bool are_at_war(sys::state const & state, dcon::nation_id a, dcon::nation_id b);
 bool are_allied_in_war(sys::state const & state, dcon::nation_id a, dcon::nation_id b);
 dcon::war_id find_war_between(sys::state const & state, dcon::nation_id a, dcon::nation_id b);
-bool has_truce_with(sys::state const & state, dcon::nation_id attacker, dcon::nation_id target);
+bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 bool joining_war_does_not_violate_constraints(sys::state const & state, dcon::nation_id a, dcon::war_id w, bool as_attacker); // tests whether joining the war would violate the constraint that you can't both be in a war with and fighting against the same nation or fighting against them twice
@@ -153,6 +153,7 @@ void monthly_leaders_update(sys::state& state);
 void daily_leaders_update(sys::state& state);
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
+bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
 
@@ -160,10 +161,10 @@ void give_military_access(sys::state& state, dcon::nation_id accessing_nation, d
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
 void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 
-dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender, dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state, dcon::national_identity_id primary_wargoal_tag);
+dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender, dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state, dcon::national_identity_id primary_wargoal_tag, dcon::nation_id primary_wargoal_secondary);
 void call_defender_allies(sys::state& state, dcon::war_id wfor);
 void call_attacker_allies(sys::state& state, dcon::war_id wfor);
-void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id sd, dcon::national_identity_id tag);
+void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id sd, dcon::national_identity_id tag, dcon::nation_id secondary_nation);
 
 float truce_break_cb_prestige_cost(sys::state& state, dcon::cb_type_id type);
 float truce_break_cb_militancy(sys::state& state, dcon::cb_type_id type);

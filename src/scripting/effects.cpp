@@ -2875,9 +2875,9 @@ uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 	if(!target)
 		return 0;
 
-	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[2]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[3]).prov_id), trigger::payload(tval[4]).tag_id);
+	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[2]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[3]).prov_id), trigger::payload(tval[4]).tag_id, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[4]).tag_id));
 	if(trigger::payload(tval[5]).cb_id) {
-		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[5]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id), trigger::payload(tval[7]).tag_id);
+		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[5]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id), trigger::payload(tval[7]).tag_id, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[7]).tag_id));
 	}
 	military::call_defender_allies(ws, war);
 	military::call_attacker_allies(ws, war);
@@ -2886,9 +2886,9 @@ uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 uint32_t ef_war_this_nation(EFFECT_PARAMTERS) {
 	auto target = trigger::to_nation(this_slot);
 
-	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[1]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[2]).prov_id), trigger::payload(tval[3]).tag_id);
+	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[1]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[2]).prov_id), trigger::payload(tval[3]).tag_id, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[3]).tag_id));
 	if(trigger::payload(tval[4]).cb_id) {
-		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[4]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id), trigger::payload(tval[6]).tag_id);
+		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[4]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id), trigger::payload(tval[6]).tag_id, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[6]).tag_id));
 	}
 	military::call_defender_allies(ws, war);
 	military::call_attacker_allies(ws, war);
@@ -2922,9 +2922,9 @@ uint32_t ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 	if(!target)
 		return 0;
 
-	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[2]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[3]).prov_id), trigger::payload(tval[4]).tag_id);
+	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[2]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[3]).prov_id), trigger::payload(tval[4]).tag_id, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[4]).tag_id));
 	if(trigger::payload(tval[5]).cb_id) {
-		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[5]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id), trigger::payload(tval[7]).tag_id);
+		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[5]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id), trigger::payload(tval[7]).tag_id, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[7]).tag_id));
 	}
 	military::call_defender_allies(ws, war);
 	return 0;
@@ -2932,9 +2932,9 @@ uint32_t ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 uint32_t ef_war_no_ally_this_nation(EFFECT_PARAMTERS) {
 	auto target = trigger::to_nation(this_slot);
 
-	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[1]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[2]).prov_id), trigger::payload(tval[3]).tag_id);
+	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[1]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[2]).prov_id), trigger::payload(tval[3]).tag_id, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[3]).tag_id));
 	if(trigger::payload(tval[4]).cb_id) {
-		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[4]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id), trigger::payload(tval[6]).tag_id);
+		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[4]).cb_id, ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id), trigger::payload(tval[6]).tag_id, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[6]).tag_id));
 	}
 	military::call_defender_allies(ws, war);
 	return 0;
@@ -3545,7 +3545,7 @@ uint32_t ef_dominant_issue_nation(EFFECT_PARAMTERS) {
 }
 uint32_t ef_add_war_goal(EFFECT_PARAMTERS) {
 	if(auto w = military::find_war_between(ws, trigger::to_nation(primary_slot), trigger::to_nation(from_slot)); w) {
-		military::add_wargoal(ws, w, trigger::to_nation(from_slot), trigger::to_nation(primary_slot), trigger::payload(tval[1]).cb_id, dcon::state_definition_id{}, dcon::national_identity_id{});
+		military::add_wargoal(ws, w, trigger::to_nation(from_slot), trigger::to_nation(primary_slot), trigger::payload(tval[1]).cb_id, dcon::state_definition_id{}, dcon::national_identity_id{}, trigger::to_nation(primary_slot));
 	}
 	return 0;
 }

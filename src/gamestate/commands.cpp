@@ -1552,7 +1552,7 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 				}
 			}
 			assert(status_quo);
-			military::add_wargoal(state, w, source, state.world.war_get_primary_attacker(w), status_quo, dcon::state_definition_id{}, dcon::national_identity_id{});
+			military::add_wargoal(state, w, source, state.world.war_get_primary_attacker(w), status_quo, dcon::state_definition_id{}, dcon::national_identity_id{}, dcon::nation_id{});
 		}
 	}
 	auto wp = fatten(state.world, state.world.force_create_war_participant(w, source));
@@ -2325,6 +2325,95 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 	nations::adjust_relationship(state, source, target, state.defines.cancelalliance_relation_on_accept);
 }
 
+void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::declare_war;
+	p.source = source;
+	p.data.new_war.target = target;
+	p.data.new_war.primary_cb = primary_cb;
+	p.data.new_war.cb_state = cb_state;
+	p.data.new_war.cb_tag = cb_tag;
+	p.data.new_war.cb_secondary_nation = cb_secondary_nation;
+	auto b = state.incoming_commands.try_push(p);
+}
+
+bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+
+	dcon::nation_id real_target = target;
+
+	auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
+	if(state.world.overlord_get_ruler(target_ol_rel))
+		real_target = state.world.overlord_get_ruler(target_ol_rel);
+
+	if(military::are_allied_in_war(state, source, real_target) || military::are_at_war(state, source, real_target))
+		return false;
+
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(real_target, source);
+	if(state.world.diplomatic_relation_get_are_allied(rel))
+		return false;
+
+	auto source_ol_rel = state.world.nation_get_overlord_as_subject(source);
+	if(state.world.overlord_get_ruler(source_ol_rel) != real_target)
+		return false;
+	if(state.world.nation_get_in_sphere_of(real_target) == source)
+		return false;
+
+	if(state.world.nation_get_diplomatic_points(source) < state.defines.declarewar_diplomatic_cost)
+		return false;
+
+	// check CB validity
+	if(!military::cb_instance_conditions_satisfied(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation))
+		return false;
+
+	return false;
+}
+
+void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+
+	if(!can_declare_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation)) {
+		return;
+	}
+
+	state.world.nation_get_diplomatic_points(source) -= state.defines.declarewar_diplomatic_cost;
+	nations::adjust_relationship(state, source, target, state.defines.declarewar_relation_on_accept);
+
+	dcon::nation_id real_target = target;
+
+	auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
+	if(state.world.overlord_get_ruler(target_ol_rel))
+		real_target = state.world.overlord_get_ruler(target_ol_rel);
+
+	if(military::has_truce_with(state, source, real_target)) {
+		auto cb_infamy = military::truce_break_cb_infamy(state, primary_cb);
+		auto cb_militancy = military::truce_break_cb_militancy(state, primary_cb);
+		auto cb_prestige_loss = military::truce_break_cb_prestige_cost(state, primary_cb);
+
+		state.world.nation_get_infamy(source) += cb_infamy;
+		nations::adjust_prestige(state, source, cb_prestige_loss);
+
+		for(auto prov : state.world.nation_get_province_ownership(source)) {
+			for(auto pop : prov.get_province().get_pop_location()) {
+				auto& mil = pop.get_pop().get_militancy();
+				mil = std::min(mil + cb_militancy, 10.0f);
+			}
+		}
+	}
+
+	// remove used cb
+	auto current_cbs = state.world.nation_get_available_cbs(source);
+	for(uint32_t i = current_cbs.size(); i-- > 0;) {
+		if(current_cbs[i].cb_type == primary_cb && current_cbs[i].target == target) {
+			current_cbs.remove_at(i);
+			break;
+		}
+	}
+
+	auto war = military::create_war(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation);
+	military::call_defender_allies(state, war);
+}
+
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
 	bool command_executed = false;
@@ -2496,6 +2585,9 @@ void execute_pending_commands(sys::state& state) {
 			break;
 		case command_type::cancel_given_military_access:
 			execute_cancel_given_military_access(state, c->source, c->data.diplo_action.target);
+			break;
+		case command_type::declare_war:
+			execute_declare_war(state, c->source, c->data.new_war.target, c->data.new_war.primary_cb, c->data.new_war.cb_state, c->data.new_war.cb_tag, c->data.new_war.cb_secondary_nation);
 			break;
 		}
 
