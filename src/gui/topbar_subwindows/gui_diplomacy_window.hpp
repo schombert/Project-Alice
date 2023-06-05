@@ -267,10 +267,7 @@ public:
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
 
-			disabled = !military::are_at_war(state, state.local_player_nation, content);
-			if(disabled) {
-				disabled = !(state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost);
-			}
+			disabled = !(military::are_at_war(state, state.local_player_nation, content) && state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost)
 		}
 	}
 

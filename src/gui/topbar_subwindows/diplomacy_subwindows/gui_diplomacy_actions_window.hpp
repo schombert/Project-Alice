@@ -1000,12 +1000,8 @@ public:
 		if(parent) {
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::nation_id>(payload);
-
-			// TODO: Conditions for enabling/disabling
-			disabled = false;
-			if(content == state.local_player_nation)
-				disabled = true;
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
+			disabled = !(!military::are_at_war(state, state.local_player_nation, content) && state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.make_cb_diplomatic_cost);
 		}
 	}
 
