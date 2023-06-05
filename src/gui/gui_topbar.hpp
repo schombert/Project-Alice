@@ -993,8 +993,13 @@ public:
 			e->set_visible(state, false);
 
 		{
-			std::map<float, dcon::commodity_id::value_base_t> v;
+			std::map<float, int32_t> v;
 			for(dcon::commodity_id cid : state.world.in_commodity) {
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods
+				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods
+				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods
+				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
+					return;
 				float produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, cid);
 				float consumed = state.world.nation_get_real_demand(state.local_player_nation, cid) * state.world.nation_get_demand_satisfaction(state.local_player_nation, cid);
 				v.insert({ produced - consumed, cid.index() });
@@ -1004,7 +1009,7 @@ public:
 			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
 				for(const auto& e : export_icons)
 					if(e->slot == slot) {
-						dcon::commodity_id cid = dcon::commodity_id(it->second);
+						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
 						e->frame = state.world.commodity_get_icon(cid);
 						e->commodity_id = cid;
 						e->amount = it->first;
@@ -1016,7 +1021,7 @@ public:
 			for(auto it = v.begin(); it != v.end(); it++) {
 				for(const auto& e : import_icons)
 					if(e->slot == slot) {
-						dcon::commodity_id cid = dcon::commodity_id(it->second);
+						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
 						e->frame = state.world.commodity_get_icon(cid);
 						e->commodity_id = cid;
 						e->amount = it->first;
@@ -1027,8 +1032,13 @@ public:
 		}
 
 		{
-			std::map<float, dcon::commodity_id::value_base_t> v;
+			std::map<float, int32_t> v;
 			for(dcon::commodity_id cid : state.world.in_commodity) {
+				if(sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::military_goods
+				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::raw_material_goods
+				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::industrial_goods
+				&& sys::commodity_group(state.world.commodity_get_commodity_group(cid)) != sys::commodity_group::consumer_goods)
+					return;
 				v.insert({ state.world.nation_get_domestic_market_pool(state.local_player_nation, cid), cid.index() });
 			}
 
@@ -1036,7 +1046,7 @@ public:
 			for(auto it = std::rbegin(v); it != std::rend(v); it++) {
 				for(const auto& e : produced_icons)
 					if(e->slot == slot) {
-						dcon::commodity_id cid = dcon::commodity_id(it->second);
+						dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(it->second));
 						e->frame = state.world.commodity_get_icon(cid);
 						e->commodity_id = cid;
 						e->amount = it->first;
