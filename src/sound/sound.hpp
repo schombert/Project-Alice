@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #ifdef _WIN64
-// Fix for windows
+#include "sound_win.hpp"
 #else
 #include "sound_nix.hpp"
 #endif

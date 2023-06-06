@@ -4,11 +4,8 @@
 
 #ifdef _WIN64
 
-// Probably better to forward declare HWND and HDC instead
-#include "Windows.h"
-#include "Windowsx.h"
-#include "wglew.h"
-#include "sound.hpp"
+typedef struct HWND__* HWND;
+typedef struct HDC__* HDC;
 
 namespace window {
 	class window_data_impl {
@@ -29,8 +26,6 @@ struct GLFWwindow;
 namespace window {
 class window_data_impl {
 public:
-	// HWND hwnd = nullptr;
-	// HDC opengl_window_dc = nullptr;
 	GLFWwindow* window = nullptr;
 
 	int32_t creation_x_size = 600;
