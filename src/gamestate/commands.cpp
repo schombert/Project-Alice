@@ -741,6 +741,10 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
+inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const & values) {
+	return true;
+}
+
 void change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const & values) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -1905,6 +1909,10 @@ void execute_take_sides_in_crisis(sys::state& state, dcon::nation_id source, boo
 	}
 }
 
+bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
+	return true;
+}
+
 void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount, bool draw_on_stockpiles) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -2078,6 +2086,10 @@ void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::natio
 	state.world.nation_set_constructing_cb_target(source, target);
 	state.world.nation_set_constructing_cb_type(source, type);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.make_cb_diplomatic_cost;
+}
+
+bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
+	return true;
 }
 
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {

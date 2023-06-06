@@ -212,7 +212,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		return 0;
 	}
 	case WM_SIZE: {
-		sys::window_state t = sys::window_state::normal;
+		window::window_state t = window::window_state::normal;
 
 				if(wParam == SIZE_MAXIMIZED) {
 					t = window_state::maximized;
