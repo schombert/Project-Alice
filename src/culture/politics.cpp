@@ -551,7 +551,37 @@ struct party_vote {
 void start_election(sys::state& state, dcon::nation_id n) {
 	if(state.world.nation_get_election_ends(n) < state.current_date) {
 		state.world.nation_set_election_ends(n, state.current_date + int32_t(state.defines.campaign_duration) * 30);
-		// TODO: Notify player
+
+		notification::message m;
+		m.type = sys::message_setting_type::electionstart;
+		m.primary = n;
+		m.title = [&](sys::state& state, text::layout& layout) {
+			auto contents = text::create_endless_layout(
+			    layout,
+			    text::layout_parameters{ 0, 0, 512, 512, 0, 0, text::alignment::center, text::text_color::white });
+			
+			auto box = text::open_layout_box(contents);
+			text::localised_single_sub_box(state, contents, box, std::string_view("electionstart_header"), text::variable_type::country, n);
+			text::close_layout_box(contents, box);
+		};
+		m.body = [&](sys::state& state, text::layout& layout) {
+			auto contents = text::create_endless_layout(
+			    layout,
+			    text::layout_parameters{ 0, 0, 512, 512, 0, 0, text::alignment::center, text::text_color::white });
+
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			text::add_to_substitution_map(sub, text::variable_type::details, state.world.nation_get_election_ends(n));
+			text::localised_format_box(state, contents, box, std::string_view("electionstart_1"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("electionstart_2"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("electionstart_3"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("electionstart_4"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("electionstart_5"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("electionstart_6"), sub);
+			text::close_layout_box(contents, box);
+		};
+		notification::post(state, m);
 	}
 }
 
