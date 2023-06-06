@@ -114,6 +114,7 @@ public:
 			auto ptr = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
+			ptr->black_text = false;
 			count_text = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}

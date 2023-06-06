@@ -60,6 +60,7 @@ public:
 			auto ptr = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
+			ptr->black_text = false;
 			count_text = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
@@ -121,8 +122,17 @@ public:
 			count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
 
 			auto const& m = messages[index];
-			m.title(state, title_text->internal_layout);
-			m.body(state, desc_text->internal_layout);
+
+			auto title_container = text::create_endless_layout(
+				title_text->internal_layout,
+				text::layout_parameters{0, 0, title_text->base_data.size.x, title_text->base_data.size.y, title_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white
+			});
+			m.title(state, title_container);
+			auto desc_container = text::create_endless_layout(
+				desc_text->internal_layout,
+				text::layout_parameters{0, 0, desc_text->base_data.size.x, desc_text->base_data.size.y, desc_text->base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white
+			});
+			m.body(state, desc_container);
 		}
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
