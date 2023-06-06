@@ -16,7 +16,8 @@
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "gui_election_window.hpp"
-#include "gui_msg_window.hpp"
+#include "gui_diplomacy_request_window.hpp"
+#include "gui_message_window.hpp"
 #include "demographics.hpp"
 #include <algorithm>
 #include <thread>
@@ -193,14 +194,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Diplomatic messages
 			auto* c5 = new_requests.front();
 			while(c5) {
-				static_cast<ui::msg_window*>(ui_state.msg_window)->messages.push_back(*c5);
+				static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
 				new_requests.pop();
 				c5 = new_requests.front();
 			}
 			// Log messages
 			auto* c6 = new_messages.front();
 			while(c6) {
-				static_cast<ui::msg_log_window*>(ui_state.message_log_window)->messages.push_back(*c6);
+				// TODO: Configure as you wish >:), i.e do not show messages marked to not be shown on le popups
+				static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
+				static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
 				new_messages.pop();
 				c6 = new_messages.front();
 			}
@@ -211,8 +214,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.national_event_window->set_visible(*this, true);
 		if(!static_cast<ui::provincial_event_window*>(ui_state.provincial_event_window)->events.empty())
 			ui_state.provincial_event_window->set_visible(*this, true);
-		if(!static_cast<ui::msg_window*>(ui_state.msg_window)->messages.empty())
-			ui_state.msg_window->set_visible(*this, true);
+		if(!static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.empty())
+			ui_state.request_window->set_visible(*this, true);
 
 		ui_state.root->impl_on_update(*this);
 		map_mode::update_map_mode(*this);
@@ -449,7 +452,12 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::msg_window>(*this, "defaultdialog");
+		auto new_elm = ui::make_element_by_type<ui::diplomacy_request_window>(*this, "defaultdialog");
+		ui_state.request_window = new_elm.get();
+		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::message_window>(*this, "defaultpopup");
 		ui_state.msg_window = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}

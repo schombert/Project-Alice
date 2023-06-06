@@ -6,12 +6,8 @@
 
 namespace ui {
 
-struct diplo_reply_taken_notification {
-	int a = 0;
-};
-
 template<bool Left>
-class msg_lr_button : public button_element_base {
+class diplomacy_request_lr_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -26,8 +22,11 @@ public:
 	}
 };
 
+struct diplomacy_reply_taken_notification {
+	int dummy = 0;
+};
 template<bool B>
-class msg_reply_button : public button_element_base {
+class diplomacy_request_reply_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
@@ -36,16 +35,16 @@ public:
 			diplomatic_message::message m = any_cast<diplomatic_message::message>(payload);
 			command::respond_to_diplomatic_message(state, state.local_player_nation, m.from, m.type, B);
 
-			Cyto::Any n_payload = diplo_reply_taken_notification{};
+			Cyto::Any n_payload = diplomacy_reply_taken_notification{};
 			parent->impl_get(state, n_payload);
 		}
 	}
 };
 
-class msg_title_text : public generic_simple_text<diplomatic_message::message> {
+class diplomacy_request_title_text : public generic_simple_text<diplomatic_message::message> {
 public:
-	std::string get_text(sys::state& state, diplomatic_message::message msg) noexcept override {
-		switch(msg.type) {
+	std::string get_text(sys::state& state, diplomatic_message::message diplomacy_request) noexcept override {
+		switch(diplomacy_request.type) {
 		case diplomatic_message::type_t::none:
 			return std::string("???");
 		case diplomatic_message::type_t::access_request:
@@ -63,14 +62,14 @@ public:
 	}
 };
 
-class msg_desc_text : public generic_multiline_text<diplomatic_message::message> {
+class diplomacy_request_desc_text : public generic_multiline_text<diplomatic_message::message> {
 public:
-	void populate_layout(sys::state& state, text::endless_layout& contents, diplomatic_message::message msg) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents, diplomatic_message::message diplomacy_request) noexcept override {
 		auto box = text::open_layout_box(contents);
 
 		text::substitution_map sub{};
-		text::add_to_substitution_map(sub, text::variable_type::actor, state.world.nation_get_name(msg.from));
-		switch(msg.type) {
+		text::add_to_substitution_map(sub, text::variable_type::actor, state.world.nation_get_name(diplomacy_request.from));
+		switch(diplomacy_request.type) {
 		case diplomatic_message::type_t::none:
 			break;
 		case diplomatic_message::type_t::access_request:
@@ -94,7 +93,7 @@ public:
 	}
 };
 
-class msg_window : public window_element_base {
+class diplomacy_request_window : public window_element_base {
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
 
@@ -105,7 +104,7 @@ public:
 		window_element_base::on_create(state);
 		xy_pair cur_pos{0, 0};
 		{
-			auto ptr = make_element_by_type<msg_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_request_lr_button<false>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
 			cur_pos.y = ptr->base_data.size.y * 1;
 			ptr->base_data.position = cur_pos;
@@ -119,7 +118,7 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<msg_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_request_lr_button<true>>(state, state.ui_state.defs_by_name.find("alice_left_right_button")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
 			add_child_to_front(std::move(ptr));
@@ -129,13 +128,13 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "title") {
-			return make_element_by_type<msg_title_text>(state, id);
+			return make_element_by_type<diplomacy_request_title_text>(state, id);
 		} else if(name == "description") {
-			return make_element_by_type<msg_desc_text>(state, id);
+			return make_element_by_type<diplomacy_request_desc_text>(state, id);
 		} else if(name == "agreebutton") {
-			return make_element_by_type<msg_reply_button<true>>(state, id);
+			return make_element_by_type<diplomacy_request_reply_button<true>>(state, id);
 		} else if(name == "declinebutton") {
-			return make_element_by_type<msg_reply_button<false>>(state, id);
+			return make_element_by_type<diplomacy_request_reply_button<false>>(state, id);
 		} else if(name == "leftshield") {
 			return make_element_by_type<nation_player_flag>(state, id);
 		} else if(name == "rightshield") {
@@ -187,7 +186,7 @@ public:
 				payload.emplace<diplomatic_message::message>(messages[index]);
 			}
 			return message_result::consumed;
-		} else if(payload.holds_type<diplo_reply_taken_notification>()) {
+		} else if(payload.holds_type<diplomacy_reply_taken_notification>()) {
 			if(!messages.empty()) {
 				messages.erase(messages.begin() + size_t(index));
 				impl_on_update(state);

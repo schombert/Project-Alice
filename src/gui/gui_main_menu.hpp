@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gui_element_types.hpp"
-#include "gui_msg_settings_window.hpp"
+#include "gui_message_settings_window.hpp"
 
 namespace ui {
 
@@ -221,7 +221,7 @@ class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
 	controls_menu_window* controls_menu = nullptr;
 	graphics_menu_window* graphics_menu = nullptr;
 	audio_menu_window* audio_menu = nullptr;
-	msg_settings_window* message_settings_menu = nullptr;
+	message_settings_window* message_settings_menu = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -231,7 +231,7 @@ public:
 			auto gdef_id = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
 			auto key = state.to_string_view(state.ui_defs.gui[gdef_id].name);
 			if(key == "menu_message_settings") {
-				auto ptr = make_element_by_type<msg_settings_window>(state, gdef_id);
+				auto ptr = make_element_by_type<message_settings_window>(state, gdef_id);
 				message_settings_menu = ptr.get();
 				add_child_to_front(std::move(ptr));
 			}
