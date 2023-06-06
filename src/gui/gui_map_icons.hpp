@@ -50,25 +50,6 @@ public:
 	}
 };
 
-template<typename T>
-class map_element_base : public T {
-public:
-	dcon::province_id content{};
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		auto mid_point = state.world.province_get_mid_point(content);
-		auto map_pos = state.map_state.normalize_map_coord(mid_point);
-		auto screen_size = glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
-		glm::vec2 screen_pos;
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
-			return;
-		auto new_position = xy_pair{int16_t(screen_pos.x - T::base_data.size.x / 2), int16_t(screen_pos.y - T::base_data.size.y / 2)};
-		auto xdiff = (T::base_data.position.x - new_position.x);
-		auto ydiff = (T::base_data.position.y - new_position.y);
-		T::base_data.position = new_position;
-		T::render(state, x - xdiff, y - ydiff);
-	}
-};
-
 class unit_icon_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -96,11 +77,13 @@ public:
 	}
 };
 
-class unit_icon_window : public map_element_base<window_element_base> {
+class unit_icon_window : public window_element_base {
 	unit_strength_text* strength_text = nullptr;
 	image_element_base* attr_icon = nullptr;
 
 public:
+	dcon::province_id content{};
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "unit_panel_bg") {
 			return make_element_by_type<unit_icon_button>(state, id);
@@ -146,10 +129,8 @@ public:
 		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
 			return;
 		auto new_position = xy_pair{int16_t(screen_pos.x - 25), int16_t(screen_pos.y - 40)};
-		auto xdiff = (base_data.position.x - new_position.x);
-		auto ydiff = (base_data.position.y - new_position.y);
-		base_data.position = new_position;
-		window_element_base::render(state, x - xdiff, y - ydiff);
+		window_element_base::base_data.position = new_position;
+		window_element_base::render(state, new_position.x, new_position.y);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -191,8 +172,21 @@ public:
 	}
 };
 
-class rgo_icon : public map_element_base<image_element_base> {
+class rgo_icon : public image_element_base {
 public:
+	dcon::province_id content{};
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto mid_point = state.world.province_get_mid_point(content);
+		auto map_pos = state.map_state.normalize_map_coord(mid_point);
+		auto screen_size =
+		    glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		glm::vec2 screen_pos;
+		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos))
+			return;
+		auto new_position = xy_pair{int16_t(screen_pos.x - base_data.size.x / 2), int16_t(screen_pos.y - base_data.size.y / 2)};
+		image_element_base::base_data.position = new_position;
+		image_element_base::render(state, new_position.x, new_position.y);
+	}
 	void on_update(sys::state& state) noexcept override {
 		auto cid = state.world.province_get_rgo(content).id;
 		frame = int32_t(state.world.commodity_get_icon(cid));
