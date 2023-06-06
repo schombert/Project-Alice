@@ -239,9 +239,13 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			state.world.for_each_national_identity([&](dcon::national_identity_id ident) {
-				if(nations::can_release_as_vassal(state, content, ident))
-					row_contents.push_back(ident);
+			Cyto::Any c_payload = dcon::cb_type_id{};
+			parent->impl_get(state, c_payload);
+			dcon::cb_type_id c = any_cast<dcon::cb_type_id>(c_payload);
+			dcon::trigger_key allowed_countries = state.world.cb_type_get_allowed_countries(c);
+			state.world.for_each_nation([&](dcon::nation_id n) {
+				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(content), trigger::to_generic(state.local_player_nation), trigger::to_generic(n)))
+					row_contents.push_back(state.world.identity_holder_get_identity(state.world.nation_get_identity_holder_as_nation(n)));
 			});
 		}
 		update(state);
