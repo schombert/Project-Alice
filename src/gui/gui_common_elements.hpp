@@ -1617,34 +1617,6 @@ public:
 	}
 };
 
-class nation_brigade_allocation_text : public standard_nation_text {
-public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto available = state.world.nation_get_recruitable_regiments(nation_id);
-		auto in_use = state.world.nation_get_active_regiments(nation_id);
-		return text::format_ratio(in_use, available);
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
-			text::add_to_substitution_map(sub, text::variable_type::max, state.world.nation_get_recruitable_regiments(nation_id));
-			text::localised_format_box(state, contents, box, std::string_view("topbar_army_tooltip"), sub);
-			text::close_layout_box(contents, box);
-		}
-	}
-};
-
 class nation_mobilization_size_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
@@ -1698,6 +1670,34 @@ public:
 	}
 };
 
+class nation_brigade_allocation_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto available = state.world.nation_get_recruitable_regiments(nation_id);
+		auto in_use = state.world.nation_get_active_regiments(nation_id);
+		return text::format_ratio(in_use, available);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
+			text::add_to_substitution_map(sub, text::variable_type::max, state.world.nation_get_recruitable_regiments(nation_id));
+			text::localised_format_box(state, contents, box, std::string_view("topbar_army_tooltip"), sub);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class nation_navy_allocation_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
@@ -1727,6 +1727,72 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_basic"), sub);
 			text::add_line_break_to_layout_box(contents, state, box);
 			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_detailed_list"), sub);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+class nation_armies_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		int32_t count = 0;
+		state.world.nation_for_each_army_control_as_controller(nation_id, [&](dcon::army_control_id) {
+			++count;
+		});
+		return std::to_string(count);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map sub;
+			int32_t count = 0;
+			state.world.nation_for_each_army_control_as_controller(nation_id, [&](dcon::army_control_id) {
+				++count;
+			});
+			text::add_to_substitution_map(sub, text::variable_type::value, count);
+			text::localised_format_box(state, contents, box, std::string_view("military_army_count_tooltip"), sub);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
+class nation_navies_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		int32_t count = 0;
+		state.world.nation_for_each_navy_control_as_controller(nation_id, [&](dcon::navy_control_id) {
+			++count;
+		});
+		return std::to_string(count);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map sub;
+			int32_t count = 0;
+			state.world.nation_for_each_navy_control_as_controller(nation_id, [&](dcon::navy_control_id) {
+				++count;
+			});
+			text::add_to_substitution_map(sub, text::variable_type::value, count);
+			text::localised_format_box(state, contents, box, std::string_view("military_army_count_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		}
 	}

@@ -197,6 +197,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 				new_requests.pop();
 				c5 = new_requests.front();
 			}
+			// Log messages
+			auto* c6 = new_messages.front();
+			while(c6) {
+				static_cast<ui::msg_log_window*>(ui_state.message_log_window)->messages.push_back(*c6);
+				new_messages.pop();
+				c6 = new_messages.front();
+			}
 		}
 		if(!static_cast<ui::national_event_window<true>*>(ui_state.major_event_window)->events.empty())
 			ui_state.major_event_window->set_visible(*this, true);

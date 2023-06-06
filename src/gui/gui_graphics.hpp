@@ -383,6 +383,7 @@ struct state {
 	element_base* msg_window = nullptr;
 	element_base* army_status_window = nullptr;
 	element_base* navy_status_window = nullptr;
+	element_base* message_log_window = nullptr;
 
 	element_base* major_event_window = nullptr;
 	element_base* national_event_window = nullptr;

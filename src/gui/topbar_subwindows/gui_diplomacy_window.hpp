@@ -36,6 +36,19 @@ public:
 };
 
 class diplomacy_priority_button : public button_element_base {
+	static std::string_view get_prio_key(uint8_t flags) {
+		switch(flags & nations::influence::priority_mask) {
+		case nations::influence::priority_zero:
+			return "diplomacy_prio_none";
+		case nations::influence::priority_one:
+			return "diplomacy_prio_low";
+		case nations::influence::priority_two:
+			return "diplomacy_prio_middle";
+		case nations::influence::priority_three:
+			return "diplomacy_prio_high";
+		}
+		return "diplomacy_prio_none";
+	}
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(parent) {
@@ -96,17 +109,32 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		if(!nations::is_great_power(state, state.local_player_nation)) {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
-		} else {
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio"));
-			text::add_line_break_to_layout_box(contents, state, box);
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_dailyinflulence_gain"));
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+
+			auto box = text::open_layout_box(contents, 0);
+			if(!nations::is_great_power(state, state.local_player_nation)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio"));
+			} else if(nations::is_great_power(state, nation_id)) {
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_cannot_set_prio_gp"));
+			} else {
+				auto rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, state.local_player_nation);
+				uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
+
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::value, get_prio_key(rel_flags));
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio"), sub);
+				text::add_line_break_to_layout_box(contents, state, box);
+				text::localised_format_box(state, contents, box, std::string_view("diplomacy_dailyinflulence_gain"));
+			}
+			text::add_divider_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio_desc"));
+			text::close_layout_box(contents, box);
+
+			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::influence, false);
 		}
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio_desc"));
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -347,9 +375,9 @@ public:
 		} else if(name == "warexhastion_text") {
 			return make_element_by_type<nation_war_exhaustion_text>(state, id);
 		} else if(name == "brigade_text") {
-			return make_element_by_type<nation_brigade_allocation_text>(state, id);
+			return make_element_by_type<nation_armies_text>(state, id);
 		} else if(name == "ships_text") {
-			return make_element_by_type<nation_navy_allocation_text>(state, id);
+			return make_element_by_type<nation_navies_text>(state, id);
 		} else if(name == "add_wargoal") {
 			return make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 		} else {
