@@ -8,12 +8,7 @@ namespace ui {
 class production_foreign_investment_window : public window_element_base {
 private:
 	dcon::nation_id curr_nation{};
-
 public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "prod_investment_bg") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -47,8 +42,8 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			curr_nation = any_cast<dcon::nation_id>(payload);
+		if(payload.holds_type<element_selection_wrapper<dcon::nation_id>>()) {
+			curr_nation = any_cast<element_selection_wrapper<dcon::nation_id>>(payload).data;
 			return message_result::consumed;
 		}
 		return message_result::unseen;

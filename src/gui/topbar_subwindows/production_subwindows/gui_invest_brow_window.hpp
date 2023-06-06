@@ -83,9 +83,20 @@ protected:
 	}
 };
 
+class production_sort_nation_gp_flag : public nation_gp_flag {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+			return message_result::unseen;
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
+	void button_action(sys::state& state) noexcept override {}
+};
+
 class invest_brow_window : public window_element_base {
-	production_foreign_investment_window* foreign_invest_win = nullptr;
 	production_country_listbox* country_listbox = nullptr;
+	country_list_sort sort = country_list_sort::country;
+	bool sort_ascend = false;
 
 	void filter_countries(sys::state& state, std::function<bool(dcon::nation_id)> filter_fun) {
 		if(country_listbox) {
@@ -116,15 +127,6 @@ class invest_brow_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-
-		/*
-		// SCHOMBERT: since "invest_buttons" isn't a top level element, find can't find it, and you end up dereferencing a null iterator here.
-		auto win1 = make_element_by_type<production_foreign_investment_window>(state, state.ui_state.defs_by_name.find("invest_buttons")->second.definition);
-		win1->set_visible(state, false);
-		foreign_invest_win = win1.get();
-		add_child_to_front(std::move(win1));
-		*/
-
 		set_visible(state, false);
 		filter_countries(state, [](dcon::nation_id) { return true; });
 	}
@@ -140,33 +142,33 @@ public:
 			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name == "sort_by_boss") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::boss>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_prestige") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::prestige_rank>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_economic") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::economic_rank>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_military") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::military_rank>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_total") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::total_rank>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_relation") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::relation>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
-		} else if(name == "sort_by_invest_factories") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			ptr->base_data.position.y -= 1; // Nudge
-			return ptr;
+		} else if(name == "sort_by_opinion") {
+			return make_element_by_type<country_sort_button<country_list_sort::opinion>>(state, id);
+		} else if(name == "sort_by_prio") {
+			return make_element_by_type<country_sort_button<country_list_sort::priority>>(state, id);
 		} else if(name == "filter_all") {
 			auto ptr = make_element_by_type<generic_tab_button<country_list_filter>>(state, id);
 			ptr->target = country_list_filter::all;
@@ -203,13 +205,13 @@ public:
 			})();
 			return ptr;
 		} else if(name.substr(0, 14) == "sort_by_gpflag") {
-			auto ptr = make_element_by_type<nation_gp_flag>(state, id);
+			auto ptr = make_element_by_type<production_sort_nation_gp_flag>(state, id);
 			ptr->rank = uint16_t(std::stoi(std::string{name.substr(14)}));
 			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name.substr(0, 10) == "sort_by_gp") {
-			auto gp_nth = std::stoi(std::string{name.substr(10)});
-			auto ptr = make_element_by_type<button_element_base>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::gp_influence>>(state, id);
+			ptr->offset = uint8_t(std::stoi(std::string{name.substr(10)}));
 			return ptr;
 		} else {
 			return nullptr;
@@ -256,22 +258,14 @@ public:
 			auto mod_id = any_cast<dcon::modifier_id>(payload);
 			filter_by_continent(state, mod_id);
 			return message_result::consumed;
-		} else if(payload.holds_type<dcon::nation_id>()) {
-			foreign_invest_win->is_visible() ? foreign_invest_win->set_visible(state, false) : foreign_invest_win->set_visible(state, true);
-			foreign_invest_win->impl_get(state, payload);
+		} else if(payload.holds_type<element_selection_wrapper<country_list_sort>>()) {
+			auto new_sort = any_cast<element_selection_wrapper<country_list_sort>>(payload).data;
+			sort_ascend = (new_sort == sort) ? !sort_ascend : true;
+			sort = new_sort;
+			sort_countries(state, country_listbox->row_contents, sort, sort_ascend);
+			country_listbox->update(state);
 			return message_result::consumed;
 		}
-		/*
-		else if(payload.holds_type<element_selection_wrapper<production_action>>()) {
-		    auto content = any_cast<element_selection_wrapper<production_action>>(payload).data;
-		    switch(content) {
-		        case production_action::foreign_invest_window:
-		            foreign_invest_win->is_visible() ? foreign_invest_win->set_visible(state, false) : foreign_invest_win->set_visible(state, true);
-		            break;
-		        default:
-		    }
-		}
-		*/
 		return message_result::unseen;
 	}
 };
