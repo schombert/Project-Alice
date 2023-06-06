@@ -345,10 +345,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.increaserelation_diplomatic_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.increaserelation_diplomatic_cost ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -399,10 +395,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.decreaserelation_diplomatic_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.decreaserelation_diplomatic_cost ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -464,10 +456,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{!can_cancel(state, content) ? state.defines.warsubsidy_diplomatic_cost : state.defines.cancelwarsubsidy_diplomatic_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= (!can_cancel(state, content) ? state.defines.warsubsidy_diplomatic_cost : state.defines.cancelwarsubsidy_diplomatic_cost) ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -478,7 +466,6 @@ class diplomacy_action_declare_war_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "war_button"));
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -486,17 +473,28 @@ public:
 			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
 			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
-			disabled = true;
-			for(auto& cb : state.world.nation_get_available_cbs(state.local_player_nation))
-				if(cb.target == content && cb.expiration >= state.current_date)
-					disabled = false;
+
+			if(military::are_at_war(state, state.local_player_nation, content)) {
+				disabled = !command::can_start_peace_offer(state, state.local_player_nation, content, military::find_war_between(state, state.local_player_nation, content), true);
+				set_button_text(state, text::produce_simple_string(state, "peace_button"));
+			} else {
+				disabled = true;
+				for(auto& cb : state.world.nation_get_available_cbs(state.local_player_nation))
+					if(cb.target == content && cb.expiration >= state.current_date)
+						disabled = false;
+				set_button_text(state, text::produce_simple_string(state, "war_button"));
+			}
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = diplomacy_action::declare_war;
+			Cyto::Any payload = dcon::nation_id{};
 			parent->impl_get(state, payload);
+			dcon::nation_id content = any_cast<dcon::nation_id>(payload);
+
+			Cyto::Any ac_payload = military::are_at_war(state, state.local_player_nation, content) ? diplomacy_action::make_peace : diplomacy_action::declare_war;
+			parent->impl_get(state, ac_payload);
 		}
 	}
 
@@ -511,7 +509,11 @@ public:
 			auto content = any_cast<dcon::nation_id>(payload);
 
 			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("act_wardesc"));
+			if(military::are_at_war(state, state.local_player_nation, content)) {
+				text::localised_format_box(state, contents, box, std::string_view("remove_peacedesc"));
+			} else {
+				text::localised_format_box(state, contents, box, std::string_view("act_wardesc"));
+			}
 			text::add_divider_to_layout_box(state, contents, box);
 			if(content == state.local_player_nation) {
 				text::localised_format_box(state, contents, box, std::string_view("act_no_self"));
@@ -519,12 +521,8 @@ public:
 				text::substitution_map dp_map{};
 				text::add_to_substitution_map(dp_map, text::variable_type::current, text::fp_two_places{state.world.nation_get_diplomatic_points(state.local_player_nation)});
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.declarewar_diplomatic_cost});
-				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.declarewar_diplomatic_cost ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
+				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= (military::are_at_war(state, state.local_player_nation, content) ? state.defines.peace_diplomatic_cost : state.defines.declarewar_diplomatic_cost) ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -640,10 +638,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.discredit_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.discredit_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -696,10 +690,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.expeladvisors_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.expeladvisors_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -753,10 +743,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.banembassy_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.banembassy_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -809,10 +795,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.increaseopinion_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.increaseopinion_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -866,10 +848,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.decreaseopinion_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.decreaseopinion_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -922,10 +900,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.addtosphere_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.addtosphere_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -979,10 +953,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.removefromsphere_influence_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.gp_relationship_get_influence(state.world.get_gp_relationship_by_gp_influence_pair(content, state.local_player_nation)) >= state.defines.removefromsphere_influence_cost ? "dip_enough_influence" : "dip_no_influence"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
@@ -1033,10 +1003,6 @@ public:
 				text::add_to_substitution_map(dp_map, text::variable_type::needed, text::fp_two_places{state.defines.make_cb_diplomatic_cost});
 				text::localised_format_box(state, contents, box, std::string_view(state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.make_cb_diplomatic_cost ? "dip_enough_diplo" : "dip_no_diplo"), dp_map);
 				text::add_line_break_to_layout_box(contents, state, box);
-
-				text::substitution_map ai_map{};
-				text::add_to_substitution_map(ai_map, text::variable_type::country, content);
-				text::localised_format_box(state, contents, box, std::string_view("diplomacy_ai_acceptance"), ai_map);
 			}
 			text::close_layout_box(contents, box);
 		}
