@@ -93,6 +93,14 @@ public:
 	}
 };
 
+class diplomacy_request_count_text : public simple_text_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		simple_text_element_base::on_create(state);
+		black_text = false;
+	}
+};
+
 class diplomacy_request_window : public window_element_base {
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
@@ -111,10 +119,9 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_request_count_text>(state, state.ui_state.defs_by_name.find("alice_page_count")->second.definition);
 			cur_pos.x -= ptr->base_data.size.x;
 			ptr->base_data.position = cur_pos;
-			ptr->black_text = false;
 			count_text = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}
