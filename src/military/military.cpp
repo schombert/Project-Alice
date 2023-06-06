@@ -829,13 +829,13 @@ void update_cbs(sys::state& state) {
 					m.title = [=](sys::state& state, text::layout_base& layout) {
 						text::substitution_map sub{};
 						text::add_to_substitution_map(sub, text::variable_type::target, target);
-						text::add_to_substitution_map(sub, text::variable_type::casus, text::produce_simple_string(state, state.world.cb_type_get_name(cbt)));
+						text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cbt));
 						TEXT_NOTIF_MSG_TITLE(cb_justify_no_longer_valid);
 					};
 					m.body = [=](sys::state& state, text::layout_base& layout) {
 						text::substitution_map sub{};
 						text::add_to_substitution_map(sub, text::variable_type::target, target);
-						text::add_to_substitution_map(sub, text::variable_type::casus, text::produce_simple_string(state, state.world.cb_type_get_name(cbt)));
+						text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cbt));
 						TEXT_NOTIF_MSG_BODY(cb_justify_no_longer_valid);
 					};
 					notification::post(state, notification::message{ m });
@@ -1434,12 +1434,12 @@ void kill_leader(sys::state& state, dcon::leader_id l) {
 			m.primary = state.world.leader_get_nation_from_leader_loyalty(l);
 			m.title = [=](sys::state& state, text::layout_base& layout) {
 				text::substitution_map sub{};
-				text::add_to_substitution_map(sub, text::variable_type::name, std::string(state.to_string_view(state.world.leader_get_name(l))));
+				text::add_to_substitution_map(sub, text::variable_type::name, state.to_string_view(state.world.leader_get_name(l)));
 				TEXT_NOTIF_MSG_TITLE(leaderdied);
 			};
 			m.body = [=](sys::state& state, text::layout_base& layout) {
 				text::substitution_map sub{};
-				text::add_to_substitution_map(sub, text::variable_type::name, std::string(state.to_string_view(state.world.leader_get_name(l))));
+				text::add_to_substitution_map(sub, text::variable_type::name, state.to_string_view(state.world.leader_get_name(l)));
 				TEXT_NOTIF_MSG_BODY(leaderdied);
 			};
 			notification::post(state, notification::message{ m });
