@@ -213,22 +213,6 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 		}	
 	}
 
-	if(cb_requires_selection_of_a_vassal(state, cb)) {
-		auto s_ol_r = state.world.nation_get_overlord_as_subject(secondary);
-		if(state.world.overlord_get_ruler(s_ol_r) != target)
-			return false;
-	}
-
-	if(cb_requires_selection_of_a_sphere_member(state, cb)) {
-		if(state.world.nation_get_in_sphere_of(secondary) != target)
-			return false;
-	}
-
-	if(cb_requires_selection_of_a_liberatable_tag(state, cb)) {
-		if(!nations::can_release_as_vassal(state, target, tag))
-			return false;
-	}
-
 	return true;
 }
 
@@ -1384,13 +1368,9 @@ float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type
 		return cb_infamy(state, type);
 }
 
-bool cb_requires_selection_of_a_vassal(sys::state const& state, dcon::cb_type_id t) {
-	auto bits = state.world.cb_type_get_type_bits(t);
-	return (bits & (cb_flag::po_release_puppet)) != 0;
-}
-bool cb_requires_selection_of_a_sphere_member(sys::state const& state, dcon::cb_type_id t) {
-	auto bits = state.world.cb_type_get_type_bits(t);
-	return (bits & (cb_flag::po_add_to_sphere)) != 0;
+bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t) {
+	auto allowed_nation = state.world.cb_type_get_allowed_countries(t);
+	return bool(allowed_nation);
 }
 bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::cb_type_id t) {
 	auto bits = state.world.cb_type_get_type_bits(t);
