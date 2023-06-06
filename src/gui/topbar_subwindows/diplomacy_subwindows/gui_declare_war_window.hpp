@@ -573,12 +573,11 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
 			cb_to_use = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
-			auto bits = state.world.cb_type_get_type_bits(cb_to_use);
-			if((bits & (military::cb_flag::po_annex)) != 0) {
+			if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, false);
 				wargoal_state_win->set_visible(state, true);
 				wargoal_country_win->set_visible(state, false);
-			} else if((bits & (military::cb_flag::po_transfer_provinces | military::cb_flag::po_add_to_sphere | military::cb_flag::po_make_puppet | military::cb_flag::po_gunboat)) != 0) {
+			} else if(military::cb_requires_selection_of_a_vassal(state, cb_to_use) || military::cb_requires_selection_of_a_sphere_member(state, cb_to_use) || military::cb_requires_selection_of_a_liberatable_tag(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, false);
 				wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, true);
