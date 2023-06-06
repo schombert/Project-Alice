@@ -10,10 +10,7 @@ void msg_log_text::on_update(sys::state& state) noexcept  {
 		auto& messages = static_cast<ui::msg_log_window*>(state.ui_state.message_log_window)->messages;
 		if(index < int32_t(messages.size())) {
 			auto& m = messages[index];
-			auto contents = text::create_endless_layout(
-				internal_layout,
-				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black});
-			m.body(state, contents);
+			m.body(state, internal_layout);
 		}
 	}
 }
