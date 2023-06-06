@@ -18,7 +18,7 @@
 #include "gui_budget_window.cpp"
 #include "gui_technology_window.cpp"
 #include "gui_event.cpp"
-#include "gui_msg_settings_window.cpp"
+#include "gui_message_settings_window.cpp"
 #include "nations_parsing.cpp"
 #include "cultures_parsing.cpp"
 #include "econ_parsing.cpp"

@@ -630,7 +630,7 @@ public:
 };
 
 class scrollable_text : public window_element_base {
-private:
+protected:
 	multiline_text_scrollbar* text_scrollbar = nullptr;
 
 public:

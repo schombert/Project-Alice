@@ -280,7 +280,7 @@ enum class commodity_group : uint8_t {
 	MSG_SETTING_ITEM(crisis_became_war_target, "crisis_became_war")
 #define MSG_SETTING_ITEM_R(name) MSG_SETTING_ITEM(name, #name)
 
-enum class msg_setting_type : uint8_t {
+enum class message_setting_type : uint8_t {
 #define MSG_SETTING_ITEM(name, locale_name) name,
 	MSG_SETTING_LIST
 	    count
