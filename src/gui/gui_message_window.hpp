@@ -48,10 +48,44 @@ class message_desc_text : public scrollable_text {
 public:
 	void on_create(sys::state& state) noexcept override {
 		scrollable_text::on_create(state);
-		base_data.size.x = 500 - (base_data.position.x * 2);
-		base_data.size.y = 18 * 5;
+		base_data.size.x = 500 - (base_data.position.x * 2) - 8;
+		base_data.size.y = 18 * 6;
 		delegate->base_data.size = base_data.size;
 		text_scrollbar->scale_to_parent();
+	}
+};
+
+class message_flag_button : public nation_player_flag {
+public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.position.y -= 6;
+		base_data.size.y += 32;
+
+		base_data.position.x += 8;
+		base_data.size.x -= 16;
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid && flag_texture_handle > 0) {
+			auto& gfx_def = state.ui_defs.gfx[gid];
+			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
+			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+			ogl::render_masked_rect(
+				state,
+				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+				float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				flag_texture_handle,
+				mask_handle,
+				base_data.get_rotation(),
+				gfx_def.is_vertically_flipped());
+		}
+		image_element_base::render(state, x, y);
 	}
 };
 
@@ -121,9 +155,9 @@ public:
 		} else if(name == "centerok") {
 			return make_element_by_type<message_dismiss_button>(state, id);
 		} else if(name == "leftshield") {
-			return make_element_by_type<nation_player_flag>(state, id);
+			return make_element_by_type<message_flag_button>(state, id);
 		} else if(name == "rightshield") {
-			return make_element_by_type<nation_player_flag>(state, id);
+			return make_element_by_type<message_flag_button>(state, id);
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;
