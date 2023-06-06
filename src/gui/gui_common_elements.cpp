@@ -71,17 +71,17 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 				uint8_t rank = uint8_t(sort) & (~uint8_t(country_list_sort::gp_influence));
 				dcon::nation_id gp = nations::get_nth_great_power(state, rank);
 
-				auto rel_a = state.world.get_gp_relationship_by_gp_influence_pair(a, state.local_player_nation);
-				auto rel_b = state.world.get_gp_relationship_by_gp_influence_pair(b, state.local_player_nation);
-				return (state.world.gp_relationship_get_status(rel_a) & nations::influence::priority_mask) < (state.world.gp_relationship_get_status(rel_b) & nations::influence::priority_mask);
+				auto rel_a = state.world.get_gp_relationship_by_gp_influence_pair(a, gp);
+				auto rel_b = state.world.get_gp_relationship_by_gp_influence_pair(b, gp);
+				return state.world.gp_relationship_get_influence(rel_a) < state.world.gp_relationship_get_influence(rel_b);
 			};
 		} else if((uint8_t(sort) & uint8_t(country_list_sort::gp_investment)) != 0) {
 			fn = [&](dcon::nation_id a, dcon::nation_id b) {
 				uint8_t rank = uint8_t(sort) & (~uint8_t(country_list_sort::gp_investment));
 				dcon::nation_id gp = nations::get_nth_great_power(state, rank);
 
-				auto urel_a = state.world.get_unilateral_relationship_by_unilateral_pair(a, state.local_player_nation);
-				auto urel_b = state.world.get_unilateral_relationship_by_unilateral_pair(b, state.local_player_nation);
+				auto urel_a = state.world.get_unilateral_relationship_by_unilateral_pair(a, gp);
+				auto urel_b = state.world.get_unilateral_relationship_by_unilateral_pair(b, gp);
 				return state.world.unilateral_relationship_get_foreign_investment(urel_a) < state.world.unilateral_relationship_get_foreign_investment(urel_b);
 			};
 		} else {
