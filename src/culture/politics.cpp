@@ -548,7 +548,7 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			text::substitution_map sub{};
 			TEXT_NOTIF_MSG_BODY(upperhouse);
 		};
-		notification::post(state, notification::message{ m });
+		notification::post(state, std::move(m));
 	}
 }
 
@@ -612,7 +612,7 @@ void start_election(sys::state& state, dcon::nation_id n) {
 			text::add_to_substitution_map(sub, text::variable_type::details, state.world.nation_get_election_ends(n));
 			TEXT_NOTIF_MSG_BODY(electionstart);
 		};
-		notification::post(state, notification::message{ m });
+		notification::post(state, std::move(m));
 	}
 }
 

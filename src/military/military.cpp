@@ -858,7 +858,7 @@ void update_cbs(sys::state& state) {
 						text::add_to_substitution_map(sub, text::variable_type::casus, state.world.cb_type_get_name(cbt));
 						TEXT_NOTIF_MSG_BODY(cb_justify_no_longer_valid);
 					};
-					notification::post(state, notification::message{ m });
+					notification::post(state, std::move(m));
 				}
 
 				n.set_constructing_cb_is_discovered(false);
@@ -1474,7 +1474,7 @@ void kill_leader(sys::state& state, dcon::leader_id l) {
 				text::add_to_substitution_map(sub, text::variable_type::name, state.to_string_view(state.world.leader_get_name(l)));
 				TEXT_NOTIF_MSG_BODY(leaderdied);
 			};
-			notification::post(state, notification::message{ m });
+			notification::post(state, std::move(m));
 		}
 	}
 

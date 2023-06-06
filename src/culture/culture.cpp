@@ -782,7 +782,7 @@ void update_reasearch(sys::state& state, uint32_t current_year) {
 							text::add_to_substitution_map(sub, text::variable_type::type, state.world.technology_get_name(t));
 							TEXT_NOTIF_MSG_BODY(tech_once);
 						};
-						notification::post(state, notification::message{ m });
+						notification::post(state, std::move(m));
 					}
 
 					n.set_current_research(dcon::technology_id{});
@@ -826,7 +826,7 @@ void discover_inventions(sys::state& state) {
 										text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
 										TEXT_NOTIF_MSG_BODY(invention);
 									};
-									notification::post(state, notification::message{ m });
+									notification::post(state, std::move(m));
 								}
 							}
 						}
@@ -860,7 +860,7 @@ void discover_inventions(sys::state& state) {
 										text::add_to_substitution_map(sub, text::variable_type::invention, state.world.invention_get_name(inv));
 										TEXT_NOTIF_MSG_BODY(invention);
 									};
-									notification::post(state, notification::message{ m });
+									notification::post(state, std::move(m));
 								}
 							}
 						}
