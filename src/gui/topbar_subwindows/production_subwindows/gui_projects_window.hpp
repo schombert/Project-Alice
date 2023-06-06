@@ -154,7 +154,6 @@ public:
 			auto fat_id = dcon::fatten(state.world, std::get<dcon::province_building_construction_id>(content));
 			factory_icon->frame = uint16_t(fat_id.get_type());
 			name_text->set_text(state, text::produce_simple_string(state, province_building_type_get_name(economy::province_building_type(fat_id.get_type()))));
-			auto total_cost = 0.f;
 			switch(economy::province_building_type(fat_id.get_type())) {
 			case economy::province_building_type::railroad:
 				needed_commodities = state.economy_definitions.railroad_definition.cost;

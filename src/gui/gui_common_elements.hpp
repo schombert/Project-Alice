@@ -892,10 +892,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("rank_industry"), text::substitution_map{});
 			text::add_divider_to_layout_box(state, contents, box);
@@ -918,10 +914,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("rank_military"), text::substitution_map{});
 			text::add_divider_to_layout_box(state, contents, box);
@@ -2361,10 +2353,10 @@ protected:
 					if(nat_id == state.world.province_get_nation_from_province_ownership(province)) {
 						for(auto pop_loc : state.world.province_get_pop_location(province)) {
 							auto pop_id = pop_loc.get_pop();
-							auto vote_size = politics::get_weighted_vote_size(state, nat_id, pop_id.id);
+							float vote_size = politics::get_weighted_vote_size(state, nat_id, pop_id.id);
 							state.world.for_each_ideology([&](dcon::ideology_id iid) {
 								auto dkey = pop_demographics::to_key(state, iid);
-								ideo_pool[iid.index()] += state.world.pop_get_demographics(pop_id.id, dkey);
+								ideo_pool[iid.index()] += state.world.pop_get_demographics(pop_id.id, dkey) * vote_size;
 							});
 						}
 					}

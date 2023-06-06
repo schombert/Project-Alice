@@ -377,25 +377,22 @@ public:
 							text::add_line_break_to_layout_box(contents, state, box);
 							text::substitution_map sub;
 
-							auto popFat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
-							auto numUnemployed = int32_t(
+							auto pop_fat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
+							int32_t num_unemployed = int32_t(
 							    state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) -
 							    state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
-							auto numWorkers = int32_t(
-							    state_instance.get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)));
-
-							auto percUnemployed = text::fp_two_places{numUnemployed / state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))};
+							auto perc_unemployed = text::fp_two_places{num_unemployed / state_instance.get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker))};
 
 							// auto pop_fat = dcon::fatten(state.world, state.culture_definitions.primary_factory_worker);
 							// auto pop_name = text::produce_simple_string(state, pop_fat.get_name());
-							// auto numUnemployed = int32_t(state_instance.get_demographics(demographics::total) - state_instance.get_demographics(demographics::employed));
+							// auto num_unemployed = int32_t(state_instance.get_demographics(demographics::total) - state_instance.get_demographics(demographics::employed));
 							// auto stateDef = state_instance.get_definition();
 							// auto stateName = text::produce_simple_string(state, stateDef.get_name());
-							// auto percUnemployed = text::format_percentage(numUnemployed / state_instance.get_demographics(demographics::total));
-							text::add_to_substitution_map(sub, text::variable_type::num, numUnemployed);
-							text::add_to_substitution_map(sub, text::variable_type::type, popFat.get_name());
+							// auto perc_unemployed = text::format_percentage(num_unemployed / state_instance.get_demographics(demographics::total));
+							text::add_to_substitution_map(sub, text::variable_type::num, num_unemployed);
+							text::add_to_substitution_map(sub, text::variable_type::type, pop_fat.get_name());
 							text::add_to_substitution_map(sub, text::variable_type::state, state_instance.get_definition().get_name());
-							text::add_to_substitution_map(sub, text::variable_type::perc, percUnemployed);
+							text::add_to_substitution_map(sub, text::variable_type::perc, perc_unemployed);
 							text::localised_format_box(state, contents, box, std::string_view("topbar_unemployed"), sub);
 						}
 					}
@@ -439,7 +436,6 @@ public:
 				}
 				if(state.world.nation_get_is_civilized(nation_id)) {
 					for(auto i : state.culture_definitions.political_issues) {
-						auto current = state.world.nation_get_issues(nation_id, i);
 						for(auto o : state.world.issue_get_options(i)) {
 							if(o && politics::can_enact_political_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -449,9 +445,7 @@ public:
 							}
 						}
 					}
-
 					for(auto i : state.culture_definitions.social_issues) {
-						auto current = state.world.nation_get_issues(nation_id, i);
 						for(auto o : state.world.issue_get_options(i)) {
 							if(o && politics::can_enact_social_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -461,13 +455,10 @@ public:
 							}
 						}
 					}
-
 					text::close_layout_box(contents, box);
 					return;
 				} else {
-					auto stored_rp = state.world.nation_get_research_points(nation_id);
 					for(auto i : state.culture_definitions.military_issues) {
-						auto current = state.world.nation_get_reforms(nation_id, i);
 						for(auto o : state.world.reform_get_options(i)) {
 							if(o && politics::can_enact_military_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);
@@ -477,9 +468,7 @@ public:
 							}
 						}
 					}
-
 					for(auto i : state.culture_definitions.economic_issues) {
-						auto current = state.world.nation_get_reforms(nation_id, i);
 						for(auto o : state.world.reform_get_options(i)) {
 							if(o && politics::can_enact_economic_reform(state, nation_id, o)) {
 								auto fat_id = dcon::fatten(state.world, o);

@@ -312,10 +312,9 @@ public:
 							amount += inputs.commodity_amounts[i];
 					output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
 				} break;
-				case trade_flow_data::value_type::may_be_used_by: {
-					auto& inputs = state.world.factory_type_get_inputs(ftid);
+				case trade_flow_data::value_type::may_be_used_by:
 					output_icon->frame = state.world.commodity_get_icon(state.world.factory_type_get_output(ftid));
-				} break;
+					break;
 				default:
 					break;
 				}
