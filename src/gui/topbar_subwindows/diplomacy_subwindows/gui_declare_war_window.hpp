@@ -797,7 +797,7 @@ public:
 			Cyto::Any n_payload = dcon::nation_id{};
 			parent->impl_get(state, n_payload);
 			const dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
-			const int32_t score = military::directed_warscore(state, w, state.local_player_nation, n);
+			const int32_t score = int32_t(military::directed_warscore(state, w, state.local_player_nation, n));
 			set_text(state, std::to_string(score));
 		}
 	}
@@ -825,6 +825,7 @@ public:
 					command::add_to_peace_offer(state, state.local_player_nation, wa.get_wargoal());
 			}
 			command::send_peace_offer(state, state.local_player_nation);
+			parent->set_visible(state, false);
 		}
 	}
 };
