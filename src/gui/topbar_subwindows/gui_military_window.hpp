@@ -17,7 +17,7 @@ public:
 		win1->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("army_pos")->second.definition].position;
 		state.ui_state.unit_window_army = win1.get();
 		add_child_to_front(std::move(win1));
-		
+
 		// Navy information is right next to the army information
 		auto win2 = make_element_by_type<military_units_window<dcon::navy_id>>(state, state.ui_state.defs_by_name.find("unit_window")->second.definition);
 		win2->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("navy_pos")->second.definition].position;
@@ -53,6 +53,14 @@ public:
 			return nullptr;
 		}
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			payload.emplace<dcon::nation_id>(state.local_player_nation);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
-}
+} // namespace ui

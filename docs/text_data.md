@@ -10,7 +10,12 @@ Colour codes may be one of the following:
 - `Y` Yellow.
 - `b` Black.
 - `B` Blue.
-- `g` Light gray.
+- `L` Light Brown (Lilac).
+- `O` Orange.
+- `g` Light Blue.
+- `l` Light Grey.
+- `C` Dark red (Crimson).
+- `J` Dark green (Jungle green).
 - `!` Reset colour.
 Any other colour code is undefined.
 

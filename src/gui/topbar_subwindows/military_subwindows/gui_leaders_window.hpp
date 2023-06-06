@@ -81,12 +81,25 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "milview_leader_entry";
 	}
+
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(const auto fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
+		for(auto const fat_id : state.world.nation_get_leader_loyalty(state.local_player_nation))
 			row_contents.push_back(fat_id.get_leader());
 		update(state);
+	}
+};
+
+template<bool B>
+class military_make_leader_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		disabled = !command::can_make_leader(state, state.local_player_nation, B);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		command::make_leader(state, state.local_player_nation, B);
 	}
 };
 
@@ -108,12 +121,15 @@ public:
 			auto ptr = make_element_by_type<button_element_base>(state, id);
 			return ptr;
 		} else if(name == "leader_listbox") {
-			auto ptr = make_element_by_type<military_leaders_listbox>(state, id);
-			return ptr;
+			return make_element_by_type<military_leaders_listbox>(state, id);
+		} else if(name == "new_general") {
+			return make_element_by_type<military_make_leader_button<true>>(state, id);
+		} else if(name == "new_admiral") {
+			return make_element_by_type<military_make_leader_button<false>>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
 };
 
-}
+} // namespace ui

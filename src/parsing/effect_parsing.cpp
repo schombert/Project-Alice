@@ -4,14 +4,14 @@
 namespace parsers {
 
 dcon::trigger_key ef_limit(token_generator& gen, error_handler& err, effect_building_context& context) {
-	trigger_building_context tr_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	trigger_building_context tr_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
 	return make_trigger(gen, err, tr_context);
 }
 
 void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 
-	context.compiled_effect.push_back(uint16_t( effect::generic_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 	context.limit_position = context.compiled_effect.size();
@@ -428,7 +428,7 @@ void ef_scope_any_pop(token_generator& gen, error_handler& err, effect_building_
 	} else if(context.main_slot == trigger::slot_contents::state) {
 		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_state | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_nation  | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_pop_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "any_pop effect scope used in an incorrect scope type (" + err.file_name + ")\n";
@@ -788,7 +788,7 @@ void ef_crisis_state_scope(token_generator& gen, error_handler& err, effect_buil
 	auto old_main = context.main_slot;
 
 	context.compiled_effect.push_back(uint16_t(effect::crisis_state_scope | effect::scope_has_limit));
-	
+
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 
@@ -889,13 +889,12 @@ void ef_scope_random_list(token_generator& gen, error_handler& err, effect_build
 }
 
 void ef_scope_variable(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context) {
-	std::string str_label{ label };
+	std::string str_label{label};
 	if(auto it = context.outer_context.map_of_state_names.find(str_label); it != context.outer_context.map_of_state_names.end()) {
 		auto old_limit_offset = context.limit_position;
 		auto old_main = context.main_slot;
 
 		context.compiled_effect.push_back(uint16_t(effect::region_scope | effect::scope_has_limit));
-		
 
 		context.compiled_effect.push_back(uint16_t(0));
 		auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -1012,8 +1011,8 @@ int32_t simplify_effect(uint16_t* source) {
 			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
 
 			while(sub_units_start < source + source_size) {
-				const auto old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
-				const auto new_size = simplify_effect(sub_units_start);
+				auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
+				auto const new_size = simplify_effect(sub_units_start);
 				if(new_size > 0) {
 					if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
 						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
@@ -1029,8 +1028,8 @@ int32_t simplify_effect(uint16_t* source) {
 			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
 
 			while(sub_units_start < source + source_size) {
-				const auto old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
-				const auto new_size = simplify_effect(sub_units_start);
+				auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
+				auto const new_size = simplify_effect(sub_units_start);
 
 				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
 					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
@@ -1051,7 +1050,7 @@ int32_t simplify_effect(uint16_t* source) {
 
 		if((source[0] & effect::code_mask) == effect::generic_scope) {
 			if(source_size == 2) {
-				return 0; //simplify empty scope to nothing
+				return 0; // simplify empty scope to nothing
 			} else if(((source[0] & effect::scope_has_limit) == 0) && effect::effect_scope_has_single_member(source)) {
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
@@ -1070,7 +1069,7 @@ void recurse_over_effects(uint16_t* source, const T& f) {
 
 	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
 		if((source[0] & effect::code_mask) == effect::random_list_scope) {
-			const auto source_size = 1 + effect::get_generic_effect_payload_size(source);
+			auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
 
 			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
 			while(sub_units_start < source + source_size) {
@@ -1078,7 +1077,7 @@ void recurse_over_effects(uint16_t* source, const T& f) {
 				sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start); // each member preceded by uint16_t
 			}
 		} else {
-			const auto source_size = 1 + effect::get_generic_effect_payload_size(source);
+			auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
 
 			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
 			while(sub_units_start < source + source_size) {
@@ -1097,7 +1096,7 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
 		return dcon::effect_key{0};
 	}
 
-	const auto new_size = simplify_effect(context.compiled_effect.data());
+	auto const new_size = simplify_effect(context.compiled_effect.data());
 	context.compiled_effect.resize(static_cast<size_t>(new_size));
 
 	return context.outer_context.state.commit_effect_data(context.compiled_effect);
@@ -1116,7 +1115,7 @@ void ef_province_event::id(association_type t, int32_t value, error_handler& err
 		}
 	} else {
 		id_ = context.outer_context.state.world.create_provincial_event();
-		context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ id_, trigger::slot_contents::province, trigger::slot_contents::nation, context.this_slot });
+		context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{id_, trigger::slot_contents::province, trigger::slot_contents::province, context.this_slot});
 	}
 }
 
@@ -1133,7 +1132,7 @@ void ef_country_event::id(association_type t, int32_t value, error_handler& err,
 		}
 	} else {
 		id_ = context.outer_context.state.world.create_national_event();
-		context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ id_, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
+		context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{id_, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot});
 	}
 }
 
@@ -1164,7 +1163,7 @@ void effect_body::country_event(association_type t, int32_t value, error_handler
 			}
 		} else {
 			auto ev_id = context.outer_context.state.world.create_national_event();
-			context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ ev_id, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
+			context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ev_id, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot});
 			context.compiled_effect.push_back(trigger::payload(ev_id).value);
 		}
 	} else if(context.main_slot == trigger::slot_contents::province) {
@@ -1193,7 +1192,7 @@ void effect_body::country_event(association_type t, int32_t value, error_handler
 			}
 		} else {
 			auto ev_id = context.outer_context.state.world.create_national_event();
-			context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ ev_id, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot });
+			context.outer_context.map_of_national_events.insert_or_assign(value, pending_nat_event{ev_id, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot});
 			context.compiled_effect.push_back(trigger::payload(ev_id).value);
 		}
 	} else {
@@ -1229,7 +1228,7 @@ void effect_body::province_event(association_type t, int32_t value, error_handle
 			}
 		} else {
 			auto ev_id = context.outer_context.state.world.create_provincial_event();
-			context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ ev_id, trigger::slot_contents::province, trigger::slot_contents::nation, context.this_slot });
+			context.outer_context.map_of_provincial_events.insert_or_assign(value, pending_prov_event{ev_id, trigger::slot_contents::province, trigger::slot_contents::province, context.this_slot});
 			context.compiled_effect.push_back(trigger::payload(ev_id).value);
 		}
 	} else {
@@ -1238,7 +1237,7 @@ void effect_body::province_event(association_type t, int32_t value, error_handle
 	}
 }
 
-void effect_body::define_general(ef_define_general const& value, error_handler& err, int32_t line, effect_building_context& context) {
+void effect_body::define_general(ef_define_general const & value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(context.main_slot != trigger::slot_contents::nation) {
 		err.accumulated_errors += "define_general effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
@@ -1249,7 +1248,7 @@ void effect_body::define_general(ef_define_general const& value, error_handler& 
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
 }
 
-void effect_body::define_admiral(ef_define_admiral const& value, error_handler& err, int32_t line, effect_building_context& context) {
+void effect_body::define_admiral(ef_define_admiral const & value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(context.main_slot != trigger::slot_contents::nation) {
 		err.accumulated_errors += "define_admiral effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
@@ -1268,4 +1267,4 @@ void effect_body::enable_canal(association_type t, int32_t value, error_handler&
 	}
 }
 
-}
+} // namespace parsers

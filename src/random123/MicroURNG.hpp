@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdexcept>
 #include <limits>
 
-namespace r123{
+namespace r123 {
 /**
     Given a CBRNG whose ctr_type has an unsigned integral value_type,
     MicroURNG<CBRNG>(c, k) is a type that satisfies the
@@ -64,7 +64,7 @@ namespace r123{
 \code
        typedef ?someCBRNG? RNG;
        RNG::ctr_type c = ...; // under application control
-       RNG::key_type k = ...; // 
+       RNG::key_type k = ...; //
        std::normal_distribution<float> nd;
        MicroURNG<RNG> urng(c, k);
        for(???){
@@ -76,71 +76,71 @@ namespace r123{
 */
 
 template<typename CBRNG>
-class MicroURNG{
-    // According to C++11, a URNG requires only a result_type,
-    // operator()(), min() and max() methods.  Everything else
-    // (ctr_type, key_type, reset() method, etc.) is "value added"
-    // for the benefit of users that "know" that they're dealing with
-    // a MicroURNG.
+class MicroURNG {
+	// According to C++11, a URNG requires only a result_type,
+	// operator()(), min() and max() methods.  Everything else
+	// (ctr_type, key_type, reset() method, etc.) is "value added"
+	// for the benefit of users that "know" that they're dealing with
+	// a MicroURNG.
 public:
-    typedef CBRNG cbrng_type;
-    static const int BITS = 32;
-    typedef typename cbrng_type::ctr_type ctr_type;
-    typedef typename cbrng_type::key_type key_type;
-    typedef typename cbrng_type::ukey_type ukey_type;
-    typedef typename ctr_type::value_type result_type;
+	typedef CBRNG cbrng_type;
+	static int const BITS = 32;
+	typedef typename cbrng_type::ctr_type ctr_type;
+	typedef typename cbrng_type::key_type key_type;
+	typedef typename cbrng_type::ukey_type ukey_type;
+	typedef typename ctr_type::value_type result_type;
 
-    R123_STATIC_ASSERT( std::numeric_limits<result_type>::digits >= BITS, "The result_type must have at least 32 bits" );
+	R123_STATIC_ASSERT(std::numeric_limits<result_type>::digits >= BITS, "The result_type must have at least 32 bits");
 
-    result_type operator()(){
-        if(last_elem == 0){
-            // jam n into the high bits of c
-            const size_t W = std::numeric_limits<result_type>::digits;
-            ctr_type c = c0;
-            c[c0.size()-1] |= n<<(W-BITS);
-            rdata = b(c,k);
-            n++;
-            last_elem = rdata.size();
-        }
-        return rdata[--last_elem];
-    }
-    MicroURNG(cbrng_type _b, ctr_type _c0, ukey_type _uk) : b(_b), c0(_c0), k(_uk), n(0), last_elem(0) {
-        chkhighbits();
-    }
-    MicroURNG(ctr_type _c0, ukey_type _uk) : b(), c0(_c0), k(_uk), n(0), last_elem(0) {
-        chkhighbits();
-    }
+	result_type operator()() {
+		if(last_elem == 0) {
+			// jam n into the high bits of c
+			const size_t W = std::numeric_limits<result_type>::digits;
+			ctr_type c = c0;
+			c[c0.size() - 1] |= n << (W - BITS);
+			rdata = b(c, k);
+			n++;
+			last_elem = rdata.size();
+		}
+		return rdata[--last_elem];
+	}
+	MicroURNG(cbrng_type _b, ctr_type _c0, ukey_type _uk) : b(_b), c0(_c0), k(_uk), n(0), last_elem(0) {
+		chkhighbits();
+	}
+	MicroURNG(ctr_type _c0, ukey_type _uk) : b(), c0(_c0), k(_uk), n(0), last_elem(0) {
+		chkhighbits();
+	}
 
-    // _Min and _Max work around a bug in the library shipped with MacOS Xcode 4.5.2.
-    // See the commment in conventional/Engine.hpp.  
-    const static result_type _Min = 0;
-    const static result_type _Max = ~((result_type)0);
+	// _Min and _Max work around a bug in the library shipped with MacOS Xcode 4.5.2.
+	// See the commment in conventional/Engine.hpp.
+	const static result_type _Min = 0;
+	const static result_type _Max = ~((result_type)0);
 
-    static R123_CONSTEXPR result_type min R123_NO_MACRO_SUBST () { return _Min; }
-    static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST () { return _Max; }
-    // extra methods:
-    const ctr_type& counter() const{ return c0; }
-    void reset(ctr_type _c0, ukey_type _uk){
-        c0 = _c0;
-        chkhighbits();
-        k = _uk;
-        n = 0;
-        last_elem = 0;
-    }
+	static R123_CONSTEXPR result_type min R123_NO_MACRO_SUBST() { return _Min; }
+	static R123_CONSTEXPR result_type max R123_NO_MACRO_SUBST() { return _Max; }
+	// extra methods:
+	ctr_type const & counter() const { return c0; }
+	void reset(ctr_type _c0, ukey_type _uk) {
+		c0 = _c0;
+		chkhighbits();
+		k = _uk;
+		n = 0;
+		last_elem = 0;
+	}
 
 private:
-    cbrng_type b;
-    ctr_type c0;
-    key_type k;
-    R123_ULONG_LONG n;
-    size_t last_elem;
-    ctr_type rdata;
-    void chkhighbits(){
-        result_type r = c0[c0.size()-1];
-        result_type mask = ((uint64_t)std::numeric_limits<result_type>::max R123_NO_MACRO_SUBST ())>>BITS;
-        if((r&mask) != r)
-            throw std::runtime_error("MicroURNG: c0, does not have high bits clear");
-    }
+	cbrng_type b;
+	ctr_type c0;
+	key_type k;
+	R123_ULONG_LONG n;
+	size_t last_elem;
+	ctr_type rdata;
+	void chkhighbits() {
+		result_type r = c0[c0.size() - 1];
+		result_type mask = ((uint64_t)std::numeric_limits<result_type>::max R123_NO_MACRO_SUBST()) >> BITS;
+		if((r & mask) != r)
+			throw std::runtime_error("MicroURNG: c0, does not have high bits clear");
+	}
 };
 } // namespace r123
 #endif

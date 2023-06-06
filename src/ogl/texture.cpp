@@ -11,90 +11,87 @@ namespace ogl {
 
 // DDS loader taken from SOIL2
 
-#define ALICE_DDSD_CAPS	0x00000001
-#define ALICE_DDSD_HEIGHT	0x00000002
-#define ALICE_DDSD_WIDTH	0x00000004
-#define ALICE_DDSD_PITCH	0x00000008
-#define ALICE_DDSD_PIXELFORMAT	0x00001000
-#define ALICE_DDSD_MIPMAPCOUNT	0x00020000
-#define ALICE_DDSD_LINEARSIZE	0x00080000
-#define ALICE_DDSD_DEPTH	0x00800000
+#define ALICE_DDSD_CAPS 0x00000001
+#define ALICE_DDSD_HEIGHT 0x00000002
+#define ALICE_DDSD_WIDTH 0x00000004
+#define ALICE_DDSD_PITCH 0x00000008
+#define ALICE_DDSD_PIXELFORMAT 0x00001000
+#define ALICE_DDSD_MIPMAPCOUNT 0x00020000
+#define ALICE_DDSD_LINEARSIZE 0x00080000
+#define ALICE_DDSD_DEPTH 0x00800000
 
 /*	DirectDraw Pixel Format	*/
-#define ALICE_DDPF_ALPHAPIXELS	0x00000001
-#define ALICE_DDPF_FOURCC	0x00000004
-#define ALICE_DDPF_RGB	0x00000040
+#define ALICE_DDPF_ALPHAPIXELS 0x00000001
+#define ALICE_DDPF_FOURCC 0x00000004
+#define ALICE_DDPF_RGB 0x00000040
 
 /*	The dwCaps1 member of the ALICE_DDSCAPS2 structure can be
-	set to one or more of the following values.	*/
-#define ALICE_DDSCAPS_COMPLEX	0x00000008
-#define ALICE_DDSCAPS_TEXTURE	0x00001000
-#define ALICE_DDSCAPS_MIPMAP	0x00400000
+    set to one or more of the following values.	*/
+#define ALICE_DDSCAPS_COMPLEX 0x00000008
+#define ALICE_DDSCAPS_TEXTURE 0x00001000
+#define ALICE_DDSCAPS_MIPMAP 0x00400000
 
-	/*	The dwCaps2 member of the ALICE_DDSCAPS2 structure can be
-		set to one or more of the following values.		*/
-#define ALICE_DDSCAPS2_CUBEMAP	0x00000200
-#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEX	0x00000400
-#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEX	0x00000800
-#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEY	0x00001000
-#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEY	0x00002000
-#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEZ	0x00004000
-#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEZ	0x00008000
-#define ALICE_DDSCAPS2_VOLUME	0x00200000
+/*	The dwCaps2 member of the ALICE_DDSCAPS2 structure can be
+    set to one or more of the following values.		*/
+#define ALICE_DDSCAPS2_CUBEMAP 0x00000200
+#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEX 0x00000400
+#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEX 0x00000800
+#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEY 0x00001000
+#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEY 0x00002000
+#define ALICE_DDSCAPS2_CUBEMAP_POSITIVEZ 0x00004000
+#define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEZ 0x00008000
+#define ALICE_DDSCAPS2_VOLUME 0x00200000
 
-#define SOIL_GL_SRGB			0x8C40
-#define SOIL_GL_SRGB_ALPHA		0x8C42
-#define SOIL_RGB_S3TC_DXT1		0x83F0
-#define SOIL_RGBA_S3TC_DXT1		0x83F1
-#define SOIL_RGBA_S3TC_DXT3		0x83F2
-#define SOIL_RGBA_S3TC_DXT5		0x83F3
+#define SOIL_GL_SRGB 0x8C40
+#define SOIL_GL_SRGB_ALPHA 0x8C42
+#define SOIL_RGB_S3TC_DXT1 0x83F0
+#define SOIL_RGBA_S3TC_DXT1 0x83F1
+#define SOIL_RGBA_S3TC_DXT3 0x83F2
+#define SOIL_RGBA_S3TC_DXT5 0x83F3
 
-#define SOIL_TEXTURE_WRAP_R					0x8072
-#define SOIL_CLAMP_TO_EDGE					0x812F
-#define SOIL_REFLECTION_MAP					0x8512
+#define SOIL_TEXTURE_WRAP_R 0x8072
+#define SOIL_CLAMP_TO_EDGE 0x812F
+#define SOIL_REFLECTION_MAP 0x8512
 
 typedef struct {
-	unsigned int    dwMagic;
-	unsigned int    dwSize;
-	unsigned int    dwFlags;
-	unsigned int    dwHeight;
-	unsigned int    dwWidth;
-	unsigned int    dwPitchOrLinearSize;
-	unsigned int    dwDepth;
-	unsigned int    dwMipMapCount;
-	unsigned int    dwReserved1[11];
+	unsigned int dwMagic;
+	unsigned int dwSize;
+	unsigned int dwFlags;
+	unsigned int dwHeight;
+	unsigned int dwWidth;
+	unsigned int dwPitchOrLinearSize;
+	unsigned int dwDepth;
+	unsigned int dwMipMapCount;
+	unsigned int dwReserved1[11];
 
 	/*  DDPIXELFORMAT	*/
 	struct {
-		unsigned int    dwSize;
-		unsigned int    dwFlags;
-		unsigned int    dwFourCC;
-		unsigned int    dwRGBBitCount;
-		unsigned int    dwRBitMask;
-		unsigned int    dwGBitMask;
-		unsigned int    dwBBitMask;
-		unsigned int    dwAlphaBitMask;
-	}
-	sPixelFormat;
+		unsigned int dwSize;
+		unsigned int dwFlags;
+		unsigned int dwFourCC;
+		unsigned int dwRGBBitCount;
+		unsigned int dwRBitMask;
+		unsigned int dwGBitMask;
+		unsigned int dwBBitMask;
+		unsigned int dwAlphaBitMask;
+	} sPixelFormat;
 
 	/*  DDCAPS2	*/
 	struct {
-		unsigned int    dwCaps1;
-		unsigned int    dwCaps2;
-		unsigned int    dwDDSX;
-		unsigned int    dwReserved;
-	}
-	sCaps;
-	unsigned int    dwReserved2;
-}
-DDS_header;
+		unsigned int dwCaps1;
+		unsigned int dwCaps2;
+		unsigned int dwDDSX;
+		unsigned int dwReserved;
+	} sCaps;
+	unsigned int dwReserved2;
+} DDS_header;
 
 unsigned int SOIL_direct_load_DDS_from_memory(
-		const unsigned char* const buffer,
-		unsigned int buffer_length,
-		unsigned int& width,
-		unsigned int& height,
-		int flags) {
+    unsigned char const * const buffer,
+    unsigned int buffer_length,
+    unsigned int& width,
+    unsigned int& height,
+    int flags) {
 	/*	variables	*/
 	DDS_header header;
 	unsigned int buffer_index = 0;
@@ -114,7 +111,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		return 0;
 	}
 	/*	try reading in the header	*/
-	memcpy((void*)(&header), (const void*)buffer, sizeof(DDS_header));
+	memcpy((void*)(&header), (void const *)buffer, sizeof(DDS_header));
 	buffer_index = sizeof(DDS_header);
 
 	/*	validate the header (warning, "goto"'s ahead, shield your eyes!!)	*/
@@ -131,10 +128,10 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		goto quick_exit;
 	}
 	/*	According to the MSDN spec, the dwFlags should contain
-		ALICE_DDSD_LINEARSIZE if it's compressed, or ALICE_DDSD_PITCH if
-		uncompressed.  Some DDS writers do not conform to the
-		spec, so I need to make my reader more tolerant	*/
-		/*	I need one of these	*/
+	    ALICE_DDSD_LINEARSIZE if it's compressed, or ALICE_DDSD_PITCH if
+	    uncompressed.  Some DDS writers do not conform to the
+	    spec, so I need to make my reader more tolerant	*/
+	/*	I need one of these	*/
 	flag = ALICE_DDPF_FOURCC | ALICE_DDPF_RGB;
 	if((header.sPixelFormat.dwFlags & flag) == 0) {
 		goto quick_exit;
@@ -147,11 +144,10 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	}
 	/*	make sure it is a type we can upload	*/
 	if((header.sPixelFormat.dwFlags & ALICE_DDPF_FOURCC) &&
-		!(
-			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24))) ||
-			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24))) ||
-			(header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24)))
-			)) {
+	   !(
+	       (header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24))) ||
+	       (header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('3' << 24))) ||
+	       (header.sPixelFormat.dwFourCC == (('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24))))) {
 		goto quick_exit;
 	}
 	/*	OK, validated the header, let's load the image data	*/
@@ -173,23 +169,23 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		// TODO: properly restore this check
 		//
 
-		//if(query_DXT_capability() != SOIL_CAPABILITY_PRESENT) {
+		// if(query_DXT_capability() != SOIL_CAPABILITY_PRESENT) {
 		//	return 0;
-		//}
+		// }
 		/*	well, we know it is DXT1/3/5, because we checked above	*/
 		switch((header.sPixelFormat.dwFourCC >> 24) - '0') {
-			case 1:
-				S3TC_type = SOIL_RGBA_S3TC_DXT1;
-				block_size = 8;
-				break;
-			case 3:
-				S3TC_type = SOIL_RGBA_S3TC_DXT3;
-				block_size = 16;
-				break;
-			case 5:
-				S3TC_type = SOIL_RGBA_S3TC_DXT5;
-				block_size = 16;
-				break;
+		case 1:
+			S3TC_type = SOIL_RGBA_S3TC_DXT1;
+			block_size = 8;
+			break;
+		case 3:
+			S3TC_type = SOIL_RGBA_S3TC_DXT3;
+			block_size = 16;
+			break;
+		case 5:
+			S3TC_type = SOIL_RGBA_S3TC_DXT5;
+			block_size = 16;
+			break;
 		}
 		DDS_main_size = ((width + 3) >> 2) * ((height + 3) >> 2) * block_size;
 	}
@@ -260,26 +256,26 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	for(cf_target = ogl_target_start; cf_target <= ogl_target_end; ++cf_target) {
 		if(buffer_index + DDS_full_size <= (unsigned int)buffer_length) {
 			unsigned int byte_offset = DDS_main_size;
-			memcpy((void*)DDS_data, (const void*)(&buffer[buffer_index]), DDS_full_size);
+			memcpy((void*)DDS_data, (void const *)(&buffer[buffer_index]), DDS_full_size);
 			buffer_index += DDS_full_size;
 			/*	upload the main chunk	*/
 			if(uncompressed) {
 				/*	and remember, DXT uncompressed uses BGR(A),
-					so swap to RGB(A) for ALL MIPmap levels	*/
+				    so swap to RGB(A) for ALL MIPmap levels	*/
 				for(i = 0; i < (int)DDS_full_size; i += block_size) {
 					unsigned char temp = DDS_data[i];
 					DDS_data[i] = DDS_data[i + 2];
 					DDS_data[i + 2] = temp;
 				}
 				glTexImage2D(
-					cf_target, 0,
-					S3TC_type, width, height, 0,
-					S3TC_type, GL_UNSIGNED_BYTE, DDS_data);
+				    cf_target, 0,
+				    S3TC_type, width, height, 0,
+				    S3TC_type, GL_UNSIGNED_BYTE, DDS_data);
 			} else {
 				glCompressedTexImage2D(
-					cf_target, 0,
-					S3TC_type, width, height, 0,
-					DDS_main_size, DDS_data);
+				    cf_target, 0,
+				    S3TC_type, width, height, 0,
+				    DDS_main_size, DDS_data);
 			}
 			/*	upload the mipmaps, if we have them	*/
 			for(i = 1; i <= mipmaps; ++i) {
@@ -296,15 +292,15 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 				if(uncompressed) {
 					mip_size = w * h * block_size;
 					glTexImage2D(
-						cf_target, i,
-						S3TC_type, w, h, 0,
-						S3TC_type, GL_UNSIGNED_BYTE, &DDS_data[byte_offset]);
+					    cf_target, i,
+					    S3TC_type, w, h, 0,
+					    S3TC_type, GL_UNSIGNED_BYTE, &DDS_data[byte_offset]);
 				} else {
 					mip_size = ((w + 3) / 4) * ((h + 3) / 4) * block_size;
 					glCompressedTexImage2D(
-						cf_target, i,
-						S3TC_type, w, h, 0,
-						mip_size, &DDS_data[byte_offset]);
+					    cf_target, i,
+					    S3TC_type, w, h, 0,
+					    mip_size, &DDS_data[byte_offset]);
 				}
 				/*	and move to the next mipmap	*/
 				byte_offset += mip_size;
@@ -314,7 +310,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 			tex_ID = 0;
 			cf_target = ogl_target_end + 1;
 		}
-	}/* end reading each face */
+	} /* end reading each face */
 	free(DDS_data);
 
 	if(flags & SOIL_FLAG_MIPMAPS)
@@ -356,7 +352,7 @@ GLuint texture::get_texture_handle() const {
 	return texture_handle;
 }
 
-GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture, bool keep_data) {
+GLuint load_file_and_return_handle(native_string const & native_name, simple_fs::file_system const & fs, texture& asset_texture, bool keep_data) {
 	auto name_length = native_name.length();
 
 	auto root = get_root(fs);
@@ -369,7 +365,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 			uint32_t w = 0;
 			uint32_t h = 0;
 			asset_texture.texture_handle =
-				SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h, 0);
+			    SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const *>(content.data), content.file_size, w, h, 0);
 
 			if(asset_texture.texture_handle) {
 				asset_texture.channels = 4;
@@ -392,9 +388,8 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 
 		int32_t file_channels = 4;
 
-		asset_texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-			&(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
-
+		asset_texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const *>(content.data), int32_t(content.file_size),
+		                                           &(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
 
 		asset_texture.channels = 4;
 		asset_texture.loaded = true;
@@ -425,8 +420,8 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 }
 
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
-	const auto offset = culture::get_remapped_flag_type(state, type);
-	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset) };
+	auto const offset = culture::get_remapped_flag_type(state, type);
+	dcon::texture_id id = dcon::texture_id{dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset)};
 
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
@@ -439,70 +434,100 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		file_str += NATIVE_DIR_SEPARATOR;
 		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
 		switch(type) {
-			case culture::flag_type::communist:
-				file_str += NATIVE("_communist"); break;
-			case culture::flag_type::count:
-			case culture::flag_type::default_flag:
-				break;
-			case culture::flag_type::fascist:
-				file_str += NATIVE("_fascist"); break;
-			case culture::flag_type::monarchy:
-				file_str += NATIVE("_monarchy"); break;
-			case culture::flag_type::republic:
-				file_str += NATIVE("_republic"); break;
-			// Non-vanilla
-			case culture::flag_type::theocracy:
-				file_str += NATIVE("_theocracy"); break;
-			case culture::flag_type::special:
-				file_str += NATIVE("_special"); break;
-			case culture::flag_type::spare:
-				file_str += NATIVE("_spare"); break;
-			case culture::flag_type::populist:
-				file_str += NATIVE("_populist"); break;
-			case culture::flag_type::realm:
-				file_str += NATIVE("_realm"); break;
-			case culture::flag_type::other:
-				file_str += NATIVE("_other"); break;
-			case culture::flag_type::monarchy2:
-				file_str += NATIVE("_monarchy2"); break;
-			case culture::flag_type::monarchy3:
-				file_str += NATIVE("_monarchy3"); break;
-			case culture::flag_type::republic2:
-				file_str += NATIVE("_republic2"); break;
-			case culture::flag_type::republic3:
-				file_str += NATIVE("_republic3"); break;
-			case culture::flag_type::communist2:
-				file_str += NATIVE("_communist2"); break;
-			case culture::flag_type::communist3:
-				file_str += NATIVE("_communist3"); break;
-			case culture::flag_type::fascist2:
-				file_str += NATIVE("_fascist2"); break;
-			case culture::flag_type::fascist3:
-				file_str += NATIVE("_fascist3"); break;
-			case culture::flag_type::theocracy2:
-				file_str += NATIVE("_theocracy2"); break;
-			case culture::flag_type::theocracy3:
-				file_str += NATIVE("_theocracy3"); break;
-			case culture::flag_type::cosmetic_1:
-				file_str += NATIVE("_cosmetic_1"); break;
-			case culture::flag_type::cosmetic_2:
-				file_str += NATIVE("_cosmetic_2"); break;
-			case culture::flag_type::colonial:
-				file_str += NATIVE("_colonial"); break;
-			case culture::flag_type::nationalist:
-				file_str += NATIVE("_nationalist"); break;
-			case culture::flag_type::sectarian:
-				file_str += NATIVE("_sectarian"); break;
-			case culture::flag_type::socialist:
-				file_str += NATIVE("_socialist"); break;
-			case culture::flag_type::dominion:
-				file_str += NATIVE("_dominion"); break;
-			case culture::flag_type::agrarism:
-				file_str += NATIVE("_agrarism"); break;
-			case culture::flag_type::national_syndicalist:
-				file_str += NATIVE("_national_syndicalist"); break;
-			case culture::flag_type::theocratic:
-				file_str += NATIVE("_theocratic"); break;
+		case culture::flag_type::communist:
+			file_str += NATIVE("_communist");
+			break;
+		case culture::flag_type::count:
+		case culture::flag_type::default_flag:
+			break;
+		case culture::flag_type::fascist:
+			file_str += NATIVE("_fascist");
+			break;
+		case culture::flag_type::monarchy:
+			file_str += NATIVE("_monarchy");
+			break;
+		case culture::flag_type::republic:
+			file_str += NATIVE("_republic");
+			break;
+		// Non-vanilla
+		case culture::flag_type::theocracy:
+			file_str += NATIVE("_theocracy");
+			break;
+		case culture::flag_type::special:
+			file_str += NATIVE("_special");
+			break;
+		case culture::flag_type::spare:
+			file_str += NATIVE("_spare");
+			break;
+		case culture::flag_type::populist:
+			file_str += NATIVE("_populist");
+			break;
+		case culture::flag_type::realm:
+			file_str += NATIVE("_realm");
+			break;
+		case culture::flag_type::other:
+			file_str += NATIVE("_other");
+			break;
+		case culture::flag_type::monarchy2:
+			file_str += NATIVE("_monarchy2");
+			break;
+		case culture::flag_type::monarchy3:
+			file_str += NATIVE("_monarchy3");
+			break;
+		case culture::flag_type::republic2:
+			file_str += NATIVE("_republic2");
+			break;
+		case culture::flag_type::republic3:
+			file_str += NATIVE("_republic3");
+			break;
+		case culture::flag_type::communist2:
+			file_str += NATIVE("_communist2");
+			break;
+		case culture::flag_type::communist3:
+			file_str += NATIVE("_communist3");
+			break;
+		case culture::flag_type::fascist2:
+			file_str += NATIVE("_fascist2");
+			break;
+		case culture::flag_type::fascist3:
+			file_str += NATIVE("_fascist3");
+			break;
+		case culture::flag_type::theocracy2:
+			file_str += NATIVE("_theocracy2");
+			break;
+		case culture::flag_type::theocracy3:
+			file_str += NATIVE("_theocracy3");
+			break;
+		case culture::flag_type::cosmetic_1:
+			file_str += NATIVE("_cosmetic_1");
+			break;
+		case culture::flag_type::cosmetic_2:
+			file_str += NATIVE("_cosmetic_2");
+			break;
+		case culture::flag_type::colonial:
+			file_str += NATIVE("_colonial");
+			break;
+		case culture::flag_type::nationalist:
+			file_str += NATIVE("_nationalist");
+			break;
+		case culture::flag_type::sectarian:
+			file_str += NATIVE("_sectarian");
+			break;
+		case culture::flag_type::socialist:
+			file_str += NATIVE("_socialist");
+			break;
+		case culture::flag_type::dominion:
+			file_str += NATIVE("_dominion");
+			break;
+		case culture::flag_type::agrarism:
+			file_str += NATIVE("_agrarism");
+			break;
+		case culture::flag_type::national_syndicalist:
+			file_str += NATIVE("_national_syndicalist");
+			break;
+		case culture::flag_type::theocratic:
+			file_str += NATIVE("_theocratic");
+			break;
 		}
 		file_str += NATIVE(".tga");
 
@@ -534,7 +559,7 @@ data_texture::data_texture(int32_t sz, int32_t ch) {
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, size, 1);
 	} else if(channels == 4) {
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size, 1);
-	} else  if(channels == 2) {
+	} else if(channels == 2) {
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG8, size, 1);
 	} else {
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, size, 1);
@@ -556,7 +581,7 @@ uint32_t data_texture::handle() {
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 		} else if(channels == 4) {
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		} else  if(channels == 2) {
+		} else if(channels == 2) {
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RG, GL_UNSIGNED_BYTE, data);
 		} else {
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RED, GL_UNSIGNED_BYTE, data);
@@ -597,8 +622,8 @@ font_texture_result make_font_texture(simple_fs::file& f) {
 	int32_t size_y = 0;
 	int32_t channels = 4;
 
-	data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-		&(size_x), &(size_y), &file_channels, 4);
+	data = stbi_load_from_memory(reinterpret_cast<uint8_t const *>(content.data), int32_t(content.file_size),
+	                             &(size_x), &(size_y), &file_channels, 4);
 
 	uint32_t ftexid = 0;
 
@@ -609,17 +634,16 @@ font_texture_result make_font_texture(simple_fs::file& f) {
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size_x, size_y);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		//glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		// glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
 	STBI_FREE(data);
 
-
-	return font_texture_result{ ftexid, uint32_t(size_x) };
+	return font_texture_result{ftexid, uint32_t(size_x)};
 }
 
-}
+} // namespace ogl

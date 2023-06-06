@@ -1,24 +1,27 @@
 ## Interested in contributing?
 
-If you want to be officially part of the team you just need to let me know how you are interested and able in contributing. Right now I am looking for the following sort of people:
-
-Help that I am looking for:
+Help that I am currently looking for:
 
 #### Programming (all in C++):
-Priority 1: I would like so find someone(s) with OpenGL experience and maybe a slight artistic inclination to work on rendering the map (both as a globe and as a flat map)
-Priority 2: I would like a few people to help me with the core programming surrounding the game state and its updates. These are the people I will be working with most directly, so be willing to tolerate a degree of micromanagement.
+
+Priority 1: We could use more programmers to help finish the UI. There are a lot of complicated tool tips and other detail work that more programmers, even relative novices, could make meaningful contributions to.
+Priority 2: Making a cooler map. I am basically satisfied with the map as it currently stands, but maybe someone with the right combination of OpenGL experience and artistic talent could do something really cool with it.
+Priority 3: AI work. We aren't actually to the AI-writing stage quite yet, but we are getting close to it, and anyone with experience with that sort of work would be welcome to help with preparation and planning for it.
 
 #### Art:
+
 I would like to find someone who could essentially redo all of the existing Victoria 2 UI assets in a new artistic style to give the game its own distinctive visual identity. Yes, I know that this is no trivial thing.
 
-
 #### Testers:
+
 We are looking for people who can build a C++ project and run it, but who don't want to (or aren't comfortable) contributing code. Testers are expected to build the project and poke at it on a semi-regular basis to find bugs, especially those that don't appear for the software/hardware combinations that we are developing on. Speak to our project coordinator if you are interested in being a tester.
 
 #### Not looking for at the moment:
+
 Translators -- this is a very late-stage consideration and we are nowhere near there yet.
 
 #### Other:
+
 If you have some other skill or contribution that you think you can make, I am open to suggestions
 
 ### Free agents
@@ -53,6 +56,45 @@ sudo apt remove gcc-12
 https://stackoverflow.com/questions/67712376/after-updating-gcc-clang-cant-find-libstdc-anymore
 
 (Linux only) The version of Intel's TBB library we use seems to fail to compile if you have any spaces in the path, so you need to make sure that wherever you put the project has no spaces anywhere in its path (yes, this seems dumb to me too).
+
+#### Linux (Generic)
+
+This is for non-Debian based distrobutions, utilities needed:
+Basic Compiling Tools, (C Compiler & C++ Compiler)
+Cmake
+Git
+onetbb
+GLFW3
+X11 (support *should* exist for wayland but there is not guarantee.)
+
+From here compiling is straightforward
+1. `cd Project-Alice`
+2. `cmake -E make_directory build`
+3. `cmake -E chdir build cmake ..`
+4. `touch src/local_user_settings.hpp`
+5. `nano src/local_user_settings.hpp` or use the text editor of your choice
+6. add the following lines:
+    ```cpp
+        #ifndef GAME_DIR
+        #define GAME_DIR "[insert file path here]"
+        #endif
+    ```
+    substitute the value otherwise Alice wont work, if you downloaded it on steam then you can just right click Victoria 2 and browse local files
+    copy the file path and replace [insert file path here] with it, then save.
+7. `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
+8. `cmake --build . -j$(nproc)`
+
+#### Note on Non-x86 Platforms
+
+PA Does not support non-x86 platforms, as it utilises some optimisations which are specific to x86
+
+##### Do I have an x86 platform?
+
+Chances are you do, examples of non-x86 platform that is somewhat more common nowadays
+Apple M1 and onwards are not (This is present in their newer iMacs)
+Raspberry Pi are not (All of them, these all dont use x86)
+
+Other platforms (ppc, mips, sparc etc) are likewise unsupported.
 
 #### Final touches
 

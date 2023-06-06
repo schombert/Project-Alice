@@ -70,5 +70,4 @@ mask_vector operator!=(tag_type b, contiguous_tags_base<tag_type> a) {
 	return a != tagged_vector<tag_type>(b);
 }
 
-
-}
+} // namespace ve

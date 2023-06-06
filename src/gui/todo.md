@@ -1,6 +1,9 @@
 This is just a quick todo/note list for myself -breizh
+
+FIX:
+- Make Tooltips call the underlying button for stuff like pop window
+
 GUI Todo:
-- add "about me"s to the various tooltips where present
 - make sure the Topbar UI is 1:1 with Vic2s
 - Create Lists for Colonial Actions, Bankrupt Factories, Buildings be Constructed
 - Factories are closed when their production scale is < 0.05
@@ -13,7 +16,8 @@ Abandon:
 - top5 production and top3 import/export requires overlapping elements (see diplo war flags)
 
 DONE:
-- Add prototypes for monthly avg change for militancy, literacy, and conciousness   (they return monthly changes, we call them each time in the tooltips and divide ret'd value by 30
+- add "about me"s to the various tooltips where present
+- Add prototypes for monthly avg change for militancy, literacy, and consciousness   (they return monthly changes, we call them each time in the tooltips and divide ret'd value by 30
 - add text::fp_four_places{} - Vic2 uses this many to represent TOPBAR_AVG_CHANGE
 - Listing done for reforms, decisions
 

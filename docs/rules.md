@@ -85,6 +85,8 @@ During its monthly pop update tick (see below), if an artisan hasn't been satisf
 Pop projects are things like factory construction / upgrading / reopening / railroad building
 Pop projects are possible only subject to the political rules, and must be under construction long enough to complete.
 
+Factories are given priority to be built on states with high population, whereas railroads are prioritized on states with a lot of factories (which is determined by the sum of all factory levels). This makes it so projects are built on the most important areas and then spread out to less important ones as time goes on.
+
 A pop project buys commodities like a factory would buy its inputs (i.e. it doesn't draw directly from the national stockpile).
 Constructing a new building has a cost based on commodities of (technology-factory-owner-cost + 1) x (national-factory-owner-cost-modifier) x (the-price-required-to-purchase-construction-goods) + 25 x cost-to-purchase-one-day-of-inputs-at-level-1
 Reopening a building has a cost of : 25 x cost-to-purchase-one-day-of-inputs-at-level-1
@@ -476,23 +478,146 @@ Leaders who are both less than 26 years old and not in combat have no chance of 
 - A war that ends up with no members on one (or both) sides will simply be ended as a whole
 - A province is blockaded if there is a hostile sea unit in an adjacent sea province and no ongoing naval combat there. My notes say that only either not-overseas (or maybe only connected to capital) provinces count for calculating the blockade fraction
 
-### Ticking war score
+### War and peace
+
+#### Breaking a truce
+
+If you declare a war while you have a truce. You get infamy equal to the sum of the break-truce infamy associated with each of the po_tags for the war goal you are declaring with, times the break_truce_infamy_factor for that specific cb. In the same way, you lose the sum of the break-truce prestige associated with each of the po_tags times the cb's break_truce_prestige_factor. And the same thing is done but with break_truce_militancy_factor to determine how much to increase the militancy of each pop in your nation by.
+
+#### Declaring a war
+
+All defender allies that could possibly join get a call to arms. The attacker may optionally call to arms their allies.
+
+#### Joining a war
+
+When you join (or declare) a war your relations with nations on the opposite side decrease by -100. If you end up on the opposite side of a war as an ally, your alliance breaks, but without any extra relations penalty. Substates and vassals are automatically dragged into the war.
+
+#### Calling allies
+
+Allies may be called into a war. In a defensive war, the sphere leader of the target will be called in. Any ally called must be able to join the war:
+
+Standard war-joining conditions: can't join if you are already at war against any attacker or defender. Can't join a civil war. Can't join a war against your sphere leader or overlord . Can't join a crisis war prior to great wars being invented (i.e. you have to be in the crisis). Can't join as an attacker against someone you have a truce with.
+
+There are somewhat opaque rules about when an ally called into the war will take over war leadership. We may choose either to keep war leadership fixed or to let the highest ranked participant be the leader.
+
+#### Naming the war
+
+The name of the war is determined by the `war_name` property of the CB that the war was declared with prefixed with either NORMAL_ or AGRESSION_ (yes, with that spelling. yes, I know). (It gets the aggression prefix if the attacker has no valid cb as the war is declared ... which shouldn't be possible right, since the war name comes from the CB that the war is declared with, right ...). If there is no declaring CB, the war defaults to NORMAL_WAR_NAME or AGRESSION_WAR_NAME.
+
+A great war is named GREAT_WAR_NAME
+
+The game also apparently supports special premade names between specific nations (or rather, specific tags). I don't intend to support this.
+
+In addition to first and second, country_adj and state are also available in these strings.
+
+#### Special Crisis rules
+
+A pending crisis acts much like an active war in that war goals can be added and peace offers made. When adding a war goal to the crisis as an offer to get someone to join, multiply the normal infamy cost by define:CRISIS_WARGOAL_INFAMY_MULT.
+
+#### Peace action
+
+Costs define:PEACE_DIPLOMATIC_COST (although you seem to be able to clear a war with no war goals for free). Peace requires a war leader on at least one side of the offer, except in crisis wars, in which no separate peaces are possible.
+
+When a peace offer is accepted, relations between the nations increase by defines:PEACE_RELATION_ON_ACCEPT, If it is refused, relations increase by define:PEACE_RELATION_ON_DECLINE.
+
+If a "good" peace offer is refused, the refusing nation gains define:GOOD_PEACE_REFUSAL_WAREXH war exhaustion and all of its pops gain define:GOOD_PEACE_REFUSAL_MILITANCY. What counts as a good offer, well if the peace offer is considered "better" than expected. This seems to be a complicated thing to calculate involving: the direction the war is going in (sign of the latest war score change), the overall quantity of forces on each side (with navies counting for less), time since the war began, war exhaustion, war score, the peace cost of the offer, and whether the recipient will be annexed as a result.
+
+A peace offer must be accepted when war score reaches 100.
+
+When a losing peace offer is accepted, the ruling party in the losing nation has its party loyalty reduced by define:PARTY_LOYALTY_HIT_ON_WAR_LOSS percent in all provinces (this includes accepting a crisis resolution offer in which you lose). When a nation exits a war, it takes all of its vassals / substates with it. The nations on the other side of the war get a truce with the nation for define:BASE_TRUCE_MONTHS + the greatest truce months for any CB in the peach deal.
+
+When a war goal is failed (the nation it targets leaves the war without that war goal being enacted): the nation that added it loses WAR_FAILED_GOAL_PRESTIGE_BASE^(WAR_FAILED_GOAL_PRESTIGE x current-prestige) x CB-penalty-factor prestige. Every pop in that nation gains CB-penalty-factor x define:WAR_FAILED_GOAL_MILITANCY militancy.
+
+War goal results:
+po_annex: nation is annexed, vassals and substates are freed, diplomatic relations are dissolved.
+po_demand_state: state is taken (this can turn into annex if it is the last state)
+po_remove_cores: also cores are removed from any territory taken / target territory if it is already owned by sender
+po_transfer_provinces: all the valid states are transferred to the nation specified in the war goal. Relations between that country and the nation that added the war goal increase by define:LIBERATE_STATE_RELATION_INCREASE. If the nation is newly created by this, the nation it was created from gets a truce of define:BASE_TRUCE_MONTHS months with it (and it is placed in the liberator's sphere if that nation is a GP).
+po_add_to_sphere: leaves its current sphere and has its opinion of that nation set to hostile. Is added to the nation that added the war goal's sphere with max influence.
+po_clear_union_sphere: every nation of the actors culture group in the target nation's sphere leaves (and has relation set to friendly) and is added to the actor nation's sphere with max influence. All vassals of the target nation affected by this are freed.
+po_release_puppet: nation stops being a vassal
+po_make_puppet: the target nation releases all of its vassals and then becomes a vassal of the acting nation.
+po_destory_forts: reduces fort levels to zero in any targeted states
+po_destory_naval_bases: as above
+po_disarmament: a random define:DISARMAMENT_ARMY_HIT fraction of the nations units are destroyed. All current unit constructions are canceled. The nation is disarmed. Disarmament lasts until define:REPARATIONS_YEARS or the nation is at war again.
+po_reparations: the nation is set to pay reparations for define:REPARATIONS_YEARS
+po_remove_prestige: the target loses (current-prestige x define:PRESTIGE_REDUCTION) + define:PRESTIGE_REDUCTION_BASE prestige
+po_install_communist_gov: The target switches its government type and ruling ideology (if possible) to that of the nation that added the war goal. Relations with the nation that added the war goal are set to 0. The nation leaves its current sphere and enters the actor's sphere if it is a GP. If the war continues, the war leader on the opposite side gains the appropriate `counter_wargoal_on_install_communist_gov` CB, if any and allowed by the conditions of that CB.
+po_uninstall_communist_gov_type: The target switches its government type to that of the nation that added the war goal. The nation leaves its current sphere and enters the actor's sphere if it is a GP.
+po_colony: colonization finishes, with the adder of the war goal getting the colony and all other colonizers being kicked out
+other/in general: the `on_po_accepted` member of the CB is run. Primary slot: target of the war goal. This slot: nation that added the war goal.
+The nation that added the war goal gains prestige. This is done, by calculating the sum ,over all the po tags, of base-prestige-for-that-tag v (nations-current-prestige x prestige-for-that-tag) and then multiplying the result by the CB's prestige factor. The nation that was targeted by the war goal also loses that much prestige.
+
+When a nation is annexed by a war goal, the war leader on that side gains a `counter_wargoal_on_annex` CB if possible
+(NOTE: these CBs are actually resolved through the tweaks.lua file, which contains:
+```
+counter_wargoal_on_annex = { cb = "free_peoples" },
+counter_wargoal_on_install_communist_gov = { cb = "uninstall_communist_gov_cb" },
+```
+)
+A war goal added in this way will result in a status quo war goal on that side being removed.
+
+Any war ending probably requires checking that units aren't stuck in invalid combats, updating blockade status, etc.
+
+#### Crisis offers
+
+Crisis resolution offers function much in the same way as peace offers. Every refused crisis offer increases the temperature of the current crisis by define:CRISIS_TEMPERATURE_ON_OFFER_DECLINE.
+
+When a war goal is failed (i.e. the crisis ends in peace without the goal being pressed): the nation that added it loses WAR_FAILED_GOAL_PRESTIGE_BASE^(WAR_FAILED_GOAL_PRESTIGE x current-prestige) x CB-penalty-factor prestige x define:CRISIS_WARGOAL_PRESTIGE_MULT. Every pop in that nation gains CB-penalty-factor x define:WAR_FAILED_GOAL_MILITANCY militancy. Every pop in that nation gains CB-penalty-factor x define:WAR_FAILED_GOAL_MILITANCY x define:CRISIS_WARGOAL_MILITANCY_MULT militancy.
+
+For war goals that are enforced, the winners get the normal amount of prestige x define:CRISIS_WARGOAL_PRESTIGE_MULT
+
+The crisis winner also gets year-after-start-date x define:CRISIS_WINNER_PRESTIGE_FACTOR_YEAR prestige. The crisis winner gains define:CRISIS_WINNER_RELATIONS_IMPACT relations with everyone on their side, except everyone with an unfulfilled war goal gains -define:CRISIS_WINNER_RELATIONS_IMPACT relations with the leader of their side.
+
+### War goals and war score
+
+#### Adding a war goal
+
+When you add a war goal (including the one that the war is declared with) it is removed from your constructed CBs list. Once the war is going: no war goals may be added if there is a status quo war goal present on the side of the conflict of the nation that wants to add a war goal. The war goal must be valid (see below). The nation adding the war goal must have positive war score against the target of the war goal (see below). And the nation must be already able to use the CB in question (e.g. it as fabricated previously) or it must be a constructible CB and the nation adding the war goal must have overall jingoism support >= defines:WARGOAL_JINGOISM_REQUIREMENT (x defines:GW_JINGOISM_REQUIREMENT_MOD in a great war).
+
+When a war goal is added, its on_add effect runs. The nation adding the war goal is placed in the primary slot, with the nation targeted by the war goal in the from slot. The nation adding the war goal gains infamy (if the war goal was not already available). This is done by adding up the infamy as determined by the po tags and multiplying by the CB's `badboy_factor`. If it is a great war, this value is further multiplied by defines:GW_JUSTIFY_CB_BADBOY_IMPACT.
+
+#### Testing if a war goal is valid
+
+- Allowed countries:
+The allowed country condition, if present, must be satisfied (evaluated with the nation targeted by the war goal in the primary slot, the nation adding the war goal in the this slot, and any other nation associated with the war goal -- for example the liberation target -- in the from slot if any).
+
+- Allowed states:
+If the war goal has `all_allowed_states` it will affect all states satisfying the condition. In any case, there must be some state owned by the target nation that passes the `allowed_states` condition if present (evaluated with that state in the primary slot, the nation adding the war goal in the this slot, and any other nation associated with the war goal -- for example the liberation target -- in the from slot if any).
+
+#### Peace cost
+
+Each war goal has a value that determines how much it is worth in a peace offer (and peace offers are capped at 100 points of war goals). Great war obligatory war goals cost 0. Then we iterate over the po tags and sum up the peace cost for each. Some tags have a fixed cost in the defines, such as define:PEACE_COST_RELEASE_PUPPET. For anything that conquers provinces directly (ex: demand state), each province is worth its value relative to the total cost of provinces owned by the target (see below) x 2.8. For po_clear_union_sphere, the cost is defines:PEACE_COST_CLEAR_UNION_SPHERE x the number of nations that will be affected. If the war is a great war, this cost is multiplied by defines:GW_WARSCORE_COST_MOD. If it is a great war, world wars are enabled, and the war score is at least defines:GW_WARSCORE_2_THRESHOLD, the cost is multiplied by defines:GW_WARSCORE_COST_MOD_2 instead. The peace cost of a single war goal is capped at 100.0.
+
+#### Ticking war score
 
 - ticking war score based on occupying war goals (po_annex, po_transfer_provinces, po_demand_state) and letting time elapse, winning battles (tws_from_battles > 0)
-- limited by define: TWS_CB_LIMIT_DEFAULT
+- limited by define:TWS_CB_LIMIT_DEFAULT
 - to calculate: first you need to figure out the percentage of the war goal complete. This is percentage of provinces occupied or, for war score from battles see Battle score below
 
-### Battle score
+#### Battle score
 
 - zero if fewer than define:TWS_BATTLE_MIN_COUNT have been fought
 - calculate relative losses for each side (something on the order of the difference in losses / 10,000 for land combat or the difference in losses / 10 for sea combat) with the points going to the winner, and then take the total of the relative loss scores for both sides and divide by the relative loss score for the defender.
+
+#### Directed war score
+
+Directed war score is how much war score a particular nation has against another particular nation on the other side of the conflict. This is used when adding war goals, and when one nation is trying to make a separate peace with another. Directed war score is considered to be 100 if the attacker has all provinces that they possibly can occupied and either 50% of the provinces of the target occupied or the target's capital occupied. (Or, -100 if the reverse is true. This appears to be a kind of forced capitulation condition.) If at least one of the two nations involved is a leader of their side, war score from battles applied. This score is capped at define:MAX_WARSCORE_FROM_BATTLES. For each land battle the winner gets the difference in strength losses (or zero if they won with more strength losses) / 10 plus an additional 0.1 added to their "direction" of the war score.
+
+War score from occupations requires us to know the value of provinces. All provinces have a base value of 1. For non colonial provinces: each level of naval base increases its value by 1. If it is a state capital, its value increases by 1 for every factory in the state (factory level does not matter). Provinces get 1 point per fort level. This value is the doubled for non-overseas provinces where the owner has a core. It is then tripled for the nation's capital province.
+
+For each province owned by B that A occupies, it gets credit toward its side of the war score equal to 100 x that province's value as a fraction of all the provinces owned by B. However, that province counts for only 3/4 of that value if it is currently blockaded by an enemy (why?).
+
+Finally, war score is affected by any war goals in play against either side that have war score associated with them. Take the peace cost of the war goal and calculate 1^(peace-cost / define:TWS_CB_LIMIT_DEFAULT) x current-war-goal-score. This value is also added into the effective war score.
+
+Directed war score is always treated as being in the -100 to 100 range.
 
 ### Invalid  war states
 
 - A primary belligerent may not be a vassal or substate of another nation
 - War goals must remain valid (must pass their is-valid trigger check, must have existing target countries, target countries must pass any trigger checks, there must be a valid state in the target country, the country that added them must still be in the war, etc)
 - Crisis war goals may not be removed -- this may override other validity checks
-- There must be at least one wargoal (other than status quo) in the war
+- There must be at least one war goal (other than status quo) in the war
 - idle for too long -- if the war goes too long without some event happening within it (battle or occupation) it may be terminated. If something is occupied, I believe the war is safe from termination in this way
 
 ### Mobilization
@@ -744,7 +869,7 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 
 ### Naval supply points
 
-- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or define:NAVAL_BASE_SUPPLY_SCORE_EMPTY for each state without one, multiplied by define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE if it is neither a core nor connected to the capital.
+- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or define:NAVAL_BASE_SUPPLY_SCORE_EMPTY for each state without one, multiplied by define:NAVAL_BASE_NON_CORE_SUPPLY_SCORE if it is neither a core nor connected to the capital (min 1 per coastal state).
 - ships consume naval base supply at their supply_consumption_score. Going over the naval supply score comes with various penalties (described elsewhere).
 
 ## Movements
@@ -769,7 +894,7 @@ When a unit arrives in a new province, it takes attrition (as if it had spent th
 - When a movement is suppressed:
 Reduce the suppression points for the nation by: if define:POPULATION_SUPPRESSION_FACTOR is zero, movement radicalism + 1, otherwise the greater of movement-radicalism + 1 and movement-radicalism x movement-support / define:POPULATION_SUPPRESSION_FACTOR, to a minimum of zero
 Increase the transient radicalism of the movement by: define:SUPPRESSION_RADICALISM_HIT
-Increase the consciousness of all pops that were in the movement by 1 and remove them from it.
+Set the consciousness of all pops that were in the movement to 1 and remove them from it.
 
 ## Rebels
 
@@ -993,12 +1118,11 @@ If you have put a colonist in the region, and colonization is in phase 1 or 2, y
 
 If you have put in a colonist in a region and it goes at least define:COLONIZATION_DAYS_FOR_INITIAL_INVESTMENT without any other colonizers, it then moves into phase 3 with define:COLONIZATION_INTEREST_LEAD points.
 
-If you get define:COLONIZATION_INTEREST_LEAD ahead in points of all other colonizers in the region, and it is phase 1, it moves into phase 2, kicking out all but the second-most colonizer (in terms of points).
+If you get define:COLONIZATION_INTEREST_LEAD points, and it is phase 1, it moves into phase 2, kicking out all but the second-most colonizer (in terms of points).
 
 In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
 
 In phase 2 if there are competing colonizers, the "temperature" in the colony will rise by define:COLONIAL_INFLUENCE_TEMP_PER_DAY + maximum-points-invested x define:COLONIAL_INFLUENCE_TEMP_PER_LEVEL + define:TENSION_WHILE_CRISIS (if there is some other crisis going on) + define:AT_WAR_TENSION_DECAY (if either of the two colonizers are at war or disarmed)
-
 
 To finish colonization and make a protectorate: you must be in colonization phase 3, you must have define:COLONIZATION_CREATE_PROTECTORATE_COST free colonial points, and your colonist in the region must have non zero points.
 
@@ -1018,6 +1142,22 @@ Only nations with rank at least define:COLONIAL_RANK get colonial points. Coloni
 Generally "spent" colonial points get tied up in the colony, and are returned to you when it stops being a colony (the exception being the point "cost" to turn a colony into a state, which is really just a requirement to have a certain number of colonial points unused). For any state that is in the process of being turned into a colony, any points spent there are locked away until the process ends, one way or another. Each province in a protectorate state costs define:COLONIZATION_PROTECTORATE_PROVINCE_MAINTAINANCE points. Each province in a colony state costs define:COLONIZATION_COLONY_PROVINCE_MAINTAINANCE + infrastructure-value-provided-by-railroads x railroad-level-in-the-province x define:COLONIZATION_COLONY_RAILWAY_MAINTAINANCE. Additionally, a colony state costs define:COLONIZATION_COLONY_INDUSTRY_MAINTAINANCE x the-number-of-factories.
 
 Investing in a colony costs define:COLONIZATION_INVEST_COST_INITIAL + define:COLONIZATION_INTEREST_COST_NEIGHBOR_MODIFIER (if a province adjacent to the region is owned) to place the initial colonist. Further steps cost define:COLONIZATION_INTEREST_COST while in phase 1. In phase two, each point of investment cost define:COLONIZATION_INFLUENCE_COST up to the fourth point. After reaching the fourth point, further points cost define:COLONIZATION_EXTRA_GUARD_COST x (points - 4) + define:COLONIZATION_INFLUENCE_COST.
+
+New notes on colonial points:
+
+You have to be at least colonial rank to get any; equal sum of:
++ colonial points from tech
++ colonial points from navy = 
+(nominal colonial points from ships x (1.0 - percent over naval limits) + colonial points from naval bases) x define:COLONIAL_POINTS_FROM_SUPPLY_FACTOR
++ colonial points from history files (we ignore this)
+
+Colonial points used:
+
++ total amount invested in colonization (the race stage, not colony states)
++ for each colonial province COLONIZATION_COLONY_PROVINCE_MAINTAINANCE
++ infrastructure value of the province x COLONIZATION_COLONY_RAILWAY_MAINTAINANCE
++ COLONIZATION_COLONY_INDUSTRY_MAINTAINANCE per factory in a colony (???)
+rounded to the nearest integer
 
 ## Events
 
@@ -1077,3 +1217,588 @@ It may be expedient to create some structures tracking properties of pathing / c
 - whether any two nations each have a colonial province adjacent to a colonial province of the other
 - how many regiments total could possibly be recruited, and what number actually have been recruited
 - total number of allies, vassals, substates, etc
+
+## Commands
+
+This section describes all the actions that a player can take that affect the state of the game (i.e. anything that isn't just user interface navigation).
+
+### Set national focus
+
+This includes both setting the national focus in a state you own as well as setting the flashpoint focus in a state owned by another nation.
+
+#### Conditions
+
+If you are setting a focus for one of your states, then it must not be the flashpoint focus, the ideology must be available if it is a party loyalty focus (enabled and not restricted to civs only if you are an unciv), and either there must be a focus already in the state or fewer than your maximum number of available focus must be set in other states.
+
+If it is the flashpoint focus, the state must not be owned by you, you must be less than colonial rank, you must have a core in that state, the owner must not accept your primary culture, your tag must be releasable, another nation must not already have a flashpoint focus there, and either you have fewer than your maximum number of focuses already active *or* you have a flashpoint focus active somewhere else (setting a flashpoint focus in one state will cancel any flashpoint focuses you have set in other states).
+
+#### Effect
+
+Changes the national focus active in the state
+
+### Start research
+
+This starts researching an specific technology.
+
+#### Conditions
+
+Nations can only start researching technologies if, they are not uncivilized, the corresponding date that the technology is activated at is already past by, and all the previous techs (if any) of the same folder are already researched fully. And the technology isn't already being researched.
+
+#### Effect
+
+Sets the current research of the country to the specified technology.
+
+### War subsidies
+
+This helps funding the war efforts of the target country, requiring no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the nation isn't already being given war subsidies, and there is defines:WARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender.
+
+#### Effect
+
+The sender will give the target `defines:WARSUBSIDIES_PERCENT x total-expenses-of-target` every tick.
+
+### Increase relations
+
+This increases relations between the two countries and requires no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the relation value isn't maxxed out at 200, and has defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender.
+
+#### Effect
+
+Increase relations value by the value of defines:INCREASERELATION_RELATION_ON_ACCEPT (normally set at 100) and decreases diplomatic points by defines:INCREASERELATION_DIPLOMATIC_COST.
+
+### Decrease relations
+
+This decreases relations between the two countries and requires no agreement between each.
+
+#### Conditions
+
+Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender.
+
+#### Effect
+
+Increase relations value by the value of defines:DECREASERELATION_RELATION_ON_ACCEPT (normally set at -20) and decreases diplomatic points by defines:DECREASERELATION_DIPLOMATIC_COST.
+
+### Conquering a province
+
+Strictly speaking, this is not a command that we would expect the ui to ever send directly (except maybe via the console). However, it can be thought of as a component of the more complex commands that will eventually execute a peace deal, for example.
+
+#### Conditions
+
+Depends on the context it is generated in
+
+#### Effect
+
+In addition to transferring province ownership: (TODO: prevent more than one naval base per state)
+- All pops in the province lose all their savings
+- If the province is not a core of the new owner and is not a colonial province (prior to conquest), any pops that are not of an accepted or primary culture get define:MIL_HIT_FROM_CONQUEST militancy
+- Provinces conquered from an unciv by a civ become colonial
+- The conqueror may gain research points:
+First, figure out how many research points the pops in the province would generate as if they were a tiny nation (i.e. for each pop type that generates research points, multiply that number by the fraction of the population it is compared to its optimal fraction (capped at one) and sum them all together). Then multiply that value by (1.0 + national modifier to research points modifier + tech increase research modifier). That value is then multiplied by define:RESEARCH_POINTS_ON_CONQUER_MULT and added to the conquering nation's research points. Ok, so what about the nations research points on conquer modifier?? Yeah, that appears to be bugged. The nation gets research points only if that multiplier is positive, but otherwise it doesn't affect the result.
+- The province gets nationalism equal to define:YEARS_OF_NATIONALISM
+- Pops leave any movements / rebellions
+- Timed modifiers are removed; constructions are canceled
+- When new states are created by conquest, the nation gets an `on_state_conquest` event
+
+### Create a military leader (either general or admiral)
+
+#### Conditions
+
+The nation must have define:LEADER_RECRUIT_COST leadership points available.
+
+#### Effect
+
+The same as for automatic leader creation, except that you get to choose the type. The nation loses define: LEADER_RECRUIT_COST leadership points. (There is also a MILITARY_CREATE_GENERAL message)
+
+### Start building a province building (naval base, fort, railroad)
+
+Irrelevant note: it is POP_BUILD_FACTORY that allows pops to build railroads after all
+
+#### Conditions
+
+The nation must have the tech level required to build up to the new level in the target province. There must be no existing construction project for that building. The province must be controlled by its owner. The province must not be under siege. If not owned by the nation doing the building, it must be a railroad, the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation being invested in must be civilized.
+
+For naval bases: only one per state (check ongoing constructions in state too), and only on the coast.
+
+For railroads: nations must have RULE_BUILD_RAILROAD to start a project.
+
+#### Effect
+
+Start the building construction project. If the province is in a foreign nation, get foreign investment credit equal to the projected total cost.
+
+### Start building or upgrading a factory
+
+#### Conditions
+
+The nation must have the rule set to allow building / upgrading if this is a domestic target.
+
+For foreign investment: the target nation must allow foreign investment, the nation doing the investing must be a great power while the target is not a great power, and the nation doing the investing must not be at war with the target nation. The nation being invested in must be civilized.
+
+The factory building must be unlocked by the nation.
+Factories cannot be built in a colonial state.
+Coastal factories can only be built in coastal states.
+Can't have duplicate factories (2 factories of the same type).
+
+For new factories: no more than 7 existing + under construction new factories must be present.
+For upgrades: no upgrading past max level.
+
+#### Effect
+
+Start the building construction project. If the province is in a foreign nation, get foreign investment credit equal to the projected total cost.
+
+### Destroy Factory
+
+Complication: factory must be identified by its location and type, since other factory commands may be in flight
+
+#### Conditions
+
+The nation must have the appropriate rule to allow the destruction set.
+
+#### Effect
+
+Factory goes away
+
+### Change factory settings
+
+Change the hiring priority or subsidized status of a factory
+
+#### Conditions
+
+Relevant national rules
+
+#### Effect
+
+Status changes
+
+### Start unit construction
+
+#### Conditions
+
+The province must be owned and controlled by the building nation, without an ongoing siege.
+The unit type must be available from start / unlocked by the nation
+
+Land units:
+
+Each soldier pop can only support so many regiments (including under construction and rebel regiments)
+If the unit is culturally restricted, there must be an available primary culture/accepted culture soldier pop with space
+
+Naval units:
+
+The province must be coastal
+The province must have a naval base of sufficient level, depending on the unit type
+The province may not be overseas for some unit types
+Some units have a maximum number per port where they can built that must be respected
+
+#### Effect
+
+Starts condition
+
+### Cancel unit construction
+
+#### Conditions
+
+Must be the owner of the province where the unit is being built
+
+#### Effect
+
+Cancels construction
+
+### Release a nation as a vassal
+
+#### Conditions
+
+Must not be at war and the country being released must not already exist. The associated tag must be releasable, and you must own some cores belonging to that tag.
+
+#### Effect
+
+Release the nation from any cores owned by the sender of the command. The command sender loses all cores on those provinces. The command sender gains define:RELEASE_NATION_PRESTIGE. The command sender gains define:RELEASE_NATION_INFAMY. The released nation has the same government as the releaser (this may force changing the ruling party, and thus changing the active party issues).
+
+### Switch nations
+
+#### Conditions
+
+Target tag mustn't be controlled by another player. The tag should exist.
+
+#### Effect
+
+Switches nation to tag - no effect on AI controlled nations.
+
+### Change budget settings
+
+#### Conditions
+
+No setting can be brought outside the permissible range
+
+#### Effect
+
+Settings are changed (by being clamped to the permissible range).
+
+### Change stockpile setting
+
+Change whether the stockpile is filling, and what its target amount its
+
+### Start election
+
+#### Conditions
+
+Elections must be possible in the form of government. No election may be currently ongoing.
+
+#### Effect
+
+Starts an election
+
+### Set influence priority
+
+#### Conditions
+
+The source must be a great power, while the target must not be a great power.
+
+#### Effect
+
+Sets the influence priority from 0 to 3
+
+### Discredit
+
+#### Conditions
+
+The source must be a great power. The source must have define:DISCREDIT_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. To discredit a nation, you must have an opinion of at least "opposed" with the influenced nation and you must have a an equal or better opinion level with the influenced nation than the nation you are discrediting does.
+
+#### Effect
+
+A nation is discredited for define:DISCREDIT_DAYS. Being discredited twice does not add these durations together; it just resets the timer from the current day. Discrediting a nation "increases" your relationship with them by define:DISCREDIT_RELATION_ON_ACCEPT. Discrediting costs define:DISCREDIT_INFLUENCE_COST influence points. 
+
+### Expel Advisors
+
+#### Conditions
+
+The source must be a great power. The source must have define:EXPELADVISORS_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. To expel advisors you must have at least neutral opinion with the influenced nation and an equal or better opinion level than that of the nation you are expelling.
+
+#### Effect
+
+Expelling a nation's advisors "increases" your relationship with them by define:EXPELADVISORS_RELATION_ON_ACCEPT. This action costs define:EXPELADVISORS_INFLUENCE_COST influence points. Being expelled cancels any ongoing discredit effect. Being expelled reduces your influence to zero. 
+
+### Ban embassy
+
+#### Conditions
+
+The source must be a great power. The source must have define:BANEMBASSY_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. To ban a nation you must be at least friendly with the influenced nation and have an equal or better opinion level than that of the nation you are expelling.
+
+#### Effect
+
+Banning a nation's embassy "increases" your relationship with them by define:BANEMBASSY_RELATION_ON_ACCEPT. This action costs define:BANEMBASSY_INFLUENCE_COST influence points. The ban embassy effect lasts for define:BANEMBASSY_DAYS. If you are already banned, being banned again simply restarts the timer. Being banned cancels out any ongoing discredit effect. 
+
+### Increase opinion:
+
+#### Conditions
+
+The source must be a great power. The source must have define:INCREASEOPINION_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. Your current opinion must be less than friendly
+
+#### Effect
+
+Increasing the opinion of a nation costs define:INCREASEOPINION_INFLUENCE_COST influence points. Opinion can be increased to a maximum of friendly.
+	
+### Decrease opinion:
+
+#### Conditions
+
+The source must be a great power. The source must have define:DECREASEOPINION_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. Decreasing the opinion of another nation requires that you have an opinion of at least "opposed" with the influenced nation and you must have a an equal or better opinion level with the influenced nation than the nation you are lowering their opinion of does. The secondary target must neither have the influenced nation in sphere nor may it already be at hostile opinion with them.
+
+#### Effect
+
+Decreasing the opinion of a nation "increases" your relationship with them by define:DECREASEOPINION_RELATION_ON_ACCEPT. This actions costs define:DECREASEOPINION_INFLUENCE_COST influence points. Opinion of the influenced nation of the secondary target decreases by one step.
+
+### Add to sphere
+
+#### Conditions
+
+The source must be a great power. The source must have define:ADDTOSPHERE_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. The nation must have a friendly opinion of you and my not be in the sphere of another nation.
+
+#### Effect
+
+Adding a nation to your sphere costs define:ADDTOSPHERE_INFLUENCE_COST influence points.
+
+### Remove from sphere
+
+#### Conditions
+
+The source must be a great power. The source must have define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. The source may not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power can be a secondary target for this action. To preform this action you must have an opinion level of friendly with the nation you are removing from a sphere.
+
+#### Effect
+
+Removing a nation from a sphere costs define:REMOVEFROMSPHERE_INFLUENCE_COST influence points. If you remove a nation from your own sphere you lose define:REMOVEFROMSPHERE_PRESTIGE_COST prestige and gain define:REMOVEFROMSPHERE_INFAMY_COST infamy. Removing a nation from the sphere of another nation "increases" your relationship with the former sphere leader by define:REMOVEFROMSPHERE_RELATION_ON_ACCEPT points. The removed nation then becomes friendly with its former sphere leader.
+
+### Make colony into state
+
+#### Conditions
+
+Must not be at war. State must be colonial. Primary and accepted bureaucrat pops must make up at least define:STATE_CREATION_ADMIN_LIMIT percent of the population in the state. Must have enough free colonial points. The point requirement is: define:COLONIZATION_CREATE_STATE_COST x number of provinces x 1v(either distance to capital / COLONIZATION_COLONY_STATE_DISTANCE or 0 if it has a land connection to the capital).
+
+#### Effect
+
+Provinces in the state stop being colonial.
+Gain define:COLONY_TO_STATE_PRESTIGE_GAIN x (1.0 + colony-prestige-from-tech) x (1.0 + prestige-from-tech)
+All timed modifiers active for provinces in the state expire
+An event from `on_colony_to_state` happens (with the state in scope)
+An event from `on_colony_to_state_free_slaves` happens (with the state in scope)
+Update is colonial nation
+
+### Invest in colony
+
+#### Conditions
+
+Must have an uncolonized province
+Must be in phase 0 or 1 or 2
+There cannot be an ongoing colonial crisis for the state
+
+Investing in a colony costs define:COLONIZATION_INVEST_COST_INITIAL + define:COLONIZATION_INTEREST_COST_NEIGHBOR_MODIFIER (if a province adjacent to the region is owned) to place the initial colonist. Further steps cost define:COLONIZATION_INTEREST_COST while in phase 1. In phase two, each point of investment cost define:COLONIZATION_INFLUENCE_COST up to the fourth point. After reaching the fourth point, further points cost define:COLONIZATION_EXTRA_GUARD_COST x (points - 4) + define:COLONIZATION_INFLUENCE_COST.
+
+You can invest colonially in a region if there are fewer than 4 other colonists there (or you already have a colonist there). You must also have sufficient liferating tech. Specifically, you must have colonial life rating points from technology + define:COLONIAL_LIFERATING less than or equal to the *greatest* life rating of an unowned province in the state. Your country must be of define:COLONIAL_RANK or less.
+
+If you haven't yet put a colonist into the region, you must be in range of the region. Any region adjacent to your country or to one of your vassals or substates is considered to be in range. Otherwise it must be in range of one of your naval bases, with the range depending on the colonial range value provided by the naval base building x the level of the naval base.
+
+If you have put a colonist in the region, and colonization is in phase 1 or 2, you can invest if it has been at least define:COLONIZATION_DAYS_BETWEEN_INVESTMENT since your last investment, and you have enough free colonial points.
+
+#### Effect
+
+Adds a point to your colonization progress, resets the time since last investment. When someone reaches define:COLONIZATION_INTEREST_LEAD points, and it is phase 1, it moves into phase 2, kicking out all but the second-most colonizer (in terms of points). In phase 2 if you get define:COLONIZATION_INFLUENCE_LEAD points ahead of the other colonizer, the other colonizer is kicked out and the phase moves to 3.
+
+### Finish colonization
+
+(i.e. turn a colonial investment into a colonial state)
+
+#### Conditions
+
+Must have at least defines:COLONIZATION_CREATE_PROTECTORATE_COST free colonial points. Must be in colonial stage 3 and have a colonist present.
+
+#### Effects
+
+Gain define:COLONY_FORMED_PRESTIGE x (tech prestige modifier + 1) prestige. Makes unowned provinces into a colonial state.
+
+### Intervene in war
+
+#### Conditions
+
+Standard war-joining conditions: can't join if you are already at war against any attacker or defender. Can't join a civil war. Can't join a war against your sphere leader or overlord (doesn't apply here obviously). Can't join a crisis war prior to great wars being invented (i.e. you have to be in the crisis). Can't join as an attacker against someone you have a truce with.
+
+Must be a great power. Must not be involved in or interested in a crisis. Must be at least define:MIN_MONTHS_TO_INTERVENE since the war started.
+
+If it is not a great war:
+Must be at least friendly with the primary defender. May only join on the defender's side. Must not be in a crisis war. Defenders must either have no wargoals or only status quo. Primary defender must be at defines:MIN_WARSCORE_TO_INTERVENE or less. Note, you *can* intervene in a civil war, despite not being able to be called into one normally.
+
+If the war is a great war:
+It is then possible to join the attacking side as well.
+Must have define:GW_INTERVENE_MIN_RELATIONS with the primary defender/attacker to intervene, must have at most define:GW_INTERVENE_MAX_EXHAUSTION war exhaustion.
+Can't join if any nation in your sphere is on the other side
+Can't join if you are allied to any allied to any nation on the other side
+Can't join if you have units within a nation on the other side
+
+#### Effect
+
+Join the war. Adds a status quo wargoal if it is not a great war and one isn't already present
+
+### Suppress movement
+
+#### Conditions
+
+Suppression point cost:
+Depends on whether define:POPULATION_SUPPRESSION_FACTOR is non zero. If it is zero, suppression costs their effective radicalism + 1. If it is non zero, then the cost is the greater of that value and the movements effective radicalism x the movement's support / define:POPULATION_SUPPRESSION_FACTOR
+
+#### Effect
+
+The movement's radicalism is permanently increased by define:SUPPRESSION_RADICALISM_HIT. The consciousness of each pop belonging to the movement is set to 1 and then the pops are removed from the movement.
+
+### Become civilized
+
+#### Conditions
+
+Civilization progress must be at 100% or more
+
+#### Effect
+
+The nation gains technologies. Specifically take the fraction of military reforms (for land and naval) or econ reforms (otherwise) applied, clamped to the defines:UNCIV_TECH_SPREAD_MIN and defines:UNCIV_TECH_SPREAD_MAX values, and multiply how far the sphere leader (or first GP) is down each tech column, rounded up, to give unciv nations their techs when they westernize.
+The nation gets an `on_civilize` event.
+Political and social reforms: First setting in all categories?
+
+### Become interested in a crisis
+
+#### Conditions
+
+Not already interested in the crisis. Is a great power. Not at war. The crisis must have already gotten its initial backers.
+
+#### Effect
+
+Exactly what you expect
+
+### Join a side in a crisis
+
+#### Conditions
+
+Must not be involved in the crisis already. Must be interested in the crisis. Must be a great power. Must not be disarmed. The crisis must have already gotten its initial backers.
+
+#### Effect
+
+Add to crisis side
+
+### Accept/reject a crisis backing offer
+
+#### Conditions
+
+Must have a pending offer
+
+#### Effect
+
+Join crisis as primary attacker or defender
+
+### Change Stockpile settings
+
+#### Conditions
+
+None
+
+#### Effect
+
+The obvious
+
+### Change ruling party
+
+#### Conditions
+
+The ideology of the ruling party must be permitted by the government form. There can't be an ongoing election. It can't be the current ruling party. The government must allow the player to set the ruling party. The ruling party can manually be changed at most once per year.
+
+#### Effect
+
+The ruling party is changed. The party issues and rules are updated (note that this may further require things such as turning subsidies off).
+If the new party ideology is *not* the same as the old one: all pops gain ((total number of political and social reforms over baseline) x 0.01 + 1.0) x define:RULING_PARTY_ANGRY_CHANGE x pop support of the old ideology militancy
+all pops gain define:RULING_PARTY_HAPPY_CHANGE x pop support of the new ideology militancy
+The same is also done for all party issues that differ between the two.
+
+### Select political / social / military / economic reform
+
+#### Conditions
+
+The conditions for when these reforms can be selected has been described elsewhere in this document.
+
+#### Effects
+
+For political and social based reforms:
+- Every issue-based movement with greater popular support than the movement supporting the given issue (if there is such a movement; all movements if there is no such movement) has its radicalism increased by 3v(support-of-that-movement /  support-of-movement-behind-issue (or 1 if there is no such movement) - 1.0) x defines:WRONG_REFORM_RADICAL_IMPACT.
+- Each pop in the nation gains defines:CON_REFORM_IMPACT x pop support of the issue consciousness
+- For every ideology, the pop gains defines:MIL_REFORM_IMPACT x pop-support-for-that-ideology x ideology's support for doing the opposite of the reform (calculated in the same way as determining when the upper house will support the reform or repeal) militancy
+- If the pop is part of an movement for some other issue (or for independence), it gains defines:WRONG_REFORM_MILITANCY_IMPACT militancy. All other pops lose defines:WRONG_REFORM_MILITANCY_IMPACT militancy.
+
+For military/economic reforms:
+- Run the `on_execute` member
+- Subtract research points (see discussion of when the reform is possible for how many)
+
+In general:
+- Increase the share of conservatives in the upper house by defines:CONSERVATIVE_INCREASE_AFTER_REFORM (and then normalize again)
+- If slavery is forbidden (rule slavery_allowed is false), remove all slave states and free all slaves.
+- Movements may now be invalid and may need to be removed (can the normal update handle this?)
+
+### Take decision
+
+#### Conditions
+
+The allow and possible trigger conditions must be satisfied
+
+#### Effect
+
+The decision is taken (its effect runs)
+
+### Make event choice
+
+For implementation reasons, there are going to be four versions of this command, corresponding to the four types of events. You must populate the command with the exact values from the event you want to make a choice for or it will be ignored.
+
+#### Conditions
+
+None
+
+#### Effect
+
+Executes the effect of the choice. Internally, removes the event from the pending queue.
+
+### Ask for military access
+
+(implicitly: there must also be commands to accept or decline an access request)
+
+#### Conditions
+
+Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have military access.
+
+#### Effects
+
+Relations increased by defines:ASKMILACCESS_RELATION_ON_ACCEPT if it is accepted, and by defines:ASKMILACCESS_RELATION_ON_DECLINE if it is declined.
+
+### Cancel military access
+
+#### Conditions
+
+Must have defines:CANCELASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must have military access.
+
+#### Effects
+
+Ends access.
+
+### Ask for an alliance
+
+(implicitly: there must also be commands to accept or decline an access request)
+
+#### Conditions
+
+Must not have an alliance. Must not be in a war against each other. Costs defines:ALLIANCE_DIPLOMATIC_COST diplomatic points. Great powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with their overlords.
+
+#### Effects
+
+Increases relations by defines:ALLIANCE_RELATION_ON_ACCEPT on acceptance or by defines:ALLIANCE_RELATION_ON_DECLINE if it is declined. Creates an alliance.
+
+### End alliance
+
+#### Conditions
+
+Must have an alliance. Cannot be in a war on the same side. Costs defines:CANCELALLIANCE_DIPLOMATIC_COST diplomatic points.
+
+#### Effects
+
+Ends alliance. Relations increase by defines:CANCELALLIANCE_RELATION_ON_ACCEPT
+
+### Call ally to war
+
+(implicitly: there must also be commands to accept or decline an access request)
+
+#### Conditions
+
+Requires defines:CALLALLY_DIPLOMATIC_COST diplomatic points. The ally must be able to join the war. The calling nation must be in the war.
+
+#### Effect
+
+Ally joins war (or not). Relations increase by defines:CALLALLY_RELATION_ON_ACCEPT or defines:CALLALLY_RELATION_ON_DECLINE. For a defensive call, declining causes the alliance to break.
+
+### Begin CB fabrication
+
+#### Conditions
+
+Can't fabricate on someone you are at war with. Can't fabricate on anyone except your overlord if you are a vassal. Requires defines:MAKE_CB_DIPLOMATIC_COST diplomatic points. Can't fabricate on your sphere members. Cb must be fabricate-able.
+
+#### Effect
+
+Fabrication starts
+
+
+TODO
+Crisis invite with wargoal (+ accept, reject)
+Crisis propose solution (+ accept, reject)
+Crisis back down
+Add CB to war
+Declare war
+Make peace offer (+ accept, reject)
+Assign leader to unit
+Move unit
+Embark/disembark
+Split unit
+Take command of vassal units / give up command
+Set hunt rebels on/off

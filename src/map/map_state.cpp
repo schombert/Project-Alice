@@ -88,7 +88,7 @@ void map_state::update(sys::state& state) {
 	map_data.update_borders(state);
 }
 
-void map_state::set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode new_map_mode) {
+void map_state::set_province_color(std::vector<uint32_t> const & prov_color, map_mode::mode new_map_mode) {
 	active_map_mode = new_map_mode;
 	map_data.set_province_color(prov_color);
 }
@@ -153,32 +153,31 @@ void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 	}
 }
 
-
 void map_state::set_pos(glm::vec2 new_pos) {
 	pos.x = glm::mod(new_pos.x, 1.f);
 	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
 }
 
 void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod, float amount) {
-    constexpr auto zoom_speed_factor = 15.f;
+	constexpr auto zoom_speed_factor = 15.f;
 
 	zoom_change = std::copysign(((amount / 5.f) * zoom_speed_factor), amount);
-    has_zoom_changed = true;
+	has_zoom_changed = true;
 
-    auto mouse_pos = glm::vec2(x, y);
-    auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-    scroll_pos_velocity = mouse_pos - screen_size * .5f;
-    scroll_pos_velocity /= screen_size;
-    scroll_pos_velocity *= zoom_speed_factor;
-    if(amount > 0) {
-        scroll_pos_velocity /= 3.f;
-    } else if(amount < 0) {
-        scroll_pos_velocity /= 6.f;
-    }
+	auto mouse_pos = glm::vec2(x, y);
+	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
+	scroll_pos_velocity = mouse_pos - screen_size * .5f;
+	scroll_pos_velocity /= screen_size;
+	scroll_pos_velocity *= zoom_speed_factor;
+	if(amount > 0) {
+		scroll_pos_velocity /= 3.f;
+	} else if(amount < 0) {
+		scroll_pos_velocity /= 6.f;
+	}
 }
 
 void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
-	if(is_dragging) {  // Drag the map with middlemouse
+	if(is_dragging) { // Drag the map with middlemouse
 		auto mouse_pos = glm::vec2(x, y);
 		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 		glm::vec2 map_pos;
@@ -189,7 +188,7 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 }
 
 bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos) {
-	if (view_mode == map_view::globe) {
+	if(view_mode == map_view::globe) {
 		screen_pos -= screen_size * 0.5f;
 		screen_pos /= screen_size;
 		screen_pos.x *= screen_size.x / screen_size.y;
@@ -203,12 +202,12 @@ bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_v
 		glm::vec3 intersection_pos;
 		glm::vec3 intersection_normal;
 
-		if (glm::intersectRaySphere(cursor_pos, cursor_direction, sphere_center, sphere_radius, intersection_pos, intersection_normal)) {
+		if(glm::intersectRaySphere(cursor_pos, cursor_direction, sphere_center, sphere_radius, intersection_pos, intersection_normal)) {
 			intersection_pos = glm::mat3(glm::inverse(globe_rotation)) * intersection_pos;
-			float theta = std::acos(std::clamp(intersection_pos.z/glm::length(intersection_pos), -1.f, 1.f));
+			float theta = std::acos(std::clamp(intersection_pos.z / glm::length(intersection_pos), -1.f, 1.f));
 			float phi = std::atan2(intersection_pos.y, intersection_pos.x);
 			float pi = glm::pi<float>();
-			map_pos = glm::vec2((phi / (2*pi)) + 0.5f, theta / pi);
+			map_pos = glm::vec2((phi / (2 * pi)) + 0.5f, theta / pi);
 			return true;
 		}
 		return false;
@@ -220,7 +219,7 @@ bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_v
 
 		screen_pos /= zoom;
 		screen_pos += pos;
-        map_pos = screen_pos;
+		map_pos = screen_pos;
 		return (map_pos.x >= 0 && map_pos.y >= 0 && map_pos.x <= map_data.size_x && map_pos.y <= map_data.size_y);
 	}
 }
@@ -264,7 +263,7 @@ void map_state::on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 }
 
 bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
-	if (state.user_settings.map_is_globe) {
+	if(state.user_settings.map_is_globe) {
 		glm::vec3 cartesian_coords;
 		float section = float(map_data.size_x / 256);
 		float pi = glm::pi<float>();
@@ -281,7 +280,7 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 		cartesian_coords *= 0.2;
 		cartesian_coords.x *= -1;
 		cartesian_coords.y *= -1;
-		if (cartesian_coords.y > 0) {
+		if(cartesian_coords.y > 0) {
 			return false;
 		}
 		cartesian_coords += glm::vec3(0.5);
@@ -314,9 +313,9 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 }
 
 glm::vec2 map_state::normalize_map_coord(glm::vec2 p) {
-	auto new_pos = p / glm::vec2{ float(map_data.size_x), float(map_data.size_y) };
+	auto new_pos = p / glm::vec2{float(map_data.size_x), float(map_data.size_y)};
 	new_pos.y = 1.f - new_pos.y;
 	return new_pos;
 }
 
-}
+} // namespace map

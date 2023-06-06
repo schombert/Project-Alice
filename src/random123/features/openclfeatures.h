@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
-#define R123_BUILTIN_EXPECT(expr,likely) expr
+#define R123_BUILTIN_EXPECT(expr, likely) expr
 #endif
 
 #ifndef R123_USE_GNU_UINT128
@@ -82,7 +82,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // But these typedefs mean we cannot include stdint.h with
 // these headers?  Do we need R123_64T, R123_32T, R123_8T?
 typedef ulong uint64_t;
-typedef uint  uint32_t;
+typedef uint uint32_t;
 typedef uchar uint8_t;
 #define UINT64_C(x) ((ulong)(x##UL))
 

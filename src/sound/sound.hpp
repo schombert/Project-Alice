@@ -36,4 +36,4 @@ void update_music_track(sys::state& state); // linux may not need this function,
 //    we implement more of the fixed sound effects
 audio_instance& get_click_sound(sys::state& state);
 
-}
+} // namespace sound

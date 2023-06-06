@@ -12,7 +12,7 @@ uint32_t size(sys::state const& state);
 
 void regenerate_is_primary_or_accepted(sys::state& state);
 
-}
+} // namespace pop_demographics
 namespace demographics {
 
 constexpr inline dcon::demographics_key total(0);
@@ -100,11 +100,13 @@ struct promotion_buffer {
 	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
 	ve::vectorizable_buffer<dcon::pop_type_id, dcon::pop_id> types;
 	uint32_t size = 0;
+	uint32_t reserved = 0;
 
 	promotion_buffer() : amounts(0), types(0), size(0) { }
 	void update(uint32_t s) {
-		if(size < s) {
-			size = s;
+		size = s;
+		if(reserved < s) {
+			reserved = s;
 			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 			types = ve::vectorizable_buffer<dcon::pop_type_id, dcon::pop_id>(s);
 		}
@@ -114,11 +116,13 @@ struct promotion_buffer {
 struct assimilation_buffer {
 	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
 	uint32_t size = 0;
+	uint32_t reserved = 0;
 
 	assimilation_buffer() : amounts(0), size(0) { }
 	void update(uint32_t s) {
-		if(size < s) {
-			size = s;
+		size = s;
+		if(reserved < s) {
+			reserved = s;
 			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
 		}
 	}
@@ -153,10 +157,9 @@ void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divi
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 
-double getMonthlyLitChange(sys::state& state, dcon::nation_id);
-double getMonthlyMilChange(sys::state& state, dcon::nation_id);
-double getMonthlyConChange(sys::state& state, dcon::nation_id);
-double getMonthlyPopChange(sys::state& state, dcon::nation_id);
+float get_estimated_literacy_change(sys::state& state, dcon::nation_id n);
+float get_estimated_mil_change(sys::state& state, dcon::nation_id n);
+float get_estimated_con_change(sys::state& state, dcon::nation_id n);
 
 void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
 void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf);
@@ -169,6 +172,7 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 void remove_size_zero_pops(sys::state& state);
 
 int64_t get_monthly_pop_increase(sys::state& state, dcon::pop_id);
-int64_t get_monthly_pop_increase_of_state(sys::state& state, dcon::nation_id n);
+int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n);
+int64_t get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n);
 
-}
+} // namespace demographics

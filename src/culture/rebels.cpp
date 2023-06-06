@@ -77,17 +77,13 @@ void update_movement_values(sys::state& state) { // simply updates cached values
 			} else {
 				return 0.0f;
 			}
-		}, host_nations, ids);
+		},
+		                                      host_nations, ids);
 		auto host_pculture = state.world.nation_get_primary_culture(host_nations);
 		auto host_cradicalism = ve::to_float(state.world.culture_get_radicalism(host_pculture));
 
 		auto new_radicalism =
-			state.world.movement_get_transient_radicalism(ids)
-			+ state.defines.movement_radicalism_base
-			+ nation_reform_count.get(host_nations) * state.defines.movement_radicalism_passed_reform_effect
-			+ host_cradicalism
-			+ host_max_nationalism * state.defines.movement_radicalism_nationalism_factor
-			+ state.defines.population_movement_radical_factor * state.world.movement_get_pop_support(ids) / state.world.nation_get_non_colonial_population(host_nations);
+		    state.world.movement_get_transient_radicalism(ids) + state.defines.movement_radicalism_base + nation_reform_count.get(host_nations) * state.defines.movement_radicalism_passed_reform_effect + host_cradicalism + host_max_nationalism * state.defines.movement_radicalism_nationalism_factor + state.defines.population_movement_radical_factor * state.world.movement_get_pop_support(ids) / state.world.nation_get_non_colonial_population(host_nations);
 		state.world.movement_set_radicalism(ids, new_radicalism);
 	});
 }
@@ -108,18 +104,13 @@ void remove_pop_from_movement(sys::state& state, dcon::pop_id p) {
 void suppress_movement(sys::state& state, dcon::nation_id n, dcon::movement_id m) {
 	/*
 	- When a movement is suppressed:
-	Reduce the suppression points for the nation by: if define:POPULATION_SUPPRESSION_FACTOR is zero, movement radicalism + 1, otherwise the greater of movement-radicalism + 1 and movement-radicalism x movement-support / define:POPULATION_SUPPRESSION_FACTOR, to a minimum of zero
 	Increase the transient radicalism of the movement by: define:SUPPRESSION_RADICALISM_HIT
-	Increase the consciousness of all pops that were in the movement by 1 and remove them from it.
+	Set the consciousness of all pops that were in the movement to 1 and remove them from it.
 	*/
-	auto radicalism = state.world.movement_get_radicalism(m);
-	auto spoints = state.defines.population_suppression_factor > 0
-		? radicalism + 1.0f
-		: std::max(radicalism + 1.0f, radicalism * state.world.movement_get_pop_support(m) / state.defines.population_suppression_factor);
 	state.world.movement_get_transient_radicalism(m) += state.defines.suppression_radicalisation_hit;
 	for(auto p : state.world.movement_get_pop_movement_membership(m)) {
 		auto old_con = p.get_pop().get_consciousness();
-		p.get_pop().set_consciousness(std::min(old_con + 1.0f, 10.0f));
+		p.get_pop().set_consciousness(1.0f);
 	}
 	state.world.movement_remove_all_pop_movement_membership(m);
 }
@@ -188,7 +179,7 @@ void update_pop_movement_membership(sys::state& state) {
 			return;
 
 		auto pop_location = state.world.pop_get_province_from_pop_location(p);
-		//pops in colonial provinces don't join movements
+		// pops in colonial provinces don't join movements
 		if(state.world.province_get_is_colonial(pop_location))
 			return;
 
@@ -208,7 +199,7 @@ void update_pop_movement_membership(sys::state& state) {
 			if(i) {
 				auto support = state.world.pop_get_demographics(p, pop_demographics::to_key(state, i));
 				if(support * 100.0f < state.defines.issue_movement_leave_limit) {
-					// If the pop's support of the issue for an issue-based movement drops below define:ISSUE_MOVEMENT_LEAVE_LIMIT the pop will leave the movement. 
+					// If the pop's support of the issue for an issue-based movement drops below define:ISSUE_MOVEMENT_LEAVE_LIMIT the pop will leave the movement.
 					state.world.delete_pop_movement_membership(existing_movement);
 					return;
 				}
@@ -235,9 +226,7 @@ void update_pop_movement_membership(sys::state& state) {
 				auto parent = state.world.issue_option_get_parent_issue(io);
 				auto co = state.world.nation_get_issues(owner, parent);
 				auto allow = state.world.issue_option_get_allow(io);
-				if(co != io
-					&& (state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() - 1 == io.index())
-					&& (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
+				if(co != io && (state.world.issue_get_is_next_step_only(parent) == false || co.id.index() + 1 == io.index() || co.id.index() - 1 == io.index()) && (!allow || trigger::evaluate(state, allow, trigger::to_generic(owner), trigger::to_generic(owner), 0))) {
 					auto sup = state.world.pop_get_demographics(p, pop_demographics::to_key(state, io));
 					if(sup * 100.0f >= state.defines.issue_movement_join_limit && sup > max_support) {
 						max_option = io;
@@ -284,8 +273,8 @@ void update_pop_movement_membership(sys::state& state) {
 
 void update_movements(sys::state& state) { // updates cached values and then possibly turns movements into rebels
 	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
-	for(auto last = state.world.movement_size(); last-- > 0; ) {
-		dcon::movement_id m{ dcon::movement_id::value_base_t(last) };
+	for(auto last = state.world.movement_size(); last-- > 0;) {
+		dcon::movement_id m{dcon::movement_id::value_base_t(last)};
 		if(!movement_is_valid(state, m)) {
 			state.world.delete_movement(m);
 		}
@@ -293,8 +282,8 @@ void update_movements(sys::state& state) { // updates cached values and then pos
 
 	update_movement_values(state);
 
-	for(auto last = state.world.movement_size(); last-- > 0; ) {
-		dcon::movement_id m{ dcon::movement_id::value_base_t(last) };
+	for(auto last = state.world.movement_size(); last-- > 0;) {
+		dcon::movement_id m{dcon::movement_id::value_base_t(last)};
 		if(state.world.movement_get_radicalism(m) >= 100.0f) {
 			turn_movement_into_rebels(state, m);
 		}
@@ -313,7 +302,6 @@ void add_pop_to_rebel_faction(sys::state& state, dcon::pop_id p, dcon::rebel_fac
 	state.world.try_create_pop_rebellion_membership(p, m);
 	state.world.rebel_faction_get_possible_regiments(m) += int32_t(state.world.pop_get_size(p) / state.defines.pop_size_per_regiment);
 }
-
 
 bool rebel_faction_is_valid(sys::state& state, dcon::rebel_faction_id m) {
 	/*
@@ -450,102 +438,100 @@ void update_pop_rebel_membership(sys::state& state) {
 							state.world.rebel_faction_set_religion(temp, dcon::religion_id{});
 
 							switch(culture::rebel_defection(state.world.rebel_type_get_defection(rt))) {
-								case culture::rebel_defection::culture:
-									state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								case culture::rebel_defection::culture_group:
-									state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								case culture::rebel_defection::religion:
-									state.world.rebel_faction_set_religion(temp, state.world.pop_get_religion(p));
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								case culture::rebel_defection::pan_nationalist:
-								{
-									auto cg = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
-									auto u = state.world.culture_group_get_identity_from_cultural_union_of(cg);
-									if(!u)
-										return; // skip -- no pan nationalist possible
-									state.world.rebel_faction_set_defection_target(temp, u);
-									break;
-								}
-								case culture::rebel_defection::any:
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								default:
-									break;
+							case culture::rebel_defection::culture:
+								state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							case culture::rebel_defection::culture_group:
+								state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							case culture::rebel_defection::religion:
+								state.world.rebel_faction_set_religion(temp, state.world.pop_get_religion(p));
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							case culture::rebel_defection::pan_nationalist: {
+								auto cg = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
+								auto u = state.world.culture_group_get_identity_from_cultural_union_of(cg);
+								if(!u)
+									return; // skip -- no pan nationalist possible
+								state.world.rebel_faction_set_defection_target(temp, u);
+								break;
+							}
+							case culture::rebel_defection::any:
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							default:
+								break;
 							}
 
 							switch(culture::rebel_independence(state.world.rebel_type_get_independence(rt))) {
-								case culture::rebel_independence::culture:
-									state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								case culture::rebel_independence::culture_group:
-									state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								case culture::rebel_independence::religion:
-									state.world.rebel_faction_set_religion(temp, state.world.pop_get_religion(p));
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								case culture::rebel_independence::pan_nationalist:
-								{
-									auto cg = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
-									auto u = state.world.culture_group_get_identity_from_cultural_union_of(cg);
-									if(!u)
-										return; // skip -- no pan nationalist possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									state.world.rebel_faction_set_defection_target(temp, u);
-									break;
-								}
-								case culture::rebel_independence::any:
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								case culture::rebel_independence::colonial:
-									state.world.rebel_faction_set_defection_target(temp, ind_tag);
-									if(!ind_tag)
-										return; // skip -- no defection possible
-									if(state.world.pop_get_is_primary_or_accepted_culture(p))
-										return; // skip -- can't defect
-									break;
-								default:
-									break;
+							case culture::rebel_independence::culture:
+								state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							case culture::rebel_independence::culture_group:
+								state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							case culture::rebel_independence::religion:
+								state.world.rebel_faction_set_religion(temp, state.world.pop_get_religion(p));
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							case culture::rebel_independence::pan_nationalist: {
+								auto cg = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
+								auto u = state.world.culture_group_get_identity_from_cultural_union_of(cg);
+								if(!u)
+									return; // skip -- no pan nationalist possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								state.world.rebel_faction_set_defection_target(temp, u);
+								break;
+							}
+							case culture::rebel_independence::any:
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							case culture::rebel_independence::colonial:
+								state.world.rebel_faction_set_defection_target(temp, ind_tag);
+								if(!ind_tag)
+									return; // skip -- no defection possible
+								if(state.world.pop_get_is_primary_or_accepted_culture(p))
+									return; // skip -- can't defect
+								break;
+							default:
+								break;
 							}
 
 							auto chance = state.world.rebel_type_get_spawn_chance(rt);
@@ -558,8 +544,6 @@ void update_pop_rebel_membership(sys::state& state) {
 						}
 					});
 
-
-
 					if(f != temp) {
 						state.world.delete_rebel_faction(temp);
 					} else {
@@ -571,60 +555,58 @@ void update_pop_rebel_membership(sys::state& state) {
 						state.world.rebel_faction_set_religion(temp, dcon::religion_id{});
 
 						switch(culture::rebel_defection(state.world.rebel_type_get_defection(rt))) {
-							case culture::rebel_defection::culture:
-								state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							case culture::rebel_defection::culture_group:
-								state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							case culture::rebel_defection::religion:
-								state.world.rebel_faction_set_religion(temp, state.world.pop_get_religion(p));
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							case culture::rebel_defection::pan_nationalist:
-							{
-								auto cg = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
-								auto u = state.world.culture_group_get_identity_from_cultural_union_of(cg);
-								state.world.rebel_faction_set_defection_target(temp, u);
-								break;
-							}
-							case culture::rebel_defection::any:
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							default:
-								break;
+						case culture::rebel_defection::culture:
+							state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						case culture::rebel_defection::culture_group:
+							state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						case culture::rebel_defection::religion:
+							state.world.rebel_faction_set_religion(temp, state.world.pop_get_religion(p));
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						case culture::rebel_defection::pan_nationalist: {
+							auto cg = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
+							auto u = state.world.culture_group_get_identity_from_cultural_union_of(cg);
+							state.world.rebel_faction_set_defection_target(temp, u);
+							break;
+						}
+						case culture::rebel_defection::any:
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						default:
+							break;
 						}
 
 						switch(culture::rebel_independence(state.world.rebel_type_get_independence(rt))) {
-							case culture::rebel_independence::culture:
-								state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							case culture::rebel_independence::culture_group:
-								state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							case culture::rebel_independence::religion:
-								state.world.rebel_faction_set_religion(temp, state.world.pop_get_religion(p));
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							case culture::rebel_independence::pan_nationalist:
-							{
-								auto cg = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
-								auto u = state.world.culture_group_get_identity_from_cultural_union_of(cg);
-								state.world.rebel_faction_set_defection_target(temp, u);
-								break;
-							}
-							case culture::rebel_independence::any:
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							case culture::rebel_independence::colonial:
-								state.world.rebel_faction_set_defection_target(temp, ind_tag);
-								break;
-							default:
-								break;
+						case culture::rebel_independence::culture:
+							state.world.rebel_faction_set_primary_culture(temp, state.world.pop_get_culture(p));
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						case culture::rebel_independence::culture_group:
+							state.world.rebel_faction_set_primary_culture_group(temp, state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p)));
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						case culture::rebel_independence::religion:
+							state.world.rebel_faction_set_religion(temp, state.world.pop_get_religion(p));
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						case culture::rebel_independence::pan_nationalist: {
+							auto cg = state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p));
+							auto u = state.world.culture_group_get_identity_from_cultural_union_of(cg);
+							state.world.rebel_faction_set_defection_target(temp, u);
+							break;
+						}
+						case culture::rebel_independence::any:
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						case culture::rebel_independence::colonial:
+							state.world.rebel_faction_set_defection_target(temp, ind_tag);
+							break;
+						default:
+							break;
 						}
 
 						state.world.try_create_rebellion_within(temp, owner);
@@ -652,8 +634,8 @@ void update_factions(sys::state& state) {
 	update_pop_rebel_membership(state);
 
 	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
-	for(auto last = state.world.rebel_faction_size(); last-- > 0; ) {
-		dcon::rebel_faction_id m{ dcon::rebel_faction_id::value_base_t(last) };
+	for(auto last = state.world.rebel_faction_size(); last-- > 0;) {
+		dcon::rebel_faction_id m{dcon::rebel_faction_id::value_base_t(last)};
 		if(!rebel_faction_is_valid(state, m)) {
 			for(auto members : state.world.rebel_faction_get_pop_rebellion_membership(m)) {
 				members.get_pop().set_militancy(0.0f);
@@ -673,7 +655,7 @@ void daily_update_rebel_organization(sys::state& state) {
 		state.world.rebel_faction_set_possible_regiments(rf, total);
 	});
 
-	//update org
+	// update org
 	state.world.for_each_rebel_faction([&](dcon::rebel_faction_id rf) {
 		/*
 		- Sum for each pop belonging to the faction that has made money in the day: (pop-income + 0.02) x pop-literacy x (10 if militancy is > define:MILITANCY_TO_AUTO_RISE and 5 if militancy is less than that but > define:MILITANCY_TO_JOIN_RISING) / (1 + national-administration-spending-setting). Take this sum, multiply by 0.001 x (rebel organization from technology + 1) and divide by the number of regiments those pops could form. If positive, add this to the current organization of the rebel faction (to a maximum of 1). This appears to be done daily.
@@ -696,8 +678,7 @@ void daily_update_rebel_organization(sys::state& state) {
 		auto rebel_org_mod = 1.0f + state.world.nation_get_rebel_org_modifier(within, state.world.rebel_faction_get_type(rf));
 
 		if(reg_count > 0) {
-			state.world.rebel_faction_set_organization(rf, std::min(1.0f, state.world.rebel_faction_get_organization(rf)
-				+ total_change * (1.0f + state.world.nation_get_rebel_org_modifier(within, state.world.rebel_faction_get_type(rf))) * 0.001f / (1.0f + state.world.nation_get_administrative_efficiency(within)) / float(reg_count)));
+			state.world.rebel_faction_set_organization(rf, std::min(1.0f, state.world.rebel_faction_get_organization(rf) + total_change * (1.0f + state.world.nation_get_rebel_org_modifier(within, state.world.rebel_faction_get_type(rf))) * 0.001f / (1.0f + state.world.nation_get_administrative_efficiency(within)) / float(reg_count)));
 		}
 	});
 }
@@ -705,7 +686,7 @@ void daily_update_rebel_organization(sys::state& state) {
 bool sphere_member_has_ongoing_revolt(sys::state& state, dcon::nation_id n) {
 	auto nation_count = state.world.nation_size();
 	for(uint32_t i = 0; i < nation_count; ++i) {
-		dcon::nation_id m{ dcon::nation_id::value_base_t(i) };
+		dcon::nation_id m{dcon::nation_id::value_base_t(i)};
 		if(state.world.nation_get_in_sphere_of(m) == n) {
 			for(auto fac : state.world.nation_get_rebellion_within(m)) {
 				if(get_faction_brigades_active(state, fac.get_rebels()) > 0)
@@ -741,107 +722,105 @@ void execute_province_defections(sys::state& state) {
 		if(reb_controller && owner) {
 			auto reb_type = state.world.rebel_faction_get_type(reb_controller);
 			culture::rebel_defection def_type = culture::rebel_defection(reb_type.get_defection());
-			if(def_type != culture::rebel_defection::none
-				&& state.world.province_get_last_control_change(p) + reb_type.get_defect_delay() * 31 <= state.current_date) {
+			if(def_type != culture::rebel_defection::none && state.world.province_get_last_control_change(p) + reb_type.get_defect_delay() * 31 <= state.current_date) {
 
 				// defection time
 
 				dcon::nation_id defection_tag = [&]() {
 					switch(def_type) {
-						case culture::rebel_defection::ideology:
-						{
-							// prefer existing tag of same ideology
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(c.get_identity().get_nation_from_identity_holder().get_ruling_party().get_ideology() == reb_type.get_ideology() && owned.begin() != owned.end()) {
-									return c.get_identity().get_nation_from_identity_holder().id;
-								}
+					case culture::rebel_defection::ideology: {
+						// prefer existing tag of same ideology
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(c.get_identity().get_nation_from_identity_holder().get_ruling_party().get_ideology() == reb_type.get_ideology() && owned.begin() != owned.end()) {
+								return c.get_identity().get_nation_from_identity_holder().id;
 							}
-							// otherwise pick a non-existent tag
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(!c.get_identity().get_is_not_releasable() && owned.begin() == owned.end()) {
-									auto t = c.get_identity().get_nation_from_identity_holder().id;
-									nations::create_nation_based_on_template(state, t, owner);
-									politics::force_nation_ideology(state, t, reb_type.get_ideology());
-									return t;
-								}
-							}
-							break;
 						}
-						case culture::rebel_defection::religion:
-							// prefer existing
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && owned.begin() != owned.end()) {
-									return c.get_identity().get_nation_from_identity_holder().id;
-								}
+						// otherwise pick a non-existent tag
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(!c.get_identity().get_is_not_releasable() && owned.begin() == owned.end()) {
+								auto t = c.get_identity().get_nation_from_identity_holder().id;
+								nations::create_nation_based_on_template(state, t, owner);
+								politics::force_nation_ideology(state, t, reb_type.get_ideology());
+								return t;
 							}
-							// otherwise pick a non-existent tag
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && owned.begin() == owned.end()) {
-									auto t = c.get_identity().get_nation_from_identity_holder().id;
-									nations::create_nation_based_on_template(state, t, owner);
-									return t;
-								}
+						}
+						break;
+					}
+					case culture::rebel_defection::religion:
+						// prefer existing
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && owned.begin() != owned.end()) {
+								return c.get_identity().get_nation_from_identity_holder().id;
 							}
-							break;
-						case culture::rebel_defection::culture:
-							// prefer existing
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && owned.begin() != owned.end()) {
-									return c.get_identity().get_nation_from_identity_holder().id;
-								}
+						}
+						// otherwise pick a non-existent tag
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(c.get_identity().get_religion() == state.world.rebel_faction_get_religion(reb_controller) && owned.begin() == owned.end()) {
+								auto t = c.get_identity().get_nation_from_identity_holder().id;
+								nations::create_nation_based_on_template(state, t, owner);
+								return t;
 							}
-							// otherwise pick a non-existent tag
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && owned.begin() == owned.end()) {
-									auto t = c.get_identity().get_nation_from_identity_holder().id;
-									nations::create_nation_based_on_template(state, t, owner);
-									return t;
-								}
+						}
+						break;
+					case culture::rebel_defection::culture:
+						// prefer existing
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && owned.begin() != owned.end()) {
+								return c.get_identity().get_nation_from_identity_holder().id;
 							}
-							break;
-						case culture::rebel_defection::culture_group:
-							// prefer existing
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && owned.begin() != owned.end()) {
-									return c.get_identity().get_nation_from_identity_holder().id;
-								}
+						}
+						// otherwise pick a non-existent tag
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(c.get_identity().get_primary_culture() == state.world.rebel_faction_get_primary_culture(reb_controller) && owned.begin() == owned.end()) {
+								auto t = c.get_identity().get_nation_from_identity_holder().id;
+								nations::create_nation_based_on_template(state, t, owner);
+								return t;
 							}
-							// otherwise pick a non-existent tag
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && owned.begin() == owned.end()) {
-									auto t = c.get_identity().get_nation_from_identity_holder().id;
-									nations::create_nation_based_on_template(state, t, owner);
-									return t;
-								}
+						}
+						break;
+					case culture::rebel_defection::culture_group:
+						// prefer existing
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && owned.begin() != owned.end()) {
+								return c.get_identity().get_nation_from_identity_holder().id;
 							}
+						}
+						// otherwise pick a non-existent tag
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(c.get_identity().get_primary_culture().get_group_from_culture_group_membership() == state.world.rebel_faction_get_primary_culture_group(reb_controller) && owned.begin() == owned.end()) {
+								auto t = c.get_identity().get_nation_from_identity_holder().id;
+								nations::create_nation_based_on_template(state, t, owner);
+								return t;
+							}
+						}
 
-							// first: existing tag of culture; then existing tag of culture group;
-							// then dead tag of culture, then dead tag of cg
-							break;
-						case culture::rebel_defection::pan_nationalist:
-							// union tag or nothing
-							for(auto c : state.world.province_get_core(p)) {
-								auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
-								if(c.get_identity() == state.world.rebel_faction_get_defection_target(reb_controller)) {
-									if(owned.begin() != owned.end())
-										return c.get_identity().get_nation_from_identity_holder().id;
+						// first: existing tag of culture; then existing tag of culture group;
+						// then dead tag of culture, then dead tag of cg
+						break;
+					case culture::rebel_defection::pan_nationalist:
+						// union tag or nothing
+						for(auto c : state.world.province_get_core(p)) {
+							auto owned = c.get_identity().get_nation_from_identity_holder().get_province_ownership();
+							if(c.get_identity() == state.world.rebel_faction_get_defection_target(reb_controller)) {
+								if(owned.begin() != owned.end())
+									return c.get_identity().get_nation_from_identity_holder().id;
 
-									auto t = c.get_identity().get_nation_from_identity_holder().id;
-									nations::create_nation_based_on_template(state, t, owner);
-									return t;
-								}
+								auto t = c.get_identity().get_nation_from_identity_holder().id;
+								nations::create_nation_based_on_template(state, t, owner);
+								return t;
 							}
-							break;
-						default: // NONE and ANY
-							return dcon::nation_id{};
+						}
+						break;
+					default: // NONE and ANY
+						return dcon::nation_id{};
 					}
 					return dcon::nation_id{};
 				}();
@@ -850,14 +829,24 @@ void execute_province_defections(sys::state& state) {
 					province::change_province_owner(state, p, defection_tag);
 				}
 			}
-
 		}
 	});
 }
 
+float get_suppression_point_cost(sys::state& state, dcon::movement_id m) {
+	/*
+	Depends on whether define:POPULATION_SUPPRESSION_FACTOR is non zero. If it is zero, suppression costs their effective radicalism + 1. If it is non zero, then the cost is the greater of that value and the movements effective radicalism x the movement's support / define:POPULATION_SUPPRESSION_FACTOR
+	*/
+	if(state.defines.population_suppression_factor > 0.0f) {
+		return std::max(state.world.movement_get_radicalism(m) + 1.0f, state.world.movement_get_radicalism(m) * state.world.movement_get_pop_support(m) / state.defines.population_suppression_factor);
+	} else {
+		return state.world.movement_get_radicalism(m) + 1.0f;
+	}
+}
+
 void execute_rebel_victories(sys::state& state) {
 	for(uint32_t i = state.world.rebel_faction_size(); i-- > 0;) {
-		auto reb = dcon::rebel_faction_id{ dcon::rebel_faction_id::value_base_t(i) };
+		auto reb = dcon::rebel_faction_id{dcon::rebel_faction_id::value_base_t(i)};
 		auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
 		auto is_active = state.world.rebel_faction_get_is_active(reb);
 		auto enforce_trigger = state.world.rebel_faction_get_type(reb).get_demands_enforced_trigger();
@@ -908,4 +897,4 @@ void trigger_revolt(sys::state& state, dcon::nation_id n, dcon::rebel_type_id t,
 	// TODO
 }
 
-}
+} // namespace rebel

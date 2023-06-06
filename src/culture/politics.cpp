@@ -7,245 +7,237 @@
 namespace politics {
 
 float vote_total(sys::state& state, dcon::nation_id nation) {
-    float total = 0.f;
-    state.world.for_each_province([&](dcon::province_id province) {
-        if(nation == state.world.province_get_nation_from_province_ownership(province)) {
-            for(auto pop_loc : state.world.province_get_pop_location(province)) {
-                auto pop_id = pop_loc.get_pop();
-                total += get_weighted_vote_size(state, nation, pop_id.id);
-            }
-        }
-    });
-    return total;
+	float total = 0.f;
+	state.world.for_each_province([&](dcon::province_id province) {
+		if(nation == state.world.province_get_nation_from_province_ownership(province)) {
+			for(auto pop_loc : state.world.province_get_pop_location(province)) {
+				auto pop_id = pop_loc.get_pop();
+				total += get_weighted_vote_size(state, nation, pop_id.id);
+			}
+		}
+	});
+	return total;
 }
 
 float get_weighted_vote_size(sys::state& state, dcon::nation_id nation, dcon::pop_id pop) {
-    // TODO
-    return 1.f * state.world.pop_get_size(pop);
+	// TODO
+	return 1.f * state.world.pop_get_size(pop);
 }
 
 float get_popular_support(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
-    auto total = state.world.nation_get_demographics(nation, demographics::total);
-    if(total <= 0.f) {
-        return 0.f;
-    }
-    auto dkey = demographics::to_key(state, issue_option);
-    return state.world.nation_get_demographics(nation, dkey) / total;
+	auto total = state.world.nation_get_demographics(nation, demographics::total);
+	if(total <= 0.f) {
+		return 0.f;
+	}
+	auto dkey = demographics::to_key(state, issue_option);
+	return state.world.nation_get_demographics(nation, dkey) / total;
 }
 
 float get_voter_support(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
-    auto total = vote_total(state, nation);
-    if(total <= 0.f) {
-        return 0.f;
-    }
-    auto support = 0.f;
-    state.world.for_each_province([&](dcon::province_id province) {
-        if(nation == state.world.province_get_nation_from_province_ownership(province)) {
-            for(auto pop_loc : state.world.province_get_pop_location(province)) {
-                auto pop_id = pop_loc.get_pop();
-                auto vote_size = get_weighted_vote_size(state, nation, pop_id.id);
-                auto dkey = pop_demographics::to_key(state, issue_option);
-                support += state.world.pop_get_demographics(pop_id.id, dkey);
-            }
-        }
-    });
-    return support / total;
+	auto total = vote_total(state, nation);
+	if(total <= 0.f) {
+		return 0.f;
+	}
+	auto support = 0.f;
+	state.world.for_each_province([&](dcon::province_id province) {
+		if(nation == state.world.province_get_nation_from_province_ownership(province)) {
+			for(auto pop_loc : state.world.province_get_pop_location(province)) {
+				auto pop_id = pop_loc.get_pop();
+				auto vote_size = get_weighted_vote_size(state, nation, pop_id.id);
+				auto dkey = pop_demographics::to_key(state, issue_option);
+				support += state.world.pop_get_demographics(pop_id.id, dkey);
+			}
+		}
+	});
+	return support / total;
 }
 
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id nation) {
-    auto fat_id = dcon::fatten(state.world, nation);
-    auto gov_type_id = fat_id.get_government_type();
-    return state.culture_definitions.governments[gov_type_id].can_appoint_ruling_party;
+	auto fat_id = dcon::fatten(state.world, nation);
+	auto gov_type_id = fat_id.get_government_type();
+	if(gov_type_id)
+		return state.culture_definitions.governments[gov_type_id].can_appoint_ruling_party;
+	else
+		return false;
 }
 
 bool is_election_ongoing(sys::state& state, dcon::nation_id nation) {
-    auto election_end_date = dcon::fatten(state.world, nation).get_election_ends();
-    return election_end_date && election_end_date > state.current_date;
+	auto election_end_date = dcon::fatten(state.world, nation).get_election_ends();
+	return election_end_date && election_end_date > state.current_date;
 }
 
 bool has_elections(sys::state& state, dcon::nation_id nation) {
-    auto fat_id = dcon::fatten(state.world, nation);
-    auto gov_type_id = fat_id.get_government_type();
-    return state.culture_definitions.governments[gov_type_id].has_elections;
+	auto fat_id = dcon::fatten(state.world, nation);
+	auto gov_type_id = fat_id.get_government_type();
+	if(gov_type_id)
+		return state.culture_definitions.governments[gov_type_id].has_elections;
+	else
+		return false;
 }
 
 sys::date next_election_date(sys::state& state, dcon::nation_id nation) {
-    auto end_date = state.world.nation_get_election_ends(nation);
-    return end_date + 365 * 5;
+	auto end_date = state.world.nation_get_election_ends(nation);
+	return end_date + 365 * 5;
 }
 
 dcon::reform_id get_reform_by_name(sys::state& state, std::string_view name) {
-    dcon::reform_id result{};
-    auto it = state.key_to_text_sequence.find(name);
-    if(it != state.key_to_text_sequence.end()) {
-        state.world.for_each_reform([&](dcon::reform_id reform_id) {
-            auto key = state.world.reform_get_name(reform_id);
-            if(it->second == key) {
-                result = reform_id;
-            }
-        });
-    }
-    return result;
+	dcon::reform_id result{};
+	auto it = state.key_to_text_sequence.find(name);
+	if(it != state.key_to_text_sequence.end()) {
+		state.world.for_each_reform([&](dcon::reform_id reform_id) {
+			auto key = state.world.reform_get_name(reform_id);
+			if(it->second == key) {
+				result = reform_id;
+			}
+		});
+	}
+	return result;
 }
 
 dcon::issue_id get_issue_by_name(sys::state& state, std::string_view name) {
-    dcon::issue_id result{};
-    auto it = state.key_to_text_sequence.find(name);
-    if(it != state.key_to_text_sequence.end()) {
-        state.world.for_each_issue([&](dcon::issue_id issue_id) {
-            auto key = state.world.issue_get_name(issue_id);
-            if(it->second == key) {
-                result = issue_id;
-            }
-        });
-    }
-    return result;
+	dcon::issue_id result{};
+	auto it = state.key_to_text_sequence.find(name);
+	if(it != state.key_to_text_sequence.end()) {
+		state.world.for_each_issue([&](dcon::issue_id issue_id) {
+			auto key = state.world.issue_get_name(issue_id);
+			if(it->second == key) {
+				result = issue_id;
+			}
+		});
+	}
+	return result;
 }
 
 bool reform_is_selected(sys::state& state, dcon::nation_id nation, dcon::reform_option_id reform_option) {
-    auto reform = state.world.reform_option_get_parent_reform(reform_option);
-    return reform_option == state.world.nation_get_reforms(nation, reform.id).id;
+	auto reform = state.world.reform_option_get_parent_reform(reform_option);
+	return reform && reform_option == state.world.nation_get_reforms(nation, reform);
 }
 
 bool issue_is_selected(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
-    auto issue = state.world.issue_option_get_parent_issue(issue_option);
-    return issue && issue_option == state.world.nation_get_issues(nation, issue);
+	auto issue = state.world.issue_option_get_parent_issue(issue_option);
+	return issue && issue_option == state.world.nation_get_issues(nation, issue);
 }
 
 bool can_enact_political_reform(sys::state& state, dcon::nation_id nation, dcon::issue_option_id issue_option) {
 	if(!issue_option)
 		return false;
 
-    auto issue = state.world.issue_option_get_parent_issue(issue_option);
-    auto current = state.world.nation_get_issues(nation, issue.id).id;
-    auto allow = state.world.issue_option_get_allow(issue_option);
-    if(
-        (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() || current.index() - 1 == issue_option.index())
-        &&
-        (!allow || trigger::evaluate(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))
-        ) {
+	auto issue = state.world.issue_option_get_parent_issue(issue_option);
+	auto current = state.world.nation_get_issues(nation, issue.id).id;
+	auto allow = state.world.issue_option_get_allow(issue_option);
+	if(current != issue_option &&
+	   (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == issue_option.index() || current.index() - 1 == issue_option.index()) &&
+	   (!allow || trigger::evaluate(state, allow, trigger::to_generic(nation), trigger::to_generic(nation), 0))) {
 
-        float total = 0.0f;
-        for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
-            dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-            auto condition = issue_option.index() > current.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
-            auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(nation, iid);
-            if(condition && upperhouse_weight > 0.0f)
-                total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(nation), trigger::to_generic(nation), 0);
-            if(total > 0.5f)
-                return true;
-        }
-    }
-    return false;
+		float total = 0.0f;
+		for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+			dcon::ideology_id iid{dcon::ideology_id::value_base_t(icounter)};
+			auto condition = issue_option.index() > current.index() ? state.world.ideology_get_add_political_reform(iid) : state.world.ideology_get_remove_political_reform(iid);
+			auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(nation, iid);
+			if(condition && upperhouse_weight > 0.0f)
+				total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(nation), trigger::to_generic(nation), 0);
+			if(total > 0.5f)
+				return true;
+		}
+	}
+	return false;
 }
 
 bool can_enact_social_reform(sys::state& state, dcon::nation_id n, dcon::issue_option_id o) {
 	if(!o)
 		return false;
 
-    auto issue = state.world.issue_option_get_parent_issue(o);
-    auto current = state.world.nation_get_issues(n, issue.id).id;
-    auto allow = state.world.issue_option_get_allow(o);
-    if(
-        (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() || current.index() - 1 == o.index())
-        &&
-        (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
-        ) {
+	auto issue = state.world.issue_option_get_parent_issue(o);
+	auto current = state.world.nation_get_issues(n, issue.id).id;
+	auto allow = state.world.issue_option_get_allow(o);
+	if(current != o &&
+	   (!state.world.issue_get_is_next_step_only(issue.id) || current.index() + 1 == o.index() || current.index() - 1 == o.index()) &&
+	   (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))) {
 
-        float total = 0.0f;
-        for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
-            dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-            auto condition = o.index() > current.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
-            auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
-            if(condition && upperhouse_weight > 0.0f)
-                total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
-            if(total > 0.5f)
-                return true;
-        }
-    }
-    return false;
+		float total = 0.0f;
+		for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+			dcon::ideology_id iid{dcon::ideology_id::value_base_t(icounter)};
+			auto condition = o.index() > current.index() ? state.world.ideology_get_add_social_reform(iid) : state.world.ideology_get_remove_social_reform(iid);
+			auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+			if(condition && upperhouse_weight > 0.0f)
+				total += upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+			if(total > 0.5f)
+				return true;
+		}
+	}
+	return false;
 }
 
 bool can_enact_military_reform(sys::state& state, dcon::nation_id n, dcon::reform_option_id o) {
 	if(!o)
 		return false;
 
-    auto reform = state.world.reform_option_get_parent_reform(o);
-    auto current = state.world.nation_get_reforms(n, reform.id).id;
-    auto allow = state.world.reform_option_get_allow(o);
-    auto stored_rp = state.world.nation_get_research_points(n);
-    if(
-        o.index() > current.index()
-        &&
-        (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == o.index())
-        &&
-        (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
-        ) {
+	auto reform = state.world.reform_option_get_parent_reform(o);
+	auto current = state.world.nation_get_reforms(n, reform.id).id;
+	auto allow = state.world.reform_option_get_allow(o);
+	auto stored_rp = state.world.nation_get_research_points(n);
+	if(
+	    o.index() > current.index() &&
+	    (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == o.index()) &&
+	    (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))) {
 
-        float base_cost = float(state.world.reform_option_get_technology_cost(o));
-        float reform_factor = politics::get_military_reform_multiplier(state, n);
+		float base_cost = float(state.world.reform_option_get_technology_cost(o));
+		float reform_factor = politics::get_military_reform_multiplier(state, n);
 
-        if(base_cost * reform_factor < stored_rp)
-            return true;
-    }
-    return false;
+		if(base_cost * reform_factor <= stored_rp)
+			return true;
+	}
+	return false;
 }
 
 bool can_enact_economic_reform(sys::state& state, dcon::nation_id n, dcon::reform_option_id o) {
 	if(!o)
 		return false;
 
-    auto reform = state.world.reform_option_get_parent_reform(o);
-    auto current = state.world.nation_get_reforms(n, reform.id).id;
-    auto allow = state.world.reform_option_get_allow(o);
-    auto stored_rp = state.world.nation_get_research_points(n);
-    if(
-        o.index() > current.index()
-        &&
-        (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == o.index())
-        &&
-        (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))
-        ) {
+	auto reform = state.world.reform_option_get_parent_reform(o);
+	auto current = state.world.nation_get_reforms(n, reform.id).id;
+	auto allow = state.world.reform_option_get_allow(o);
+	auto stored_rp = state.world.nation_get_research_points(n);
+	if(
+	    o.index() > current.index() &&
+	    (!state.world.reform_get_is_next_step_only(reform.id) || current.index() + 1 == o.index()) &&
+	    (!allow || trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0))) {
 
-        float base_cost = float(state.world.reform_option_get_technology_cost(o));
-        float reform_factor = politics::get_economic_reform_multiplier(state, n);
+		float base_cost = float(state.world.reform_option_get_technology_cost(o));
+		float reform_factor = politics::get_economic_reform_multiplier(state, n);
 
-        if(base_cost * reform_factor < stored_rp)
-            return true;
-    }
-    return false;
+		if(base_cost * reform_factor <= stored_rp)
+			return true;
+	}
+	return false;
 }
 
 float get_military_reform_multiplier(sys::state& state, dcon::nation_id n) {
-    float reform_factor =
-        1.0f
-        + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_military_modifier)
-        + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_military_modifier);
+	float reform_factor =
+	    1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_military_modifier) + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_military_modifier);
 
-    for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
-        dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-        auto condition = state.world.ideology_get_add_military_reform(iid);
-        auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
-        if(condition && upperhouse_weight > 0.0f)
-            reform_factor += state.defines.military_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
-    }
-    return reform_factor;
+	for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+		dcon::ideology_id iid{dcon::ideology_id::value_base_t(icounter)};
+		auto condition = state.world.ideology_get_add_military_reform(iid);
+		auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+		if(condition && upperhouse_weight > 0.0f)
+			reform_factor += state.defines.military_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+	}
+	return reform_factor;
 }
 
 float get_economic_reform_multiplier(sys::state& state, dcon::nation_id n) {
-    float reform_factor =
-        1.0f
-        + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_economic_modifier)
-        + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_economic_modifier);
+	float reform_factor =
+	    1.0f + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::self_unciv_economic_modifier) + state.world.nation_get_modifier_values(state.world.nation_get_in_sphere_of(n), sys::national_mod_offsets::unciv_economic_modifier);
 
-    for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
-        dcon::ideology_id iid{ dcon::ideology_id::value_base_t(icounter) };
-        auto condition = state.world.ideology_get_add_economic_reform(iid);
-        auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
-        if(condition && upperhouse_weight > 0.0f)
-            reform_factor += state.defines.economic_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
-    }
-    return reform_factor;
+	for(uint32_t icounter = state.world.ideology_size(); icounter-- > 0;) {
+		dcon::ideology_id iid{dcon::ideology_id::value_base_t(icounter)};
+		auto condition = state.world.ideology_get_add_economic_reform(iid);
+		auto upperhouse_weight = 0.01f * state.world.nation_get_upper_house(n, iid);
+		if(condition && upperhouse_weight > 0.0f)
+			reform_factor += state.defines.economic_reform_uh_factor * upperhouse_weight * trigger::evaluate_additive_modifier(state, condition, trigger::to_generic(n), trigger::to_generic(n), 0);
+	}
+	return reform_factor;
 }
 
 bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
@@ -256,7 +248,12 @@ bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
 
 void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
 	state.world.nation_set_ruling_party(n, p);
+	for(auto pi : state.culture_definitions.party_issues) {
+		state.world.nation_set_issues(n, pi, state.world.political_party_get_party_issues(p, pi));
+	}
 	culture::update_nation_issue_rules(state, n);
+	sys::update_single_nation_modifiers(state, n);
+	economy::bound_budget_settings(state, n);
 }
 
 void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
@@ -271,6 +268,63 @@ void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ide
 			return;
 		}
 	}
+}
+
+void appoint_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
+	int32_t reform_totals = 0;
+	for(auto preform : state.culture_definitions.political_issues) {
+		auto creform = state.world.nation_get_issues(n, preform);
+		auto base_reform = state.world.issue_get_options(preform)[0];
+		reform_totals += creform.id.index() - base_reform.index();
+	}
+	for(auto preform : state.culture_definitions.social_issues) {
+		auto creform = state.world.nation_get_issues(n, preform);
+		auto base_reform = state.world.issue_get_options(preform)[0];
+		reform_totals += creform.id.index() - base_reform.index();
+	}
+
+	auto angry_value = (0.1f * float(reform_totals) + 1.0f) * state.defines.ruling_party_angry_change;
+	auto happy_value = state.defines.ruling_party_happy_change;
+
+	/*
+	If the new party ideology is *not* the same as the old one: all pops gain ((total number of political and social reforms over baseline) x 0.01 + 1.0) x define:RULING_PARTY_ANGRY_CHANGE x pop support of the old ideology militancy
+	all pops gain define:RULING_PARTY_HAPPY_CHANGE x pop support of the new ideology militancy
+	The same is also done for all party issues that differ between the two.
+	*/
+
+	auto old_party = state.world.nation_get_ruling_party(n);
+
+	for(auto pa_id : state.culture_definitions.party_issues) {
+		auto new_id = state.world.political_party_get_party_issues(p, pa_id);
+		auto old_id = state.world.political_party_get_party_issues(old_party, pa_id);
+
+		if(new_id != old_id) {
+			for(auto pr : state.world.nation_get_province_ownership(n)) {
+				for(auto pop : pr.get_province().get_pop_location()) {
+					auto base_mil = pop.get_pop().get_militancy();
+					auto adj_mil = base_mil + pop.get_pop().get_demographics(pop_demographics::to_key(state, old_id)) * angry_value + pop.get_pop().get_demographics(pop_demographics::to_key(state, new_id)) * happy_value;
+					pop.get_pop().set_militancy(adj_mil); // note: no clamp, we just do that once at the end
+				}
+			}
+		}
+	}
+	{
+		auto new_id = state.world.political_party_get_ideology(p);
+		auto old_id = state.world.political_party_get_ideology(old_party);
+
+		if(new_id != old_id) {
+			for(auto pr : state.world.nation_get_province_ownership(n)) {
+				for(auto pop : pr.get_province().get_pop_location()) {
+					auto base_mil = pop.get_pop().get_militancy();
+					auto adj_mil = base_mil + pop.get_pop().get_demographics(pop_demographics::to_key(state, old_id)) * angry_value + pop.get_pop().get_demographics(pop_demographics::to_key(state, new_id)) * happy_value;
+					pop.get_pop().set_militancy(std::clamp(adj_mil, 0.0f, 10.0f));
+				}
+			}
+		}
+	}
+
+	state.world.nation_set_ruling_party_last_appointed(n, state.current_date);
+	set_ruling_party(state, n, p);
 }
 
 void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
@@ -289,12 +343,31 @@ void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 	state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
 }
 
-
 void change_government_type(sys::state& state, dcon::nation_id n, dcon::government_type_id new_type) {
 	auto old_gov = state.world.nation_get_government_type(n);
 	if(old_gov != new_type) {
 		state.world.nation_set_government_type(n, new_type);
+		
+
+		if((state.culture_definitions.governments[new_type].ideologies_allowed & culture::to_bits(state.world.nation_get_ruling_party(n).get_ideology())) == 0) {
+
+			auto tag = state.world.nation_get_identity_from_identity_holder(n);
+			auto start = state.world.national_identity_get_political_party_first(tag).id.index();
+			auto end = start + state.world.national_identity_get_political_party_count(tag);
+
+			for(int32_t i = start; i < end; i++) {
+				auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
+				if(politics::political_party_is_active(state, pid) &&
+				   (state.culture_definitions.governments[new_type].ideologies_allowed &
+				    culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
+
+					set_ruling_party(state, n, pid);
+					break;
+				}
+			}
+		}
 		recalculate_upper_house(state, n);
+
 		// TODO: notify player ?
 		update_displayed_identity(state, n);
 	}
@@ -304,7 +377,7 @@ float pop_vote_weight(sys::state& state, dcon::pop_id p, dcon::nation_id n) {
 	/*
 	When a pop's "votes" in any form, the weight of that vote is the product of the size of the pop and the national modifier for voting for their strata (this could easily result in a strata having no votes). If the nation has primary culture voting set then primary culture pops get a full vote, accepted culture pops get a half vote, and other culture pops get no vote. If it has culture voting, primary and accepted culture pops get a full vote and no one else gets a vote. If neither is set, all pops get an equal vote.
 	*/
-	
+
 	auto type = state.world.pop_get_poptype(p);
 	if(state.world.pop_type_get_voting_forbidden(type))
 		return 0.0f;
@@ -313,14 +386,14 @@ float pop_vote_weight(sys::state& state, dcon::pop_id p, dcon::nation_id n) {
 	auto strata = culture::pop_strata(state.world.pop_type_get_strata(type));
 	auto vmod = [&]() {
 		switch(strata) {
-			case culture::pop_strata::poor:
-				return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_vote);
-			case culture::pop_strata::middle:
-				return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_vote);
-			case culture::pop_strata::rich:
-				return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_vote);
-			default:
-				return 0.0f;
+		case culture::pop_strata::poor:
+			return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_vote);
+		case culture::pop_strata::middle:
+			return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_vote);
+		case culture::pop_strata::rich:
+			return state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_vote);
+		default:
+			return 0.0f;
 		}
 	}();
 
@@ -350,6 +423,9 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 	accumulated_in_state.resize(state.world.ideology_size());
 
 	auto rules = state.world.nation_get_combined_issue_rules(n);
+	auto allowed_ideo = state.culture_definitions.governments[state.world.nation_get_government_type(n)].ideologies_allowed;
+	//(allowed_ideo & culture::to_bits(i)) != 0
+
 	if((rules & issue_rule::same_as_ruling_party) != 0) {
 		auto rp_ideology = state.world.political_party_get_ideology(state.world.nation_get_ruling_party(n));
 		for(auto i : state.world.in_ideology) {
@@ -361,7 +437,7 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			state.world.nation_set_upper_house(n, i, 0.0f);
 		}
 		float state_total = 0.0f;
-		
+
 		for(auto si : state.world.nation_get_state_ownership(n)) {
 			if(si.get_state().get_capital().get_is_colonial())
 				continue; // skip colonial states
@@ -369,18 +445,22 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto i : state.world.in_ideology) {
 				accumulated_in_state[i.id.index()] = 0.0f;
 			}
-			float total = 0.0f;
+			
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				for(auto pop : state.world.province_get_pop_location(p)) {
 					auto weight = pop_vote_weight(state, pop.get_pop(), n);
 					if(weight > 0) {
-						total += weight;
 						for(auto i : state.world.in_ideology) {
-							accumulated_in_state[i.id.index()] += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
+							if((allowed_ideo & culture::to_bits(i)) != 0)
+								accumulated_in_state[i.id.index()] += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
 						}
 					}
 				}
 			});
+			float total = 0.0f;
+			for(auto i : state.world.in_ideology) {
+				total += accumulated_in_state[i.id.index()];
+			}
 			if(total > 0) {
 				for(auto i : state.world.in_ideology) {
 					auto scaled = accumulated_in_state[i.id.index()] / total;
@@ -400,7 +480,6 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		for(auto i : state.world.in_ideology) {
 			state.world.nation_set_upper_house(n, i, 0.0f);
 		}
-		float total = 0.0f;
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			if(p.get_province().get_is_colonial())
 				continue; // skip colonial provinces
@@ -409,13 +488,17 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich)) {
 					auto weight = pop_vote_weight(state, pop.get_pop(), n);
 					if(weight > 0) {
-						total += weight;
 						for(auto i : state.world.in_ideology) {
-							state.world.nation_get_upper_house(n, i) += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
+							if((allowed_ideo & culture::to_bits(i)) != 0)
+								state.world.nation_get_upper_house(n, i) += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
 						}
 					}
 				}
 			}
+		}
+		float total = 0.0f;
+		for(auto i : state.world.in_ideology) {
+			total += state.world.nation_get_upper_house(n, i);
 		}
 		if(total > 0) {
 			auto scale_factor = 100.0f / total;
@@ -427,7 +510,6 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		for(auto i : state.world.in_ideology) {
 			state.world.nation_set_upper_house(n, i, 0.0f);
 		}
-		float total = 0.0f;
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			if(p.get_province().get_is_colonial())
 				continue; // skip colonial provinces
@@ -435,12 +517,16 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			for(auto pop : state.world.province_get_pop_location(p.get_province())) {
 				auto weight = pop_vote_weight(state, pop.get_pop(), n);
 				if(weight > 0) {
-					total += weight;
 					for(auto i : state.world.in_ideology) {
-						state.world.nation_get_upper_house(n, i) += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
+						if((allowed_ideo & culture::to_bits(i)) != 0)
+							state.world.nation_get_upper_house(n, i) += weight * state.world.pop_get_demographics(pop.get_pop(), pop_demographics::to_key(state, i));
 					}
 				}
 			}
+		}
+		float total = 0.0f;
+		for(auto i : state.world.in_ideology) {
+			total += state.world.nation_get_upper_house(n, i);
 		}
 		if(total > 0) {
 			auto scale_factor = 100.0f / total;
@@ -450,7 +536,20 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 		}
 	}
 
-	// TODO: notify player
+	if(n == state.local_player_nation) {
+		notification::message m;
+		m.type = sys::message_setting_type::upperhouse;
+		m.primary = n;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			TEXT_NOTIF_MSG_TITLE(upperhouse);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			TEXT_NOTIF_MSG_BODY(upperhouse);
+		};
+		notification::post(state, std::move(m));
+	}
 }
 
 void daily_party_loyalty_update(sys::state& state) {
@@ -498,7 +597,22 @@ struct party_vote {
 void start_election(sys::state& state, dcon::nation_id n) {
 	if(state.world.nation_get_election_ends(n) < state.current_date) {
 		state.world.nation_set_election_ends(n, state.current_date + int32_t(state.defines.campaign_duration) * 30);
-		// TODO: Notify player
+
+		notification::message m;
+		m.type = sys::message_setting_type::electionstart;
+		m.primary = n;
+		m.title = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			TEXT_NOTIF_MSG_TITLE(electionstart);
+		};
+		m.body = [=](sys::state& state, text::layout_base& layout) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, n);
+			text::add_to_substitution_map(sub, text::variable_type::details, state.world.nation_get_election_ends(n));
+			TEXT_NOTIF_MSG_BODY(electionstart);
+		};
+		notification::post(state, std::move(m));
 	}
 }
 
@@ -524,7 +638,8 @@ void update_elections(sys::state& state) {
 
 				for(int32_t i = start; i < end; i++) {
 					auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-					if(politics::political_party_is_active(state, pid)) {
+					if(politics::political_party_is_active(state, pid) &&
+					   (state.culture_definitions.governments[n.get_government_type()].ideologies_allowed & culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
 						party_votes.push_back(party_vote{pid, 0.0f});
 					}
 				}
@@ -540,7 +655,7 @@ void update_elections(sys::state& state) {
 					provincial_party_votes.clear();
 					float province_total = 0.0f;
 					for(auto& par : party_votes) {
-						provincial_party_votes.push_back(party_vote{ par.par, 0.0f });
+						provincial_party_votes.push_back(party_vote{par.par, 0.0f});
 					}
 
 					float ruling_party_support = p.get_province().get_modifier_values(sys::provincial_mod_offsets::local_ruling_party_support) + n.get_modifier_values(sys::national_mod_offsets::ruling_party_support) + 1.0f;
@@ -603,7 +718,6 @@ void update_elections(sys::state& state) {
 							}
 						}
 					}
-					
 				}
 
 				/*
@@ -653,12 +767,11 @@ void update_elections(sys::state& state) {
 					set_ruling_party(state, n, party_votes[winner].par);
 				}
 
-			} else if(next_election_date(state, n) == state.current_date) {
+			} else if(next_election_date(state, n) <= state.current_date) {
 				start_election(state, n);
 			}
 		}
 	}
-
 }
 
 void set_issue_option(sys::state& state, dcon::nation_id n, dcon::issue_option_id opt) {
@@ -680,4 +793,4 @@ void set_reform_option(sys::state& state, dcon::nation_id n, dcon::reform_option
 	}
 }
 
-}
+} // namespace politics

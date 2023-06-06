@@ -11,12 +11,14 @@
 #include "texture.cpp"
 #include "gui_graphics.cpp"
 #include "gui_element_types.cpp"
+#include "gui_common_elements.cpp"
 #include "gui_main_menu.cpp"
 #include "gui_console.cpp"
 #include "gui_province_window.cpp"
 #include "gui_budget_window.cpp"
 #include "gui_technology_window.cpp"
 #include "gui_event.cpp"
+#include "gui_message_settings_window.cpp"
 #include "nations_parsing.cpp"
 #include "cultures_parsing.cpp"
 #include "econ_parsing.cpp"
@@ -40,9 +42,12 @@
 #include "parsers_declarations.cpp"
 #include "politics.cpp"
 #include "events.cpp"
-#include "gui_effect_tooltips.cpp"
 #include "gui_trigger_tooltips.cpp"
+#include "gui_effect_tooltips.cpp"
 #include "gui_modifier_tooltips.cpp"
+#include "commands.cpp"
+#include "diplomatic_messages.cpp"
+#include "notifications.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
@@ -75,10 +80,10 @@
 #include "prng.cpp"
 
 namespace sys {
-	state::~state() {
-		// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
-	}
+state::~state() {
+	// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
 }
+} // namespace sys
 
 // zstd
 

@@ -24,7 +24,7 @@ struct naval_base_information {
 	economy::commodity_set cost;
 	int32_t naval_capacity = 1;
 	int32_t colonial_range = 50;
-	int32_t colonial_points[8] = { 30,50,70,90,110,130,150,170 };
+	int32_t colonial_points[8] = {30, 50, 70, 90, 110, 130, 150, 170};
 	int32_t max_level = 6;
 	int32_t time = 1080;
 	dcon::modifier_id province_modifier;
@@ -32,7 +32,9 @@ struct naval_base_information {
 };
 
 enum class province_building_type : uint8_t {
-	railroad, fort, naval_base
+	railroad,
+	fort,
+	naval_base
 };
 inline std::string_view province_building_type_get_name(economy::province_building_type v) {
 	switch(v) {
@@ -55,7 +57,10 @@ struct global_economy_state {
 };
 
 enum class worker_effect : uint8_t {
-	none = 0, input, output, throughput
+	none = 0,
+	input,
+	output,
+	throughput
 };
 
 template<typename T>
@@ -120,6 +125,10 @@ float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
 float estimate_construction_spending(sys::state& state, dcon::nation_id n);
+float estimate_total_spending(sys::state& state, dcon::nation_id n);
+float estimate_war_subsidies(sys::state& state, dcon::nation_id n);
+
+float estimate_daily_income(sys::state& state, dcon::nation_id n);
 
 struct construction_status {
 	float progress = 0.0f; // in range [0,1)
@@ -133,13 +142,22 @@ struct new_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-
 template<typename F>
 void for_each_new_factory(sys::state& state, dcon::state_instance_id s, F&& func); // calls the function repeatedly with new_factory as parameters
+
+struct upgraded_factory {
+	float progress = 0.0f;
+	dcon::factory_type_id type;
+};
+template<typename F>
+void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s, F&& func); // calls the function repeatedly with new_factory as parameters
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t);
+void bound_budget_settings(sys::state& state, dcon::nation_id n);
 
-}
+int32_t most_recent_price_record_index(sys::state& state);
+
+} // namespace economy

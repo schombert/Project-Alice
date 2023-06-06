@@ -236,6 +236,38 @@ guiTypes = {
 				position = { x = 269 y = 281 }
 				quadTextureSprite = "option_next"
 			}
+
+			instantTextBoxType={
+				position = {x = 58 y = 330 }
+				name = "linegraph_mode_label"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}	
+				maxWidth = 236
+				maxHeight = 18
+				text = "linegraph_mode"	
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType={
+				position = {x = 58 y = 348 }
+				name = "linegraph_mode_value"
+				font = "Arial16"
+				borderSize = {x = 0 y = 0}	
+				maxWidth = 236
+				maxHeight = 18
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "linegraph_mode_left"
+				position = { x = 51 y = 341 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "linegraph_mode_right"
+				position = { x = 269 y = 341 }
+				quadTextureSprite = "option_next"
+			}
 		}
 	
 		windowType = {
@@ -510,6 +542,36 @@ guiTypes = {
 				}		
 			}
 		}
+	}
+
+	guiButtonType = {
+		name = "alice_left_right_button"
+		position = { x = 0 y = 0 }
+		quadTextureSprite = "GFX_alice_left_right"
+		clicksound = click
+	}
+	instantTextBoxType = {
+		name = "alice_page_count"
+		font = "vic_18_black"
+		borderSize = {x = 0 y = 0}	
+		maxWidth = 32
+		maxHeight = 18
+		orientation = "UPPER_LEFT"
+		format = centre
+	}
+	iconType = {
+		name = "alice_event_requirements"
+		position = { x = 0 y = 0 }
+		size = { x = 24 y = 24 }
+		spriteType = "GFX_decision_info"
+		Orientation = "UPPER_LEFT"
+	}
+	iconType = {
+		name = "alice_event_odds"
+		position = { x = 0 y = 0 }
+		size = { x = 24 y = 24 }
+		spriteType = "GFX_alice_odds"
+		Orientation = "UPPER_LEFT"
 	}
 
 	guiButtonType = {

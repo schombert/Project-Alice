@@ -10,7 +10,7 @@ inline uint32_t tag_to_int(char first, char second, char third) {
 	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
 }
 inline std::string int_to_tag(uint32_t v) {
-	char values[] = { char((v >> 16) & 0xFF), char((v >> 8) & 0xFF), char((v >> 0) & 0xFF) };
+	char values[] = {char((v >> 16) & 0xFF), char((v >> 8) & 0xFF), char((v >> 0) & 0xFF)};
 	return std::string(values, values + 3);
 }
 
@@ -22,19 +22,21 @@ struct triggered_modifier {
 struct fixed_event {
 	int16_t chance;
 	dcon::national_event_id id;
+	dcon::trigger_key condition;
 };
 struct fixed_province_event {
 	int16_t chance;
 	dcon::provincial_event_id id;
+	dcon::trigger_key condition;
 };
 
 enum class focus_type : uint8_t {
-	unknown             = 0,
-	rail_focus          = 1,
-	immigration_focus   = 2,
-	diplomatic_focus    = 3,
-	promotion_focus     = 4,
-	production_focus    = 5,
+	unknown = 0,
+	rail_focus = 1,
+	immigration_focus = 2,
+	diplomatic_focus = 3,
+	promotion_focus = 4,
+	production_focus = 5,
 	party_loyalty_focus = 6
 };
 
@@ -56,7 +58,7 @@ struct global_national_state {
 	dcon::modifier_id hard_ai;
 	dcon::modifier_id very_hard_ai;
 
-	//provincial
+	// provincial
 	dcon::modifier_id overseas;
 	dcon::modifier_id coastal;
 	dcon::modifier_id non_coastal;
@@ -142,38 +144,38 @@ constexpr inline uint8_t is_banned = uint8_t(0x80);
 
 inline uint8_t increase_level(uint8_t v) {
 	switch(v & level_mask) {
-		case level_neutral:
-			return uint8_t((v & ~level_mask) | level_cordial);
-		case level_opposed:
-			return uint8_t((v & ~level_mask) | level_neutral);
-		case level_hostile:
-			return uint8_t((v & ~level_mask) | level_opposed);
-		case level_cordial:
-			return uint8_t((v & ~level_mask) | level_friendly);
-		case level_friendly:
-			return uint8_t((v & ~level_mask) | level_in_sphere);
-		case level_in_sphere:
-			return uint8_t((v & ~level_mask) | level_in_sphere);
-		default:
-			return v;
+	case level_neutral:
+		return uint8_t((v & ~level_mask) | level_cordial);
+	case level_opposed:
+		return uint8_t((v & ~level_mask) | level_neutral);
+	case level_hostile:
+		return uint8_t((v & ~level_mask) | level_opposed);
+	case level_cordial:
+		return uint8_t((v & ~level_mask) | level_friendly);
+	case level_friendly:
+		return uint8_t((v & ~level_mask) | level_in_sphere);
+	case level_in_sphere:
+		return uint8_t((v & ~level_mask) | level_in_sphere);
+	default:
+		return v;
 	}
 }
 inline uint8_t decrease_level(uint8_t v) {
 	switch(v & level_mask) {
-		case level_neutral:
-			return uint8_t((v & ~level_mask) | level_opposed);
-		case level_opposed:
-			return uint8_t((v & ~level_mask) | level_hostile);
-		case level_hostile:
-			return uint8_t((v & ~level_mask) | level_hostile);
-		case level_cordial:
-			return uint8_t((v & ~level_mask) | level_neutral);
-		case level_friendly:
-			return uint8_t((v & ~level_mask) | level_cordial);
-		case level_in_sphere:
-			return uint8_t((v & ~level_mask) | level_friendly);
-		default:
-			return v;
+	case level_neutral:
+		return uint8_t((v & ~level_mask) | level_opposed);
+	case level_opposed:
+		return uint8_t((v & ~level_mask) | level_hostile);
+	case level_hostile:
+		return uint8_t((v & ~level_mask) | level_hostile);
+	case level_cordial:
+		return uint8_t((v & ~level_mask) | level_neutral);
+	case level_friendly:
+		return uint8_t((v & ~level_mask) | level_cordial);
+	case level_in_sphere:
+		return uint8_t((v & ~level_mask) | level_friendly);
+	default:
+		return v;
 	}
 }
 inline uint8_t increase_priority(uint8_t v) {
@@ -190,8 +192,30 @@ inline uint8_t decrease_priority(uint8_t v) {
 		return v;
 	}
 }
-
+inline bool is_influence_level_greater(int32_t l, int32_t r) {
+	switch(l) {
+	case level_hostile:
+		return false;
+	case level_opposed:
+		return r == level_hostile;
+	case level_neutral:
+		return r == level_hostile || r == level_opposed;
+	case level_cordial:
+		return r <= 2;
+	case level_friendly:
+		return r <= 3;
+	case level_in_sphere:
+		return r <= 4;
+	default:
+		return false;
+	}
 }
+inline bool is_influence_level_greater_or_equal(int32_t l, int32_t r) {
+	return l == r || is_influence_level_greater(l, r);
+}
+int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target);
+
+} // namespace influence
 
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
 
@@ -227,7 +251,6 @@ void update_administrative_efficiency(sys::state& state);
 
 float daily_research_points(sys::state& state, dcon::nation_id n);
 void update_research_points(sys::state& state);
-void update_colonial_points(sys::state& state); // NOTE: relies on naval supply being set
 
 void update_industrial_scores(sys::state& state);
 void update_military_scores(sys::state& state);
@@ -238,7 +261,12 @@ bool is_great_power(sys::state const& state, dcon::nation_id n);
 float prestige_score(sys::state const& state, dcon::nation_id n);
 
 enum class status : uint8_t {
-	great_power, secondary_power, civilized, westernizing, uncivilized, primitive
+	great_power,
+	secondary_power,
+	civilized,
+	westernizing,
+	uncivilized,
+	primitive
 };
 status get_status(sys::state& state, dcon::nation_id n);
 
@@ -251,8 +279,8 @@ float get_bank_funds(sys::state& state, dcon::nation_id n);
 float get_debt(sys::state& state, dcon::nation_id n);
 float tariff_efficiency(sys::state& state, dcon::nation_id n);
 float tax_efficiency(sys::state& state, dcon::nation_id n);
-int32_t free_colonial_points(sys::state const& state, dcon::nation_id n);
-int32_t max_colonial_points(sys::state const& state, dcon::nation_id n);
+int32_t free_colonial_points(sys::state& state, dcon::nation_id n);
+int32_t max_colonial_points(sys::state& state, dcon::nation_id n);
 
 bool has_political_reform_available(sys::state& state, dcon::nation_id n);
 bool has_social_reform_available(sys::state& state, dcon::nation_id n);
@@ -285,6 +313,7 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel);
 void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
+void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);
@@ -302,7 +331,12 @@ void update_crisis(sys::state& state);
 void update_pop_acceptance(sys::state& state, dcon::nation_id n);
 void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from);
 void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
+void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag);
 void perform_nationalization(sys::state& state, dcon::nation_id n);
 
-}
+float get_yesterday_income(sys::state& state, dcon::nation_id n);
 
+void make_civilized(sys::state& state, dcon::nation_id n);
+void make_uncivilized(sys::state& state, dcon::nation_id n);
+
+} // namespace nations

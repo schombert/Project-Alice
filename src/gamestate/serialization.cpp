@@ -49,8 +49,8 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 	uint32_t decompressed_length = uncompressed_size;
 
 	uint32_t section_length = uint32_t(
-		ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size),
-			ptr_in, uncompressed_size, 0)); // write compressed data
+	    ZSTD_compress(ptr_out + sizeof(uint32_t) * 2, ZSTD_compressBound(uncompressed_size),
+	                  ptr_in, uncompressed_size, 0)); // write compressed data
 
 	memcpy(ptr_out, &section_length, sizeof(uint32_t));
 	memcpy(ptr_out + sizeof(uint32_t), &decompressed_length, sizeof(uint32_t));
@@ -66,11 +66,11 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 	memcpy(&decompressed_length, ptr_in + sizeof(uint32_t), sizeof(uint32_t));
 
 	uint8_t* temp_buffer = new uint8_t[decompressed_length];
-	//TODO: allocate memory for decompression and decompress into it
+	// TODO: allocate memory for decompression and decompress into it
 
 	ZSTD_decompress(temp_buffer, decompressed_length, ptr_in + sizeof(uint32_t) * 2, section_length);
 
-	//function(ptr_in + sizeof(uint32_t) * 2, decompressed_length);
+	// function(ptr_in + sizeof(uint32_t) * 2, decompressed_length);
 	function(temp_buffer, decompressed_length);
 
 	delete[] temp_buffer;
@@ -143,6 +143,8 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.base_naval_unit);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_civil_war);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_great_war);
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.liberate);
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.uninstall_communist_gov);
 	}
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.flag_variable_names);
@@ -225,6 +227,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	ptr_in = memcpy_deserialize(ptr_in, state.start_date);
 	ptr_in = memcpy_deserialize(ptr_in, state.end_date);
 	ptr_in = deserialize(ptr_in, state.trigger_data);
+	ptr_in = deserialize(ptr_in, state.trigger_data_indices);
 	ptr_in = deserialize(ptr_in, state.effect_data);
 	ptr_in = deserialize(ptr_in, state.value_modifier_segments);
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
@@ -313,6 +316,8 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.base_naval_unit);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_civil_war);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_great_war);
+		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.liberate);
+		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.uninstall_communist_gov);
 	}
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.flag_variable_names);
@@ -395,6 +400,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.start_date);
 	ptr_in = memcpy_serialize(ptr_in, state.end_date);
 	ptr_in = serialize(ptr_in, state.trigger_data);
+	ptr_in = serialize(ptr_in, state.trigger_data_indices);
 	ptr_in = serialize(ptr_in, state.effect_data);
 	ptr_in = serialize(ptr_in, state.value_modifier_segments);
 	ptr_in = serialize(ptr_in, state.value_modifiers);
@@ -430,9 +436,9 @@ size_t sizeof_scenario_section(sys::state& state) {
 	{
 		auto fs_str = simple_fs::extract_state(state.common_fs);
 		uint32_t length = uint32_t(fs_str.length());
-		//memcpy(ptr_in, &length, sizeof(uint32_t));
+		// memcpy(ptr_in, &length, sizeof(uint32_t));
 		sz += sizeof(uint32_t);
-		//memcpy(ptr_in, fs_str.c_str(), length * sizeof(native_char));
+		// memcpy(ptr_in, fs_str.c_str(), length * sizeof(native_char));
 		sz += length * sizeof(native_char);
 	}
 	{
@@ -481,6 +487,8 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.military_definitions.base_naval_unit);
 		sz += sizeof(state.military_definitions.standard_civil_war);
 		sz += sizeof(state.military_definitions.standard_great_war);
+		sz += sizeof(state.military_definitions.liberate);
+		sz += sizeof(state.military_definitions.uninstall_communist_gov);
 	}
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.flag_variable_names);
@@ -563,6 +571,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 	sz += sizeof(state.start_date);
 	sz += sizeof(state.end_date);
 	sz += serialize_size(state.trigger_data);
+	sz += serialize_size(state.trigger_data_indices);
 	sz += serialize_size(state.effect_data);
 	sz += serialize_size(state.value_modifier_segments);
 	sz += serialize_size(state.value_modifiers);
@@ -579,12 +588,11 @@ size_t sizeof_scenario_section(sys::state& state) {
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_scenario();
-	//dcon::load_record loaded;
+	// dcon::load_record loaded;
 	sz += state.world.serialize_size(loaded);
 
 	return sz;
 }
-
 
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
@@ -611,6 +619,8 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = deserialize(ptr_in, state.pending_f_n_event);
 	ptr_in = deserialize(ptr_in, state.pending_p_event);
 	ptr_in = deserialize(ptr_in, state.pending_f_p_event);
+	ptr_in = memcpy_deserialize(ptr_in, state.pending_messages);
+	ptr_in = memcpy_deserialize(ptr_in, state.player_data_cache);
 
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -655,6 +665,8 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.pending_f_n_event);
 	ptr_in = serialize(ptr_in, state.pending_p_event);
 	ptr_in = serialize(ptr_in, state.pending_f_p_event);
+	ptr_in = memcpy_serialize(ptr_in, state.pending_messages);
+	ptr_in = memcpy_serialize(ptr_in, state.player_data_cache);
 
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -699,6 +711,8 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.pending_f_n_event);
 	sz += serialize_size(state.pending_p_event);
 	sz += serialize_size(state.pending_f_p_event);
+	sz += sizeof(state.pending_messages);
+	sz += sizeof(state.player_data_cache);
 
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.global_flag_variables);
@@ -722,14 +736,12 @@ void write_scenario_file(sys::state& state, native_string_view name) {
 	size_t save_space = sizeof_save_section(state);
 
 	// this is an upper bound, since compacting the data may require less space
-	size_t total_size = sizeof_scenario_header(header) + ZSTD_compressBound(scenario_space) + ZSTD_compressBound(save_space)
-		+ sizeof(uint32_t) * 4;
+	size_t total_size = sizeof_scenario_header(header) + ZSTD_compressBound(scenario_space) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 4;
 
 	uint8_t* temp_buffer = new uint8_t[total_size];
 	uint8_t* buffer_position = temp_buffer;
 
 	buffer_position = write_scenario_header(buffer_position, header);
-
 
 	uint8_t* temp_scenario_buffer = new uint8_t[scenario_space];
 	auto last_written = write_scenario_section(temp_scenario_buffer, state);
@@ -822,8 +834,7 @@ void write_save_file(sys::state& state, native_string_view name) {
 	size_t save_space = sizeof_save_section(state);
 
 	// this is an upper bound, since compacting the data may require less space
-	size_t total_size = sizeof_save_header(header) + ZSTD_compressBound(save_space)
-		+ sizeof(uint32_t) * 2;
+	size_t total_size = sizeof_save_header(header) + ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
 
 	uint8_t* temp_buffer = new uint8_t[total_size];
 	uint8_t* buffer_position = temp_buffer;
@@ -870,4 +881,4 @@ bool try_read_save_file(sys::state& state, native_string_view name) {
 	}
 }
 
-}
+} // namespace sys

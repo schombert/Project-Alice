@@ -37,6 +37,38 @@ Within them are lists of groups defining ui elements, each of which is labeled b
 
 Except as just mentioned, each type has its own set of unique properties and is parsed uniquely (unlike the contents of the `.gfx` files, which are all put through the same parsing path).
 
+#### Quirks and caveats
+
+Some files that come with the vanilla game are malformed in some way or have missing GFX resources - thus they are ignored and are never parsed:
+
+- `confirmbuild.gui`
+- `convoys.gui`
+- `brigadeview.gui`
+
+If a mod depends on those files being parsed and/or uses them for something - then don't. Before, `eu3dialog.gui` was ignored too, however it's now parsed and used, but the graphics element `GFX_icon_merchant` is overriden, if a mod depends on this not being overriden (for whatever reason); let us know.
+
+Some elements are fixed up automatically by the game in the code, overriding their otherwise set properties. Those elements are listed below:
+- `state_info` Overrides `orientation`.
+- `production_goods_name` Overrides `orientation`.
+- `factory_info` Overrides `orientation`.
+- `new_factory_option` Overrides `orientation`.
+- `ledger_legend_entry` Overrides `orientation`.
+- `project_info` Overrides `orientation`.
+- `pop_details_win` Overrides `moveable`.
+- `trade_flow` Overrides `moveable`.
+- `ledger` Overrides `moveable`.
+- `province_view` Overrides `moveable`.
+- `releaseconfirm` Overrides `moveable`.
+- `defaultdiplomacydialog` Overrides `moveable`.
+- `gpselectdiplomacydialog` Overrides `moveable`.
+- `build_factory` Overrides `moveable`.
+- `event_election_window` Overrides `moveable`.
+- `declarewardialog` Overrides `moveable`.
+- `setuppeacedialog` Overrides `moveable`.
+- `makecbdialog` Overrides `moveable`.
+- `setupcrisisbackdowndialog` Overrides `moveable`.
+- `invest_project_window` Overrides `moveable`.
+
 #### A quick note on fonts
 
 Some of these elements will refer to various fonts. Since we won't be using any of the fonts from the game directly, trying to decode the font descriptions and interpret them seems like a waste of time. Instead we will just recognize fonts by hard-coding the names of the fonts to later assign to fonts of our choosing. Each font name starts with one of the following: `arial`, `fps`, `main`, `tooltip`, `frangoth`, `garamond`, `impact`, `old_english`, `timefont`, or `vic`, and is then followed by an optional underscore, and then an optional number (presumably size), and then an underscore and a final bit of decoration such as `bold`,  `black`, `black_bold`, or `bl`. We will deal with this all by mapping the start of the name to one of a smaller number of fonts we will load, parsing out the size (if present), and then determining whether to render the font in white (the default) or in black.
@@ -47,7 +79,7 @@ Some of these elements will refer to various fonts. Since we won't be using any 
 - `size` : a group with contents `{ x = ... y = ...}`
 - `delayedtooltipText` : text, at least nominally. After an initial inspection, it looks like it is always assigned `""` when it appears, so I am discarding it for now.
 - `format` : text value containing `right`, `left`, `center`, or `centre` (with possibly varying capitalization), determining how text is aligned in the control.
-- `spritetype` : text naming a graphics resource to draw the element with (appears only for `icontype`, I think, but why not put it here just in case? 
+- `spritetype` : text naming a graphics resource to draw the element with (appears only for `icontype`, I think, but why not put it here just in case?
 - `rotation` : floating point value plus or minus 1.5708 (i.e. a 90 degree clockwise or counter-clockwise rotation).
 - `shortcut` : shortcut key to associate with the control
 - `tooltip` and `tooltiptext` : apparently all set to `""`

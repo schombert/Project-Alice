@@ -11,25 +11,25 @@ void make_good(std::string_view name, token_generator& gen, error_handler& err, 
 	context.outer_context.state.world.commodity_set_is_available_from_start(new_id, true);
 
 	context.outer_context.map_of_commodity_names.insert_or_assign(std::string(name), new_id);
-	good_context new_context{ new_id, context.outer_context };
+	good_context new_context{new_id, context.outer_context};
 	parse_good(gen, err, new_context);
 }
 void make_goods_group(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	if(name == "military_goods") {
-		good_group_context new_context{ sys::commodity_group::military_goods, context };
+		good_group_context new_context{sys::commodity_group::military_goods, context};
 		parse_goods_group(gen, err, new_context);
 	} else if(name == "raw_material_goods") {
-		good_group_context new_context{ sys::commodity_group::raw_material_goods, context };
+		good_group_context new_context{sys::commodity_group::raw_material_goods, context};
 		parse_goods_group(gen, err, new_context);
 	} else if(name == "industrial_goods") {
-		good_group_context new_context{ sys::commodity_group::industrial_goods, context };
+		good_group_context new_context{sys::commodity_group::industrial_goods, context};
 		parse_goods_group(gen, err, new_context);
 	} else if(name == "consumer_goods") {
-		good_group_context new_context{ sys::commodity_group::consumer_goods, context };
+		good_group_context new_context{sys::commodity_group::consumer_goods, context};
 		parse_goods_group(gen, err, new_context);
 	} else {
 		err.accumulated_errors += "Unknown goods category " + std::string(name) + " found in " + err.file_name + "\n";
-		good_group_context new_context{ sys::commodity_group::military_goods, context };
+		good_group_context new_context{sys::commodity_group::military_goods, context};
 		parse_goods_group(gen, err, new_context);
 	}
 }
@@ -37,130 +37,127 @@ void make_goods_group(std::string_view name, token_generator& gen, error_handler
 void building_file::result(std::string_view name, building_definition&& res, error_handler& err, int32_t line, scenario_building_context& context) {
 	res.goods_cost.data.safe_get(dcon::commodity_id(0)) = float(res.cost);
 	switch(res.stored_type) {
-		case building_type::factory:
+	case building_type::factory: {
+		auto factory_id = context.state.world.create_factory_type();
+		context.map_of_factory_names.insert_or_assign(std::string(name), factory_id);
+
+		auto desc_id = text::find_or_add_key(context.state, std::string(name) + "_desc");
+
+		context.state.world.factory_type_set_name(factory_id, text::find_or_add_key(context.state, name));
+		context.state.world.factory_type_set_description(factory_id, desc_id);
+		context.state.world.factory_type_set_construction_time(factory_id, int16_t(res.time));
+		context.state.world.factory_type_set_is_available_from_start(factory_id, res.default_enabled);
+		/*for(uint32_t i = context.state.world.commodity_size(); i-- > 0; ) {
+		    dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(i));
+		    context.state.world.factory_type_set_construction_costs(factory_id, cid, res.goods_cost.data[cid]);
+		}*/
+		uint32_t added = 0;
+		auto& cc = context.state.world.factory_type_get_construction_costs(factory_id);
+		context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+			auto amount = res.goods_cost.data.safe_get(id);
+			if(amount > 0) {
+				if(added >= economy::commodity_set::set_size) {
+					err.accumulated_errors += "Too many factory cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+				} else {
+					cc.commodity_type[added] = id;
+					cc.commodity_amounts[added] = amount;
+					++added;
+				}
+			}
+		});
+		if(res.production_type.length() > 0) {
+			context.map_of_production_types.insert_or_assign(std::string(res.production_type), factory_id);
+		}
+	} break;
+	case building_type::naval_base:
+		for(uint32_t i = 0; i < 8 && i < res.colonial_points.data.size(); ++i)
+			context.state.economy_definitions.naval_base_definition.colonial_points[i] = res.colonial_points.data[i];
+		context.state.economy_definitions.naval_base_definition.colonial_range = res.colonial_range;
 		{
-			auto factory_id = context.state.world.create_factory_type();
-			context.map_of_factory_names.insert_or_assign(std::string(name), factory_id);
-			context.state.world.factory_type_set_name(factory_id, text::find_or_add_key(context.state, name));
-			context.state.world.factory_type_set_construction_time(factory_id, int16_t(res.time));
-			context.state.world.factory_type_set_is_available_from_start(factory_id, res.default_enabled);
-			/*for(uint32_t i = context.state.world.commodity_size(); i-- > 0; ) {
-				dcon::commodity_id cid = dcon::commodity_id(dcon::commodity_id::value_base_t(i));
-				context.state.world.factory_type_set_construction_costs(factory_id, cid, res.goods_cost.data[cid]);
-			}*/
 			uint32_t added = 0;
-			auto& cc = context.state.world.factory_type_get_construction_costs(factory_id);
 			context.state.world.for_each_commodity([&](dcon::commodity_id id) {
 				auto amount = res.goods_cost.data.safe_get(id);
 				if(amount > 0) {
 					if(added >= economy::commodity_set::set_size) {
-						err.accumulated_errors += "Too many factory cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+						err.accumulated_errors += "Too many naval_base cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
 					} else {
-						cc.commodity_type[added] = id;
-						cc.commodity_amounts[added] = amount;
+						context.state.economy_definitions.naval_base_definition.cost.commodity_type[added] = id;
+						context.state.economy_definitions.naval_base_definition.cost.commodity_amounts[added] = amount;
 						++added;
 					}
 				}
 			});
-			if(res.production_type.length() > 0) {
-				context.map_of_production_types.insert_or_assign(std::string(res.production_type), factory_id);
-			}
 		}
-			break;
-		case building_type::naval_base:
-			for(uint32_t i = 0; i < 8 && i < res.colonial_points.data.size(); ++i)
-				context.state.economy_definitions.naval_base_definition.colonial_points[i] = res.colonial_points.data[i];
-			context.state.economy_definitions.naval_base_definition.colonial_range = res.colonial_range;
-			{
-				uint32_t added = 0;
-				context.state.world.for_each_commodity([&](dcon::commodity_id id) {
-					auto amount = res.goods_cost.data.safe_get(id);
-					if(amount > 0) {
-						if(added >= economy::commodity_set::set_size) {
-							err.accumulated_errors += "Too many naval_base cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
-						} else {
-							context.state.economy_definitions.naval_base_definition.cost.commodity_type[added] = id;
-							context.state.economy_definitions.naval_base_definition.cost.commodity_amounts[added] = amount;
-							++added;
-						}
-					}
-				});
+		context.state.economy_definitions.naval_base_definition.max_level = res.max_level;
+		context.state.economy_definitions.naval_base_definition.naval_capacity = res.naval_capacity;
+		context.state.economy_definitions.naval_base_definition.time = res.time;
+		context.state.economy_definitions.naval_base_definition.name = text::find_or_add_key(context.state, name);
+		if(res.next_to_add_p != 0) {
+			context.state.economy_definitions.naval_base_definition.province_modifier = context.state.world.create_modifier();
+			context.state.world.modifier_set_province_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+			context.state.world.modifier_set_icon(context.state.economy_definitions.naval_base_definition.province_modifier, uint8_t(res.icon_index));
+			context.state.world.modifier_set_name(context.state.economy_definitions.naval_base_definition.province_modifier, context.state.economy_definitions.naval_base_definition.name);
+		}
+		break;
+	case building_type::fort: {
+		uint32_t added = 0;
+		context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+			auto amount = res.goods_cost.data.safe_get(id);
+			if(amount > 0) {
+				if(added >= economy::commodity_set::set_size) {
+					err.accumulated_errors += "Too many fort cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+				} else {
+					context.state.economy_definitions.fort_definition.cost.commodity_type[added] = id;
+					context.state.economy_definitions.fort_definition.cost.commodity_amounts[added] = amount;
+					++added;
+				}
 			}
-			context.state.economy_definitions.naval_base_definition.max_level = res.max_level;
-			context.state.economy_definitions.naval_base_definition.naval_capacity = res.naval_capacity;
-			context.state.economy_definitions.naval_base_definition.time = res.time;
-			context.state.economy_definitions.naval_base_definition.name = text::find_or_add_key(context.state, name);
-			if(res.next_to_add_p != 0) {
-				context.state.economy_definitions.naval_base_definition.province_modifier = context.state.world.create_modifier();
-				context.state.world.modifier_set_province_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_province_mod());
-				context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
-				context.state.world.modifier_set_icon(context.state.economy_definitions.naval_base_definition.province_modifier, uint8_t(res.icon_index));
-				context.state.world.modifier_set_name(context.state.economy_definitions.naval_base_definition.province_modifier, context.state.economy_definitions.naval_base_definition.name);
+		});
+	}
+		context.state.economy_definitions.fort_definition.max_level = res.max_level;
+		context.state.economy_definitions.fort_definition.time = res.time;
+		context.state.economy_definitions.fort_definition.name = text::find_or_add_key(context.state, name);
+		if(res.next_to_add_p != 0) {
+			context.state.economy_definitions.fort_definition.province_modifier = context.state.world.create_modifier();
+			context.state.world.modifier_set_province_values(context.state.economy_definitions.fort_definition.province_modifier, res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+			context.state.world.modifier_set_icon(context.state.economy_definitions.fort_definition.province_modifier, uint8_t(res.icon_index));
+			context.state.world.modifier_set_name(context.state.economy_definitions.fort_definition.province_modifier, context.state.economy_definitions.fort_definition.name);
+		}
+		break;
+	case building_type::railroad: {
+		uint32_t added = 0;
+		context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+			auto amount = res.goods_cost.data.safe_get(id);
+			if(amount > 0) {
+				if(added >= economy::commodity_set::set_size) {
+					err.accumulated_errors += "Too many railroad cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
+				} else {
+					context.state.economy_definitions.railroad_definition.cost.commodity_type[added] = id;
+					context.state.economy_definitions.railroad_definition.cost.commodity_amounts[added] = amount;
+					++added;
+				}
 			}
-			break;
-		case building_type::fort:
-			{
-				uint32_t added = 0;
-				context.state.world.for_each_commodity([&](dcon::commodity_id id) {
-					auto amount = res.goods_cost.data.safe_get(id);
-					if(amount > 0) {
-						if(added >= economy::commodity_set::set_size) {
-							err.accumulated_errors += "Too many fort cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
-						} else {
-							context.state.economy_definitions.fort_definition.cost.commodity_type[added] = id;
-							context.state.economy_definitions.fort_definition.cost.commodity_amounts[added] = amount;
-							++added;
-						}
-					}
-				});
-
-			}
-			context.state.economy_definitions.fort_definition.max_level = res.max_level;
-			context.state.economy_definitions.fort_definition.time = res.time;
-			context.state.economy_definitions.fort_definition.name = text::find_or_add_key(context.state, name);
-			if(res.next_to_add_p != 0) {
-				context.state.economy_definitions.fort_definition.province_modifier = context.state.world.create_modifier();
-				context.state.world.modifier_set_province_values(context.state.economy_definitions.fort_definition.province_modifier, res.peek_province_mod());
-				context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
-				context.state.world.modifier_set_icon(context.state.economy_definitions.fort_definition.province_modifier, uint8_t(res.icon_index));
-				context.state.world.modifier_set_name(context.state.economy_definitions.fort_definition.province_modifier, context.state.economy_definitions.fort_definition.name);
-			}
-			break;
-		case building_type::railroad:
-			{
-				uint32_t added = 0;
-				context.state.world.for_each_commodity([&](dcon::commodity_id id) {
-					auto amount = res.goods_cost.data.safe_get(id);
-					if(amount > 0) {
-						if(added >= economy::commodity_set::set_size) {
-							err.accumulated_errors += "Too many railroad cost goods in " + std::string(name) + " (" + err.file_name + ")\n";
-						} else {
-							context.state.economy_definitions.railroad_definition.cost.commodity_type[added] = id;
-							context.state.economy_definitions.railroad_definition.cost.commodity_amounts[added] = amount;
-							++added;
-						}
-					}
-				});
-
-			}
-			context.state.economy_definitions.railroad_definition.infrastructure = res.infrastructure;
-			context.state.economy_definitions.railroad_definition.max_level = res.max_level;
-			context.state.economy_definitions.railroad_definition.time = res.time;
-			context.state.economy_definitions.railroad_definition.name = text::find_or_add_key(context.state, name);
-			if(res.next_to_add_p != 0) {
-				context.state.economy_definitions.railroad_definition.province_modifier = context.state.world.create_modifier();
-				context.state.world.modifier_set_province_values(context.state.economy_definitions.railroad_definition.province_modifier, res.peek_province_mod());
-				context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
-				context.state.world.modifier_set_icon(context.state.economy_definitions.railroad_definition.province_modifier, uint8_t(res.icon_index));
-				context.state.world.modifier_set_name(context.state.economy_definitions.railroad_definition.province_modifier, context.state.economy_definitions.railroad_definition.name);
-			}
-			break;
+		});
+	}
+		context.state.economy_definitions.railroad_definition.infrastructure = res.infrastructure;
+		context.state.economy_definitions.railroad_definition.max_level = res.max_level;
+		context.state.economy_definitions.railroad_definition.time = res.time;
+		context.state.economy_definitions.railroad_definition.name = text::find_or_add_key(context.state, name);
+		if(res.next_to_add_p != 0) {
+			context.state.economy_definitions.railroad_definition.province_modifier = context.state.world.create_modifier();
+			context.state.world.modifier_set_province_values(context.state.economy_definitions.railroad_definition.province_modifier, res.peek_province_mod());
+			context.state.world.modifier_set_national_values(context.state.economy_definitions.naval_base_definition.province_modifier, res.peek_national_mod());
+			context.state.world.modifier_set_icon(context.state.economy_definitions.railroad_definition.province_modifier, uint8_t(res.icon_index));
+			context.state.world.modifier_set_name(context.state.economy_definitions.railroad_definition.province_modifier, context.state.economy_definitions.railroad_definition.name);
+		}
+		break;
 	}
 }
 
-
 dcon::trigger_key make_production_bonus_trigger(token_generator& gen, error_handler& err, production_context& context) {
-	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::empty };
+	trigger_building_context t_context{context.outer_context, trigger::slot_contents::state, trigger::slot_contents::nation, trigger::slot_contents::empty};
 	return make_trigger(gen, err, t_context);
 }
 
@@ -265,4 +262,4 @@ commodity_array make_prod_commodity_array(token_generator& gen, error_handler& e
 	return parse_commodity_array(gen, err, context.outer_context);
 }
 
-}
+} // namespace parsers

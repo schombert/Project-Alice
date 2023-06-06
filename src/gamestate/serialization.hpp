@@ -41,7 +41,6 @@ uint8_t const* memcpy_deserialize(uint8_t const* ptr_in, T& obj) {
 	return ptr_in + sizeof(T);
 }
 
-
 template<typename T, typename tag_type>
 size_t serialize_size(tagged_vector<T, tag_type> const& vec) {
 	return sizeof(uint32_t) + sizeof(T) * vec.size();
@@ -121,8 +120,8 @@ uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<u
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
-constexpr inline uint32_t save_file_version = 19;
-constexpr inline uint32_t scenario_file_version = 42 + save_file_version;
+constexpr inline uint32_t save_file_version = 22;
+constexpr inline uint32_t scenario_file_version = 54 + save_file_version;
 
 struct scenario_header {
 	uint32_t version = scenario_file_version;
@@ -156,5 +155,4 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 void write_save_file(sys::state& state, native_string_view name);
 bool try_read_save_file(sys::state& state, native_string_view name);
 
-
-}
+} // namespace sys

@@ -33,10 +33,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __icpcfeatures_dot_hpp
 
 // icc relies on gcc libraries and other toolchain components.
-#define R123_GNUC_VERSION (__GNUC__*10000 + __GNUC_MINOR__*100 + __GNUC_PATCHLEVEL__)
+#define R123_GNUC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 #if !defined(__x86_64__) && !defined(__i386__)
-#  error "This code has only been tested on x86 platforms."
+#error "This code has only been tested on x86 platforms."
 { // maybe an unbalanced brace will terminate the compilation
 // You are invited to try Easy123 on other architectures, by changing
 // the conditions that reach this error, but you should consider it a
@@ -62,26 +62,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_BUILTIN_EXPECT
-#define R123_BUILTIN_EXPECT(expr,likely) __builtin_expect(expr,likely)
+#define R123_BUILTIN_EXPECT(expr, likely) __builtin_expect(expr, likely)
 #endif
 
-// The basic idiom is:
-// #ifndef R123_SOMETHING
-// #if some condition
-// #define R123_SOMETHING 1
-// #else
-// #define R123_SOMETHING 0
-// #endif
-// #endif
-// This idiom allows an external user to override any decision
-// in this file with a command-line -DR123_SOMETHING=1 or -DR123_SOMETHINE=0
+	// The basic idiom is:
+	// #ifndef R123_SOMETHING
+	// #if some condition
+	// #define R123_SOMETHING 1
+	// #else
+	// #define R123_SOMETHING 0
+	// #endif
+	// #endif
+	// This idiom allows an external user to override any decision
+	// in this file with a command-line -DR123_SOMETHING=1 or -DR123_SOMETHINE=0
 
-// An alternative idiom is:
-// #ifndef R123_SOMETHING
-// #define R123_SOMETHING (some boolean expression)
-// #endif
-// where the boolean expression might contain previously-defined R123_SOMETHING_ELSE
-// pp-symbols.
+	// An alternative idiom is:
+	// #ifndef R123_SOMETHING
+	// #define R123_SOMETHING (some boolean expression)
+	// #endif
+	// where the boolean expression might contain previously-defined R123_SOMETHING_ELSE
+	// pp-symbols.
 
 #ifndef R123_USE_SSE4_2
 #ifdef __SSE4_2__
@@ -120,9 +120,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 11.1 onwards.
 //
 #if defined(__AES__)
-#define R123_USE_AES_NI ((__ICC>=1101) && 1/*defined(__AES__)*/)
+#define R123_USE_AES_NI ((__ICC >= 1101) && 1 /*defined(__AES__)*/)
 #else
-#define R123_USE_AES_NI ((__ICC>=1101) && 0/*defined(__AES__)*/)
+#define R123_USE_AES_NI ((__ICC >= 1101) && 0 /*defined(__AES__)*/)
 #endif
 #endif
 

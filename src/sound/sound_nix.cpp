@@ -117,4 +117,4 @@ audio_instance& get_click_sound(sys::state& state) {
 	return state.sound_ptr->click_sound;
 }
 
-}
+} // namespace sound

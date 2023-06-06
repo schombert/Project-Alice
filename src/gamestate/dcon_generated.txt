@@ -104,7 +104,7 @@ object{
 object {
 	name{ political_party }
 	storage_type{contiguous}
-	size{ 10000 }
+	size{ 15000 }
 	tag{ scenario }
 
 	property{
@@ -357,6 +357,11 @@ object {
 		name{ producer_payout_fraction }
 		type{ float }
 	}
+	property{
+		name{ price_record }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
 }
 
 object {
@@ -395,6 +400,11 @@ object {
 
 	property{
 		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ description }
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
@@ -1737,6 +1747,64 @@ object {
 		type{ text_sequence_id }
 		tag{ save }
 	}
+	property {
+		name{ is_great }
+		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ is_crisis_war }
+		type{ bitfield }
+		tag{ save }
+	}
+}
+object {
+	name{ peace_offer }
+	storage_type{ erasable }
+	size{ 100 }
+	tag{ save }
+
+	property{
+		name{ target }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
+		name{ is_concession }
+		type{ bitfield }
+		tag{ save }
+	}
+}
+relationship{
+	name{ pending_peace_offer }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{nation}
+		type{unique}
+	}
+	link{
+		object{peace_offer}
+		name{peace_offer}
+		type{unique}
+	}
+}
+relationship{
+	name{ war_settlement }
+	tag{ save }
+
+	link{
+		object{war}
+		name{war}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{peace_offer}
+		name{peace_offer}
+		type{unique}
+	}
 }
 object {
 	name{ wargoal }
@@ -1762,6 +1830,11 @@ object {
 	property{
 		name{ associated_tag }
 		type{ national_identity_id }
+		tag{ save }
+	}
+	property{
+		name{ secondary_nation }
+		type{ nation_id }
 		tag{ save }
 	}
 	property{
@@ -1801,6 +1874,22 @@ relationship{
 	link{
 		object{war}
 		name{war}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{wargoal}
+		name{wargoal}
+		type{unique}
+	}
+}
+relationship{
+	name{ peace_offer_item }
+	tag{ save }
+
+	link{
+		object{peace_offer}
+		name{peace_offer}
 		type{many}
 		index_storage{array}
 	}
@@ -1889,7 +1978,7 @@ object {
 }
 relationship{
 	name{ colonization }
-	storage_type{ compactable }
+	storage_type{ erasable }
 	size{ 3000 }
 	tag{ save }
 
@@ -2297,6 +2386,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ ruling_party_last_appointed }
+		type{ sys::date }
+		tag{ save }
+	}
+	property{
 		name{ issues }
 		type{array{issue_id}{issue_option_id}}
 		tag{ save }
@@ -2455,6 +2549,11 @@ object {
 	}
 	property {
 		name{ disarmed_until }
+		type{ sys::date }
+		tag{ save }
+	}
+	property {
+		name{ reparations_until }
 		type{ sys::date }
 		tag{ save }
 	}
@@ -2792,10 +2891,6 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ colonial_points }
-		type{ float }
-	}
-	property {
 		name{ naval_supply_points }
 		type{ uint16_t }
 	}
@@ -2891,6 +2986,16 @@ relationship{
 	}
 	property{
 		name{ military_access }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ war_subsidies }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ reparations }
 		type{ bitfield }
 		tag{ save }
 	}
@@ -3078,8 +3183,8 @@ relationship{
 	tag{ save }
 
 	link{
-		object{province}
-		name{province}
+		object{pop}
+		name{pop}
 		type{many}
 		index_storage{array}
 	}

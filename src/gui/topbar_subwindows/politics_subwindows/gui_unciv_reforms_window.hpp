@@ -12,25 +12,34 @@ namespace ui {
 
 class unciv_reforms_westernize_button : public standard_nation_button {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		on_update(state);
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+			disabled = !command::can_civilize_nation(state, nation_id);
+		}
 	}
 
-	void on_update(sys::state& state) noexcept override {
-		disabled = state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier) < 1.f;
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto nation_id = any_cast<dcon::nation_id>(payload);
+			command::civilize_nation(state, nation_id);
+		}
 	}
 };
 
-class unciv_reforms_reform_button : public standard_nation_reform_option_button {
+class unciv_reforms_reform_button : public button_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		standard_nation_reform_option_button::on_update(state);
-		auto reform_type = state.world.reform_option_get_parent_reform(reform_option_id).get_reform_type();
-		if(reform_type == uint8_t(culture::issue_type::military)) {
-			disabled = !politics::can_enact_military_reform(state, nation_id, reform_option_id);
-		} else {
-			disabled = !politics::can_enact_economic_reform(state, nation_id, reform_option_id);
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::reform_option_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::reform_option_id>(payload);
+
+			command::enact_reform(state, state.local_player_nation, content);
 		}
 	}
 
@@ -38,46 +47,66 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto fat_id = dcon::fatten(state.world, reform_option_id);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::reform_option_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::reform_option_id>(payload);
+
+			disabled = !command::can_enact_reform(state, state.local_player_nation, content);
 		}
-		auto mod_id = fat_id.get_modifier().id;
-		if(bool(mod_id)) {
-			modifier_description(state, contents, mod_id);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::reform_option_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::reform_option_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, content);
+			auto name = fat_id.get_name();
+			if(bool(name)) {
+				auto box = text::open_layout_box(contents, 0);
+				text::add_to_layout_box(contents, state, box, text::produce_simple_string(state, name), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
+			auto mod_id = fat_id.get_modifier().id;
+			if(bool(mod_id)) {
+				modifier_description(state, contents, mod_id);
+			}
 		}
 	}
 };
 
 class unciv_reforms_option : public listbox_row_element_base<dcon::reform_option_id> {
-public:
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
-	}
+	image_element_base* selected_icon = nullptr;
 
+public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
 			return make_element_by_type<generic_name_text<dcon::reform_option_id>>(state, id);
 		} else if(name == "selected") {
-			return make_element_by_type<reform_selected_icon>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			selected_icon = ptr.get();
+			return ptr;
 		} else if(name == "reform_option") {
 			return make_element_by_type<unciv_reforms_reform_button>(state, id);
 		} else {
 			return nullptr;
 		}
 	}
+
+	void on_update(sys::state& state) noexcept override {
+		selected_icon->set_visible(state, politics::reform_is_selected(state, state.local_player_nation, content));
+		update(state);
+	}
 };
 
 class unciv_reforms_listbox : public listbox_element_base<unciv_reforms_option, dcon::reform_option_id> {
 protected:
 	std::string_view get_row_element_name() override {
-        return "reform_option_window";
-    }
+		return "reform_option_window";
+	}
 
 public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -92,13 +121,14 @@ public:
 			}
 			update(state);
 			return message_result::consumed;
-		} else {
-			return message_result::unseen;
 		}
+		return message_result::unseen;
 	}
 };
 
 class unciv_reforms_reform_window : public window_element_base {
+	dcon::reform_id reform_id{};
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reform_name") {
@@ -116,6 +146,22 @@ public:
 		make_size_from_graphics(state, reforms_listbox->base_data);
 		reforms_listbox->on_create(state);
 		add_child_to_front(std::move(reforms_listbox));
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::reform_id>()) {
+			payload.emplace<dcon::reform_id>(reform_id);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::reform_id>()) {
+			reform_id = any_cast<dcon::reform_id>(payload);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
 	}
 };
 
@@ -152,4 +198,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

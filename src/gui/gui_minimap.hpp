@@ -5,7 +5,7 @@
 #include "gui_ledger_window.hpp"
 #include "gui_search_window.hpp"
 #include "gui_main_menu.hpp"
-#include "gui_msg_filters_window.hpp"
+#include "gui_message_filters_window.hpp"
 #include "opengl_wrapper.hpp"
 #include "map.hpp"
 #include "map_modes.hpp"
@@ -32,72 +32,72 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		switch(target) {
-			case map_mode::mode::admin:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_8"));
-				break;
-			case map_mode::mode::civilization_level:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_19"));
-				break;
-			case map_mode::mode::colonial:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_7"));
-				break;
-			case map_mode::mode::crisis:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_21"));
-				break;
-			case map_mode::mode::diplomatic:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_4"));
-				break;
-			case map_mode::mode::infrastructure:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_6"));
-				break;
-			case map_mode::mode::migration:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_18"));
-				break;
-			case map_mode::mode::naval:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_22"));
-				break;
-			case map_mode::mode::nationality:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_13"));
-				break;
-			case map_mode::mode::national_focus:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_10"));
-				break;
-			case map_mode::mode::party_loyalty:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_16"));
-				break;
-			case map_mode::mode::political:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_2"));
-				break;
-			case map_mode::mode::population:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_12"));
-				break;
-			case map_mode::mode::rank:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_17"));
-				break;
-			case map_mode::mode::recruitment:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_9"));
-				break;
-			case map_mode::mode::region:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_5"));
-				break;
-			case map_mode::mode::relation:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_20"));
-				break;
-			case map_mode::mode::revolt:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_3"));
-				break;
-			case map_mode::mode::rgo_output:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_11"));
-				break;
-			case map_mode::mode::sphere:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_14"));
-				break;
-			case map_mode::mode::supply:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_15"));
-				break;
-			case map_mode::mode::terrain:
-				text::localised_format_box(state, contents, box, std::string_view("mapmode_1"));
-				break;
+		case map_mode::mode::admin:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_8"));
+			break;
+		case map_mode::mode::civilization_level:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_19"));
+			break;
+		case map_mode::mode::colonial:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_7"));
+			break;
+		case map_mode::mode::crisis:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_21"));
+			break;
+		case map_mode::mode::diplomatic:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_4"));
+			break;
+		case map_mode::mode::infrastructure:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_6"));
+			break;
+		case map_mode::mode::migration:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_18"));
+			break;
+		case map_mode::mode::naval:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_22"));
+			break;
+		case map_mode::mode::nationality:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_13"));
+			break;
+		case map_mode::mode::national_focus:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_10"));
+			break;
+		case map_mode::mode::party_loyalty:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_16"));
+			break;
+		case map_mode::mode::political:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_2"));
+			break;
+		case map_mode::mode::population:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_12"));
+			break;
+		case map_mode::mode::rank:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_17"));
+			break;
+		case map_mode::mode::recruitment:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_9"));
+			break;
+		case map_mode::mode::region:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_5"));
+			break;
+		case map_mode::mode::relation:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_20"));
+			break;
+		case map_mode::mode::revolt:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_3"));
+			break;
+		case map_mode::mode::rgo_output:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_11"));
+			break;
+		case map_mode::mode::sphere:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_14"));
+			break;
+		case map_mode::mode::supply:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_15"));
+			break;
+		case map_mode::mode::terrain:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_1"));
+			break;
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -124,9 +124,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("goto_goto")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
-		}
+		text::localised_format_box(state, contents, box, std::string_view("goto_goto"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -152,9 +150,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("m_ledger_button")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
-		}
+		text::localised_format_box(state, contents, box, std::string_view("m_ledger_button"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -163,7 +159,7 @@ class minimap_msg_settings_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(!state.ui_state.msg_filters_window) {
-			auto window = make_element_by_type<msg_filters_window>(state, "message_filters");
+			auto window = make_element_by_type<message_filters_window>(state, "message_filters");
 			state.ui_state.msg_filters_window = window.get();
 			state.ui_state.root->add_child_to_front(std::move(window));
 		} else if(state.ui_state.msg_filters_window->is_visible()) {
@@ -172,10 +168,6 @@ public:
 			state.ui_state.msg_filters_window->set_visible(state, true);
 			state.ui_state.root->move_child_to_front(state.ui_state.msg_filters_window);
 		}
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -191,10 +183,6 @@ public:
 
 class minimap_msg_combat_button : public button_element_base {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -208,10 +196,6 @@ public:
 
 class minimap_msg_diplo_button : public button_element_base {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -225,10 +209,6 @@ public:
 
 class minimap_msg_unit_button : public button_element_base {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -242,10 +222,6 @@ public:
 
 class minimap_msg_province_button : public button_element_base {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -259,10 +235,6 @@ public:
 
 class minimap_msg_other_button : public button_element_base {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -276,10 +248,6 @@ public:
 
 class minimap_msg_event_button : public button_element_base {
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y) noexcept override {
-		return message_result::consumed;
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -311,9 +279,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(auto k = state.key_to_text_sequence.find(std::string_view("m_menu_button")); k != state.key_to_text_sequence.end()) {
-			text::add_to_layout_box(contents, state, box, k->second, text::substitution_map{});
-		}
+		text::localised_format_box(state, contents, box, std::string_view("m_menu_button"));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -340,13 +306,12 @@ public:
 };
 
 class minimap_container_window : public window_element_base {
-	const std::string_view mapmode_btn_prefix{ "mapmode_" };
-	element_base* message_log_window = nullptr;
+	const std::string_view mapmode_btn_prefix{"mapmode_"};
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
-			auto ptr = make_element_by_type<msg_log_window>(state, id);
-			message_log_window = ptr.get();
+			auto ptr = make_element_by_type<message_log_window>(state, id);
+			state.ui_state.msg_log_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "openbutton") {
@@ -396,9 +361,9 @@ public:
 		window_element_base::render(state, x, y);
 	}
 
-    message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<open_msg_log_data>()) {
-			message_log_window->set_visible(state, !message_log_window->is_visible());
+			state.ui_state.msg_log_window->set_visible(state, !state.ui_state.msg_log_window->is_visible());
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -406,7 +371,7 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<open_msg_log_data>()) {
-			payload.emplace<bool>(message_log_window->is_visible());
+			payload.emplace<bool>(state.ui_state.msg_log_window->is_visible());
 			return message_result::consumed;
 		}
 		return message_result::unseen;
@@ -415,15 +380,15 @@ public:
 
 class minimap_picture_window : public opaque_element_base {
 public:
-    void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-        opaque_element_base::render(state, x, y);
-        // TODO draw white box to represent window borders
-    }
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		opaque_element_base::render(state, x, y);
+		// TODO draw white box to represent window borders
+	}
 
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		auto minimap_size = glm::vec2(base_data.size.x, base_data.size.y);
-        state.map_state.set_pos(glm::vec2(x, y) / minimap_size);
-        return message_result::consumed;
+		state.map_state.set_pos(glm::vec2(x, y) / minimap_size);
+		return message_result::consumed;
 	}
 
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
@@ -431,4 +396,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

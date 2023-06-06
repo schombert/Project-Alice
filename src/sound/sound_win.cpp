@@ -2,8 +2,7 @@
 #include "system_state.hpp"
 #include "Dshow.h"
 
-
-#define WM_GRAPHNOTIFY  (WM_APP + 1)
+#define WM_GRAPHNOTIFY (WM_APP + 1)
 
 #pragma comment(lib, "Strmiids.lib")
 
@@ -45,7 +44,7 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 		IGraphBuilder* pGraph = nullptr;
 
 		HRESULT hr = CoCreateInstance(CLSID_FilterGraph, nullptr,
-			CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&pGraph);
+		                              CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&pGraph);
 		if(FAILED(hr)) {
 			MessageBoxW(nullptr, L"failed to create graph builder", L"Audio error", MB_OK);
 			std::abort();
@@ -143,8 +142,6 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 			}
 		}
 	}
-
-
 }
 
 void audio_instance::stop() const {
@@ -195,12 +192,11 @@ bool sound_impl::music_finished() const {
 		while(SUCCEEDED(event_interface->GetEvent(&evCode, &param1, &param2, 0))) {
 			event_interface->FreeEventParams(evCode, param1, param2);
 			switch(evCode) {
-				case EC_COMPLETE:  // Fall through.
-				case EC_USERABORT: // Fall through.
-					return true;
-				default:
-					;
-					//nothing
+			case EC_COMPLETE:  // Fall through.
+			case EC_USERABORT: // Fall through.
+				return true;
+			default:;
+				// nothing
 			}
 		}
 		return false;
@@ -249,7 +245,6 @@ void sound_impl::change_music_volume(float v) const {
 	}
 }
 
-
 // called on startup and shutdown -- initialize should also load the list of available music files and load sound effects
 void initialize_sound_system(sys::state& state) {
 	state.sound_ptr = std::make_unique<sound_impl>();
@@ -258,7 +253,7 @@ void initialize_sound_system(sys::state& state) {
 
 	state.sound_ptr->window_handle = state.win_ptr->hwnd;
 
-	for(const auto& mp3_file : list_files(music_directory , NATIVE(".mp3"))) {
+	for(const auto& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
 		auto file_name = get_full_name(mp3_file);
 		state.sound_ptr->music_list.emplace_back(file_name);
 		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(), NATIVE("thecoronation_titletheme.mp3")))
@@ -318,4 +313,4 @@ void update_music_track(sys::state& state) {
 		state.sound_ptr->play_new_track(state);
 }
 
-}
+} // namespace sound

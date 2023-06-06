@@ -56,11 +56,10 @@ aaedev@gmail.com 2012
 #include "system_state.hpp"
 
 #ifdef _WIN64
-#pragma warning (disable : 4996 )
+#pragma warning(disable : 4996)
 #endif
 
-//Todo: Add buffer overflow checking.
-
+// Todo: Add buffer overflow checking.
 
 namespace text {
 
@@ -79,10 +78,10 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 		std::getline(Stream, Line);
 		LineStream << Line;
 
-		//read the line's type
+		// read the line's type
 		LineStream >> Read;
 		if(Read == "common") {
-			//this holds common data
+			// this holds common data
 			while(!LineStream.eof()) {
 				std::stringstream Converter;
 				LineStream >> Read;
@@ -90,7 +89,7 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 				Key = Read.substr(0, i);
 				Value = Read.substr(i + 1);
 
-				//assign the correct value
+				// assign the correct value
 				Converter << Value;
 				if(Key == "lineHeight") {
 					Converter >> LineHeight;
@@ -111,7 +110,7 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 		}
 
 		else if(Read == "char") {
-			//This is data for each specific character.
+			// This is data for each specific character.
 			int CharID = 0;
 
 			while(!LineStream.eof()) {
@@ -121,7 +120,7 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 				Key = Read.substr(0, i);
 				Value = Read.substr(i + 1);
 
-				//Assign the correct value
+				// Assign the correct value
 				Converter << Value;
 				if(Key == "id") {
 					Converter >> CharID;
@@ -154,7 +153,7 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 				Key = Read.substr(0, i);
 				Value = Read.substr(i + 1);
 
-				//assign the correct value
+				// assign the correct value
 				Converter << Value;
 				if(Key == "count") {
 					int16_t KernCount = 0;
@@ -173,7 +172,7 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 				Key = Read.substr(0, i);
 				Value = Read.substr(i + 1);
 
-				//assign the correct value
+				// assign the correct value
 				Converter << Value;
 				if(Key == "first") {
 					Converter >> first;
@@ -195,22 +194,24 @@ bool BMFont::ParseFont(simple_fs::file& f) {
 	return true;
 }
 
-
 int BMFont::GetKerningPair(char first, char second) const {
 	uint16_t index = uint16_t(uint8_t(first) << 8) | uint16_t((uint8_t(second)));
-	if(auto it = this->Kern.find(index);  it != Kern.end())
+	if(auto it = this->Kern.find(index); it != Kern.end())
 		return it->second;
 	else
 		return 0;
 }
 
-float BMFont::GetStringWidth(const char* string, uint32_t count) const {
+float BMFont::GetStringWidth(char const * string, uint32_t count) const {
 	float total = 0;
 
 	for(uint32_t i = 0; i < count; ++i) {
-		total += Chars[uint8_t(string[i])].XAdvance;
+		auto c = uint8_t(string[i]);
+		if(c == 0x01 || c == 0x02)
+			c = 0x4D;
+		total += Chars[c].XAdvance;
 		if(i != 0) {
-			total += GetKerningPair(string[i-1], string[i]);
+			total += GetKerningPair(string[i - 1], c);
 		}
 	}
 	return total;
@@ -221,7 +222,7 @@ BMFont::~BMFont() {
 		glDeleteTextures(1, &ftexid);
 }
 
-BMFont const& get_bm_font(sys::state& state, uint16_t font_handle) {
+BMFont const & get_bm_font(sys::state& state, uint16_t font_handle) {
 	if(auto it = state.font_collection.bitmap_fonts.find(font_handle); it != state.font_collection.bitmap_fonts.end()) {
 		return it->second;
 	} else {
@@ -251,4 +252,4 @@ BMFont const& get_bm_font(sys::state& state, uint16_t font_handle) {
 	}
 }
 
-}
+} // namespace text

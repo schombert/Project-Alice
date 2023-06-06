@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "features/compilerfeatures.h"
 #include <cstring>
 
-namespace r123{
+namespace r123 {
 /*!
   ReinterpretCtr uses memcpy to map back and forth
   between a CBRNG's ctr_type and the specified ToType.  For example,
@@ -50,39 +50,39 @@ namespace r123{
   will depend on the endianness of the machine on which it runs.
  */
 
-template <typename ToType, typename CBRNG>
-struct ReinterpretCtr{
-    typedef ToType ctr_type;
-    typedef typename CBRNG::key_type key_type;
-    typedef typename CBRNG::ctr_type bctype;
-    typedef typename CBRNG::ukey_type ukey_type;
-    R123_STATIC_ASSERT(sizeof(ToType) == sizeof(bctype) && sizeof(typename bctype::value_type) != 16, 
-                       "ReinterpretCtr:  sizeof(ToType) is not the same as sizeof(CBRNG::ctr_type) or CBRNG::ctr_type::value_type looks like it might be __m128i");
-    // It's amazingly difficult to safely do conversions with __m128i.
-    // If we use the operator() implementation below with a CBRNG
-    // whose ctr_type is r123array1xm128i, gcc4.6 optimizes away the
-    // memcpys, inlines the operator()(c,k), and produces assembly
-    // language that ends with an aesenclast instruction with a
-    // destination operand pointing to an unaligned memory address ...
-    // Segfault!  See:  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=50444
-    // MSVC also produces code that crashes.  We suspect a
-    // similar mechanism but haven't done the debugging necessary to
-    // be sure.  We were able to 'fix' gcc4.6 by making bc a mutable
-    // data member rather than declaring it in the scope of
-    // operator().  That didn't fix the MSVC problems, though.
-    //
-    // Conclusion - don't touch __m128i, at least for now.  The
-    // easiest (but highly imprecise) way to do that is the static
-    // assertion above that rejects bctype::value_types of size 16. -
-    // Sep 2011.
-    ctr_type  operator()(ctr_type c, key_type k){
-        bctype bc;
-        std::memcpy(&bc, &c, sizeof(c));
-        CBRNG b;
-        bc = b(bc, k);
-        std::memcpy(&c, &bc, sizeof(bc));
-        return c;
-    }
+template<typename ToType, typename CBRNG>
+struct ReinterpretCtr {
+	typedef ToType ctr_type;
+	typedef typename CBRNG::key_type key_type;
+	typedef typename CBRNG::ctr_type bctype;
+	typedef typename CBRNG::ukey_type ukey_type;
+	R123_STATIC_ASSERT(sizeof(ToType) == sizeof(bctype) && sizeof(typename bctype::value_type) != 16,
+	                   "ReinterpretCtr:  sizeof(ToType) is not the same as sizeof(CBRNG::ctr_type) or CBRNG::ctr_type::value_type looks like it might be __m128i");
+	// It's amazingly difficult to safely do conversions with __m128i.
+	// If we use the operator() implementation below with a CBRNG
+	// whose ctr_type is r123array1xm128i, gcc4.6 optimizes away the
+	// memcpys, inlines the operator()(c,k), and produces assembly
+	// language that ends with an aesenclast instruction with a
+	// destination operand pointing to an unaligned memory address ...
+	// Segfault!  See:  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=50444
+	// MSVC also produces code that crashes.  We suspect a
+	// similar mechanism but haven't done the debugging necessary to
+	// be sure.  We were able to 'fix' gcc4.6 by making bc a mutable
+	// data member rather than declaring it in the scope of
+	// operator().  That didn't fix the MSVC problems, though.
+	//
+	// Conclusion - don't touch __m128i, at least for now.  The
+	// easiest (but highly imprecise) way to do that is the static
+	// assertion above that rejects bctype::value_types of size 16. -
+	// Sep 2011.
+	ctr_type operator()(ctr_type c, key_type k) {
+		bctype bc;
+		std::memcpy(&bc, &c, sizeof(c));
+		CBRNG b;
+		bc = b(bc, k);
+		std::memcpy(&c, &bc, sizeof(bc));
+		return c;
+	}
 };
 } // namespace r123
 #endif

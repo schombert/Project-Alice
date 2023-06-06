@@ -25,6 +25,8 @@ foreach(file ${TESTING})
 					${CMAKE_CURRENT_BINARY_DIR}/${file})
 endforeach()
 
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
 	"src/map/map.cpp"
@@ -58,7 +60,7 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(Alice PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile
+										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(Alice PRIVATE
@@ -67,7 +69,7 @@ if(WIN32)
 	else()
 	set_target_properties(Alice PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
 		target_compile_options(Alice PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
+										/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
 		target_link_options(Alice PRIVATE
@@ -78,12 +80,12 @@ else() # GCC or CLANG
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(Alice PRIVATE
 										-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field
-			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
+			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -D_FORTIFY_SOURCE=2>
 			$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
 		target_compile_options(Alice PRIVATE
 										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
-			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe>
+			$<$<CONFIG:Debug>:			-msse4.1 -g -pipe -D_FORTIFY_SOURCE=2>
 			$<$<NOT:$<CONFIG:Debug>>: 	-msse4.1 -O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()
 endif()
@@ -91,10 +93,6 @@ endif()
 # Include sub-projects.
 add_subdirectory (dependencies)
 add_subdirectory (ParserGenerator)
-
-message("leftover CMAKE_CXX_FLAGS: \"${CMAKE_CXX_FLAGS}\"")
-message("leftover CMAKE_CXX_FLAGS_DEBUG: \"${CMAKE_CXX_FLAGS_DEBUG}\"")
-message("leftover CMAKE_CXX_FLAGS_RELEASE: \"${CMAKE_CXX_FLAGS_RELEASE}\"")
 
 target_precompile_headers(Alice
 	PRIVATE <stdint.h>
@@ -135,7 +133,6 @@ endif()
 
 target_link_libraries(Alice PRIVATE dependency_DataContainer)
 target_link_libraries(Alice PRIVATE libglew_static)
-target_link_libraries(Alice PRIVATE dependency_unordered_dense)
 target_link_libraries(Alice PRIVATE stb_image)
 target_link_libraries(Alice PRIVATE freetype)
 target_link_libraries(Alice PRIVATE glm)

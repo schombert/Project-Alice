@@ -5,7 +5,7 @@
 
 namespace ui {
 
-class msg_filters_country_button : public generic_settable_element<button_element_base, dcon::nation_id> {
+class message_filters_country_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
@@ -13,32 +13,37 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		frame = state.world.nation_get_is_interesting(content) ? 1 : 0;
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+			frame = state.world.nation_get_is_interesting(content) ? 1 : 0;
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, content);
-		fat_id.set_is_interesting(!fat_id.get_is_interesting());
-		if(parent)
+		if(parent) {
+			Cyto::Any payload = dcon::nation_id{};
+			parent->impl_get(state, payload);
+			auto content = any_cast<dcon::nation_id>(payload);
+
+			auto fat_id = dcon::fatten(state.world, content);
+			fat_id.set_is_interesting(!fat_id.get_is_interesting());
 			parent->impl_on_update(state);
+		}
 	}
 };
 
-class msg_filters_country_item : public listbox_row_element_base<dcon::nation_id> {
+class message_filters_country_item : public listbox_row_element_base<dcon::nation_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "entry_bg") {
-			return make_element_by_type<msg_filters_country_button>(state, id);
+			return make_element_by_type<message_filters_country_button>(state, id);
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else {
 			return nullptr;
 		}
-	}
-
-	void update(sys::state& state) noexcept override {
-		Cyto::Any payload = content;
-		impl_set(state, payload);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -50,11 +55,12 @@ public:
 	}
 };
 
-class msg_filters_country_listbox : public listbox_element_base<msg_filters_country_item, dcon::nation_id> {
+class message_filters_country_listbox : public listbox_element_base<message_filters_country_item, dcon::nation_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "message_filters_entry";
 	}
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -71,14 +77,17 @@ public:
 	}
 };
 
-class msg_filters_window : public window_element_base {
-	msg_filters_country_listbox* country_listbox = nullptr;
+class message_filters_window : public window_element_base {
+	message_filters_country_listbox* country_listbox = nullptr;
+
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "countries_listbox") {
-			auto ptr = make_element_by_type<msg_filters_country_listbox>(state, id);
+			auto ptr = make_element_by_type<message_filters_country_listbox>(state, id);
 			country_listbox = ptr.get();
 			return ptr;
 		} else if(name == "filter_deselect") {
@@ -111,11 +120,11 @@ public:
 			ptr->target = country_list_filter::sphere;
 			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
-			const auto filter_name = name.substr(7);
+			auto const filter_name = name.substr(7);
 			state.ui_defs.gui[id].data.button.font_handle = text::name_into_font_id(state, "vic_18_black"); // Nudge font
 			auto ptr = make_element_by_type<generic_tab_button<dcon::modifier_id>>(state, id);
 			ptr->target = ([&]() {
-				dcon::modifier_id filter_mod_id{ 0 };
+				dcon::modifier_id filter_mod_id{0};
 				auto it = state.key_to_text_sequence.find(parsers::lowercase_str(filter_name));
 				if(it != state.key_to_text_sequence.end())
 					state.world.for_each_modifier([&](dcon::modifier_id mod_id) {
@@ -135,9 +144,41 @@ public:
 		if(payload.holds_type<country_list_filter>()) {
 			auto filter = any_cast<country_list_filter>(payload);
 			switch(filter) {
+			case country_list_filter::best_guess:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
+					if(state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id) || military::are_at_war(state, state.local_player_nation, id) || state.world.nation_get_in_sphere_of(id) == state.local_player_nation || state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id))
+						state.world.nation_set_is_interesting(id, true);
+				});
+				break;
 			case country_list_filter::deselect_all:
 				state.world.for_each_nation([&](dcon::nation_id id) {
 					state.world.nation_set_is_interesting(id, false);
+				});
+				break;
+			case country_list_filter::allies:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(id, state.local_player_nation);
+					if(state.world.diplomatic_relation_get_are_allied(rel) || military::are_allied_in_war(state, state.local_player_nation, id))
+						state.world.nation_set_is_interesting(id, true);
+				});
+				break;
+			case country_list_filter::enemies:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					if(military::are_at_war(state, state.local_player_nation, id))
+						state.world.nation_set_is_interesting(id, true);
+				});
+				break;
+			case country_list_filter::sphere:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					if(state.world.nation_get_in_sphere_of(id) == state.local_player_nation)
+						state.world.nation_set_is_interesting(id, true);
+				});
+				break;
+			case country_list_filter::neighbors:
+				state.world.for_each_nation([&](dcon::nation_id id) {
+					if(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id))
+						state.world.nation_set_is_interesting(id, true);
 				});
 				break;
 			default:
@@ -161,4 +202,4 @@ public:
 	}
 };
 
-}
+} // namespace ui

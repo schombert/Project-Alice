@@ -15,18 +15,17 @@ std::vector<uint32_t> civilization_level_map_from(sys::state& state) {
 		// if it is uncolonized
 		if(!nation) {
 
-			color = sys::pack_color(250, 5, 5);// red
+			color = sys::pack_color(250, 5, 5); // red
 
 		} else if(state.world.nation_get_is_civilized(nation)) {
 
-			color = sys::pack_color(53, 196, 53);// green
+			color = sys::pack_color(53, 196, 53); // green
 
 		} else {
 
 			float civ_level = state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::civilization_progress_modifier);
 			// gray <-> yellow
 			color = ogl::color_gradient(civ_level * (1 + (1 - civ_level)), sys::pack_color(250, 250, 5), sys::pack_color(64, 64, 64));
-
 		}
 		auto i = province::to_map_id(prov_id);
 

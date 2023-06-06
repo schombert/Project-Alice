@@ -2,8 +2,6 @@
 #include "simple_fs.hpp"
 #include <algorithm>
 
-
-
 TEST_CASE("File system reading", "[file_system]") {
 	SECTION("single root") {
 		simple_fs::file_system fs;
@@ -40,7 +38,7 @@ TEST_CASE("File system reading", "[file_system]") {
 
 		auto content = view_contents(*opened_lists);
 		REQUIRE(content.file_size > 5);
-		REQUIRE(content.data[0] == '#'); //94723
+		REQUIRE(content.data[0] == '#'); // 94723
 		REQUIRE(content.data[1] == '9');
 		REQUIRE(content.data[2] == '4');
 		REQUIRE(content.data[3] == '7');
@@ -49,10 +47,10 @@ TEST_CASE("File system reading", "[file_system]") {
 	}
 }
 
-template<typename T>
-bool something_is_named(std::vector<T> const& list, native_string name) {
-	for(auto& val : list) {
-		if(get_full_name(val).find(name) != std::string::npos)
+template <typename T>
+bool something_is_named(std::vector<T> const &list, native_string name) {
+	for (auto &val : list) {
+		if (get_full_name(val).find(name) != std::string::npos)
 			return true;
 	}
 	return false;

@@ -6,13 +6,13 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 
 		parsers::error_handler err("no file");
 		const char tex[] = "spritetypes = {}\n"
-			"bitmapfonts = {}\n"
-			"fonts = {}\n"
-			"lighttypes = {}\n"
-			"objecttypes = {}\n";
+		                   "bitmapfonts = {}\n"
+		                   "fonts = {}\n"
+		                   "lighttypes = {}\n"
+		                   "objecttypes = {}\n";
 
 		parsers::token_generator gen(RANGE(tex));
-		parsers::building_gfx_context test_context{ *state, state->ui_defs };
+		parsers::building_gfx_context test_context{*state, state->ui_defs};
 
 		parsers::parse_gfx_files(gen, err, test_context);
 
@@ -25,15 +25,15 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 		parsers::error_handler err("no file");
 
 		const char tex[] = "spritetypes = {\n"
-			"badspritetype = {}\n"
-			"}\n"
-			"bitmapfonts = {}\n"
-			"fonts = {}\n"
-			"lighttypes = {}\n"
-			"objecttypes = {}\n";
+		                   "badspritetype = {}\n"
+		                   "}\n"
+		                   "bitmapfonts = {}\n"
+		                   "fonts = {}\n"
+		                   "lighttypes = {}\n"
+		                   "objecttypes = {}\n";
 
 		parsers::token_generator gen(RANGE(tex));
-		parsers::building_gfx_context test_context{ *state, state->ui_defs };
+		parsers::building_gfx_context test_context{*state, state->ui_defs};
 
 		parsers::parse_gfx_files(gen, err, test_context);
 
@@ -46,16 +46,16 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 		parsers::error_handler err("no file");
 
 		const char tex[] = "spritetypes = {\n"
-			"spritetype = {name = unknown}\n"
-			"spritetype = {name = dummy}\n"
-			"}\n"
-			"bitmapfonts = {}\n"
-			"fonts = {}\n"
-			"lighttypes = {}\n"
-			"objecttypes = {}\n";
+		                   "spritetype = {name = unknown}\n"
+		                   "spritetype = {name = dummy}\n"
+		                   "}\n"
+		                   "bitmapfonts = {}\n"
+		                   "fonts = {}\n"
+		                   "lighttypes = {}\n"
+		                   "objecttypes = {}\n";
 
 		parsers::token_generator gen(RANGE(tex));
-		parsers::building_gfx_context test_context{ *state, state->ui_defs };
+		parsers::building_gfx_context test_context{*state, state->ui_defs};
 
 		parsers::parse_gfx_files(gen, err, test_context);
 
@@ -82,24 +82,24 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 		parsers::error_handler err("no file");
 
 		const char tex[] = "spritetypes = {\n"
-			"barcharttype = {\n"
-			"name = dummy\n"
-			"allwaystransparent = yes\n"
-			"flipv = yes\n"
-			"clicksound = click\n"
-			"textureFile = blah\n"
-			"borderSize = {x=4 y= 4}\n"
-			"size = {x = 20 y = 40}\n"
-			"noOfFrames = 6\n"
-			"}\n"
-			"}\n"
-			"bitmapfonts = {}\n"
-			"fonts = {}\n"
-			"lighttypes = {}\n"
-			"objecttypes = {}\n";
+		                   "barcharttype = {\n"
+		                   "name = dummy\n"
+		                   "allwaystransparent = yes\n"
+		                   "flipv = yes\n"
+		                   "clicksound = click\n"
+		                   "textureFile = blah\n"
+		                   "borderSize = {x=4 y= 4}\n"
+		                   "size = {x = 20 y = 40}\n"
+		                   "noOfFrames = 6\n"
+		                   "}\n"
+		                   "}\n"
+		                   "bitmapfonts = {}\n"
+		                   "fonts = {}\n"
+		                   "lighttypes = {}\n"
+		                   "objecttypes = {}\n";
 
 		parsers::token_generator gen(RANGE(tex));
-		parsers::building_gfx_context test_context{ *state, state->ui_defs };
+		parsers::building_gfx_context test_context{*state, state->ui_defs};
 
 		parsers::parse_gfx_files(gen, err, test_context);
 
@@ -125,26 +125,26 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 		parsers::error_handler err("no file");
 
 		const char tex[] = "spritetypes = {\n"
-			"progressbartype = {\n"
-			"name = dummy\n"
-			"allwaystransparent = yes\n"
-			"flipv = yes\n"
-			"clicksound = click\n"
-			"transparencecheck = yes\n"
-			"textureFile1 = blah\n"
-			"textureFile2 = blah\n"
-			"size = 30\n"
-			"noOfFrames = 6\n"
-			"horizontal = no\n"
-			"}\n"
-			"}\n"
-			"bitmapfonts = {}\n"
-			"fonts = {}\n"
-			"lighttypes = {}\n"
-			"objecttypes = {}\n";
+		                   "progressbartype = {\n"
+		                   "name = dummy\n"
+		                   "allwaystransparent = yes\n"
+		                   "flipv = yes\n"
+		                   "clicksound = click\n"
+		                   "transparencecheck = yes\n"
+		                   "textureFile1 = blah\n"
+		                   "textureFile2 = blah\n"
+		                   "size = 30\n"
+		                   "noOfFrames = 6\n"
+		                   "horizontal = no\n"
+		                   "}\n"
+		                   "}\n"
+		                   "bitmapfonts = {}\n"
+		                   "fonts = {}\n"
+		                   "lighttypes = {}\n"
+		                   "objecttypes = {}\n";
 
 		parsers::token_generator gen(RANGE(tex));
-		parsers::building_gfx_context test_context{ *state, state->ui_defs };
+		parsers::building_gfx_context test_context{*state, state->ui_defs};
 
 		parsers::parse_gfx_files(gen, err, test_context);
 
@@ -166,9 +166,9 @@ TEST_CASE("gfx parsers tests", "[parsers]") {
 	}
 }
 
-int32_t find_gui_by_name(sys::state const& state, std::string_view name) {
-	for(int32_t i = 0; i < state.ui_defs.gui.ssize(); ++i) {
-		if(state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(uint16_t(i))].name) == name) {
+int32_t find_gui_by_name(sys::state const &state, std::string_view name) {
+	for (int32_t i = 0; i < state.ui_defs.gui.ssize(); ++i) {
+		if (state.to_string_view(state.ui_defs.gui[dcon::gui_def_id(uint16_t(i))].name) == name) {
 			return i;
 		}
 	}
@@ -189,10 +189,10 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 		auto all_files = list_files(interfc, NATIVE(".gfx"));
 
 		parsers::error_handler err("");
-		parsers::building_gfx_context test_context{ *state, state->ui_defs };
-		for(auto& file : all_files) {
+		parsers::building_gfx_context test_context{*state, state->ui_defs};
+		for (auto &file : all_files) {
 			auto ofile = open_file(file);
-			if(ofile) {
+			if (ofile) {
 				auto content = view_contents(*ofile);
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -204,13 +204,13 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 
 		/*
 		progressbartype = {
-			name = "GFX_unciv_progress"
-			color = { 0.0 0.5 0.0 }
-			colortwo = { 1.0 0.0 0.0 }
-			textureFile1 = "gfx\\interface\\unciv_progress2.tga"
-			textureFile2 = "gfx\\interface\\unciv_progress1.tga"
-			size = { x = 371 y = 25 }
-			effectFile = "gfx\\FX\\progress.fx"
+		    name = "GFX_unciv_progress"
+		    color = { 0.0 0.5 0.0 }
+		    colortwo = { 1.0 0.0 0.0 }
+		    textureFile1 = "gfx\\interface\\unciv_progress2.tga"
+		    textureFile2 = "gfx\\interface\\unciv_progress1.tga"
+		    size = { x = 371 y = 25 }
+		    effectFile = "gfx\\FX\\progress.fx"
 		}
 		*/
 		auto found_obj_it = test_context.map_of_names.find(std::string("GFX_unciv_progress"));
@@ -222,19 +222,14 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 		REQUIRE(state->to_string_view(state->ui_defs.textures[state->ui_defs.gfx[found_tag].primary_texture_handle]) == "gfx" NATIVE_SEP "interface" NATIVE_SEP "unciv_progress2.tga");
 		REQUIRE(state->to_string_view(state->ui_defs.textures[dcon::texture_id(uint16_t(state->ui_defs.gfx[found_tag].type_dependent - 1))]) == "gfx" NATIVE_SEP "interface" NATIVE_SEP "unciv_progress1.tga");
 
-
 		{
 			auto all_gui_files = list_files(interfc, NATIVE(".gui"));
 
-			for(auto& file : all_gui_files) {
+			for (auto &file : all_gui_files) {
 				auto file_name = get_full_name(file);
-				if(!parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("confirmbuild.gui"))
-					&& !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("convoys.gui"))
-					&& !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("brigadeview.gui"))
-					&& !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("eu3dialog.gui"))
-					) {
+				if (!parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("confirmbuild.gui")) && !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("convoys.gui")) && !parsers::native_has_fixed_suffix_ci(file_name.data(), file_name.data() + file_name.length(), NATIVE("brigadeview.gui"))) {
 					auto ofile = open_file(file);
-					if(ofile) {
+					if (ofile) {
 						auto content = view_contents(*ofile);
 						err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
 						parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -258,10 +253,10 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 			/*
 			iconType =
 			{
-				name ="diplo_default_tile_bg"
-				spriteType = "GFX_diplo_default_tile_bg"
-				position = { x= 25 y = 100 }
-				Orientation = "UPPER_LEFT"
+			    name ="diplo_default_tile_bg"
+			    spriteType = "GFX_diplo_default_tile_bg"
+			    position = { x= 25 y = 100 }
+			    Orientation = "UPPER_LEFT"
 			}
 			*/
 			{
@@ -275,15 +270,15 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 			}
 			/*
 			instantTextBoxType={
-				position = {x = 28 y = 58 }
-				name = "settings_label"
-				font = "vic_22_black"
-				borderSize = {x = 0 y = 0}	
-				maxWidth = 172
-				maxHeight = 18
-				text = "SM_SETTINGS"	
-				orientation = "UPPER_LEFT"
-				format = centre
+			    position = {x = 28 y = 58 }
+			    name = "settings_label"
+			    font = "vic_22_black"
+			    borderSize = {x = 0 y = 0}
+			    maxWidth = 172
+			    maxHeight = 18
+			    text = "SM_SETTINGS"
+			    orientation = "UPPER_LEFT"
+			    format = centre
 			}
 			*/
 			{
@@ -305,23 +300,23 @@ TEST_CASE("gfx game files parsing", "[parsers]") {
 			}
 			/*
 			windowType = {
-				name = "topbar"
-				backGround=""
-				position = { x=0 y=0 }	
-				size = { x=2048 y=100 }
-				moveable = 0
-				dontRender = ""
-				horizontalBorder= ""
-				verticalBorder= ""
-				fullScreen = yes
+			    name = "topbar"
+			    backGround=""
+			    position = { x=0 y=0 }
+			    size = { x=2048 y=100 }
+			    moveable = 0
+			    dontRender = ""
+			    horizontalBorder= ""
+			    verticalBorder= ""
+			    fullScreen = yes
 
-				iconType = {
-					name ="topbar_bg"
-					spriteType = "GFX_topbar_bg"
-					position = { x= 0 y = -1 }
-					Orientation = "UPPER_LEFT"
-				}
-				...
+			    iconType = {
+			        name ="topbar_bg"
+			        spriteType = "GFX_topbar_bg"
+			        position = { x= 0 y = -1 }
+			        Orientation = "UPPER_LEFT"
+			    }
+			    ...
 			*/
 
 			{
