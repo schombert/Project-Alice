@@ -1752,32 +1752,31 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 	if(local_player_nation) {
 		world.nation_set_is_player_controlled(local_player_nation, true);
-	}
-
-	// reshow pending events, messages, etc
-	for(auto const& e : pending_n_event) {
-		if(e.n == local_player_nation) {
-			new_n_event.push(e);
+		// reshow pending events, messages, etc
+		for(auto const& e : pending_n_event) {
+			if(e.n == local_player_nation) {
+				new_n_event.push(e);
+			}
 		}
-	}
-	for(auto const& e : pending_f_n_event) {
-		if(e.n == local_player_nation) {
-			new_f_n_event.push(e);
+		for(auto const& e : pending_f_n_event) {
+			if(e.n == local_player_nation) {
+				new_f_n_event.push(e);
+			}
 		}
-	}
-	for(auto const& e : pending_p_event) {
-		if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
-			new_p_event.push(e);
+		for(auto const& e : pending_p_event) {
+			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
+				new_p_event.push(e);
+			}
 		}
-	}
-	for(auto const& e : pending_f_p_event) {
-		if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
-			new_f_p_event.push(e);
+		for(auto const& e : pending_f_p_event) {
+			if(world.province_get_nation_from_province_ownership(e.p) == local_player_nation) {
+				new_f_p_event.push(e);
+			}
 		}
-	}
-	for(auto const& m : pending_messages) {
-		if(m.to == local_player_nation) {
-			new_requests.push(m);
+		for(auto const& m : pending_messages) {
+			if(m.to == local_player_nation) {
+				new_requests.push(m);
+			}
 		}
 	}
 }
