@@ -820,9 +820,7 @@ void update_cbs(sys::state& state) {
 			auto target = n.get_constructing_cb_target();
 			if(military::are_at_war(state, n, target) || state.world.nation_get_owned_province_count(target) == 0 || !cb_conditions_satisfied(state, n, target, n.get_constructing_cb_type())) {
 				if(n == state.local_player_nation) {
-					dcon::nation_id target = n.get_constructing_cb_target();
 					dcon::cb_type_id cbt = n.get_constructing_cb_type();
-
 					notification::message m;
 					m.type = sys::message_setting_type::cb_justify_no_longer_valid;
 					m.primary = n;
