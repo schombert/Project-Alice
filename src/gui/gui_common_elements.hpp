@@ -31,6 +31,32 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid, bool header);
 void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 
+enum class country_list_sort : uint8_t {
+	country,
+	boss,
+	economic_rank,
+	military_rank,
+	prestige_rank,
+	total_rank,
+	relation,
+	opinion,
+	priority,
+	gp_influence = 0x40,
+	gp_investment = 0x80
+};
+void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, country_list_sort sort, bool sort_ascend);
+template<country_list_sort Sort>
+class country_sort_button : public button_element_base {
+public:
+	uint8_t offset = 0;
+	void button_action(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = element_selection_wrapper<country_list_sort>{ country_list_sort(uint8_t(Sort) | offset) };
+			parent->impl_get(state, payload);
+		}
+	}
+};
+
 // Filters used on both production and diplomacy tabs for the country lists
 enum class country_list_filter : uint8_t {
 	all,
@@ -733,10 +759,7 @@ public:
 			parent->impl_get(state, payload);
 			dcon::nation_id sphereling_id = Cyto::any_cast<dcon::nation_id>(payload);
 			auto ovr_id = state.world.nation_get_in_sphere_of(sphereling_id);
-			if(bool(ovr_id)) {
-				auto fat_id = dcon::fatten(state.world, ovr_id);
-				return fat_id.get_identity_from_identity_holder();
-			}
+			return ovr_id.get_identity_from_identity_holder();
 		}
 		return dcon::national_identity_id{};
 	}
@@ -1792,7 +1815,7 @@ public:
 				++count;
 			});
 			text::add_to_substitution_map(sub, text::variable_type::value, count);
-			text::localised_format_box(state, contents, box, std::string_view("military_army_count_tooltip"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("military_navy_count_tooltip"), sub);
 			text::close_layout_box(contents, box);
 		}
 	}

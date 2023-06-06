@@ -3,7 +3,6 @@
 #include "gui_element_types.hpp"
 #include "gui_factory_buttons_window.hpp"
 #include "gui_invest_brow_window.hpp"
-#include "gui_invest_buttons_window.hpp"
 #include "gui_pop_sort_buttons_window.hpp"
 #include "gui_commodity_filters_window.hpp"
 #include "gui_projects_window.hpp"
@@ -80,18 +79,23 @@ public:
 			parent->impl_get(state, payload);
 			auto fid = any_cast<dcon::factory_id>(payload);
 			auto fat = dcon::fatten(state.world, fid);
+
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
 			switch(economy::factory_priority(state, fid)) {
 			case 0:
-				command::change_factory_settings(state, state.local_player_nation, fid, 1, fat.get_subsidized());
+				command::change_factory_settings(state, n, fid, 1, fat.get_subsidized());
 				break;
 			case 1:
-				command::change_factory_settings(state, state.local_player_nation, fid, 2, fat.get_subsidized());
+				command::change_factory_settings(state, n, fid, 2, fat.get_subsidized());
 				break;
 			case 2:
-				command::change_factory_settings(state, state.local_player_nation, fid, 3, fat.get_subsidized());
+				command::change_factory_settings(state, n, fid, 3, fat.get_subsidized());
 				break;
 			case 3:
-				command::change_factory_settings(state, state.local_player_nation, fid, 0, fat.get_subsidized());
+				command::change_factory_settings(state, n, fid, 0, fat.get_subsidized());
 				break;
 			}
 		}
@@ -148,7 +152,11 @@ public:
 			parent->impl_get(state, payload1);
 			auto sid = any_cast<dcon::state_instance_id>(payload1);
 
-			disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+			disabled = !command::can_begin_factory_building_construction(state, n, sid, fat.get_building_type().id, true);
 		}
 	}
 
@@ -163,7 +171,11 @@ public:
 			parent->impl_get(state, payload1);
 			auto sid = any_cast<dcon::state_instance_id>(payload1);
 
-			command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+			command::begin_factory_building_construction(state, n, sid, fat.get_building_type().id, true);
 		}
 	}
 
@@ -235,20 +247,26 @@ public:
 class factory_subsidise_button : public button_element_base { // Got a problem with mixed variants? too bad, Vic2 does same thing
 public:
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = dcon::factory_id{};
-		parent->impl_get(state, payload);
-		auto fid = any_cast<dcon::factory_id>(payload);
-		auto fat = dcon::fatten(state.world, fid);
+		if(parent) {
+			Cyto::Any payload = dcon::factory_id{};
+			parent->impl_get(state, payload);
+			auto fid = any_cast<dcon::factory_id>(payload);
+			auto fat = dcon::fatten(state.world, fid);
 
-		if(fat.get_subsidized()) { // TODO - we want to check if the player can *even* subside the factory, the tooltip function details this afaik
-			if(command::can_change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
-				command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), false);
-				frame = 0;
-			}
-		} else {
-			if(command::can_change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), true)) {
-				command::change_factory_settings(state, state.local_player_nation, fid, uint8_t(economy::factory_priority(state, fid)), true);
-				frame = 1;
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+			if(fat.get_subsidized()) { // TODO - we want to check if the player can *even* subside the factory, the tooltip function details this afaik
+				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false)) {
+					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), false);
+					frame = 0;
+				}
+			} else {
+				if(command::can_change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), true)) {
+					command::change_factory_settings(state, n, fid, uint8_t(economy::factory_priority(state, fid)), true);
+					frame = 1;
+				}
 			}
 		}
 	}
@@ -285,7 +303,12 @@ public:
 			Cyto::Any payload = dcon::factory_id{};
 			parent->impl_get(state, payload);
 			auto fid = any_cast<dcon::factory_id>(payload);
-			disabled = !command::can_delete_factory(state, state.local_player_nation, fid);
+
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+			disabled = !command::can_delete_factory(state, n, fid);
 		}
 	}
 
@@ -294,7 +317,12 @@ public:
 			Cyto::Any payload = dcon::factory_id{};
 			parent->impl_get(state, payload);
 			auto fid = any_cast<dcon::factory_id>(payload);
-			command::delete_factory(state, state.local_player_nation, fid);
+
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+			command::delete_factory(state, n, fid);
 		}
 	}
 
@@ -435,66 +463,72 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = production_factory_slot_data{dcon::factory_id{}, index};
-		parent->impl_get(state, payload);
-		auto content = any_cast<production_factory_slot_data>(payload);
+		if(parent) {
+			Cyto::Any payload = production_factory_slot_data{dcon::factory_id{}, index};
+			parent->impl_get(state, payload);
+			auto content = any_cast<production_factory_slot_data>(payload);
 
-		dcon::factory_type_fat_id fat_btid(state.world, dcon::factory_type_id{});
-		if(std::holds_alternative<economy::new_factory>(content.data)) {
-			// New factory
-			economy::new_factory nf = std::get<economy::new_factory>(content.data);
-			fat_btid = dcon::fatten(state.world, nf.type);
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
 
-			for(auto const & e : factory_elements)
-				e->set_visible(state, false);
-			for(auto const & e : upgrade_elements)
-				e->set_visible(state, false);
-			for(auto const & e : build_elements)
-				e->set_visible(state, true);
-			for(auto const & e : closed_elements)
-				e->set_visible(state, false);
-		} else if(std::holds_alternative<economy::upgraded_factory>(content.data)) {
-			// Upgrade
-			economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.data);
-			fat_btid = dcon::fatten(state.world, uf.type);
+			dcon::factory_type_fat_id fat_btid(state.world, dcon::factory_type_id{});
+			if(std::holds_alternative<economy::new_factory>(content.data)) {
+				// New factory
+				economy::new_factory nf = std::get<economy::new_factory>(content.data);
+				fat_btid = dcon::fatten(state.world, nf.type);
 
-			for(auto const & e : factory_elements)
-				e->set_visible(state, true);
-			for(auto const & e : upgrade_elements)
-				e->set_visible(state, true);
-			for(auto const & e : build_elements)
-				e->set_visible(state, false);
-			for(auto const & e : closed_elements)
-				e->set_visible(state, false);
-		} else if(std::holds_alternative<dcon::factory_id>(content.data)) {
-			// "Normal" factory, not being upgraded or built
-			dcon::factory_id fid = std::get<dcon::factory_id>(content.data);
-			fat_btid = state.world.factory_get_building_type(fid);
+				for(auto const & e : factory_elements)
+					e->set_visible(state, false);
+				for(auto const & e : upgrade_elements)
+					e->set_visible(state, false);
+				for(auto const & e : build_elements)
+					e->set_visible(state, true);
+				for(auto const & e : closed_elements)
+					e->set_visible(state, false);
+			} else if(std::holds_alternative<economy::upgraded_factory>(content.data)) {
+				// Upgrade
+				economy::upgraded_factory uf = std::get<economy::upgraded_factory>(content.data);
+				fat_btid = dcon::fatten(state.world, uf.type);
 
-			bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < 0.05;
-			for(auto const & e : factory_elements)
-				e->set_visible(state, true);
-			for(auto const & e : upgrade_elements)
-				e->set_visible(state, false);
-			for(auto const & e : build_elements)
-				e->set_visible(state, false);
-			for(auto const & e : closed_elements)
-				e->set_visible(state, is_closed);
-		}
+				for(auto const & e : factory_elements)
+					e->set_visible(state, true);
+				for(auto const & e : upgrade_elements)
+					e->set_visible(state, true);
+				for(auto const & e : build_elements)
+					e->set_visible(state, false);
+				for(auto const & e : closed_elements)
+					e->set_visible(state, false);
+			} else if(std::holds_alternative<dcon::factory_id>(content.data)) {
+				// "Normal" factory, not being upgraded or built
+				dcon::factory_id fid = std::get<dcon::factory_id>(content.data);
+				fat_btid = state.world.factory_get_building_type(fid);
 
-		{
-			dcon::commodity_id cid = fat_btid.get_output().id;
-			output_icon->frame = int32_t(state.world.commodity_get_icon(cid));
-		}
-		// Commodity set
-		auto cset = fat_btid.get_inputs();
-		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i)
-			if(input_icons[size_t(i)]) {
-				dcon::commodity_id cid = cset.commodity_type[size_t(i)];
-				input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
-				bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(state.local_player_nation, cid) < 0.5f : false;
-				input_lack_icons[size_t(i)]->set_visible(state, is_lack);
+				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < 0.05;
+				for(auto const & e : factory_elements)
+					e->set_visible(state, true);
+				for(auto const & e : upgrade_elements)
+					e->set_visible(state, false);
+				for(auto const & e : build_elements)
+					e->set_visible(state, false);
+				for(auto const & e : closed_elements)
+					e->set_visible(state, is_closed);
 			}
+
+			{
+				dcon::commodity_id cid = fat_btid.get_output().id;
+				output_icon->frame = int32_t(state.world.commodity_get_icon(cid));
+			}
+			// Commodity set
+			auto cset = fat_btid.get_inputs();
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i)
+				if(input_icons[size_t(i)]) {
+					dcon::commodity_id cid = cset.commodity_type[size_t(i)];
+					input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
+					bool is_lack = cid != dcon::commodity_id{} ? state.world.nation_get_demand_satisfaction(n, cid) < 0.5f : false;
+					input_lack_icons[size_t(i)]->set_visible(state, is_lack);
+				}
+		}
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -610,9 +644,13 @@ public:
 			parent->impl_get(state, payload);
 			auto sid = any_cast<dcon::state_instance_id>(payload);
 
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
 			bool can_build = false;
 			state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
-				can_build = can_build || command::can_begin_factory_building_construction(state, state.local_player_nation, sid, ftid, false);
+				can_build = can_build || command::can_begin_factory_building_construction(state, n, sid, ftid, false);
 			});
 			disabled = !can_build;
 		}
@@ -657,9 +695,14 @@ public:
 			Cyto::Any payload = dcon::state_instance_id{};
 			parent->impl_get(state, payload);
 			auto content = any_cast<dcon::state_instance_id>(payload);
+
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
 			disabled = true;
 			state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
-				disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
+				disabled = command::can_set_national_focus(state, n, content, nfid) ? false : disabled;
 			});
 			frame = get_icon_frame(state);
 		}
@@ -721,30 +764,36 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		Cyto::Any payload = bool{};
-		parent->impl_get(state, payload);
-		auto show_empty = any_cast<bool>(payload);
-
 		row_contents.clear();
-		for(auto const fat_id : state.world.nation_get_state_ownership(state.local_player_nation)) {
-			if(show_empty) {
-				row_contents.push_back(fat_id.get_state());
-			} else if(economy::has_factory(state, fat_id.get_state().id)) {
-				// Then account for factories **hidden** by the filter from goods...
-				size_t count = 0;
-				province::for_each_province_in_state_instance(state, fat_id.get_state(), [&](dcon::province_id pid) {
-					auto ffact_id = dcon::fatten(state.world, pid);
-					ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
-						auto fid = state.world.factory_location_get_factory(flid);
-						Cyto::Any payload = commodity_filter_query_data{state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
-						parent->impl_get(state, payload);
-						auto content = any_cast<commodity_filter_query_data>(payload);
-						count += content.filter ? 1 : 0;
-					});
-				});
+		if(parent) {
+			Cyto::Any payload = bool{};
+			parent->impl_get(state, payload);
+			auto show_empty = any_cast<bool>(payload);
 
-				if(count > 0)
+			Cyto::Any n_payload = dcon::nation_id{};
+			parent->impl_get(state, n_payload);
+			dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+
+			for(auto const fat_id : state.world.nation_get_state_ownership(n)) {
+				if(show_empty) {
 					row_contents.push_back(fat_id.get_state());
+				} else if(economy::has_factory(state, fat_id.get_state().id)) {
+					// Then account for factories **hidden** by the filter from goods...
+					size_t count = 0;
+					province::for_each_province_in_state_instance(state, fat_id.get_state(), [&](dcon::province_id pid) {
+						auto ffact_id = dcon::fatten(state.world, pid);
+						ffact_id.for_each_factory_location_as_province([&](dcon::factory_location_id flid) {
+							auto fid = state.world.factory_location_get_factory(flid);
+							Cyto::Any payload = commodity_filter_query_data{state.world.factory_type_get_output(state.world.factory_get_building_type(fid)).id, false};
+							parent->impl_get(state, payload);
+							auto content = any_cast<commodity_filter_query_data>(payload);
+							count += content.filter ? 1 : 0;
+						});
+					});
+
+					if(count > 0)
+						row_contents.push_back(fat_id.get_state());
+				}
 			}
 		}
 		update(state);
@@ -874,6 +923,7 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	element_base* nf_win = nullptr;
 	element_base* build_win = nullptr;
 	element_base* project_window = nullptr;
+	element_base* foreign_invest_win = nullptr;
 
 	sys::commodity_group curr_commodity_group{};
 	dcon::state_instance_id focus_state{};
@@ -882,10 +932,10 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 
 	std::vector<element_base*> factory_elements;
 	std::vector<element_base*> investment_brow_elements;
-	std::vector<element_base*> investment_button_elements;
 	std::vector<element_base*> project_elements;
 	std::vector<element_base*> good_elements;
 	std::vector<bool> commodity_filters;
+	bool open_foreign_invest = false;
 
 	void set_visible_vector_elements(sys::state& state, std::vector<element_base*>& elements, bool v) noexcept {
 		for(auto element : elements)
@@ -895,7 +945,6 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	void hide_sub_windows(sys::state& state) noexcept {
 		set_visible_vector_elements(state, factory_elements, false);
 		set_visible_vector_elements(state, investment_brow_elements, false);
-		set_visible_vector_elements(state, investment_button_elements, false);
 		set_visible_vector_elements(state, project_elements, false);
 		set_visible_vector_elements(state, good_elements, false);
 	}
@@ -1012,6 +1061,12 @@ public:
 			factory_elements.push_back(ptr.get());
 			ptr->set_visible(state, true);
 			return ptr;
+		} else if(name == "invest_buttons") {
+			auto ptr = make_element_by_type<production_foreign_investment_window>(state, id);
+			foreign_invest_win = ptr.get();
+			investment_brow_elements.push_back(ptr.get());
+			ptr->set_visible(state, false);
+			return ptr;
 		} else if(name == "state_listbox") {
 			auto ptr = make_element_by_type<production_state_listbox>(state, id);
 			state_listbox = ptr.get();
@@ -1021,11 +1076,6 @@ public:
 		} else if(name == "investment_browser") {
 			auto ptr = make_element_by_type<invest_brow_window>(state, id);
 			investment_brow_elements.push_back(ptr.get());
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "invest_buttons") {
-			auto ptr = make_element_by_type<invest_buttons_window>(state, id);
-			investment_button_elements.push_back(ptr.get());
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "sort_by_state") {
@@ -1073,6 +1123,7 @@ public:
 				break;
 			case production_window_tab::investments:
 				set_visible_vector_elements(state, investment_brow_elements, true);
+				foreign_invest_win->set_visible(state, open_foreign_invest);
 				break;
 			case production_window_tab::projects:
 				set_visible_vector_elements(state, project_elements, true);
@@ -1144,6 +1195,10 @@ public:
 				break;
 			}
 			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<dcon::nation_id>>()) {
+			open_foreign_invest = true;
+			foreign_invest_win->set_visible(state, true);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

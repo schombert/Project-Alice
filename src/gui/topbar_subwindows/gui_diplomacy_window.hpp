@@ -124,16 +124,19 @@ public:
 				uint8_t rel_flags = bool(rel) ? state.world.gp_relationship_get_status(rel) : 0;
 
 				text::substitution_map sub{};
-				text::add_to_substitution_map(sub, text::variable_type::value, get_prio_key(rel_flags));
+				if(auto k = state.key_to_text_sequence.find(get_prio_key(rel_flags)); k != state.key_to_text_sequence.end()) {
+					text::add_to_substitution_map(sub, text::variable_type::value, k->second);
+				}
 				text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio"), sub);
 				text::add_line_break_to_layout_box(contents, state, box);
+				text::add_to_substitution_map(sub, text::variable_type::country, nation_id);
 				text::localised_format_box(state, contents, box, std::string_view("diplomacy_dailyinflulence_gain"));
 			}
 			text::add_divider_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("diplomacy_set_prio_desc"));
 			text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::influence, false);
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::influence, false);
 		}
 	}
 };
@@ -852,25 +855,14 @@ public:
 	}
 };
 
-enum class diplomacy_list_sort : uint8_t {
-	country,
-	boss,
-	economic_rank,
-	military_rank,
-	prestige_rank,
-	total_rank,
-	relation,
-	opinion
-};
-template<diplomacy_list_sort Sort>
-class diplomacy_sort_button : public button_element_base {
+class diplomacy_sort_nation_gp_flag : public nation_gp_flag {
 public:
-	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = Sort;
-			parent->impl_set(state, payload);
-		}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+			return message_result::unseen;
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
 	}
+	void button_action(sys::state& state) noexcept override {}
 };
 
 class diplomacy_window : public generic_tabbed_window<diplomacy_window_tab> {
@@ -891,77 +883,9 @@ private:
 	std::vector<diplomacy_greatpower_info*> gp_infos{};
 	std::vector<element_base*> action_buttons{};
 
-	diplomacy_list_sort sort = diplomacy_list_sort::country;
+	country_list_sort sort = country_list_sort::country;
 	bool sort_ascend = true;
 	dcon::nation_id facts_nation_id{};
-
-	void sort_countries(sys::state& state) {
-		std::function<bool(dcon::nation_id, dcon::nation_id)> fn;
-		switch(sort) {
-		case diplomacy_list_sort::country:
-			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				dcon::nation_fat_id a_fat_id = dcon::fatten(state.world, a);
-				auto a_name = text::produce_simple_string(state, a_fat_id.get_name());
-				dcon::nation_fat_id b_fat_id = dcon::fatten(state.world, b);
-				auto b_name = text::produce_simple_string(state, b_fat_id.get_name());
-				return a_name < b_name;
-			};
-			break;
-		case diplomacy_list_sort::economic_rank:
-			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				return state.world.nation_get_industrial_rank(a) < state.world.nation_get_industrial_rank(b);
-			};
-			break;
-		case diplomacy_list_sort::military_rank:
-			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				return state.world.nation_get_military_rank(a) < state.world.nation_get_military_rank(b);
-			};
-			break;
-		case diplomacy_list_sort::prestige_rank:
-			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				return state.world.nation_get_prestige_rank(a) < state.world.nation_get_prestige_rank(b);
-			};
-			break;
-		case diplomacy_list_sort::total_rank:
-			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				return state.world.nation_get_rank(a) < state.world.nation_get_rank(b);
-			};
-			break;
-		case diplomacy_list_sort::relation:
-			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				auto rid_a = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, a);
-				auto rid_b = state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, b);
-				if(!bool(rid_a) || !bool(rid_b))
-					return a.index() < b.index();
-				return state.world.diplomatic_relation_get_value(rid_a) < state.world.diplomatic_relation_get_value(rid_b);
-			};
-			break;
-		case diplomacy_list_sort::opinion:
-			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				auto grid_a = state.world.get_gp_relationship_by_gp_influence_pair(a, state.local_player_nation);
-				auto grid_b = state.world.get_gp_relationship_by_gp_influence_pair(b, state.local_player_nation);
-				if(!bool(grid_a) || !bool(grid_b))
-					return a.index() < b.index();
-				return state.world.gp_relationship_get_status(grid_a) < state.world.gp_relationship_get_status(grid_b);
-			};
-			break;
-		// TODO: sorting for priority
-		// TODO: sorting for each influence for each gp
-		default:
-			fn = [&](dcon::nation_id a, dcon::nation_id b) {
-				dcon::nation_fat_id a_fat_id = dcon::fatten(state.world, a);
-				auto a_name = text::produce_simple_string(state, a_fat_id.get_name());
-				dcon::nation_fat_id b_fat_id = dcon::fatten(state.world, b);
-				auto b_name = text::produce_simple_string(state, b_fat_id.get_name());
-				return a_name < b_name;
-			};
-			break;
-		}
-		std::stable_sort(country_listbox->row_contents.begin(), country_listbox->row_contents.end(), [&](auto a, auto b) {
-			bool r = fn(a, b);
-			return sort_ascend ? r : !r;
-		});
-	}
 
 	void filter_countries(sys::state& state, std::function<bool(dcon::nation_id)> filter_fun) {
 		if(country_listbox) {
@@ -970,7 +894,7 @@ private:
 				if(state.world.nation_get_owned_province_count(id) != 0 && filter_fun(id))
 					country_listbox->row_contents.push_back(id);
 			});
-			sort_countries(state);
+			sort_countries(state, country_listbox->row_contents, sort, sort_ascend);
 			country_listbox->update(state);
 		}
 	}
@@ -1151,34 +1075,41 @@ public:
 			country_facts = ptr.get();
 			return ptr;
 		} else if(name == "sort_by_boss") {
-			auto ptr = make_element_by_type<diplomacy_sort_button<diplomacy_list_sort::boss>>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::boss>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_prestige") {
-			auto ptr = make_element_by_type<diplomacy_sort_button<diplomacy_list_sort::prestige_rank>>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::prestige_rank>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_economic") {
-			auto ptr = make_element_by_type<diplomacy_sort_button<diplomacy_list_sort::economic_rank>>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::economic_rank>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_military") {
-			auto ptr = make_element_by_type<diplomacy_sort_button<diplomacy_list_sort::military_rank>>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::military_rank>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_total") {
-			auto ptr = make_element_by_type<diplomacy_sort_button<diplomacy_list_sort::total_rank>>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::total_rank>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_relation") {
-			auto ptr = make_element_by_type<diplomacy_sort_button<diplomacy_list_sort::relation>>(state, id);
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::relation>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
 			return ptr;
 		} else if(name == "sort_by_opinion") {
-			return make_element_by_type<diplomacy_sort_button<diplomacy_list_sort::opinion>>(state, id);
+			return make_element_by_type<country_sort_button<country_list_sort::opinion>>(state, id);
+		} else if(name == "sort_by_prio") {
+			return make_element_by_type<country_sort_button<country_list_sort::priority>>(state, id);
 		} else if(name.substr(0, 14) == "sort_by_gpflag") {
-			auto ptr = make_element_by_type<nation_gp_flag>(state, id);
+			auto ptr = make_element_by_type<diplomacy_sort_nation_gp_flag>(state, id);
 			ptr->rank = uint16_t(std::stoi(std::string{name.substr(14)}));
+			ptr->base_data.position.y -= 2; // Nudge
+			return ptr;
+		} else if(name.substr(0, 10) == "sort_by_gp") {
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::gp_influence>>(state, id);
+			ptr->offset = uint8_t(std::stoi(std::string{name.substr(10)}));
 			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
@@ -1209,18 +1140,6 @@ public:
 			e->set_visible(state, false);
 	}
 
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<diplomacy_list_sort>()) {
-			auto new_sort = any_cast<diplomacy_list_sort>(payload);
-			sort_ascend = (new_sort == sort) ? !sort_ascend : true;
-			sort = new_sort;
-			sort_countries(state);
-			country_listbox->update(state);
-			return message_result::consumed;
-		}
-		return generic_tabbed_window<diplomacy_window_tab>::set(state, payload);
-	}
-
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<diplomacy_window_tab>()) {
 			auto enum_val = any_cast<diplomacy_window_tab>(payload);
@@ -1241,6 +1160,13 @@ public:
 				break;
 			}
 			active_tab = enum_val;
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<country_list_sort>>()) {
+			auto new_sort = any_cast<element_selection_wrapper<country_list_sort>>(payload).data;
+			sort_ascend = (new_sort == sort) ? !sort_ascend : true;
+			sort = new_sort;
+			sort_countries(state, country_listbox->row_contents, sort, sort_ascend);
+			country_listbox->update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<country_list_filter>()) {
 			auto filter = any_cast<country_list_filter>(payload);

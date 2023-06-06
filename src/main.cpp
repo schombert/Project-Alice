@@ -11,6 +11,7 @@
 #include "texture.cpp"
 #include "gui_graphics.cpp"
 #include "gui_element_types.cpp"
+#include "gui_common_elements.cpp"
 #include "gui_main_menu.cpp"
 #include "gui_console.cpp"
 #include "gui_province_window.cpp"
