@@ -185,8 +185,7 @@ float successful_cb_prestige(sys::state& state, dcon::cb_type_id type, dcon::nat
 float cb_infamy(sys::state const& state, dcon::cb_type_id t);                                                                            // the fabrication cost in infamy
 float cb_addition_infamy_cost(sys::state& state, dcon::war_id war, dcon::cb_type_id type, dcon::nation_id from, dcon::nation_id target); // the cost of adding a particular cb to the war -- does NOT check if the CB is valid to add
 
-bool cb_requires_selection_of_a_vassal(sys::state const& state, dcon::cb_type_id t);
-bool cb_requires_selection_of_a_sphere_member(sys::state const& state, dcon::cb_type_id t);
+bool cb_requires_selection_of_a_valid_nation(sys::state const& state, dcon::cb_type_id t);
 bool cb_requires_selection_of_a_liberatable_tag(sys::state const& state, dcon::cb_type_id t);
 bool cb_requires_selection_of_a_state(sys::state const& state, dcon::cb_type_id t);
 
